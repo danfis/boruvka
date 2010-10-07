@@ -2,7 +2,7 @@
 #include "cu.h"
 
 #include <mg/vec2.h>
-//#include "../tr.h"
+#include <mg/tr2.h>
 
 static mg_vec2_t *v[4];
 static mg_vec2_t *t, *p;
@@ -286,9 +286,8 @@ TEST(vec2Projection)
 
 TEST(vec2AngleSameDir)
 {
-    /*
     mg_real_t angle;
-    g_tr_t *tr = gTrNew();
+    mg_tr2_t *tr = mgTr2New();
 
     mgVec2Set(v[0], 1., 1.);
     mgVec2Set(v[1], 2., 2.);
@@ -332,10 +331,10 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
-    gTrIdentity(tr);
-    gTrRotate(tr, angle);
-    gTr(tr, v[2]);
-    gTr(tr, v[3]);
+    mgTr2Identity(tr);
+    mgTr2Rotate(tr, angle);
+    mgTr2(tr, v[2]);
+    mgTr2(tr, v[3]);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
@@ -366,20 +365,20 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
-    gTrIdentity(tr);
-    gTrRotate(tr, angle);
-    gTr(tr, v[2]);
-    gTr(tr, v[3]);
+    mgTr2Identity(tr);
+    mgTr2Rotate(tr, angle);
+    mgTr2(tr, v[2]);
+    mgTr2(tr, v[3]);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
 
-    mgVec2SetVec(t, v[1], v[0]);
-    mgVec2Scale(t, 1./mgVec2Length(t));
-    mgVec2SetVec(p, v[3], v[2]);
-    mgVec2Scale(p, 1./mgVec2Length(p));
+    mgVec2Sub2(t, v[1], v[0]);
+    mgVec2Scale(t, 1./MG_SQRT(mgVec2Len2(t)));
+    mgVec2Sub2(p, v[3], v[2]);
+    mgVec2Scale(p, 1./MG_SQRT(mgVec2Len2(p)));
     assertTrue(mgVec2Eq(t, p));
 
 
@@ -399,20 +398,20 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
-    gTrIdentity(tr);
-    gTrRotate(tr, angle);
-    gTr(tr, v[2]);
-    gTr(tr, v[3]);
+    mgTr2Identity(tr);
+    mgTr2Rotate(tr, angle);
+    mgTr2(tr, v[2]);
+    mgTr2(tr, v[3]);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
 
-    mgVec2SetVec(t, v[1], v[0]);
-    mgVec2Scale(t, 1./mgVec2Length(t));
-    mgVec2SetVec(p, v[2], v[3]);
-    mgVec2Scale(p, 1./mgVec2Length(p));
+    mgVec2Sub2(t, v[1], v[0]);
+    mgVec2Scale(t, 1./MG_SQRT(mgVec2Len2(t)));
+    mgVec2Sub2(p, v[2], v[3]);
+    mgVec2Scale(p, 1./MG_SQRT(mgVec2Len2(p)));
     assertTrue(mgVec2Eq(t, p));
 
 
@@ -432,23 +431,22 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
-    gTrIdentity(tr);
-    gTrRotate(tr, angle);
-    gTr(tr, v[2]);
-    gTr(tr, v[3]);
+    mgTr2Identity(tr);
+    mgTr2Rotate(tr, angle);
+    mgTr2(tr, v[2]);
+    mgTr2(tr, v[3]);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", mgVec2X(v[2]), mgVec2Y(v[2]));
     printf("%f %f\n", mgVec2X(v[3]), mgVec2Y(v[3]));
     printf("----\n");
 
-    mgVec2SetVec(t, v[0], v[1]);
-    mgVec2Scale(t, 1./mgVec2Length(t));
-    mgVec2SetVec(p, v[2], v[3]);
-    mgVec2Scale(p, 1./mgVec2Length(p));
+    mgVec2Sub2(t, v[0], v[1]);
+    mgVec2Scale(t, 1./MG_SQRT(mgVec2Len2(t)));
+    mgVec2Sub2(p, v[2], v[3]);
+    mgVec2Scale(p, 1./MG_SQRT(mgVec2Len2(p)));
     assertTrue(mgVec2Eq(t, p));
 
 
-    gTrDel(tr);
-    */
+    mgTr2Del(tr);
 }
