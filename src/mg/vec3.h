@@ -1,9 +1,6 @@
 #ifndef __MG_VEC3_H__
 #define __MG_VEC3_H__
 
-#include <math.h>
-#include <float.h>
-#include <stdlib.h>
 #include <mg/core.h>
 
 #ifdef __cplusplus
@@ -19,7 +16,7 @@ typedef struct _mg_vec3_t mg_vec3_t;
 /**
  * Holds origin (0,0,0) - this variable is meant to be read-only!
  */
-extern mg_vec3_t *mg_vec3_origin;
+extern const mg_vec3_t *mg_vec3_origin;
 
 /**
  * Array of points uniformly distributed on unit sphere.
@@ -33,14 +30,46 @@ extern size_t mg_points_on_sphere_len;
 #define MG_VEC3(name, x, y, z) \
     mg_vec3_t name = MG_VEC3_STATIC((x), (y), (z))
 
+/**
+ * Allocate and initialize new vector.
+ */
+mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z);
+
+/**
+ * Delete vector.
+ */
+void mgVec3Del(mg_vec3_t *);
+
+/**
+ * Clone given mg_vec3_t. This does deep copy.
+ */
+_mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v);
+
+/**
+ * v = w
+ */
+_mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w);
+
+
 _mg_inline mg_real_t mgVec3X(const mg_vec3_t *v);
 _mg_inline mg_real_t mgVec3Y(const mg_vec3_t *v);
 _mg_inline mg_real_t mgVec3Z(const mg_vec3_t *v);
+_mg_inline mg_real_t mgVec3Get(const mg_vec3_t *v, int d);
+
+_mg_inline void mgVec3SetX(mg_vec3_t *v, mg_real_t val);
+_mg_inline void mgVec3SetY(mg_vec3_t *v, mg_real_t val);
+_mg_inline void mgVec3SetZ(mg_vec3_t *v, mg_real_t val);
+_mg_inline void mgVec3Set(mg_vec3_t *v, mg_real_t x, mg_real_t y, mg_real_t z);
+
 
 /**
  * Returns true if a and b equal.
  */
 _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b);
+_mg_inline int mgVec3NEq(const mg_vec3_t *a, const mg_vec3_t *b);
+_mg_inline int mgVec3Eq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z);
+_mg_inline int mgVec3NEq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z);
+
 
 /**
  * Returns squared length of vector.
@@ -48,17 +77,10 @@ _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b);
 _mg_inline mg_real_t mgVec3Len2(const mg_vec3_t *v);
 
 /**
- * Returns distance between a and b.
+ * Returns squared distance between a and b.
  */
 _mg_inline mg_real_t mgVec3Dist2(const mg_vec3_t *a, const mg_vec3_t *b);
 
-
-_mg_inline void mgVec3Set(mg_vec3_t *v, mg_real_t x, mg_real_t y, mg_real_t z);
-
-/**
- * v = w
- */
-_mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w);
 
 /**
  * Substracts coordinates of vector w from vector v. v = v - w
@@ -118,6 +140,16 @@ mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
 
 
 /**** INLINES ****/
+_mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v)
+{
+    return mgVec3New(mgVec3X(v), mgVec3Y(v), mgVec3Z(v));
+}
+
+_mg_inline mg_real_t mgVec3Get(const mg_vec3_t *v, int d)
+{
+    return v->v[d];
+}
+
 _mg_inline mg_real_t mgVec3X(const mg_vec3_t *v)
 {
     return v->v[0];
@@ -140,6 +172,23 @@ _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b)
             && mgEq(mgVec3Z(a), mgVec3Z(b));
 }
 
+_mg_inline int mgVec3NEq(const mg_vec3_t *a, const mg_vec3_t *b)
+{
+    return !mgVec3Eq(a, b);
+}
+
+_mg_inline int mgVec3Eq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z)
+{
+    return mgEq(mgVec3X(a), x)
+            && mgEq(mgVec3Y(a), y)
+            && mgEq(mgVec3Z(a), z);
+}
+
+_mg_inline int mgVec3NEq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z)
+{
+    return !mgVec3Eq2(a, x, y, z);
+}
+
 _mg_inline mg_real_t mgVec3Len2(const mg_vec3_t *v)
 {
     return mgVec3Dot(v, v);
@@ -157,6 +206,21 @@ _mg_inline void mgVec3Set(mg_vec3_t *v, mg_real_t x, mg_real_t y, mg_real_t z)
     v->v[0] = x;
     v->v[1] = y;
     v->v[2] = z;
+}
+
+_mg_inline void mgVec3SetX(mg_vec3_t *v, mg_real_t val)
+{
+    v->v[0] = val;
+}
+
+_mg_inline void mgVec3SetY(mg_vec3_t *v, mg_real_t val)
+{
+    v->v[1] = val;
+}
+
+_mg_inline void mgVec3SetZ(mg_vec3_t *v, mg_real_t val)
+{
+    v->v[2] = val;
 }
 
 _mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w)

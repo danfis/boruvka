@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <mg/alloc.h>
 #include <mg/vec3.h>
 #include <mg/dbg.h>
 
 static MG_VEC3(__mg_vec3_origin, MG_ZERO, MG_ZERO, MG_ZERO);
-mg_vec3_t *mg_vec3_origin = &__mg_vec3_origin;
+const mg_vec3_t *mg_vec3_origin = &__mg_vec3_origin;
 
 static mg_vec3_t points_on_sphere[] = {
 	MG_VEC3_STATIC(MG_REAL( 0.000000), MG_REAL(-0.000000), MG_REAL(-1.000000)),
@@ -52,6 +53,17 @@ static mg_vec3_t points_on_sphere[] = {
 mg_vec3_t *mg_points_on_sphere = points_on_sphere;
 size_t mg_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(mg_vec3_t);
 
+mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z)
+{
+    mg_vec3_t *v = MG_ALLOC(mg_vec3_t);
+    mgVec3Set(v, x, y, z);
+    return v;
+}
+
+void mgVec3Del(mg_vec3_t *v)
+{
+    free(v);
+}
 
 _mg_inline mg_real_t __mgVec3PointSegmentDist2(const mg_vec3_t *P,
                                                   const mg_vec3_t *x0,

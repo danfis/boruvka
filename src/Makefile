@@ -3,7 +3,7 @@
 CFLAGS += -I.
 
 TARGETS = libmg.a
-OBJS = alloc.o vec3.o
+OBJS = alloc.o vec3.o vec2.o
 
 all: $(TARGETS)
 

@@ -72,6 +72,7 @@ typedef double mg_real_t;
 
 #define MG_ONE MG_REAL(1.)
 #define MG_ZERO MG_REAL(0.)
+#define MG_CUBE(x) ((x) * (x))
 
 
 /** Returns sign of value. */
@@ -80,6 +81,7 @@ _mg_inline int mgSign(mg_real_t val);
 _mg_inline int mgIsZero(mg_real_t val);
 /** Returns true if a and b equal. **/
 _mg_inline int mgEq(mg_real_t a, mg_real_t b);
+_mg_inline int mgNEq(mg_real_t a, mg_real_t b);
 
 
 /***** INLINES *****/
@@ -114,6 +116,11 @@ _mg_inline int mgEq(mg_real_t _a, mg_real_t _b)
     }else{
         return ab < MG_EPS * a;
     }
+}
+
+_mg_inline int mgNEq(mg_real_t a, mg_real_t b)
+{
+    return !mgEq(a, b);
 }
 
 

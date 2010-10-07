@@ -11,6 +11,16 @@ TEST(vec3TearDown)
 {
 }
 
+TEST(vec3Alloc)
+{
+    mg_vec3_t *v, w;
+
+    v = mgVec3New(0., 1., 2.);
+    mgVec3Set(&w, 0., 1., 2.);
+    assertTrue(mgVec3Eq(v, &w));
+    mgVec3Del(v);
+}
+
 TEST(vec3Core)
 {
     mg_vec3_t a, b, c, d;
