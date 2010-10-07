@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
 #include <mg/vec3.h>
+#include <mg/dbg.h>
 
 TEST(vec3SetUp)
 {
@@ -10,6 +11,103 @@ TEST(vec3TearDown)
 {
 }
 
+TEST(vec3Core)
+{
+    mg_vec3_t a, b, c, d;
+
+    mgVec3Set(&a, 0., 0., 0.);
+    assertTrue(mgVec3Eq(&a, mg_vec3_origin));
+
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(mgVec3Eq(&a, &b));
+
+    mgVec3Set(&a, 9., 1., 5.);
+    mgVec3Copy(&b, &a);
+    assertTrue(mgVec3Eq(&a, &b));
+
+    mgVec3Set(&a, 0., 0., 0.);
+    assertTrue(mgEq(0., mgVec3Len2(&a)));
+    mgVec3Set(&a, 1., 1., 1.);
+    assertTrue(mgEq(3., mgVec3Len2(&a)));
+    mgVec3Set(&a, 1., 4., 3.);
+    assertTrue(mgEq(1. + 4. * 4. + 3. * 3., mgVec3Len2(&a)));
+
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(mgEq(0., mgVec3Dist2(&a, &b)));
+    mgVec3Set(&a, 0., 1., .4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(mgEq(10.04, mgVec3Dist2(&a, &b)));
+
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    mgVec3Sub2(&c, &a, &b);
+    assertTrue(mgVec3Eq(&c, mg_vec3_origin));
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    mgVec3Sub(&a, &b);
+    assertTrue(mgVec3Eq(&a, mg_vec3_origin));
+    mgVec3Set(&a, 1.3, 1.2, 3.4);
+    mgVec3Set(&b, 0.2,  .2,  .4);
+    mgVec3Sub2(&c, &a, &b);
+    mgVec3Set(&d, 1.1, 1., 3.);
+    assertTrue(mgVec3Eq(&c, &d));
+    mgVec3Sub(&b, &a);
+    mgVec3Set(&d, -1.1, -1., -3.);
+    assertTrue(mgVec3Eq(&b, &d));
+
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    mgVec3Add(&a, &b);
+    mgVec3Set(&d, 2., 2.4, 6.8);
+    assertTrue(mgVec3Eq(&a, &d));
+    mgVec3Set(&a, 1.3, 1.2, 3.4);
+    mgVec3Set(&b, 0.2,  .2,  .4);
+    mgVec3Add(&a, &b);
+    mgVec3Set(&d, 1.5, 1.4, 3.8);
+    assertTrue(mgVec3Eq(&a, &d));
+
+    mgVec3Set(&a, 1., 1.2, 3.4);
+    mgVec3Scale(&a, 2.);
+    mgVec3Set(&d, 2., 2.4, 6.8);
+    assertTrue(mgVec3Eq(&a, &d));
+    mgVec3Set(&a, 1.3, 1.2, 3.4);
+    mgVec3Scale(&a, 0.2);
+    mgVec3Set(&d, 1.3 * .2, 1.2 * .2, 3.4 * .2);
+    assertTrue(mgVec3Eq(&a, &d));
+
+    mgVec3Set(&a, 2., 1.1, 5.4);
+    mgVec3Normalize(&a);
+    assertTrue(mgEq(1., mgVec3Len2(&a)));
+    mgVec3Set(&a, 1., .1, 3.4);
+    mgVec3Normalize(&a);
+    assertTrue(mgEq(1., mgVec3Len2(&a)));
+
+    mgVec3Set(&a, 2., 1.1, 5.4);
+    assertTrue(mgEq(mgVec3Len2(&a), mgVec3Dot(&a, &a)));
+    mgVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(mgEq(2. + 1.1 * 1.2 + 5.4 * 3.4, mgVec3Dot(&a, &b)));
+    mgVec3Set(&a, 2., 2.4, 6.8);
+    assertTrue(mgEq(2. + 2.4 * 1.2 + 6.8 * 3.4, mgVec3Dot(&a, &b)));
+
+    mgVec3Set(&a, 1., 0., 0.);
+    mgVec3Set(&b, 0., 1., 0.);
+    mgVec3Cross(&c, &a, &b);
+    mgVec3Set(&d, 0., 0., 1.);
+    assertTrue(mgVec3Eq(&c, &d));
+    mgVec3Cross(&c, &b, &a);
+    mgVec3Set(&d, 0., 0., -1.);
+    assertTrue(mgVec3Eq(&c, &d));
+    mgVec3Set(&a, 1., 1., 1.);
+    mgVec3Set(&b, 0., 1., 0.);
+    mgVec3Cross(&c, &a, &b);
+    mgVec3Set(&d, -1., 0., 1.);
+    assertTrue(mgVec3Eq(&c, &d));
+    mgVec3Cross(&c, &b, &a);
+    mgVec3Set(&d, 1., 0., -1.);
+    assertTrue(mgVec3Eq(&c, &d));
+}
 
 TEST(vec3PointSegmentDist)
 {

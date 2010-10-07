@@ -74,6 +74,49 @@ typedef double mg_real_t;
 #define MG_ZERO MG_REAL(0.)
 
 
+/** Returns sign of value. */
+_mg_inline int mgSign(mg_real_t val);
+/** Returns true if val is zero. **/
+_mg_inline int mgIsZero(mg_real_t val);
+/** Returns true if a and b equal. **/
+_mg_inline int mgEq(mg_real_t a, mg_real_t b);
+
+
+/***** INLINES *****/
+_mg_inline int mgSign(mg_real_t val)
+{
+    if (mgIsZero(val)){
+        return 0;
+    }else if (val < MG_ZERO){
+        return -1;
+    }
+    return 1;
+}
+
+_mg_inline int mgIsZero(mg_real_t val)
+{
+    return MG_FABS(val) < MG_EPS;
+}
+
+_mg_inline int mgEq(mg_real_t _a, mg_real_t _b)
+{
+    mg_real_t ab;
+
+    ab = MG_FABS(_a - _b);
+    if (MG_FABS(ab) < MG_EPS)
+        return 1;
+
+    mg_real_t a, b;
+    a = MG_FABS(_a);
+    b = MG_FABS(_b);
+    if (b > a){
+        return ab < MG_EPS * b;
+    }else{
+        return ab < MG_EPS * a;
+    }
+}
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */

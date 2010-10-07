@@ -5,12 +5,14 @@
 
 TEST(vec3SetUp);
 TEST(vec3TearDown);
+TEST(vec3Core);
 TEST(vec3PointSegmentDist);
 TEST(vec3PointTriDist);
 
 TEST_SUITE(TSVec3) {
     TEST_ADD(vec3SetUp),
 
+    TEST_ADD(vec3Core),
     TEST_ADD(vec3PointSegmentDist),
     TEST_ADD(vec3PointTriDist),
 
