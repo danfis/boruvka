@@ -28,7 +28,7 @@ check: all
 	./test $(CHECK_TS)
 	@echo "----------------------------------------";
 	@echo "Checking regressions:";
-	./$(CHECK_REG) regressions
+	$(PYTHON) $(CHECK_REG) regressions
 	@echo ""
 
 check-valgrind: all
