@@ -69,6 +69,23 @@ static mg_vec3_t points_on_sphere[] = {
 mg_vec3_t *mg_points_on_sphere = points_on_sphere;
 size_t mg_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(mg_vec3_t);
 
+_mg_inline mg_real_t _mgVec3ACos(mg_real_t angle)
+{
+    if (mgEq(angle, MG_ONE) || angle > MG_ONE)
+        angle = MG_ONE;
+    if (mgEq(angle, -MG_ONE) || angle < -MG_ONE)
+        angle = -MG_ONE;
+
+    /*
+    if (isnan(angle) || isnan(MG_ACOS(angle))){
+        DBG("NAN: %f", angle);
+    }
+    */
+
+    return MG_ACOS(angle);
+}
+
+
 mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z)
 {
     mg_vec3_t *v = MG_ALLOC(mg_vec3_t);
@@ -219,4 +236,124 @@ mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
     }
 
     return dist;
+}
+
+int mgVec3PointInTri(const mg_vec3_t *p,
+                     const mg_vec3_t *a, const mg_vec3_t *b,
+                     const mg_vec3_t *c,
+                     mg_vec3_t *witness)
+{
+    return mgIsZero(mgVec3PointTriDist2(p, a, b, c, witness));
+}
+
+mg_real_t mgVec3Angle(const mg_vec3_t *a, const mg_vec3_t *b, const mg_vec3_t *c)
+{
+    mg_real_t angle, div;
+    mg_real_t abx, aby, abz, cbx, cby, cbz;
+
+    abx = mgVec3X(a) - mgVec3X(b);
+    aby = mgVec3Y(a) - mgVec3Y(b);
+    abz = mgVec3Z(a) - mgVec3Z(b);
+
+    cbx = mgVec3X(c) - mgVec3X(b);
+    cby = mgVec3Y(c) - mgVec3Y(b);
+    cbz = mgVec3Z(c) - mgVec3Z(b);
+
+    div = MG_SQRT(abx * abx + aby * aby + abz * abz);
+    div *= MG_SQRT(cbx * cbx + cby * cby + cbz * cbz);
+    if (mgIsZero(div))
+        return MG_ZERO;
+
+    angle = abx * cbx + aby * cby + abz * cbz;
+    angle /= div;
+
+    return _mgVec3ACos(angle);
+}
+
+mg_real_t mgVec3DihedralAngle(const mg_vec3_t *a, const mg_vec3_t *b,
+                              const mg_vec3_t *c, const mg_vec3_t *d)
+{
+    mg_vec3_t base, v;
+    mg_vec3_t na, nb;
+    mg_real_t angle;
+
+    // get normal vec3tors of planes
+    mgVec3Sub2(&base, c, b);
+    mgVec3Sub2(&v, a, b);
+    mgVec3Cross(&na, &v, &base);
+
+    mgVec3Sub2(&v, d, b);
+    mgVec3Cross(&nb, &v, &base);
+
+    // normalize normals
+    mgVec3Normalize(&na);
+    mgVec3Normalize(&nb);
+
+    angle = mgVec3Dot(&na, &nb);
+
+    return _mgVec3ACos(angle);
+}
+
+mg_real_t mgVec3ProjToPlane(const mg_vec3_t *p,
+                            const mg_vec3_t *u, const mg_vec3_t *v,
+                            const mg_vec3_t *w, mg_vec3_t *d)
+{
+    mg_vec3_t uv, wv, normal;
+
+    // uv = u - v, wv = w - v
+    mgVec3Copy(&uv, u);
+    mgVec3Sub(&uv, v);
+    mgVec3Copy(&wv, w);
+    mgVec3Sub(&wv, v);
+
+    // scale uv and wv to get better normal
+    mgVec3ScaleToLen(&uv, 100.);
+    mgVec3ScaleToLen(&wv, 100.);
+
+    // compute normal vec3tor
+    mgVec3Cross(&normal, &uv, &wv);
+
+    return mgVec3ProjToPlane2(p, u, &normal, d);
+}
+
+mg_real_t mgVec3ProjToPlane2(const mg_vec3_t *p,
+                             const mg_vec3_t *x, const mg_vec3_t *normal,
+                             mg_vec3_t *d)
+{
+    mg_real_t k, D;
+    mg_real_t dist;
+
+    // cube of length of normal
+    k = MG_CUBE(mgVec3X(normal)) \
+        + MG_CUBE(mgVec3Y(normal)) \
+        + MG_CUBE(mgVec3Z(normal));
+
+    // check that normal's length is > 0
+    if (mg_unlikely(mgEq(k, MG_ZERO))){
+        return -MG_ONE;
+    }
+
+    D = mgVec3Dot(x, normal);
+    k = (D - mgVec3Dot(normal, p)) / k;
+
+    mgVec3Copy(d, normal);
+    mgVec3Scale(d, k);
+    dist = mgVec3Len(d);
+    mgVec3Add(d, p);
+
+    return dist;
+}
+
+mg_real_t mgVec3TriArea2(const mg_vec3_t *a, const mg_vec3_t *b,
+                         const mg_vec3_t *c)
+{
+    mg_vec3_t ba, bc, babc;
+    mg_real_t area;
+
+    mgVec3Sub2(&ba, a, b);
+    mgVec3Sub2(&bc, c, b);
+    mgVec3Cross(&babc, &ba, &bc);
+
+    area = mgVec3Len(&babc);
+    return area;
 }

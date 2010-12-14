@@ -46,6 +46,18 @@
 # define _mg_prefetchw(x)
 #endif /* __GNUC__ */
 
+/**
+ * Using this macros you can specify is it's likely or unlikely that branch
+ * will be used.
+ * Comes from linux header file ./include/compiler.h
+ */
+#ifdef __GNUC__
+# define mg_likely(x) __builtin_expect(!!(x), 1)
+# define mg_unlikely(x) __builtin_expect(!!(x), 0)
+#else /* __GNUC__ */
+# define mg_likely(x) !!(x)
+# define mg_unlikely(x) !!(x)
+#endif /* __GNUC__ */
 
 #ifdef __ICC
 // disable unused parameter warning
