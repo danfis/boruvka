@@ -45,6 +45,7 @@ typedef float mg_real_t;
 //# define MG_EPS 1E-6
 # define MG_EPS FLT_EPSILON
 # define MG_REAL_MAX FLT_MAX
+# define MG_REAL_MIN FLT_MIN
 
 # define MG_REAL_STR "%f"
 
@@ -69,6 +70,7 @@ typedef double mg_real_t;
 //# define MG_EPS 1E-10
 # define MG_EPS DBL_EPSILON
 # define MG_REAL_MAX DBL_MAX
+# define MG_REAL_MIN DBL_MIN
 
 # define MG_REAL_STR "%lf"
 
