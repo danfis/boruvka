@@ -1,0 +1,38 @@
+------
+Point color: 0.8 0.8 0.8
+Face color: 0 1 0
+Name: Proj 1 - Plane
+Points:
+-1 -1 -1
+1 1 1
+-1 1 1
+Faces: 0 1 2
+------
+Point color: 1 0 0 
+Name: Proj 1 - OPoint
+Points:
+0 0 1
+------
+Point color: 0 0 1 
+Name: Proj 1 - PPoint
+Points:
+0 0.5 0.5
+------
+Point color: 0.8 0.8 0.8
+Face color: 0 1 0
+Name: Proj 2 - Plane
+Points:
+-1 -2 -1
+1 2 1.8
+-1.4 1 1.2
+Faces: 0 1 2
+------
+Point color: 1 0 0 
+Name: Proj 2 - OPoint
+Points:
+3 -2 1
+------
+Point color: 0 0 1 
+Name: Proj 2 - PPoint
+Points:
+2.92397 -0.950836 -0.444501

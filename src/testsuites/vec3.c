@@ -379,3 +379,151 @@ TEST(vec3PointTriDist)
     assertTrue(mgVec3Eq(&w, &P0));
     //fprintf(stderr, "dist: %lf\n", dist);
 }
+
+TEST(vec3PointInTri)
+{
+    mg_vec3_t v[5];
+
+    mgVec3Set(&v[0], 1., 1., 0.);
+    mgVec3Set(&v[1], 0., 0., 0.);
+    mgVec3Set(&v[2], 2., 0.5, 0.);
+    mgVec3Set(&v[3], 0., 2., 0.);
+    assertTrue(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+
+    mgVec3Set(&v[0], 1., 1., 0.);
+    mgVec3Set(&v[1], 0., 0., 0.);
+    mgVec3Set(&v[2], 2., -1., 0.);
+    mgVec3Set(&v[3], 0., 2., 0.);
+    assertFalse(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+
+    mgVec3Set(&v[0], 1., 1., 0.);
+    mgVec3Set(&v[1], 0., 0., 0.);
+    mgVec3Set(&v[2], 0., 0., 0.);
+    mgVec3Set(&v[3], 0., 0., 0.);
+    assertFalse(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+
+    mgVec3Set(&v[0], 1., 1., 0.);
+    mgVec3Set(&v[1], 1., 0., 0.);
+    mgVec3Set(&v[2], 0., 0., 0.);
+    mgVec3Set(&v[3], -1., 0., 0.);
+    assertFalse(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+
+    mgVec3Set(&v[4], 0., 0., 0.);
+    mgVec3Set(&v[1], -1., 1., -1.);
+    mgVec3Set(&v[2], 1., 1., -1.);
+    mgVec3Set(&v[3], 0., 1., 2.);
+    mgVec3ProjToPlane(&v[4], &v[1], &v[2], &v[3], &v[0]);
+    assertTrue(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+
+    mgVec3Set(&v[4], 0., 0., 0.);
+    mgVec3Set(&v[1], -1., 1., -1.);
+    mgVec3Set(&v[2], 1., 0.8, -1.);
+    mgVec3Set(&v[3], 0., 1.3, 2.2);
+    mgVec3ProjToPlane(&v[4], &v[1], &v[2], &v[3], &v[0]);
+    assertTrue(mgVec3PointInTri(&v[0], &v[1], &v[2], &v[3], NULL));
+}
+
+static void projToPlanePrint(mg_vec3_t *vs, int num)
+{
+    size_t i;
+
+    printf("------\n");
+    printf("Point color: 0.8 0.8 0.8\n");
+    printf("Face color: 0 1 0\n");
+    printf("Name: Proj %d - Plane\n", num);
+    printf("Points:\n");
+    for (i=0; i < 3; i++)
+        printf("%g %g %g\n", mgVec3X(&vs[i + 2]), mgVec3Y(&vs[i + 2]), mgVec3Z(&vs[i + 2]));
+    printf("Faces: 0 1 2\n");
+
+    printf("------\n");
+    printf("Point color: 1 0 0 \n");
+    printf("Name: Proj %d - OPoint\n", num);
+    printf("Points:\n");
+    printf("%g %g %g\n", mgVec3X(&vs[1]), mgVec3Y(&vs[1]), mgVec3Z(&vs[1]));
+
+    printf("------\n");
+    printf("Point color: 0 0 1 \n");
+    printf("Name: Proj %d - PPoint\n", num);
+    printf("Points:\n");
+    printf("%g %g %g\n", mgVec3X(&vs[0]), mgVec3Y(&vs[0]), mgVec3Z(&vs[0]));
+}
+
+TEST(vec3ProjToPlane)
+{
+    mg_vec3_t v[6];
+
+    mgVec3Set(&v[1], 0., 0., 0.);
+    mgVec3Set(&v[2], 0., 0., 0.);
+    mgVec3Set(&v[3], 1., 0., 0.);
+    mgVec3Set(&v[4], 0., 1., 0.);
+    mgVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(mgEq(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]), MG_ZERO));
+    assertTrue(mgVec3Eq(&v[0], &v[5]));
+
+    mgVec3Set(&v[1], 0., 0., 1.);
+    mgVec3Set(&v[2], 0., 0., 0.);
+    mgVec3Set(&v[3], 1., 0., 0.);
+    mgVec3Set(&v[4], 0., 1., 0.);
+    mgVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    assertTrue(mgVec3Eq(&v[0], &v[5]));
+
+    mgVec3Set(&v[1], 0., 0., -1.);
+    mgVec3Set(&v[2], 0., 0., 0.);
+    mgVec3Set(&v[3], 1., 0., 0.);
+    mgVec3Set(&v[4], 0., 1., 0.);
+    mgVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    assertTrue(mgVec3Eq(&v[0], &v[5]));
+
+    mgVec3Set(&v[1], 0., 0., 1.);
+    mgVec3Set(&v[2], -1., -1., -1.);
+    mgVec3Set(&v[3], 1., -1., -1.);
+    mgVec3Set(&v[4], -1., 1., -1.);
+    mgVec3Set(&v[5], 0., 0., -1.);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    assertTrue(mgVec3Eq(&v[0], &v[5]));
+
+    mgVec3Set(&v[1], 0.5, 10., 0.5);
+    mgVec3Set(&v[2], 1., 0., 0.);
+    mgVec3Set(&v[3], -1., 0., 1.);
+    mgVec3Set(&v[4], -1., 0., -1.);
+    mgVec3Set(&v[5], 0.5, 0., 0.5);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    assertTrue(mgVec3Eq(&v[0], &v[5]));
+
+    mgVec3Set(&v[1], 0.5, 10., 0.5);
+    mgVec3Set(&v[2], -1., -1., -1.);
+    mgVec3Set(&v[3], 1., 1., 1.);
+    mgVec3Set(&v[4], 0., 0., 0.);
+    assertFalse(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+
+    mgVec3Set(&v[1], 0., 0., 1.);
+    mgVec3Set(&v[2], -1., -1., -1.);
+    mgVec3Set(&v[3], 1., 1., 1.);
+    mgVec3Set(&v[4], -1., 1., 1.);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    projToPlanePrint(v, 1);
+
+    mgVec3Set(&v[1], 3., -2., 1.);
+    mgVec3Set(&v[2], -1., -2., -1.);
+    mgVec3Set(&v[3], 1., 2., 1.8);
+    mgVec3Set(&v[4], -1.4, 1., 1.2);
+    assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
+    projToPlanePrint(v, 2);
+}
+
+
+TEST(vec3Centroid)
+{
+    mg_vec3_t v[5];
+
+    mgVec3Set(&v[0], 0., 0., 0.);
+    mgVec3Set(&v[1], 1., 0., 0.);
+    mgVec3Set(&v[2], 0., 1., 0.);
+    mgVec3TriCentroid(&v[0], &v[1], &v[2], &v[3]);
+
+    mgVec3Set(&v[4], 1./3., 1./3., 0.);
+    assertTrue(mgVec3Eq(&v[3], &v[4]));
+}

@@ -9,6 +9,9 @@ TEST(vec3Alloc);
 TEST(vec3Core);
 TEST(vec3PointSegmentDist);
 TEST(vec3PointTriDist);
+TEST(vec3PointInTri);
+TEST(vec3ProjToPlane);
+TEST(vec3Centroid);
 
 TEST_SUITE(TSVec3) {
     TEST_ADD(vec3SetUp),
@@ -17,6 +20,9 @@ TEST_SUITE(TSVec3) {
     TEST_ADD(vec3Core),
     TEST_ADD(vec3PointSegmentDist),
     TEST_ADD(vec3PointTriDist),
+    TEST_ADD(vec3PointInTri),
+    TEST_ADD(vec3ProjToPlane),
+    TEST_ADD(vec3Centroid),
 
     TEST_ADD(vec3TearDown),
     TEST_SUITE_CLOSURE
