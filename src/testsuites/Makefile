@@ -8,7 +8,7 @@ LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lmg
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-OBJS = vec3.o vec2.o tr2.o quat.o
+OBJS = vec3.o vec2.o tr2.o quat.o point_cloud.o
 BENCH_OBJS =
 
 

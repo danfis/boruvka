@@ -1,5 +1,7 @@
 #include <mg/point_cloud.h>
+#include <mg/rand.h>
 #include <mg/alloc.h>
+#include <mg/dbg.h>
 
 /**
  * Updates given AABB using given point.
@@ -15,6 +17,8 @@ mg_pc_t *mgPCNew(void)
     pc->len = 0;
     pc->aabb[0] = pc->aabb[2] = pc->aabb[4] = MG_REAL_MAX;
     pc->aabb[1] = pc->aabb[3] = pc->aabb[5] = MG_REAL_MIN;
+
+    pc->min_chunk_size = MG_PC_MIN_CHUNK_SIZE;
     
 
     return pc;
@@ -41,7 +45,7 @@ void mgPCAddCoords(mg_pc_t *pc, mg_real_t x, mg_real_t y, mg_real_t z)
     item = mgListPrev(&pc->head);
     mem = mgListEntry(item, mg_pc_mem_t, list);
     if (mgListEmpty(&pc->head) || mgPCMemFull(mem)){
-        mem = mgPCMemNew(10000); // TODO
+        mem = mgPCMemNew(pc->min_chunk_size);
         mgListAppend(&pc->head, &mem->list);
     }
 
@@ -49,6 +53,92 @@ void mgPCAddCoords(mg_pc_t *pc, mg_real_t x, mg_real_t y, mg_real_t z)
     mgPCAABBUpdate(pc->aabb, x, y, z);
     pc->len++;
 }
+
+mg_vec3_t *mgPCGet(mg_pc_t *pc, size_t n)
+{
+    mg_list_t *item;
+    mg_pc_mem_t *mem;
+    size_t pos;
+    mg_vec3_t *p = NULL;
+
+    if (n >= pc->len)
+        return NULL;
+
+    pos = 0;
+    mgListForEach(&pc->head, item){
+        mem = mgListEntry(item, mg_pc_mem_t, list);
+        if (pos + mem->len > n){
+            p = mgPCMemGet(mem, n - pos);
+            break;
+        }
+        pos += mem->len;
+    }
+
+    return p;
+}
+
+/** Returns (via other and other_pos) memory chunk and position within it
+ *  randomly chosen from point cloud from range starting at position from
+ *  of mem chunk mem_from. */
+static void mgPCPermutateOther(mg_pc_mem_t *mem_from, size_t from,
+                               size_t len, mg_rand_t *rand,
+                               mg_pc_mem_t **other, size_t *other_pos)
+{
+    size_t pos;
+    mg_pc_mem_t *mem;
+    mg_list_t *item;
+
+    mem = mem_from;
+
+    // choose position
+    pos = mgRand(rand, from, len);
+
+    // find correct mem chunk
+    while (pos >= mem->len){
+        pos -= mem->len;
+        item = mgListNext(&mem->list);
+        mem = mgListEntry(item, mg_pc_mem_t, list);
+    }
+
+    *other = mem;
+    *other_pos = pos;
+}
+
+void mgPCPermutate(mg_pc_t *pc)
+{
+    mg_list_t *item;
+    mg_pc_mem_t *cur_mem, *other_mem;
+    size_t cur_pos, pc_len, other_pos;
+    mg_rand_t rand;
+    mg_vec3_t v, *cur, *other;
+
+    mgRandInit(&rand);
+    pc_len = pc->len;
+
+    // iterate over all positions in all chunks consequently from beginning
+    // and choose some point from rest of point cloud (from positions _after_
+    // the current one) and swap points
+    mgListForEach(&pc->head, item){
+        cur_mem = mgListEntry(item, mg_pc_mem_t, list);
+        for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
+            // choose other point for swapping
+            mgPCPermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,
+                               &other_mem, &other_pos);
+
+            // swap points
+            cur   = mgPCMemGet(cur_mem, cur_pos);
+            other = mgPCMemGet(other_mem, other_pos);
+            mgVec3Copy(&v, other);
+            mgVec3Copy(other, cur);
+            mgVec3Copy(cur, &v);
+        }
+
+        // length must be decreased because mgPCPermutateOther takes
+        // length which is relative to first mem chunk
+        pc_len -= cur_mem->len;
+    }
+}
+
 
 _mg_inline void mgPCAABBUpdate(mg_real_t *aabb, mg_real_t x, mg_real_t y, mg_real_t z)
 {

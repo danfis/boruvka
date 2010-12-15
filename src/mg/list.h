@@ -102,6 +102,11 @@ _mg_inline void mgListAppend(mg_list_t *l, mg_list_t *item);
 _mg_inline void mgListDel(mg_list_t *item);
 
 
+/**
+ * Returns number of items in list - this takes O(n).
+ */
+_mg_inline size_t mgListSize(const mg_list_t *head);
+
 
 ///
 /// INLINES:
@@ -144,4 +149,15 @@ _mg_inline void mgListDel(mg_list_t *item)
     item->prev = item;
 }
 
+_mg_inline size_t mgListSize(const mg_list_t *head)
+{
+    mg_list_t *item;
+    size_t size = 0;
+
+    mgListForEach(head, item){
+        size++;
+    }
+
+    return size;
+}
 #endif /* __MG_LIST_H__ */
