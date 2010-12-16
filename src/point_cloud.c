@@ -1,5 +1,12 @@
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <mg/point_cloud.h>
 #include <mg/rand.h>
+#include <mg/parse.h>
 #include <mg/alloc.h>
 #include <mg/dbg.h>
 
@@ -139,6 +146,63 @@ void mgPCPermutate(mg_pc_t *pc)
     }
 }
 
+size_t mgPCAddFromFile(mg_pc_t *pc, const char *filename)
+{
+
+    int fd;
+    size_t size;
+    struct stat st;
+    void *file;
+    char *fstr, *fend, *fnext;
+    mg_vec3_t v;
+    size_t added = 0;
+
+    // open file
+    if ((fd = open(filename, O_RDONLY)) == -1){
+        ERR("Can't open file '%s'", filename);
+        return added;
+    }
+
+    // get stats (mainly size of file)
+    if (fstat(fd, &st) == -1){
+        close(fd);
+        ERR("Can't get file info of '%s'", filename);
+        return added;
+    }
+
+    // pick up size of file
+    size = st.st_size;
+
+    // mmap whole file into memory, we need only read from it and don't need
+    // to share anything
+    file = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (file == MAP_FAILED){
+        close(fd);
+        ERR("Can't map file '%s' into memory: %s", filename, strerror(errno));
+
+        // Fall to stdio method if it's not possible to map whole file into
+        // memory
+        // TODO gsrmInsigAddFromFileSTDIO(is, filename);
+        return added;
+    }
+
+    // set up char pointers to current char (fstr) and to end of memory (fend)
+    fstr = (char *)file;
+    fend = (char *)file + size;
+    while (mgParseVec3(fstr, fend, &v, &fnext) == 0){
+        mgPCAdd(pc, &v);
+        added++;
+        fstr = fnext;
+    }
+
+    // unmap mapped memory
+    munmap(file, size);
+
+    // close file
+    close(fd);
+
+    return added;
+}
 
 _mg_inline void mgPCAABBUpdate(mg_real_t *aabb, mg_real_t x, mg_real_t y, mg_real_t z)
 {

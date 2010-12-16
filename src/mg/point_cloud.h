@@ -90,6 +90,12 @@ mg_vec3_t *mgPCGet(mg_pc_t *pc, size_t n);
 void mgPCPermutate(mg_pc_t *pc);
 
 
+/**
+ * Adds points from given file.
+ * File must have one point on each file.
+ * Returns number of added points.
+ */
+size_t mgPCAddFromFile(mg_pc_t *pc, const char *filename);
 
 
 /**

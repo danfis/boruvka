@@ -32,6 +32,10 @@
 # define DBG_PROLOGUE
 #endif
 
+#ifndef ERR_PROLOGUE
+# define ERR_PROLOGUE "Error: "
+#endif
+
 # define DBG(format, ...) do { \
     fprintf(stderr, DBG_PROLOGUE "%s :: " format "\n", __func__, ## __VA_ARGS__); \
     fflush(stderr); \
@@ -50,10 +54,22 @@
     fflush(stderr); \
     } while (0)
 
+# define ERR(format, ...) do { \
+    fprintf(stderr, ERR_PROLOGUE format "\n", ## __VA_ARGS__); \
+    fflush(stderr); \
+    } while (0)
+
+# define ERR2(str) do { \
+    fprintf(stderr, ERR_PROLOGUE str "\n"); \
+    fflush(stderr); \
+    } while (0)
+
 #else
 # define DBG(format, ...)
 # define DBG2(str)
 # define DBG_VEC3(v, prefix)
+# define ERR(format, ...)
+# define ERR2(str)
 #endif
 
 #endif /* __MG_DBG_H__ */

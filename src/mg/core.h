@@ -61,6 +61,7 @@ typedef float mg_real_t;
 # define MG_ACOS(x)     (acosf(x))        /*!< arc cosine */
 # define MG_ASIN(x)     (asinf(x))        /*!< arc sine */
 # define MG_ATAN2(y, x) (atan2f(ym x))    /*!< arc tangent of y/x */
+# define MG_POW(x, y)   (powf((x), (y)))  /*!< power function */
 
 #endif /* MG_SINGLE */
 
@@ -86,6 +87,8 @@ typedef double mg_real_t;
 # define MG_ACOS(x)     (acos(x))        /*!< arc cosine */
 # define MG_ASIN(x)     (asin(x))        /*!< arc sine */
 # define MG_ATAN2(y, x) (atan2(ym x))    /*!< arc tangent of y/x */
+# define MG_POW(x, y)   (pow((x), (y)))  /*!< power function */
+
 #endif /* MG_DOUBLE */
 
 #define MG_ONE MG_REAL(1.)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
 #include <mg/point_cloud.h>
+#include <mg/dbg.h>
 
 TEST(pcSetUp)
 {
@@ -98,3 +99,21 @@ TEST(pcPermutate)
     mgPCDel(pc);
 }
 
+TEST(pcFromFile)
+{
+    mg_pc_t *pc;
+    size_t added;
+
+    pc = mgPCNew();
+
+    added = mgPCAddFromFile(pc, "asdfg");
+    assertEquals(added, 0);
+
+    added = mgPCAddFromFile(pc, "cube.txt");
+    assertEquals(added, 2402);
+    printf("\n----- pcFromFile ----\n");
+    pcPrint(pc);
+    printf("\n----- pcFromFile END ----\n");
+
+    mgPCDel(pc);
+}
