@@ -47,7 +47,7 @@ typedef float mg_real_t;
 # define MG_REAL_MAX FLT_MAX
 # define MG_REAL_MIN FLT_MIN
 
-# define MG_REAL_STR "%f"
+# define MG_REAL_STR "%.30f"
 
 # define MG_REAL(x)     (x ## f)          /*!< form a constant */
 
@@ -73,7 +73,7 @@ typedef double mg_real_t;
 # define MG_REAL_MAX DBL_MAX
 # define MG_REAL_MIN DBL_MIN
 
-# define MG_REAL_STR "%lf"
+# define MG_REAL_STR "%.30lf"
 
 # define MG_REAL(x)     (x ## f)         /*!< form a constant */
 
@@ -126,7 +126,7 @@ _mg_inline int mgEq(mg_real_t _a, mg_real_t _b)
     mg_real_t ab;
 
     ab = MG_FABS(_a - _b);
-    if (MG_FABS(ab) < MG_EPS)
+    if (ab < MG_EPS)
         return 1;
 
     mg_real_t a, b;

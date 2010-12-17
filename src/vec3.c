@@ -163,9 +163,9 @@ mg_real_t mgVec3PointSegmentDist2(const mg_vec3_t *P,
 }
 
 mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
-                                const mg_vec3_t *x0, const mg_vec3_t *B,
-                                const mg_vec3_t *C,
-                                mg_vec3_t *witness)
+                              const mg_vec3_t *x0, const mg_vec3_t *B,
+                              const mg_vec3_t *C,
+                              mg_vec3_t *witness)
 {
     // Computation comes from analytic expression for triangle (x0, B, C)
     //      T(s, t) = x0 + s.d1 + t.d2, where d1 = B - x0 and d2 = C - x0 and
@@ -240,10 +240,33 @@ mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
 
 int mgVec3PointInTri(const mg_vec3_t *p,
                      const mg_vec3_t *a, const mg_vec3_t *b,
-                     const mg_vec3_t *c,
-                     mg_vec3_t *witness)
+                     const mg_vec3_t *c)
 {
-    return mgIsZero(mgVec3PointTriDist2(p, a, b, c, witness));
+    mg_vec3_t v0, v1, v2;
+    mg_real_t dot00, dot01, dot02, dot11, dot12;
+    mg_real_t inv_denom, u, v;
+
+    // compute vectors
+    mgVec3Sub2(&v0, c, a);
+    mgVec3Sub2(&v1, b, a);
+    mgVec3Sub2(&v2, p, a);
+
+    // compute dot products
+    dot00 = mgVec3Dot(&v0, &v0);
+    dot01 = mgVec3Dot(&v0, &v1);
+    dot02 = mgVec3Dot(&v0, &v2);
+    dot11 = mgVec3Dot(&v1, &v1);
+    dot12 = mgVec3Dot(&v1, &v2);
+
+    // compute barycentric coordinates
+    inv_denom = MG_ONE / (dot00 * dot11 - dot01 * dot01);
+    u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
+    v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
+
+    // check if point is in triangle
+    return (u > MG_ZERO || mgIsZero(u))
+            && (v > MG_ZERO || mgIsZero(v))
+            && (u + v < MG_ONE || mgEq(u + v, MG_ONE));
 }
 
 mg_real_t mgVec3Angle(const mg_vec3_t *a, const mg_vec3_t *b, const mg_vec3_t *c)
@@ -301,14 +324,12 @@ mg_real_t mgVec3ProjToPlane(const mg_vec3_t *p,
     mg_vec3_t uv, wv, normal;
 
     // uv = u - v, wv = w - v
-    mgVec3Copy(&uv, u);
-    mgVec3Sub(&uv, v);
-    mgVec3Copy(&wv, w);
-    mgVec3Sub(&wv, v);
+    mgVec3Sub2(&uv, u, v);
+    mgVec3Sub2(&wv, w, v);
 
     // scale uv and wv to get better normal
-    mgVec3ScaleToLen(&uv, 100.);
-    mgVec3ScaleToLen(&wv, 100.);
+    mgVec3Normalize(&uv);
+    mgVec3Normalize(&wv);
 
     // compute normal vec3tor
     mgVec3Cross(&normal, &uv, &wv);
@@ -320,28 +341,20 @@ mg_real_t mgVec3ProjToPlane2(const mg_vec3_t *p,
                              const mg_vec3_t *x, const mg_vec3_t *normal,
                              mg_vec3_t *d)
 {
-    mg_real_t k, D;
-    mg_real_t dist;
+    mg_real_t k;
+    mg_vec3_t xp;
 
-    // cube of length of normal
-    k = MG_CUBE(mgVec3X(normal)) \
-        + MG_CUBE(mgVec3Y(normal)) \
-        + MG_CUBE(mgVec3Z(normal));
-
-    // check that normal's length is > 0
-    if (mg_unlikely(mgEq(k, MG_ZERO))){
-        return -MG_ONE;
-    }
-
-    D = mgVec3Dot(x, normal);
-    k = (D - mgVec3Dot(normal, p)) / k;
+    mgVec3Sub2(&xp, x, p);
+    k  = mgVec3Dot(&xp, normal);
+    k /= mgVec3Len2(normal);
 
     mgVec3Copy(d, normal);
     mgVec3Scale(d, k);
-    dist = mgVec3Len(d);
     mgVec3Add(d, p);
 
-    return dist;
+    k = mgVec3Dist(p, d);
+
+    return k;
 }
 
 mg_real_t mgVec3TriArea2(const mg_vec3_t *a, const mg_vec3_t *b,

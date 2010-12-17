@@ -174,8 +174,7 @@ mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
  */
 int mgVec3PointInTri(const mg_vec3_t *p,
                      const mg_vec3_t *a, const mg_vec3_t *b,
-                     const mg_vec3_t *c,
-                     mg_vec3_t *witness);
+                     const mg_vec3_t *c);
 
 /**
  * Returns angle in b between points a and b.
