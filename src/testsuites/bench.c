@@ -182,6 +182,36 @@ static void tri_dist(void)
     prTime();
 }
 
+static void eq(void)
+{
+    size_t i;
+    const struct timespec *t;
+    int e;
+
+    cuTimerStart();
+    for (i = 0; i < vecs_len - 1; i++){
+        e = mgVec3Eq(&vecs[i], &vecs[i]);
+        e = mgVec3Eq(&vecs[i], &vecs[i + 1]);
+    }
+    t = cuTimerStop();
+    prTime();
+}
+
+static void neq(void)
+{
+    size_t i;
+    const struct timespec *t;
+    int e;
+
+    cuTimerStart();
+    for (i = 0; i < vecs_len - 1; i++){
+        e = mgVec3NEq(&vecs[i], &vecs[i]);
+        e = mgVec3NEq(&vecs[i], &vecs[i + 1]);
+    }
+    t = cuTimerStop();
+    prTime();
+}
+
 TEST_SUITES {
     TEST_SUITES_CLOSURE
 };
@@ -200,6 +230,8 @@ int main(int argc, char *argv[])
     dist();
     segment_dist();
     tri_dist();
+    eq();
+    neq();
 
     return 0;
 }
