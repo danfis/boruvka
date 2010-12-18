@@ -2,6 +2,7 @@
 #include <cu/cu.h>
 #include <mg/vec3.h>
 #include <mg/dbg.h>
+#include "data.h"
 
 static void projToPlanePrint(mg_vec3_t *vs, int num);
 
@@ -22,6 +23,169 @@ TEST(vec3Alloc)
     assertTrue(mgVec3Eq(v, &w));
     mgVec3Del(v);
 }
+
+TEST(vec3Add)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- add ----\n");
+    mgVec3Set(&v, MG_ZERO, MG_ZERO, MG_ZERO);
+    for (i = 0; i < vecs_len; i++){
+        mgVec3Add(&v, &vecs[i]);
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- add end ----\n\n");
+}
+
+TEST(vec3Sub)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- sub ----\n");
+    mgVec3Set(&v, MG_ZERO, MG_ZERO, MG_ZERO);
+    for (i = 0; i < vecs_len; i++){
+        mgVec3Sub(&v, &vecs[i]);
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- sub end ----\n\n");
+}
+
+TEST(vec3Scale)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- scale ----\n");
+    mgVec3Copy(&v, &vecs[0]);
+    for (i = 0; i < vecs_len; i++){
+        mgVec3Scale(&v, mgVec3X(&vecs[i]));
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- scale end ----\n\n");
+}
+
+TEST(vec3Normalize)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- normalize ----\n");
+    for (i = 0; i < vecs_len; i++){
+        mgVec3Copy(&v, &vecs[i]);
+        mgVec3Normalize(&v);
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- normalize end ----\n\n");
+}
+
+TEST(vec3Dot)
+{
+    mg_real_t dot;
+    size_t i;
+
+    printf("# ---- dot ----\n");
+    for (i = 0; i < vecs_len - 1; i++){
+        dot = mgVec3Dot(&vecs[i], &vecs[i + 1]);
+        printf("# %g\n", dot);
+    }
+    printf("# ---- dot end ----\n\n");
+}
+
+TEST(vec3Cross)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- cross ----\n");
+    for (i = 0; i < vecs_len - 1; i++){
+        mgVec3Cross(&v, &vecs[i], &vecs[i + 1]);
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- cross end ----\n\n");
+}
+
+TEST(vec3Len2)
+{
+    mg_real_t d;
+    size_t i;
+
+    printf("# ---- len2 ----\n");
+    for (i = 0; i < vecs_len; i++){
+        d = mgVec3Len2(&vecs[i]);
+        printf("# %g\n", d);
+    }
+    printf("# ---- len2 end ----\n\n");
+}
+
+TEST(vec3Len)
+{
+    mg_real_t d;
+    size_t i;
+
+    printf("# ---- len ----\n");
+    for (i = 0; i < vecs_len; i++){
+        d = mgVec3Len(&vecs[i]);
+        printf("# %g\n", d);
+    }
+    printf("# ---- len end ----\n\n");
+}
+
+TEST(vec3Dist2)
+{
+    mg_real_t d;
+    size_t i;
+
+    printf("# ---- dist2 ----\n");
+    for (i = 0; i < vecs_len - 1; i++){
+        d = mgVec3Dist2(&vecs[i], &vecs[i + 1]);
+        printf("# %g\n", d);
+    }
+    printf("# ---- dist2 end ----\n\n");
+}
+
+TEST(vec3Dist)
+{
+    mg_real_t d;
+    size_t i;
+
+    printf("# ---- dist ----\n");
+    for (i = 0; i < vecs_len - 1; i++){
+        d = mgVec3Dist(&vecs[i], &vecs[i + 1]);
+        printf("# %g\n", d);
+    }
+    printf("# ---- dist end ----\n\n");
+}
+
+TEST(vec3SegmentDist)
+{
+    mg_real_t d;
+    mg_vec3_t w;
+    size_t i;
+
+    printf("# ---- segment dist ----\n");
+    for (i = 0; i < vecs_len - 2; i++){
+        d = mgVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
+        printf("# %g %g %g %g\n", d, mgVec3X(&w), mgVec3Y(&w), mgVec3Z(&w));
+    }
+    printf("# ---- segment dist end ----\n\n");
+}
+
+TEST(vec3TriDist)
+{
+    mg_real_t d;
+    mg_vec3_t w;
+    size_t i;
+
+    printf("# ---- tri dist ----\n");
+    for (i = 0; i < vecs_len - 3; i++){
+        d = mgVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
+        printf("# %g %g %g %g\n", d, mgVec3X(&w), mgVec3Y(&w), mgVec3Z(&w));
+    }
+    printf("# ---- tri dist end ----\n\n");
+}
+
 
 TEST(vec3Core)
 {

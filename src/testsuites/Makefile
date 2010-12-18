@@ -8,14 +8,16 @@ LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lmg
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-OBJS = vec3.o vec2.o tr2.o quat.o point_cloud.o
+OBJS = vec3.o vec2.o tr2.o quat.o point_cloud.o data.o
 BENCH_OBJS =
 
 
-all: test
+all: test bench
 
 test: cu $(OBJS) main.c
 	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
+bench: cu bench.c data.o
+	$(CC) $(CFLAGS) -o $@ bench.c data.o $(LDFLAGS)
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
