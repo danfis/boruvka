@@ -29,4 +29,16 @@ void *mgRealloc(void *ptr, size_t size)
     return ret;
 }
 
+void *mgAllocAlign(size_t size, size_t alignment)
+{
+    void *mem;
+
+    if (posix_memalign(&mem, alignment, size) != 0){
+        fprintf(stderr, "Fatal error: Allocation of memory failed!\n");
+        fflush(stderr);
+        exit(-1);
+    }
+
+    return mem;
+}
 

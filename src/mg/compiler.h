@@ -59,6 +59,15 @@
 # define mg_unlikely(x) !!(x)
 #endif /* __GNUC__ */
 
+#ifdef __GNUC__
+# define mg_aligned(x) __attribute__ ((aligned(x)))
+# define mg_packed __attribute__ ((packed))
+#else /* __GNUC__ */
+# define mg_aligned(x)
+# define mg_packed
+#endif /* __GNUC__ */
+
+
 #ifdef __ICC
 // disable unused parameter warning
 # pragma warning(disable:869)

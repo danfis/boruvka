@@ -31,6 +31,10 @@
 #define MG_ALLOC(type) \
     _MG_ALLOC_MEMORY(type, NULL, sizeof(type))
 
+/** Allocates aligned memory */
+#define MG_ALLOC_ALIGN(type, align) \
+    (type *)mgAllocAlign(sizeof(type), align)
+
 /** Allocate memory for array of elements of type type.  */
 #define MG_ALLOC_ARR(type, num_elements) \
     _MG_ALLOC_MEMORY(type, NULL, sizeof(type) * (num_elements))
@@ -39,5 +43,6 @@
     _MG_ALLOC_MEMORY(type, ptr, sizeof(type) * (num_elements))
 
 void *mgRealloc(void *ptr, size_t size);
+void *mgAllocAlign(size_t size, size_t alignment);
 
 #endif /* __MG_ALLOC_H__ */

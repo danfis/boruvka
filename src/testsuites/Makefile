@@ -1,5 +1,5 @@
 # force some options
-DEBUG = yes
+#DEBUG = yes
 
 -include ../Makefile.include
 CFLAGS += -I./ -I../ -Icu/

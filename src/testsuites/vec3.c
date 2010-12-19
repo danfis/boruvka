@@ -215,6 +215,13 @@ TEST(vec3Core)
     mgVec3Set(&a, 0., 1., .4);
     mgVec3Set(&b, 1., 1.2, 3.4);
     assertTrue(mgEq(10.04, mgVec3Dist2(&a, &b)));
+    /*
+    DBG("%.30g", MG_EPS);
+    DBG("%.30g", 10.04);
+    DBG("%.30g", mgVec3Dist2(&a, &b));
+    DBG_VEC3(&a, "a: ");
+    DBG_VEC3(&b, "b: ");
+    */
 
     mgVec3Set(&a, 1., 1.2, 3.4);
     mgVec3Set(&b, 1., 1.2, 3.4);
@@ -256,6 +263,10 @@ TEST(vec3Core)
     mgVec3Set(&a, 2., 1.1, 5.4);
     mgVec3Normalize(&a);
     assertTrue(mgEq(1., mgVec3Len2(&a)));
+    DBG("%.30g", MG_EPS);
+    DBG("%.30g", 1.);
+    DBG("%.30g", mgVec3Len2(&a));
+    DBG_VEC3(&a, "a: ");
     mgVec3Set(&a, 1., .1, 3.4);
     mgVec3Normalize(&a);
     assertTrue(mgEq(1., mgVec3Len2(&a)));

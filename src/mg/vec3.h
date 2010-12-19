@@ -23,10 +23,23 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#define MG_SSE_SINGLE
+
+#ifdef MG_SSE_SINGLE
+#include <immintrin.h>
+
+union _mg_vec3_t {
+    __m128 v;
+    float f[4];
+} mg_aligned(16) mg_packed;
+typedef union _mg_vec3_t mg_vec3_t;
+
+#else /* MG_SSE_SINGLE */
 struct _mg_vec3_t {
-    mg_real_t v[3];
+    mg_real_t v[4];
 };
 typedef struct _mg_vec3_t mg_vec3_t;
+#endif /* MG_SSE_SINGLE */
 
 
 /**
@@ -230,22 +243,38 @@ _mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v)
 
 _mg_inline mg_real_t mgVec3Get(const mg_vec3_t *v, int d)
 {
+#ifdef MG_SSE_SINGLE
+    return v->f[d];
+#else /* MG_SSE_SINGLE */
     return v->v[d];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline mg_real_t mgVec3X(const mg_vec3_t *v)
 {
+#ifdef MG_SSE_SINGLE
+    return v->f[0];
+#else /* MG_SSE_SINGLE */
     return v->v[0];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline mg_real_t mgVec3Y(const mg_vec3_t *v)
 {
+#ifdef MG_SSE_SINGLE
+    return v->f[1];
+#else /* MG_SSE_SINGLE */
     return v->v[1];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline mg_real_t mgVec3Z(const mg_vec3_t *v)
 {
+#ifdef MG_SSE_SINGLE
+    return v->f[2];
+#else /* MG_SSE_SINGLE */
     return v->v[2];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b)
@@ -294,28 +323,54 @@ _mg_inline mg_real_t mgVec3Dist(const mg_vec3_t *a, const mg_vec3_t *b)
 
 _mg_inline void mgVec3Set(mg_vec3_t *v, mg_real_t x, mg_real_t y, mg_real_t z)
 {
+#ifdef MG_SSE_SINGLE
+    //v->v = _mm_set_ps(x, y, z, MG_ZERO);
+    v->f[0] = x;
+    v->f[1] = y;
+    v->f[2] = z;
+#else /* MG_SSE_SINGLE */
     v->v[0] = x;
     v->v[1] = y;
     v->v[2] = z;
+#endif /* MG_SSE_SINGLE */
 }
 _mg_inline void mgVec3SetCoord(mg_vec3_t *v, int d, mg_real_t val)
 {
+#ifdef MG_SSE_SINGLE
+    v->f[d] = val;
+#else /* MG_SSE_SINGLE */
     v->v[d] = val;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3SetX(mg_vec3_t *v, mg_real_t val)
 {
+#ifdef MG_SSE_SINGLE
+    //v->v = _mm_set_ps(val, v->f[1], v->f[2], MG_ZERO);
+    v->f[0] = val;
+#else /* MG_SSE_SINGLE */
     v->v[0] = val;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3SetY(mg_vec3_t *v, mg_real_t val)
 {
+#ifdef MG_SSE_SINGLE
+    //v->v = _mm_set_ps(v->f[0], val, v->f[1], MG_ZERO);
+    v->f[1] = val;
+#else /* MG_SSE_SINGLE */
     v->v[1] = val;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3SetZ(mg_vec3_t *v, mg_real_t val)
 {
+#ifdef MG_SSE_SINGLE
+    //v->v = _mm_set_ps(v->f[0], v->f[1], val, MG_ZERO);
+    v->f[2] = val;
+#else /* MG_SSE_SINGLE */
     v->v[2] = val;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w)
@@ -325,65 +380,139 @@ _mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w)
 
 _mg_inline void mgVec3Add(mg_vec3_t *v, const mg_vec3_t *w)
 {
+#ifdef MG_SSE_SINGLE
+    v->v = _mm_add_ps(v->v, w->v);
+#else /* MG_SSE_SINGLE */
     v->v[0] += w->v[0];
     v->v[1] += w->v[1];
     v->v[2] += w->v[2];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3Add2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
 {
+#ifdef MG_SSE_SINGLE
+    d->v = _mm_add_ps(v->v, w->v);
+#else /* MG_SSE_SINGLE */
     d->v[0] = v->v[0] + w->v[0];
     d->v[1] = v->v[1] + w->v[1];
     d->v[2] = v->v[2] + w->v[2];
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3Sub(mg_vec3_t *v, const mg_vec3_t *w)
 {
+#ifdef MG_SSE_SINGLE
+    v->v = _mm_sub_ps(v->v, w->v);
+#else /* MG_SSE_SINGLE */
     v->v[0] -= w->v[0];
     v->v[1] -= w->v[1];
     v->v[2] -= w->v[2];
+#endif /* MG_SSE_SINGLE */
 }
 _mg_inline void mgVec3Sub2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
 {
+#ifdef MG_SSE_SINGLE
+    d->v = _mm_sub_ps(v->v, w->v);
+#else /* MG_SSE_SINGLE */
     d->v[0] = v->v[0] - w->v[0];
     d->v[1] = v->v[1] - w->v[1];
     d->v[2] = v->v[2] - w->v[2];
+#endif /* MG_SSE_SINGLE */
 }
 
-_mg_inline void mgVec3Scale(mg_vec3_t *d, mg_real_t k)
+_mg_inline void mgVec3Scale(mg_vec3_t *d, mg_real_t _k)
 {
-    d->v[0] *= k;
-    d->v[1] *= k;
-    d->v[2] *= k;
+#ifdef MG_SSE_SINGLE
+    mg_vec3_t k;
+    k.v = _mm_set1_ps(_k);
+    d->v = _mm_mul_ps(d->v, k.v);
+#else /* MG_SSE_SINGLE */
+    d->v[0] *= _k;
+    d->v[1] *= _k;
+    d->v[2] *= _k;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3ScaleToLen(mg_vec3_t *v, mg_real_t len)
 {
+#ifdef MG_SSE_SINGLE
+    mg_vec3_t k, l;
+
+    k.v = _mm_set1_ps(mgVec3Len2(v));
+    k.v = _mm_sqrt_ps(k.v);
+    l.v = _mm_set1_ps(len);
+    k.v = _mm_div_ps(k.v, l.v);
+    v->v = _mm_div_ps(v->v, k.v);
+#else /* MG_SSE_SINGLE */
     mg_real_t k = len / MG_SQRT(mgVec3Len2(v));
     mgVec3Scale(v, k);
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3Normalize(mg_vec3_t *d)
 {
+#ifdef MG_SSE_SINGLE
+    mg_vec3_t k;
+
+    k.v = _mm_set1_ps(mgVec3Len2(d));
+    k.v = _mm_sqrt_ps(k.v);
+    d->v = _mm_div_ps(d->v, k.v);
+#else /* MG_SSE_SINGLE */
     mg_real_t k = MG_ONE / MG_SQRT(mgVec3Len2(d));
     mgVec3Scale(d, k);
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b)
 {
+#ifdef MG_SSE_SINGLE
+    mg_vec3_t dot;
+    /* TODO: SSE 4.1
+    static const int mask = ~0;
+
+    dot->v = _mm_dp_ps(a->v, b->v, mask);
+    */
+    dot.v = _mm_mul_ps(a->v, b->v);
+    dot.v = _mm_hadd_ps(dot.v, mg_vec3_origin->v);
+    dot.v = _mm_hadd_ps(dot.v, mg_vec3_origin->v);
+
+    return mgVec3X(&dot);
+#else /* MG_SSE_SINGLE */
     mg_real_t dot;
 
     dot  = a->v[0] * b->v[0];
     dot += a->v[1] * b->v[1];
     dot += a->v[2] * b->v[2];
+
     return dot;
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3Cross(mg_vec3_t *d, const mg_vec3_t *a, const mg_vec3_t *b)
 {
+#ifdef MG_SSE_SINGLE
+    mg_vec3_t v0, v1, v2, v3;
+
+    v0.v = a->v;
+    v1.v = b->v;
+    v2.v = a->v;
+    v3.v = b->v;
+
+    v0.v = _mm_shuffle_ps(v0.v, v0.v, _MM_SHUFFLE(3, 0, 2, 1));
+    v1.v = _mm_shuffle_ps(v1.v, v1.v, _MM_SHUFFLE(3, 1, 0, 2));
+    v0.v = _mm_mul_ps(v0.v, v1.v);
+
+    v2.v = _mm_shuffle_ps(v2.v, v2.v, _MM_SHUFFLE(3, 1, 0, 2));
+    v3.v = _mm_shuffle_ps(v3.v, v3.v, _MM_SHUFFLE(3, 0, 2, 1));
+    v2.v = _mm_mul_ps(v2.v, v3.v);
+
+    d->v = _mm_sub_ps(v0.v, v2.v);
+#else /* MG_SSE_SINGLE */
     d->v[0] = (a->v[1] * b->v[2]) - (a->v[2] * b->v[1]);
     d->v[1] = (a->v[2] * b->v[0]) - (a->v[0] * b->v[2]);
     d->v[2] = (a->v[0] * b->v[1]) - (a->v[1] * b->v[0]);
+#endif /* MG_SSE_SINGLE */
 }
 
 _mg_inline void mgVec3TriCentroid(const mg_vec3_t *a, const mg_vec3_t *b,

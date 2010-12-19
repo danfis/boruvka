@@ -88,7 +88,13 @@ _mg_inline mg_real_t _mgVec3ACos(mg_real_t angle)
 
 mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z)
 {
-    mg_vec3_t *v = MG_ALLOC(mg_vec3_t);
+    mg_vec3_t *v;
+
+#ifdef MG_SSE
+    v = MG_ALLOC_ALIGN(mg_vec3_t, sizeof(mg_vec3_t));
+#else /* MG_SSE */
+    v = MG_ALLOC(mg_vec3_t);
+#endif /* MG_SSE */
     mgVec3Set(v, x, y, z);
     return v;
 }
