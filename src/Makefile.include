@@ -59,6 +59,7 @@ endif
 CONFIG_FLAGS =
 USE_DOUBLE ?= yes
 USE_SINGLE ?= no
+USE_SSE ?= no
 
 ifeq '$(USE_SINGLE)' 'yes'
   CONFIG_FLAGS += -DUSE_SINGLE
@@ -66,6 +67,9 @@ ifeq '$(USE_SINGLE)' 'yes'
 endif
 ifeq '$(USE_DOUBLE)' 'yes'
   CONFIG_FLAGS += -DUSE_DOUBLE
+endif
+ifeq '$(USE_SSE)' 'yes'
+  CONFIG_FLAGS += -DUSE_SSE
 endif
 
 CFLAGS += --std=gnu99
@@ -92,6 +96,7 @@ showvars:
 	@echo "NOPEDANTIC = $(NOPEDANTIC)"
 	@echo "USE_SINGLE = $(USE_SINGLE)"
 	@echo "USE_DOUBLE = $(USE_DOUBLE)"
+	@echo "USE_SSE    = $(USE_SSE)"
 	@echo ""
 	@echo "CFLAGS       = $(CFLAGS)"
 	@echo "CXXFLAGS     = $(CXXFLAGS)"

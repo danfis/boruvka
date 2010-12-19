@@ -3,4 +3,5 @@ bench-out/*
 *.o
 test
 bench
+bench.s
 bench2

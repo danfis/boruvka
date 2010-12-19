@@ -23,8 +23,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define MG_SSE_SINGLE
-
 #ifdef MG_SSE_SINGLE
 #include <immintrin.h>
 
@@ -403,7 +401,8 @@ _mg_inline void mgVec3Add2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
 _mg_inline void mgVec3Sub(mg_vec3_t *v, const mg_vec3_t *w)
 {
 #ifdef MG_SSE_SINGLE
-    v->v = _mm_sub_ps(v->v, w->v);
+    mgVec3Add(v, w);
+    //v->v = _mm_sub_ps(v->v, w->v);
 #else /* MG_SSE_SINGLE */
     v->v[0] -= w->v[0];
     v->v[1] -= w->v[1];

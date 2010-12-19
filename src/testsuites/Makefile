@@ -4,6 +4,7 @@
 -include ../Makefile.include
 CFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lmg
+CFLAGS_BENCH += $(CFLAGS) -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
@@ -17,7 +18,8 @@ all: test bench
 test: cu $(OBJS) main.c
 	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
 bench: cu bench.c data.o
-	$(CC) $(CFLAGS) -o $@ bench.c data.o $(LDFLAGS)
+	$(CC) $(CFLAGS_BENCH) -o $@ bench.c data.o $(LDFLAGS)
+	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
