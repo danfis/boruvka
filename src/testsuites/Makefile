@@ -1,10 +1,10 @@
 # force some options
-#DEBUG = yes
+DEBUG = yes
 
 -include ../Makefile.include
 CFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lmg
-CFLAGS_BENCH += $(CFLAGS) -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
+CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=

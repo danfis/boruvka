@@ -215,13 +215,6 @@ TEST(vec3Core)
     mgVec3Set(&a, 0., 1., .4);
     mgVec3Set(&b, 1., 1.2, 3.4);
     assertTrue(mgEq(10.04, mgVec3Dist2(&a, &b)));
-    /*
-    DBG("%.30g", MG_EPS);
-    DBG("%.30g", 10.04);
-    DBG("%.30g", mgVec3Dist2(&a, &b));
-    DBG_VEC3(&a, "a: ");
-    DBG_VEC3(&b, "b: ");
-    */
 
     mgVec3Set(&a, 1., 1.2, 3.4);
     mgVec3Set(&b, 1., 1.2, 3.4);
@@ -263,10 +256,6 @@ TEST(vec3Core)
     mgVec3Set(&a, 2., 1.1, 5.4);
     mgVec3Normalize(&a);
     assertTrue(mgEq(1., mgVec3Len2(&a)));
-    DBG("%.30g", MG_EPS);
-    DBG("%.30g", 1.);
-    DBG("%.30g", mgVec3Len2(&a));
-    DBG_VEC3(&a, "a: ");
     mgVec3Set(&a, 1., .1, 3.4);
     mgVec3Normalize(&a);
     assertTrue(mgEq(1., mgVec3Len2(&a)));
@@ -669,13 +658,6 @@ TEST(vec3ProjToPlane)
     mgVec3Set(&v[5], 0.5, 0., 0.5);
     assertTrue(mgVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > MG_ZERO);
     assertTrue(mgVec3Eq(&v[0], &v[5]));
-    fprintf(stderr, "--\n");
-    assertTrue(mgVec3Eq(&v[0], &v[5]));
-    fprintf(stderr, "%.30lf %.30lf %.30lf\n", MG_EPS, MG_EPS, MG_EPS);
-    fprintf(stderr, "%.30lf %.30lf %.30lf\n",
-            mgVec3X(&v[0]), mgVec3Y(&v[0]), mgVec3Z(&v[0]));
-    fprintf(stderr, "%.30lf %.30lf %.30lf\n",
-            mgVec3X(&v[5]), mgVec3Y(&v[5]), mgVec3Z(&v[5]));
 
     mgVec3Set(&v[1], 0.5, 10., 0.5);
     mgVec3Set(&v[2], -1., -1., -1.);

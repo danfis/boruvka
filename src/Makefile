@@ -16,7 +16,7 @@
 
 -include Makefile.include
 
-CFLAGS += -I.
+CFLAGS += -I. -g
 
 TARGETS = libmg.a
 OBJS = alloc.o vec3.o vec2.o tr2.o quat.o parse.o \

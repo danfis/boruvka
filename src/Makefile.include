@@ -70,6 +70,7 @@ ifeq '$(USE_DOUBLE)' 'yes'
 endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
+  CFLAGS += -msse -msse2 -msse3
 endif
 
 CFLAGS += --std=gnu99

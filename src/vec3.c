@@ -105,9 +105,9 @@ void mgVec3Del(mg_vec3_t *v)
 }
 
 _mg_inline mg_real_t __mgVec3PointSegmentDist2(const mg_vec3_t *P,
-                                                  const mg_vec3_t *x0,
-                                                  const mg_vec3_t *b,
-                                                  mg_vec3_t *witness)
+                                               const mg_vec3_t *x0,
+                                               const mg_vec3_t *b,
+                                               mg_vec3_t *witness)
 {
     // The computation comes from solving equation of segment:
     //      S(t) = x0 + t.d
