@@ -41,7 +41,7 @@ void pcPrint(mg_pc_t *pc)
 
 TEST(pcPermutate)
 {
-    mg_vec3_t v[1000];
+    mg_vec3_t v[1000], w;
     mg_pc_t *pc;
     size_t i;
 
@@ -94,6 +94,11 @@ TEST(pcPermutate)
     mgPCPermutate(pc);
     for (i = 0; i < 1000; i++){
         assertTrue(pcContains(pc, &v[i]));
+    }
+
+    // test some basic operation on the points
+    for (i = 0; i < 10; i++){
+        mgVec3Add2(&w, mgPCGet(pc, 0), mgPCGet(pc, 1));
     }
 
     mgPCDel(pc);

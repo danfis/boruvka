@@ -35,6 +35,10 @@
 #define MG_ALLOC_ALIGN(type, align) \
     (type *)mgAllocAlign(sizeof(type), align)
 
+/** Allocates aligned array */
+#define MG_ALLOC_ALIGN_ARR(type, num_els, align) \
+    (type *)mgAllocAlign(sizeof(type) * (num_els), align)
+
 /** Allocate memory for array of elements of type type.  */
 #define MG_ALLOC_ARR(type, num_elements) \
     _MG_ALLOC_MEMORY(type, NULL, sizeof(type) * (num_elements))

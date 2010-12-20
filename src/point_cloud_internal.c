@@ -7,7 +7,7 @@ static size_t __mg_page_size = 0;
 mg_pc_mem_t *mgPCMemNew(size_t min_size)
 {
     mg_pc_mem_t *m;
-    void *mem;
+    void *mem, *datamem;
     size_t memsize;
 
     if (mg_unlikely(__mg_page_size == 0))
@@ -24,14 +24,17 @@ mg_pc_mem_t *mgPCMemNew(size_t min_size)
     // allocated memory (TODO: use mmap??)
     mem = malloc(memsize);
 
-    // set up structure .data will point _after_ struct in memory (lets
+    // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of
     // mg_pc_mem_t struct) and .size must be set according to it
     m = (mg_pc_mem_t *)mem;
-    m->data = (mg_vec3_t *)(((long)m) + sizeof(mg_pc_mem_t));
-    m->size = ((long)memsize - sizeof(mg_pc_mem_t)) / sizeof(mg_vec3_t);
     m->len = 0;
     mgListInit(&m->list);
+
+    datamem = (void *)((long)m + sizeof(mg_pc_mem_t));
+    datamem = mgVec3Align(datamem);
+    m->data = datamem;
+    m->size = ((long)mem + (long)memsize - (long)datamem) / sizeof(mg_vec3_t);
 
     //DBG("Alloc mem: %ld of size %d (%d)", (long)m, memsize, m->size);
 

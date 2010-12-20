@@ -88,6 +88,22 @@ mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z);
 void mgVec3Del(mg_vec3_t *);
 
 /**
+ * Allocates array of vectors.
+ * Use this function instead of classical malloc() due to alignement that
+ * could be required if you use SSE version of library.
+ * Use mgVec3ArrDel() to free allocated memory.
+ */
+mg_vec3_t *mgVec3ArrNew(size_t num_vecs);
+void mgVec3ArrDel(mg_vec3_t *);
+
+/**
+ * Returns memory aligned to vector size.
+ * This can be useful if you have somewhere allocated memory but you want
+ * to use it for vectors and you use SSE version of library.
+ */
+_mg_inline mg_vec3_t *mgVec3Align(void *mem);
+
+/**
  * Clone given mg_vec3_t. This does deep copy.
  */
 _mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v);
@@ -254,6 +270,20 @@ _mg_inline void mgVec3TriCentroid(const mg_vec3_t *a, const mg_vec3_t *b,
 
 
 /**** INLINES ****/
+_mg_inline mg_vec3_t *mgVec3Align(void *mem)
+{
+#ifdef MG_SSE
+    long padding;
+    long align;
+
+    align = (long)sizeof(mg_vec3_t);
+    padding = align - (long)mem % align;
+    return (mg_vec3_t *)((long)mem + padding);
+#else /* MG_SSE */
+    return (mg_vec3_t *)mem;
+#endif /* MG_SSE */
+}
+
 _mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v)
 {
     return mgVec3New(mgVec3X(v), mgVec3Y(v), mgVec3Z(v));

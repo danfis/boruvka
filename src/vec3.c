@@ -104,6 +104,24 @@ void mgVec3Del(mg_vec3_t *v)
     free(v);
 }
 
+mg_vec3_t *mgVec3ArrNew(size_t num_vecs)
+{
+    mg_vec3_t *vs;
+
+#ifdef MG_SSE
+    vs = MG_ALLOC_ALIGN_ARR(mg_vec3_t, num_vecs, sizeof(mg_vec3_t));
+#else /* MG_SSE */
+    vs = MG_ALLOC_ARR(mg_vec3_t, num_vecs);
+#endif /* MG_SSE */
+
+    return vs;
+}
+
+void mgVec3ArrDel(mg_vec3_t *v)
+{
+    free(v);
+}
+
 _mg_inline mg_real_t __mgVec3PointSegmentDist2(const mg_vec3_t *P,
                                                const mg_vec3_t *x0,
                                                const mg_vec3_t *b,
