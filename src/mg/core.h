@@ -23,6 +23,10 @@
 #include <mg/config.h>
 #include <mg/compiler.h>
 
+#ifdef MG_SSE
+# include <immintrin.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -33,6 +37,16 @@ extern "C" {
 #  error You must define MG_SINGLE or MG_DOUBLE
 # endif /* MG_DOUBLE */
 #endif /* MG_SINGLE */
+
+#ifdef MG_SSE
+union _mg_sse_t {
+    __m128 m;
+    __m128d md;
+    float f[4];
+    double d[2];
+} mg_aligned(16) mg_packed;
+typedef union _mg_sse_t mg_sse_t;
+#endif /* MG_SSE */
 
 
 #ifdef MG_SINGLE
@@ -51,7 +65,13 @@ typedef float mg_real_t;
 
 # define MG_REAL(x)     (x ## f)          /*!< form a constant */
 
-# define MG_SQRT(x)     (sqrtf(x))        /*!< square root */
+# ifdef MG_SSE
+#  define MG_SQRT(x)     (__mgSqrt(x))     /*!< square root */
+//#  define MG_SQRT(x)     (sqrtf(x))       /*!< square root */
+# else /* MG_SSE */
+#  define MG_SQRT(x)     (sqrtf(x))       /*!< square root */
+# endif /* MG_SSE */
+
 # define MG_FABS(x)     (fabsf(x))        /*!< absolute value */
 # define MG_FMAX(x, y)  (fmaxf((x), (y))) /*!< maximum of two floats */
 # define MG_FMIN(x, y)  (fminf((x), (y))) /*!< minimum of two floats */
@@ -77,7 +97,13 @@ typedef double mg_real_t;
 
 # define MG_REAL(x)     (x ## f)         /*!< form a constant */
 
-# define MG_SQRT(x)     (sqrt(x))        /*!< square root */
+# ifdef MG_SSE
+#  define MG_SQRT(x)     (__mgSqrt(x))     /*!< square root */
+//#  define MG_SQRT(x)     (sqrt(x))       /*!< square root */
+# else /* MG_SSE */
+#  define MG_SQRT(x)     (sqrt(x))       /*!< square root */
+# endif /* MG_SSE */
+
 # define MG_FABS(x)     (fabs(x))        /*!< absolute value */
 # define MG_FMAX(x, y)  (fmax((x), (y))) /*!< maximum of two floats */
 # define MG_FMIN(x, y)  (fmin((x), (y))) /*!< minimum of two floats */
@@ -96,6 +122,10 @@ typedef double mg_real_t;
 #define MG_CUBE(x) ((x) * (x))
 
 
+#ifdef MG_SSE
+_mg_inline mg_real_t __mgSqrt(mg_real_t val);
+#endif /* MG_SSE */
+
 /** Returns sign of value. */
 _mg_inline int mgSign(mg_real_t val);
 /** Returns true if val is zero. **/
@@ -106,6 +136,23 @@ _mg_inline int mgNEq(mg_real_t a, mg_real_t b);
 
 
 /***** INLINES *****/
+#ifdef MG_SSE
+_mg_inline mg_real_t __mgSqrt(mg_real_t val)
+{
+    mg_sse_t m;
+
+#ifdef MG_SSE_SINGLE
+    m.m = _mm_set1_ps(val);
+    m.m = _mm_sqrt_ps(m.m);
+    return m.f[0];
+#else /* MG_SSE_SINGLE */
+    m.md = _mm_set1_pd(val);
+    m.md = _mm_sqrt_pd(m.md);
+    return m.d[0];
+#endif /* MG_SSE_SINGLE */
+}
+#endif /* MG_SSE */
+
 _mg_inline int mgSign(mg_real_t val)
 {
     if (mgIsZero(val)){

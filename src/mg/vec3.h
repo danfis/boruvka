@@ -19,10 +19,6 @@
 
 #include <mg/core.h>
 
-#ifdef MG_SSE
-# include <immintrin.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -560,24 +556,27 @@ _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b)
 {
 #ifdef MG_SSE
 # ifdef MG_SSE_SINGLE
-    mg_vec3_t dot;
+    mg_vec3_t dot, t;
 
     dot.v = _mm_mul_ps(a->v, b->v);
     dot.f[3] = MG_ZERO;
-    dot.v = _mm_hadd_ps(dot.v, mg_vec3_origin->v);
-    dot.v = _mm_hadd_ps(dot.v, mg_vec3_origin->v);
+    t.v = _mm_shuffle_ps(dot.v, dot.v, _MM_SHUFFLE(2, 3, 0, 1));
+    dot.v = _mm_add_ps(dot.v, t.v);
+    t.v = _mm_shuffle_ps(dot.v, dot.v, _MM_SHUFFLE(1, 0, 3, 2));
+    dot.v = _mm_add_ps(dot.v, t.v);
 
-    return mgVec3X(&dot);
+    return dot.f[0];
 # else /* MG_SSE_SINGLE */
     mg_vec3_t dot;
 
     dot.v[0] = _mm_mul_pd(a->v[0], b->v[0]);
     dot.v[1] = _mm_mul_pd(a->v[1], b->v[1]);
     dot.f[3] = MG_ZERO;
-    dot.v[0] = _mm_hadd_pd(dot.v[0], dot.v[1]);
-    dot.v[0] = _mm_hadd_pd(dot.v[0], mg_vec3_origin->v[0]);
+    dot.v[0] = _mm_add_pd(dot.v[0], dot.v[1]);
+    dot.v[1] = _mm_shuffle_pd(dot.v[0], dot.v[0], _MM_SHUFFLE2(0, 1));
+    dot.v[0] = _mm_add_pd(dot.v[0], dot.v[1]);
 
-    return mgVec3X(&dot);
+    return dot.f[0];
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
     mg_real_t dot;
