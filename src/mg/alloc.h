@@ -18,6 +18,7 @@
 #define __MG_ALLOC_H__
 
 #include <stdlib.h>
+#include <mg/core.h>
 
 /**
  * Functions and macros required for memory allocation.

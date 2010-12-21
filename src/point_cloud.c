@@ -98,7 +98,7 @@ static void mgPCPermutateOther(mg_pc_mem_t *mem_from, size_t from,
     mem = mem_from;
 
     // choose position
-    pos = mgRand(rand, from, len);
+    pos = mgRand(rand, (mg_real_t)from, (mg_real_t)len);
 
     // find correct mem chunk
     while (pos >= mem->len){

@@ -17,7 +17,6 @@
 #ifndef __MG_QUAT_H__
 #define __MG_QUAT_H__
 
-#include <mg/core.h>
 #include <mg/vec3.h>
 
 #ifdef __cplusplus

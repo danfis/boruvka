@@ -19,6 +19,8 @@ CXX ?= g++
 M4 ?= m4
 PYTHON ?= python
 
+CC_NOT_GCC = no
+
 SYSTEM = $(shell uname)
 
 SYSTEM_CXXFLAGS =
@@ -33,6 +35,10 @@ NOWALL ?= no
 NOPEDANTIC ?= no
 DEBUG ?= no
 PROFIL ?= no
+
+ifeq '$(CC_NOT_GCC)' 'yes'
+  NOPEDANTIC := yes
+endif
 
 ifeq '$(PROFIL)' 'yes'
   DEBUG = yes
@@ -70,10 +76,12 @@ ifeq '$(USE_DOUBLE)' 'yes'
 endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
-  CFLAGS += -msse -msse2 -msse3
+  CFLAGS += -msse3
 endif
 
-CFLAGS += --std=gnu99 -ffast-math
+ifneq '$(CC_NOT_GCC)' 'yes'
+  CFLAGS += --std=gnu99 -ffast-math
+endif
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
 CHECKTARGETS = 

@@ -77,7 +77,7 @@ mg_real_t mgVec2Angle(const mg_vec2_t *a, const mg_vec2_t *b, const mg_vec2_t *c
     if (mgEq(x, y))
         return MG_ZERO;
 
-    return acos(x / y);
+    return MG_ACOS(x / y);
 }
 
 

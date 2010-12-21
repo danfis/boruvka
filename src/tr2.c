@@ -118,7 +118,7 @@ void mgTr2Rotate(mg_tr2_t *tr, mg_real_t angle)
 
 void mgTr2RotateCenter(mg_tr2_t *tr, mg_real_t angle, const mg_vec2_t *center)
 {
-    mgTr2TranslateCoords(tr, -1. * mgVec2X(center), -1. * mgVec2Y(center));
+    mgTr2TranslateCoords(tr, MG_REAL(-1.) * mgVec2X(center), MG_REAL(-1.) * mgVec2Y(center));
     mgTr2Rotate(tr, angle);
     mgTr2Translate(tr, center);
 }
@@ -182,7 +182,7 @@ void mgTr2(const mg_tr2_t *_tr, mg_vec2_t *v)
     tr->tmpv2[2] = tr->m[6] * tr->tmpv[0] + tr->m[7] * tr->tmpv[1] + tr->m[8] * tr->tmpv[2];
 
     if (mgNEq(tr->tmpv2[2], MG_ZERO)){
-        k = 1. / tr->tmpv2[2];
+        k = MG_REAL(1.) / tr->tmpv2[2];
         tr->tmpv2[0] *= k;
         tr->tmpv2[1] *= k;
         tr->tmpv2[2] *= k;

@@ -19,7 +19,7 @@
 #define __MG_LIST_H__
 
 #include <string.h>
-#include <mg/compiler.h>
+#include <mg/core.h>
 
 struct _mg_list_t {
     struct _mg_list_t *next, *prev;

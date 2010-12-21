@@ -8,10 +8,11 @@
 int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next)
 {
     char c;
-    float fract;
-    float mult;
+    mg_real_t fract;
+    mg_real_t mult;
+    mg_real_t num;
     int negative = 0;
-    int num;
+    int has_e;
 
     if (str >= strend)
         return -1;
@@ -82,10 +83,11 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
     }
 
     /* process exponent part */
+    has_e = 0;
     if (c == 'e' || c == 'E'){
         c = *++str;
         negative = 0;
-        num = 0;
+        num = MG_ZERO;
 
         if (c == '-'){
             negative = 1;
@@ -99,12 +101,13 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
 
             num = num * MG_REAL(10.) + (c - 48);
             c = *++str;
+            has_e = 1;
         }
 
         if (negative)
             num *= MG_REAL(-1.);
 
-        if (num != 0){
+        if (has_e){
             mult = MG_POW(MG_REAL(10.), num);
             *val *= mult;
         }

@@ -22,7 +22,6 @@
  * transform vectors, points, polylines or whole maps.
  */
 
-#include <mg/core.h>
 #include <mg/vec2.h>
 
 

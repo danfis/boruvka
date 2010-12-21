@@ -21,7 +21,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <mg/core.h>
-#include <mg/compiler.h>
 
 /**
  * Maximal number of returnd random numbers between changing seed.
