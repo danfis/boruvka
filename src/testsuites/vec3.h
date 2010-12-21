@@ -20,6 +20,8 @@ TEST(vec3Dist);
 TEST(vec3SegmentDist);
 TEST(vec3TriDist);
 
+TEST(vec3Angle);
+
 TEST(vec3Core);
 TEST(vec3PointSegmentDist);
 TEST(vec3PointTriDist);
@@ -44,6 +46,8 @@ TEST_SUITE(TSVec3) {
     TEST_ADD(vec3Dist),
     TEST_ADD(vec3SegmentDist),
     TEST_ADD(vec3TriDist),
+
+    TEST_ADD(vec3Angle),
 
     TEST_ADD(vec3Core),
     TEST_ADD(vec3PointSegmentDist),

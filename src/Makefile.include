@@ -62,10 +62,15 @@ ifneq '$(NOPEDANTIC)' 'yes'
   CXXFLAGS += -pedantic
 endif
 
-CONFIG_FLAGS =
-USE_DOUBLE ?= no
-USE_SINGLE ?= yes
+ifeq '$(USE_SINGLE)' ''
+ifeq '$(USE_DOUBLE)' ''
+  USE_DOUBLE ?= no
+  USE_SINGLE ?= yes
+endif
+endif
+
 USE_SSE ?= no
+CONFIG_FLAGS =
 
 ifeq '$(USE_SINGLE)' 'yes'
   CONFIG_FLAGS += -DUSE_SINGLE

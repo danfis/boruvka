@@ -589,6 +589,49 @@ TEST(vec3PointInTri)
     assertTrue(mgVec3PointInTri(&v[0], &v[2], &v[3], &v[4]));
 }
 
+TEST(vec3Angle)
+{
+    mg_vec3_t v[3];
+    mg_real_t a;
+    size_t i;
+
+    mgVec3Set(&v[0], 2., 2., 0.);
+    mgVec3Set(&v[1], 1., 0., 0.);
+    a = mgVec3Angle(&v[0], mg_vec3_origin, &v[1]);
+    assertTrue(mgEq(a, M_PI_4));
+
+    mgVec3Set(&v[0], 1., 2., 1.);
+    mgVec3Set(&v[1], 0., 1., 0.);
+    mgVec3Set(&v[2], -1., 0., -1.);
+    a = mgVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(mgEq(a, M_PI));
+
+    mgVec3Set(&v[0], 0., 1., 1.);
+    mgVec3Set(&v[1], 0., 1., 0.);
+    mgVec3Set(&v[2], -1., 1., 0.);
+    a = mgVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(mgEq(a, M_PI_2));
+
+    mgVec3Set(&v[0], 0., 1., 1.);
+    mgVec3Set(&v[1], 0., 1., 0.);
+    mgVec3Set(&v[2], -10., 11., 0.);
+    a = mgVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(mgEq(a, M_PI_2));
+
+    mgVec3Set(&v[0], 0., 1., 1.);
+    mgVec3Set(&v[1], 0., 1., 0.);
+    mgVec3Set(&v[2], 0.01, 0.06, 0.);
+    a = mgVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(mgEq(a, M_PI_2));
+
+    printf("# ---- angle ----\n");
+    for (i = 0; i < vecs_len - 2; i++){
+        a = mgVec3Angle(&vecs[i], &vecs[i + 1], &vecs[i + 2]);
+        printf("# %g\n", a);
+    }
+    printf("# ---- angle end ----\n\n");
+}
+
 static void projToPlanePrint(mg_vec3_t *vs, int num)
 {
     size_t i;

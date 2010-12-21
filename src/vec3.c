@@ -352,13 +352,18 @@ mg_real_t mgVec3ProjToPlane(const mg_vec3_t *p,
     mgVec3Sub2(&wv, w, v);
 
     // scale uv and wv to get better normal
-    mgVec3Normalize(&uv);
-    mgVec3Normalize(&wv);
+    if (mgVec3Len2(&uv) < MG_ONE)
+        mgVec3Normalize(&uv);
+    if (mgVec3Len2(&wv) < MG_ONE)
+        mgVec3Normalize(&wv);
 
     // compute normal vec3tor
     mgVec3Cross(&normal, &uv, &wv);
 
-    return mgVec3ProjToPlane2(p, u, &normal, d);
+    if (mgVec3IsZero(&normal))
+        return MG_REAL(-1.);
+
+    return mgVec3ProjToPlane2(p, v, &normal, d);
 }
 
 mg_real_t mgVec3ProjToPlane2(const mg_vec3_t *p,

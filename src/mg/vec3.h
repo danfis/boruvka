@@ -129,6 +129,7 @@ _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b);
 _mg_inline int mgVec3NEq(const mg_vec3_t *a, const mg_vec3_t *b);
 _mg_inline int mgVec3Eq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z);
 _mg_inline int mgVec3NEq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z);
+_mg_inline int mgVec3IsZero(const mg_vec3_t *a);
 
 
 /**
@@ -343,6 +344,13 @@ _mg_inline int mgVec3Eq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t
 _mg_inline int mgVec3NEq2(const mg_vec3_t *a, mg_real_t x, mg_real_t y, mg_real_t z)
 {
     return !mgVec3Eq2(a, x, y, z);
+}
+
+_mg_inline int mgVec3IsZero(const mg_vec3_t *a)
+{
+    return mgIsZero(mgVec3X(a))
+            && mgIsZero(mgVec3Y(a))
+            && mgIsZero(mgVec3Z(a));
 }
 
 _mg_inline mg_real_t mgVec3Len2(const mg_vec3_t *v)
