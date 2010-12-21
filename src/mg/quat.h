@@ -23,13 +23,40 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+
+union _mg_quat_t {
+    __m128 q;
+    float f[4]; /*!< x, y, z, w */
+} mg_aligned(16) mg_packed;
+typedef union _mg_quat_t mg_quat_t;
+
+# else /* MG_SSE_SINGLE */
+
+union _mg_quat_t {
+    __m128 q[2];
+    double f[4]; /*!< x, y, z, w */
+} mg_aligned(32) mg_packed;
+typedef union _mg_quat_t mg_quat_t;
+
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
+
 struct _mg_quat_t {
-    mg_real_t q[4]; //!< x, y, z, w
+    mg_real_t f[4]; //!< x, y, z, w
 };
 typedef struct _mg_quat_t mg_quat_t;
 
+#endif /* MG_SSE */
+
+#ifdef MG_SSE
+# define MG_QUAT_STATIC(x, y, z, w) \
+    { .f = { (x), (y), (z), (w) } }
+#else /* MG_SSE */
 # define MG_QUAT_STATIC(x, y, z, w) \
     { .q = { (x), (y), (z), (w) } }
+#endif /* MG_SSE */
 
 #define MG_QUAT(name, x, y, z, w) \
     mg_quat_t name = MG_QUAT_STATIC((x), (y), (z), (w))
@@ -88,14 +115,38 @@ _mg_inline void mgQuatRotVec(mg_vec3_t *v, const mg_quat_t *q);
 /**** INLINES ****/
 _mg_inline mg_real_t mgQuatLen2(const mg_quat_t *q)
 {
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+    mg_quat_t dot, t;
+
+    dot.q = _mm_mul_ps(q->q, q->q);
+    t.q = _mm_shuffle_ps(dot.q, dot.q, _MM_SHUFFLE(2, 3, 0, 1));
+    dot.q = _mm_add_ps(dot.q, t.q);
+    t.q = _mm_shuffle_ps(dot.q, dot.q, _MM_SHUFFLE(1, 0, 3, 2));
+    dot.q = _mm_add_ps(dot.q, t.q);
+
+    return dot.f[0];
+# else /* MG_SSE_SINGLE */
+    mg_quat_t dot;
+
+    dot.q[0] = _mm_mul_pd(q->q[0], q->q[0]);
+    dot.q[1] = _mm_mul_pd(q->q[1], q->q[1]);
+    dot.q[0] = _mm_add_pd(dot.q[0], dot.q[1]);
+    dot.q[1] = _mm_shuffle_pd(dot.q[0], dot.q[0], _MM_SHUFFLE2(0, 1));
+    dot.q[0] = _mm_add_pd(dot.q[0], dot.q[1]);
+
+    return dot.f[0];
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
     mg_real_t len;
 
-    len  = q->q[0] * q->q[0];
-    len += q->q[1] * q->q[1];
-    len += q->q[2] * q->q[2];
-    len += q->q[3] * q->q[3];
+    len  = q->f[0] * q->f[0];
+    len += q->f[1] * q->f[1];
+    len += q->f[2] * q->f[2];
+    len += q->f[3] * q->f[3];
 
     return len;
+#endif /* MG_SSE */
 }
 
 _mg_inline mg_real_t mgQuatLen(const mg_quat_t *q)
@@ -105,44 +156,44 @@ _mg_inline mg_real_t mgQuatLen(const mg_quat_t *q)
 
 _mg_inline mg_real_t mgQuatX(const mg_quat_t *q)
 {
-    return q->q[0];
+    return q->f[0];
 }
 _mg_inline mg_real_t mgQuatY(const mg_quat_t *q)
 {
-    return q->q[1];
+    return q->f[1];
 }
 _mg_inline mg_real_t mgQuatZ(const mg_quat_t *q)
 {
-    return q->q[2];
+    return q->f[2];
 }
 _mg_inline mg_real_t mgQuatW(const mg_quat_t *q)
 {
-    return q->q[3];
+    return q->f[3];
 }
 
 _mg_inline void mgQuatSet(mg_quat_t *q, mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w)
 {
-    q->q[0] = x;
-    q->q[1] = y;
-    q->q[2] = z;
-    q->q[3] = w;
+    q->f[0] = x;
+    q->f[1] = y;
+    q->f[2] = z;
+    q->f[3] = w;
 }
 
 _mg_inline void mgQuatSetX(mg_quat_t *q, mg_real_t v)
 {
-    q->q[0] = v;
+    q->f[0] = v;
 }
 _mg_inline void mgQuatSetY(mg_quat_t *q, mg_real_t v)
 {
-    q->q[1] = v;
+    q->f[1] = v;
 }
 _mg_inline void mgQuatSetZ(mg_quat_t *q, mg_real_t v)
 {
-    q->q[2] = v;
+    q->f[2] = v;
 }
 _mg_inline void mgQuatSetW(mg_quat_t *q, mg_real_t v)
 {
-    q->q[3] = v;
+    q->f[3] = v;
 }
 
 _mg_inline void mgQuatCopy(mg_quat_t *dest, const mg_quat_t *src)
@@ -166,38 +217,45 @@ _mg_inline int mgQuatNormalize(mg_quat_t *q)
 }
 
 _mg_inline void mgQuatSetAngleAxis(mg_quat_t *q,
-                                     mg_real_t angle, const mg_vec3_t *axis)
+                                   mg_real_t angle, const mg_vec3_t *axis)
 {
-    mg_real_t a, x, y, z, n, s;
+    mg_vec3_t xyz;
+    mg_real_t a, s, n;
 
-    a = angle/2;
-    x = mgVec3X(axis);
-    y = mgVec3Y(axis);
-    z = mgVec3Z(axis);
-    n = MG_SQRT(x*x + y*y + z*z);
+    mgVec3Copy(&xyz, axis);
+    n = mgVec3Len(&xyz);
 
-    // axis==0? (treat this the same as angle==0 with an arbitrary axis)
-    if (n < MG_EPS){
-        q->q[0] = q->q[1] = q->q[2] = MG_ZERO;
-        q->q[3] = MG_ONE;
+    if (mg_unlikely(mgIsZero(n))){
+        mgQuatSet(q, MG_ZERO, MG_ZERO, MG_ZERO, MG_ONE);
     }else{
-        s = sin(a)/n;
+        a = angle * MG_REAL(0.5);
+        s = MG_SIN(a) / n;
 
-        q->q[3] = cos(a);
-        q->q[0] = x*s;
-        q->q[1] = y*s;
-        q->q[2] = z*s;
-
-        mgQuatNormalize(q);
+        mgVec3Scale(&xyz, s);
+        mgQuatSet(q, mgVec3X(&xyz), mgVec3Y(&xyz), mgVec3Z(&xyz), MG_COS(a));
     }
 }
 
 
 _mg_inline void mgQuatScale(mg_quat_t *q, mg_real_t k)
 {
-    size_t i;
-    for (i = 0; i < 4; i++)
-        q->q[i] *= k;
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+    __m128 l;
+    l = _mm_set1_ps(k);
+    q->q = _mm_mul_ps(q->q, l);
+# else /* MG_SSE_SINGLE */
+    __m128d l;
+    l = _mm_set1_pd(k);
+    q->q[0] = _mm_mul_pd(q->q[0], l);
+    q->q[1] = _mm_mul_pd(q->q[1], l);
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
+    q->f[0] *= k;
+    q->f[1] *= k;
+    q->f[2] *= k;
+    q->f[3] *= k;
+#endif /* MG_SSE */
 }
 
 _mg_inline void mgQuatMul(mg_quat_t *q, const mg_quat_t *q2)
@@ -208,24 +266,57 @@ _mg_inline void mgQuatMul(mg_quat_t *q, const mg_quat_t *q2)
 }
 
 _mg_inline void mgQuatMul2(mg_quat_t *q,
-                             const mg_quat_t *a, const mg_quat_t *b)
+                           const mg_quat_t *a, const mg_quat_t *b)
 {
-    q->q[0] = a->q[3] * b->q[0]
-                + a->q[0] * b->q[3]
-                + a->q[1] * b->q[2]
-                - a->q[2] * b->q[1];
-    q->q[1] = a->q[3] * b->q[1]
-                + a->q[1] * b->q[3]
-                - a->q[0] * b->q[2]
-                + a->q[2] * b->q[0];
-    q->q[2] = a->q[3] * b->q[2]
-                + a->q[2] * b->q[3]
-                + a->q[0] * b->q[1]
-                - a->q[1] * b->q[0];
-    q->q[3] = a->q[3] * b->q[3]
-                - a->q[0] * b->q[0]
-                - a->q[1] * b->q[1]
-                - a->q[2] * b->q[2];
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+    __m128 a1, a2, a3, a4, b1, b2, b3, b4, sign;
+
+    // shuffle quats
+    a1 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(0, 3, 3, 3));
+    a2 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(1, 2, 1, 0));
+    a3 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(2, 0, 2, 1));
+    a4 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(3, 1, 0, 2));
+    b1 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(0, 2, 1, 0));
+    b2 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(1, 3, 3, 3));
+    b3 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(2, 1, 0, 2));
+    b4 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(3, 0, 2, 1));
+    sign = _mm_set_ps(-MG_ONE, MG_ONE, MG_ONE, MG_ONE);
+
+    // mul into a*
+    a1 = _mm_mul_ps(a1, b1);
+    a2 = _mm_mul_ps(a2, b2);
+    a3 = _mm_mul_ps(a3, b3);
+    a4 = _mm_mul_ps(a4, b4);
+
+    // add into a1
+    a1 = _mm_add_ps(a1, a2);
+    a1 = _mm_add_ps(a1, a3);
+    a1 = _mm_sub_ps(a1, a4);
+
+    // change sign of w
+    q->q = _mm_mul_ps(a1, sign);
+# else /* MG_SSE_SINGLE */
+    // TODO: implement according to SINGLE
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
+    q->f[0] = a->f[3] * b->f[0]
+                + a->f[0] * b->f[3]
+                + a->f[1] * b->f[2]
+                - a->f[2] * b->f[1];
+    q->f[1] = a->f[3] * b->f[1]
+                + a->f[1] * b->f[3]
+                - a->f[0] * b->f[2]
+                + a->f[2] * b->f[0];
+    q->f[2] = a->f[3] * b->f[2]
+                + a->f[2] * b->f[3]
+                + a->f[0] * b->f[1]
+                - a->f[1] * b->f[0];
+    q->f[3] = a->f[3] * b->f[3]
+                - a->f[0] * b->f[0]
+                - a->f[1] * b->f[1]
+                - a->f[2] * b->f[2];
+#endif /* MG_SSE */
 }
 
 _mg_inline int mgQuatInvert(mg_quat_t *q)
@@ -236,10 +327,10 @@ _mg_inline int mgQuatInvert(mg_quat_t *q)
 
     len2 = MG_ONE / len2;
 
-    q->q[0] = -q->q[0] * len2;
-    q->q[1] = -q->q[1] * len2;
-    q->q[2] = -q->q[2] * len2;
-    q->q[3] = q->q[3] * len2;
+    q->f[0] = -q->f[0] * len2;
+    q->f[1] = -q->f[1] * len2;
+    q->f[2] = -q->f[2] * len2;
+    q->f[3] = q->f[3] * len2;
 
     return 0;
 }
@@ -254,10 +345,10 @@ _mg_inline void mgQuatRotVec(mg_vec3_t *v, const mg_quat_t *q)
     mg_real_t w, x, y, z, ww, xx, yy, zz, wx, wy, wz, xy, xz, yz;
     mg_real_t vx, vy, vz;
 
-    w = q->q[3];
-    x = q->q[0];
-    y = q->q[1];
-    z = q->q[2];
+    w = q->f[3];
+    x = q->f[0];
+    y = q->f[1];
+    z = q->f[2];
     ww = w*w;
     xx = x*x;
     yy = y*y;

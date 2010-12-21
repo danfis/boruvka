@@ -21,7 +21,12 @@ mg_quat_t *mgQuatNew(mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w)
 {
     mg_quat_t *q;
 
+#ifdef MG_SSE
+    q = MG_ALLOC_ALIGN(mg_quat_t, sizeof(mg_quat_t));
+#else /* MG_SSE */
     q = MG_ALLOC(mg_quat_t);
+#endif /* MG_SSE */
+
     mgQuatSet(q, x, y, z, w);
 
     return q;
