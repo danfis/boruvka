@@ -57,8 +57,8 @@ ifneq '$(NOPEDANTIC)' 'yes'
 endif
 
 CONFIG_FLAGS =
-USE_DOUBLE ?= yes
-USE_SINGLE ?= no
+USE_DOUBLE ?= no
+USE_SINGLE ?= yes
 USE_SSE ?= no
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -73,7 +73,7 @@ ifeq '$(USE_SSE)' 'yes'
   CFLAGS += -msse -msse2 -msse3
 endif
 
-CFLAGS += --std=gnu99
+CFLAGS += --std=gnu99 -ffast-math
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
 CHECKTARGETS = 
