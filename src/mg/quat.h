@@ -28,8 +28,11 @@ struct _mg_quat_t {
 };
 typedef struct _mg_quat_t mg_quat_t;
 
+# define MG_QUAT_STATIC(x, y, z, w) \
+    { .q = { (x), (y), (z), (w) } }
+
 #define MG_QUAT(name, x, y, z, w) \
-    mg_quat_t name = { {x, y, z, w} }
+    mg_quat_t name = MG_QUAT_STATIC((x), (y), (z), (w))
 
 mg_quat_t *mgQuatNew(mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w);
 void mgQuatDel(mg_quat_t *q);
