@@ -35,7 +35,7 @@ typedef union _mg_quat_t mg_quat_t;
 # else /* MG_SSE_SINGLE */
 
 union _mg_quat_t {
-    __m128 q[2];
+    __m128d q[2];
     double f[4]; /*!< x, y, z, w */
 } mg_aligned(32) mg_packed;
 typedef union _mg_quat_t mg_quat_t;
@@ -50,13 +50,8 @@ typedef struct _mg_quat_t mg_quat_t;
 
 #endif /* MG_SSE */
 
-#ifdef MG_SSE
 # define MG_QUAT_STATIC(x, y, z, w) \
     { .f = { (x), (y), (z), (w) } }
-#else /* MG_SSE */
-# define MG_QUAT_STATIC(x, y, z, w) \
-    { .q = { (x), (y), (z), (w) } }
-#endif /* MG_SSE */
 
 #define MG_QUAT(name, x, y, z, w) \
     mg_quat_t name = MG_QUAT_STATIC((x), (y), (z), (w))
@@ -297,7 +292,43 @@ _mg_inline void mgQuatMul2(mg_quat_t *q,
     // change sign of w
     q->q = _mm_mul_ps(a1, sign);
 # else /* MG_SSE_SINGLE */
-    // TODO: implement according to SINGLE
+    __m128d a33, a01, a12, a20, a21, a02, a30, a13;
+    __m128d b33, b20, b12, b31, b03;
+    __m128d sign;
+
+    a33 = _mm_shuffle_pd(a->q[1], a->q[1], _MM_SHUFFLE2(1, 1));
+    a01 = _mm_shuffle_pd(a->q[0], a->q[0], _MM_SHUFFLE2(1, 0));
+    a12 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 1));
+    a20 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 0));
+    a21 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(1, 0));
+    a02 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 0));
+    a30 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 1));
+    a13 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(1, 1));
+    b33 = _mm_shuffle_pd(b->q[1], b->q[1], _MM_SHUFFLE2(1, 1));
+    b20 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(0, 0));
+    b12 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(0, 1));
+    b31 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(1, 1));
+    b03 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(1, 0));
+
+    a33 = _mm_mul_pd(a33, b->q[0]);
+    a21 = _mm_mul_pd(a21, b31);
+    a01 = _mm_mul_pd(a01, b33);
+    a02 = _mm_mul_pd(a02, b12);
+    a12 = _mm_mul_pd(a12, b20);
+    a30 = _mm_mul_pd(a30, b20);
+    a20 = _mm_mul_pd(a20, b12);
+    a13 = _mm_mul_pd(a13, b03);
+
+    a33 = _mm_add_pd(a33, a01);
+    a33 = _mm_add_pd(a33, a12);
+    a33 = _mm_sub_pd(a33, a20);
+    a21 = _mm_add_pd(a21, a02);
+    a21 = _mm_add_pd(a21, a30);
+    a21 = _mm_sub_pd(a21, a13);
+
+    q->q[0] = a33;
+    sign = _mm_set_pd(-MG_ONE, MG_ONE);
+    q->q[1] = _mm_mul_pd(a21, sign);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
     q->f[0] = a->f[3] * b->f[0]
@@ -325,12 +356,26 @@ _mg_inline int mgQuatInvert(mg_quat_t *q)
     if (len2 < MG_EPS)
         return -1;
 
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+    __m128 k;
+    k = _mm_set_ps(len2, -len2, -len2, -len2);
+    q->q = _mm_div_ps(q->q, k);
+# else /* MG_SSE_SINGLE */
+    __m128d k1, k2;
+    k1 = _mm_set_pd(-len2, -len2);
+    k2 = _mm_set_pd(len2, -len2);
+    q->q[0] = _mm_div_pd(q->q[0], k1);
+    q->q[1] = _mm_div_pd(q->q[1], k2);
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
     len2 = MG_ONE / len2;
 
     q->f[0] = -q->f[0] * len2;
     q->f[1] = -q->f[1] * len2;
     q->f[2] = -q->f[2] * len2;
     q->f[3] = q->f[3] * len2;
+#endif /* MG_SSE */
 
     return 0;
 }
