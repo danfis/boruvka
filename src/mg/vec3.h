@@ -488,7 +488,7 @@ _mg_inline void mgVec3ScaleToLen(mg_vec3_t *v, mg_real_t len)
     v->v[1] = _mm_div_pd(v->v[1], k);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    mg_real_t k = len / mgVec3Len(v);
+    mg_real_t k = len * mgRsqrt(mgVec3Len(v));
     mgVec3Scale(v, k);
 #endif /* MG_SSE */
 }
@@ -511,7 +511,7 @@ _mg_inline void mgVec3Normalize(mg_vec3_t *d)
     d->v[1] = _mm_div_pd(d->v[1], k);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    mg_real_t k = MG_ONE / mgVec3Len(d);
+    mg_real_t k = mgRsqrt(mgVec3Len2(d));
     mgVec3Scale(d, k);
 #endif /* MG_SSE */
 }

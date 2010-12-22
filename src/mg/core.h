@@ -134,6 +134,16 @@ _mg_inline int mgIsZero(mg_real_t val);
 _mg_inline int mgEq(mg_real_t a, mg_real_t b);
 _mg_inline int mgNEq(mg_real_t a, mg_real_t b);
 
+/**
+ * Returns 1 / d.
+ */
+_mg_inline mg_real_t mgRecp(mg_real_t v);
+
+/**
+ * Returns 1 / sqrt(v)
+ */
+_mg_inline mg_real_t mgRsqrt(mg_real_t v);
+
 
 /***** INLINES *****/
 #ifdef MG_SSE
@@ -191,6 +201,29 @@ _mg_inline int mgNEq(mg_real_t a, mg_real_t b)
     return !mgEq(a, b);
 }
 
+_mg_inline mg_real_t mgRecp(mg_real_t v)
+{
+#ifdef MG_SSE_SINGLE
+    mg_sse_t m;
+    m.m = _mm_set1_ps(v);
+    m.m = _mm_rcp_ps(m.m);
+    return m.f[0];
+#else /* MG_SSE_SINGLE */
+    return MG_ONE / v;
+#endif /* MG_SSE_SINGLE */
+}
+
+_mg_inline mg_real_t mgRsqrt(mg_real_t v)
+{
+#ifdef MG_SSE_SINGLE
+    mg_sse_t m;
+    m.m = _mm_set1_ps(v);
+    m.m = _mm_rsqrt_ps(m.m);
+    return m.f[0];
+#else /* MG_SSE_SINGLE */
+    return MG_ONE / MG_SQRT(v);
+# endif /* MG_SSE_SINGLE */
+}
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -207,7 +207,7 @@ _mg_inline int mgQuatNormalize(mg_quat_t *q)
     if (len < MG_EPS)
         return 0;
 
-    mgQuatScale(q, MG_ONE / len);
+    mgQuatScale(q, mgRecp(len));
     return 1;
 }
 
@@ -369,7 +369,7 @@ _mg_inline int mgQuatInvert(mg_quat_t *q)
     q->q[1] = _mm_div_pd(q->q[1], k2);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    len2 = MG_ONE / len2;
+    len2 = mgRecp(len2);
 
     q->f[0] = -q->f[0] * len2;
     q->f[1] = -q->f[1] * len2;
