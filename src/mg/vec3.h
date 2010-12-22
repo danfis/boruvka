@@ -45,7 +45,7 @@ typedef union _mg_vec3_t mg_vec3_t;
 
 #else /* MG_SSE */
 struct _mg_vec3_t {
-    mg_real_t v[4];
+    mg_real_t f[4];
 };
 typedef struct _mg_vec3_t mg_vec3_t;
 #endif /* MG_SSE */
@@ -62,13 +62,8 @@ extern const mg_vec3_t *mg_vec3_origin;
 extern mg_vec3_t *mg_points_on_sphere;
 extern size_t mg_points_on_sphere_len;
 
-#ifdef MG_SSE
 # define MG_VEC3_STATIC(x, y, z) \
     { .f = { (x), (y), (z), MG_ZERO } }
-#else /* MG_SSE */
-# define MG_VEC3_STATIC(x, y, z) \
-    { { (x), (y), (z), MG_ZERO } }
-#endif
 
 #define MG_VEC3(name, x, y, z) \
     mg_vec3_t name = MG_VEC3_STATIC((x), (y), (z))
@@ -288,38 +283,22 @@ _mg_inline mg_vec3_t *mgVec3Clone(const mg_vec3_t *v)
 
 _mg_inline mg_real_t mgVec3Get(const mg_vec3_t *v, int d)
 {
-#ifdef MG_SSE
     return v->f[d];
-#else /* MG_SSE */
-    return v->v[d];
-#endif /* MG_SSE */
 }
 
 _mg_inline mg_real_t mgVec3X(const mg_vec3_t *v)
 {
-#ifdef MG_SSE
     return v->f[0];
-#else /* MG_SSE */
-    return v->v[0];
-#endif /* MG_SSE */
 }
 
 _mg_inline mg_real_t mgVec3Y(const mg_vec3_t *v)
 {
-#ifdef MG_SSE
     return v->f[1];
-#else /* MG_SSE */
-    return v->v[1];
-#endif /* MG_SSE */
 }
 
 _mg_inline mg_real_t mgVec3Z(const mg_vec3_t *v)
 {
-#ifdef MG_SSE
     return v->f[2];
-#else /* MG_SSE */
-    return v->v[2];
-#endif /* MG_SSE */
 }
 
 _mg_inline int mgVec3Eq(const mg_vec3_t *a, const mg_vec3_t *b)
@@ -375,50 +354,28 @@ _mg_inline mg_real_t mgVec3Dist(const mg_vec3_t *a, const mg_vec3_t *b)
 
 _mg_inline void mgVec3Set(mg_vec3_t *v, mg_real_t x, mg_real_t y, mg_real_t z)
 {
-#ifdef MG_SSE
     v->f[0] = x;
     v->f[1] = y;
     v->f[2] = z;
-#else /* MG_SSE */
-    v->v[0] = x;
-    v->v[1] = y;
-    v->v[2] = z;
-#endif /* MG_SSE */
 }
 _mg_inline void mgVec3SetCoord(mg_vec3_t *v, int d, mg_real_t val)
 {
-#ifdef MG_SSE
     v->f[d] = val;
-#else /* MG_SSE */
-    v->v[d] = val;
-#endif /* MG_SSE */
 }
 
 _mg_inline void mgVec3SetX(mg_vec3_t *v, mg_real_t val)
 {
-#ifdef MG_SSE
     v->f[0] = val;
-#else /* MG_SSE */
-    v->v[0] = val;
-#endif /* MG_SSE */
 }
 
 _mg_inline void mgVec3SetY(mg_vec3_t *v, mg_real_t val)
 {
-#ifdef MG_SSE
     v->f[1] = val;
-#else /* MG_SSE */
-    v->v[1] = val;
-#endif /* MG_SSE */
 }
 
 _mg_inline void mgVec3SetZ(mg_vec3_t *v, mg_real_t val)
 {
-#ifdef MG_SSE
     v->f[2] = val;
-#else /* MG_SSE */
-    v->v[2] = val;
-#endif /* MG_SSE */
 }
 
 _mg_inline void mgVec3Copy(mg_vec3_t *v, const mg_vec3_t *w)
@@ -436,9 +393,9 @@ _mg_inline void mgVec3Add(mg_vec3_t *v, const mg_vec3_t *w)
     v->v[1] = _mm_add_pd(v->v[1], w->v[1]);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    v->v[0] += w->v[0];
-    v->v[1] += w->v[1];
-    v->v[2] += w->v[2];
+    v->f[0] += w->f[0];
+    v->f[1] += w->f[1];
+    v->f[2] += w->f[2];
 #endif /* MG_SSE */
 }
 
@@ -452,9 +409,9 @@ _mg_inline void mgVec3Add2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
     d->v[1] = _mm_add_pd(v->v[1], w->v[1]);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    d->v[0] = v->v[0] + w->v[0];
-    d->v[1] = v->v[1] + w->v[1];
-    d->v[2] = v->v[2] + w->v[2];
+    d->f[0] = v->f[0] + w->f[0];
+    d->f[1] = v->f[1] + w->f[1];
+    d->f[2] = v->f[2] + w->f[2];
 #endif /* MG_SSE */
 }
 
@@ -468,9 +425,9 @@ _mg_inline void mgVec3Sub(mg_vec3_t *v, const mg_vec3_t *w)
     v->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    v->v[0] -= w->v[0];
-    v->v[1] -= w->v[1];
-    v->v[2] -= w->v[2];
+    v->f[0] -= w->f[0];
+    v->f[1] -= w->f[1];
+    v->f[2] -= w->f[2];
 #endif /* MG_SSE */
 }
 _mg_inline void mgVec3Sub2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
@@ -483,9 +440,9 @@ _mg_inline void mgVec3Sub2(mg_vec3_t *d, const mg_vec3_t *v, const mg_vec3_t *w)
     d->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    d->v[0] = v->v[0] - w->v[0];
-    d->v[1] = v->v[1] - w->v[1];
-    d->v[2] = v->v[2] - w->v[2];
+    d->f[0] = v->f[0] - w->f[0];
+    d->f[1] = v->f[1] - w->f[1];
+    d->f[2] = v->f[2] - w->f[2];
 #endif /* MG_SSE */
 }
 
@@ -503,9 +460,9 @@ _mg_inline void mgVec3Scale(mg_vec3_t *d, mg_real_t _k)
     d->v[1] = _mm_mul_pd(d->v[1], k);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    d->v[0] *= _k;
-    d->v[1] *= _k;
-    d->v[2] *= _k;
+    d->f[0] *= _k;
+    d->f[1] *= _k;
+    d->f[2] *= _k;
 #endif /* MG_SSE */
 }
 
@@ -531,7 +488,7 @@ _mg_inline void mgVec3ScaleToLen(mg_vec3_t *v, mg_real_t len)
     v->v[1] = _mm_div_pd(v->v[1], k);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    mg_real_t k = len / MG_SQRT(mgVec3Len2(v));
+    mg_real_t k = len / mgVec3Len(v);
     mgVec3Scale(v, k);
 #endif /* MG_SSE */
 }
@@ -554,12 +511,11 @@ _mg_inline void mgVec3Normalize(mg_vec3_t *d)
     d->v[1] = _mm_div_pd(d->v[1], k);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    mg_real_t k = MG_ONE / MG_SQRT(mgVec3Len2(d));
+    mg_real_t k = MG_ONE / mgVec3Len(d);
     mgVec3Scale(d, k);
 #endif /* MG_SSE */
 }
 
-#include <mg/dbg.h>
 _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b)
 {
 #ifdef MG_SSE
@@ -589,9 +545,9 @@ _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b)
 #else /* MG_SSE */
     mg_real_t dot;
 
-    dot  = a->v[0] * b->v[0];
-    dot += a->v[1] * b->v[1];
-    dot += a->v[2] * b->v[2];
+    dot  = a->f[0] * b->f[0];
+    dot += a->f[1] * b->f[1];
+    dot += a->f[2] * b->f[2];
 
     return dot;
 #endif /* MG_SSE */
@@ -643,9 +599,9 @@ _mg_inline void mgVec3Cross(mg_vec3_t *d, const mg_vec3_t *a, const mg_vec3_t *b
     d->v[1] = _mm_sub_pd(v0.v[1], v2.v[1]);
 # endif /* MG_SSE_SINGLE */
 #else /* MG_SSE */
-    d->v[0] = (a->v[1] * b->v[2]) - (a->v[2] * b->v[1]);
-    d->v[1] = (a->v[2] * b->v[0]) - (a->v[0] * b->v[2]);
-    d->v[2] = (a->v[0] * b->v[1]) - (a->v[1] * b->v[0]);
+    d->f[0] = (a->f[1] * b->f[2]) - (a->f[2] * b->f[1]);
+    d->f[1] = (a->f[2] * b->f[0]) - (a->f[0] * b->f[2]);
+    d->f[2] = (a->f[0] * b->f[1]) - (a->f[1] * b->f[0]);
 #endif /* MG_SSE */
 }
 
