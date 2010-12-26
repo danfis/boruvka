@@ -1,3 +1,4 @@
+#include "vec4.h"
 #include "vec3.h"
 #include "vec2.h"
 #include "tr2.h"
@@ -5,6 +6,7 @@
 #include "point_cloud.h"
 
 TEST_SUITES {
+    TEST_SUITE_ADD(TSVec4),
     TEST_SUITE_ADD(TSVec3),
     TEST_SUITE_ADD(TSVec2),
     TEST_SUITE_ADD(TSTr2),

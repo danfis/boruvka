@@ -19,7 +19,7 @@
 CFLAGS += -I. -g
 
 TARGETS = libmg.a
-OBJS = alloc.o vec3.o vec2.o tr2.o quat.o parse.o \
+OBJS = alloc.o vec4.o vec3.o vec2.o tr2.o quat.o parse.o \
        point_cloud.o point_cloud_internal.o
 
 all: $(TARGETS)
