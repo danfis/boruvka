@@ -9,15 +9,16 @@ CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-l
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-OBJS = vec3.o vec2.o tr2.o quat.o point_cloud.o data.o
+OBJS = vec3.o vec2.o tr2.o quat.o point_cloud.o \
+       data-vec3.o data-quat.o
 BENCH_OBJS =
 
 
-all: test bench
+all: test
 
 test: cu $(OBJS) main.c
 	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
-bench: cu bench.c data.o
+bench: cu bench.c data-vec3.o data-quat.o
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c data.o $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
 

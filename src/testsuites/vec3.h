@@ -12,6 +12,7 @@ TEST(vec3Sub);
 TEST(vec3Scale);
 TEST(vec3Normalize);
 TEST(vec3Dot);
+TEST(vec3Mul);
 TEST(vec3Cross);
 TEST(vec3Len2);
 TEST(vec3Len);
@@ -39,6 +40,7 @@ TEST_SUITE(TSVec3) {
     TEST_ADD(vec3Scale),
     TEST_ADD(vec3Normalize),
     TEST_ADD(vec3Dot),
+    TEST_ADD(vec3Mul),
     TEST_ADD(vec3Cross),
     TEST_ADD(vec3Len2),
     TEST_ADD(vec3Len),

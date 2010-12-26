@@ -183,6 +183,19 @@ _mg_inline void mgVec3Normalize(mg_vec3_t *d);
 _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b);
 
 /**
+ * Multiplies vectors component wise:
+ *  a.x = a.x * b.x
+ *  a.y = a.y * b.y
+ *  a.z = a.z * b.z
+ */
+_mg_inline void mgVec3Mul(mg_vec3_t *a, const mg_vec3_t *b);
+
+/**
+ * a = [ b.x * c.x, b.y * c.y, b.z * c.z ]
+ */
+_mg_inline void mgVec3Mul2(mg_vec3_t *a, const mg_vec3_t *b, const mg_vec3_t *c);
+
+/**
  * Cross product: d = a x b.
  */
 _mg_inline void mgVec3Cross(mg_vec3_t *d, const mg_vec3_t *a, const mg_vec3_t *b);
@@ -551,6 +564,28 @@ _mg_inline mg_real_t mgVec3Dot(const mg_vec3_t *a, const mg_vec3_t *b)
 
     return dot;
 #endif /* MG_SSE */
+}
+
+_mg_inline void mgVec3Mul(mg_vec3_t *a, const mg_vec3_t *b)
+{
+#ifdef MG_SSE
+# ifdef MG_SSE_SINGLE
+    a->v = _mm_mul_ps(a->v, b->v);
+# else /* MG_SSE_SINGLE */
+    a->v[0] = _mm_mul_pd(a->v[0], b->v[0]);
+    a->v[1] = _mm_mul_pd(a->v[1], b->v[1]);
+# endif /* MG_SSE_SINGLE */
+#else /* MG_SSE */
+    a->f[0] *= b->f[0];
+    a->f[1] *= b->f[1];
+    a->f[2] *= b->f[2];
+#endif /* MG_SSE */
+}
+
+_mg_inline void mgVec3Mul2(mg_vec3_t *a, const mg_vec3_t *b, const mg_vec3_t *c)
+{
+    mgVec3Copy(a, b);
+    mgVec3Mul(a, c);
 }
 
 _mg_inline void mgVec3Cross(mg_vec3_t *d, const mg_vec3_t *a, const mg_vec3_t *b)

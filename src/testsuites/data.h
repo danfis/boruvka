@@ -6,6 +6,8 @@
 
 extern mg_vec3_t vecs[];
 extern size_t vecs_len;
+
 extern mg_quat_t quats[];
 extern size_t quats_len;
+
 #endif

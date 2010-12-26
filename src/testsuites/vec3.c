@@ -93,6 +93,19 @@ TEST(vec3Dot)
     printf("# ---- dot end ----\n\n");
 }
 
+TEST(vec3Mul)
+{
+    mg_vec3_t v;
+    size_t i;
+
+    printf("# ---- mul ----\n");
+    for (i = 0; i < vecs_len - 1; i++){
+        mgVec3Mul2(&v, &vecs[i], &vecs[i + 1]);
+        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+    }
+    printf("# ---- mul end ----\n\n");
+}
+
 TEST(vec3Cross)
 {
     mg_vec3_t v;
