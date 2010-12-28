@@ -100,7 +100,7 @@ TEST(vec3Mul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        mgVec3Mul2(&v, &vecs[i], &vecs[i + 1]);
+        mgVec3MulComp2(&v, &vecs[i], &vecs[i + 1]);
         printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
     }
     printf("# ---- mul end ----\n\n");

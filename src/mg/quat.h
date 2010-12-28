@@ -18,69 +18,48 @@
 #define __MG_QUAT_H__
 
 #include <mg/vec3.h>
+#include <mg/vec4.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef MG_SSE
-# ifdef MG_SSE_SINGLE
+typedef mg_vec4_t mg_quat_t;
 
-union _mg_quat_t {
-    __m128 q;
-    float f[4]; /*!< x, y, z, w */
-} mg_aligned(16) mg_packed;
-typedef union _mg_quat_t mg_quat_t;
-
-# else /* MG_SSE_SINGLE */
-
-union _mg_quat_t {
-    __m128d q[2];
-    double f[4]; /*!< x, y, z, w */
-} mg_aligned(32) mg_packed;
-typedef union _mg_quat_t mg_quat_t;
-
-# endif /* MG_SSE_SINGLE */
-#else /* MG_SSE */
-
-struct _mg_quat_t {
-    mg_real_t f[4]; //!< x, y, z, w
-};
-typedef struct _mg_quat_t mg_quat_t;
-
-#endif /* MG_SSE */
-
-# define MG_QUAT_STATIC(x, y, z, w) \
-    { .f = { (x), (y), (z), (w) } }
-
+#define MG_QUAT_STATIC MG_VEC4_STATIC
 #define MG_QUAT(name, x, y, z, w) \
     mg_quat_t name = MG_QUAT_STATIC((x), (y), (z), (w))
 
-mg_quat_t *mgQuatNew(mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w);
-void mgQuatDel(mg_quat_t *q);
-_mg_inline void mgQuatCopy(mg_quat_t *dest, const mg_quat_t *src);
-_mg_inline mg_quat_t *mgQuatClone(const mg_quat_t *src);
+#define mgQuatNew   mgVec4New
+#define mgQuatDel   mgVec4Del
+#define mgQuatCopy  mgVec4Copy
+#define mgQuatClone mgVec4Clone
 
-_mg_inline mg_real_t mgQuatLen2(const mg_quat_t *q);
-_mg_inline mg_real_t mgQuatLen(const mg_quat_t *q);
+#define mgQuatX         mgVec4X
+#define mgQuatY         mgVec4Y
+#define mgQuatZ         mgVec4Z
+#define mgQuatW         mgVec4W
+#define mgQuatGet       mgVec4Get
+#define mgQuatSet       mgVec4Set
+#define mgQuatSetX      mgVec4SetX
+#define mgQuatSetY      mgVec4SetY
+#define mgQuatSetZ      mgVec4SetZ
+#define mgQuatSetCoord  mgVec4SetCoord
+#define mgQuatSetW      mgVec4SetW
+#define mgQuatLen2      mgVec4Len2
+#define mgQuatLen       mgVec4Len
+#define mgQuatNormalize mgVec4Normalize
+#define mgQuatScale     mgVec4Scale
 
-_mg_inline mg_real_t mgQuatX(const mg_quat_t *q);
-_mg_inline mg_real_t mgQuatY(const mg_quat_t *q);
-_mg_inline mg_real_t mgQuatZ(const mg_quat_t *q);
-_mg_inline mg_real_t mgQuatW(const mg_quat_t *q);
+#define mgQuatEq     mgVec4Eq
+#define mgQuatNEq    mgVec4NEq
+#define mgQuatEq2    mgVec4Eq2
+#define mgQuatNEq2   mgVec4NEq2
+#define mgQuatIsZero mgVec4IsZero
 
-_mg_inline void mgQuatSet(mg_quat_t *q, mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w);
-_mg_inline void mgQuatSetX(mg_quat_t *q, mg_real_t v);
-_mg_inline void mgQuatSetY(mg_quat_t *q, mg_real_t v);
-_mg_inline void mgQuatSetZ(mg_quat_t *q, mg_real_t v);
-_mg_inline void mgQuatSetW(mg_quat_t *q, mg_real_t v);
-
-_mg_inline int mgQuatNormalize(mg_quat_t *q);
 
 _mg_inline void mgQuatSetAngleAxis(mg_quat_t *q,
                                      mg_real_t angle, const mg_vec3_t *axis);
-
-_mg_inline void mgQuatScale(mg_quat_t *q, mg_real_t k);
 
 /**
  * q = q * q2
@@ -108,109 +87,6 @@ _mg_inline void mgQuatRotVec(mg_vec3_t *v, const mg_quat_t *q);
 
 
 /**** INLINES ****/
-_mg_inline mg_real_t mgQuatLen2(const mg_quat_t *q)
-{
-#ifdef MG_SSE
-# ifdef MG_SSE_SINGLE
-    mg_quat_t dot, t;
-
-    dot.q = _mm_mul_ps(q->q, q->q);
-    t.q = _mm_shuffle_ps(dot.q, dot.q, _MM_SHUFFLE(2, 3, 0, 1));
-    dot.q = _mm_add_ps(dot.q, t.q);
-    t.q = _mm_shuffle_ps(dot.q, dot.q, _MM_SHUFFLE(1, 0, 3, 2));
-    dot.q = _mm_add_ps(dot.q, t.q);
-
-    return dot.f[0];
-# else /* MG_SSE_SINGLE */
-    mg_quat_t dot;
-
-    dot.q[0] = _mm_mul_pd(q->q[0], q->q[0]);
-    dot.q[1] = _mm_mul_pd(q->q[1], q->q[1]);
-    dot.q[0] = _mm_add_pd(dot.q[0], dot.q[1]);
-    dot.q[1] = _mm_shuffle_pd(dot.q[0], dot.q[0], _MM_SHUFFLE2(0, 1));
-    dot.q[0] = _mm_add_pd(dot.q[0], dot.q[1]);
-
-    return dot.f[0];
-# endif /* MG_SSE_SINGLE */
-#else /* MG_SSE */
-    mg_real_t len;
-
-    len  = q->f[0] * q->f[0];
-    len += q->f[1] * q->f[1];
-    len += q->f[2] * q->f[2];
-    len += q->f[3] * q->f[3];
-
-    return len;
-#endif /* MG_SSE */
-}
-
-_mg_inline mg_real_t mgQuatLen(const mg_quat_t *q)
-{
-    return MG_SQRT(mgQuatLen2(q));
-}
-
-_mg_inline mg_real_t mgQuatX(const mg_quat_t *q)
-{
-    return q->f[0];
-}
-_mg_inline mg_real_t mgQuatY(const mg_quat_t *q)
-{
-    return q->f[1];
-}
-_mg_inline mg_real_t mgQuatZ(const mg_quat_t *q)
-{
-    return q->f[2];
-}
-_mg_inline mg_real_t mgQuatW(const mg_quat_t *q)
-{
-    return q->f[3];
-}
-
-_mg_inline void mgQuatSet(mg_quat_t *q, mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w)
-{
-    q->f[0] = x;
-    q->f[1] = y;
-    q->f[2] = z;
-    q->f[3] = w;
-}
-
-_mg_inline void mgQuatSetX(mg_quat_t *q, mg_real_t v)
-{
-    q->f[0] = v;
-}
-_mg_inline void mgQuatSetY(mg_quat_t *q, mg_real_t v)
-{
-    q->f[1] = v;
-}
-_mg_inline void mgQuatSetZ(mg_quat_t *q, mg_real_t v)
-{
-    q->f[2] = v;
-}
-_mg_inline void mgQuatSetW(mg_quat_t *q, mg_real_t v)
-{
-    q->f[3] = v;
-}
-
-_mg_inline void mgQuatCopy(mg_quat_t *dest, const mg_quat_t *src)
-{
-    *dest = *src;
-}
-
-_mg_inline mg_quat_t *mgQuatClone(const mg_quat_t *s)
-{
-    return mgQuatNew(mgQuatX(s), mgQuatY(s), mgQuatZ(s), mgQuatW(s));
-}
-
-_mg_inline int mgQuatNormalize(mg_quat_t *q)
-{
-    mg_real_t len = mgQuatLen(q);
-    if (len < MG_EPS)
-        return 0;
-
-    mgQuatScale(q, mgRecp(len));
-    return 1;
-}
-
 _mg_inline void mgQuatSetAngleAxis(mg_quat_t *q,
                                    mg_real_t angle, const mg_vec3_t *axis)
 {
@@ -231,27 +107,6 @@ _mg_inline void mgQuatSetAngleAxis(mg_quat_t *q,
     }
 }
 
-
-_mg_inline void mgQuatScale(mg_quat_t *q, mg_real_t k)
-{
-#ifdef MG_SSE
-# ifdef MG_SSE_SINGLE
-    __m128 l;
-    l = _mm_set1_ps(k);
-    q->q = _mm_mul_ps(q->q, l);
-# else /* MG_SSE_SINGLE */
-    __m128d l;
-    l = _mm_set1_pd(k);
-    q->q[0] = _mm_mul_pd(q->q[0], l);
-    q->q[1] = _mm_mul_pd(q->q[1], l);
-# endif /* MG_SSE_SINGLE */
-#else /* MG_SSE */
-    q->f[0] *= k;
-    q->f[1] *= k;
-    q->f[2] *= k;
-    q->f[3] *= k;
-#endif /* MG_SSE */
-}
 
 _mg_inline void mgQuatMul(mg_quat_t *q, const mg_quat_t *q2)
 {

@@ -184,13 +184,17 @@ _mg_inline mg_real_t mgVec4Dot(const mg_vec4_t *a, const mg_vec4_t *b);
  *  a.x = a.x * b.x
  *  a.y = a.y * b.y
  *  a.z = a.z * b.z
+ *  a.w = a.w * b.w
  */
-_mg_inline void mgVec4Mul(mg_vec4_t *a, const mg_vec4_t *b);
+_mg_inline void mgVec4MulComp(mg_vec4_t *a, const mg_vec4_t *b);
 
 /**
- * a = [ b.x * c.x, b.y * c.y, b.z * c.z ]
+ * a.x = b.x * c.x
+ * a.y = b.y * c.y
+ * a.z = b.z * c.z
+ * a.w = b.w * c.w
  */
-_mg_inline void mgVec4Mul2(mg_vec4_t *a, const mg_vec4_t *b, const mg_vec4_t *c);
+_mg_inline void mgVec4MulComp2(mg_vec4_t *a, const mg_vec4_t *b, const mg_vec4_t *c);
 
 
 
@@ -505,7 +509,7 @@ _mg_inline mg_real_t mgVec4Dot(const mg_vec4_t *a, const mg_vec4_t *b)
 #endif /* MG_SSE */
 }
 
-_mg_inline void mgVec4Mul(mg_vec4_t *a, const mg_vec4_t *b)
+_mg_inline void mgVec4MulComp(mg_vec4_t *a, const mg_vec4_t *b)
 {
 #ifdef MG_SSE
 # ifdef MG_SSE_SINGLE
@@ -522,10 +526,10 @@ _mg_inline void mgVec4Mul(mg_vec4_t *a, const mg_vec4_t *b)
 #endif /* MG_SSE */
 }
 
-_mg_inline void mgVec4Mul2(mg_vec4_t *a, const mg_vec4_t *b, const mg_vec4_t *c)
+_mg_inline void mgVec4MulComp2(mg_vec4_t *a, const mg_vec4_t *b, const mg_vec4_t *c)
 {
     mgVec4Copy(a, b);
-    mgVec4Mul(a, c);
+    mgVec4MulComp(a, c);
 }
 
 

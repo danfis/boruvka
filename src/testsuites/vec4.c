@@ -98,7 +98,7 @@ TEST(vec4Mul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < vecs4_len - 1; i++){
-        mgVec4Mul2(&v, &vecs4[i], &vecs4[i + 1]);
+        mgVec4MulComp2(&v, &vecs4[i], &vecs4[i + 1]);
         printf("# %g %g %g %g\n", mgVec4X(&v), mgVec4Y(&v), mgVec4Z(&v), mgVec4W(&v));
     }
     printf("# ---- mul end ----\n\n");
