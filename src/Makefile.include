@@ -89,6 +89,9 @@ ifneq '$(CC_NOT_GCC)' 'yes'
 endif
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
+PYTHON_CFLAGS  = $(shell python-config --includes)
+PYTHON_LDFLAGS = $(shell python-config --libs)
+
 CHECKTARGETS = 
 check-dep: $(CHECKTARGETS)
 
@@ -116,6 +119,8 @@ showvars:
 	@echo "CXXFLAGS     = $(CXXFLAGS)"
 	@echo "LDFLAGS      = $(LDFLAGS)"
 	@echo "CONFIG_FLAGS = $(CONFIG_FLAGS)"
+	@echo "PYTHON_CFLAGS  = $(PYTHON_CFLAGS)"
+	@echo "PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
 	@echo ""
 	@echo "PREFIX     = $(PREFIX)"
 	@echo "INCLUDEDIR = $(INCLUDEDIR)"
