@@ -10,7 +10,7 @@ LDFLAGS += -L.. -lmg
 SO_CFLAGS = -shared -Wl,-soname,mg.so
 
 TARGETS = mg.so
-OBJS = main.o vec3.o
+OBJS = main.o vec3.o vec4.o
 
 all: $(TARGETS)
 

@@ -244,7 +244,7 @@ static int vec3ObjInit(py_vec3 *self, PyObject *_args, PyObject *kwds)
         args = PySequence_Fast(_args, "error");
     }
 
-    for (i = 0; i < len; i++){
+    for (i = 0; i < len && i < 3; i++){
         val = PySequence_Fast_GET_ITEM(args, i);
         if (PyFloat_Check(val)){
             v[i] = PyFloat_AsDouble(val);

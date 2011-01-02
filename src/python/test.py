@@ -81,3 +81,43 @@ print(v, u, v2)
 print()
 r = v.segmentDist2(u, w);
 print(v, u, w, r, math.sqrt(r[0]))
+
+print()
+print("Vec4")
+v = mg.Vec4()
+print(v)
+v.x = 1.
+v.y = 2
+v.z = 3.
+v.w = 4
+print(v)
+w = mg.Vec4(3, 1.2, 3, 5)
+print(w)
+
+print()
+v = v + w
+print(v)
+v = w - v
+print(v)
+print(v * w)
+print(v * 2.)
+print(-v)
+v += w
+print(v)
+v -= w
+print(v)
+v /= 10
+print(v)
+
+print()
+print(v.len2())
+print(v.len())
+print(v.dist2(w))
+print(v.dist(w))
+v.scaleToLen(2.)
+print(v)
+print(w.scaledToLen(10.), w)
+v.normalize()
+print(v)
+print(w.normalized(), w)
+

@@ -25,6 +25,12 @@ _mg_inline mg_real_t numberAsReal(PyObject *n)
         return NULL; \
     }
 
+#define CHECK_VEC4(o) \
+    if (!PyObject_TypeCheck((o), &py_vec4_type)){ \
+        PyErr_SetString(PyExc_TypeError, "Expected Vec4"); \
+        return NULL; \
+    }
+
 #define CHECK_FLOAT2(o, ret) \
     if (!PyNumber_Check(o)){ \
         PyErr_SetString(PyExc_TypeError, "Expected float"); \
