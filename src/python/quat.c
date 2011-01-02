@@ -84,57 +84,57 @@ static PyMethodDef py_quat_methods[] = {
 };
 
 static PyNumberMethods py_quat_num = {
-    0, /* binaryfunc nb_add */
-    0, /* binaryfunc nb_subtract */
+    0,                        /* binaryfunc nb_add */
+    0,                        /* binaryfunc nb_subtract */
     (binaryfunc)quatMulConst, /* binaryfunc nb_multiply */
-    0, /* binaryfunc nb_remainder */
-    0, /* binaryfunc nb_divmod */
-    0, /* ternaryfunc nb_power */
-    (unaryfunc)quatNeg, /* unaryfunc nb_negative */
-    0, /* unaryfunc nb_positive */
-    0, /* unaryfunc nb_absolute */
-    0, /* inquiry nb_bool */
-    0, /* unaryfunc nb_invert */
-    0, /* binaryfunc nb_lshift */
-    0, /* binaryfunc nb_rshift */
-    0, /* binaryfunc nb_and */
-    0, /* binaryfunc nb_xor */
-    0, /* binaryfunc nb_or */
-    0, /* unaryfunc nb_int */
-    0, /* void *nb_reserved */
-    0, /* unaryfunc nb_float */
+    0,                        /* binaryfunc nb_remainder */
+    0,                        /* binaryfunc nb_divmod */
+    0,                        /* ternaryfunc nb_power */
+    (unaryfunc)quatNeg,       /* unaryfunc nb_negative */
+    0,                        /* unaryfunc nb_positive */
+    0,                        /* unaryfunc nb_absolute */
+    0,                        /* inquiry nb_bool */
+    0,                        /* unaryfunc nb_invert */
+    0,                        /* binaryfunc nb_lshift */
+    0,                        /* binaryfunc nb_rshift */
+    0,                        /* binaryfunc nb_and */
+    0,                        /* binaryfunc nb_xor */
+    0,                        /* binaryfunc nb_or */
+    0,                        /* unaryfunc nb_int */
+    0,                        /* void *nb_reserved */
+    0,                        /* unaryfunc nb_float */
 
-    0, /* binaryfunc nb_inplace_add */
-    0, /* binaryfunc nb_inplace_subtract */
-    (binaryfunc)quatMulIn, /* binaryfunc nb_inplace_multiply */
-    0, /* binaryfunc nb_inplace_remainder */
-    0, /* ternaryfunc nb_inplace_power */
-    0, /* binaryfunc nb_inplace_lshift */
-    0, /* binaryfunc nb_inplace_rshift */
-    0, /* binaryfunc nb_inplace_and */
-    0, /* binaryfunc nb_inplace_xor */
-    0, /* binaryfunc nb_inplace_or */
+    0,                        /* binaryfunc nb_inplace_add */
+    0,                        /* binaryfunc nb_inplace_subtract */
+    (binaryfunc)quatMulIn,    /* binaryfunc nb_inplace_multiply */
+    0,                        /* binaryfunc nb_inplace_remainder */
+    0,                        /* ternaryfunc nb_inplace_power */
+    0,                        /* binaryfunc nb_inplace_lshift */
+    0,                        /* binaryfunc nb_inplace_rshift */
+    0,                        /* binaryfunc nb_inplace_and */
+    0,                        /* binaryfunc nb_inplace_xor */
+    0,                        /* binaryfunc nb_inplace_or */
 
-    (binaryfunc)quatDiv, /* binaryfunc nb_floor_divide */
-    (binaryfunc)quatDiv, /* binaryfunc nb_true_divide */
-    (binaryfunc)quatDivIn, /* binaryfunc nb_inplace_floor_divide */
-    (binaryfunc)quatDivIn, /* binaryfunc nb_inplace_true_divide */
+    (binaryfunc)quatDiv,      /* binaryfunc nb_floor_divide */
+    (binaryfunc)quatDiv,      /* binaryfunc nb_true_divide */
+    (binaryfunc)quatDivIn,    /* binaryfunc nb_inplace_floor_divide */
+    (binaryfunc)quatDivIn,    /* binaryfunc nb_inplace_true_divide */
 
-    0  /* unaryfunc nb_index */
+    0                         /* unaryfunc nb_index */
 };
 
 static PySequenceMethods py_quat_seq = {
-    (lenfunc)quatSeqSize, /* sq_length */
-    0, /* sq_concat */
-    0, /* sq_repeat */
-    (ssizeargfunc)quatSeqGet, /* sq_item */
-    0, /* was_sq_slice */
+    (lenfunc)quatSeqSize,        /* sq_length */
+    0,                           /* sq_concat */
+    0,                           /* sq_repeat */
+    (ssizeargfunc)quatSeqGet,    /* sq_item */
+    0,                           /* was_sq_slice */
     (ssizeobjargproc)quatSeqSet, /* sq_ass_item */
-    0, /* was_sq_ass_slice */
-    0, /* sq_contains */
+    0,                           /* was_sq_ass_slice */
+    0,                           /* sq_contains */
 
-    0, /* sq_inplace_concat */
-    0, /* sq_inplace_repeat */
+    0,                           /* sq_inplace_concat */
+    0,                           /* sq_inplace_repeat */
 };
 
 

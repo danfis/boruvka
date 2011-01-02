@@ -170,3 +170,36 @@ print(v, vec)
 print(v, v.roted(vec2))
 
 
+print()
+print("PC")
+pc = mg.PC()
+pc.add(mg.Vec3(1, 2, 3))
+pc.add(mg.Vec3(2, 3, 4))
+pc.add(mg.Vec3(5, 6, 7))
+print(pc)
+print(len(pc))
+print(pc[0])
+print(pc[1])
+print(pc[2])
+
+print()
+pc.permutate()
+print(pc[0])
+print(pc[1])
+print(pc[2])
+
+print()
+for i in pc:
+    print(i)
+
+print()
+it = iter(pc)
+print(it)
+print(next(it))
+print(next(it))
+print(next(it))
+
+l = pc.addFromFile("../testsuites/cube.txt")
+print(l)
+print(pc)
+

@@ -85,54 +85,54 @@ static PyNumberMethods py_vec4_num = {
     (binaryfunc)vec4Add, /* binaryfunc nb_add */
     (binaryfunc)vec4Sub, /* binaryfunc nb_subtract */
     (binaryfunc)vec4Mul, /* binaryfunc nb_multiply */
-    0, /* binaryfunc nb_remainder */
-    0, /* binaryfunc nb_divmod */
-    0, /* ternaryfunc nb_power */
-    (unaryfunc)vec4Neg, /* unaryfunc nb_negative */
-    0, /* unaryfunc nb_positive */
-    0, /* unaryfunc nb_absolute */
-    0, /* inquiry nb_bool */
-    0, /* unaryfunc nb_invert */
-    0, /* binaryfunc nb_lshift */
-    0, /* binaryfunc nb_rshift */
-    0, /* binaryfunc nb_and */
-    0, /* binaryfunc nb_xor */
-    0, /* binaryfunc nb_or */
-    0, /* unaryfunc nb_int */
-    0, /* void *nb_reserved */
-    0, /* unaryfunc nb_float */
+    0,                   /* binaryfunc nb_remainder */
+    0,                   /* binaryfunc nb_divmod */
+    0,                   /* ternaryfunc nb_power */
+    (unaryfunc)vec4Neg,  /* unaryfunc nb_negative */
+    0,                   /* unaryfunc nb_positive */
+    0,                   /* unaryfunc nb_absolute */
+    0,                   /* inquiry nb_bool */
+    0,                   /* unaryfunc nb_invert */
+    0,                   /* binaryfunc nb_lshift */
+    0,                   /* binaryfunc nb_rshift */
+    0,                   /* binaryfunc nb_and */
+    0,                   /* binaryfunc nb_xor */
+    0,                   /* binaryfunc nb_or */
+    0,                   /* unaryfunc nb_int */
+    0,                   /* void *nb_reserved */
+    0,                   /* unaryfunc nb_float */
 
     (binaryfunc)vec4AddIn, /* binaryfunc nb_inplace_add */
     (binaryfunc)vec4SubIn, /* binaryfunc nb_inplace_subtract */
     (binaryfunc)vec4MulIn, /* binaryfunc nb_inplace_multiply */
-    0, /* binaryfunc nb_inplace_remainder */
-    0, /* ternaryfunc nb_inplace_power */
-    0, /* binaryfunc nb_inplace_lshift */
-    0, /* binaryfunc nb_inplace_rshift */
-    0, /* binaryfunc nb_inplace_and */
-    0, /* binaryfunc nb_inplace_xor */
-    0, /* binaryfunc nb_inplace_or */
+    0,                     /* binaryfunc nb_inplace_remainder */
+    0,                     /* ternaryfunc nb_inplace_power */
+    0,                     /* binaryfunc nb_inplace_lshift */
+    0,                     /* binaryfunc nb_inplace_rshift */
+    0,                     /* binaryfunc nb_inplace_and */
+    0,                     /* binaryfunc nb_inplace_xor */
+    0,                     /* binaryfunc nb_inplace_or */
 
-    (binaryfunc)vec4Div, /* binaryfunc nb_floor_divide */
-    (binaryfunc)vec4Div, /* binaryfunc nb_true_divide */
+    (binaryfunc)vec4Div,   /* binaryfunc nb_floor_divide */
+    (binaryfunc)vec4Div,   /* binaryfunc nb_true_divide */
     (binaryfunc)vec4DivIn, /* binaryfunc nb_inplace_floor_divide */
     (binaryfunc)vec4DivIn, /* binaryfunc nb_inplace_true_divide */
 
-    0  /* unaryfunc nb_index */
+    0                      /* unaryfunc nb_index */
 };
 
 static PySequenceMethods py_vec4_seq = {
-    (lenfunc)vec4SeqSize, /* sq_length */
-    0, /* sq_concat */
-    0, /* sq_repeat */
-    (ssizeargfunc)vec4SeqGet, /* sq_item */
-    0, /* was_sq_slice */
+    (lenfunc)vec4SeqSize,        /* sq_length */
+    0,                           /* sq_concat */
+    0,                           /* sq_repeat */
+    (ssizeargfunc)vec4SeqGet,    /* sq_item */
+    0,                           /* was_sq_slice */
     (ssizeobjargproc)vec4SeqSet, /* sq_ass_item */
-    0, /* was_sq_ass_slice */
-    0, /* sq_contains */
+    0,                           /* was_sq_ass_slice */
+    0,                           /* sq_contains */
 
-    0, /* sq_inplace_concat */
-    0, /* sq_inplace_repeat */
+    0,                           /* sq_inplace_concat */
+    0,                           /* sq_inplace_repeat */
 };
 
 
