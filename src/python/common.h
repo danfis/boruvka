@@ -31,6 +31,12 @@ _mg_inline mg_real_t numberAsReal(PyObject *n)
         return NULL; \
     }
 
+#define CHECK_QUAT(o) \
+    if (!PyObject_TypeCheck((o), &py_quat_type)){ \
+        PyErr_SetString(PyExc_TypeError, "Expected Quat"); \
+        return NULL; \
+    }
+
 #define CHECK_FLOAT2(o, ret) \
     if (!PyNumber_Check(o)){ \
         PyErr_SetString(PyExc_TypeError, "Expected float"); \

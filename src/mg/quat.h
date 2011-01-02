@@ -59,9 +59,10 @@ typedef mg_vec4_t mg_quat_t;
 
 
 _mg_inline void mgQuatSetAngleAxis(mg_quat_t *q,
-                                     mg_real_t angle, const mg_vec3_t *axis);
+                                   mg_real_t angle, const mg_vec3_t *axis);
 
 /**
+ * Composition of two quaternions.
  * q = q * q2
  */
 _mg_inline void mgQuatMul(mg_quat_t *q, const mg_quat_t *q2);

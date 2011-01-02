@@ -15,6 +15,7 @@ static int vec3SetZ(py_vec3 *self, PyObject *val, void *coord);
 /** Compare function */
 static PyObject *vec3Cmp(PyObject *a, PyObject *b, int op);
 
+static PyObject *vec3Copy(py_vec3 *self);
 static PyObject *vec3Len2(py_vec3 *self);
 static PyObject *vec3Len(py_vec3 *self);
 static PyObject *vec3Dist2(py_vec3 *self, py_vec3 *o);
@@ -57,6 +58,8 @@ static PyGetSetDef py_vec3_getset[] = {
 };
 
 static PyMethodDef py_vec3_methods[] = {
+    { "copy", (PyCFunction)vec3Copy, METH_NOARGS,
+      "Returns deep copy of Vec3." },
     { "len2", (PyCFunction)vec3Len2, METH_NOARGS,
       "len2() -> float\n"
       "Returns squared length of vector" },
@@ -264,7 +267,7 @@ static int vec3ObjInit(py_vec3 *self, PyObject *_args, PyObject *kwds)
 static PyObject *vec3AsStr(py_vec3 *self)
 {
     char str[100];
-    snprintf(str, 100, "<%f %f %f>", 
+    snprintf(str, 100, "<Vec3: %f %f %f>", 
              mgVec3X(&self->v), mgVec3Y(&self->v), mgVec3Z(&self->v));
     return PyUnicode_FromString(str);
 }
@@ -316,6 +319,13 @@ static PyObject *vec3Cmp(PyObject *a, PyObject *b, int op)
         return mgVec3NEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }
     return Py_NotImplemented;
+}
+
+static PyObject *vec3Copy(py_vec3 *self)
+{
+    py_vec3 *v = PyObject_New(py_vec3, &py_vec3_type);
+    mgVec3Copy(&v->v, &self->v);
+    return (PyObject *)v;
 }
 
 static PyObject *vec3Len2(py_vec3 *self)

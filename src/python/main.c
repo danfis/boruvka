@@ -1,6 +1,7 @@
 #include <Python.h>
 #include "vec3.h"
 #include "vec4.h"
+#include "quat.h"
 
 static PyMethodDef mg_methods[] = {
     {NULL}  /* Sentinel */
@@ -24,6 +25,7 @@ PyInit_mg(void)
 
     vec3Init(m);
     vec4Init(m);
+    quatInit(m);
 
     return m;
 }

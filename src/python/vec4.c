@@ -17,6 +17,7 @@ static int vec4SetW(py_vec4 *self, PyObject *val, void *coord);
 /** Compare function */
 static PyObject *vec4Cmp(PyObject *a, PyObject *b, int op);
 
+static PyObject *vec4Copy(py_vec4 *self);
 static PyObject *vec4Len2(py_vec4 *self);
 static PyObject *vec4Len(py_vec4 *self);
 static PyObject *vec4Dist2(py_vec4 *self, py_vec4 *o);
@@ -51,6 +52,8 @@ static PyGetSetDef py_vec4_getset[] = {
 };
 
 static PyMethodDef py_vec4_methods[] = {
+    { "copy", (PyCFunction)vec4Copy, METH_NOARGS,
+      "Returns deep copy of Vec4." },
     { "len2", (PyCFunction)vec4Len2, METH_NOARGS,
       "len2() -> float\n"
       "Returns squared length of vector" },
@@ -227,7 +230,7 @@ static int vec4ObjInit(py_vec4 *self, PyObject *_args, PyObject *kwds)
 static PyObject *vec4AsStr(py_vec4 *self)
 {
     char str[100];
-    snprintf(str, 100, "<%f %f %f %f>", 
+    snprintf(str, 100, "<Vec4: %f %f %f %f>", 
              mgVec4X(&self->v), mgVec4Y(&self->v),
              mgVec4Z(&self->v), mgVec4W(&self->v));
     return PyUnicode_FromString(str);
@@ -289,6 +292,13 @@ static PyObject *vec4Cmp(PyObject *a, PyObject *b, int op)
         return mgVec4NEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }
     return Py_NotImplemented;
+}
+
+static PyObject *vec4Copy(py_vec4 *self)
+{
+    py_vec4 *v = PyObject_New(py_vec4, &py_vec4_type);
+    mgVec4Copy(&v->v, &self->v);
+    return (PyObject *)v;
 }
 
 static PyObject *vec4Len2(py_vec4 *self)

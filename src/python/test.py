@@ -121,3 +121,52 @@ v.normalize()
 print(v)
 print(w.normalized(), w)
 
+
+
+print()
+print("Quat")
+v = mg.Quat()
+print(v)
+v.x = 1.
+v.y = 2
+v.z = 3.
+v.w = 4
+print(v)
+w = mg.Quat(3, 1.2, 3, 5)
+print(w)
+
+print(v * 2.)
+print(-v)
+v /= 10
+print(v)
+
+print()
+print(v.len2())
+print(v.len())
+v.normalize()
+print(v)
+print(w.normalized(), w)
+
+print()
+print(v)
+v.setAngleAxis(math.pi / 2., mg.Vec3(1., 1., 1.))
+print(v)
+w.setAngleAxis(math.pi / 2., mg.Vec3(1., 0., 0.))
+print(w)
+vv = v.copy()
+v.mul(w)
+print(v)
+print(vv.muled(w), vv)
+
+vv = v.copy()
+v.invert()
+print(v)
+print(vv.inverted(), vv)
+
+vec = mg.Vec3(1., 2., 3.)
+vec2 = vec.copy()
+v.rot(vec)
+print(v, vec)
+print(v, v.roted(vec2))
+
+
