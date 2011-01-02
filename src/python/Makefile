@@ -5,6 +5,7 @@ CFLAGS += -fno-strict-aliasing
 CFLAGS += -I..
 CFLAGS += $(PYTHON_CFLAGS)
 LDFLAGS += $(PYTHON_LDFLAGS)
+LDFLAGS += -L.. -lmg
 
 SO_CFLAGS = -shared -Wl,-soname,mg.so
 

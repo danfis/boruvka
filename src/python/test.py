@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import mg
+import math
 
 v = mg.Vec3()
 print('repr', repr(v))
@@ -9,6 +10,11 @@ v.x = 10
 v.y = 1
 v.z = 2
 print(v, v.x, v.y, v.z)
+print(v[0])
+print(v[1])
+print(v[2])
+v[0] = 4.
+print(v)
 
 print()
 v = mg.Vec3(1)
@@ -41,11 +47,17 @@ print(v * w)
 print(v * u)
 print(v * 2.)
 print(v * 3)
+print(v / 3)
+print(v // 3)
 print(-v)
 
 print()
 print(v)
 v *= 1.4
+print(v)
+v /= 1.4
+print(v)
+v //= 1.4
 print(v)
 v += v
 print(v)
@@ -65,3 +77,7 @@ print(v)
 print()
 v2 = v.cross(u)
 print(v, u, v2)
+
+print()
+r = v.segmentDist2(u, w);
+print(v, u, w, r, math.sqrt(r[0]))
