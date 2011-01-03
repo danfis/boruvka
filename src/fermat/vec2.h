@@ -34,7 +34,7 @@ extern "C" {
  * Structure representing 2D vector.
  */
 struct _fer_vec2_t {
-    fer_real_t v[2];
+    fer_real_t f[2];
 };
 typedef struct _fer_vec2_t fer_vec2_t;
 
@@ -312,7 +312,7 @@ fer_real_t ferVec2AngleSegsSameDir(const fer_vec2_t *A, const fer_vec2_t *B,
 /***** INLINES *****/
 _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d)
 {
-    return v->v[d];
+    return v->f[d];
 }
 
 
@@ -322,11 +322,11 @@ _fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v) { return ferVec2Get(v, 1); 
 
 _fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val)
 {
-    v->v[0] = val;
+    v->f[0] = val;
 }
 _fer_inline void ferVec2SetY(fer_vec2_t *v, fer_real_t val)
 {
-    v->v[1] = val;
+    v->f[1] = val;
 }
 
 
@@ -390,20 +390,20 @@ _fer_inline fer_real_t ferVec2Len(const fer_vec2_t *v)
 
 _fer_inline void ferVec2Add(fer_vec2_t *v, const fer_vec2_t *w)
 {
-    v->v[0] += w->v[0];
-    v->v[1] += w->v[1];
+    v->f[0] += w->f[0];
+    v->f[1] += w->f[1];
 }
 
 _fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w)
 {
-    d->v[0] = v->v[0] + w->v[0];
-    d->v[0] = v->v[1] + w->v[1];
+    d->f[0] = v->f[0] + w->f[0];
+    d->f[0] = v->f[1] + w->f[1];
 }
 
 _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w)
 {
-    v->v[0] -= w->v[0];
-    v->v[1] -= w->v[1];
+    v->f[0] -= w->f[0];
+    v->f[1] -= w->f[1];
 }
 
 _fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_t *ww)
@@ -413,8 +413,8 @@ _fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_
 
 _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k)
 {
-    v->v[0] *= k;
-    v->v[1] *= k;
+    v->f[0] *= k;
+    v->f[1] *= k;
 }
 
 _fer_inline void ferVec2ScaleToLen(fer_vec2_t *v, fer_real_t len)
@@ -432,21 +432,21 @@ _fer_inline void ferVec2Normalize(fer_vec2_t *v)
 _fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w)
 {
     fer_real_t dot;
-    dot  = v->v[0] * w->v[0];
-    dot += v->v[1] * w->v[1];
+    dot  = v->f[0] * w->f[0];
+    dot += v->f[1] * w->f[1];
     return dot;
 }
 
 _fer_inline void ferVec2MulComp(fer_vec2_t *a, const fer_vec2_t *b)
 {
-    a->v[0] *= b->v[0];
-    a->v[1] *= b->v[1];
+    a->f[0] *= b->f[0];
+    a->f[1] *= b->f[1];
 }
 
 _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_vec2_t *b)
 {
-    d->v[0] = a->v[0] * b->v[0];
-    d->v[1] = a->v[1] * b->v[1];
+    d->f[0] = a->f[0] * b->f[0];
+    d->f[1] = a->f[1] * b->f[1];
 }
 
 

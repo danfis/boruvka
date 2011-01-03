@@ -60,24 +60,23 @@ fer_real_t __ferVec2Area2(const fer_vec2_t *a, const fer_vec2_t *b, const fer_ve
 
 fer_real_t ferVec2Angle(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c)
 {
-    fer_real_t dist_ab, dist_bc, dist_ca;
-    fer_real_t x, y;
+    fer_vec2_t v, w;
+    fer_real_t ang, num, denom;
 
-    dist_ab = FER_SQRT(ferVec2Dist2(a, b));
-    dist_bc = FER_SQRT(ferVec2Dist2(b, c));
-    dist_ca = FER_SQRT(ferVec2Dist2(c, a));
+    ferVec2Sub2(&v, a, b);
+    ferVec2Sub2(&w, c, b);
 
-    if (ferEq(dist_ab, FER_ZERO) ||
-        ferEq(dist_bc, FER_ZERO))
-        return FER_ZERO;
+    num   = ferVec2Dot(&v, &w);
+    denom = ferVec2Len2(&v) * ferVec2Len2(&w);
+    denom = FER_SQRT(denom);
+    ang   = num / denom;
 
-    x = (dist_ab*dist_ab + dist_bc*dist_bc - dist_ca*dist_ca);
-    y = (2 * dist_ab * dist_bc);
+    if (ang > FER_ONE)
+        ang = FER_ONE;
+    if (ang < -FER_ONE)
+        ang = -FER_ONE;
 
-    if (ferEq(x, y))
-        return FER_ZERO;
-
-    return FER_ACOS(x / y);
+    return FER_ACOS(ang);
 }
 
 
