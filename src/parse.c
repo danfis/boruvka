@@ -1,16 +1,16 @@
-#include "mg/parse.h"
-#include "mg/dbg.h"
+#include "fermat/parse.h"
+#include "fermat/dbg.h"
 
 #define NOT_WS(c) \
     ( c != ' ' && c != '\t' && c != '\n')
 
 /* Implementation taken from SVT project. */
-int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next)
+int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **next)
 {
     char c;
-    mg_real_t fract;
-    mg_real_t mult;
-    mg_real_t num;
+    fer_real_t fract;
+    fer_real_t mult;
+    fer_real_t num;
     int negative = 0;
     int has_e;
 
@@ -22,7 +22,7 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
         ++str;
 
     c = *str;
-    *val = MG_ZERO;
+    *val = FER_ZERO;
 
     /* process sign */
     if (c == '-'){
@@ -41,7 +41,7 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
         if (c < 48 || c > 57)
             return -1;
 
-        *val = *val * MG_REAL(10.) + (c - 48);
+        *val = *val * FER_REAL(10.) + (c - 48);
         c = *++str;
     }
 
@@ -54,8 +54,8 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
     /* process decimal part */
     if (c == '.'){
         c = *++str;
-        mult = MG_REAL(0.1);
-        fract = MG_ZERO;
+        mult = FER_REAL(0.1);
+        fract = FER_ZERO;
         while (c != 0 && NOT_WS(c) && str < strend){
             /* skip to next part */
             if (c == 'e' || c == 'E')
@@ -66,7 +66,7 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
                 return -1;
 
             fract = fract + mult * (c - 48);
-            mult *= MG_REAL(0.1);
+            mult *= FER_REAL(0.1);
             c = *++str;
         }
         *val += fract;
@@ -74,7 +74,7 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
 
     /* apply negative flag */
     if (negative)
-        *val = *val * MG_REAL(-1.);
+        *val = *val * FER_REAL(-1.);
 
     if (!NOT_WS(c) || str >= strend){
         if (next)
@@ -87,7 +87,7 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
     if (c == 'e' || c == 'E'){
         c = *++str;
         negative = 0;
-        num = MG_ZERO;
+        num = FER_ZERO;
 
         if (c == '-'){
             negative = 1;
@@ -99,16 +99,16 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
             if (c < 48 || c > 57)
                 return -1;
 
-            num = num * MG_REAL(10.) + (c - 48);
+            num = num * FER_REAL(10.) + (c - 48);
             c = *++str;
             has_e = 1;
         }
 
         if (negative)
-            num *= MG_REAL(-1.);
+            num *= FER_REAL(-1.);
 
         if (has_e){
-            mult = MG_POW(MG_REAL(10.), num);
+            mult = FER_POW(FER_REAL(10.), num);
             *val *= mult;
         }
     }
@@ -120,15 +120,15 @@ int mgParseReal(const char *str, const char *strend, mg_real_t *val, char **next
 }
 
 
-int mgParseVec3(const char *_str, const char *strend, mg_vec3_t *vec, char **n)
+int ferParseVec3(const char *_str, const char *strend, fer_vec3_t *vec, char **n)
 {
-    mg_real_t v[3];
+    fer_real_t v[3];
     size_t i;
     char *str, *next;
 
     str = (char *)_str;
     for (i = 0; i < 3 && str < strend; i++){
-        if (mgParseReal(str, strend, &v[i], &next) != 0)
+        if (ferParseReal(str, strend, &v[i], &next) != 0)
             break;
         str = next;
     }
@@ -136,7 +136,7 @@ int mgParseVec3(const char *_str, const char *strend, mg_vec3_t *vec, char **n)
     if (i != 3)
         return -1;
 
-    mgVec3Set(vec, v[0], v[1], v[2]);
+    ferVec3Set(vec, v[0], v[1], v[2]);
     if (n)
         *n = str;
 

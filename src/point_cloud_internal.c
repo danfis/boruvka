@@ -1,49 +1,49 @@
 #include <unistd.h>
-#include <mg/point_cloud_internal.h>
-#include <mg/alloc.h>
+#include <fermat/point_cloud_internal.h>
+#include <fermat/alloc.h>
 
-static size_t __mg_page_size = 0;
+static size_t __fer_page_size = 0;
 
-mg_pc_mem_t *mgPCMemNew(size_t min_size)
+fer_pc_mem_t *ferPCMemNew(size_t min_size)
 {
-    mg_pc_mem_t *m;
+    fer_pc_mem_t *m;
     void *mem, *datamem;
     size_t memsize;
 
-    if (mg_unlikely(__mg_page_size == 0))
-        __mg_page_size = getpagesize();
+    if (fer_unlikely(__fer_page_size == 0))
+        __fer_page_size = getpagesize();
 
     // Try to estimate how many memory do we need.
     // Estimation is based od assumption that one chunk will contain at
     // least min_size points.
-    memsize  = min_size * sizeof(mg_vec3_t);
-    memsize += sizeof(mg_pc_mem_t);
-    memsize /= __mg_page_size;
-    memsize  = (memsize + 1) * __mg_page_size;
+    memsize  = min_size * sizeof(fer_vec3_t);
+    memsize += sizeof(fer_pc_mem_t);
+    memsize /= __fer_page_size;
+    memsize  = (memsize + 1) * __fer_page_size;
 
     // allocated memory (TODO: use mmap??)
     mem = malloc(memsize);
 
     // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of
-    // mg_pc_mem_t struct) and .size must be set according to it
-    m = (mg_pc_mem_t *)mem;
+    // fer_pc_mem_t struct) and .size must be set according to it
+    m = (fer_pc_mem_t *)mem;
     m->len = 0;
-    mgListInit(&m->list);
+    ferListInit(&m->list);
 
-    datamem = (void *)((long)m + sizeof(mg_pc_mem_t));
-    datamem = mgVec3Align(datamem);
+    datamem = (void *)((long)m + sizeof(fer_pc_mem_t));
+    datamem = ferVec3Align(datamem);
     m->data = datamem;
-    m->size = ((long)mem + (long)memsize - (long)datamem) / sizeof(mg_vec3_t);
+    m->size = ((long)mem + (long)memsize - (long)datamem) / sizeof(fer_vec3_t);
 
     //DBG("Alloc mem: %ld of size %d (%d)", (long)m, memsize, m->size);
 
     return m;
 }
 
-void mgPCMemDel(mg_pc_mem_t *m)
+void ferPCMemDel(fer_pc_mem_t *m)
 
 {
-    mgListDel(&m->list);
+    ferListDel(&m->list);
     free(m);
 }

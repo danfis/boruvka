@@ -1,9 +1,9 @@
 /***
- * mg
- * ---
+ * fermat
+ * -------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of mg.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -14,31 +14,31 @@
  *  See the License for more information.
  */
 
-#include <mg/alloc.h>
-#include <mg/tr2.h>
+#include <fermat/alloc.h>
+#include <fermat/tr2.h>
 
 
 #define NEED_TMPM(tr) \
-    if ((tr)->tmpm == NULL) (tr)->tmpm = MG_ALLOC_ARR(mg_real_t, 9)
+    if ((tr)->tmpm == NULL) (tr)->tmpm = FER_ALLOC_ARR(fer_real_t, 9)
 #define NEED_TMPMC(tr) \
-    if ((tr)->tmpmc == NULL) (tr)->tmpmc = MG_ALLOC_ARR(mg_real_t, 9)
+    if ((tr)->tmpmc == NULL) (tr)->tmpmc = FER_ALLOC_ARR(fer_real_t, 9)
 #define NEED_TMPV(tr) \
-    if ((tr)->tmpv == NULL) (tr)->tmpv = MG_ALLOC_ARR(mg_real_t, 3)
+    if ((tr)->tmpv == NULL) (tr)->tmpv = FER_ALLOC_ARR(fer_real_t, 3)
 #define NEED_TMPV2(tr) \
-    if ((tr)->tmpv2 == NULL) (tr)->tmpv2 = MG_ALLOC_ARR(mg_real_t, 3)
+    if ((tr)->tmpv2 == NULL) (tr)->tmpv2 = FER_ALLOC_ARR(fer_real_t, 3)
 
-_mg_inline void identity(mg_real_t *m)
+_fer_inline void identity(fer_real_t *m)
 {
-    m[0] = m[4] = m[8] = MG_ONE;
-    m[1] = m[2] = m[3] = m[5] = m[6] = m[7] = MG_ZERO;
+    m[0] = m[4] = m[8] = FER_ONE;
+    m[1] = m[2] = m[3] = m[5] = m[6] = m[7] = FER_ZERO;
 }
 
-_mg_inline void set(mg_real_t *m, int row, int col, mg_real_t val)
+_fer_inline void set(fer_real_t *m, int row, int col, fer_real_t val)
 {
     m[3 * row + col] = val;
 }
 
-_mg_inline void copy(mg_real_t *d, const mg_real_t *s)
+_fer_inline void copy(fer_real_t *d, const fer_real_t *s)
 {
     size_t i;
     for (i = 0; i < 9; i++)
@@ -50,7 +50,7 @@ _mg_inline void copy(mg_real_t *d, const mg_real_t *s)
  *      A = B * A
  * Temporary matrix tmp is used.
  */
-_mg_inline void compose(mg_real_t *A, const mg_real_t *B, mg_real_t *tmp)
+_fer_inline void compose(fer_real_t *A, const fer_real_t *B, fer_real_t *tmp)
 {
     copy(tmp, A);
 
@@ -67,21 +67,21 @@ _mg_inline void compose(mg_real_t *A, const mg_real_t *B, mg_real_t *tmp)
     A[8] = B[6] * tmp[2] + B[7] * tmp[5] + B[8] * tmp[8];
 }
 
-mg_tr2_t *mgTr2New(void)
+fer_tr2_t *ferTr2New(void)
 {
-    mg_tr2_t *tr = MG_ALLOC(mg_tr2_t);
+    fer_tr2_t *tr = FER_ALLOC(fer_tr2_t);
 
     tr->tmpm = NULL;
     tr->tmpmc = NULL;
     tr->tmpv = NULL;
     tr->tmpv2 = NULL;
 
-    mgTr2Identity(tr);
+    ferTr2Identity(tr);
 
     return tr;
 }
 
-void mgTr2Del(mg_tr2_t *tr)
+void ferTr2Del(fer_tr2_t *tr)
 {
     if (tr->tmpm != NULL)
         free(tr->tmpm);
@@ -95,7 +95,7 @@ void mgTr2Del(mg_tr2_t *tr)
     free(tr);
 }
 
-void mgTr2Rotate(mg_tr2_t *tr, mg_real_t angle)
+void ferTr2Rotate(fer_tr2_t *tr, fer_real_t angle)
 {
     /**
      * Basic rotation matrix:
@@ -108,22 +108,22 @@ void mgTr2Rotate(mg_tr2_t *tr, mg_real_t angle)
 
     // set up rotation matrix
     identity(tr->tmpm);
-    set(tr->tmpm, 0, 0, MG_COS(angle));
-    set(tr->tmpm, 0, 1, MG_REAL(-1.) * MG_SIN(angle));
-    set(tr->tmpm, 1, 0, MG_SIN(angle));
-    set(tr->tmpm, 1, 1, MG_COS(angle));
+    set(tr->tmpm, 0, 0, FER_COS(angle));
+    set(tr->tmpm, 0, 1, FER_REAL(-1.) * FER_SIN(angle));
+    set(tr->tmpm, 1, 0, FER_SIN(angle));
+    set(tr->tmpm, 1, 1, FER_COS(angle));
 
     compose(tr->m, tr->tmpm, tr->tmpmc);
 }
 
-void mgTr2RotateCenter(mg_tr2_t *tr, mg_real_t angle, const mg_vec2_t *center)
+void ferTr2RotateCenter(fer_tr2_t *tr, fer_real_t angle, const fer_vec2_t *center)
 {
-    mgTr2TranslateCoords(tr, MG_REAL(-1.) * mgVec2X(center), MG_REAL(-1.) * mgVec2Y(center));
-    mgTr2Rotate(tr, angle);
-    mgTr2Translate(tr, center);
+    ferTr2TranslateCoords(tr, FER_REAL(-1.) * ferVec2X(center), FER_REAL(-1.) * ferVec2Y(center));
+    ferTr2Rotate(tr, angle);
+    ferTr2Translate(tr, center);
 }
 
-void mgTr2TranslateCoords(mg_tr2_t *tr, mg_real_t dx, mg_real_t dy)
+void ferTr2TranslateCoords(fer_tr2_t *tr, fer_real_t dx, fer_real_t dy)
 {
     /**
      * Translate matrix using given vector
@@ -141,7 +141,7 @@ void mgTr2TranslateCoords(mg_tr2_t *tr, mg_real_t dx, mg_real_t dy)
     compose(tr->m, tr->tmpm, tr->tmpmc);
 }
 
-void mgTr2Scale(mg_tr2_t *tr, mg_real_t sx, mg_real_t sy)
+void ferTr2Scale(fer_tr2_t *tr, fer_real_t sx, fer_real_t sy)
 {
     /**
      * | sx 0  0 |
@@ -158,36 +158,36 @@ void mgTr2Scale(mg_tr2_t *tr, mg_real_t sx, mg_real_t sy)
     compose(tr->m, tr->tmpm, tr->tmpmc);
 }
 
-void mgTr2Compose(mg_tr2_t *tr, const mg_tr2_t *comp)
+void ferTr2Compose(fer_tr2_t *tr, const fer_tr2_t *comp)
 {
     NEED_TMPMC(tr);
 
     compose(tr->m, comp->m, tr->tmpmc);
 }
 
-void mgTr2(const mg_tr2_t *_tr, mg_vec2_t *v)
+void ferTr2(const fer_tr2_t *_tr, fer_vec2_t *v)
 {
-    mg_tr2_t *tr = (mg_tr2_t *)_tr;
-    mg_real_t k;
+    fer_tr2_t *tr = (fer_tr2_t *)_tr;
+    fer_real_t k;
 
     NEED_TMPV(tr);
     NEED_TMPV2(tr);
 
-    tr->tmpv[0] = mgVec2X(v);
-    tr->tmpv[1] = mgVec2Y(v);
-    tr->tmpv[2] = MG_ONE;
+    tr->tmpv[0] = ferVec2X(v);
+    tr->tmpv[1] = ferVec2Y(v);
+    tr->tmpv[2] = FER_ONE;
 
     tr->tmpv2[0] = tr->m[0] * tr->tmpv[0] + tr->m[1] * tr->tmpv[1] + tr->m[2] * tr->tmpv[2];
     tr->tmpv2[1] = tr->m[3] * tr->tmpv[0] + tr->m[4] * tr->tmpv[1] + tr->m[5] * tr->tmpv[2];
     tr->tmpv2[2] = tr->m[6] * tr->tmpv[0] + tr->m[7] * tr->tmpv[1] + tr->m[8] * tr->tmpv[2];
 
-    if (mgNEq(tr->tmpv2[2], MG_ZERO)){
-        k = MG_REAL(1.) / tr->tmpv2[2];
+    if (ferNEq(tr->tmpv2[2], FER_ZERO)){
+        k = FER_REAL(1.) / tr->tmpv2[2];
         tr->tmpv2[0] *= k;
         tr->tmpv2[1] *= k;
         tr->tmpv2[2] *= k;
     }
 
-    mgVec2Set(v, tr->tmpv2[0], tr->tmpv2[1]);
+    ferVec2Set(v, tr->tmpv2[0], tr->tmpv2[1]);
 }
 

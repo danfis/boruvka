@@ -4,25 +4,25 @@
 #include "quat.h"
 #include "point_cloud.h"
 
-static PyMethodDef mg_methods[] = {
+static PyMethodDef fer_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-static struct PyModuleDef mgmodule = {
+static struct PyModuleDef fermatmodule = {
    PyModuleDef_HEAD_INIT,
-   "mg",   /* name of module */
-   "TODO", /* module documentation, may be NULL */
+   "fermat",   /* name of module */
+   "Python bindings of Fermat Library", /* module documentation, may be NULL */
    -1,       /* size of per-interpreter state of the module,
                 or -1 if the module keeps state in global variables. */
-   mg_methods
+   fer_methods
 };
 
 PyMODINIT_FUNC
-PyInit_mg(void) 
+PyInit_fermat(void) 
 {
     PyObject* m;
 
-    m = PyModule_Create(&mgmodule);
+    m = PyModule_Create(&fermatmodule);
 
     vec3Init(m);
     vec4Init(m);

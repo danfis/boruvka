@@ -2,11 +2,11 @@
 #define PY_PC_H_
 
 #include <Python.h>
-#include <mg/point_cloud.h>
+#include <fermat/point_cloud.h>
 
 struct _py_pc {
     PyObject_HEAD
-    mg_pc_t *pc;
+    fer_pc_t *pc;
 };
 typedef struct _py_pc py_pc;
 

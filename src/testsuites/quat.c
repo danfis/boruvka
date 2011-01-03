@@ -1,106 +1,106 @@
 #include <cu/cu.h>
-#include <mg/quat.h>
-#include <mg/dbg.h>
+#include <fermat/quat.h>
+#include <fermat/dbg.h>
 
 #include "data.h"
 
 TEST(quatCore)
 {
-    mg_quat_t *a, b;
-    mg_vec3_t v1, v2;
+    fer_quat_t *a, b;
+    fer_vec3_t v1, v2;
 
-    a = mgQuatNew(0., 1., 3., 1.);
-    assertTrue(mgEq(mgQuatX(a), 0.));
-    assertTrue(mgEq(mgQuatY(a), 1.));
-    assertTrue(mgEq(mgQuatZ(a), 3.));
-    assertTrue(mgEq(mgQuatW(a), 1.));
+    a = ferQuatNew(0., 1., 3., 1.);
+    assertTrue(ferEq(ferQuatX(a), 0.));
+    assertTrue(ferEq(ferQuatY(a), 1.));
+    assertTrue(ferEq(ferQuatZ(a), 3.));
+    assertTrue(ferEq(ferQuatW(a), 1.));
 
-    mgQuatSet(a, 1., 3., 4., 5.);
-    assertTrue(mgEq(mgQuatX(a), 1.));
-    assertTrue(mgEq(mgQuatY(a), 3.));
-    assertTrue(mgEq(mgQuatZ(a), 4.));
-    assertTrue(mgEq(mgQuatW(a), 5.));
+    ferQuatSet(a, 1., 3., 4., 5.);
+    assertTrue(ferEq(ferQuatX(a), 1.));
+    assertTrue(ferEq(ferQuatY(a), 3.));
+    assertTrue(ferEq(ferQuatZ(a), 4.));
+    assertTrue(ferEq(ferQuatW(a), 5.));
 
-    mgQuatSetX(a, 2.);
-    assertTrue(mgEq(mgQuatX(a), 2.));
-    assertTrue(mgEq(mgQuatY(a), 3.));
-    assertTrue(mgEq(mgQuatZ(a), 4.));
-    assertTrue(mgEq(mgQuatW(a), 5.));
+    ferQuatSetX(a, 2.);
+    assertTrue(ferEq(ferQuatX(a), 2.));
+    assertTrue(ferEq(ferQuatY(a), 3.));
+    assertTrue(ferEq(ferQuatZ(a), 4.));
+    assertTrue(ferEq(ferQuatW(a), 5.));
 
-    mgQuatSetY(a, 2.);
-    assertTrue(mgEq(mgQuatX(a), 2.));
-    assertTrue(mgEq(mgQuatY(a), 2.));
-    assertTrue(mgEq(mgQuatZ(a), 4.));
-    assertTrue(mgEq(mgQuatW(a), 5.));
+    ferQuatSetY(a, 2.);
+    assertTrue(ferEq(ferQuatX(a), 2.));
+    assertTrue(ferEq(ferQuatY(a), 2.));
+    assertTrue(ferEq(ferQuatZ(a), 4.));
+    assertTrue(ferEq(ferQuatW(a), 5.));
 
-    mgQuatSetZ(a, 2.);
-    assertTrue(mgEq(mgQuatX(a), 2.));
-    assertTrue(mgEq(mgQuatY(a), 2.));
-    assertTrue(mgEq(mgQuatZ(a), 2.));
-    assertTrue(mgEq(mgQuatW(a), 5.));
+    ferQuatSetZ(a, 2.);
+    assertTrue(ferEq(ferQuatX(a), 2.));
+    assertTrue(ferEq(ferQuatY(a), 2.));
+    assertTrue(ferEq(ferQuatZ(a), 2.));
+    assertTrue(ferEq(ferQuatW(a), 5.));
 
-    mgQuatSetW(a, 2.);
-    assertTrue(mgEq(mgQuatX(a), 2.));
-    assertTrue(mgEq(mgQuatY(a), 2.));
-    assertTrue(mgEq(mgQuatZ(a), 2.));
-    assertTrue(mgEq(mgQuatW(a), 2.));
+    ferQuatSetW(a, 2.);
+    assertTrue(ferEq(ferQuatX(a), 2.));
+    assertTrue(ferEq(ferQuatY(a), 2.));
+    assertTrue(ferEq(ferQuatZ(a), 2.));
+    assertTrue(ferEq(ferQuatW(a), 2.));
 
-    assertTrue(mgEq(mgQuatLen2(a), 4. * 4.));
+    assertTrue(ferEq(ferQuatLen2(a), 4. * 4.));
 
-    mgQuatScale(a, 0.5);
-    assertTrue(mgEq(mgQuatX(a), 1.));
-    assertTrue(mgEq(mgQuatY(a), 1.));
-    assertTrue(mgEq(mgQuatZ(a), 1.));
-    assertTrue(mgEq(mgQuatW(a), 1.));
+    ferQuatScale(a, 0.5);
+    assertTrue(ferEq(ferQuatX(a), 1.));
+    assertTrue(ferEq(ferQuatY(a), 1.));
+    assertTrue(ferEq(ferQuatZ(a), 1.));
+    assertTrue(ferEq(ferQuatW(a), 1.));
 
-    mgQuatNormalize(a);
-    assertTrue(mgEq(mgQuatX(a), .5));
-    assertTrue(mgEq(mgQuatY(a), .5));
-    assertTrue(mgEq(mgQuatZ(a), .5));
-    assertTrue(mgEq(mgQuatW(a), .5));
+    ferQuatNormalize(a);
+    assertTrue(ferEq(ferQuatX(a), .5));
+    assertTrue(ferEq(ferQuatY(a), .5));
+    assertTrue(ferEq(ferQuatZ(a), .5));
+    assertTrue(ferEq(ferQuatW(a), .5));
 
-    mgQuatSet(&b, 2., 3., 4., 5.);
-    mgQuatMul(a, &b);
-    assertTrue(mgEq(mgQuatX(a), 4.));
-    assertTrue(mgEq(mgQuatY(a), 3.));
-    assertTrue(mgEq(mgQuatZ(a), 5.));
-    assertTrue(mgEq(mgQuatW(a), -2.));
+    ferQuatSet(&b, 2., 3., 4., 5.);
+    ferQuatMul(a, &b);
+    assertTrue(ferEq(ferQuatX(a), 4.));
+    assertTrue(ferEq(ferQuatY(a), 3.));
+    assertTrue(ferEq(ferQuatZ(a), 5.));
+    assertTrue(ferEq(ferQuatW(a), -2.));
 
-    mgQuatSet(a, 1., 2., 1., 2.);
-    mgQuatInvert(a);
-    assertTrue(mgEq(mgQuatX(a), -.1));
-    assertTrue(mgEq(mgQuatY(a), -.2));
-    assertTrue(mgEq(mgQuatZ(a), -.1));
-    assertTrue(mgEq(mgQuatW(a),  .2));
+    ferQuatSet(a, 1., 2., 1., 2.);
+    ferQuatInvert(a);
+    assertTrue(ferEq(ferQuatX(a), -.1));
+    assertTrue(ferEq(ferQuatY(a), -.2));
+    assertTrue(ferEq(ferQuatZ(a), -.1));
+    assertTrue(ferEq(ferQuatW(a),  .2));
 
-    mgVec3Set(&v1, 0, 0, 1);
-    mgQuatSetAngleAxis(a, M_PI_2, &v1);
-    assertTrue(mgEq(mgQuatX(a), 0.));
-    assertTrue(mgEq(mgQuatY(a), 0.));
-    assertTrue(mgEq(mgQuatZ(a), MG_SQRT(2.)/2.));
-    assertTrue(mgEq(mgQuatW(a), MG_SQRT(2.)/2.));
+    ferVec3Set(&v1, 0, 0, 1);
+    ferQuatSetAngleAxis(a, M_PI_2, &v1);
+    assertTrue(ferEq(ferQuatX(a), 0.));
+    assertTrue(ferEq(ferQuatY(a), 0.));
+    assertTrue(ferEq(ferQuatZ(a), FER_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatW(a), FER_SQRT(2.)/2.));
 
-    mgVec3Set(&v2, 1., 0., 1.);
-    mgQuatRotVec(&v2, a);
-    assertTrue(mgEq(mgQuatX(a), 0.));
-    assertTrue(mgEq(mgQuatY(a), 0.));
-    assertTrue(mgEq(mgQuatZ(a), MG_SQRT(2.)/2.));
-    assertTrue(mgEq(mgQuatW(a), MG_SQRT(2.)/2.));
-    assertTrue(mgEq(mgVec3Y(&v2), 1.));
-    assertTrue(mgEq(mgVec3Z(&v2), 1.));
+    ferVec3Set(&v2, 1., 0., 1.);
+    ferQuatRotVec(&v2, a);
+    assertTrue(ferEq(ferQuatX(a), 0.));
+    assertTrue(ferEq(ferQuatY(a), 0.));
+    assertTrue(ferEq(ferQuatZ(a), FER_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatW(a), FER_SQRT(2.)/2.));
+    assertTrue(ferEq(ferVec3Y(&v2), 1.));
+    assertTrue(ferEq(ferVec3Z(&v2), 1.));
 
-    mgQuatDel(a);
+    ferQuatDel(a);
 }
 
 
 TEST(quatLen2)
 {
     size_t i;
-    mg_real_t l;
+    fer_real_t l;
 
     printf("# ---- len2 ----\n");
     for (i = 0; i < quats_len; i++){
-        l = mgQuatLen2(&quats[i]);
+        l = ferQuatLen2(&quats[i]);
         printf("# %g\n", l);
     }
     printf("# ---- len2 end ----\n\n");
@@ -109,11 +109,11 @@ TEST(quatLen2)
 TEST(quatLen)
 {
     size_t i;
-    mg_real_t l;
+    fer_real_t l;
 
     printf("# ---- len ----\n");
     for (i = 0; i < quats_len; i++){
-        l = mgQuatLen(&quats[i]);
+        l = ferQuatLen(&quats[i]);
         printf("# %g\n", l);
     }
     printf("# ---- len end ----\n\n");
@@ -122,13 +122,13 @@ TEST(quatLen)
 TEST(quatNormalize)
 {
     size_t i;
-    mg_quat_t q;
+    fer_quat_t q;
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < quats_len; i++){
-        mgQuatCopy(&q, &quats[i]);
-        mgQuatNormalize(&q);
-        printf("# %g %g %g %g\n", mgQuatX(&q), mgQuatY(&q), mgQuatZ(&q), mgQuatW(&q));
+        ferQuatCopy(&q, &quats[i]);
+        ferQuatNormalize(&q);
+        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
     }
     printf("# ---- normalize end ----\n\n");
 }
@@ -136,13 +136,13 @@ TEST(quatNormalize)
 TEST(quatScale)
 {
     size_t i;
-    mg_quat_t q;
+    fer_quat_t q;
 
     printf("# ---- scale ----\n");
     for (i = 0; i < quats_len; i++){
-        mgQuatCopy(&q, &quats[i]);
-        mgQuatScale(&q, mgQuatX(&quats[i]));
-        printf("# %g %g %g %g\n", mgQuatX(&q), mgQuatY(&q), mgQuatZ(&q), mgQuatW(&q));
+        ferQuatCopy(&q, &quats[i]);
+        ferQuatScale(&q, ferQuatX(&quats[i]));
+        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
     }
     printf("# ---- scale end ----\n\n");
 }
@@ -150,15 +150,15 @@ TEST(quatScale)
 TEST(quatMul)
 {
     size_t i;
-    mg_quat_t q, q2;
+    fer_quat_t q, q2;
 
     printf("# ---- mul ----\n");
     for (i = 0; i < quats_len - 1; i++){
-        mgQuatCopy(&q, &quats[i]);
-        mgQuatMul(&q, &quats[i + 1]);
-        mgQuatMul2(&q2, &quats[i], &quats[i + 1]);
-        printf("# %g %g %g %g\n", mgQuatX(&q), mgQuatY(&q), mgQuatZ(&q), mgQuatW(&q));
-        printf("# %g %g %g %g\n", mgQuatX(&q2), mgQuatY(&q2), mgQuatZ(&q2), mgQuatW(&q2));
+        ferQuatCopy(&q, &quats[i]);
+        ferQuatMul(&q, &quats[i + 1]);
+        ferQuatMul2(&q2, &quats[i], &quats[i + 1]);
+        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
+        printf("# %g %g %g %g\n", ferQuatX(&q2), ferQuatY(&q2), ferQuatZ(&q2), ferQuatW(&q2));
     }
     printf("# ---- mul end ----\n\n");
 }
@@ -167,15 +167,15 @@ TEST(quatMul)
 TEST(quatInvert)
 {
     size_t i;
-    mg_quat_t q, q2;
+    fer_quat_t q, q2;
 
     printf("# ---- invert ----\n");
     for (i = 0; i < quats_len; i++){
-        mgQuatCopy(&q, &quats[i]);
-        mgQuatInvert(&q);
-        mgQuatInvert2(&q2, &quats[i]);
-        printf("# %g %g %g %g\n", mgQuatX(&q), mgQuatY(&q), mgQuatZ(&q), mgQuatW(&q));
-        printf("# %g %g %g %g\n", mgQuatX(&q2), mgQuatY(&q2), mgQuatZ(&q2), mgQuatW(&q2));
+        ferQuatCopy(&q, &quats[i]);
+        ferQuatInvert(&q);
+        ferQuatInvert2(&q2, &quats[i]);
+        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
+        printf("# %g %g %g %g\n", ferQuatX(&q2), ferQuatY(&q2), ferQuatZ(&q2), ferQuatW(&q2));
     }
     printf("# ---- invert end ----\n\n");
 }
@@ -183,13 +183,13 @@ TEST(quatInvert)
 TEST(quatRotVec)
 {
     size_t i, j;
-    mg_vec3_t v;
+    fer_vec3_t v;
 
     printf("# ---- rot vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){
-        mgVec3Copy(&v, &vecs[j]);
-        mgQuatRotVec(&v, &quats[i]);
-        printf("# %g %g %g\n", mgVec3X(&v), mgVec3Y(&v), mgVec3Z(&v));
+        ferVec3Copy(&v, &vecs[j]);
+        ferQuatRotVec(&v, &quats[i]);
+        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
     }
     printf("# ---- rot vec end ----\n\n");
 }
@@ -197,16 +197,16 @@ TEST(quatRotVec)
 TEST(quatAngleAxis)
 {
     size_t i, j;
-    mg_quat_t q;
-    mg_vec3_t v;
-    mg_real_t a;
+    fer_quat_t q;
+    fer_vec3_t v;
+    fer_real_t a;
 
     printf("# ---- angle axis vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){
-        mgVec3Copy(&v, &vecs[j]);
-        a = mgQuatX(&quats[i]) * M_PI_2;
-        mgQuatSetAngleAxis(&q, a, &v);
-        printf("# %g %g %g %g\n", mgQuatX(&q), mgQuatY(&q), mgQuatZ(&q), mgQuatW(&q));
+        ferVec3Copy(&v, &vecs[j]);
+        a = ferQuatX(&quats[i]) * M_PI_2;
+        ferQuatSetAngleAxis(&q, a, &v);
+        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
     }
     printf("# ---- angle axis end ----\n\n");
 }

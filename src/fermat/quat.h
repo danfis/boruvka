@@ -1,0 +1,289 @@
+/***
+ * fermat
+ * -------
+ * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
+ *
+ *  This file is part of fermat.
+ *
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
+ *
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
+ */
+
+#ifndef __FER_QUAT_H__
+#define __FER_QUAT_H__
+
+#include <fermat/vec3.h>
+#include <fermat/vec4.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+typedef fer_vec4_t fer_quat_t;
+
+#define FER_QUAT_STATIC FER_VEC4_STATIC
+#define FER_QUAT(name, x, y, z, w) \
+    fer_quat_t name = FER_QUAT_STATIC((x), (y), (z), (w))
+
+#define ferQuatNew   ferVec4New
+#define ferQuatDel   ferVec4Del
+#define ferQuatCopy  ferVec4Copy
+#define ferQuatClone ferVec4Clone
+
+#define ferQuatX         ferVec4X
+#define ferQuatY         ferVec4Y
+#define ferQuatZ         ferVec4Z
+#define ferQuatW         ferVec4W
+#define ferQuatGet       ferVec4Get
+#define ferQuatSet       ferVec4Set
+#define ferQuatSetX      ferVec4SetX
+#define ferQuatSetY      ferVec4SetY
+#define ferQuatSetZ      ferVec4SetZ
+#define ferQuatSetCoord  ferVec4SetCoord
+#define ferQuatSetW      ferVec4SetW
+#define ferQuatLen2      ferVec4Len2
+#define ferQuatLen       ferVec4Len
+#define ferQuatNormalize ferVec4Normalize
+#define ferQuatScale     ferVec4Scale
+
+#define ferQuatEq     ferVec4Eq
+#define ferQuatNEq    ferVec4NEq
+#define ferQuatEq2    ferVec4Eq2
+#define ferQuatNEq2   ferVec4NEq2
+#define ferQuatIsZero ferVec4IsZero
+
+
+_fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
+                                   fer_real_t angle, const fer_vec3_t *axis);
+
+/**
+ * Composition of two quaternions.
+ * q = q * q2
+ */
+_fer_inline void ferQuatMul(fer_quat_t *q, const fer_quat_t *q2);
+
+/**
+ * q = a * b
+ */
+_fer_inline void ferQuatMul2(fer_quat_t *q,
+                           const fer_quat_t *a, const fer_quat_t *b);
+
+/**
+ * Inverts quaternion.
+ * Returns 0 on success.
+ */
+_fer_inline int ferQuatInvert(fer_quat_t *q);
+_fer_inline int ferQuatInvert2(fer_quat_t *dest, const fer_quat_t *src);
+
+
+/**
+ * Rotate vector v by quaternion q.
+ */
+_fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q);
+
+
+/**** INLINES ****/
+_fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
+                                   fer_real_t angle, const fer_vec3_t *axis)
+{
+    fer_vec3_t xyz;
+    fer_real_t a, s, n;
+
+    ferVec3Copy(&xyz, axis);
+    n = ferVec3Len(&xyz);
+
+    if (fer_unlikely(ferIsZero(n))){
+        ferQuatSet(q, FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
+    }else{
+        a = angle * FER_REAL(0.5);
+        s = FER_SIN(a) / n;
+
+        ferVec3Scale(&xyz, s);
+        ferQuatSet(q, ferVec3X(&xyz), ferVec3Y(&xyz), ferVec3Z(&xyz), FER_COS(a));
+    }
+}
+
+
+_fer_inline void ferQuatMul(fer_quat_t *q, const fer_quat_t *q2)
+{
+    fer_quat_t a;
+    ferQuatCopy(&a, q);
+    ferQuatMul2(q, &a, q2);
+}
+
+_fer_inline void ferQuatMul2(fer_quat_t *q,
+                           const fer_quat_t *a, const fer_quat_t *b)
+{
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 a1, a2, a3, a4, b1, b2, b3, b4, sign;
+
+    // shuffle quats
+    a1 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(0, 3, 3, 3));
+    a2 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(1, 2, 1, 0));
+    a3 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(2, 0, 2, 1));
+    a4 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(3, 1, 0, 2));
+    b1 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(0, 2, 1, 0));
+    b2 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(1, 3, 3, 3));
+    b3 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(2, 1, 0, 2));
+    b4 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(3, 0, 2, 1));
+    sign = _mm_set_ps(-FER_ONE, FER_ONE, FER_ONE, FER_ONE);
+
+    // mul into a*
+    a1 = _mm_mul_ps(a1, b1);
+    a2 = _mm_mul_ps(a2, b2);
+    a3 = _mm_mul_ps(a3, b3);
+    a4 = _mm_mul_ps(a4, b4);
+
+    // add into a1
+    a1 = _mm_add_ps(a1, a2);
+    a1 = _mm_add_ps(a1, a3);
+    a1 = _mm_sub_ps(a1, a4);
+
+    // change sign of w
+    q->q = _mm_mul_ps(a1, sign);
+# else /* FER_SSE_SINGLE */
+    __m128d a33, a01, a12, a20, a21, a02, a30, a13;
+    __m128d b33, b20, b12, b31, b03;
+    __m128d sign;
+
+    a33 = _mm_shuffle_pd(a->q[1], a->q[1], _MM_SHUFFLE2(1, 1));
+    a01 = _mm_shuffle_pd(a->q[0], a->q[0], _MM_SHUFFLE2(1, 0));
+    a12 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 1));
+    a20 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 0));
+    a21 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(1, 0));
+    a02 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 0));
+    a30 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 1));
+    a13 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(1, 1));
+    b33 = _mm_shuffle_pd(b->q[1], b->q[1], _MM_SHUFFLE2(1, 1));
+    b20 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(0, 0));
+    b12 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(0, 1));
+    b31 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(1, 1));
+    b03 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(1, 0));
+
+    a33 = _mm_mul_pd(a33, b->q[0]);
+    a21 = _mm_mul_pd(a21, b31);
+    a01 = _mm_mul_pd(a01, b33);
+    a02 = _mm_mul_pd(a02, b12);
+    a12 = _mm_mul_pd(a12, b20);
+    a30 = _mm_mul_pd(a30, b20);
+    a20 = _mm_mul_pd(a20, b12);
+    a13 = _mm_mul_pd(a13, b03);
+
+    a33 = _mm_add_pd(a33, a01);
+    a33 = _mm_add_pd(a33, a12);
+    a33 = _mm_sub_pd(a33, a20);
+    a21 = _mm_add_pd(a21, a02);
+    a21 = _mm_add_pd(a21, a30);
+    a21 = _mm_sub_pd(a21, a13);
+
+    q->q[0] = a33;
+    sign = _mm_set_pd(-FER_ONE, FER_ONE);
+    q->q[1] = _mm_mul_pd(a21, sign);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
+    q->f[0] = a->f[3] * b->f[0]
+                + a->f[0] * b->f[3]
+                + a->f[1] * b->f[2]
+                - a->f[2] * b->f[1];
+    q->f[1] = a->f[3] * b->f[1]
+                + a->f[1] * b->f[3]
+                - a->f[0] * b->f[2]
+                + a->f[2] * b->f[0];
+    q->f[2] = a->f[3] * b->f[2]
+                + a->f[2] * b->f[3]
+                + a->f[0] * b->f[1]
+                - a->f[1] * b->f[0];
+    q->f[3] = a->f[3] * b->f[3]
+                - a->f[0] * b->f[0]
+                - a->f[1] * b->f[1]
+                - a->f[2] * b->f[2];
+#endif /* FER_SSE */
+}
+
+_fer_inline int ferQuatInvert(fer_quat_t *q)
+{
+    fer_real_t len2 = ferQuatLen2(q);
+    if (len2 < FER_EPS)
+        return -1;
+
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 k;
+    k = _mm_set_ps(len2, -len2, -len2, -len2);
+    q->q = _mm_div_ps(q->q, k);
+# else /* FER_SSE_SINGLE */
+    __m128d k1, k2;
+    k1 = _mm_set_pd(-len2, -len2);
+    k2 = _mm_set_pd(len2, -len2);
+    q->q[0] = _mm_div_pd(q->q[0], k1);
+    q->q[1] = _mm_div_pd(q->q[1], k2);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
+    len2 = ferRecp(len2);
+
+    q->f[0] = -q->f[0] * len2;
+    q->f[1] = -q->f[1] * len2;
+    q->f[2] = -q->f[2] * len2;
+    q->f[3] = q->f[3] * len2;
+#endif /* FER_SSE */
+
+    return 0;
+}
+_fer_inline int ferQuatInvert2(fer_quat_t *dest, const fer_quat_t *src)
+{
+    ferQuatCopy(dest, src);
+    return ferQuatInvert(dest);
+}
+
+_fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q)
+{
+    fer_real_t w, x, y, z, ww, xx, yy, zz, wx, wy, wz, xy, xz, yz;
+    fer_real_t vx, vy, vz;
+
+    w = q->f[3];
+    x = q->f[0];
+    y = q->f[1];
+    z = q->f[2];
+    ww = w*w;
+    xx = x*x;
+    yy = y*y;
+    zz = z*z;
+    wx = w*x;
+    wy = w*y;
+    wz = w*z;
+    xy = x*y;
+    xz = x*z;
+    yz = y*z;
+
+    vx = ww * ferVec3X(v)
+            + xx * ferVec3X(v)
+            - yy * ferVec3X(v)
+            - zz * ferVec3X(v)
+            + 2 * ((xy - wz) * ferVec3Y(v)
+            + (xz + wy) * ferVec3Z(v));
+    vy = ww * ferVec3Y(v)
+            - xx * ferVec3Y(v)
+            + yy * ferVec3Y(v)
+            - zz * ferVec3Y(v)
+            + 2 * ((xy + wz) * ferVec3X(v)
+            + (yz - wx) * ferVec3Z(v));
+    vz = ww * ferVec3Z(v)
+            - xx * ferVec3Z(v)
+            - yy * ferVec3Z(v)
+            + zz * ferVec3Z(v)
+            + 2 * ((xz - wy) * ferVec3X(v)
+            + (yz + wx) * ferVec3Y(v));
+    ferVec3Set(v, vx, vy, vz);
+}
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
+
+#endif /* __FER_QUAT_H__ */

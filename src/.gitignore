@@ -1,4 +1,4 @@
 *.a
 *.o
 *~
-mg/config.h
+fermat/config.h

@@ -1,9 +1,9 @@
 /***
- * mg
- * ---
+ * fermat
+ * -------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of mg.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,117 +15,117 @@
  */
 
 #include <stdio.h>
-#include <mg/alloc.h>
-#include <mg/vec3.h>
-#include <mg/dbg.h>
+#include <fermat/alloc.h>
+#include <fermat/vec3.h>
+#include <fermat/dbg.h>
 
-static MG_VEC3(__mg_vec3_origin, MG_ZERO, MG_ZERO, MG_ZERO);
-const mg_vec3_t *mg_vec3_origin = &__mg_vec3_origin;
+static FER_VEC3(__fer_vec3_origin, FER_ZERO, FER_ZERO, FER_ZERO);
+const fer_vec3_t *fer_vec3_origin = &__fer_vec3_origin;
 
-static mg_vec3_t points_on_sphere[] = {
-	MG_VEC3_STATIC(MG_REAL( 0.000000), MG_REAL(-0.000000), MG_REAL(-1.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.723608), MG_REAL(-0.525725), MG_REAL(-0.447219)),
-	MG_VEC3_STATIC(MG_REAL(-0.276388), MG_REAL(-0.850649), MG_REAL(-0.447219)),
-	MG_VEC3_STATIC(MG_REAL(-0.894426), MG_REAL(-0.000000), MG_REAL(-0.447216)),
-	MG_VEC3_STATIC(MG_REAL(-0.276388), MG_REAL( 0.850649), MG_REAL(-0.447220)),
-	MG_VEC3_STATIC(MG_REAL( 0.723608), MG_REAL( 0.525725), MG_REAL(-0.447219)),
-	MG_VEC3_STATIC(MG_REAL( 0.276388), MG_REAL(-0.850649), MG_REAL( 0.447220)),
-	MG_VEC3_STATIC(MG_REAL(-0.723608), MG_REAL(-0.525725), MG_REAL( 0.447219)),
-	MG_VEC3_STATIC(MG_REAL(-0.723608), MG_REAL( 0.525725), MG_REAL( 0.447219)),
-	MG_VEC3_STATIC(MG_REAL( 0.276388), MG_REAL( 0.850649), MG_REAL( 0.447219)),
-	MG_VEC3_STATIC(MG_REAL( 0.894426), MG_REAL( 0.000000), MG_REAL( 0.447216)),
-	MG_VEC3_STATIC(MG_REAL(-0.000000), MG_REAL( 0.000000), MG_REAL( 1.000000)), 
-	MG_VEC3_STATIC(MG_REAL( 0.425323), MG_REAL(-0.309011), MG_REAL(-0.850654)),
-	MG_VEC3_STATIC(MG_REAL(-0.162456), MG_REAL(-0.499995), MG_REAL(-0.850654)),
-	MG_VEC3_STATIC(MG_REAL( 0.262869), MG_REAL(-0.809012), MG_REAL(-0.525738)),
-	MG_VEC3_STATIC(MG_REAL( 0.425323), MG_REAL( 0.309011), MG_REAL(-0.850654)),
-	MG_VEC3_STATIC(MG_REAL( 0.850648), MG_REAL(-0.000000), MG_REAL(-0.525736)),
-	MG_VEC3_STATIC(MG_REAL(-0.525730), MG_REAL(-0.000000), MG_REAL(-0.850652)),
-	MG_VEC3_STATIC(MG_REAL(-0.688190), MG_REAL(-0.499997), MG_REAL(-0.525736)),
-	MG_VEC3_STATIC(MG_REAL(-0.162456), MG_REAL( 0.499995), MG_REAL(-0.850654)),
-	MG_VEC3_STATIC(MG_REAL(-0.688190), MG_REAL( 0.499997), MG_REAL(-0.525736)),
-	MG_VEC3_STATIC(MG_REAL( 0.262869), MG_REAL( 0.809012), MG_REAL(-0.525738)),
-	MG_VEC3_STATIC(MG_REAL( 0.951058), MG_REAL( 0.309013), MG_REAL( 0.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.951058), MG_REAL(-0.309013), MG_REAL( 0.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.587786), MG_REAL(-0.809017), MG_REAL( 0.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.000000), MG_REAL(-1.000000), MG_REAL( 0.000000)),
-	MG_VEC3_STATIC(MG_REAL(-0.587786), MG_REAL(-0.809017), MG_REAL( 0.000000)),
-	MG_VEC3_STATIC(MG_REAL(-0.951058), MG_REAL(-0.309013), MG_REAL(-0.000000)),
-	MG_VEC3_STATIC(MG_REAL(-0.951058), MG_REAL( 0.309013), MG_REAL(-0.000000)),
-	MG_VEC3_STATIC(MG_REAL(-0.587786), MG_REAL( 0.809017), MG_REAL(-0.000000)),
-	MG_VEC3_STATIC(MG_REAL(-0.000000), MG_REAL( 1.000000), MG_REAL(-0.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.587786), MG_REAL( 0.809017), MG_REAL(-0.000000)),
-	MG_VEC3_STATIC(MG_REAL( 0.688190), MG_REAL(-0.499997), MG_REAL( 0.525736)),
-	MG_VEC3_STATIC(MG_REAL(-0.262869), MG_REAL(-0.809012), MG_REAL( 0.525738)),
-	MG_VEC3_STATIC(MG_REAL(-0.850648), MG_REAL( 0.000000), MG_REAL( 0.525736)),
-	MG_VEC3_STATIC(MG_REAL(-0.262869), MG_REAL( 0.809012), MG_REAL( 0.525738)),
-	MG_VEC3_STATIC(MG_REAL( 0.688190), MG_REAL( 0.499997), MG_REAL( 0.525736)),
-	MG_VEC3_STATIC(MG_REAL( 0.525730), MG_REAL( 0.000000), MG_REAL( 0.850652)),
-	MG_VEC3_STATIC(MG_REAL( 0.162456), MG_REAL(-0.499995), MG_REAL( 0.850654)),
-	MG_VEC3_STATIC(MG_REAL(-0.425323), MG_REAL(-0.309011), MG_REAL( 0.850654)),
-	MG_VEC3_STATIC(MG_REAL(-0.425323), MG_REAL( 0.309011), MG_REAL( 0.850654)),
-	MG_VEC3_STATIC(MG_REAL( 0.162456), MG_REAL( 0.499995), MG_REAL( 0.850654))
+static fer_vec3_t points_on_sphere[] = {
+	FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-0.000000), FER_REAL(-1.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL(-0.525725), FER_REAL(-0.447219)),
+	FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL(-0.850649), FER_REAL(-0.447219)),
+	FER_VEC3_STATIC(FER_REAL(-0.894426), FER_REAL(-0.000000), FER_REAL(-0.447216)),
+	FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL( 0.850649), FER_REAL(-0.447220)),
+	FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL( 0.525725), FER_REAL(-0.447219)),
+	FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL(-0.850649), FER_REAL( 0.447220)),
+	FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL(-0.525725), FER_REAL( 0.447219)),
+	FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL( 0.525725), FER_REAL( 0.447219)),
+	FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL( 0.850649), FER_REAL( 0.447219)),
+	FER_VEC3_STATIC(FER_REAL( 0.894426), FER_REAL( 0.000000), FER_REAL( 0.447216)),
+	FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 0.000000), FER_REAL( 1.000000)), 
+	FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL(-0.309011), FER_REAL(-0.850654)),
+	FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL(-0.499995), FER_REAL(-0.850654)),
+	FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL(-0.809012), FER_REAL(-0.525738)),
+	FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL( 0.309011), FER_REAL(-0.850654)),
+	FER_VEC3_STATIC(FER_REAL( 0.850648), FER_REAL(-0.000000), FER_REAL(-0.525736)),
+	FER_VEC3_STATIC(FER_REAL(-0.525730), FER_REAL(-0.000000), FER_REAL(-0.850652)),
+	FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL(-0.499997), FER_REAL(-0.525736)),
+	FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL( 0.499995), FER_REAL(-0.850654)),
+	FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL( 0.499997), FER_REAL(-0.525736)),
+	FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL( 0.809012), FER_REAL(-0.525738)),
+	FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL( 0.309013), FER_REAL( 0.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL(-0.309013), FER_REAL( 0.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-1.000000), FER_REAL( 0.000000)),
+	FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
+	FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL(-0.309013), FER_REAL(-0.000000)),
+	FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL( 0.309013), FER_REAL(-0.000000)),
+	FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
+	FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 1.000000), FER_REAL(-0.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
+	FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL(-0.499997), FER_REAL( 0.525736)),
+	FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL(-0.809012), FER_REAL( 0.525738)),
+	FER_VEC3_STATIC(FER_REAL(-0.850648), FER_REAL( 0.000000), FER_REAL( 0.525736)),
+	FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL( 0.809012), FER_REAL( 0.525738)),
+	FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL( 0.499997), FER_REAL( 0.525736)),
+	FER_VEC3_STATIC(FER_REAL( 0.525730), FER_REAL( 0.000000), FER_REAL( 0.850652)),
+	FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL(-0.499995), FER_REAL( 0.850654)),
+	FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL(-0.309011), FER_REAL( 0.850654)),
+	FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL( 0.309011), FER_REAL( 0.850654)),
+	FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL( 0.499995), FER_REAL( 0.850654))
 };
-mg_vec3_t *mg_points_on_sphere = points_on_sphere;
-size_t mg_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(mg_vec3_t);
+fer_vec3_t *fer_points_on_sphere = points_on_sphere;
+size_t fer_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(fer_vec3_t);
 
-_mg_inline mg_real_t _mgVec3ACos(mg_real_t angle)
+_fer_inline fer_real_t _ferVec3ACos(fer_real_t angle)
 {
-    if (mgEq(angle, MG_ONE) || angle > MG_ONE)
-        angle = MG_ONE;
-    if (mgEq(angle, -MG_ONE) || angle < -MG_ONE)
-        angle = -MG_ONE;
+    if (ferEq(angle, FER_ONE) || angle > FER_ONE)
+        angle = FER_ONE;
+    if (ferEq(angle, -FER_ONE) || angle < -FER_ONE)
+        angle = -FER_ONE;
 
     /*
-    if (isnan(angle) || isnan(MG_ACOS(angle))){
+    if (isnan(angle) || isnan(FER_ACOS(angle))){
         DBG("NAN: %f", angle);
     }
     */
 
-    return MG_ACOS(angle);
+    return FER_ACOS(angle);
 }
 
 
-mg_vec3_t *mgVec3New(mg_real_t x, mg_real_t y, mg_real_t z)
+fer_vec3_t *ferVec3New(fer_real_t x, fer_real_t y, fer_real_t z)
 {
-    mg_vec3_t *v;
+    fer_vec3_t *v;
 
-#ifdef MG_SSE
-    v = MG_ALLOC_ALIGN(mg_vec3_t, sizeof(mg_vec3_t));
-#else /* MG_SSE */
-    v = MG_ALLOC(mg_vec3_t);
-#endif /* MG_SSE */
-    mgVec3Set(v, x, y, z);
+#ifdef FER_SSE
+    v = FER_ALLOC_ALIGN(fer_vec3_t, sizeof(fer_vec3_t));
+#else /* FER_SSE */
+    v = FER_ALLOC(fer_vec3_t);
+#endif /* FER_SSE */
+    ferVec3Set(v, x, y, z);
     return v;
 }
 
-void mgVec3Del(mg_vec3_t *v)
+void ferVec3Del(fer_vec3_t *v)
 {
     free(v);
 }
 
-mg_vec3_t *mgVec3ArrNew(size_t num_vecs)
+fer_vec3_t *ferVec3ArrNew(size_t num_vecs)
 {
-    mg_vec3_t *vs;
+    fer_vec3_t *vs;
 
-#ifdef MG_SSE
-    vs = MG_ALLOC_ALIGN_ARR(mg_vec3_t, num_vecs, sizeof(mg_vec3_t));
-#else /* MG_SSE */
-    vs = MG_ALLOC_ARR(mg_vec3_t, num_vecs);
-#endif /* MG_SSE */
+#ifdef FER_SSE
+    vs = FER_ALLOC_ALIGN_ARR(fer_vec3_t, num_vecs, sizeof(fer_vec3_t));
+#else /* FER_SSE */
+    vs = FER_ALLOC_ARR(fer_vec3_t, num_vecs);
+#endif /* FER_SSE */
 
     return vs;
 }
 
-void mgVec3ArrDel(mg_vec3_t *v)
+void ferVec3ArrDel(fer_vec3_t *v)
 {
     free(v);
 }
 
-_mg_inline mg_real_t __mgVec3PointSegmentDist2(const mg_vec3_t *P,
-                                               const mg_vec3_t *x0,
-                                               const mg_vec3_t *b,
-                                               mg_vec3_t *witness)
+_fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,
+                                               const fer_vec3_t *x0,
+                                               const fer_vec3_t *b,
+                                               fer_vec3_t *witness)
 {
     // The computation comes from solving equation of segment:
     //      S(t) = x0 + t.d
@@ -142,54 +142,54 @@ _mg_inline mg_real_t __mgVec3PointSegmentDist2(const mg_vec3_t *P,
     //
     // Bonus of this method is witness point for free.
 
-    mg_real_t dist, t;
-    mg_vec3_t d, a;
+    fer_real_t dist, t;
+    fer_vec3_t d, a;
 
     // direction of segment
-    mgVec3Sub2(&d, b, x0);
+    ferVec3Sub2(&d, b, x0);
 
     // precompute vector from P to x0
-    mgVec3Sub2(&a, x0, P);
+    ferVec3Sub2(&a, x0, P);
 
-    t  = -MG_REAL(1.) * mgVec3Dot(&a, &d);
-    t /= mgVec3Len2(&d);
+    t  = -FER_REAL(1.) * ferVec3Dot(&a, &d);
+    t /= ferVec3Len2(&d);
 
-    if (t < MG_ZERO || mgIsZero(t)){
-        dist = mgVec3Dist2(x0, P);
+    if (t < FER_ZERO || ferIsZero(t)){
+        dist = ferVec3Dist2(x0, P);
         if (witness)
-            mgVec3Copy(witness, x0);
-    }else if (t > MG_ONE || mgEq(t, MG_ONE)){
-        dist = mgVec3Dist2(b, P);
+            ferVec3Copy(witness, x0);
+    }else if (t > FER_ONE || ferEq(t, FER_ONE)){
+        dist = ferVec3Dist2(b, P);
         if (witness)
-            mgVec3Copy(witness, b);
+            ferVec3Copy(witness, b);
     }else{
         if (witness){
-            mgVec3Copy(witness, &d);
-            mgVec3Scale(witness, t);
-            mgVec3Add(witness, x0);
-            dist = mgVec3Dist2(witness, P);
+            ferVec3Copy(witness, &d);
+            ferVec3Scale(witness, t);
+            ferVec3Add(witness, x0);
+            dist = ferVec3Dist2(witness, P);
         }else{
             // recycling variables
-            mgVec3Scale(&d, t);
-            mgVec3Add(&d, &a);
-            dist = mgVec3Len2(&d);
+            ferVec3Scale(&d, t);
+            ferVec3Add(&d, &a);
+            dist = ferVec3Len2(&d);
         }
     }
 
     return dist;
 }
 
-mg_real_t mgVec3PointSegmentDist2(const mg_vec3_t *P,
-                                    const mg_vec3_t *x0, const mg_vec3_t *b,
-                                    mg_vec3_t *witness)
+fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
+                                    const fer_vec3_t *x0, const fer_vec3_t *b,
+                                    fer_vec3_t *witness)
 {
-    return __mgVec3PointSegmentDist2(P, x0, b, witness);
+    return __ferVec3PointSegmentDist2(P, x0, b, witness);
 }
 
-mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
-                              const mg_vec3_t *x0, const mg_vec3_t *B,
-                              const mg_vec3_t *C,
-                              mg_vec3_t *witness)
+fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
+                              const fer_vec3_t *x0, const fer_vec3_t *B,
+                              const fer_vec3_t *C,
+                              fer_vec3_t *witness)
 {
     // Computation comes from analytic expression for triangle (x0, B, C)
     //      T(s, t) = x0 + s.d1 + t.d2, where d1 = B - x0 and d2 = C - x0 and
@@ -200,202 +200,202 @@ mg_real_t mgVec3PointTriDist2(const mg_vec3_t *P,
     // between 0 and 1 and t + s < 1, otherwise distance from segment is
     // computed.
 
-    mg_vec3_t d1, d2, a;
-    mg_real_t u, v, w, p, q, r;
-    mg_real_t s, t, dist, dist2;
-    mg_vec3_t witness2;
+    fer_vec3_t d1, d2, a;
+    fer_real_t u, v, w, p, q, r;
+    fer_real_t s, t, dist, dist2;
+    fer_vec3_t witness2;
 
-    mgVec3Sub2(&d1, B, x0);
-    mgVec3Sub2(&d2, C, x0);
-    mgVec3Sub2(&a, x0, P);
+    ferVec3Sub2(&d1, B, x0);
+    ferVec3Sub2(&d2, C, x0);
+    ferVec3Sub2(&a, x0, P);
 
-    u = mgVec3Dot(&a, &a);
-    v = mgVec3Dot(&d1, &d1);
-    w = mgVec3Dot(&d2, &d2);
-    p = mgVec3Dot(&a, &d1);
-    q = mgVec3Dot(&a, &d2);
-    r = mgVec3Dot(&d1, &d2);
+    u = ferVec3Dot(&a, &a);
+    v = ferVec3Dot(&d1, &d1);
+    w = ferVec3Dot(&d2, &d2);
+    p = ferVec3Dot(&a, &d1);
+    q = ferVec3Dot(&a, &d2);
+    r = ferVec3Dot(&d1, &d2);
 
     s = (q * r - w * p) / (w * v - r * r);
     t = (-s * r - q) / w;
 
-    if ((mgIsZero(s) || s > MG_ZERO)
-            && (mgEq(s, MG_ONE) || s < MG_ONE)
-            && (mgIsZero(t) || t > MG_ZERO)
-            && (mgEq(t, MG_ONE) || t < MG_ONE)
-            && (mgEq(t + s, MG_ONE) || t + s < MG_ONE)){
+    if ((ferIsZero(s) || s > FER_ZERO)
+            && (ferEq(s, FER_ONE) || s < FER_ONE)
+            && (ferIsZero(t) || t > FER_ZERO)
+            && (ferEq(t, FER_ONE) || t < FER_ONE)
+            && (ferEq(t + s, FER_ONE) || t + s < FER_ONE)){
 
         if (witness){
-            mgVec3Scale(&d1, s);
-            mgVec3Scale(&d2, t);
-            mgVec3Copy(witness, x0);
-            mgVec3Add(witness, &d1);
-            mgVec3Add(witness, &d2);
+            ferVec3Scale(&d1, s);
+            ferVec3Scale(&d2, t);
+            ferVec3Copy(witness, x0);
+            ferVec3Add(witness, &d1);
+            ferVec3Add(witness, &d2);
 
-            dist = mgVec3Dist2(witness, P);
+            dist = ferVec3Dist2(witness, P);
         }else{
             dist  = s * s * v;
             dist += t * t * w;
-            dist += MG_REAL(2.) * s * t * r;
-            dist += MG_REAL(2.) * s * p;
-            dist += MG_REAL(2.) * t * q;
+            dist += FER_REAL(2.) * s * t * r;
+            dist += FER_REAL(2.) * s * p;
+            dist += FER_REAL(2.) * t * q;
             dist += u;
         }
     }else{
-        dist = __mgVec3PointSegmentDist2(P, x0, B, witness);
+        dist = __ferVec3PointSegmentDist2(P, x0, B, witness);
 
-        dist2 = __mgVec3PointSegmentDist2(P, x0, C, &witness2);
+        dist2 = __ferVec3PointSegmentDist2(P, x0, C, &witness2);
         if (dist2 < dist){
             dist = dist2;
             if (witness)
-                mgVec3Copy(witness, &witness2);
+                ferVec3Copy(witness, &witness2);
         }
 
-        dist2 = __mgVec3PointSegmentDist2(P, B, C, &witness2);
+        dist2 = __ferVec3PointSegmentDist2(P, B, C, &witness2);
         if (dist2 < dist){
             dist = dist2;
             if (witness)
-                mgVec3Copy(witness, &witness2);
+                ferVec3Copy(witness, &witness2);
         }
     }
 
     return dist;
 }
 
-int mgVec3PointInTri(const mg_vec3_t *p,
-                     const mg_vec3_t *a, const mg_vec3_t *b,
-                     const mg_vec3_t *c)
+int ferVec3PointInTri(const fer_vec3_t *p,
+                     const fer_vec3_t *a, const fer_vec3_t *b,
+                     const fer_vec3_t *c)
 {
-    mg_vec3_t v0, v1, v2;
-    mg_real_t dot00, dot01, dot02, dot11, dot12;
-    mg_real_t inv_denom, u, v;
+    fer_vec3_t v0, v1, v2;
+    fer_real_t dot00, dot01, dot02, dot11, dot12;
+    fer_real_t inv_denom, u, v;
 
     // compute vectors
-    mgVec3Sub2(&v0, c, a);
-    mgVec3Sub2(&v1, b, a);
-    mgVec3Sub2(&v2, p, a);
+    ferVec3Sub2(&v0, c, a);
+    ferVec3Sub2(&v1, b, a);
+    ferVec3Sub2(&v2, p, a);
 
     // compute dot products
-    dot00 = mgVec3Dot(&v0, &v0);
-    dot01 = mgVec3Dot(&v0, &v1);
-    dot02 = mgVec3Dot(&v0, &v2);
-    dot11 = mgVec3Dot(&v1, &v1);
-    dot12 = mgVec3Dot(&v1, &v2);
+    dot00 = ferVec3Dot(&v0, &v0);
+    dot01 = ferVec3Dot(&v0, &v1);
+    dot02 = ferVec3Dot(&v0, &v2);
+    dot11 = ferVec3Dot(&v1, &v1);
+    dot12 = ferVec3Dot(&v1, &v2);
 
     // compute barycentric coordinates
-    inv_denom = MG_ONE / (dot00 * dot11 - dot01 * dot01);
+    inv_denom = FER_ONE / (dot00 * dot11 - dot01 * dot01);
     u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
     v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
 
     // check if point is in triangle
-    return (u > MG_ZERO || mgIsZero(u))
-            && (v > MG_ZERO || mgIsZero(v))
-            && (u + v < MG_ONE || mgEq(u + v, MG_ONE));
+    return (u > FER_ZERO || ferIsZero(u))
+            && (v > FER_ZERO || ferIsZero(v))
+            && (u + v < FER_ONE || ferEq(u + v, FER_ONE));
 }
 
-mg_real_t mgVec3Angle(const mg_vec3_t *a, const mg_vec3_t *b, const mg_vec3_t *c)
+fer_real_t ferVec3Angle(const fer_vec3_t *a, const fer_vec3_t *b, const fer_vec3_t *c)
 {
-    mg_real_t angle, div;
-    mg_real_t abx, aby, abz, cbx, cby, cbz;
+    fer_real_t angle, div;
+    fer_real_t abx, aby, abz, cbx, cby, cbz;
 
-    abx = mgVec3X(a) - mgVec3X(b);
-    aby = mgVec3Y(a) - mgVec3Y(b);
-    abz = mgVec3Z(a) - mgVec3Z(b);
+    abx = ferVec3X(a) - ferVec3X(b);
+    aby = ferVec3Y(a) - ferVec3Y(b);
+    abz = ferVec3Z(a) - ferVec3Z(b);
 
-    cbx = mgVec3X(c) - mgVec3X(b);
-    cby = mgVec3Y(c) - mgVec3Y(b);
-    cbz = mgVec3Z(c) - mgVec3Z(b);
+    cbx = ferVec3X(c) - ferVec3X(b);
+    cby = ferVec3Y(c) - ferVec3Y(b);
+    cbz = ferVec3Z(c) - ferVec3Z(b);
 
-    div = MG_SQRT(abx * abx + aby * aby + abz * abz);
-    div *= MG_SQRT(cbx * cbx + cby * cby + cbz * cbz);
-    if (mgIsZero(div))
-        return MG_ZERO;
+    div = FER_SQRT(abx * abx + aby * aby + abz * abz);
+    div *= FER_SQRT(cbx * cbx + cby * cby + cbz * cbz);
+    if (ferIsZero(div))
+        return FER_ZERO;
 
     angle = abx * cbx + aby * cby + abz * cbz;
     angle /= div;
 
-    return _mgVec3ACos(angle);
+    return _ferVec3ACos(angle);
 }
 
-mg_real_t mgVec3DihedralAngle(const mg_vec3_t *a, const mg_vec3_t *b,
-                              const mg_vec3_t *c, const mg_vec3_t *d)
+fer_real_t ferVec3DihedralAngle(const fer_vec3_t *a, const fer_vec3_t *b,
+                              const fer_vec3_t *c, const fer_vec3_t *d)
 {
-    mg_vec3_t base, v;
-    mg_vec3_t na, nb;
-    mg_real_t angle;
+    fer_vec3_t base, v;
+    fer_vec3_t na, nb;
+    fer_real_t angle;
 
     // get normal vec3tors of planes
-    mgVec3Sub2(&base, c, b);
-    mgVec3Sub2(&v, a, b);
-    mgVec3Cross(&na, &v, &base);
+    ferVec3Sub2(&base, c, b);
+    ferVec3Sub2(&v, a, b);
+    ferVec3Cross(&na, &v, &base);
 
-    mgVec3Sub2(&v, d, b);
-    mgVec3Cross(&nb, &v, &base);
+    ferVec3Sub2(&v, d, b);
+    ferVec3Cross(&nb, &v, &base);
 
     // normalize normals
-    mgVec3Normalize(&na);
-    mgVec3Normalize(&nb);
+    ferVec3Normalize(&na);
+    ferVec3Normalize(&nb);
 
-    angle = mgVec3Dot(&na, &nb);
+    angle = ferVec3Dot(&na, &nb);
 
-    return _mgVec3ACos(angle);
+    return _ferVec3ACos(angle);
 }
 
-mg_real_t mgVec3ProjToPlane(const mg_vec3_t *p,
-                            const mg_vec3_t *u, const mg_vec3_t *v,
-                            const mg_vec3_t *w, mg_vec3_t *d)
+fer_real_t ferVec3ProjToPlane(const fer_vec3_t *p,
+                            const fer_vec3_t *u, const fer_vec3_t *v,
+                            const fer_vec3_t *w, fer_vec3_t *d)
 {
-    mg_vec3_t uv, wv, normal;
+    fer_vec3_t uv, wv, normal;
 
     // uv = u - v, wv = w - v
-    mgVec3Sub2(&uv, u, v);
-    mgVec3Sub2(&wv, w, v);
+    ferVec3Sub2(&uv, u, v);
+    ferVec3Sub2(&wv, w, v);
 
     // scale uv and wv to get better normal
-    if (mgVec3Len2(&uv) < MG_ONE)
-        mgVec3Normalize(&uv);
-    if (mgVec3Len2(&wv) < MG_ONE)
-        mgVec3Normalize(&wv);
+    if (ferVec3Len2(&uv) < FER_ONE)
+        ferVec3Normalize(&uv);
+    if (ferVec3Len2(&wv) < FER_ONE)
+        ferVec3Normalize(&wv);
 
     // compute normal vec3tor
-    mgVec3Cross(&normal, &uv, &wv);
+    ferVec3Cross(&normal, &uv, &wv);
 
-    if (mgVec3IsZero(&normal))
-        return MG_REAL(-1.);
+    if (ferVec3IsZero(&normal))
+        return FER_REAL(-1.);
 
-    return mgVec3ProjToPlane2(p, v, &normal, d);
+    return ferVec3ProjToPlane2(p, v, &normal, d);
 }
 
-mg_real_t mgVec3ProjToPlane2(const mg_vec3_t *p,
-                             const mg_vec3_t *x, const mg_vec3_t *normal,
-                             mg_vec3_t *d)
+fer_real_t ferVec3ProjToPlane2(const fer_vec3_t *p,
+                             const fer_vec3_t *x, const fer_vec3_t *normal,
+                             fer_vec3_t *d)
 {
-    mg_real_t k;
-    mg_vec3_t xp;
+    fer_real_t k;
+    fer_vec3_t xp;
 
-    mgVec3Sub2(&xp, x, p);
-    k  = mgVec3Dot(&xp, normal);
-    k /= mgVec3Len2(normal);
+    ferVec3Sub2(&xp, x, p);
+    k  = ferVec3Dot(&xp, normal);
+    k /= ferVec3Len2(normal);
 
-    mgVec3Copy(d, normal);
-    mgVec3Scale(d, k);
-    mgVec3Add(d, p);
+    ferVec3Copy(d, normal);
+    ferVec3Scale(d, k);
+    ferVec3Add(d, p);
 
-    k = mgVec3Dist(p, d);
+    k = ferVec3Dist(p, d);
 
     return k;
 }
 
-mg_real_t mgVec3TriArea2(const mg_vec3_t *a, const mg_vec3_t *b,
-                         const mg_vec3_t *c)
+fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
+                         const fer_vec3_t *c)
 {
-    mg_vec3_t ba, bc, babc;
-    mg_real_t area;
+    fer_vec3_t ba, bc, babc;
+    fer_real_t area;
 
-    mgVec3Sub2(&ba, a, b);
-    mgVec3Sub2(&bc, c, b);
-    mgVec3Cross(&babc, &ba, &bc);
+    ferVec3Sub2(&ba, a, b);
+    ferVec3Sub2(&bc, c, b);
+    ferVec3Cross(&babc, &ba, &bc);
 
-    area = mgVec3Len(&babc);
+    area = ferVec3Len(&babc);
     return area;
 }

@@ -138,7 +138,7 @@ static PySequenceMethods py_vec4_seq = {
 
 PyTypeObject py_vec4_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "mg.Vec4",                 /* tp_name */
+    "fermat.Vec4",             /* tp_name */
     sizeof(py_vec4),           /* tp_basicsize */
     0,                         /* tp_itemsize */
     0,                         /* tp_dealloc */
@@ -196,14 +196,14 @@ void vec4Init(PyObject *module)
 
 static int vec4ObjInit(py_vec4 *self, PyObject *_args, PyObject *kwds)
 {
-    mg_real_t v[4];
+    fer_real_t v[4];
     Py_ssize_t i, len = 0;
     PyObject *args = NULL, *val;
 
-    v[0] = MG_ZERO;
-    v[1] = MG_ZERO;
-    v[2] = MG_ZERO;
-    v[3] = MG_ZERO;
+    v[0] = FER_ZERO;
+    v[1] = FER_ZERO;
+    v[2] = FER_ZERO;
+    v[3] = FER_ZERO;
 
     if (PySequence_Check(_args)){
         len = PySequence_Size(_args);
@@ -223,7 +223,7 @@ static int vec4ObjInit(py_vec4 *self, PyObject *_args, PyObject *kwds)
         Py_DECREF(args);
     }
 
-    mgVec4Set(&self->v, v[0], v[1], v[2], v[3]);
+    ferVec4Set(&self->v, v[0], v[1], v[2], v[3]);
     return 0;
 }
 
@@ -231,46 +231,46 @@ static PyObject *vec4AsStr(py_vec4 *self)
 {
     char str[100];
     snprintf(str, 100, "<Vec4: %f %f %f %f>", 
-             mgVec4X(&self->v), mgVec4Y(&self->v),
-             mgVec4Z(&self->v), mgVec4W(&self->v));
+             ferVec4X(&self->v), ferVec4Y(&self->v),
+             ferVec4Z(&self->v), ferVec4W(&self->v));
     return PyUnicode_FromString(str);
 }
 
 static PyObject *vec4GetX(py_vec4 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec4X(&self->v));
+    return PyFloat_FromDouble(ferVec4X(&self->v));
 }
 static PyObject *vec4GetY(py_vec4 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec4Y(&self->v));
+    return PyFloat_FromDouble(ferVec4Y(&self->v));
 }
 static PyObject *vec4GetZ(py_vec4 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec4Z(&self->v));
+    return PyFloat_FromDouble(ferVec4Z(&self->v));
 }
 static PyObject *vec4GetW(py_vec4 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec4W(&self->v));
+    return PyFloat_FromDouble(ferVec4W(&self->v));
 }
 
 static int vec4SetX(py_vec4 *self, PyObject *val, void *coord)
 {
-    mgVec4SetX(&self->v, PyFloat_AsDouble(val));
+    ferVec4SetX(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int vec4SetY(py_vec4 *self, PyObject *val, void *coord)
 {
-    mgVec4SetY(&self->v, PyFloat_AsDouble(val));
+    ferVec4SetY(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int vec4SetZ(py_vec4 *self, PyObject *val, void *coord)
 {
-    mgVec4SetZ(&self->v, PyFloat_AsDouble(val));
+    ferVec4SetZ(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int vec4SetW(py_vec4 *self, PyObject *val, void *coord)
 {
-    mgVec4SetW(&self->v, PyFloat_AsDouble(val));
+    ferVec4SetW(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 
@@ -287,9 +287,9 @@ static PyObject *vec4Cmp(PyObject *a, PyObject *b, int op)
     v1 = (py_vec4 *)a;
     v2 = (py_vec4 *)b;
     if (op == Py_EQ){
-        return mgVec4Eq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferVec4Eq(&v1->v, &v2->v) ? Py_True : Py_False;
     }else if (op == Py_NE){
-        return mgVec4NEq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferVec4NEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }
     return Py_NotImplemented;
 }
@@ -297,66 +297,66 @@ static PyObject *vec4Cmp(PyObject *a, PyObject *b, int op)
 static PyObject *vec4Copy(py_vec4 *self)
 {
     py_vec4 *v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Copy(&v->v, &self->v);
+    ferVec4Copy(&v->v, &self->v);
     return (PyObject *)v;
 }
 
 static PyObject *vec4Len2(py_vec4 *self)
 {
-    return PyFloat_FromDouble(mgVec4Len2(&self->v));
+    return PyFloat_FromDouble(ferVec4Len2(&self->v));
 }
 static PyObject *vec4Len(py_vec4 *self)
 {
-    return PyFloat_FromDouble(mgVec4Len(&self->v));
+    return PyFloat_FromDouble(ferVec4Len(&self->v));
 }
 
 static PyObject *vec4Dist2(py_vec4 *self, py_vec4 *o)
 {
-    mg_real_t d;
+    fer_real_t d;
 
     CHECK_VEC4(o)
 
-    d = mgVec4Dist2(&self->v, &o->v);
+    d = ferVec4Dist2(&self->v, &o->v);
     return PyFloat_FromDouble(d);
 }
 static PyObject *vec4Dist(py_vec4 *self, py_vec4 *o)
 {
-    mg_real_t d;
+    fer_real_t d;
 
     CHECK_VEC4(o)
 
-    d = mgVec4Dist(&self->v, &o->v);
+    d = ferVec4Dist(&self->v, &o->v);
     return PyFloat_FromDouble(d);
 }
 
 static PyObject *vec4ScaleToLen(py_vec4 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec4ScaleToLen(&self->v, num);
+    ferVec4ScaleToLen(&self->v, num);
     Py_INCREF(self);
     return (PyObject *)self;
 }
 static PyObject *vec4ScaledToLen(py_vec4 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
     py_vec4 *v;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Copy(&v->v, &self->v);
-    mgVec4ScaleToLen(&v->v, num);
+    ferVec4Copy(&v->v, &self->v);
+    ferVec4ScaleToLen(&v->v, num);
     return (PyObject *)v;
 }
 
 static PyObject *vec4Normalize(py_vec4 *self)
 {
-    mgVec4Normalize(&self->v);
+    ferVec4Normalize(&self->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -365,8 +365,8 @@ static PyObject *vec4Normalized(py_vec4 *self)
 {
     py_vec4 *v;
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Copy(&v->v, &self->v);
-    mgVec4Normalize(&v->v);
+    ferVec4Copy(&v->v, &self->v);
+    ferVec4Normalize(&v->v);
     return (PyObject *)v;
 }
 
@@ -380,7 +380,7 @@ static PyObject *vec4Add(py_vec4 *self, PyObject *o)
     CHECK_VEC4(o)
 
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Add2(&v->v, &self->v, &((py_vec4 *)o)->v);
+    ferVec4Add2(&v->v, &self->v, &((py_vec4 *)o)->v);
     return (PyObject *)v;
 }
 
@@ -391,24 +391,24 @@ static PyObject *vec4Sub(py_vec4 *self, PyObject *o)
     CHECK_VEC4(o)
 
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Sub2(&v->v, &self->v, &((py_vec4 *)o)->v);
+    ferVec4Sub2(&v->v, &self->v, &((py_vec4 *)o)->v);
     return (PyObject *)v;
 }
 
 static PyObject *vec4Mul(py_vec4 *self, PyObject *o)
 {
     py_vec4 *v;
-    mg_real_t num;
+    fer_real_t num;
 
     if (PyObject_TypeCheck(o, &py_vec4_type)){
-        num = mgVec4Dot(&self->v, &((py_vec4 *)o)->v);
+        num = ferVec4Dot(&self->v, &((py_vec4 *)o)->v);
         return PyFloat_FromDouble(num);
     }else if (PyNumber_Check(o)){
         v = PyObject_New(py_vec4, &py_vec4_type);
         num = numberAsReal(o);
 
-        mgVec4Copy(&v->v, &self->v);
-        mgVec4Scale(&v->v, num);
+        ferVec4Copy(&v->v, &self->v);
+        ferVec4Scale(&v->v, num);
         return (PyObject *)v;
     }else{
         PyErr_SetString(PyExc_TypeError, "Expected Vec4 or float number");
@@ -421,22 +421,22 @@ static PyObject *vec4Neg(py_vec4 *self)
     py_vec4 *v;
 
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Copy(&v->v, &self->v);
-    mgVec4Scale(&v->v, -MG_ONE);
+    ferVec4Copy(&v->v, &self->v);
+    ferVec4Scale(&v->v, -FER_ONE);
     return (PyObject *)v;
 }
 
 static PyObject *vec4Div(py_vec4 *self, PyObject *o)
 {
     py_vec4 *v;
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
     v = PyObject_New(py_vec4, &py_vec4_type);
-    mgVec4Copy(&v->v, &self->v);
-    mgVec4Scale(&v->v, MG_ONE / num);
+    ferVec4Copy(&v->v, &self->v);
+    ferVec4Scale(&v->v, FER_ONE / num);
     return (PyObject *)v;
 }
 
@@ -444,7 +444,7 @@ static PyObject *vec4AddIn(py_vec4 *self, py_vec4 *o)
 {
     CHECK_VEC4(o)
 
-    mgVec4Add(&self->v, &o->v);
+    ferVec4Add(&self->v, &o->v);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
@@ -453,31 +453,31 @@ static PyObject *vec4SubIn(py_vec4 *self, py_vec4 *o)
 {
     CHECK_VEC4(o)
 
-    mgVec4Sub(&self->v, &o->v);
+    ferVec4Sub(&self->v, &o->v);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
 static PyObject *vec4MulIn(py_vec4 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec4Scale(&self->v, num);
+    ferVec4Scale(&self->v, num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
 static PyObject *vec4DivIn(py_vec4 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec4Scale(&self->v, MG_ONE / num);
+    ferVec4Scale(&self->v, FER_ONE / num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
@@ -495,7 +495,7 @@ static PyObject *vec4SeqGet(py_vec4 *self, Py_ssize_t i)
         return NULL;
     }
 
-    return PyFloat_FromDouble(mgVec4Get(&self->v, i));
+    return PyFloat_FromDouble(ferVec4Get(&self->v, i));
 }
 
 static int vec4SeqSet(py_vec4 *self, Py_ssize_t i, PyObject *val)
@@ -507,6 +507,6 @@ static int vec4SeqSet(py_vec4 *self, Py_ssize_t i, PyObject *val)
 
     CHECK_FLOAT2(val, -1);
 
-    mgVec4SetCoord(&self->v, i, numberAsReal(val));
+    ferVec4SetCoord(&self->v, i, numberAsReal(val));
     return 0;
 }

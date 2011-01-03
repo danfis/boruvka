@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import mg
+import fermat
 import math
 
-v = mg.Vec3()
+v = fermat.Vec3()
 print('repr', repr(v))
 print('str', str(v))
 v.x = 10
@@ -17,21 +17,21 @@ v[0] = 4.
 print(v)
 
 print()
-v = mg.Vec3(1)
+v = fermat.Vec3(1)
 print(str(v))
-v = mg.Vec3(1, 2)
+v = fermat.Vec3(1, 2)
 print(str(v))
-v = mg.Vec3(1, 2, 3)
+v = fermat.Vec3(1, 2, 3)
 print(str(v))
 
 print()
-w = mg.Vec3(1, 2, 3)
+w = fermat.Vec3(1, 2, 3)
 print(v == v)
 print(v == w)
 print(v != v)
 print(v != w)
 
-u = mg.Vec3(2, 3, 1)
+u = fermat.Vec3(2, 3, 1)
 print()
 print(v.len2())
 print(v.len())
@@ -84,14 +84,14 @@ print(v, u, w, r, math.sqrt(r[0]))
 
 print()
 print("Vec4")
-v = mg.Vec4()
+v = fermat.Vec4()
 print(v)
 v.x = 1.
 v.y = 2
 v.z = 3.
 v.w = 4
 print(v)
-w = mg.Vec4(3, 1.2, 3, 5)
+w = fermat.Vec4(3, 1.2, 3, 5)
 print(w)
 
 print()
@@ -125,14 +125,14 @@ print(w.normalized(), w)
 
 print()
 print("Quat")
-v = mg.Quat()
+v = fermat.Quat()
 print(v)
 v.x = 1.
 v.y = 2
 v.z = 3.
 v.w = 4
 print(v)
-w = mg.Quat(3, 1.2, 3, 5)
+w = fermat.Quat(3, 1.2, 3, 5)
 print(w)
 
 print(v * 2.)
@@ -149,9 +149,9 @@ print(w.normalized(), w)
 
 print()
 print(v)
-v.setAngleAxis(math.pi / 2., mg.Vec3(1., 1., 1.))
+v.setAngleAxis(math.pi / 2., fermat.Vec3(1., 1., 1.))
 print(v)
-w.setAngleAxis(math.pi / 2., mg.Vec3(1., 0., 0.))
+w.setAngleAxis(math.pi / 2., fermat.Vec3(1., 0., 0.))
 print(w)
 vv = v.copy()
 v.mul(w)
@@ -163,7 +163,7 @@ v.invert()
 print(v)
 print(vv.inverted(), vv)
 
-vec = mg.Vec3(1., 2., 3.)
+vec = fermat.Vec3(1., 2., 3.)
 vec2 = vec.copy()
 v.rot(vec)
 print(v, vec)
@@ -172,10 +172,10 @@ print(v, v.roted(vec2))
 
 print()
 print("PC")
-pc = mg.PC()
-pc.add(mg.Vec3(1, 2, 3))
-pc.add(mg.Vec3(2, 3, 4))
-pc.add(mg.Vec3(5, 6, 7))
+pc = fermat.PC()
+pc.add(fermat.Vec3(1, 2, 3))
+pc.add(fermat.Vec3(2, 3, 4))
+pc.add(fermat.Vec3(5, 6, 7))
 print(pc)
 print(len(pc))
 print(pc[0])

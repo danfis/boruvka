@@ -5,16 +5,16 @@ CFLAGS += -fno-strict-aliasing
 CFLAGS += -I..
 CFLAGS += $(PYTHON_CFLAGS)
 LDFLAGS += $(PYTHON_LDFLAGS)
-LDFLAGS += -L.. -lmg
+LDFLAGS += -L.. -lfermat
 
-SO_CFLAGS = -shared -Wl,-soname,mg.so
+SO_CFLAGS = -shared -Wl,-soname,fermat.so
 
-TARGETS = mg.so
+TARGETS = fermat.so
 OBJS = main.o vec3.o vec4.o quat.o point_cloud.o
 
 all: $(TARGETS)
 
-mg.so: $(OBJS)
+fermat.so: $(OBJS)
 	$(CC) $(CFLAGS) $(SO_CFLAGS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c %.h

@@ -2,11 +2,11 @@
 #define PY_VEC4_H_
 
 #include <Python.h>
-#include <mg/vec4.h>
+#include <fermat/vec4.h>
 
 struct _py_vec4 {
     PyObject_HEAD
-    mg_vec4_t v;
+    fer_vec4_t v;
 };
 typedef struct _py_vec4 py_vec4;
 

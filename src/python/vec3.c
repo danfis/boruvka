@@ -176,7 +176,7 @@ static PySequenceMethods py_vec3_seq = {
 
 PyTypeObject py_vec3_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "mg.Vec3",                 /* tp_name */
+    "fermat.Vec3",             /* tp_name */
     sizeof(py_vec3),           /* tp_basicsize */
     0,                         /* tp_itemsize */
     0,                         /* tp_dealloc */
@@ -234,13 +234,13 @@ void vec3Init(PyObject *module)
 
 static int vec3ObjInit(py_vec3 *self, PyObject *_args, PyObject *kwds)
 {
-    mg_real_t v[3];
+    fer_real_t v[3];
     Py_ssize_t i, len = 0;
     PyObject *args = NULL, *val;
 
-    v[0] = MG_ZERO;
-    v[1] = MG_ZERO;
-    v[2] = MG_ZERO;
+    v[0] = FER_ZERO;
+    v[1] = FER_ZERO;
+    v[2] = FER_ZERO;
 
     if (PySequence_Check(_args)){
         len = PySequence_Size(_args);
@@ -260,7 +260,7 @@ static int vec3ObjInit(py_vec3 *self, PyObject *_args, PyObject *kwds)
         Py_DECREF(args);
     }
 
-    mgVec3Set(&self->v, v[0], v[1], v[2]);
+    ferVec3Set(&self->v, v[0], v[1], v[2]);
     return 0;
 }
 
@@ -268,36 +268,36 @@ static PyObject *vec3AsStr(py_vec3 *self)
 {
     char str[100];
     snprintf(str, 100, "<Vec3: %f %f %f>", 
-             mgVec3X(&self->v), mgVec3Y(&self->v), mgVec3Z(&self->v));
+             ferVec3X(&self->v), ferVec3Y(&self->v), ferVec3Z(&self->v));
     return PyUnicode_FromString(str);
 }
 
 static PyObject *vec3GetX(py_vec3 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec3X(&self->v));
+    return PyFloat_FromDouble(ferVec3X(&self->v));
 }
 static PyObject *vec3GetY(py_vec3 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec3Y(&self->v));
+    return PyFloat_FromDouble(ferVec3Y(&self->v));
 }
 static PyObject *vec3GetZ(py_vec3 *self, void *coord)
 {
-    return PyFloat_FromDouble(mgVec3Z(&self->v));
+    return PyFloat_FromDouble(ferVec3Z(&self->v));
 }
 
 static int vec3SetX(py_vec3 *self, PyObject *val, void *coord)
 {
-    mgVec3SetX(&self->v, PyFloat_AsDouble(val));
+    ferVec3SetX(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int vec3SetY(py_vec3 *self, PyObject *val, void *coord)
 {
-    mgVec3SetY(&self->v, PyFloat_AsDouble(val));
+    ferVec3SetY(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int vec3SetZ(py_vec3 *self, PyObject *val, void *coord)
 {
-    mgVec3SetZ(&self->v, PyFloat_AsDouble(val));
+    ferVec3SetZ(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 
@@ -314,9 +314,9 @@ static PyObject *vec3Cmp(PyObject *a, PyObject *b, int op)
     v1 = (py_vec3 *)a;
     v2 = (py_vec3 *)b;
     if (op == Py_EQ){
-        return mgVec3Eq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferVec3Eq(&v1->v, &v2->v) ? Py_True : Py_False;
     }else if (op == Py_NE){
-        return mgVec3NEq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferVec3NEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }
     return Py_NotImplemented;
 }
@@ -324,66 +324,66 @@ static PyObject *vec3Cmp(PyObject *a, PyObject *b, int op)
 static PyObject *vec3Copy(py_vec3 *self)
 {
     py_vec3 *v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &self->v);
+    ferVec3Copy(&v->v, &self->v);
     return (PyObject *)v;
 }
 
 static PyObject *vec3Len2(py_vec3 *self)
 {
-    return PyFloat_FromDouble(mgVec3Len2(&self->v));
+    return PyFloat_FromDouble(ferVec3Len2(&self->v));
 }
 static PyObject *vec3Len(py_vec3 *self)
 {
-    return PyFloat_FromDouble(mgVec3Len(&self->v));
+    return PyFloat_FromDouble(ferVec3Len(&self->v));
 }
 
 static PyObject *vec3Dist2(py_vec3 *self, py_vec3 *o)
 {
-    mg_real_t d;
+    fer_real_t d;
 
     CHECK_VEC3(o)
 
-    d = mgVec3Dist2(&self->v, &o->v);
+    d = ferVec3Dist2(&self->v, &o->v);
     return PyFloat_FromDouble(d);
 }
 static PyObject *vec3Dist(py_vec3 *self, py_vec3 *o)
 {
-    mg_real_t d;
+    fer_real_t d;
 
     CHECK_VEC3(o)
 
-    d = mgVec3Dist(&self->v, &o->v);
+    d = ferVec3Dist(&self->v, &o->v);
     return PyFloat_FromDouble(d);
 }
 
 static PyObject *vec3ScaleToLen(py_vec3 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec3ScaleToLen(&self->v, num);
+    ferVec3ScaleToLen(&self->v, num);
     Py_INCREF(self);
     return (PyObject *)self;
 }
 static PyObject *vec3ScaledToLen(py_vec3 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
     py_vec3 *v;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &self->v);
-    mgVec3ScaleToLen(&v->v, num);
+    ferVec3Copy(&v->v, &self->v);
+    ferVec3ScaleToLen(&v->v, num);
     return (PyObject *)v;
 }
 
 static PyObject *vec3Normalize(py_vec3 *self)
 {
-    mgVec3Normalize(&self->v);
+    ferVec3Normalize(&self->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -392,8 +392,8 @@ static PyObject *vec3Normalized(py_vec3 *self)
 {
     py_vec3 *v;
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &self->v);
-    mgVec3Normalize(&v->v);
+    ferVec3Copy(&v->v, &self->v);
+    ferVec3Normalize(&v->v);
     return (PyObject *)v;
 }
 
@@ -404,14 +404,14 @@ static PyObject *vec3Cross(py_vec3 *self, py_vec3 *o)
     CHECK_VEC3(o)
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Cross(&v->v, &self->v, &o->v);
+    ferVec3Cross(&v->v, &self->v, &o->v);
     return (PyObject *)v;
 }
 
 static PyObject *vec3SegmentDist2(py_vec3 *self, PyObject *args)
 {
     PyObject *ret;
-    mg_real_t dist;
+    fer_real_t dist;
     py_vec3 *a, *b, *witness;
 
     if (!PyArg_ParseTuple(args, "OO", &a, &b)
@@ -423,7 +423,7 @@ static PyObject *vec3SegmentDist2(py_vec3 *self, PyObject *args)
 
     ret = PyTuple_New(2);
     witness = PyObject_New(py_vec3, &py_vec3_type);
-    dist = mgVec3PointSegmentDist2(&self->v, &a->v, &b->v, &witness->v);
+    dist = ferVec3PointSegmentDist2(&self->v, &a->v, &b->v, &witness->v);
     PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(dist));
     PyTuple_SET_ITEM(ret, 1, (PyObject *)witness);
     return ret;
@@ -432,7 +432,7 @@ static PyObject *vec3SegmentDist2(py_vec3 *self, PyObject *args)
 static PyObject *vec3TriDist2(py_vec3 *self, PyObject *args)
 {
     PyObject *ret;
-    mg_real_t dist;
+    fer_real_t dist;
     py_vec3 *a, *b, *c, *witness;
 
     if (!PyArg_ParseTuple(args, "OOO", &a, &b, &c)
@@ -445,7 +445,7 @@ static PyObject *vec3TriDist2(py_vec3 *self, PyObject *args)
 
     ret = PyTuple_New(2);
     witness = PyObject_New(py_vec3, &py_vec3_type);
-    dist = mgVec3PointTriDist2(&self->v, &a->v, &b->v, &c->v, &witness->v);
+    dist = ferVec3PointTriDist2(&self->v, &a->v, &b->v, &c->v, &witness->v);
     PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(dist));
     PyTuple_SET_ITEM(ret, 1, (PyObject *)witness);
     return ret;
@@ -463,13 +463,13 @@ static PyObject *vec3InTri(py_vec3 *self, PyObject *args)
         return NULL;
     }
 
-    return mgVec3PointInTri(&self->v, &a->v, &b->v, &c->v) ? Py_True : Py_False;
+    return ferVec3PointInTri(&self->v, &a->v, &b->v, &c->v) ? Py_True : Py_False;
 }
 
 static PyObject *vec3Angle(py_vec3 *self, PyObject *args)
 {
     py_vec3 *a, *b, *c;
-    mg_real_t angle;
+    fer_real_t angle;
 
     if (!PyArg_ParseTuple(args, "OOO", &a, &b, &c)
             || !PyObject_TypeCheck(a, &py_vec3_type)
@@ -479,14 +479,14 @@ static PyObject *vec3Angle(py_vec3 *self, PyObject *args)
         return NULL;
     }
 
-    angle = mgVec3Angle(&a->v, &b->v, &c->v);
+    angle = ferVec3Angle(&a->v, &b->v, &c->v);
     return PyFloat_FromDouble(angle);
 }
 
 static PyObject *vec3DihedralAngle(py_vec3 *self, PyObject *args)
 {
     py_vec3 *a, *b, *c, *d;
-    mg_real_t angle;
+    fer_real_t angle;
 
     if (!PyArg_ParseTuple(args, "OOOO", &a, &b, &c, &d)
             || !PyObject_TypeCheck(a, &py_vec3_type)
@@ -497,14 +497,14 @@ static PyObject *vec3DihedralAngle(py_vec3 *self, PyObject *args)
         return NULL;
     }
 
-    angle = mgVec3DihedralAngle(&a->v, &b->v, &c->v, &d->v);
+    angle = ferVec3DihedralAngle(&a->v, &b->v, &c->v, &d->v);
     return PyFloat_FromDouble(angle);
 }
 
 static PyObject *vec3ProjToPlane(py_vec3 *self, PyObject *args)
 {
     PyObject *ret;
-    mg_real_t dist;
+    fer_real_t dist;
     py_vec3 *a, *b, *c, *witness;
 
     if (!PyArg_ParseTuple(args, "OOO", &a, &b, &c)
@@ -517,7 +517,7 @@ static PyObject *vec3ProjToPlane(py_vec3 *self, PyObject *args)
 
     ret = PyTuple_New(2);
     witness = PyObject_New(py_vec3, &py_vec3_type);
-    dist = mgVec3ProjToPlane(&self->v, &a->v, &b->v, &c->v, &witness->v);
+    dist = ferVec3ProjToPlane(&self->v, &a->v, &b->v, &c->v, &witness->v);
     PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(dist));
     PyTuple_SET_ITEM(ret, 1, (PyObject *)witness);
     return ret;
@@ -526,7 +526,7 @@ static PyObject *vec3ProjToPlane(py_vec3 *self, PyObject *args)
 static PyObject *vec3ProjToPlane2(py_vec3 *self, PyObject *args)
 {
     PyObject *ret;
-    mg_real_t dist;
+    fer_real_t dist;
     py_vec3 *x, *n, *witness;
 
     if (!PyArg_ParseTuple(args, "OO", &x, &n)
@@ -538,7 +538,7 @@ static PyObject *vec3ProjToPlane2(py_vec3 *self, PyObject *args)
 
     ret = PyTuple_New(2);
     witness = PyObject_New(py_vec3, &py_vec3_type);
-    dist = mgVec3ProjToPlane2(&self->v, &x->v, &n->v, &witness->v);
+    dist = ferVec3ProjToPlane2(&self->v, &x->v, &n->v, &witness->v);
     PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(dist));
     PyTuple_SET_ITEM(ret, 1, (PyObject *)witness);
     return ret;
@@ -547,7 +547,7 @@ static PyObject *vec3ProjToPlane2(py_vec3 *self, PyObject *args)
 static PyObject *vec3TriArea2(py_vec3 *self, PyObject *args)
 {
     py_vec3 *a, *b, *c;
-    mg_real_t angle;
+    fer_real_t angle;
 
     if (!PyArg_ParseTuple(args, "OOO", &a, &b, &c)
             || !PyObject_TypeCheck(a, &py_vec3_type)
@@ -557,7 +557,7 @@ static PyObject *vec3TriArea2(py_vec3 *self, PyObject *args)
         return NULL;
     }
 
-    angle = mgVec3TriArea2(&a->v, &b->v, &c->v);
+    angle = ferVec3TriArea2(&a->v, &b->v, &c->v);
     return PyFloat_FromDouble(angle);
 }
 
@@ -570,7 +570,7 @@ static PyObject *vec3Add(py_vec3 *self, PyObject *o)
     CHECK_VEC3(o)
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Add2(&v->v, &self->v, &((py_vec3 *)o)->v);
+    ferVec3Add2(&v->v, &self->v, &((py_vec3 *)o)->v);
     return (PyObject *)v;
 }
 
@@ -581,24 +581,24 @@ static PyObject *vec3Sub(py_vec3 *self, PyObject *o)
     CHECK_VEC3(o)
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Sub2(&v->v, &self->v, &((py_vec3 *)o)->v);
+    ferVec3Sub2(&v->v, &self->v, &((py_vec3 *)o)->v);
     return (PyObject *)v;
 }
 
 static PyObject *vec3Mul(py_vec3 *self, PyObject *o)
 {
     py_vec3 *v;
-    mg_real_t num;
+    fer_real_t num;
 
     if (PyObject_TypeCheck(o, &py_vec3_type)){
-        num = mgVec3Dot(&self->v, &((py_vec3 *)o)->v);
+        num = ferVec3Dot(&self->v, &((py_vec3 *)o)->v);
         return PyFloat_FromDouble(num);
     }else if (PyNumber_Check(o)){
         v = PyObject_New(py_vec3, &py_vec3_type);
         num = numberAsReal(o);
 
-        mgVec3Copy(&v->v, &self->v);
-        mgVec3Scale(&v->v, num);
+        ferVec3Copy(&v->v, &self->v);
+        ferVec3Scale(&v->v, num);
         return (PyObject *)v;
     }else{
         PyErr_SetString(PyExc_TypeError, "Expected Vec3 or float number");
@@ -611,22 +611,22 @@ static PyObject *vec3Neg(py_vec3 *self)
     py_vec3 *v;
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &self->v);
-    mgVec3Scale(&v->v, -MG_ONE);
+    ferVec3Copy(&v->v, &self->v);
+    ferVec3Scale(&v->v, -FER_ONE);
     return (PyObject *)v;
 }
 
 static PyObject *vec3Div(py_vec3 *self, PyObject *o)
 {
     py_vec3 *v;
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &self->v);
-    mgVec3Scale(&v->v, MG_ONE / num);
+    ferVec3Copy(&v->v, &self->v);
+    ferVec3Scale(&v->v, FER_ONE / num);
     return (PyObject *)v;
 }
 
@@ -634,7 +634,7 @@ static PyObject *vec3AddIn(py_vec3 *self, py_vec3 *o)
 {
     CHECK_VEC3(o)
 
-    mgVec3Add(&self->v, &o->v);
+    ferVec3Add(&self->v, &o->v);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
@@ -643,31 +643,31 @@ static PyObject *vec3SubIn(py_vec3 *self, py_vec3 *o)
 {
     CHECK_VEC3(o)
 
-    mgVec3Sub(&self->v, &o->v);
+    ferVec3Sub(&self->v, &o->v);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
 static PyObject *vec3MulIn(py_vec3 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec3Scale(&self->v, num);
+    ferVec3Scale(&self->v, num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
 static PyObject *vec3DivIn(py_vec3 *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgVec3Scale(&self->v, MG_ONE / num);
+    ferVec3Scale(&self->v, FER_ONE / num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
@@ -685,7 +685,7 @@ static PyObject *vec3SeqGet(py_vec3 *self, Py_ssize_t i)
         return NULL;
     }
 
-    return PyFloat_FromDouble(mgVec3Get(&self->v, i));
+    return PyFloat_FromDouble(ferVec3Get(&self->v, i));
 }
 
 static int vec3SeqSet(py_vec3 *self, Py_ssize_t i, PyObject *val)
@@ -697,6 +697,6 @@ static int vec3SeqSet(py_vec3 *self, Py_ssize_t i, PyObject *val)
 
     CHECK_FLOAT2(val, -1);
 
-    mgVec3SetCoord(&self->v, i, numberAsReal(val));
+    ferVec3SetCoord(&self->v, i, numberAsReal(val));
     return 0;
 }

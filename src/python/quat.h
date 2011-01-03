@@ -2,11 +2,11 @@
 #define PY_QUAT_H_
 
 #include <Python.h>
-#include <mg/quat.h>
+#include <fermat/quat.h>
 
 struct _py_quat {
     PyObject_HEAD
-    mg_quat_t v;
+    fer_quat_t v;
 };
 typedef struct _py_quat py_quat;
 

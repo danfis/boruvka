@@ -2,12 +2,12 @@
 #define PY_COMMON_H_
 
 #include <Python.h>
-#include <mg/core.h>
+#include <fermat/core.h>
 
-_mg_inline mg_real_t numberAsReal(PyObject *n)
+_fer_inline fer_real_t numberAsReal(PyObject *n)
 {
     PyObject *onum;
-    mg_real_t r;
+    fer_real_t r;
 
     if (PyFloat_Check(n))
         return PyFloat_AsDouble(n);

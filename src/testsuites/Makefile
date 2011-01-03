@@ -3,7 +3,7 @@ DEBUG = yes
 
 -include ../Makefile.include
 CFLAGS += -I./ -I../ -Icu/
-LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lmg
+LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lfermat
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
 CHECK_REG=cu/check-regressions

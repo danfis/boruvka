@@ -1,9 +1,9 @@
 ###
-# mg
-# ---
+# fermat
+# -------
 # Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
 #
-#  This file is part of mg.
+#  This file is part of fermat.
 #
 #  Distributed under the OSI-approved BSD License (the "License");
 #  see accompanying file BDS-LICENSE for details or see
@@ -18,36 +18,36 @@
 
 CFLAGS += -I. -g
 
-TARGETS = libmg.a
+TARGETS = libfermat.a
 OBJS = alloc.o vec4.o vec3.o vec2.o tr2.o parse.o \
        point_cloud.o point_cloud_internal.o
 
 all: $(TARGETS)
 
-libmg.a: $(OBJS)
+libfermat.a: $(OBJS)
 	ar cr $@ $(OBJS)
 	ranlib $@
 
-mg/config.h: mg/config.h.m4
+fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
-%.o: %.c mg/%.h mg/config.h
+%.o: %.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
-%.o: %.c mg/config.h
+%.o: %.c fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
-%.h: mg/config.h
-%.c: mg/config.h
+%.h: fermat/config.h
+%.c: fermat/config.h
 
 install:
-	mkdir -p $(PREFIX)/$(INCLUDEDIR)/mg
+	mkdir -p $(PREFIX)/$(INCLUDEDIR)/fermat
 	mkdir -p $(PREFIX)/$(LIBDIR)
-	cp mg/*.h $(PREFIX)/$(INCLUDEDIR)/mg/
-	cp libmg.a $(PREFIX)/$(LIBDIR)
+	cp fermat/*.h $(PREFIX)/$(INCLUDEDIR)/fermat/
+	cp libfermat.a $(PREFIX)/$(LIBDIR)
 
 clean:
 	rm -f $(OBJS)
 	rm -f $(TARGETS)
-	rm -f mg/config.h
+	rm -f fermat/config.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:

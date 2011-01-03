@@ -1,9 +1,9 @@
 /***
- * mg
- * ---
+ * fermat
+ * -------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of mg.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,9 +15,9 @@
  */
 
 #include <stdio.h>
-#include <mg/alloc.h>
+#include <fermat/alloc.h>
 
-void *mgRealloc(void *ptr, size_t size)
+void *ferRealloc(void *ptr, size_t size)
 {
     void *ret = realloc(ptr, size);
     if (ret == NULL && size != 0){
@@ -29,7 +29,7 @@ void *mgRealloc(void *ptr, size_t size)
     return ret;
 }
 
-void *mgAllocAlign(size_t size, size_t alignment)
+void *ferAllocAlign(size_t size, size_t alignment)
 {
     void *mem;
 

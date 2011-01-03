@@ -1,9 +1,9 @@
 /***
- * mg
- * ---
+ * fermat
+ * -------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of mg.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,46 +15,46 @@
  */
 
 #include <stdio.h>
-#include <mg/alloc.h>
-#include <mg/vec4.h>
-#include <mg/dbg.h>
+#include <fermat/alloc.h>
+#include <fermat/vec4.h>
+#include <fermat/dbg.h>
 
-static MG_VEC4(__mg_vec4_origin, MG_ZERO, MG_ZERO, MG_ZERO, MG_ZERO);
-const mg_vec4_t *mg_vec4_origin = &__mg_vec4_origin;
+static FER_VEC4(__fer_vec4_origin, FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO);
+const fer_vec4_t *fer_vec4_origin = &__fer_vec4_origin;
 
 
-mg_vec4_t *mgVec4New(mg_real_t x, mg_real_t y, mg_real_t z, mg_real_t w)
+fer_vec4_t *ferVec4New(fer_real_t x, fer_real_t y, fer_real_t z, fer_real_t w)
 {
-    mg_vec4_t *v;
+    fer_vec4_t *v;
 
-#ifdef MG_SSE
-    v = MG_ALLOC_ALIGN(mg_vec4_t, sizeof(mg_vec4_t));
-#else /* MG_SSE */
-    v = MG_ALLOC(mg_vec4_t);
-#endif /* MG_SSE */
-    mgVec4Set(v, x, y, z, w);
+#ifdef FER_SSE
+    v = FER_ALLOC_ALIGN(fer_vec4_t, sizeof(fer_vec4_t));
+#else /* FER_SSE */
+    v = FER_ALLOC(fer_vec4_t);
+#endif /* FER_SSE */
+    ferVec4Set(v, x, y, z, w);
     return v;
 }
 
-void mgVec4Del(mg_vec4_t *v)
+void ferVec4Del(fer_vec4_t *v)
 {
     free(v);
 }
 
-mg_vec4_t *mgVec4ArrNew(size_t num_vecs)
+fer_vec4_t *ferVec4ArrNew(size_t num_vecs)
 {
-    mg_vec4_t *vs;
+    fer_vec4_t *vs;
 
-#ifdef MG_SSE
-    vs = MG_ALLOC_ALIGN_ARR(mg_vec4_t, num_vecs, sizeof(mg_vec4_t));
-#else /* MG_SSE */
-    vs = MG_ALLOC_ARR(mg_vec4_t, num_vecs);
-#endif /* MG_SSE */
+#ifdef FER_SSE
+    vs = FER_ALLOC_ALIGN_ARR(fer_vec4_t, num_vecs, sizeof(fer_vec4_t));
+#else /* FER_SSE */
+    vs = FER_ALLOC_ARR(fer_vec4_t, num_vecs);
+#endif /* FER_SSE */
 
     return vs;
 }
 
-void mgVec4ArrDel(mg_vec4_t *v)
+void ferVec4ArrDel(fer_vec4_t *v)
 {
     free(v);
 }

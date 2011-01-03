@@ -5,7 +5,7 @@
 struct _py_pc_iter {
     PyObject_HEAD
     py_pc *pc;
-    mg_pc_it_t it;
+    fer_pc_it_t it;
 };
 typedef struct _py_pc_iter py_pc_iter;
 static PyTypeObject py_pc_iter_type;
@@ -64,7 +64,7 @@ static PySequenceMethods py_pc_seq = {
 
 PyTypeObject py_pc_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "mg.PC",                 /* tp_name */
+    "fermat.PC",             /* tp_name */
     sizeof(py_pc),           /* tp_basicsize */
     0,                       /* tp_itemsize */
     (destructor)pcDealloc,   /* tp_dealloc */
@@ -128,13 +128,13 @@ void pcInit(PyObject *module)
 
 static int pcObjInit(py_pc *self, PyObject *_args, PyObject *kwds)
 {
-    self->pc = mgPCNew();
+    self->pc = ferPCNew();
     return 0;
 }
 static void pcDealloc(py_pc *self)
 {
     if (self->pc){
-        mgPCDel(self->pc);
+        ferPCDel(self->pc);
         self->pc = NULL;
     }
     Py_TYPE(self)->tp_free((PyObject*)self);
@@ -144,7 +144,7 @@ static void pcDealloc(py_pc *self)
 static PyObject *pcAsStr(py_pc *self)
 {
     char str[100];
-    snprintf(str, 100, "<PC (%d)>", (int)mgPCLen(self->pc));
+    snprintf(str, 100, "<PC (%d)>", (int)ferPCLen(self->pc));
     return PyUnicode_FromString(str);
 }
 
@@ -154,14 +154,14 @@ static PyObject *pcAsStr(py_pc *self)
 static PyObject *pcAdd(py_pc *self, py_vec3 *v)
 {
     CHECK_VEC3(v);
-    mgPCAdd(self->pc, &v->v);
+    ferPCAdd(self->pc, &v->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
 
 static PyObject *pcPermutate(py_pc *self)
 {
-    mgPCPermutate(self->pc);
+    ferPCPermutate(self->pc);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -176,29 +176,29 @@ static PyObject *pcAddFromFile(py_pc *self, PyObject *args)
         return NULL;
     }
 
-    len = mgPCAddFromFile(self->pc, fn);
+    len = ferPCAddFromFile(self->pc, fn);
     return PyLong_FromLong(len);
 }
 
 
 static Py_ssize_t pcSeqSize(py_pc *self)
 {
-    return mgPCLen(self->pc);
+    return ferPCLen(self->pc);
 }
 
 static PyObject *pcSeqGet(py_pc *self, Py_ssize_t i)
 {
     py_vec3 *v;
-    mg_vec3_t *w;
+    fer_vec3_t *w;
 
-    if (i >= mgPCLen(self->pc)){
+    if (i >= ferPCLen(self->pc)){
         PyErr_SetString(PyExc_IndexError, "Index out of range");
         return NULL;
     }
 
-    w = mgPCGet(self->pc, i);
+    w = ferPCGet(self->pc, i);
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, w);
+    ferVec3Copy(&v->v, w);
     return (PyObject *)v;
 }
 
@@ -206,7 +206,7 @@ static PyObject *pcSeqGet(py_pc *self, Py_ssize_t i)
 /**** Iterator ****/
 static PyTypeObject py_pc_iter_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "mg.PCIter",                  /* tp_name */
+    "fermat.PCIter",              /* tp_name */
     sizeof(py_pc_iter),           /* tp_basicsize */
     0,                            /* tp_itemsize */
     (destructor)pcIterDealloc,    /* tp_dealloc */
@@ -244,7 +244,7 @@ static PyObject *pcIter(py_pc *self)
     it->pc = self;
     Py_INCREF(self);
 
-    mgPCItInit(&it->it, self->pc);
+    ferPCItInit(&it->it, self->pc);
 
     PyObject_GC_Track(it);
     return (PyObject *)it;
@@ -268,16 +268,16 @@ static void pcIterDealloc(py_pc_iter *self)
 static PyObject *pcIterNext(py_pc_iter *self)
 {
     py_vec3 *v;
-    mg_vec3_t *w;
+    fer_vec3_t *w;
 
-    if (mgPCItEnd(&self->it))
+    if (ferPCItEnd(&self->it))
         return NULL;
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    w = mgPCItGet(&self->it);
-    mgVec3Copy(&v->v, w);
+    w = ferPCItGet(&self->it);
+    ferVec3Copy(&v->v, w);
 
-    mgPCItNext(&self->it);
+    ferPCItNext(&self->it);
 
     return (PyObject *)v;
 }

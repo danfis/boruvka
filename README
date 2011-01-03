@@ -1,8 +1,9 @@
-mg - Math and Geometry library
+fermat - Fermat Library
+------------------------
 
 License
 --------
-mg is licensed under OSI-approved 3-clause BSD License, text of license
+fermat is licensed under OSI-approved 3-clause BSD License, text of license
 is distributed along with source code in BSD-LICENSE file.
 Each file should include license notice, the rest should be considered as
 licensed under 3-clause BSD License.

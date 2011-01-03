@@ -140,7 +140,7 @@ static PySequenceMethods py_quat_seq = {
 
 PyTypeObject py_quat_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "mg.Quat",                 /* tp_name */
+    "fermat.Quat",             /* tp_name */
     sizeof(py_quat),           /* tp_basicsize */
     0,                         /* tp_itemsize */
     0,                         /* tp_dealloc */
@@ -198,14 +198,14 @@ void quatInit(PyObject *module)
 
 static int quatObjInit(py_quat *self, PyObject *_args, PyObject *kwds)
 {
-    mg_real_t v[4];
+    fer_real_t v[4];
     Py_ssize_t i, len = 0;
     PyObject *args = NULL, *val;
 
-    v[0] = MG_ZERO;
-    v[1] = MG_ZERO;
-    v[2] = MG_ZERO;
-    v[3] = MG_ZERO;
+    v[0] = FER_ZERO;
+    v[1] = FER_ZERO;
+    v[2] = FER_ZERO;
+    v[3] = FER_ZERO;
 
     if (PySequence_Check(_args)){
         len = PySequence_Size(_args);
@@ -225,7 +225,7 @@ static int quatObjInit(py_quat *self, PyObject *_args, PyObject *kwds)
         Py_DECREF(args);
     }
 
-    mgQuatSet(&self->v, v[0], v[1], v[2], v[3]);
+    ferQuatSet(&self->v, v[0], v[1], v[2], v[3]);
     return 0;
 }
 
@@ -233,46 +233,46 @@ static PyObject *quatAsStr(py_quat *self)
 {
     char str[100];
     snprintf(str, 100, "<Quat: %f %f %f %f>", 
-             mgQuatX(&self->v), mgQuatY(&self->v),
-             mgQuatZ(&self->v), mgQuatW(&self->v));
+             ferQuatX(&self->v), ferQuatY(&self->v),
+             ferQuatZ(&self->v), ferQuatW(&self->v));
     return PyUnicode_FromString(str);
 }
 
 static PyObject *quatGetX(py_quat *self, void *coord)
 {
-    return PyFloat_FromDouble(mgQuatX(&self->v));
+    return PyFloat_FromDouble(ferQuatX(&self->v));
 }
 static PyObject *quatGetY(py_quat *self, void *coord)
 {
-    return PyFloat_FromDouble(mgQuatY(&self->v));
+    return PyFloat_FromDouble(ferQuatY(&self->v));
 }
 static PyObject *quatGetZ(py_quat *self, void *coord)
 {
-    return PyFloat_FromDouble(mgQuatZ(&self->v));
+    return PyFloat_FromDouble(ferQuatZ(&self->v));
 }
 static PyObject *quatGetW(py_quat *self, void *coord)
 {
-    return PyFloat_FromDouble(mgQuatW(&self->v));
+    return PyFloat_FromDouble(ferQuatW(&self->v));
 }
 
 static int quatSetX(py_quat *self, PyObject *val, void *coord)
 {
-    mgQuatSetX(&self->v, PyFloat_AsDouble(val));
+    ferQuatSetX(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int quatSetY(py_quat *self, PyObject *val, void *coord)
 {
-    mgQuatSetY(&self->v, PyFloat_AsDouble(val));
+    ferQuatSetY(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int quatSetZ(py_quat *self, PyObject *val, void *coord)
 {
-    mgQuatSetZ(&self->v, PyFloat_AsDouble(val));
+    ferQuatSetZ(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 static int quatSetW(py_quat *self, PyObject *val, void *coord)
 {
-    mgQuatSetW(&self->v, PyFloat_AsDouble(val));
+    ferQuatSetW(&self->v, PyFloat_AsDouble(val));
     return 0;
 }
 
@@ -289,9 +289,9 @@ static PyObject *quatCmp(PyObject *a, PyObject *b, int op)
     v1 = (py_quat *)a;
     v2 = (py_quat *)b;
     if (op == Py_EQ){
-        return mgQuatEq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferQuatEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }else if (op == Py_NE){
-        return mgQuatNEq(&v1->v, &v2->v) ? Py_True : Py_False;
+        return ferQuatNEq(&v1->v, &v2->v) ? Py_True : Py_False;
     }
     return Py_NotImplemented;
 }
@@ -299,23 +299,23 @@ static PyObject *quatCmp(PyObject *a, PyObject *b, int op)
 static PyObject *quatCopy(py_quat *self)
 {
     py_quat *v = PyObject_New(py_quat, &py_quat_type);
-    mgQuatCopy(&v->v, &self->v);
+    ferQuatCopy(&v->v, &self->v);
     return (PyObject *)v;
 }
 
 static PyObject *quatLen2(py_quat *self)
 {
-    return PyFloat_FromDouble(mgQuatLen2(&self->v));
+    return PyFloat_FromDouble(ferQuatLen2(&self->v));
 }
 static PyObject *quatLen(py_quat *self)
 {
-    return PyFloat_FromDouble(mgQuatLen(&self->v));
+    return PyFloat_FromDouble(ferQuatLen(&self->v));
 }
 
 
 static PyObject *quatNormalize(py_quat *self)
 {
-    mgQuatNormalize(&self->v);
+    ferQuatNormalize(&self->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -324,8 +324,8 @@ static PyObject *quatNormalized(py_quat *self)
 {
     py_quat *v;
     v = PyObject_New(py_quat, &py_quat_type);
-    mgQuatCopy(&v->v, &self->v);
-    mgQuatNormalize(&v->v);
+    ferQuatCopy(&v->v, &self->v);
+    ferQuatNormalize(&v->v);
     return (PyObject *)v;
 }
 
@@ -340,7 +340,7 @@ static PyObject *quatSetAngleAxis(py_quat *self, PyObject *o)
         return NULL;
     }
 
-    mgQuatSetAngleAxis(&self->v, angle, &axis->v);
+    ferQuatSetAngleAxis(&self->v, angle, &axis->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -349,7 +349,7 @@ static PyObject *quatMul(py_quat *self, py_quat *o)
 {
     CHECK_QUAT(o);
 
-    mgQuatMul(&self->v, &o->v);
+    ferQuatMul(&self->v, &o->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -361,13 +361,13 @@ static PyObject *quatMuled(py_quat *self, py_quat *o)
     CHECK_QUAT(o);
 
     q = PyObject_New(py_quat, &py_quat_type);
-    mgQuatMul2(&q->v, &self->v, &o->v);
+    ferQuatMul2(&q->v, &self->v, &o->v);
     return (PyObject *)q;
 }
 
 static PyObject *quatInvert(py_quat *self)
 {
-    mgQuatInvert(&self->v);
+    ferQuatInvert(&self->v);
     Py_INCREF(self);
     return (PyObject *)self;
 }
@@ -377,14 +377,14 @@ static PyObject *quatInverted(py_quat *self)
     py_quat *q;
 
     q = PyObject_New(py_quat, &py_quat_type);
-    mgQuatInvert2(&q->v, &self->v);
+    ferQuatInvert2(&q->v, &self->v);
     return (PyObject *)q;
 }
 
 static PyObject *quatRot(py_quat *self, py_vec3 *o)
 {
     CHECK_VEC3(o);
-    mgQuatRotVec(&o->v, &self->v);
+    ferQuatRotVec(&o->v, &self->v);
     Py_INCREF(o);
     return (PyObject *)o;
 }
@@ -396,8 +396,8 @@ static PyObject *quatRoted(py_quat *self, py_vec3 *o)
     CHECK_VEC3(o);
 
     v = PyObject_New(py_vec3, &py_vec3_type);
-    mgVec3Copy(&v->v, &o->v);
-    mgQuatRotVec(&v->v, &self->v);
+    ferVec3Copy(&v->v, &o->v);
+    ferQuatRotVec(&v->v, &self->v);
     return (PyObject *)v;
 }
 
@@ -405,15 +405,15 @@ static PyObject *quatRoted(py_quat *self, py_vec3 *o)
 static PyObject *quatMulConst(py_quat *self, PyObject *o)
 {
     py_quat *v;
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
 
     v = PyObject_New(py_quat, &py_quat_type);
     num = numberAsReal(o);
 
-    mgQuatCopy(&v->v, &self->v);
-    mgQuatScale(&v->v, num);
+    ferQuatCopy(&v->v, &self->v);
+    ferQuatScale(&v->v, num);
     return (PyObject *)v;
 }
 
@@ -422,45 +422,45 @@ static PyObject *quatNeg(py_quat *self)
     py_quat *v;
 
     v = PyObject_New(py_quat, &py_quat_type);
-    mgQuatCopy(&v->v, &self->v);
-    mgQuatScale(&v->v, -MG_ONE);
+    ferQuatCopy(&v->v, &self->v);
+    ferQuatScale(&v->v, -FER_ONE);
     return (PyObject *)v;
 }
 
 static PyObject *quatDiv(py_quat *self, PyObject *o)
 {
     py_quat *v;
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
     v = PyObject_New(py_quat, &py_quat_type);
-    mgQuatCopy(&v->v, &self->v);
-    mgQuatScale(&v->v, MG_ONE / num);
+    ferQuatCopy(&v->v, &self->v);
+    ferQuatScale(&v->v, FER_ONE / num);
     return (PyObject *)v;
 }
 
 static PyObject *quatMulIn(py_quat *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgQuatScale(&self->v, num);
+    ferQuatScale(&self->v, num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
 static PyObject *quatDivIn(py_quat *self, PyObject *o)
 {
-    mg_real_t num;
+    fer_real_t num;
 
     CHECK_FLOAT(o);
     num = numberAsReal(o);
 
-    mgQuatScale(&self->v, MG_ONE / num);
+    ferQuatScale(&self->v, FER_ONE / num);
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
@@ -478,7 +478,7 @@ static PyObject *quatSeqGet(py_quat *self, Py_ssize_t i)
         return NULL;
     }
 
-    return PyFloat_FromDouble(mgQuatGet(&self->v, i));
+    return PyFloat_FromDouble(ferQuatGet(&self->v, i));
 }
 
 static int quatSeqSet(py_quat *self, Py_ssize_t i, PyObject *val)
@@ -490,6 +490,6 @@ static int quatSeqSet(py_quat *self, Py_ssize_t i, PyObject *val)
 
     CHECK_FLOAT2(val, -1);
 
-    mgQuatSetCoord(&self->v, i, numberAsReal(val));
+    ferQuatSetCoord(&self->v, i, numberAsReal(val));
     return 0;
 }
