@@ -3,6 +3,7 @@
 
 #include <fermat/vec2.h>
 #include <fermat/tr2.h>
+#include "data.h"
 
 static fer_vec2_t *v[4];
 static fer_vec2_t *t, *p;
@@ -450,3 +451,271 @@ TEST(vec2AngleSameDir)
 
     ferTr2Del(tr);
 }
+
+TEST(vec2Add)
+{
+    size_t i;
+    fer_vec2_t v;
+
+    printf("# ---- add ----\n");
+    ferVec2Set(&v, FER_ZERO, FER_ZERO);
+    for (i = 0; i < vecs2_len; i++){
+        ferVec2Add(&v, &vecs2[i]);
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- add end ----\n\n");
+}
+
+TEST(vec2Sub)
+{
+    size_t i;
+    fer_vec2_t v;
+
+    printf("# ---- sub ----\n");
+    ferVec2Set(&v, FER_ZERO, FER_ZERO);
+    for (i = 0; i < vecs2_len; i++){
+        ferVec2Sub(&v, &vecs2[i]);
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- sub end ----\n\n");
+}
+
+TEST(vec2Scale)
+{
+    size_t i;
+    fer_vec2_t v;
+
+    printf("# ---- scale ----\n");
+    ferVec2Copy(&v, &vecs2[0]);
+    for (i = 0; i < vecs2_len; i++){
+        ferVec2Scale(&v, ferVec2X(&vecs2[i]));
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- scale end ----\n\n");
+}
+
+TEST(vec2Normalize)
+{
+    size_t i;
+    fer_vec2_t v;
+
+    printf("# ---- normalize ----\n");
+    for (i = 0; i < vecs2_len; i++){
+        ferVec2Copy(&v, &vecs2[i]);
+        ferVec2Normalize(&v);
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+        ferVec2ScaleToLen(&v, ferVec2X(&vecs2[i]));
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- normalize end ----\n\n");
+}
+
+TEST(vec2Dot)
+{
+    size_t i;
+    fer_real_t dot;
+
+    printf("# ---- dot ----\n");
+    for (i = 0; i < vecs2_len - 1; i++){
+        dot = ferVec2Dot(&vecs2[i], &vecs2[i + 1]);
+        printf("# %g\n", dot);
+    }
+    printf("# ---- dot end ----\n\n");
+}
+
+TEST(vec2Mul)
+{
+    size_t i;
+    fer_vec2_t v;
+
+    printf("# ---- mul ----\n");
+    for (i = 0; i < vecs2_len - 1; i++){
+        ferVec2MulComp2(&v, &vecs2[i], &vecs2[i + 1]);
+        printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- mul end ----\n\n");
+}
+
+TEST(vec2Len)
+{
+    size_t i;
+    fer_real_t len, len2;
+
+    printf("# ---- len ----\n");
+    for (i = 0; i < vecs2_len; i++){
+        len2 = ferVec2Len2(&vecs2[i]);
+        len = ferVec2Len(&vecs2[i]);
+        printf("# %g %g\n", len2, len);
+    }
+    printf("# ---- len end ----\n\n");
+}
+
+TEST(vec2Dist)
+{
+    size_t i;
+    fer_real_t d, d2;
+
+    printf("# ---- dist ----\n");
+    for (i = 0; i < vecs2_len - 1; i++){
+        d2 = ferVec2Dist2(&vecs2[i], &vecs2[i + 1]);
+        d = ferVec2Dist(&vecs2[i], &vecs2[i + 1]);
+        printf("# %g %g\n", d2, d);
+    }
+    printf("# ---- dist end ----\n\n");
+}
+
+TEST(vec2Area)
+{
+    size_t i;
+    fer_real_t d;
+
+    printf("# ---- area ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        d = ferVec2Area2(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        printf("# %g\n", d);
+    }
+    printf("# ---- area end ----\n\n");
+}
+
+TEST(vec2Angle)
+{
+    size_t i;
+    fer_real_t d, d2;
+
+    printf("# ---- angle ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        d = ferVec2Angle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        d2 = ferVec2SignedAngle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        printf("# %g %g\n", d, d2);
+    }
+    printf("# ---- angle end ----\n\n");
+}
+
+TEST(vec2ProjSeg)
+{
+    size_t i;
+    int ret;
+    fer_vec2_t v;
+
+    printf("# ---- proj seg ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        ret = ferVec2ProjectionPointOntoSegment(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &v);
+        printf("# %d %g %g\n", ret, ferVec2X(&v), ferVec2Y(&v));
+    }
+    printf("# ---- proj seg end ----\n\n");
+}
+
+TEST(vec2InCircle)
+{
+    size_t i;
+    int ret;
+
+    printf("# ---- in circle ----\n");
+    for (i = 0; i < vecs2_len - 3; i++){
+        ret = ferVec2InCircle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
+        printf("# %d\n", ret);
+    }
+    printf("# ---- in circle end ----\n\n");
+}
+
+TEST(vec2LiesOn)
+{
+    // TODO
+    /*
+    size_t i;
+    int ret;
+
+    printf("# ---- lies on ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        ret = ferVec2LiesOn(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        printf("# %d\n", ret);
+    }
+    printf("# ---- lies on end ----\n\n");
+    */
+}
+
+TEST(vec2Collinear)
+{
+    // TODO
+    /*
+    size_t i;
+    int ret;
+
+    printf("# ---- collinear ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        ret = ferVec2Collinear(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        printf("# %d\n", ret);
+    }
+    printf("# ---- collinear end ----\n\n");
+    */
+}
+
+TEST(vec2InCone)
+{
+    size_t i;
+    int ret;
+
+    printf("# ---- in cone ----\n");
+    for (i = 0; i < vecs2_len - 3; i++){
+        ret = ferVec2InCircle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
+        printf("# %d\n", ret);
+    }
+    printf("# ---- in cone end ----\n\n");
+}
+
+TEST(vec2Inter)
+{
+    size_t i;
+    int ret, ret2, ret3;
+    fer_vec2_t v;
+
+    printf("# ---- inter ----\n");
+    for (i = 0; i < vecs2_len - 3; i++){
+        ret = ferVec2IntersectProp(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
+        ret2 = ferVec2Intersect(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
+        ret3 = ferVec2IntersectPoint(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3], &v);
+        if (ret3 == 0){
+            printf("# %d %d %d %g %g\n", ret, ret2, ret3, ferVec2X(&v), ferVec2Y(&v));
+        }else{
+            printf("# %d %d %d\n", ret, ret2, ret3);
+        }
+    }
+    printf("# ---- inter end ----\n\n");
+}
+
+TEST(vec2OnLeft)
+{
+    size_t i;
+    int ret;
+
+    printf("# ---- on left ----\n");
+    for (i = 0; i < vecs2_len - 2; i++){
+        ret = ferVec2OnLeft(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
+        printf("# %d\n", ret);
+    }
+    printf("# ---- on left end ----\n\n");
+}
+
+TEST(vec2SegInRect)
+{
+    size_t i;
+    int ret;
+    fer_vec2_t s1, s2;
+
+    printf("# ---- seg in rect ----\n");
+    for (i = 0; i < vecs2_len - 5; i++){
+        ret = ferVec2SegmentInRect(&vecs2[i], &vecs2[i + 1],
+                                   &vecs2[i + 2], &vecs2[i + 3],
+                                   &vecs2[i + 4], &vecs2[i + 5],
+                                   &s1, &s2);
+        if (ret == 0){
+            printf("# %d (%g %g) (%g %g)\n", ret,
+                   ferVec2X(&s1), ferVec2Y(&s1),
+                   ferVec2X(&s2), ferVec2Y(&s2));
+        }else{
+            printf("# %d\n", ret);
+        }
+    }
+    printf("# ---- seg in rect end ----\n\n");
+}
+
