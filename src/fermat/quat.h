@@ -124,14 +124,14 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
     __m128 a1, a2, a3, a4, b1, b2, b3, b4, sign;
 
     // shuffle quats
-    a1 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(0, 3, 3, 3));
-    a2 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(1, 2, 1, 0));
-    a3 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(2, 0, 2, 1));
-    a4 = _mm_shuffle_ps(a->q, a->q, _MM_SHUFFLE(3, 1, 0, 2));
-    b1 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(0, 2, 1, 0));
-    b2 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(1, 3, 3, 3));
-    b3 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(2, 1, 0, 2));
-    b4 = _mm_shuffle_ps(b->q, b->q, _MM_SHUFFLE(3, 0, 2, 1));
+    a1 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(0, 3, 3, 3));
+    a2 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(1, 2, 1, 0));
+    a3 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(2, 0, 2, 1));
+    a4 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(3, 1, 0, 2));
+    b1 = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(0, 2, 1, 0));
+    b2 = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(1, 3, 3, 3));
+    b3 = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(2, 1, 0, 2));
+    b4 = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(3, 0, 2, 1));
     sign = _mm_set_ps(-FER_ONE, FER_ONE, FER_ONE, FER_ONE);
 
     // mul into a*
@@ -146,27 +146,27 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
     a1 = _mm_sub_ps(a1, a4);
 
     // change sign of w
-    q->q = _mm_mul_ps(a1, sign);
+    q->v = _mm_mul_ps(a1, sign);
 # else /* FER_SSE_SINGLE */
     __m128d a33, a01, a12, a20, a21, a02, a30, a13;
     __m128d b33, b20, b12, b31, b03;
     __m128d sign;
 
-    a33 = _mm_shuffle_pd(a->q[1], a->q[1], _MM_SHUFFLE2(1, 1));
-    a01 = _mm_shuffle_pd(a->q[0], a->q[0], _MM_SHUFFLE2(1, 0));
-    a12 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 1));
-    a20 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 0));
-    a21 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(1, 0));
-    a02 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(0, 0));
-    a30 = _mm_shuffle_pd(a->q[1], a->q[0], _MM_SHUFFLE2(0, 1));
-    a13 = _mm_shuffle_pd(a->q[0], a->q[1], _MM_SHUFFLE2(1, 1));
-    b33 = _mm_shuffle_pd(b->q[1], b->q[1], _MM_SHUFFLE2(1, 1));
-    b20 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(0, 0));
-    b12 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(0, 1));
-    b31 = _mm_shuffle_pd(b->q[1], b->q[0], _MM_SHUFFLE2(1, 1));
-    b03 = _mm_shuffle_pd(b->q[0], b->q[1], _MM_SHUFFLE2(1, 0));
+    a33 = _mm_shuffle_pd(a->v[1], a->v[1], _MM_SHUFFLE2(1, 1));
+    a01 = _mm_shuffle_pd(a->v[0], a->v[0], _MM_SHUFFLE2(1, 0));
+    a12 = _mm_shuffle_pd(a->v[0], a->v[1], _MM_SHUFFLE2(0, 1));
+    a20 = _mm_shuffle_pd(a->v[1], a->v[0], _MM_SHUFFLE2(0, 0));
+    a21 = _mm_shuffle_pd(a->v[1], a->v[0], _MM_SHUFFLE2(1, 0));
+    a02 = _mm_shuffle_pd(a->v[0], a->v[1], _MM_SHUFFLE2(0, 0));
+    a30 = _mm_shuffle_pd(a->v[1], a->v[0], _MM_SHUFFLE2(0, 1));
+    a13 = _mm_shuffle_pd(a->v[0], a->v[1], _MM_SHUFFLE2(1, 1));
+    b33 = _mm_shuffle_pd(b->v[1], b->v[1], _MM_SHUFFLE2(1, 1));
+    b20 = _mm_shuffle_pd(b->v[1], b->v[0], _MM_SHUFFLE2(0, 0));
+    b12 = _mm_shuffle_pd(b->v[0], b->v[1], _MM_SHUFFLE2(0, 1));
+    b31 = _mm_shuffle_pd(b->v[1], b->v[0], _MM_SHUFFLE2(1, 1));
+    b03 = _mm_shuffle_pd(b->v[0], b->v[1], _MM_SHUFFLE2(1, 0));
 
-    a33 = _mm_mul_pd(a33, b->q[0]);
+    a33 = _mm_mul_pd(a33, b->v[0]);
     a21 = _mm_mul_pd(a21, b31);
     a01 = _mm_mul_pd(a01, b33);
     a02 = _mm_mul_pd(a02, b12);
@@ -182,9 +182,9 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
     a21 = _mm_add_pd(a21, a30);
     a21 = _mm_sub_pd(a21, a13);
 
-    q->q[0] = a33;
+    q->v[0] = a33;
     sign = _mm_set_pd(-FER_ONE, FER_ONE);
-    q->q[1] = _mm_mul_pd(a21, sign);
+    q->v[1] = _mm_mul_pd(a21, sign);
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
     q->f[0] = a->f[3] * b->f[0]
@@ -216,13 +216,13 @@ _fer_inline int ferQuatInvert(fer_quat_t *q)
 # ifdef FER_SSE_SINGLE
     __m128 k;
     k = _mm_set_ps(len2, -len2, -len2, -len2);
-    q->q = _mm_div_ps(q->q, k);
+    q->v = _mm_div_ps(q->v, k);
 # else /* FER_SSE_SINGLE */
     __m128d k1, k2;
     k1 = _mm_set_pd(-len2, -len2);
     k2 = _mm_set_pd(len2, -len2);
-    q->q[0] = _mm_div_pd(q->q[0], k1);
-    q->q[1] = _mm_div_pd(q->q[1], k2);
+    q->v[0] = _mm_div_pd(q->v[0], k1);
+    q->v[1] = _mm_div_pd(q->v[1], k2);
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
     len2 = ferRecp(len2);
