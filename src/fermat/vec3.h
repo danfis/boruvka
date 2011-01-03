@@ -503,7 +503,7 @@ _fer_inline void ferVec3ScaleToLen(fer_vec3_t *v, fer_real_t len)
     v->v[1] = _mm_div_pd(v->v[1], k);
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-    fer_real_t k = len * ferRsqrt(ferVec3Len(v));
+    fer_real_t k = len * ferRsqrt(ferVec3Len2(v));
     ferVec3Scale(v, k);
 #endif /* FER_SSE */
 }
