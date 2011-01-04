@@ -33,10 +33,28 @@ extern "C" {
 /**
  * Structure representing 2D vector.
  */
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+union _fer_vec2_t {
+    __m128 v;
+    fer_real_t f[4];
+} fer_aligned(16) fer_packed;
+typedef union _fer_vec2_t fer_vec2_t;
+# else /* FER_SSE_SINGLE */
+union _fer_vec2_t {
+    __m128d v;
+    fer_real_t f[2];
+} fer_aligned(16) fer_packed;
+typedef union _fer_vec2_t fer_vec2_t;
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
+
 struct _fer_vec2_t {
     fer_real_t f[2];
 };
 typedef struct _fer_vec2_t fer_vec2_t;
+
+#endif /* FER_SSE */
 
 /**
  * Holds origin (0,0) - this variable is meant to be read-only!
@@ -44,7 +62,7 @@ typedef struct _fer_vec2_t fer_vec2_t;
 extern const fer_vec2_t *fer_vec2_origin;
 
 #define FER_VEC2_STATIC(x, y) \
-    { { (x), (y) } }
+    { .f = { (x), (y) } }
 
 #define FER_VEC2(name, x, y) \
     fer_vec2_t name = FER_VEC2_STATIC((x), (y))
@@ -316,8 +334,14 @@ _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d)
 }
 
 
-_fer_inline fer_real_t ferVec2X(const fer_vec2_t *v) { return ferVec2Get(v, 0); }
-_fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v) { return ferVec2Get(v, 1); }
+_fer_inline fer_real_t ferVec2X(const fer_vec2_t *v)
+{
+    return v->f[0];
+}
+_fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v)
+{
+    return v->f[1];
+}
 
 
 _fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val)
@@ -366,10 +390,11 @@ _fer_inline int ferVec2NEq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y)
 }
 
 
-_fer_inline fer_real_t ferVec2Dist2(const fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline fer_real_t ferVec2Dist2(const fer_vec2_t *a, const fer_vec2_t *b)
 {
-    return FER_CUBE(ferVec2X(v) - ferVec2X(w))
-            + FER_CUBE(ferVec2Y(v) - ferVec2Y(w));
+    fer_vec2_t ab;
+    ferVec2Sub2(&ab, a, b);
+    return ferVec2Len2(&ab);
 }
 
 _fer_inline fer_real_t ferVec2Dist(const fer_vec2_t *v, const fer_vec2_t *w)
@@ -379,7 +404,7 @@ _fer_inline fer_real_t ferVec2Dist(const fer_vec2_t *v, const fer_vec2_t *w)
 
 _fer_inline fer_real_t ferVec2Len2(const fer_vec2_t *v)
 {
-    return FER_CUBE(ferVec2X(v)) + FER_CUBE(ferVec2Y(v));
+    return ferVec2Dot(v, v);
 }
 
 _fer_inline fer_real_t ferVec2Len(const fer_vec2_t *v)
@@ -390,71 +415,235 @@ _fer_inline fer_real_t ferVec2Len(const fer_vec2_t *v)
 
 _fer_inline void ferVec2Add(fer_vec2_t *v, const fer_vec2_t *w)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    v->v = _mm_add_ps(v->v, w->v);
+# else /* FER_SSE_SINGLE */
+    v->v = _mm_add_pd(v->v, w->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     v->f[0] += w->f[0];
     v->f[1] += w->f[1];
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    d->v = _mm_add_ps(v->v, w->v);
+# else /* FER_SSE_SINGLE */
+    d->v = _mm_add_pd(v->v, w->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     d->f[0] = v->f[0] + w->f[0];
     d->f[0] = v->f[1] + w->f[1];
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    v->v = _mm_sub_ps(v->v, w->v);
+# else /* FER_SSE_SINGLE */
+    v->v = _mm_sub_pd(v->v, w->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     v->f[0] -= w->f[0];
     v->f[1] -= w->f[1];
+#endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_t *ww)
+_fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w)
 {
-    ferVec2Set(v, ferVec2X(w) - ferVec2X(ww), ferVec2Y(w) - ferVec2Y(ww));
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    d->v = _mm_sub_ps(v->v, w->v);
+# else /* FER_SSE_SINGLE */
+    d->v = _mm_sub_pd(v->v, w->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
+    d->f[0] = v->f[0] - w->f[0];
+    d->f[1] = v->f[1] - w->f[1];
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 l;
+    l = _mm_set1_ps(k);
+    v->v = _mm_mul_ps(v->v, l);
+# else /* FER_SSE_SINGLE */
+    __m128d l;
+    l = _mm_set1_pd(k);
+    v->v = _mm_mul_pd(v->v, l);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     v->f[0] *= k;
     v->f[1] *= k;
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2ScaleToLen(fer_vec2_t *v, fer_real_t len)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 k, l;
+
+    k = _mm_set1_ps(ferVec2Len2(v));
+    k = _mm_sqrt_ps(k);
+    l = _mm_set1_ps(len);
+    k = _mm_div_ps(k, l);
+    v->v = _mm_div_ps(v->v, k);
+# else /* FER_SSE_SINGLE */
+    __m128d k, l;
+
+    k = _mm_set1_pd(ferVec2Len2(v));
+    k = _mm_sqrt_pd(k);
+    l = _mm_set1_pd(len);
+    k = _mm_div_pd(k, l);
+    v->v = _mm_div_pd(v->v, k);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     fer_real_t k = len * ferRsqrt(ferVec2Len2(v));
     ferVec2Scale(v, k);
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2Normalize(fer_vec2_t *v)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 k;
+
+    k = _mm_set1_ps(ferVec2Len2(v));
+    k = _mm_rsqrt_ps(k);
+    v->v = _mm_mul_ps(v->v, k);
+# else /* FER_SSE_SINGLE */
+    __m128d k;
+
+    k = _mm_set1_pd(ferVec2Len2(v));
+    k = _mm_sqrt_pd(k);
+    v->v = _mm_div_pd(v->v, k);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     fer_real_t k = ferRsqrt(ferVec2Len2(v));
     ferVec2Scale(v, k);
+#endif /* FER_SSE */
 }
 
 _fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    fer_vec2_t dot, t;
+
+    dot.v = _mm_mul_ps(v->v, w->v);
+    dot.f[2] = dot.f[3] = FER_ZERO;
+    t.v = _mm_shuffle_ps(dot.v, dot.v, _MM_SHUFFLE(1, 1, 1, 1));
+    dot.v = _mm_add_ps(dot.v, t.v);
+
+    return dot.f[0];
+# else /* FER_SSE_SINGLE */
+    fer_vec2_t dot, t;
+
+    dot.v = _mm_mul_pd(v->v, w->v);
+    t.v = _mm_shuffle_pd(dot.v, dot.v, _MM_SHUFFLE2(1, 1));
+    dot.v = _mm_add_pd(dot.v, t.v);
+
+    return dot.f[0];
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     fer_real_t dot;
     dot  = v->f[0] * w->f[0];
     dot += v->f[1] * w->f[1];
     return dot;
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2MulComp(fer_vec2_t *a, const fer_vec2_t *b)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    a->v = _mm_mul_ps(a->v, b->v);
+# else /* FER_SSE_SINGLE */
+    a->v = _mm_mul_pd(a->v, b->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     a->f[0] *= b->f[0];
     a->f[1] *= b->f[1];
+#endif /* FER_SSE */
 }
 
 _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_vec2_t *b)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    d->v = _mm_mul_ps(a->v, b->v);
+# else /* FER_SSE_SINGLE */
+    d->v = _mm_mul_pd(a->v, b->v);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     d->f[0] = a->f[0] * b->f[0];
     d->f[1] = a->f[1] * b->f[1];
+#endif /* FER_SSE */
 }
 
 
 
+#include <stdio.h>
 _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
-                              const fer_vec2_t *b,
-                              const fer_vec2_t *c)
+                                    const fer_vec2_t *b,
+                                    const fer_vec2_t *c)
 {
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    __m128 bybx, cycx, x1, x2, x3, x4, x5, x6;
+
+    // TODO: all 4 items of __m128 can be used - it will reduce number of
+    //       instructions.
+    bybx = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(0, 0, 0, 1));
+    cycx = _mm_shuffle_ps(c->v, c->v, _MM_SHUFFLE(0, 0, 0, 1));
+
+    x1 = _mm_mul_ps(a->v, bybx);
+    x2 = _mm_shuffle_ps(x1, x1, _MM_SHUFFLE(0, 0, 0, 1));
+    x3 = _mm_mul_ps(a->v, cycx);
+    x4 = _mm_shuffle_ps(x3, x3, _MM_SHUFFLE(0, 0, 0, 1));
+    x5 = _mm_mul_ps(b->v, cycx);
+    x6 = _mm_shuffle_ps(x5, x5, _MM_SHUFFLE(0, 0, 0, 1));
+
+    x1 = _mm_sub_ps(x1, x2);
+    x3 = _mm_sub_ps(x4, x3);
+    x5 = _mm_sub_ps(x5, x6);
+    x1 = _mm_add_ps(x1, x3);
+    x1 = _mm_add_ps(x1, x5);
+
+    return ((fer_vec2_t *)&x1)->f[0];
+# else /* FER_SSE_SINGLE */
+    __m128d bybx, cycx, x1, x2, x3, x4, x5, x6;
+
+    bybx = _mm_shuffle_pd(b->v, b->v, _MM_SHUFFLE2(0, 1));
+    cycx = _mm_shuffle_pd(c->v, c->v, _MM_SHUFFLE2(0, 1));
+
+    x1 = _mm_mul_pd(a->v, bybx);
+    x2 = _mm_shuffle_pd(x1, x1, _MM_SHUFFLE(0, 0, 0, 1));
+    x3 = _mm_mul_pd(a->v, cycx);
+    x4 = _mm_shuffle_pd(x3, x3, _MM_SHUFFLE(0, 0, 0, 1));
+    x5 = _mm_mul_pd(b->v, cycx);
+    x6 = _mm_shuffle_pd(x5, x5, _MM_SHUFFLE(0, 0, 0, 1));
+
+    x1 = _mm_sub_pd(x1, x2);
+    x3 = _mm_sub_pd(x4, x3);
+    x5 = _mm_sub_pd(x5, x6);
+    x1 = _mm_add_pd(x1, x3);
+    x1 = _mm_add_pd(x1, x5);
+
+    return ((fer_vec2_t *)&x1)->f[0];
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
     /* Area2 can be computed as determinant:
      * | a.x a.y 1 |
      * | b.x b.y 1 |
@@ -472,6 +661,7 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
     return ax * by - ay * bx +
            ay * cx - ax * cy +
            bx * cy - by * cx;
+#endif /* FER_SSE */
 }
 
 

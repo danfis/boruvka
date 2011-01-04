@@ -24,7 +24,13 @@ const fer_vec2_t *fer_vec2_origin = &__fer_vec2_origin;
 
 fer_vec2_t *ferVec2New(fer_real_t x, fer_real_t y)
 {
-    fer_vec2_t *v = FER_ALLOC(fer_vec2_t);
+    fer_vec2_t *v;
+
+#ifdef FER_SSE
+    v = FER_ALLOC_ALIGN(fer_vec2_t, sizeof(fer_vec2_t));
+#else /* FER_SSE */
+    v = FER_ALLOC(fer_vec2_t);
+#endif /* FER_SSE */
     ferVec2Set(v, x, y);
     return v;
 }
@@ -115,7 +121,7 @@ int ferVec2IntersectPoint(const fer_vec2_t *a, const fer_vec2_t *b,
         return -1;
 
     ferVec2Set(p, ferVec2X(a) + ua * (ferVec2X(b) - ferVec2X(a)),
-                ferVec2Y(a) + ua * (ferVec2Y(b) - ferVec2Y(a)));
+                  ferVec2Y(a) + ua * (ferVec2Y(b) - ferVec2Y(a)));
     return 0;
 }
 
@@ -168,7 +174,7 @@ int ferVec2ProjectionPointOntoSegment(const fer_vec2_t *a, const fer_vec2_t *b,
 
 
 int ferVec2InCircle(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c,
-                   const fer_vec2_t *d)
+                    const fer_vec2_t *d)
 {
     // | ax  ay  ax2+ay2  1 |
     // | bx  by  bx2+by2  1 |
@@ -216,10 +222,10 @@ int ferVec2LiesOn(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c)
     // here it's certain that a, b and c are collinear
     if (!ferEq(ferVec2X(b), ferVec2X(c))){
         return (ferVec2X(b) < ferVec2X(a) && ferVec2X(c) > ferVec2X(a)) 
-               || (ferVec2X(b) > ferVec2X(a) && ferVec2X(c) < ferVec2X(a));
+                || (ferVec2X(b) > ferVec2X(a) && ferVec2X(c) < ferVec2X(a));
     }else{
         return (ferVec2Y(b) < ferVec2Y(a) && ferVec2Y(c) > ferVec2Y(a)) 
-               || (ferVec2Y(b) > ferVec2Y(a) && ferVec2Y(c) < ferVec2Y(a));
+                || (ferVec2Y(b) > ferVec2Y(a) && ferVec2Y(c) < ferVec2Y(a));
     }
 }
 
@@ -355,7 +361,7 @@ fer_real_t ferVec2AngleSameDir(const fer_vec2_t *a, const fer_vec2_t *b)
 }
 
 fer_real_t ferVec2AngleSegsSameDir(const fer_vec2_t *A, const fer_vec2_t *B,
-                               const fer_vec2_t *C, const fer_vec2_t *D)
+                                   const fer_vec2_t *C, const fer_vec2_t *D)
 {
     fer_vec2_t *a, *c;
     fer_real_t angle;
