@@ -182,12 +182,12 @@ _fer_inline void ferMat3Scale2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t s)
 /**
  * d = d + c
  */
-_fer_inline void ferMat3ScaleConst(fer_mat3_t *d, fer_real_t c);
+_fer_inline void ferMat3AddConst(fer_mat3_t *d, fer_real_t c);
 
 /**
  * d = a + c
  */
-_fer_inline void ferMat3ScaleConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
+_fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
 
 /**
  * a = a * b
@@ -468,7 +468,7 @@ _fer_inline void ferMat3Scale2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t s)
     d->f[10] = a->f[10] * s;
 }
 
-_fer_inline void ferMat3ScaleConst(fer_mat3_t *d, fer_real_t c)
+_fer_inline void ferMat3AddConst(fer_mat3_t *d, fer_real_t c)
 {
     d->f[0] += c;
     d->f[1] += c;
@@ -481,7 +481,7 @@ _fer_inline void ferMat3ScaleConst(fer_mat3_t *d, fer_real_t c)
     d->f[10] += c;
 }
 
-_fer_inline void ferMat3ScaleConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c)
+_fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c)
 {
     d->f[0] = a->f[0] + c;
     d->f[1] = a->f[1] + c;
@@ -648,7 +648,7 @@ _fer_inline int ferMat3Inv2(fer_mat3_t *m, const fer_mat3_t *a)
     invdet = ferRecp(det);
 
     m->f[0]  = a->f[5] * a->f[10] - a->f[6] * a->f[9];
-    m->f[1]  = a->f[2] * a->f[8]  - a->f[1] * a->f[10];
+    m->f[1]  = a->f[2] * a->f[9]  - a->f[1] * a->f[10];
     m->f[2]  = a->f[1] * a->f[6]  - a->f[2] * a->f[5];
     m->f[4]  = a->f[6] * a->f[8]  - a->f[4] * a->f[10];
     m->f[5]  = a->f[0] * a->f[10] - a->f[2] * a->f[8];

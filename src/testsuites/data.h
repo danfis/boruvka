@@ -5,6 +5,7 @@
 #include <fermat/vec3.h>
 #include <fermat/vec4.h>
 #include <fermat/quat.h>
+#include <fermat/mat3.h>
 
 extern fer_vec2_t vecs2[];
 extern size_t vecs2_len;
@@ -17,4 +18,7 @@ extern size_t quats_len;
 
 extern fer_vec4_t vecs4[];
 extern size_t vecs4_len;
+
+extern fer_mat3_t mat3s[];
+extern size_t mat3s_len;
 #endif
