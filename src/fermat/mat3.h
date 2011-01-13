@@ -215,6 +215,17 @@ _fer_inline void ferMat3AddConst(fer_mat3_t *d, fer_real_t c);
 _fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
 
 /**
+ * d = d - c
+ */
+_fer_inline void ferMat3SubConst(fer_mat3_t *d, fer_real_t c);
+
+/**
+ * d = a - c
+ */
+_fer_inline void ferMat3SubConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
+
+
+/**
  * a = a * b
  */
 _fer_inline void ferMat3Mul(fer_mat3_t *a, const fer_mat3_t *b);
@@ -535,6 +546,32 @@ _fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t
     d->f[8] = a->f[8] + c;
     d->f[9] = a->f[9] + c;
     d->f[10] = a->f[10] + c;
+}
+
+_fer_inline void ferMat3SubConst(fer_mat3_t *d, fer_real_t c)
+{
+    d->f[0] -= c;
+    d->f[1] -= c;
+    d->f[2] -= c;
+    d->f[4] -= c;
+    d->f[5] -= c;
+    d->f[6] -= c;
+    d->f[8] -= c;
+    d->f[9] -= c;
+    d->f[10] -= c;
+}
+
+_fer_inline void ferMat3SubConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c)
+{
+    d->f[0] = a->f[0] - c;
+    d->f[1] = a->f[1] - c;
+    d->f[2] = a->f[2] - c;
+    d->f[4] = a->f[4] - c;
+    d->f[5] = a->f[5] - c;
+    d->f[6] = a->f[6] - c;
+    d->f[8] = a->f[8] - c;
+    d->f[9] = a->f[9] - c;
+    d->f[10] = a->f[10] - c;
 }
 
 _fer_inline void ferMat3Mul(fer_mat3_t *a, const fer_mat3_t *b)

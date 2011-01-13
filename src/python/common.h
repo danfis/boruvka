@@ -35,6 +35,27 @@ _fer_inline fer_real_t numberAsReal(PyObject *n)
     return r;
 }
 
+_fer_inline long numberAsLong(PyObject *n)
+{
+    PyObject *onum;
+    long v;
+
+    if (PyLong_Check(n))
+        return PyLong_AsLong(n);
+
+    onum = PyNumber_Long(n);
+    v = PyFloat_AsDouble(onum);
+    Py_DECREF(onum);
+
+    return v;
+}
+
+#define CHECK_VEC2(o) \
+    if (!PyObject_TypeCheck((o), &py_vec2_type)){ \
+        PyErr_SetString(PyExc_TypeError, "Expected Vec2"); \
+        return NULL; \
+    }
+
 #define CHECK_VEC3(o) \
     if (!PyObject_TypeCheck((o), &py_vec3_type)){ \
         PyErr_SetString(PyExc_TypeError, "Expected Vec3"); \
@@ -59,6 +80,12 @@ _fer_inline fer_real_t numberAsReal(PyObject *n)
         return (ret); \
     }
 #define CHECK_FLOAT(o) CHECK_FLOAT2(o, NULL)
+
+#define CHECK_MAT3(o) \
+    if (!PyObject_TypeCheck((o), &py_mat3_type)){ \
+        PyErr_SetString(PyExc_TypeError, "Expected Mat3"); \
+        return NULL; \
+    }
 
 
 #endif /* PY_COMMON_H_ */

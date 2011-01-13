@@ -19,6 +19,7 @@
 #include "vec4.h"
 #include "quat.h"
 #include "point_cloud.h"
+#include "mat3.h"
 
 static PyMethodDef fer_methods[] = {
     {NULL}  /* Sentinel */
@@ -44,6 +45,7 @@ PyInit_fermat(void)
     vec4Init(m);
     quatInit(m);
     pcInit(m);
+    mat3Init(m);
 
     return m;
 }
