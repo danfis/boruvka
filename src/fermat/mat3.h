@@ -141,6 +141,31 @@ _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v);
 _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle);
 
 /**
+ * Apply scale transfomation.
+ *     | s 0 0 |
+ * m = | 0 s 0 | . m
+ *     | 0 0 s |
+ */
+_fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s);
+
+/**
+ * Translate transformation matrix towards vector v.
+ *     | 1 0 x |
+ * m = | 0 1 y | . m
+ *     | 0 0 1 |
+ */
+_fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v);
+
+/**
+ * Rotate transformation matrix.
+ *     | cos(a) -sin(a) 0 |
+ * m = | sin(a)  cos(a) 0 | . m
+ *     |   0       0    1 |
+ */
+_fer_inline void ferMat3Rot(fer_mat3_t *m, fer_real_t angle);
+
+
+/**
  * Composes transformation:
  * A = B . A
  */
@@ -378,10 +403,28 @@ _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle)
                   FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-/**
- * Composes transformation:
- * A = B . A
- */
+_fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s)
+{
+    fer_mat3_t scale;
+    ferMat3SetScale(&scale, s);
+    ferMat3Compose(m, &scale);
+}
+
+_fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v)
+{
+    fer_mat3_t tr;
+    ferMat3SetTranslate(&tr, v);
+    ferMat3Compose(m, &tr);
+}
+
+_fer_inline void ferMat3Rot(fer_mat3_t *m, fer_real_t angle)
+{
+    fer_mat3_t rot;
+    ferMat3SetRot(&rot, angle);
+    ferMat3Compose(m, &rot);
+}
+
+
 _fer_inline void ferMat3Compose(fer_mat3_t *A, const fer_mat3_t *B)
 {
     ferMat3MulLeft(A, B);
