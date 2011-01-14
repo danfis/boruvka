@@ -449,7 +449,7 @@ _fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
     d->f[0] = v->f[0] + w->f[0];
-    d->f[0] = v->f[1] + w->f[1];
+    d->f[1] = v->f[1] + w->f[1];
 #endif /* FER_SSE */
 }
 

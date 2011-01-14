@@ -528,7 +528,7 @@ static PyObject *vec2InCone(py_vec2 *self, PyObject *args)
 
     VEC2_ABC
 
-    if (ferVec2InCone(&a->v, &b->v, &c->v, &self->v)){
+    if (ferVec2InCone(&self->v, &a->v, &b->v, &c->v)){
         Py_RETURN_TRUE;
     }else{
         Py_RETURN_FALSE;
@@ -629,6 +629,13 @@ static PyObject *vec2Add(py_vec2 *self, PyObject *o)
 {
     py_vec2 *v;
     fer_real_t f;
+    PyObject *tmp;
+
+    if (PyNumber_Check((PyObject *)self)){
+        tmp = (PyObject *)self;
+        self = (py_vec2 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_vec2_type)){
         v = PyObject_New(py_vec2, &py_vec2_type);
@@ -651,6 +658,11 @@ static PyObject *vec2Sub(py_vec2 *self, PyObject *o)
     py_vec2 *v;
     fer_real_t f;
 
+    if (PyNumber_Check((PyObject *)self)){
+        PyErr_SetString(PyExc_TypeError, "Invalid operation");
+        return NULL;
+    }
+
     if (PyObject_TypeCheck(o, &py_vec2_type)){
         v = PyObject_New(py_vec2, &py_vec2_type);
         ferVec2Sub2(&v->v, &self->v, &((py_vec2 *)o)->v);
@@ -671,6 +683,13 @@ static PyObject *vec2Mul(py_vec2 *self, PyObject *o)
 {
     py_vec2 *v;
     fer_real_t num;
+    PyObject *tmp;
+
+    if (PyNumber_Check((PyObject *)self)){
+        tmp = (PyObject *)self;
+        self = (py_vec2 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_vec2_type)){
         num = ferVec2Dot(&self->v, &((py_vec2 *)o)->v);
@@ -775,12 +794,12 @@ static PyObject *vec2DivIn(py_vec2 *self, PyObject *o)
 
 static Py_ssize_t vec2SeqSize(py_vec2 *self)
 {
-    return 3;
+    return 2;
 }
 
 static PyObject *vec2SeqGet(py_vec2 *self, Py_ssize_t i)
 {
-    if (i >= 3){
+    if (i >= 2){
         PyErr_SetString(PyExc_IndexError, "Index out of bounds");
         return NULL;
     }
@@ -790,7 +809,7 @@ static PyObject *vec2SeqGet(py_vec2 *self, Py_ssize_t i)
 
 static int vec2SeqSet(py_vec2 *self, Py_ssize_t i, PyObject *val)
 {
-    if (i >= 3){
+    if (i >= 2){
         PyErr_SetString(PyExc_IndexError, "Index out of bounds");
         return -1;
     }

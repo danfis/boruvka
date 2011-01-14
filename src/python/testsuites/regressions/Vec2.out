@@ -1,0 +1,64 @@
+---- Methods ---- 
+<Vec2: 1.000000 2.000000> <Vec2: 2.000000 3.000000> 
+len 2.2360679775 
+len2 5.0 
+dist 1.41421356237 
+dist2 2.0 
+scaleToLen <Vec2: 2.218801 3.328201> 4.00000009604 
+scaledToLen <Vec2: 1.109400 1.664101> 4.00000009604 2.00000004802 
+normalized <Vec2: 0.554700 0.832050> 4.00000009604 1.00000002401 
+normalize <Vec2: 0.554700 0.832050> 1.00000002401 
+
+area2 2.0 
+angle 1.10714871779 
+angle 1.57079632679 
+angle 1.57079632679 
+signedAngle 1.57079632679 
+signedAngle -1.57079632679 
+
+projectionOntoSegment <Vec2: 1.000000 0.000000> 
+projectionOntoSegment None 
+inCircle True 
+inCircle False 
+liesOn True 
+liesOn False 
+collinear True 
+collinear False 
+inCone True 
+inCone False 
+intersectProp True 
+intersectProp False 
+intersect True 
+intersectPoint <Vec2: 0.500000 0.500000> 
+intersectPoint <Vec2: 0.000000 1.000000> 
+intersectPoint None 
+onLeft True 
+onLeft False 
+segmentInRect (<Vec2: 0.000000 0.000000>, <Vec2: 1.000000 1.000000>) 
+---- NumberProtocol ---- 
+<Vec2: 0.000000 0.000000> 
+<Vec2: 1.000000 0.000000> 
+<Vec2: 1.000000 2.000000> 
+
+<Vec2: 1.000000 2.000000> + <Vec2: 3.100000 1.200000> = <Vec2: 4.100000 3.200000> 
+<Vec2: 1.000000 2.000000> + 1.0 = <Vec2: 2.000000 3.000000> 
+1.0 + <Vec2: 1.000000 2.000000> = <Vec2: 2.000000 3.000000> 
+<Vec2: 1.000000 2.000000> - <Vec2: 3.100000 1.200000> = <Vec2: -2.100000 0.800000> 
+<Vec2: 1.000000 2.000000> - 1.0 = <Vec2: 0.000000 1.000000> 
+<Vec2: 1.000000 2.000000> * <Vec2: 3.100000 1.200000> = 5.5 
+<Vec2: 1.000000 2.000000> * 1.5 = <Vec2: 1.500000 3.000000> 
+1.5 * <Vec2: 1.000000 2.000000> = <Vec2: 1.500000 3.000000> 
+<Vec2: -1.000000 -2.000000> 
+<Vec2: 1.000000 2.000000> / 2 = <Vec2: 0.500000 1.000000> 
+
+<Vec2: 4.100000 3.200000> 
+<Vec2: 14.100000 13.200000> 
+<Vec2: 13.100000 11.200000> 
+<Vec2: 3.100000 1.200000> 
+<Vec2: 6.200001 2.400000> 
+<Vec2: 3.100000 1.200000> 
+---- SeqProtocol ---- 
+2 1.0 2.0 
+1.0 2.0 
+1.0 
+2.0 
