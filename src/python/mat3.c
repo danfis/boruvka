@@ -15,6 +15,7 @@
  */
 
 #include "common.h"
+#include "vec2.h"
 #include "mat3.h"
 
 static int mat3ObjInit(py_mat3 *self, PyObject *args, PyObject *kwds);
@@ -28,11 +29,11 @@ static PyObject *mat3Set(py_mat3 *self, PyObject *args);
 static PyObject *mat3SetIdentity(py_mat3 *self);
 static PyObject *mat3SetZero(py_mat3 *self);
 static PyObject *mat3SetScale(py_mat3 *self, PyObject *s);
-static PyObject *mat3SetTranslate(py_mat3 *self, PyObject *vec2);
+static PyObject *mat3SetTranslate(py_mat3 *self, py_vec2 *vec2);
 static PyObject *mat3SetRot(py_mat3 *self, PyObject *angle);
 
 static PyObject *mat3TrScale(py_mat3 *self, PyObject *s);
-static PyObject *mat3Translate(py_mat3 *self, PyObject *vec2);
+static PyObject *mat3Translate(py_mat3 *self, py_vec2 *vec2);
 static PyObject *mat3Rot(py_mat3 *self, PyObject *angle);
 
 static PyObject *mat3Compose(py_mat3 *self, py_mat3 *mat);
@@ -380,17 +381,13 @@ static PyObject *mat3SetScale(py_mat3 *self, PyObject *s)
     return (PyObject *)self;
 }
 
-static PyObject *mat3SetTranslate(py_mat3 *self, PyObject *vec2)
+static PyObject *mat3SetTranslate(py_mat3 *self, py_vec2 *vec2)
 {
-    /*
     CHECK_VEC2(vec2);
 
-    ferMat3SetScale(&self->m, numberAsReal(s));
+    ferMat3SetTranslate(&self->m, &vec2->v);
     Py_INCREF(self);
     return (PyObject *)self;
-    */
-    // TODO: Don't have Vec2!
-    Py_RETURN_NONE;
 }
 
 static PyObject *mat3SetRot(py_mat3 *self, PyObject *angle)
@@ -411,10 +408,13 @@ static PyObject *mat3TrScale(py_mat3 *self, PyObject *s)
     return (PyObject *)self;
 }
 
-static PyObject *mat3Translate(py_mat3 *self, PyObject *vec2)
+static PyObject *mat3Translate(py_mat3 *self, py_vec2 *vec2)
 {
-    // TODO: see mat3SetTranslate
-    Py_RETURN_NONE;
+    CHECK_VEC2(vec2);
+
+    ferMat3Translate(&self->m, &vec2->v);
+    Py_INCREF(self);
+    return (PyObject *)self;
 }
 
 static PyObject *mat3Rot(py_mat3 *self, PyObject *angle)
@@ -577,11 +577,16 @@ static PyObject *mat3Sub(py_mat3 *self, PyObject *o)
 static PyObject *mat3Mul(py_mat3 *self, PyObject *o)
 {
     py_mat3 *m;
+    py_vec2 *v;
     fer_real_t f;
 
     if (PyObject_TypeCheck(o, &py_mat3_type)){
         m = PyObject_New(py_mat3, &py_mat3_type);
         ferMat3Mul2(&m->m, &self->m, &((py_mat3 *)o)->m);
+    }else if (PyObject_TypeCheck(o, &py_vec2_type)){
+        v = PyObject_New(py_vec2, &py_vec2_type);
+        ferMat3MulVec2(&v->v, &self->m, &((py_vec2 *)o)->v);
+        return (PyObject *)v;
     }else if (PyNumber_Check(o)){
         m = PyObject_New(py_mat3, &py_mat3_type);
         f = numberAsReal(o);
