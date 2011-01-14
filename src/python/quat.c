@@ -422,6 +422,13 @@ static PyObject *quatMulConst(py_quat *self, PyObject *o)
 {
     py_quat *v;
     fer_real_t num;
+    PyObject *tmp;
+
+    if (PyNumber_Check((PyObject *)self)){
+        tmp = (PyObject *)self;
+        self = (py_quat *)o;
+        o = tmp;
+    }
 
     CHECK_FLOAT(o);
 
