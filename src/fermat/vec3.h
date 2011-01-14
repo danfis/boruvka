@@ -215,8 +215,8 @@ _fer_inline void ferVec3Cross(fer_vec3_t *d, const fer_vec3_t *a, const fer_vec3
  * was computed distance to point P.
  */
 fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
-                                  const fer_vec3_t *a, const fer_vec3_t *b,
-                                  fer_vec3_t *witness);
+                                    const fer_vec3_t *a, const fer_vec3_t *b,
+                                    fer_vec3_t *witness);
 
 /**
  * Returns distance^2 of point P from triangle formed by triplet a, b, c.
@@ -224,17 +224,17 @@ fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
  * from which was computed distance to point P.
  */
 fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
-                              const fer_vec3_t *a, const fer_vec3_t *b,
-                              const fer_vec3_t *c,
-                              fer_vec3_t *witness);
+                                const fer_vec3_t *a, const fer_vec3_t *b,
+                                const fer_vec3_t *c,
+                                fer_vec3_t *witness);
 
 /**
  * Returns true if point p lies on triangle abc. If witness is non-NULL it
  * will be filled with witness point if p lies on triangle.
  */
 int ferVec3PointInTri(const fer_vec3_t *p,
-                     const fer_vec3_t *a, const fer_vec3_t *b,
-                     const fer_vec3_t *c);
+                      const fer_vec3_t *a, const fer_vec3_t *b,
+                      const fer_vec3_t *c);
 
 /**
  * Returns angle in b between points a and b.
@@ -246,7 +246,7 @@ fer_real_t ferVec3Angle(const fer_vec3_t *a, const fer_vec3_t *b, const fer_vec3
  * Returns dihedral angle between planes abc and bcd.
  */
 fer_real_t ferVec3DihedralAngle(const fer_vec3_t *a, const fer_vec3_t *b,
-                              const fer_vec3_t *c, const fer_vec3_t *d);
+                                const fer_vec3_t *c, const fer_vec3_t *d);
 
 /**
  * Stores in d projection of point p onto plane defined by three points
@@ -255,8 +255,8 @@ fer_real_t ferVec3DihedralAngle(const fer_vec3_t *a, const fer_vec3_t *b,
  * u, v, w does not define plane)
  */
 fer_real_t ferVec3ProjToPlane(const fer_vec3_t *p,
-                            const fer_vec3_t *u, const fer_vec3_t *v,
-                            const fer_vec3_t *w, fer_vec3_t *d);
+                              const fer_vec3_t *u, const fer_vec3_t *v,
+                              const fer_vec3_t *w, fer_vec3_t *d);
 
 /**
  * Stores in d projection of point p onto plane defined by its normal and
@@ -265,21 +265,21 @@ fer_real_t ferVec3ProjToPlane(const fer_vec3_t *p,
  * normal is zero vector).
  */
 fer_real_t ferVec3ProjToPlane2(const fer_vec3_t *p,
-                             const fer_vec3_t *x, const fer_vec3_t *normal,
-                             fer_vec3_t *d);
+                               const fer_vec3_t *x, const fer_vec3_t *normal,
+                               fer_vec3_t *d);
 
 
 /**
  * Returns twice of area of triangle.
  */
 fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
-                         const fer_vec3_t *c);
+                           const fer_vec3_t *c);
 
 /**
  * Stores in d centroid of triangle abc.
  */
 _fer_inline void ferVec3TriCentroid(const fer_vec3_t *a, const fer_vec3_t *b,
-                                  const fer_vec3_t *c, fer_vec3_t *d);
+                                    const fer_vec3_t *c, fer_vec3_t *d);
 
 
 /**** INLINES ****/
