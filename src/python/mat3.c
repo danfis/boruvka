@@ -390,7 +390,7 @@ static PyObject *mat3SetTranslate(py_mat3 *self, PyObject *vec2)
     return (PyObject *)self;
     */
     // TODO: Don't have Vec2!
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *mat3SetRot(py_mat3 *self, PyObject *angle)
@@ -414,7 +414,7 @@ static PyObject *mat3TrScale(py_mat3 *self, PyObject *s)
 static PyObject *mat3Translate(py_mat3 *self, PyObject *vec2)
 {
     // TODO: see mat3SetTranslate
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *mat3Rot(py_mat3 *self, PyObject *angle)
@@ -452,7 +452,6 @@ static PyObject *mat3Composed(py_mat3 *self, py_mat3 *mat)
 
 static PyObject *mat3MulComp(py_mat3 *self, py_mat3 *mat)
 {
-    return Py_None;
     CHECK_MAT3(mat);
     ferMat3MulComp(&self->m, &mat->m);
     Py_INCREF(self);
@@ -635,7 +634,7 @@ static PyObject *mat3AddIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *mat3SubIn(py_mat3 *self, PyObject *o)
@@ -652,7 +651,7 @@ static PyObject *mat3SubIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *mat3MulIn(py_mat3 *self, PyObject *o)
@@ -669,7 +668,7 @@ static PyObject *mat3MulIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *mat3DivIn(py_mat3 *self, PyObject *o)
@@ -684,7 +683,7 @@ static PyObject *mat3DivIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
