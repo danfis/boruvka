@@ -158,6 +158,11 @@ _fer_inline void ferVec4Sub(fer_vec4_t *v, const fer_vec4_t *w);
  */
 _fer_inline void ferVec4Sub2(fer_vec4_t *d, const fer_vec4_t *v, const fer_vec4_t *w);
 
+_fer_inline void ferVec4AddConst(fer_vec4_t *v, fer_real_t f);
+_fer_inline void ferVec4AddConst2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t f);
+_fer_inline void ferVec4SubConst(fer_vec4_t *v, fer_real_t f);
+_fer_inline void ferVec4SubConst2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t f);
+
 /**
  * d = d * k;
  */
@@ -401,6 +406,39 @@ _fer_inline void ferVec4Sub2(fer_vec4_t *d, const fer_vec4_t *v, const fer_vec4_
     d->f[3] = v->f[3] - w->f[3];
 #endif /* FER_SSE */
 }
+
+_fer_inline void ferVec4AddConst(fer_vec4_t *v, fer_real_t f)
+{
+    v->f[0] += f;
+    v->f[1] += f;
+    v->f[2] += f;
+    v->f[3] += f;
+}
+
+_fer_inline void ferVec4AddConst2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t f)
+{
+    d->f[0] = v->f[0] + f;
+    d->f[1] = v->f[1] + f;
+    d->f[2] = v->f[2] + f;
+    d->f[3] = v->f[3] + f;
+}
+
+_fer_inline void ferVec4SubConst(fer_vec4_t *v, fer_real_t f)
+{
+    v->f[0] -= f;
+    v->f[1] -= f;
+    v->f[2] -= f;
+    v->f[3] -= f;
+}
+
+_fer_inline void ferVec4SubConst2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t f)
+{
+    d->f[0] = v->f[0] - f;
+    d->f[1] = v->f[1] - f;
+    d->f[2] = v->f[2] - f;
+    d->f[3] = v->f[3] - f;
+}
+
 
 _fer_inline void ferVec4Scale(fer_vec4_t *d, fer_real_t _k)
 {

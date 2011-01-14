@@ -58,8 +58,8 @@ static PyObject *vec2Sub(py_vec2 *self, PyObject *o);
 static PyObject *vec2Mul(py_vec2 *self, PyObject *o);
 static PyObject *vec2Neg(py_vec2 *self);
 static PyObject *vec2Div(py_vec2 *self, PyObject *o);
-static PyObject *vec2AddIn(py_vec2 *self, py_vec2 *o);
-static PyObject *vec2SubIn(py_vec2 *self, py_vec2 *o);
+static PyObject *vec2AddIn(py_vec2 *self, PyObject *o);
+static PyObject *vec2SubIn(py_vec2 *self, PyObject *o);
 static PyObject *vec2MulIn(py_vec2 *self, PyObject *o);
 static PyObject *vec2DivIn(py_vec2 *self, PyObject *o);
 
@@ -628,22 +628,42 @@ static PyObject *vec2SegmentInRect(py_vec2 *self, PyObject *args)
 static PyObject *vec2Add(py_vec2 *self, PyObject *o)
 {
     py_vec2 *v;
+    fer_real_t f;
 
-    CHECK_VEC2(o)
+    if (PyObject_TypeCheck(o, &py_vec2_type)){
+        v = PyObject_New(py_vec2, &py_vec2_type);
+        ferVec2Add2(&v->v, &self->v, &((py_vec2 *)o)->v);
+    }else if (PyNumber_Check(o)){
+        v = PyObject_New(py_vec2, &py_vec2_type);
+        f = numberAsReal(o);
 
-    v = PyObject_New(py_vec2, &py_vec2_type);
-    ferVec2Add2(&v->v, &self->v, &((py_vec2 *)o)->v);
+        ferVec2AddConst2(&v->v, &self->v, f);
+    }else{
+        PyErr_SetString(PyExc_TypeError, "Expected float or Vec2"); \
+        return NULL;
+    }
+
     return (PyObject *)v;
 }
 
 static PyObject *vec2Sub(py_vec2 *self, PyObject *o)
 {
     py_vec2 *v;
+    fer_real_t f;
 
-    CHECK_VEC2(o)
+    if (PyObject_TypeCheck(o, &py_vec2_type)){
+        v = PyObject_New(py_vec2, &py_vec2_type);
+        ferVec2Sub2(&v->v, &self->v, &((py_vec2 *)o)->v);
+    }else if (PyNumber_Check(o)){
+        v = PyObject_New(py_vec2, &py_vec2_type);
+        f = numberAsReal(o);
 
-    v = PyObject_New(py_vec2, &py_vec2_type);
-    ferVec2Sub2(&v->v, &self->v, &((py_vec2 *)o)->v);
+        ferVec2SubConst2(&v->v, &self->v, f);
+    }else{
+        PyErr_SetString(PyExc_TypeError, "Expected float or Vec2"); \
+        return NULL;
+    }
+
     return (PyObject *)v;
 }
 
@@ -692,20 +712,38 @@ static PyObject *vec2Div(py_vec2 *self, PyObject *o)
     return (PyObject *)v;
 }
 
-static PyObject *vec2AddIn(py_vec2 *self, py_vec2 *o)
+static PyObject *vec2AddIn(py_vec2 *self, PyObject *o)
 {
-    CHECK_VEC2(o)
+    fer_real_t f;
 
-    ferVec2Add(&self->v, &o->v);
+    if (PyObject_TypeCheck(o, &py_vec2_type)){
+        ferVec2Add(&self->v, &((py_vec2 *)o)->v);
+    }else if (PyNumber_Check(o)){
+        f = numberAsReal(o);
+        ferVec2AddConst(&self->v, f);
+    }else{
+        PyErr_SetString(PyExc_TypeError, "Expected float or Vec2"); \
+        return NULL;
+    }
+
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }
 
-static PyObject *vec2SubIn(py_vec2 *self, py_vec2 *o)
+static PyObject *vec2SubIn(py_vec2 *self, PyObject *o)
 {
-    CHECK_VEC2(o)
+    fer_real_t f;
 
-    ferVec2Sub(&self->v, &o->v);
+    if (PyObject_TypeCheck(o, &py_vec2_type)){
+        ferVec2Sub(&self->v, &((py_vec2 *)o)->v);
+    }else if (PyNumber_Check(o)){
+        f = numberAsReal(o);
+        ferVec2SubConst(&self->v, f);
+    }else{
+        PyErr_SetString(PyExc_TypeError, "Expected float or Vec2"); \
+        return NULL;
+    }
+
     Py_INCREF((PyObject *)self);
     return (PyObject *)self;
 }

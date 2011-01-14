@@ -219,4 +219,7 @@ print(fermat.Mat3(0, 2, 1.2))
 print(fermat.Mat3(1, 2, 3, 4, 5, 6, 7, 8, 9))
 print(fermat.Mat3(1.2).regular())
 print(fermat.Mat3(1, 2, 3, 4, 5, 6, 7.3, 8, 9.1).regular())
+m2 = fermat.Mat3(1.2)
+print(m + m2)
+
 

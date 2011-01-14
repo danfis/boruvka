@@ -149,6 +149,12 @@ _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w);
  */
 _fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_t *ww);
 
+_fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2AddConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2SubConst(fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2SubConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
+
+
 /**
  * Scales vector to given length.
  */
@@ -474,6 +480,31 @@ _fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_
     d->f[1] = v->f[1] - w->f[1];
 #endif /* FER_SSE */
 }
+
+_fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f)
+{
+    v->f[0] += f;
+    v->f[1] += f;
+}
+
+_fer_inline void ferVec2AddConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f)
+{
+    d->f[0] = v->f[0] + f;
+    d->f[1] = v->f[1] + f;
+}
+
+_fer_inline void ferVec2SubConst(fer_vec2_t *v, fer_real_t f)
+{
+    v->f[0] -= f;
+    v->f[1] -= f;
+}
+
+_fer_inline void ferVec2SubConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f)
+{
+    d->f[0] = v->f[0] - f;
+    d->f[1] = v->f[1] - f;
+}
+
 
 _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k)
 {
