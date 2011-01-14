@@ -393,6 +393,13 @@ static PyObject *vec4Add(py_vec4 *self, PyObject *o)
 {
     py_vec4 *v;
     fer_real_t f;
+    PyObject *tmp;
+
+    if (PyNumber_Check((PyObject *)self)){
+        tmp = (PyObject *)self;
+        self = (py_vec4 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_vec4_type)){
         v = PyObject_New(py_vec4, &py_vec4_type);
@@ -415,6 +422,11 @@ static PyObject *vec4Sub(py_vec4 *self, PyObject *o)
     py_vec4 *v;
     fer_real_t f;
 
+    if (PyNumber_Check((PyObject *)self)){
+        PyErr_SetString(PyExc_TypeError, "Invalid operation");
+        return NULL;
+    }
+
     if (PyObject_TypeCheck(o, &py_vec4_type)){
         v = PyObject_New(py_vec4, &py_vec4_type);
         ferVec4Sub2(&v->v, &self->v, &((py_vec4 *)o)->v);
@@ -435,6 +447,13 @@ static PyObject *vec4Mul(py_vec4 *self, PyObject *o)
 {
     py_vec4 *v;
     fer_real_t num;
+    PyObject *tmp;
+
+    if (PyNumber_Check((PyObject *)self)){
+        tmp = (PyObject *)self;
+        self = (py_vec4 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_vec4_type)){
         num = ferVec4Dot(&self->v, &((py_vec4 *)o)->v);
