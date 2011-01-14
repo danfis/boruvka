@@ -97,6 +97,7 @@ _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d);
 _fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val);
 _fer_inline void ferVec2SetY(fer_vec2_t *v, fer_real_t val);
 _fer_inline void ferVec2Set(fer_vec2_t *v, fer_real_t x, fer_real_t y);
+_fer_inline void ferVec2SetCoord(fer_vec2_t *v, size_t i, fer_real_t val);
 
 _fer_inline int ferVec2Eq(const fer_vec2_t *x, const fer_vec2_t *y);
 _fer_inline int ferVec2NEq(const fer_vec2_t *x, const fer_vec2_t *y);
@@ -358,6 +359,11 @@ _fer_inline void ferVec2Set(fer_vec2_t *v, fer_real_t x, fer_real_t y)
 {
     ferVec2SetX(v, x);
     ferVec2SetY(v, y);
+}
+
+_fer_inline void ferVec2SetCoord(fer_vec2_t *v, size_t i, fer_real_t val)
+{
+    v->f[i] = val;
 }
 
 

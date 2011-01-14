@@ -15,6 +15,7 @@
  */
 
 #include <Python.h>
+#include "vec2.h"
 #include "vec3.h"
 #include "vec4.h"
 #include "quat.h"
@@ -41,6 +42,7 @@ PyInit_fermat(void)
 
     m = PyModule_Create(&fermatmodule);
 
+    vec2Init(m);
     vec3Init(m);
     vec4Init(m);
     quatInit(m);
