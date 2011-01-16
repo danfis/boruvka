@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include "vec2.h"
+#include "vec3.h"
 #include "mat3.h"
 
 static int mat3ObjInit(py_mat3 *self, PyObject *args, PyObject *kwds);
@@ -252,8 +253,8 @@ static int mat3ObjInit(py_mat3 *self, PyObject *_args, PyObject *kwds)
 
 static PyObject *mat3AsStr(py_mat3 *self)
 {
-    char str[100];
-    snprintf(str, 100, "<Mat3: %f %f %f | %f %f %f | %f %f %f>", 
+    char str[200];
+    snprintf(str, 200, "<Mat3: %f %f %f | %f %f %f | %f %f %f>", 
              ferMat3Get(&self->m, 0, 0), ferMat3Get(&self->m, 0, 1), ferMat3Get(&self->m, 0, 2),
              ferMat3Get(&self->m, 1, 0), ferMat3Get(&self->m, 1, 1), ferMat3Get(&self->m, 1, 2),
              ferMat3Get(&self->m, 2, 0), ferMat3Get(&self->m, 2, 1), ferMat3Get(&self->m, 2, 2));
@@ -314,10 +315,8 @@ static PyObject *mat3Set(py_mat3 *self, PyObject *_args)
     fer_real_t f, fs[9];
     size_t r, c;
 
-    if (PySequence_Check(_args)){
-        len = PySequence_Size(_args);
-        args = PySequence_Fast(_args, "error");
-    }
+    len = PySequence_Size(_args);
+    args = PySequence_Fast(_args, "error");
 
     if (len == 1){
         val = PySequence_Fast_GET_ITEM(args, 0);
@@ -348,6 +347,10 @@ static PyObject *mat3Set(py_mat3 *self, PyObject *_args)
         ferMat3Set(&self->m, fs[0], fs[1], fs[2],
                              fs[3], fs[4], fs[5],
                              fs[6], fs[7], fs[8]);
+    }else if (len != 0){
+        Py_DECREF(args);
+        PyErr_SetString(PyExc_TypeError, "Invalid arguments.");
+        return NULL;
     }
 
     if (args){
@@ -536,6 +539,13 @@ static PyObject *mat3Add(py_mat3 *self, PyObject *o)
 {
     py_mat3 *m;
     fer_real_t f;
+    PyObject *tmp;
+
+    if (!PyObject_TypeCheck(self, &py_mat3_type)){
+        tmp = (PyObject *)self;
+        self = (py_mat3 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_mat3_type)){
         m = PyObject_New(py_mat3, &py_mat3_type);
@@ -578,7 +588,15 @@ static PyObject *mat3Mul(py_mat3 *self, PyObject *o)
 {
     py_mat3 *m;
     py_vec2 *v;
+    py_vec3 *v3;
     fer_real_t f;
+    PyObject *tmp;
+
+    if (!PyObject_TypeCheck(self, &py_mat3_type)){
+        tmp = (PyObject *)self;
+        self = (py_mat3 *)o;
+        o = tmp;
+    }
 
     if (PyObject_TypeCheck(o, &py_mat3_type)){
         m = PyObject_New(py_mat3, &py_mat3_type);
@@ -587,13 +605,17 @@ static PyObject *mat3Mul(py_mat3 *self, PyObject *o)
         v = PyObject_New(py_vec2, &py_vec2_type);
         ferMat3MulVec2(&v->v, &self->m, &((py_vec2 *)o)->v);
         return (PyObject *)v;
+    }else if (PyObject_TypeCheck(o, &py_vec3_type)){
+        v3 = PyObject_New(py_vec3, &py_vec3_type);
+        ferMat3MulVec(&v3->v, &self->m, &((py_vec3 *)o)->v);
+        return (PyObject *)v3;
     }else if (PyNumber_Check(o)){
         m = PyObject_New(py_mat3, &py_mat3_type);
         f = numberAsReal(o);
 
         ferMat3Scale2(&m->m, &self->m, f);
     }else{
-        PyErr_SetString(PyExc_TypeError, "Expected float or Mat3"); \
+        PyErr_SetString(PyExc_TypeError, "Expected float, Vec2, Vec3 or Mat3"); \
         return NULL;
     }
 
@@ -611,6 +633,13 @@ static PyObject *mat3Div(py_mat3 *self, PyObject *o)
 {
     py_mat3 *m;
     fer_real_t f;
+    PyObject *tmp;
+
+    if (!PyObject_TypeCheck(self, &py_mat3_type)){
+        tmp = (PyObject *)self;
+        self = (py_mat3 *)o;
+        o = tmp;
+    }
 
     if (PyNumber_Check(o)){
         m = PyObject_New(py_mat3, &py_mat3_type);
@@ -639,7 +668,8 @@ static PyObject *mat3AddIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    Py_RETURN_NONE;
+    Py_INCREF((PyObject *)self);
+    return (PyObject *)self;
 }
 
 static PyObject *mat3SubIn(py_mat3 *self, PyObject *o)
@@ -656,7 +686,8 @@ static PyObject *mat3SubIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    Py_RETURN_NONE;
+    Py_INCREF((PyObject *)self);
+    return (PyObject *)self;
 }
 
 static PyObject *mat3MulIn(py_mat3 *self, PyObject *o)
@@ -673,7 +704,8 @@ static PyObject *mat3MulIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    Py_RETURN_NONE;
+    Py_INCREF((PyObject *)self);
+    return (PyObject *)self;
 }
 
 static PyObject *mat3DivIn(py_mat3 *self, PyObject *o)
@@ -688,7 +720,8 @@ static PyObject *mat3DivIn(py_mat3 *self, PyObject *o)
         return NULL;
     }
 
-    Py_RETURN_NONE;
+    Py_INCREF((PyObject *)self);
+    return (PyObject *)self;
 }
 
 

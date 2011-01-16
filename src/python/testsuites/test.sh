@@ -3,7 +3,7 @@
 
 PYTHON=python
 PYTHON2=python2
-TESTS="vec2.py vec3.py vec4.py"
+TESTS="vec2.py vec3.py vec4.py quat.py mat3.py"
 
 if [ "$1" != "" ]; then
     TESTS="$1"
