@@ -119,7 +119,7 @@ _fer_inline void ferMat3SetZero(fer_mat3_t *m);
  * Set scale matrix.
  *     | s 0 0 |
  * m = | 0 s 0 |
- *     | 0 0 s |
+ *     | 0 0 1 |
  */
 _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s);
 #define ferMat3SetDiag ferMat3SetScale
@@ -144,7 +144,7 @@ _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle);
  * Apply scale transfomation.
  *     | s 0 0 |
  * m = | 0 s 0 | . m
- *     | 0 0 s |
+ *     | 0 0 1 |
  */
 _fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s);
 
@@ -397,7 +397,7 @@ _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s)
 {
     ferMat3Set(m, s, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO,
-                  FER_ZERO, FER_ZERO, s);
+                  FER_ZERO, FER_ZERO, FER_ONE);
 }
 
 _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v)

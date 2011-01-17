@@ -15,6 +15,8 @@ TEST(mat3Det);
 TEST(mat3Inv);
 TEST(mat3MulVec);
 
+TEST(mat3Tr);
+
 TEST_SUITE(TSMat3) {
     TEST_ADD(mat3SetUp),
 
@@ -27,6 +29,8 @@ TEST_SUITE(TSMat3) {
     TEST_ADD(mat3Det),
     TEST_ADD(mat3Inv),
     TEST_ADD(mat3MulVec),
+
+    TEST_ADD(mat3Tr),
 
     TEST_ADD(mat3TearDown),
     TEST_SUITE_CLOSURE

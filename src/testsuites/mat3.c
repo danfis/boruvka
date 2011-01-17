@@ -173,3 +173,69 @@ TEST(mat3MulVec)
     printf("# ---- mul vec end ----\n\n");
 }
 
+TEST(mat3Tr)
+{
+    fer_vec2_t v, w;
+    fer_mat3_t tr;
+
+    ferVec2Set(&v, -1.2, 5);
+
+    ferMat3SetIdentity(&tr);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferVec2Eq(&w, &v));
+
+    ferMat3SetScale(&tr, 2.);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), 2. * -1.2));
+    assertTrue(ferEq(ferVec2Y(&w), 2. * 5.));
+
+    ferVec2Set(&w, 1.2, -2.1);
+    ferMat3SetTranslate(&tr, &w);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), 1.2 + -1.2));
+    assertTrue(ferEq(ferVec2Y(&w), -2.1 + 5.));
+
+    ferVec2Set(&v, 1., 1.);
+    ferMat3SetRot(&tr, M_PI_4);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), FER_ZERO));
+    assertTrue(ferEq(ferVec2Y(&w), FER_SQRT(2.)));
+
+
+    // ------
+
+    ferVec2Set(&v, 1., 2.);
+    ferMat3SetIdentity(&tr);
+    ferVec2Set(&w, 0.5, 0.7);
+    ferMat3Translate(&tr, &w);
+    ferMat3TrScale(&tr, 2.);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), 2. * (0.5 + 1.)));
+    assertTrue(ferEq(ferVec2Y(&w), 2. * (0.7 + 2.)));
+
+    ferVec2Set(&v, .5, .3);
+    ferMat3Rot(&tr, M_PI_4);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), FER_ZERO));
+    assertTrue(ferEq(ferVec2Y(&w), 2. * FER_SQRT(2.)));
+
+
+    ferVec2Set(&v, .5, .3);
+    ferMat3SetIdentity(&tr);
+    ferVec2Set(&w, 0.5, 0.7);
+    ferMat3Translate(&tr, &w);
+    ferMat3TrScale(&tr, 2.);
+    ferMat3Rot(&tr, -M_PI_4);
+    ferMat3MulVec2(&w, &tr, &v);
+    assertTrue(ferEq(ferVec2X(&w), 2 * FER_SQRT(2.)));
+    assertTrue(ferEq(ferVec2Y(&w), FER_ZERO));
+
+    /*
+    DBG("%g", ferMat3Get(&tr, 0, 0));
+    DBG("%g", ferMat3DotRow(&tr, 0, -1.2, 5, 1));
+    DBG("%g", ferMat3DotRow(&tr, 1, -1.2, 5, 1));
+    DBG("%g", ferMat3DotRow(&tr, 2, -1.2, 5, 1));
+
+    DBG("w: %.10g %.10g %.10g", ferVec2X(&w), ferVec2Y(&w), FER_EPS);
+    */
+}
