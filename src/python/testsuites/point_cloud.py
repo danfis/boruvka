@@ -1,41 +1,30 @@
 import unittest
+from common import *
 from fermat import *
 
-fout = None
-def out(*a):
-    s = ''
-    for i in a:
-        s += str(i) + ' '
-    fout.write(s)
-    fout.write('\n')
+class TestCase(TC):
+    def __init__(self, mn):
+        TC.__init__(self, mn, 'PC')
 
-class PCTestCase(unittest.TestCase):
     def testSeqProtocol(self):
-        out('---- SeqProtocol ----')
+        self.out('---- SeqProtocol ----')
         pc = PC()
-        out(pc)
+        self.out(pc)
         pc.add(Vec3(1, 2, 3))
-        out(pc)
+        self.out(pc)
         for p in pc:
-            out(p)
+            self.out(p)
 
-        out()
+        self.out()
         pc.addFromFile('../../testsuites/cube.txt')
-        out(pc)
+        self.out(pc)
         #for p in pc:
-        #    out(p)
+        #    self.out(p)
 
         pc.permutate()
-        out(pc)
+        self.out(pc)
 
 
     def testMethods(self):
-        out('---- Methods ----')
+        self.out('---- Methods ----')
 
-
-
-if __name__ == '__main__':
-    fout = open('regressions/tmp.PC.out', 'w')
-    suite = unittest.TestLoader().loadTestsFromTestCase(PCTestCase)
-    unittest.TextTestRunner(verbosity=2).run(suite)
-    fout.close()
