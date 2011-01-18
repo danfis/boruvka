@@ -2,7 +2,7 @@
 #include "cu.h"
 
 #include <fermat/vec2.h>
-#include <fermat/tr2.h>
+#include <fermat/mat3.h>
 #include "data.h"
 
 static fer_vec2_t *v[4];
@@ -288,7 +288,8 @@ TEST(vec2Projection)
 TEST(vec2AngleSameDir)
 {
     fer_real_t angle;
-    fer_tr2_t *tr = ferTr2New();
+    fer_mat3_t *tr = ferMat3New();
+    fer_vec2_t w;
 
     ferVec2Set(v[0], 1., 1.);
     ferVec2Set(v[1], 2., 2.);
@@ -332,10 +333,12 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
     printf("%f %f\n", ferVec2X(v[3]), ferVec2Y(v[3]));
     printf("----\n");
-    ferTr2Identity(tr);
-    ferTr2Rotate(tr, angle);
-    ferTr2(tr, v[2]);
-    ferTr2(tr, v[3]);
+    ferMat3SetIdentity(tr);
+    ferMat3Rot(tr, angle);
+    ferVec2Copy(&w, v[2]);
+    ferMat3MulVec2(v[2], tr, &w);
+    ferVec2Copy(&w, v[3]);
+    ferMat3MulVec2(v[3], tr, &w);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
@@ -366,10 +369,12 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
     printf("%f %f\n", ferVec2X(v[3]), ferVec2Y(v[3]));
     printf("----\n");
-    ferTr2Identity(tr);
-    ferTr2Rotate(tr, angle);
-    ferTr2(tr, v[2]);
-    ferTr2(tr, v[3]);
+    ferMat3SetIdentity(tr);
+    ferMat3Rot(tr, angle);
+    ferVec2Copy(&w, v[2]);
+    ferMat3MulVec2(v[2], tr, &w);
+    ferVec2Copy(&w, v[3]);
+    ferMat3MulVec2(v[3], tr, &w);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
@@ -399,10 +404,12 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
     printf("%f %f\n", ferVec2X(v[3]), ferVec2Y(v[3]));
     printf("----\n");
-    ferTr2Identity(tr);
-    ferTr2Rotate(tr, angle);
-    ferTr2(tr, v[2]);
-    ferTr2(tr, v[3]);
+    ferMat3SetIdentity(tr);
+    ferMat3Rot(tr, angle);
+    ferVec2Copy(&w, v[2]);
+    ferMat3MulVec2(v[2], tr, &w);
+    ferVec2Copy(&w, v[3]);
+    ferMat3MulVec2(v[3], tr, &w);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
@@ -432,10 +439,12 @@ TEST(vec2AngleSameDir)
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
     printf("%f %f\n", ferVec2X(v[3]), ferVec2Y(v[3]));
     printf("----\n");
-    ferTr2Identity(tr);
-    ferTr2Rotate(tr, angle);
-    ferTr2(tr, v[2]);
-    ferTr2(tr, v[3]);
+    ferMat3SetIdentity(tr);
+    ferMat3Rot(tr, angle);
+    ferVec2Copy(&w, v[2]);
+    ferMat3MulVec2(v[2], tr, &w);
+    ferVec2Copy(&w, v[3]);
+    ferMat3MulVec2(v[3], tr, &w);
     printf("Name: CD rotated\n");
     printf("Poly:\n");
     printf("%f %f\n", ferVec2X(v[2]), ferVec2Y(v[2]));
@@ -449,7 +458,7 @@ TEST(vec2AngleSameDir)
     assertTrue(ferVec2Eq(t, p));
 
 
-    ferTr2Del(tr);
+    ferMat3Del(tr);
 }
 
 TEST(vec2Add)
