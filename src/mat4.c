@@ -1,6 +1,7 @@
 #include "fermat/mat4.h"
 #include "fermat/mat3.h"
 #include "fermat/alloc.h"
+#include "fermat/dbg.h"
 
 
 /** Returns subdeterminant */
@@ -35,7 +36,8 @@ void ferMat4Del(fer_mat4_t *m)
 
 int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a)
 {
-    fer_real_t det, invdet, sign;
+    fer_real_t det, invdet;
+    int sign;
     size_t i, j;
 
     det = ferMat4Det(a);
@@ -46,9 +48,9 @@ int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a)
 
     for (i = 0; i < 4; i++){
         for (j = 0; j < 4; j++){
-            det  = ferMat4Subdet(m, i, j);
+            det  = ferMat4Subdet(a, i, j);
             sign = 1 - ((i + j) % 2) * 2;
-            ferMat4Set1(m, i, j, sign * det * invdet);
+            ferMat4Set1(m, j, i, sign * det * invdet);
         }
     }
 

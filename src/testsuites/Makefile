@@ -10,9 +10,9 @@ CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
 OBJS = vec4.o vec3.o vec2.o quat.o point_cloud.o \
-       mat3.o \
+       mat3.o mat4.o \
        data-vec2.o data-vec3.o data-quat.o data-vec4.o \
-       data-mat3.o
+       data-mat3.o data-mat4.o
 BENCH_OBJS =
 
 
