@@ -122,7 +122,14 @@ _fer_inline void ferMat3SetZero(fer_mat3_t *m);
  *     | 0 0 1 |
  */
 _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s);
-#define ferMat3SetDiag ferMat3SetScale
+
+/**
+ * Set diagonal.
+ *     | s 0 0 |
+ * m = | 0 s 0 |
+ *     | 0 0 s |
+ */
+_fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s);
 
 /**
  * Set translation matrix (translation along v vector).
@@ -398,6 +405,13 @@ _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s)
     ferMat3Set(m, s, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO,
                   FER_ZERO, FER_ZERO, FER_ONE);
+}
+
+_fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s)
+{
+    ferMat3Set(m, s, FER_ZERO, FER_ZERO,
+                  FER_ZERO, s, FER_ZERO,
+                  FER_ZERO, FER_ZERO, s);
 }
 
 _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v)
