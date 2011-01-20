@@ -70,6 +70,7 @@ endif
 endif
 
 USE_SSE ?= no
+USE_GSL ?= no
 CONFIG_FLAGS =
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -82,6 +83,9 @@ endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
   CFLAGS += -msse3
+endif
+ifeq '$(USE_GSL)' 'yes'
+  CONFIG_FLAGS += -DUSE_GSL
 endif
 
 ifneq '$(CC_NOT_GCC)' 'yes'

@@ -43,6 +43,16 @@ fer_mat_t *ferMatNew(size_t rows, size_t cols);
 void ferMatDel(fer_mat_t *m);
 
 /**
+ * Initializes matrix (staticaly declared).
+ */
+_fer_inline void ferMatInit(fer_mat_t *m, size_t rows, size_t cols);
+
+/**
+ * Destroys previously Init'ed matrix.
+ */
+_fer_inline void ferMatDestroy(fer_mat_t *m);
+
+/**
  * Clones given matrix.
  */
 _fer_inline fer_mat_t *ferMatClone(const fer_mat_t *m);
@@ -106,24 +116,24 @@ _fer_inline void ferMatSetDiag(fer_mat_t *m, fer_real_t s);
 /**
  * a = a + b
  */
-_fer_inline void ferMatAdd(fer_mat_t *a, const fer_mat_t *b);
+_fer_inline int ferMatAdd(fer_mat_t *a, const fer_mat_t *b);
 
 /**
  * d = a + b
  */
-_fer_inline void ferMatAdd2(fer_mat_t *d, const fer_mat_t *a,
-                                            const fer_mat_t *b);
+_fer_inline int ferMatAdd2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b);
 
 /**
  * a = a - b
  */
-_fer_inline void ferMatSub(fer_mat_t *a, const fer_mat_t *b);
+_fer_inline int ferMatSub(fer_mat_t *a, const fer_mat_t *b);
 
 /**
  * d = a - b
  */
-_fer_inline void ferMatSub2(fer_mat_t *d, const fer_mat_t *a,
-                                            const fer_mat_t *b);
+_fer_inline int ferMatSub2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b);
 
 /**
  * d = d * s
@@ -133,7 +143,7 @@ _fer_inline void ferMatScale(fer_mat_t *d, fer_real_t s);
 /**
  * d = a * s
  */
-_fer_inline void ferMatScale2(fer_mat_t *d, const fer_mat_t *a, fer_real_t s);
+_fer_inline int ferMatScale2(fer_mat_t *d, const fer_mat_t *a, fer_real_t s);
 
 /**
  * d = d + c
@@ -143,7 +153,7 @@ _fer_inline void ferMatAddConst(fer_mat_t *d, fer_real_t c);
 /**
  * d = a + c
  */
-_fer_inline void ferMatAddConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c);
+_fer_inline int ferMatAddConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c);
 
 /**
  * d = d - c
@@ -153,24 +163,24 @@ _fer_inline void ferMatSubConst(fer_mat_t *d, fer_real_t c);
 /**
  * d = a - c
  */
-_fer_inline void ferMatSubConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c);
+_fer_inline int ferMatSubConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c);
 
 
 /**
  * a = a * b
  */
-_fer_inline void ferMatMul(fer_mat_t *a, const fer_mat_t *b);
+int ferMatMul(fer_mat_t *a, const fer_mat_t *b);
 
 /**
  * d = a * b
  */
-_fer_inline void ferMatMul2(fer_mat_t *d, const fer_mat_t *a,
-                                            const fer_mat_t *b);
+_fer_inline int ferMatMul2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b);
 
 /**
  * a = b * a
  */
-_fer_inline void ferMatMulLeft(fer_mat_t *a, const fer_mat_t *b);
+int ferMatMulLeft(fer_mat_t *a, const fer_mat_t *b);
 
 
 /**
@@ -180,15 +190,21 @@ _fer_inline void ferMatMulLeft(fer_mat_t *a, const fer_mat_t *b);
  *     | a31*b31 a32*b32 a33*b33 .. |
  *     | . . . . . . . . . . . . .. |
  */
-_fer_inline void ferMatMulComp(fer_mat_t *a, const fer_mat_t *b);
-_fer_inline void ferMatMulComp2(fer_mat_t *d, const fer_mat_t *a,
-                                                const fer_mat_t *b);
+_fer_inline int ferMatMulComp(fer_mat_t *a, const fer_mat_t *b);
+_fer_inline int ferMatMulComp2(fer_mat_t *d, const fer_mat_t *a,
+                                             const fer_mat_t *b);
 
 /**
- * Transposes matrix.
+ * Transposes matrix. Note that this can change swaps dimensions.
  */
 _fer_inline void ferMatTrans(fer_mat_t *d);
-_fer_inline void ferMatTrans2(fer_mat_t *d, const fer_mat_t *a);
+
+/**
+ * Store transposition of matrix a in d. Matrix d must must have correct
+ * dimensions.
+ * d = a^t
+ */
+_fer_inline int ferMatTrans2(fer_mat_t *d, const fer_mat_t *a);
 
 /**
  * Returns true if matrix is regular.
@@ -203,20 +219,20 @@ _fer_inline int ferMatSingular(const fer_mat_t *m);
 /**
  * Returns determinant of matrix.
  */
-_fer_inline fer_real_t ferMatDet(const fer_mat_t *m);
+fer_real_t ferMatDet(const fer_mat_t *m);
 
 /**
  * Inverts matrix.
  * Returns 0 on success, -1 if matrix is singular.
  */
-_fer_inline int ferMatInv(fer_mat_t *m);
+int ferMatInv(fer_mat_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
  *  m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
-_fer_inline int ferMatInv2(fer_mat_t *m, const fer_mat_t *a);
+int ferMatInv2(fer_mat_t *m, const fer_mat_t *a);
 
 #if 0
 /**
@@ -233,10 +249,19 @@ _fer_inline void ferMatMulVec(fer_vec_t *v, const fer_mat_t *m,
 
 /**** INLINES ****/
 #define __FER_CHECKDIM(A, B) \
-    do { \
-        if (ferMatRows(A) != ferMatRows(B) || ferMatCols(A) != ferMatCols(B)) \
-            return -1; \
-    } while (0)
+    if (ferMatRows(A) != ferMatRows(B) || ferMatCols(A) != ferMatCols(B)) \
+        return -1
+
+
+_fer_inline void ferMatInit(fer_mat_t *m, size_t rows, size_t cols)
+{
+    m->m = fer_gsl_matrix_alloc(rows, cols);
+}
+
+_fer_inline void ferMatDestroy(fer_mat_t *m)
+{
+    fer_gsl_matrix_free(m->m);
+}
 
 _fer_inline fer_mat_t *ferMatClone(const fer_mat_t *m)
 {
@@ -294,6 +319,133 @@ _fer_inline void ferMatSetDiag(fer_mat_t *m, fer_real_t s)
 {
     ferMatSetIdentity(m);
     ferMatScale(m, s);
+}
+
+_fer_inline int ferMatAdd(fer_mat_t *a, const fer_mat_t *b)
+{
+    __FER_CHECKDIM(a, b);
+    fer_gsl_matrix_add(a->m, b->m);
+    return 0;
+}
+
+_fer_inline int ferMatAdd2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+    return ferMatAdd(d, b);
+}
+
+_fer_inline int ferMatSub(fer_mat_t *a, const fer_mat_t *b)
+{
+    __FER_CHECKDIM(a, b);
+    fer_gsl_matrix_sub(a->m, b->m);
+    return 0;
+}
+
+_fer_inline int ferMatSub2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+    return ferMatSub(d, b);
+}
+
+_fer_inline void ferMatScale(fer_mat_t *d, fer_real_t s)
+{
+    fer_gsl_matrix_scale(d->m, s);
+}
+
+_fer_inline int ferMatScale2(fer_mat_t *d, const fer_mat_t *a, fer_real_t s)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+    ferMatScale(d, s);
+    return 0;
+}
+
+_fer_inline void ferMatAddConst(fer_mat_t *d, fer_real_t c)
+{
+    fer_gsl_matrix_add_constant(d->m, c);
+}
+
+_fer_inline int ferMatAddConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+
+    ferMatAddConst(d, c);
+    return 0;
+}
+
+_fer_inline void ferMatSubConst(fer_mat_t *d, fer_real_t c)
+{
+    fer_gsl_matrix_add_constant(d->m, -c);
+}
+
+_fer_inline int ferMatSubConst2(fer_mat_t *d, const fer_mat_t *a, fer_real_t c)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+
+    ferMatSubConst(d, c);
+    return 0;
+}
+
+_fer_inline int ferMatMul2(fer_mat_t *d, const fer_mat_t *a,
+                                         const fer_mat_t *b)
+{
+    size_t x, y, z;
+    x = ferMatRows(a);
+    y = ferMatCols(a);
+    z = ferMatCols(b);
+
+    if (ferMatRows(b) != y || ferMatRows(d) != x || ferMatCols(d) != z)
+        return -1;
+
+    fer_gsl_blas_gemm(CblasNoTrans, CblasNoTrans, FER_ONE, a->m, b->m, FER_ZERO, d->m);
+    return 0;
+}
+
+
+_fer_inline int ferMatMulComp(fer_mat_t *a, const fer_mat_t *b)
+{
+    __FER_CHECKDIM(a, b);
+    fer_gsl_matrix_mul_elements(a->m, b->m);
+}
+
+_fer_inline int ferMatMulComp2(fer_mat_t *d, const fer_mat_t *a,
+                                             const fer_mat_t *b)
+{
+    if (ferMatCopy(d, a) != 0)
+        return -1;
+    return ferMatMulComp(d, b);
+}
+
+_fer_inline void ferMatTrans(fer_mat_t *d)
+{
+    fer_gsl_matrix_transpose(d->m);
+}
+
+_fer_inline int ferMatTrans2(fer_mat_t *d, const fer_mat_t *a)
+{
+    if (ferMatRows(d) != ferMatCols(d) || ferMatCols(d) != ferMatRows(a))
+        return -1;
+
+    fer_gsl_matrix_transpose_memcpy(d->m, a->m);
+    return 0;
+}
+
+_fer_inline int ferMatRegular(const fer_mat_t *m)
+{
+    fer_real_t det;
+    det = ferMatDet(m);
+    return !ferIsZero(det);
+}
+
+_fer_inline int ferMatSingular(const fer_mat_t *m)
+{
+    return !ferMatRegular(m);
 }
 
 #ifdef __cplusplus
