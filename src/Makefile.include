@@ -70,7 +70,7 @@ endif
 endif
 
 USE_SSE ?= no
-USE_GSL ?= no
+USE_GSL ?= yes
 CONFIG_FLAGS =
 
 ifeq '$(USE_SINGLE)' 'yes'

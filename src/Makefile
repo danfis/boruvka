@@ -24,7 +24,7 @@ OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
        mat3.o mat4.o
 
 ifeq '$(USE_GSL)' 'yes'
-  OBJS += mat.o
+  OBJS += mat.o vec.o
 endif
 
 all: $(TARGETS)

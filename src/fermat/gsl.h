@@ -24,17 +24,23 @@
 
 #ifdef FER_SINGLE
 # define __FER_GSL_MATRIX_API(method) gsl_matrix_float_ ## method
+# define __FER_GSL_VEC_API(method) gsl_vector_float_ ## method
 
 # define fer_gsl_matrix gsl_matrix_float
+# define fer_gsl_vector gsl_vector_float
 
 # define fer_gsl_blas_gemm gsl_blas_sgemm
+# define fer_gsl_blas_dot  gsl_blas_sdot
 
 #else /* FER_SINGLE */
 # define __FER_GSL_MATRIX_API(method) gsl_matrix_ ## method
+# define __FER_GSL_VEC_API(method) gsl_vector_ ## method
 
 # define fer_gsl_matrix gsl_matrix
+# define fer_gsl_vector gsl_vector
 
 # define fer_gsl_blas_gemm gsl_blas_dgemm
+# define fer_gsl_blas_dot  gsl_blas_ddot
 
 #endif /* FER_SINGLE */
 
@@ -55,5 +61,19 @@
 #define fer_gsl_matrix_transpose        __FER_GSL_MATRIX_API(transpose)
 #define fer_gsl_matrix_transpose_memcpy __FER_GSL_MATRIX_API(transpose_memcpy)
 
+
+#define fer_gsl_vector_alloc            __FER_GSL_VEC_API(alloc)
+#define fer_gsl_vector_free             __FER_GSL_VEC_API(free)
+#define fer_gsl_vector_memcpy           __FER_GSL_VEC_API(memcpy)
+
+#define fer_gsl_vector_get              __FER_GSL_VEC_API(get)
+#define fer_gsl_vector_set              __FER_GSL_VEC_API(set)
+#define fer_gsl_vector_set_zero         __FER_GSL_VEC_API(set_zero)
+#define fer_gsl_vector_set_all          __FER_GSL_VEC_API(set_all)
+#define fer_gsl_vector_add              __FER_GSL_VEC_API(add)
+#define fer_gsl_vector_sub              __FER_GSL_VEC_API(sub)
+#define fer_gsl_vector_scale            __FER_GSL_VEC_API(scale)
+#define fer_gsl_vector_add_constant     __FER_GSL_VEC_API(add_constant)
+#define fer_gsl_vector_mul              __FER_GSL_VEC_API(mul)
 
 #endif /* __FER_GSL_H__ */

@@ -25,7 +25,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * TODO
+ * This is basically wrapper around GSL. Feel free to use .m member of
+ * struct in any GSL function directly.
  */
 struct _fer_mat_t {
     fer_gsl_matrix *m;
