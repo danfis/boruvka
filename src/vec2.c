@@ -18,6 +18,7 @@
 
 #include <fermat/alloc.h>
 #include <fermat/vec2.h>
+#include <fermat/dbg.h>
 
 FER_VEC2(__fer_vec2_origin, FER_ZERO, FER_ZERO);
 const fer_vec2_t *fer_vec2_origin = &__fer_vec2_origin;
@@ -27,7 +28,7 @@ fer_vec2_t *ferVec2New(fer_real_t x, fer_real_t y)
     fer_vec2_t *v;
 
 #ifdef FER_SSE
-    v = FER_ALLOC_ALIGN(fer_vec2_t, sizeof(fer_vec2_t));
+    v = FER_ALLOC_ALIGN(fer_vec2_t, 16);
 #else /* FER_SSE */
     v = FER_ALLOC(fer_vec2_t);
 #endif /* FER_SSE */

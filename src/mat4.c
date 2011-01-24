@@ -24,7 +24,11 @@ fer_mat4_t *ferMat4New(void)
 {
     fer_mat4_t *m;
 
+#ifdef FER_SSE
+    m = FER_ALLOC_ALIGN(fer_mat4_t, 16);
+#else /* FER_SSE */
     m = FER_ALLOC(fer_mat4_t);
+#endif /* FER_SSE */
 
     return m;
 }

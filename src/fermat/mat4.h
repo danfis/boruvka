@@ -28,10 +28,11 @@ extern "C" {
 /**
  * 4 x 4 matrix
  */
-struct _fer_mat4_t {
+union _fer_mat4_t {
+    fer_vec4_t v[4];
     fer_real_t f[4 * 4];
 };
-typedef struct _fer_mat4_t fer_mat4_t;
+typedef union _fer_mat4_t fer_mat4_t;
 
 /**
  * Holds identity matrix. Read only variable!
@@ -328,22 +329,32 @@ _fer_inline void ferMat4MulVec3(fer_vec3_t *v, const fer_mat4_t *m,
 
 
 /**
+ * Copies c'th column in col vector.
+ */
+_fer_inline void ferMat4CopyCol(fer_vec4_t *col, const fer_mat4_t *m, size_t c);
+
+/**
+ * Copies r'th row in row vector.
+ */
+_fer_inline void ferMat4CopyRow(fer_vec4_t *row, const fer_mat4_t *m, size_t r);
+
+/**
  * Computes dot product of r'th row of matrix m and c'th column of matrix n.
  */
 _fer_inline fer_real_t ferMat4DotRowCol(const fer_mat4_t *m, size_t r,
                                         const fer_mat4_t *n, size_t c);
 
 /**
- * Returns dot product of col'th column of matrix m with vector (a, b, c).
+ * Returns dot product of col'th column of matrix m with vector v.
  */
-_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t col,
-                                     fer_real_t a, fer_real_t b, fer_real_t c, fer_real_t d);
+_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t c,
+                                     const fer_vec4_t *v);
 
 /**
- * Returns dot product of row'th row of matrix m with vector (a, b, c).
+ * Returns dot product of row'th row of matrix m with vector v.
  */
-_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t row,
-                                     fer_real_t a, fer_real_t b, fer_real_t c, fer_real_t d);
+_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t r,
+                                     const fer_vec4_t *v);
 
 
 /**** INLINES ****/
@@ -516,8 +527,8 @@ _fer_inline void ferMat4Compose(fer_mat4_t *A, const fer_mat4_t *B)
 _fer_inline void ferMat4Add(fer_mat4_t *a, const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        a->f[i] += b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4Add(a->v + i, b->v + i);
     }
 }
 
@@ -525,16 +536,16 @@ _fer_inline void ferMat4Add2(fer_mat4_t *d, const fer_mat4_t *a,
                                             const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] + b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4Add2(d->v + i, a->v + i, b->v + i);
     }
 }
 
 _fer_inline void ferMat4Sub(fer_mat4_t *a, const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        a->f[i] -= b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4Sub(a->v + i, b->v + i);
     }
 }
 
@@ -542,163 +553,153 @@ _fer_inline void ferMat4Sub2(fer_mat4_t *d, const fer_mat4_t *a,
                                             const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] - b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4Sub2(d->v + i, a->v + i, b->v + i);
     }
 }
 
 _fer_inline void ferMat4Scale(fer_mat4_t *d, fer_real_t s)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] *= s;
+    for (i = 0; i < 4; i++){
+        ferVec4Scale(d->v + i, s);
     }
 }
 
 _fer_inline void ferMat4Scale2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t s)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] * s;
+    for (i = 0; i < 4; i++){
+        ferVec4Scale2(d->v + i, a->v + i, s);
     }
 }
 
 _fer_inline void ferMat4AddConst(fer_mat4_t *d, fer_real_t c)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] += c;
+    for (i = 0; i < 4; i++){
+        ferVec4AddConst(d->v + i, c);
     }
 }
 
 _fer_inline void ferMat4AddConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] + c;
+    for (i = 0; i < 4; i++){
+        ferVec4AddConst2(d->v + i, a->v + i, c);
     }
 }
 
 _fer_inline void ferMat4SubConst(fer_mat4_t *d, fer_real_t c)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] -= c;
+    for (i = 0; i < 4; i++){
+        ferVec4SubConst(d->v + i, c);
     }
 }
 
 _fer_inline void ferMat4SubConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] - c;
+    for (i = 0; i < 4; i++){
+        ferVec4SubConst2(d->v + i, a->v + i, c);
     }
 }
 
 _fer_inline void ferMat4Mul(fer_mat4_t *a, const fer_mat4_t *b)
 {
-    fer_real_t x, y, z, w;
+    fer_vec4_t v;
 
-    x = a->f[0];
-    y = a->f[1];
-    z = a->f[2];
-    w = a->f[3];
-    a->f[0]  = ferMat4DotCol(b, 0, x, y, z, w);
-    a->f[1]  = ferMat4DotCol(b, 1, x, y, z, w);
-    a->f[2]  = ferMat4DotCol(b, 2, x, y, z, w);
-    a->f[3]  = ferMat4DotCol(b, 3, x, y, z, w);
-    x = a->f[4];
-    y = a->f[5];
-    z = a->f[6];
-    w = a->f[7];
-    a->f[4]  = ferMat4DotCol(b, 0, x, y, z, w);
-    a->f[5]  = ferMat4DotCol(b, 1, x, y, z, w);
-    a->f[6]  = ferMat4DotCol(b, 2, x, y, z, w);
-    a->f[7]  = ferMat4DotCol(b, 3, x, y, z, w);
-    x = a->f[8];
-    y = a->f[9];
-    z = a->f[10];
-    w = a->f[11];
-    a->f[8]  = ferMat4DotCol(b, 0, x, y, z, w);
-    a->f[9]  = ferMat4DotCol(b, 1, x, y, z, w);
-    a->f[10] = ferMat4DotCol(b, 2, x, y, z, w);
-    a->f[11] = ferMat4DotCol(b, 3, x, y, z, w);
-    x = a->f[12];
-    y = a->f[13];
-    z = a->f[14];
-    w = a->f[15];
-    a->f[12] = ferMat4DotCol(b, 0, x, y, z, w);
-    a->f[13] = ferMat4DotCol(b, 1, x, y, z, w);
-    a->f[14] = ferMat4DotCol(b, 2, x, y, z, w);
-    a->f[15] = ferMat4DotCol(b, 3, x, y, z, w);
+    ferVec4Copy(&v, a->v + 0);
+    a->f[0]  = ferMat4DotCol(b, 0, &v);
+    a->f[1]  = ferMat4DotCol(b, 1, &v);
+    a->f[2]  = ferMat4DotCol(b, 2, &v);
+    a->f[3]  = ferMat4DotCol(b, 3, &v);
+
+    ferVec4Copy(&v, a->v + 1);
+    a->f[4]  = ferMat4DotCol(b, 0, &v);
+    a->f[5]  = ferMat4DotCol(b, 1, &v);
+    a->f[6]  = ferMat4DotCol(b, 2, &v);
+    a->f[7]  = ferMat4DotCol(b, 3, &v);
+
+    ferVec4Copy(&v, a->v + 2);
+    a->f[8]  = ferMat4DotCol(b, 0, &v);
+    a->f[9]  = ferMat4DotCol(b, 1, &v);
+    a->f[10] = ferMat4DotCol(b, 2, &v);
+    a->f[11] = ferMat4DotCol(b, 3, &v);
+
+    ferVec4Copy(&v, a->v + 3);
+    a->f[12] = ferMat4DotCol(b, 0, &v);
+    a->f[13] = ferMat4DotCol(b, 1, &v);
+    a->f[14] = ferMat4DotCol(b, 2, &v);
+    a->f[15] = ferMat4DotCol(b, 3, &v);
 
 }
 
 _fer_inline void ferMat4Mul2(fer_mat4_t *d, const fer_mat4_t *a,
                                             const fer_mat4_t *b)
 {
-    d->f[0]  = ferMat4DotRowCol(a, 0, b, 0);
-    d->f[1]  = ferMat4DotRowCol(a, 0, b, 1);
-    d->f[2]  = ferMat4DotRowCol(a, 0, b, 2);
-    d->f[3]  = ferMat4DotRowCol(a, 0, b, 3);
-    d->f[4]  = ferMat4DotRowCol(a, 1, b, 0);
-    d->f[5]  = ferMat4DotRowCol(a, 1, b, 1);
-    d->f[6]  = ferMat4DotRowCol(a, 1, b, 2);
-    d->f[7]  = ferMat4DotRowCol(a, 1, b, 3);
-    d->f[8]  = ferMat4DotRowCol(a, 2, b, 0);
-    d->f[9]  = ferMat4DotRowCol(a, 2, b, 1);
-    d->f[10] = ferMat4DotRowCol(a, 2, b, 2);
-    d->f[11] = ferMat4DotRowCol(a, 2, b, 3);
-    d->f[12] = ferMat4DotRowCol(a, 3, b, 0);
-    d->f[13] = ferMat4DotRowCol(a, 3, b, 1);
-    d->f[14] = ferMat4DotRowCol(a, 3, b, 2);
-    d->f[15] = ferMat4DotRowCol(a, 3, b, 3);
+    fer_vec4_t v;
+
+    ferMat4CopyCol(&v, b, 0);
+    d->f[0]  = ferMat4DotRow(a, 0, &v);
+    d->f[4]  = ferMat4DotRow(a, 1, &v);
+    d->f[8]  = ferMat4DotRow(a, 2, &v);
+    d->f[12] = ferMat4DotRow(a, 3, &v);
+
+    ferMat4CopyCol(&v, b, 1);
+    d->f[1]  = ferMat4DotRow(a, 0, &v);
+    d->f[5]  = ferMat4DotRow(a, 1, &v);
+    d->f[9]  = ferMat4DotRow(a, 2, &v);
+    d->f[13] = ferMat4DotRow(a, 3, &v);
+
+    ferMat4CopyCol(&v, b, 2);
+    d->f[2]  = ferMat4DotRow(a, 0, &v);
+    d->f[6]  = ferMat4DotRow(a, 1, &v);
+    d->f[10] = ferMat4DotRow(a, 2, &v);
+    d->f[14] = ferMat4DotRow(a, 3, &v);
+
+    ferMat4CopyCol(&v, b, 3);
+    d->f[3]  = ferMat4DotRow(a, 0, &v);
+    d->f[7]  = ferMat4DotRow(a, 1, &v);
+    d->f[11] = ferMat4DotRow(a, 2, &v);
+    d->f[15] = ferMat4DotRow(a, 3, &v);
 }
 
 _fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b)
 {
-    fer_real_t x, y, z, w;
+    fer_vec4_t v;
 
-    x = a->f[0];
-    y = a->f[4];
-    z = a->f[8];
-    w = a->f[12];
-    a->f[0]  = ferMat4DotRow(b, 0, x, y, z, w);
-    a->f[4]  = ferMat4DotRow(b, 1, x, y, z, w);
-    a->f[8]  = ferMat4DotRow(b, 2, x, y, z, w);
-    a->f[12] = ferMat4DotRow(b, 3, x, y, z, w);
-    x = a->f[1];
-    y = a->f[5];
-    z = a->f[9];
-    w = a->f[13];
-    a->f[1]  = ferMat4DotRow(b, 0, x, y, z, w);
-    a->f[5]  = ferMat4DotRow(b, 1, x, y, z, w);
-    a->f[9]  = ferMat4DotRow(b, 2, x, y, z, w);
-    a->f[13] = ferMat4DotRow(b, 3, x, y, z, w);
-    x = a->f[2];
-    y = a->f[6];
-    z = a->f[10];
-    w = a->f[14];
-    a->f[2]  = ferMat4DotRow(b, 0, x, y, z, w);
-    a->f[6]  = ferMat4DotRow(b, 1, x, y, z, w);
-    a->f[10] = ferMat4DotRow(b, 2, x, y, z, w);
-    a->f[14] = ferMat4DotRow(b, 3, x, y, z, w);
-    x = a->f[3];
-    y = a->f[7];
-    z = a->f[11];
-    w = a->f[15];
-    a->f[3]  = ferMat4DotRow(b, 0, x, y, z, w);
-    a->f[7]  = ferMat4DotRow(b, 1, x, y, z, w);
-    a->f[11] = ferMat4DotRow(b, 2, x, y, z, w);
-    a->f[15] = ferMat4DotRow(b, 3, x, y, z, w);
+    ferMat4CopyCol(&v, a, 0);
+    a->f[0]  = ferMat4DotRow(b, 0, &v);
+    a->f[4]  = ferMat4DotRow(b, 1, &v);
+    a->f[8]  = ferMat4DotRow(b, 2, &v);
+    a->f[12] = ferMat4DotRow(b, 3, &v);
 
+    ferMat4CopyCol(&v, a, 1);
+    a->f[1]  = ferMat4DotRow(b, 0, &v);
+    a->f[5]  = ferMat4DotRow(b, 1, &v);
+    a->f[9]  = ferMat4DotRow(b, 2, &v);
+    a->f[13] = ferMat4DotRow(b, 3, &v);
+
+    ferMat4CopyCol(&v, a, 2);
+    a->f[2]  = ferMat4DotRow(b, 0, &v);
+    a->f[6]  = ferMat4DotRow(b, 1, &v);
+    a->f[10] = ferMat4DotRow(b, 2, &v);
+    a->f[14] = ferMat4DotRow(b, 3, &v);
+
+    ferMat4CopyCol(&v, a, 3);
+    a->f[3]  = ferMat4DotRow(b, 0, &v);
+    a->f[7]  = ferMat4DotRow(b, 1, &v);
+    a->f[11] = ferMat4DotRow(b, 2, &v);
+    a->f[15] = ferMat4DotRow(b, 3, &v);
 }
 
 _fer_inline void ferMat4MulComp(fer_mat4_t *a, const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        a->f[i] *= b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4MulComp(a->v + i, b->v + i);
     }
 }
 
@@ -706,8 +707,8 @@ _fer_inline void ferMat4MulComp2(fer_mat4_t *d, const fer_mat4_t *a,
                                                 const fer_mat4_t *b)
 {
     size_t i;
-    for (i = 0; i < 4*4; i++){
-        d->f[i] = a->f[i] * b->f[i];
+    for (i = 0; i < 4; i++){
+        ferVec4MulComp2(d->v + i, a->v + i, b->v + i);
     }
 }
 
@@ -729,10 +730,10 @@ _fer_inline void ferMat4Trans(fer_mat4_t *d)
 
 _fer_inline void ferMat4Trans2(fer_mat4_t *d, const fer_mat4_t *a)
 {
-    ferMat4Set(d, a->f[0], a->f[4], a->f[8],  a->f[12],
-                  a->f[1], a->f[5], a->f[9],  a->f[13],
-                  a->f[2], a->f[6], a->f[10], a->f[14],
-                  a->f[3], a->f[7], a->f[11], a->f[15]);
+    ferMat4CopyCol(d->v + 0, a, 0);
+    ferMat4CopyCol(d->v + 1, a, 1);
+    ferMat4CopyCol(d->v + 2, a, 2);
+    ferMat4CopyCol(d->v + 3, a, 3);
 }
 
 _fer_inline int ferMat4Regular(const fer_mat4_t *m)
@@ -789,63 +790,62 @@ _fer_inline int ferMat4Inv(fer_mat4_t *m)
 _fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
                                               const fer_vec4_t *w)
 {
-    ferVec4SetX(v, ferMat4DotRow(m, 0, ferVec4X(w), ferVec4Y(w), ferVec4Z(w), ferVec4W(w)));
-    ferVec4SetY(v, ferMat4DotRow(m, 1, ferVec4X(w), ferVec4Y(w), ferVec4Z(w), ferVec4W(w)));
-    ferVec4SetZ(v, ferMat4DotRow(m, 2, ferVec4X(w), ferVec4Y(w), ferVec4Z(w), ferVec4W(w)));
-    ferVec4SetW(v, ferMat4DotRow(m, 3, ferVec4X(w), ferVec4Y(w), ferVec4Z(w), ferVec4W(w)));
+    ferVec4SetX(v, ferVec4Dot(m->v + 0, w));
+    ferVec4SetY(v, ferVec4Dot(m->v + 1, w));
+    ferVec4SetZ(v, ferVec4Dot(m->v + 2, w));
+    ferVec4SetW(v, ferVec4Dot(m->v + 3, w));
 }
 
 _fer_inline void ferMat4MulVec3(fer_vec3_t *v, const fer_mat4_t *m,
-                                               const fer_vec3_t *w)
+                                               const fer_vec3_t *_w)
 {
     fer_real_t denom;
+    fer_vec4_t w;
 
-    ferVec3SetX(v, ferMat4DotRow(m, 0, ferVec3X(w), ferVec3Y(w), ferVec3Z(w), FER_ONE));
-    ferVec3SetY(v, ferMat4DotRow(m, 1, ferVec3X(w), ferVec3Y(w), ferVec3Z(w), FER_ONE));
-    ferVec3SetZ(v, ferMat4DotRow(m, 2, ferVec3X(w), ferVec3Y(w), ferVec3Z(w), FER_ONE));
-    denom = ferMat4DotRow(m, 3, ferVec3X(w), ferVec3Y(w), ferVec3Z(w), FER_ONE);
+    ferVec4SetX(&w, ferVec3X(_w));
+    ferVec4SetY(&w, ferVec3Y(_w));
+    ferVec4SetZ(&w, ferVec3Z(_w));
+    ferVec4SetW(&w, FER_ONE);
+
+    ferVec3SetX(v, ferVec4Dot(m->v + 0, &w));
+    ferVec3SetY(v, ferVec4Dot(m->v + 1, &w));
+    ferVec3SetZ(v, ferVec4Dot(m->v + 2, &w));
+    denom = ferVec4Dot(m->v + 3, &w);
     ferVec3Scale(v, ferRecp(denom));
 }
 
 
 
+_fer_inline void ferMat4CopyCol(fer_vec4_t *col, const fer_mat4_t *m, size_t c)
+{
+    ferVec4Set(col, m->f[c], m->f[c + 4], m->f[c + 8], m->f[c + 12]);
+}
+
+_fer_inline void ferMat4CopyRow(fer_vec4_t *row, const fer_mat4_t *m, size_t r)
+{
+    ferVec4Copy(row, m->v + r);
+}
+
 _fer_inline fer_real_t ferMat4DotRowCol(const fer_mat4_t *m, size_t r,
                                         const fer_mat4_t *n, size_t c)
 {
-    fer_real_t dot;
-
-    dot  = m->f[r * 4] * n->f[c];
-    dot += m->f[r * 4 + 1] * n->f[c + 4];
-    dot += m->f[r * 4 + 2] * n->f[c + 8];
-    dot += m->f[r * 4 + 3] * n->f[c + 12];
-
-    return dot;
+    fer_vec4_t col;
+    ferMat4CopyCol(&col, n, c);
+    return ferVec4Dot(m->v + r, &col);
 }
 
-_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t col,
-                                     fer_real_t a, fer_real_t b, fer_real_t c, fer_real_t d)
+_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t c,
+                                     const fer_vec4_t *v)
 {
-    fer_real_t dot;
-
-    dot  = m->f[col] * a;
-    dot += m->f[col + 4] * b;
-    dot += m->f[col + 8] * c;
-    dot += m->f[col + 12] * d;
-
-    return dot;
+    fer_vec4_t col;
+    ferMat4CopyCol(&col, m, c);
+    return ferVec4Dot(&col, v);
 }
 
-_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t row,
-                                     fer_real_t a, fer_real_t b, fer_real_t c, fer_real_t d)
+_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t r,
+                                     const fer_vec4_t *v)
 {
-    fer_real_t dot;
-
-    dot  = m->f[row * 4] * a;
-    dot += m->f[row * 4 + 1] * b;
-    dot += m->f[row * 4 + 2] * c;
-    dot += m->f[row * 4 + 3] * d;
-
-    return dot;
+    return ferVec4Dot(m->v + r, v);
 }
 
 #ifdef __cplusplus

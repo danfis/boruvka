@@ -91,7 +91,7 @@ fer_vec3_t *ferVec3New(fer_real_t x, fer_real_t y, fer_real_t z)
     fer_vec3_t *v;
 
 #ifdef FER_SSE
-    v = FER_ALLOC_ALIGN(fer_vec3_t, sizeof(fer_vec3_t));
+    v = FER_ALLOC_ALIGN(fer_vec3_t, 16);
 #else /* FER_SSE */
     v = FER_ALLOC(fer_vec3_t);
 #endif /* FER_SSE */

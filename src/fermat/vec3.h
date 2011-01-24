@@ -38,7 +38,7 @@ typedef union _fer_vec3_t fer_vec3_t;
 union _fer_vec3_t {
     __m128d v[2];
     double f[4];
-} fer_aligned(32) fer_packed;
+} fer_aligned(16) fer_packed;
 typedef union _fer_vec3_t fer_vec3_t;
 
 # endif /* FER_SSE_SINGLE */
@@ -171,6 +171,11 @@ _fer_inline void ferVec3SubConst2(fer_vec3_t *d, const fer_vec3_t *v, fer_real_t
  * d = d * k;
  */
 _fer_inline void ferVec3Scale(fer_vec3_t *d, fer_real_t k);
+
+/**
+ * d = a * k;
+ */
+_fer_inline void ferVec3Scale2(fer_vec3_t *d, const fer_vec3_t *a, fer_real_t k);
 
 /**
  * Scales vector v to given length.
@@ -512,6 +517,26 @@ _fer_inline void ferVec3Scale(fer_vec3_t *d, fer_real_t _k)
     d->f[0] *= _k;
     d->f[1] *= _k;
     d->f[2] *= _k;
+#endif /* FER_SSE */
+}
+
+_fer_inline void ferVec3Scale2(fer_vec3_t *d, const fer_vec3_t *a, fer_real_t _k)
+{
+#ifdef FER_SSE
+# ifdef FER_SSE_SINGLE
+    fer_vec3_t k;
+    k.v = _mm_set1_ps(_k);
+    d->v = _mm_mul_ps(a->v, k.v);
+# else /* FER_SSE_SINGLE */
+    __m128d k;
+    k = _mm_set1_pd(_k);
+    d->v[0] = _mm_mul_pd(a->v[0], k);
+    d->v[1] = _mm_mul_pd(a->v[1], k);
+# endif /* FER_SSE_SINGLE */
+#else /* FER_SSE */
+    d->f[0] = a->f[0] * _k;
+    d->f[1] = a->f[1] * _k;
+    d->f[2] = a->f[2] * _k;
 #endif /* FER_SSE */
 }
 
