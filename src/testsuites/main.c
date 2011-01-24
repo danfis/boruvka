@@ -1,3 +1,4 @@
+#include <fermat/config.h>
 #include "vec4.h"
 #include "vec3.h"
 #include "vec2.h"
@@ -5,6 +6,10 @@
 #include "point_cloud.h"
 #include "mat3.h"
 #include "mat4.h"
+
+#ifdef FER_GSL
+#include "vec.h"
+#endif
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -14,6 +19,10 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPC),
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
+
+#ifdef FER_GSL
+    TEST_SUITE_ADD(TSVec),
+#endif
 
     TEST_SUITES_CLOSURE
 };

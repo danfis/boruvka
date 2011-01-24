@@ -15,6 +15,12 @@ OBJS = vec4.o vec3.o vec2.o quat.o point_cloud.o \
        data-mat3.o data-mat4.o
 BENCH_OBJS =
 
+ifeq '$(USE_GSL)' 'yes'
+  OBJS += vec.o
+  CFLAGS += $(GSL_CFLAGS)
+  LDFLAGS += $(GSL_LDFLAGS)
+endif
+
 
 all: test
 
