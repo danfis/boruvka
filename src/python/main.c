@@ -23,6 +23,10 @@
 #include "mat3.h"
 #include "mat4.h"
 
+#ifdef FER_GSL
+# include "vec.h"
+#endif
+
 static PyMethodDef fer_methods[] = {
     {NULL}  /* Sentinel */
 };
@@ -50,6 +54,10 @@ PyInit_fermat(void)
     pcInit(m);
     mat3Init(m);
     mat4Init(m);
+
+#ifdef FER_GSL
+    vecInit(m);
+#endif
 
     return m;
 }

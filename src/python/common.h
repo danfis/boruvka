@@ -93,5 +93,10 @@ _fer_inline long numberAsLong(PyObject *n)
         return NULL; \
     }
 
+#define CHECK_VEC(o) \
+    if (!PyObject_TypeCheck((o), &py_vec_type)){ \
+        PyErr_SetString(PyExc_TypeError, "Expected Vec"); \
+        return NULL; \
+    }
 
 #endif /* PY_COMMON_H_ */

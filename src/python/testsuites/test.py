@@ -5,8 +5,8 @@ sys.path.append('..')
 
 import os
 import unittest
-import vec2, vec3, vec4, mat3, mat4, quat, point_cloud
-modules = [vec2, vec3, vec4, mat3, mat4, quat, point_cloud]
+import vec2, vec3, vec4, mat3, mat4, quat, point_cloud, vec
+modules = [vec2, vec3, vec4, mat3, mat4, quat, point_cloud, vec]
 
 suites = []
 for m in modules:

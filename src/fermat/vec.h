@@ -181,8 +181,13 @@ _fer_inline fer_real_t ferVecLen(const fer_vec_t *v)
 _fer_inline fer_real_t ferVecDist2(const fer_vec_t *a, const fer_vec_t *b)
 {
     fer_vec_t ab;
+    fer_real_t dist2;
+
+    ferVecInit(&ab, ferVecSize(a));
     ferVecSub2(&ab, a, b);
-    return ferVecLen2(&ab);
+    dist2 = ferVecLen2(&ab);
+    ferVecDestroy(&ab);
+    return dist2;
 }
 _fer_inline fer_real_t ferVecDist(const fer_vec_t *a, const fer_vec_t *b)
 {

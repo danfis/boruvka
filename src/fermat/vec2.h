@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VEC_H__
-#define __FER_VEC_H__
+#ifndef __FER_VEC2_H__
+#define __FER_VEC2_H__
 
 /**
  * Implementation of vectors.
@@ -758,4 +758,4 @@ _fer_inline int ferVec2OnLeft(const fer_vec2_t *v,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_VEC_H__ */
+#endif /* __FER_VEC2_H__ */
