@@ -206,7 +206,7 @@ PyTypeObject py_vec2_type = {
     "fermat.Vec2",             /* tp_name */
     sizeof(py_vec2),           /* tp_basicsize */
     0,                         /* tp_itemsize */
-    0,                         /* tp_dealloc */
+    __ferDefaultDealloc,       /* tp_dealloc */
     0,                         /* tp_print */
     0,                         /* tp_getattr */
     0,                         /* tp_setattr */

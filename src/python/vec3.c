@@ -195,7 +195,7 @@ PyTypeObject py_vec3_type = {
     "fermat.Vec3",             /* tp_name */
     sizeof(py_vec3),           /* tp_basicsize */
     0,                         /* tp_itemsize */
-    0,                         /* tp_dealloc */
+    __ferDefaultDealloc,       /* tp_dealloc */
     0,                         /* tp_print */
     0,                         /* tp_getattr */
     0,                         /* tp_setattr */

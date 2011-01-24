@@ -20,6 +20,8 @@
 #include <Python.h>
 #include <fermat/core.h>
 
+void __ferDefaultDealloc(PyObject *);
+
 _fer_inline fer_real_t numberAsReal(PyObject *n)
 {
     PyObject *onum;

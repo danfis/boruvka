@@ -10,7 +10,7 @@ LDFLAGS += -L.. -lfermat
 SO_CFLAGS = -shared -Wl,-soname,fermat.so
 
 TARGETS = fermat.so
-OBJS = main.o vec2.o vec3.o vec4.o quat.o point_cloud.o mat3.o mat4.o
+OBJS = main.o common.o vec2.o vec3.o vec4.o quat.o point_cloud.o mat3.o mat4.o
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += vec.o

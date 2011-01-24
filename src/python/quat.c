@@ -159,7 +159,7 @@ PyTypeObject py_quat_type = {
     "fermat.Quat",             /* tp_name */
     sizeof(py_quat),           /* tp_basicsize */
     0,                         /* tp_itemsize */
-    0,                         /* tp_dealloc */
+    __ferDefaultDealloc,       /* tp_dealloc */
     0,                         /* tp_print */
     0,                         /* tp_getattr */
     0,                         /* tp_setattr */
