@@ -111,7 +111,7 @@ int ferMatInv2(fer_mat_t *m, const fer_mat_t *a)
     gsl_matrix *inv;
 #endif /* FER_SINGLE */
 
-    __FER_CHECKDIM(m, a);
+    __FER_MAT_CHECKDIM(m, a);
 
     rows = ferMatRows(m);
     if (rows != ferMatCols(m))

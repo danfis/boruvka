@@ -112,8 +112,6 @@ _fer_inline void ferMatSetZero(fer_mat_t *m);
  */
 _fer_inline void ferMatSetDiag(fer_mat_t *m, fer_real_t s);
 
-/** TODO: operators must return 0/1 and check dimensions of matrices */
-
 /**
  * a = a + b
  */
@@ -249,7 +247,7 @@ _fer_inline void ferMatMulVec(fer_vec_t *v, const fer_mat_t *m,
 
 
 /**** INLINES ****/
-#define __FER_CHECKDIM(A, B) \
+#define __FER_MAT_CHECKDIM(A, B) \
     if (ferMatRows(A) != ferMatRows(B) || ferMatCols(A) != ferMatCols(B)) \
         return -1
 
@@ -275,7 +273,7 @@ _fer_inline fer_mat_t *ferMatClone(const fer_mat_t *m)
 
 _fer_inline int ferMatCopy(fer_mat_t *d, const fer_mat_t *s)
 {
-    __FER_CHECKDIM(d, s);
+    __FER_MAT_CHECKDIM(d, s);
     fer_gsl_matrix_memcpy(d->m, s->m);
     return 0;
 }
@@ -324,7 +322,7 @@ _fer_inline void ferMatSetDiag(fer_mat_t *m, fer_real_t s)
 
 _fer_inline int ferMatAdd(fer_mat_t *a, const fer_mat_t *b)
 {
-    __FER_CHECKDIM(a, b);
+    __FER_MAT_CHECKDIM(a, b);
     fer_gsl_matrix_add(a->m, b->m);
     return 0;
 }
@@ -339,7 +337,7 @@ _fer_inline int ferMatAdd2(fer_mat_t *d, const fer_mat_t *a,
 
 _fer_inline int ferMatSub(fer_mat_t *a, const fer_mat_t *b)
 {
-    __FER_CHECKDIM(a, b);
+    __FER_MAT_CHECKDIM(a, b);
     fer_gsl_matrix_sub(a->m, b->m);
     return 0;
 }
@@ -411,8 +409,9 @@ _fer_inline int ferMatMul2(fer_mat_t *d, const fer_mat_t *a,
 
 _fer_inline int ferMatMulComp(fer_mat_t *a, const fer_mat_t *b)
 {
-    __FER_CHECKDIM(a, b);
+    __FER_MAT_CHECKDIM(a, b);
     fer_gsl_matrix_mul_elements(a->m, b->m);
+    return 0;
 }
 
 _fer_inline int ferMatMulComp2(fer_mat_t *d, const fer_mat_t *a,
@@ -430,7 +429,7 @@ _fer_inline void ferMatTrans(fer_mat_t *d)
 
 _fer_inline int ferMatTrans2(fer_mat_t *d, const fer_mat_t *a)
 {
-    if (ferMatRows(d) != ferMatCols(d) || ferMatCols(d) != ferMatRows(a))
+    if (ferMatRows(d) != ferMatCols(a) || ferMatCols(d) != ferMatRows(a))
         return -1;
 
     fer_gsl_matrix_transpose_memcpy(d->m, a->m);

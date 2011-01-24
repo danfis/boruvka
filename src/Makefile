@@ -25,6 +25,7 @@ OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
+  CFLAGS += $(GSL_CFLAGS)
 endif
 
 all: $(TARGETS)

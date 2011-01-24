@@ -16,7 +16,7 @@ OBJS = vec4.o vec3.o vec2.o quat.o point_cloud.o \
 BENCH_OBJS =
 
 ifeq '$(USE_GSL)' 'yes'
-  OBJS += vec.o
+  OBJS += vec.o mat.o
   CFLAGS += $(GSL_CFLAGS)
   LDFLAGS += $(GSL_LDFLAGS)
 endif
