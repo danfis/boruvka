@@ -21,7 +21,7 @@ CFLAGS += -I. -g
 TARGETS = libfermat.a
 OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
        point_cloud.o point_cloud_internal.o \
-       mat3.o mat4.o
+       mat3.o mat4.o predicates.o
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
