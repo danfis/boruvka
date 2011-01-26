@@ -1,0 +1,5 @@
+html
+.buildinfo
+.doctrees
+doctrees/
+*.html
