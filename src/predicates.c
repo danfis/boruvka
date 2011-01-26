@@ -16,7 +16,7 @@
 
 
 /**
- * This is copy of Jonathan Shewchuk's predicates as available at
+ * This is copy of Jonathan Shewchuk's predicates.c as available at
  * http://www.cs.cmu.edu/~quake/robust.html ported to fermat library's Vec2
  * and Vec3 vectors.
  * The public functions were renamed to conform with fermat's namespace,
