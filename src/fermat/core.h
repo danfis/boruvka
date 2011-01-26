@@ -117,9 +117,18 @@ typedef double fer_real_t;
 
 #endif /* FER_DOUBLE */
 
+#define FER_MIN(x, y) ((x) < (y) ? (x) : (y))
+#define FER_MAX(x, y) ((x) > (y) ? (x) : (y))
+#define FER_CUBE(x)   ((x) * (x))
+
 #define FER_ONE FER_REAL(1.)
 #define FER_ZERO FER_REAL(0.)
-#define FER_CUBE(x) ((x) * (x))
+
+
+#define FER_SWAP(a, b, tmp) \
+    (tmp) = (a); \
+    (a) = (b); \
+    (b) = (tmp)
 
 
 #ifdef FER_SSE
