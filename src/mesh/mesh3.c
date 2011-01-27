@@ -44,12 +44,34 @@ void ferMesh3EdgeDel(fer_mesh3_edge_t *e)
     free(e);
 }
 
+/** Returns true if two given edges have exactly one common vertex */
+_fer_inline int ferMesh3EdgeTriCheckCommon(const fer_mesh3_edge_t *e1,
+                                           const fer_mesh3_edge_t *e2)
+{
+    if (e1->v[0] == e2->v[0]){
+        if (e1->v[1] == e2->v[1])
+            return 0; // e1 and e2 have two common edges
+    }else if (e1->v[1] == e2->v[0]){
+        if (e1->v[0] == e2->v[1])
+            return 0; // e1 and e2 have two common edges
+    }else{
+        return 0; // e1 and e2 have no common vertex
+    }
+    return 1;
+}
+
 int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
                          const fer_mesh3_edge_t *e2,
                          const fer_mesh3_edge_t *e3)
 {
-    // TODO
-    return 0;
+    // 1) Any two edges must have exactly one common vertex.
+    // 2) Start and end vertices must differ (within one edge)
+    // I think that if these two preconditions hold then it is certain that
+    // edges form triangle.
+
+    return ferMesh3EdgeTriCheckCommon(e1, e2)
+                && ferMesh3EdgeTriCheckCommon(e1, e3)
+                && ferMesh3EdgeTriCheckCommon(e2, e3);
 }
 
 
