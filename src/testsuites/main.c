@@ -6,6 +6,7 @@
 #include "point_cloud.h"
 #include "mat3.h"
 #include "mat4.h"
+#include "cubes3.h"
 
 #ifdef FER_GSL
 #include "vec.h"
@@ -20,6 +21,8 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPC),
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
+
+    TEST_SUITE_ADD(TSCubes3),
 
 #ifdef FER_GSL
     TEST_SUITE_ADD(TSVec),

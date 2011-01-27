@@ -33,15 +33,15 @@ struct _fer_cubes3_cache_t;
  * TODO: example
  */
 struct _fer_cubes3_t {
-    fer_real_t size;  /*!< Size of edge of one cube. */
-    size_t dim[3];    /*!< How many cubes are along x, y or z axis
-                           respectively. */
-    fer_vec3_t shift; /*!< Shifting of points stored in cubes.
-                           For easiest navigation in cubes, cubes structure
-                           is built from origin towards x, y, z axis.
-                           This vector is always added to point coordinates
-                           that are searched to move it into space covered by
-                           cubes. */
+    fer_real_t size;   /*!< Size of edge of one cube. */
+    size_t dim[3];     /*!< How many cubes are along x, y or z axis
+                            respectively. */
+    fer_vec3_t *shift; /*!< Shifting of points stored in cubes.
+                            For easiest navigation in cubes, cubes structure
+                            is built from origin towards x, y, z axis.
+                            This vector is always added to point coordinates
+                            that are searched to move it into space covered by
+                            cubes. */
 
     fer_cubes3_cube_t *cubes; /*! Array of all cubes - it has (.dim[0] *
                                   .dim[1] * .dim[2]) elements. */
@@ -75,7 +75,7 @@ typedef struct _fer_cubes3_el_t fer_cubes3_el_t;
  * Initializes fer_cubes3_el_t structure.
  * No "destroy" functions needs to be called.
  */
-_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el);
+_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el, const fer_vec3_t *coords);
 
 
 /**
@@ -181,10 +181,11 @@ _fer_inline void __ferCubes3PosCoords(const fer_cubes3_t *cs,
 
 
 /**** INLINES ****/
-_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el)
+_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el, const fer_vec3_t *coords)
 {
     ferListInit(&el->list);
     el->cube_id = (size_t)-1;
+    el->coords = coords;
 }
 
 _fer_inline size_t ferCubes3Len(const fer_cubes3_t *c)
@@ -265,7 +266,7 @@ _fer_inline void __ferCubes3PosCoords(const fer_cubes3_t *cs,
                     // aligned with space covered by cubes)
 
     // compute shifted position
-    ferVec3Add2(&pos, coords, &cs->shift);
+    ferVec3Add2(&pos, coords, cs->shift);
 
     // Align position with cubes boundaries.
     // Border cubes hold vectors which are out of mapped space.

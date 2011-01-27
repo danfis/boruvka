@@ -1,0 +1,24 @@
+cubesNew:
+cube size: 0.691042
+cubes len: 1152
+cubes dim: 9 16 8
+------ cubesNew
+
+cubesNode:
+cube size: 0.839947
+cubes len: 45
+cubes dim: 3 5 3
+------ cubesNode
+
+cubesNearest:
+cube size: 5.540744
+cubes len: 64
+cubes dim: 4 4 4
+------ cubesNearest
+
+cubesNearest:
+cube size: 5.540744
+cubes len: 64
+cubes dim: 4 4 4
+------ cubesNearest
+

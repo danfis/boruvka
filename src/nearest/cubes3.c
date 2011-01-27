@@ -58,8 +58,8 @@ fer_cubes3_t *ferCubes3New(const fer_real_t *bound, size_t num_cubes)
     cs = FER_ALLOC(fer_cubes3_t);
 
     // compute shifting
-    ferVec3Set(&cs->shift, bound[0], bound[2], bound[4]);
-    ferVec3Scale(&cs->shift, -FER_ONE);
+    cs->shift = ferVec3New(bound[0], bound[2], bound[4]);
+    ferVec3Scale(cs->shift, -FER_ONE);
     //DBG("Cubes: shift[0]: %f", cs->shift[0]);
     //DBG("Cubes: shift[1]: %f", cs->shift[1]);
     //DBG("Cubes: shift[2]: %f", cs->shift[2]);
@@ -113,6 +113,8 @@ void ferCubes3Del(fer_cubes3_t *cs)
     for (i = 0; i < cs->cubes_len; i++){
         ferCubes3CubeDestroy(&cs->cubes[i]);
     }
+
+    ferVec3Del(cs->shift);
 
     if (cs->cache)
         ferCubes3CacheDestroy(cs);
