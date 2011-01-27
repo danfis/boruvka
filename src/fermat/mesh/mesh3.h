@@ -47,7 +47,7 @@ typedef struct _fer_mesh3_t fer_mesh3_t;
 
 
 struct _fer_mesh3_vertex_t {
-    fer_vec3_t *v;   /*!< Coordinates of vertex */
+    fer_vec3_t v;    /*!< Coordinates of vertex */
     fer_list_t list; /*!< Connection into list of all vertices */
 
     fer_list_t edges; /*!< List of all incidenting edges */
@@ -96,21 +96,6 @@ fer_mesh3_vertex_t *ferMesh3VertexNew2(const fer_vec3_t *coords);
  */
 void ferMesh3VertexDel(fer_mesh3_vertex_t *v);
 
-/**
- * Initializes vertex with its coordinates.
- */
-void ferMesh3VertexInit(fer_mesh3_vertex_t *v,
-                        fer_real_t x, fer_real_t y, fer_real_t z);
-
-/**
- * Initializes vertex with coordinates passed as vec3.
- */
-void ferMesh3VertexInit2(fer_mesh3_vertex_t *v, const fer_vec3_t *coords);
-
-/**
- * Destroys previously initialized vertex.
- */
-void ferMesh3VertexDestroy(fer_mesh3_vertex_t *v);
 
 /**
  * Returns pointer vector representing coordinates of vertex.
@@ -150,16 +135,6 @@ fer_mesh3_edge_t *ferMesh3EdgeNew(void);
  * Deletes edge.
  */
 void ferMesh3EdgeDel(fer_mesh3_edge_t *e);
-
-/**
- * Initializes edge (unconnected, without start and end points).
- */
-void ferMesh3EdgeInit(fer_mesh3_edge_t *e);
-
-/**
- * Destroys previously initialized edge.
- */
-void ferMesh3EdgeDestroy(fer_mesh3_edge_t *e);
 
 /**
  * Returns true if edge is degenerated, i.e. if it has no start and end
@@ -213,18 +188,6 @@ fer_mesh3_face_t *ferMesh3FaceNew(void);
  * Deletes face.
  */
 void ferMesh3FaceDel(fer_mesh3_face_t *f);
-
-/**
- * Initializes face.
- * After initialization this face is "degenerated" because it has no
- * incidenting edges.
- */
-void ferMesh3FaceInit(fer_mesh3_face_t *f);
-
-/**
- * Destroys previously initialized face.
- */
-void ferMesh3FaceDestroy(fer_mesh3_face_t *f);
 
 /**
  * Returns true if face is degenerated, i.e. if it has no incidenting
@@ -380,7 +343,7 @@ void ferMesh3RemoveFace(fer_mesh3_t *m, fer_mesh3_face_t *f);
 /**** INLINES ****/
 _fer_inline fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v)
 {
-    return v->v;
+    return &v->v;
 }
 
 _fer_inline size_t ferMesh3VertexEdgesLen(const fer_mesh3_vertex_t *v)

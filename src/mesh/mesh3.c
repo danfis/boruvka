@@ -4,94 +4,44 @@
 fer_mesh3_vertex_t *ferMesh3VertexNew(fer_real_t x, fer_real_t y, fer_real_t z)
 {
     fer_mesh3_vertex_t *v;
+
+#ifdef FER_SSE
+    // Vec3 must be properly aligned if we are using SSE.
+    // Because vec3 occupies beggining of struct its enough if we align
+    // whole struct
+    v = FER_ALLOC_ALIGN(fer_mesh3_vertex_t, 16);
+#else /* FER_SSE */
     v = FER_ALLOC(fer_mesh3_vertex_t);
-    ferMesh3VertexInit(v, x, y, z);
+#endif /* FER_SSE */
+
+    ferVec3Set(&v->v, x, y, z);
+
     return v;
 }
 
 fer_mesh3_vertex_t *ferMesh3VertexNew2(const fer_vec3_t *coords)
 {
-    fer_mesh3_vertex_t *v;
-    v = FER_ALLOC(fer_mesh3_vertex_t);
-    ferMesh3VertexInit2(v, coords);
-    return v;
+    return ferMesh3VertexNew(ferVec3X(coords),
+                             ferVec3Y(coords),
+                             ferVec3Z(coords));
 }
 
 void ferMesh3VertexDel(fer_mesh3_vertex_t *v)
 {
-    ferMesh3VertexDestroy(v);
     free(v);
 }
-
-void ferMesh3VertexInit(fer_mesh3_vertex_t *v,
-                        fer_real_t x, fer_real_t y, fer_real_t z)
-{
-    v->v = ferVec3New(x, y, z);
-
-    ferListInit(&v->list);
-    ferListInit(&v->edges);
-    v->edges_len = 0;
-}
-
-void ferMesh3VertexInit2(fer_mesh3_vertex_t *v, const fer_vec3_t *coords)
-{
-    v->v = ferVec3Clone(coords);
-
-    ferListInit(&v->list);
-    ferListInit(&v->edges);
-    v->edges_len = 0;
-}
-
-void ferMesh3VertexDestroy(fer_mesh3_vertex_t *v)
-{
-    if (v->v){
-        ferVec3Del(v->v);
-        v->v = NULL;
-    }
-
-    /*
-    // TODO: do this?
-    ferListDel(&v->list);
-    while (!ferListEmpty(&v->edges)){
-        ferListDel(ferListNext(&v->edges));
-    }
-    v->edges_len = 0;
-    */
-}
-
-
 
 
 fer_mesh3_edge_t *ferMesh3EdgeNew(void)
 {
     fer_mesh3_edge_t *e;
     e = FER_ALLOC(fer_mesh3_edge_t);
-    ferMesh3EdgeInit(e);
     return e;
 }
 
 void ferMesh3EdgeDel(fer_mesh3_edge_t *e)
 {
-    ferMesh3EdgeDestroy(e);
     free(e);
-}
-
-void ferMesh3EdgeInit(fer_mesh3_edge_t *e)
-{
-    e->v[0] = e->v[1] = NULL;
-    e->f[0] = e->f[1] = NULL;
-
-    ferListInit(&e->list);
-    ferListInit(&e->vlist[0]);
-    ferListInit(&e->vlist[1]);
-}
-
-void ferMesh3EdgeDestroy(fer_mesh3_edge_t *e)
-{
-    e->v[0] = e->v[1] = NULL;
-    e->f[0] = e->f[1] = NULL;
-
-    // TODO: Disconnect from vertex and face and list?
 }
 
 int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
@@ -109,30 +59,13 @@ fer_mesh3_face_t *ferMesh3FaceNew(void)
 {
     fer_mesh3_face_t *f;
     f = FER_ALLOC(fer_mesh3_face_t);
-    ferMesh3FaceInit(f);
     return f;
 }
 
 void ferMesh3FaceDel(fer_mesh3_face_t *f)
 {
-    ferMesh3FaceDestroy(f);
     free(f);
 }
-
-void ferMesh3FaceInit(fer_mesh3_face_t *f)
-{
-    f->e[0] = f->e[1] = f->e[2] = NULL;
-    ferListInit(&f->list);
-}
-
-void ferMesh3FaceDestroy(fer_mesh3_face_t *f)
-{
-    f->e[0] = f->e[1] = f->e[2] = NULL;
-
-    // TODO: Disconnect from list?
-}
-
-
 
 
 
