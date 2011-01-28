@@ -17,6 +17,7 @@
 #ifndef __FER_MESH3_H__
 #define __FER_MESH3_H__
 
+#include <stdio.h>
 #include <fermat/core.h>
 #include <fermat/vec3.h>
 #include <fermat/list.h>
@@ -52,6 +53,8 @@ struct _fer_mesh3_vertex_t {
 
     fer_list_t edges; /*!< List of all incidenting edges */
     size_t edges_len; /*!< Number of edges in list */
+
+    int _id; /*!< This is currently used only for ferMesh3DumpSVT() */
 };
 typedef struct _fer_mesh3_vertex_t fer_mesh3_vertex_t;
 
@@ -61,10 +64,10 @@ struct _fer_mesh3_edge_t {
     struct _fer_mesh3_face_t *f[2]; /*!< Incidenting faces */
 
     fer_list_t list;     /*!< Connection into listo of all edges */
-    fer_list_t vlist[2]; /*!< Connection into list of edges incidenting
-                              with vertex.
-                              .vlist[0] correspond with vertex .v[0] and
-                              .vlist[1] with .v[1] */
+    fer_list_m_t vlist[2]; /*!< Connection into list of edges incidenting
+                                with vertex.
+                                .vlist[0] correspond with vertex .v[0] and
+                                .vlist[1] with .v[1] */
 };
 typedef struct _fer_mesh3_edge_t fer_mesh3_edge_t;
 
@@ -137,12 +140,6 @@ fer_mesh3_edge_t *ferMesh3EdgeNew(void);
 void ferMesh3EdgeDel(fer_mesh3_edge_t *e);
 
 /**
- * Returns true if edge is degenerated, i.e. if it has no start and end
- * point.
- */
-_fer_inline int ferMesh3EdgeIsDegenerated(const fer_mesh3_edge_t *e);
-
-/**
  * Returns start or end point of edge.
  * Parameter i can be either 0 or 1 (no check is performed).
  */
@@ -173,6 +170,14 @@ _fer_inline int ferMesh3EdgeHasFace(const fer_mesh3_edge_t *e,
  */
 _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e);
 
+/**
+ * Returns true if given triplet of edges form triangle.
+ */
+int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
+                         const fer_mesh3_edge_t *e2,
+                         const fer_mesh3_edge_t *e3);
+
+
 
 /**
  * Face
@@ -188,12 +193,6 @@ fer_mesh3_face_t *ferMesh3FaceNew(void);
  * Deletes face.
  */
 void ferMesh3FaceDel(fer_mesh3_face_t *f);
-
-/**
- * Returns true if face is degenerated, i.e. if it has no incidenting
- * edges.
- */
-_fer_inline int ferMesh3FaceIsDegenerated(const fer_mesh3_face_t *f);
 
 /**
  * Returns incidenting edge.
@@ -222,13 +221,6 @@ _fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
 _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
                                       fer_mesh3_vertex_t **vs);
 
-
-/**
- * Returns true if given triplet of edges form triangle.
- */
-int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
-                         const fer_mesh3_edge_t *e2,
-                         const fer_mesh3_edge_t *e3);
 
 
 /**
@@ -338,6 +330,23 @@ int ferMesh3AddFace(fer_mesh3_t *m, fer_mesh3_face_t *f,
  */
 void ferMesh3RemoveFace(fer_mesh3_t *m, fer_mesh3_face_t *f);
 
+/**
+ * Dumps mesh as one object in SVT format.
+ * See http://svt.danfis.cz for more info.
+ */
+void ferMesh3DumpSVT(fer_mesh3_t *m, FILE *out, const char *name);
+
+/**
+ * Dumps mesh as list of triangles.
+ * One triangle per line (ax ay az bx by ...)
+ */
+void ferMesh3DumpTriangles(fer_mesh3_t *m, FILE *out);
+
+/**
+ * Dumps mesh in povray format.
+ */
+void ferMesh3DumpPovray(fer_mesh3_t *m, FILE *out);
+
 
 
 /**** INLINES ****/
@@ -360,10 +369,12 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
                                       const fer_mesh3_edge_t *e)
 {
     fer_list_t *item;
+    fer_list_m_t *mitem;
     fer_mesh3_edge_t *edge;
 
     ferListForEach(&v->edges, item){
-        edge = ferListEntry(item, fer_mesh3_edge_t, vlist);
+        mitem = ferListMFromList(item);
+        edge = ferListEntry(item, fer_mesh3_edge_t, vlist[mitem->mark]);
         if (edge == e)
             return 1;
     }
@@ -374,11 +385,6 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
 
 
 
-
-_fer_inline int ferMesh3EdgeIsDegenerated(const fer_mesh3_edge_t *e)
-{
-    return !e->v[0] || !e->v[1];
-}
 
 _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i)
 {
@@ -417,11 +423,6 @@ _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e)
 
 
 
-
-_fer_inline int ferMesh3FaceIsDegenerated(const fer_mesh3_face_t *f)
-{
-    return !f->e[0] || !f->e[1] || !f->e[2];
-}
 
 _fer_inline fer_mesh3_edge_t *ferMesh3FaceEdge(fer_mesh3_face_t *f, size_t i)
 {

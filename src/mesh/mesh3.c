@@ -1,5 +1,6 @@
 #include <fermat/mesh/mesh3.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 fer_mesh3_vertex_t *ferMesh3VertexNew(fer_real_t x, fer_real_t y, fer_real_t z)
 {
@@ -50,10 +51,13 @@ _fer_inline int ferMesh3EdgeTriCheckCommon(const fer_mesh3_edge_t *e1,
 {
     if (e1->v[0] == e2->v[0]){
         if (e1->v[1] == e2->v[1])
-            return 0; // e1 and e2 have two common edges
+            return 0; // e1 and e2 have two common vertices
+    }else if (e1->v[1] == e2->v[1]){
+        if (e1->v[0] == e2->v[0])
+            return 0; // e1 and e2 have two common vertices
     }else if (e1->v[1] == e2->v[0]){
         if (e1->v[0] == e2->v[1])
-            return 0; // e1 and e2 have two common edges
+            return 0; // e1 and e2 have two common vertices
     }else{
         return 0; // e1 and e2 have no common vertex
     }
@@ -150,7 +154,7 @@ void ferMesh3Del2(fer_mesh3_t *m,
         ferMesh3RemoveVertex(m, v);
 
         if (delvertex){
-            delvertex(v, edata);
+            delvertex(v, vdata);
         }
     }
 
@@ -184,9 +188,11 @@ void ferMesh3AddEdge(fer_mesh3_t *m, fer_mesh3_edge_t *e,
     e->v[1] = end;
 
     // append edge to list of edges in vertices
-    ferListAppend(&start->edges, &e->vlist[0]);
+    e->vlist[0].mark = 0;
+    ferListAppend(&start->edges, ferListMAsList(&e->vlist[0]));
     start->edges_len++;
-    ferListAppend(&end->edges, &e->vlist[1]);
+    e->vlist[1].mark = 1;
+    ferListAppend(&end->edges, ferListMAsList(&e->vlist[1]));
     end->edges_len++;
 
     // add edge to list of all edges
@@ -203,9 +209,9 @@ int ferMesh3RemoveEdge(fer_mesh3_t *m, fer_mesh3_edge_t *e)
         return -1;
 
     // remove edge from lists in vertices
-    ferListDel(&e->vlist[0]);
+    ferListDel(ferListMAsList(&e->vlist[0]));
     e->v[0]->edges_len--;
-    ferListDel(&e->vlist[1]);
+    ferListDel(ferListMAsList(&e->vlist[1]));
     e->v[1]->edges_len--;
 
     // remove edge from list of all edges
@@ -273,4 +279,100 @@ void ferMesh3RemoveFace(fer_mesh3_t *m, fer_mesh3_face_t *f)
 
     // zeroize pointers to edges
     f->e[0] = f->e[1] = f->e[2] = NULL;
+}
+
+void ferMesh3DumpSVT(fer_mesh3_t *m, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_mesh3_vertex_t *v;
+    fer_mesh3_vertex_t *vs[3];
+    fer_mesh3_edge_t *e;
+    fer_mesh3_face_t *f;
+    size_t i;
+
+    fprintf(out, "--------\n");
+    if (name){
+        fprintf(out, "Name: %s\n", name);
+    }
+
+    fprintf(out, "Points:\n");
+    i = 0;
+    ferListForEach(&m->verts, item){
+        v = ferListEntry(item, fer_mesh3_vertex_t, list);
+        v->_id = i++;
+        fprintf(out, "%g %g %g\n",
+                ferVec3X(ferMesh3VertexCoords(v)),
+                ferVec3Y(ferMesh3VertexCoords(v)),
+                ferVec3Z(ferMesh3VertexCoords(v)));
+    }
+
+    fprintf(out, "Edges:\n");
+    ferListForEach(&m->edges, item){
+        e = ferListEntry(item, fer_mesh3_edge_t, list);
+        fprintf(out, "%d %d\n", ferMesh3EdgeVertex(e, 0)->_id,
+                                ferMesh3EdgeVertex(e, 1)->_id);
+    }
+
+    fprintf(out, "Faces:\n");
+    ferListForEach(&m->faces, item){
+        f = ferListEntry(item, fer_mesh3_face_t, list);
+        ferMesh3FaceVertices(f, vs);
+        fprintf(out, "%d %d %d\n", vs[0]->_id, vs[1]->_id, vs[2]->_id);
+    }
+
+    fprintf(out, "--------\n");
+}
+
+void ferMesh3DumpTriangles(fer_mesh3_t *m, FILE *out)
+{
+    fer_mesh3_vertex_t *vs[3];
+    fer_mesh3_face_t *f;
+    fer_list_t *item;
+
+    ferListForEach(&m->faces, item){
+        f = ferListEntry(item, fer_mesh3_face_t, list);
+        ferMesh3FaceVertices(f, vs);
+
+        fprintf(out, "%g %g %g %g %g %g %g %g %g\n",
+                ferVec3X(ferMesh3VertexCoords(vs[0])),
+                ferVec3Y(ferMesh3VertexCoords(vs[0])),
+                ferVec3Z(ferMesh3VertexCoords(vs[0])),
+                ferVec3X(ferMesh3VertexCoords(vs[1])),
+                ferVec3Y(ferMesh3VertexCoords(vs[1])),
+                ferVec3Z(ferMesh3VertexCoords(vs[1])),
+                ferVec3X(ferMesh3VertexCoords(vs[2])),
+                ferVec3Y(ferMesh3VertexCoords(vs[2])),
+                ferVec3Z(ferMesh3VertexCoords(vs[2])));
+    }
+
+    fflush(out);
+}
+
+void ferMesh3DumpPovray(fer_mesh3_t *m, FILE *out)
+{
+    fer_mesh3_vertex_t *vs[3];
+    fer_mesh3_face_t *f;
+    fer_list_t *item;
+
+    fprintf(out, "mesh {\n");
+
+    ferListForEach(&m->faces, item){
+        f = ferListEntry(item, fer_mesh3_face_t, list);
+        ferMesh3FaceVertices(f, vs);
+
+        fprintf(out, "triangle { <%g %g %g>, <%g %g %g>, <%g %g %g> }\n",
+                ferVec3X(ferMesh3VertexCoords(vs[0])),
+                ferVec3Y(ferMesh3VertexCoords(vs[0])),
+                ferVec3Z(ferMesh3VertexCoords(vs[0])),
+                ferVec3X(ferMesh3VertexCoords(vs[1])),
+                ferVec3Y(ferMesh3VertexCoords(vs[1])),
+                ferVec3Z(ferMesh3VertexCoords(vs[1])),
+                ferVec3X(ferMesh3VertexCoords(vs[2])),
+                ferVec3Y(ferMesh3VertexCoords(vs[2])),
+                ferVec3Z(ferMesh3VertexCoords(vs[2])));
+    }
+
+    fprintf(out, "}\n");
+
+    fflush(out);
 }

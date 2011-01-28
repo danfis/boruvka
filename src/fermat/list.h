@@ -26,7 +26,19 @@ struct _fer_list_t {
 };
 typedef struct _fer_list_t fer_list_t;
 
-
+/**
+ * Simliar struct as fer_list_t but with extra member "mark" which can be
+ * used for marking a particular struct.
+ * In your code, you can put this struct into your own struct then use
+ * ferListMAsList() for iterating over list and finaly ferListMFromList()
+ * for backcast to this struct. (In other words retyping from fer_list_m_t
+ * to fer_list_t is safe!).
+ */
+struct _fer_list_m_t {
+    struct _fer_list_m_t *next, *prev;
+    int mark;
+};
+typedef struct _fer_list_m_t fer_list_m_t;
 
 /**
  * Get the struct for this entry.
@@ -108,6 +120,20 @@ _fer_inline void ferListDel(fer_list_t *item);
 _fer_inline size_t ferListSize(const fer_list_t *head);
 
 
+
+/**
+ * Retypes given "M" list struct to regular list struct.
+ */
+_fer_inline fer_list_t *ferListMAsList(fer_list_m_t *l);
+
+/**
+ * Opposite to ferListMAsList().
+ */
+_fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l);
+
+
+
+
 ///
 /// INLINES:
 ///
@@ -160,4 +186,15 @@ _fer_inline size_t ferListSize(const fer_list_t *head)
 
     return size;
 }
+
+_fer_inline fer_list_t *ferListMAsList(fer_list_m_t *l)
+{
+    return (fer_list_t *)l;
+}
+
+_fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l)
+{
+    return (fer_list_m_t *)l;
+}
+
 #endif /* __FER_LIST_H__ */

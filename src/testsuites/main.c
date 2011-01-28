@@ -7,6 +7,7 @@
 #include "mat3.h"
 #include "mat4.h"
 #include "cubes3.h"
+#include "mesh3.h"
 
 #ifdef FER_GSL
 #include "vec.h"
@@ -23,6 +24,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSMat4),
 
     TEST_SUITE_ADD(TSCubes3),
+    TEST_SUITE_ADD(TSMesh3),
 
 #ifdef FER_GSL
     TEST_SUITE_ADD(TSVec),
