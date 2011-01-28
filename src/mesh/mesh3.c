@@ -2,29 +2,12 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-fer_mesh3_vertex_t *ferMesh3VertexNew(fer_real_t x, fer_real_t y, fer_real_t z)
+fer_mesh3_vertex_t *ferMesh3VertexNew(void)
 {
     fer_mesh3_vertex_t *v;
-
-#ifdef FER_SSE
-    // Vec3 must be properly aligned if we are using SSE.
-    // Because vec3 occupies beggining of struct its enough if we align
-    // whole struct
-    v = FER_ALLOC_ALIGN(fer_mesh3_vertex_t, 16);
-#else /* FER_SSE */
     v = FER_ALLOC(fer_mesh3_vertex_t);
-#endif /* FER_SSE */
-
-    ferVec3Set(&v->v, x, y, z);
-
+    v->v = NULL;
     return v;
-}
-
-fer_mesh3_vertex_t *ferMesh3VertexNew2(const fer_vec3_t *coords)
-{
-    return ferMesh3VertexNew(ferVec3X(coords),
-                             ferVec3Y(coords),
-                             ferVec3Z(coords));
 }
 
 void ferMesh3VertexDel(fer_mesh3_vertex_t *v)

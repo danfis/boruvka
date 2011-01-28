@@ -17,16 +17,20 @@ TEST(testMesh3TearDown)
 
 TEST(testMesh){
     fer_mesh3_t *mesh;
+    fer_vec3_t vcoords[4];
     fer_mesh3_vertex_t v[4];
     fer_mesh3_edge_t e[5];
     fer_mesh3_face_t f[2], f2;
+    size_t i;
 
     mesh = ferMesh3New();
 
-    ferVec3Set(ferMesh3VertexCoords(&v[0]), 0., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoords(&v[1]), 1., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoords(&v[2]), 0., 1., 0.);
-    ferVec3Set(ferMesh3VertexCoords(&v[3]), 1., 1., 1.);
+    for (i = 0; i < 4; i++)
+        ferMesh3VertexSetCoords(&v[i], &vcoords[i]);
+    ferVec3Set(ferMesh3VertexCoordsW(&v[0]), 0., 0., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(&v[1]), 1., 0., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(&v[2]), 0., 1., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(&v[3]), 1., 1., 1.);
 
     ferMesh3AddVertex(mesh, &v[0]);
     ferMesh3AddVertex(mesh, &v[1]);
@@ -130,6 +134,7 @@ TEST(testMesh){
 
 static void testMesh2DelV(fer_mesh3_vertex_t *v, void *data)
 {
+    ferVec3Del(ferMesh3VertexCoordsW(v));
     ferMesh3VertexDel(v);
     assertEquals(*(long *)data, 123);
 }
@@ -147,6 +152,7 @@ static void testMesh2DelF(fer_mesh3_face_t *f, void *data)
 TEST(testMesh2)
 {
     fer_mesh3_t *mesh;
+    fer_vec3_t *vcoords[4];
     fer_mesh3_vertex_t *v[4];
     fer_mesh3_edge_t *e[5];
     fer_mesh3_face_t *f[2], f2;
@@ -155,18 +161,21 @@ TEST(testMesh2)
 
     mesh = ferMesh3New();
 
-    for (i = 0; i < 4; i++)
-        v[i] = ferMesh3VertexNew(0., 0., 0.);
+    for (i = 0; i < 4; i++){
+        vcoords[i] = ferVec3New(0., 0., 0.);
+        v[i] = ferMesh3VertexNew();
+        ferMesh3VertexSetCoords(v[i], vcoords[i]);
+    }
     for (i = 0; i < 5; i++)
         e[i] = ferMesh3EdgeNew();
     for (i = 0; i < 2; i++)
         f[i] = ferMesh3FaceNew();
 
 
-    ferVec3Set(ferMesh3VertexCoords(v[0]), 0., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoords(v[1]), 1., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoords(v[2]), 0., 1., 0.);
-    ferVec3Set(ferMesh3VertexCoords(v[3]), 1., 1., 1.);
+    ferVec3Set(ferMesh3VertexCoordsW(v[0]), 0., 0., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(v[1]), 1., 0., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(v[2]), 0., 1., 0.);
+    ferVec3Set(ferMesh3VertexCoordsW(v[3]), 1., 1., 1.);
 
     ferMesh3AddVertex(mesh, v[0]);
     ferMesh3AddVertex(mesh, v[1]);

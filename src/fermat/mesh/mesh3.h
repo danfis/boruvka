@@ -32,9 +32,47 @@ struct _fer_mesh3_edge_t;
 struct _fer_mesh3_face_t;
 
 
-
 /**
- * TODO
+ * Mesh3 - Representation of 3D mesh
+ * ----------------------------------
+ *
+ * This is implementation of simple 2-minfold mesh representation.
+ *
+ * A mesh consists of vertices, edges and faces. In this implementation
+ * each element (vertex, edge and face) is stored explicitly (no implicit
+ * faces, edges or vertices). In each vertex is stored list of all
+ * incidenting edges, in each edge is stored start and end vertex and
+ * (maximally) two incideting faces, each face holds triplet of bounding
+ * edges. It can be illustrated:
+ * ----
+ *      vertex <--> edge <--> face.
+ * ----
+ *
+ * Vertex, edge and face corresponds with structs
+ * fer_mesh3_{vertex,edge,face}_t respectively. Structs don't have to be
+ * initialized before use - functions ferMesh3Add{Vertex,Edge,Face}()
+ * initialize them when adding to mesh. Structs can be allocated on both
+ * stack or heap and doesn't need any alignment. Vertices are designed hold
+ * only pointer to *user-defined* fer_vec3_t vector representing
+ * coordinates. Mesh3 takes care only of connection between vertices, edges
+ * and faces, the rest is user's responsibility.
+ *
+ * Most likely, user will define its own structures and fer_mesh3_*
+ * structs just embeds into to, for example:
+ * ----
+ *   struct my_vec_t {
+ *       fer_vec3_t vec;       // Coordinates of vertex
+ *       fer_mesh3_vertex_t v; // Vertex
+ *   };
+ *   ....
+ *   struct my_vec_t v;
+ *   // set vertex coordinates
+ *   ferMesh3VertexSetCoordinates(&v.v, &v.vec);
+ *   ...
+ * ----
+ *
+ * NOTE: Don't access any struct's member directly instead use provided
+ * inline functions.
  */
 struct _fer_mesh3_t {
     fer_list_t verts; /*!< List of vertices */
@@ -48,8 +86,8 @@ typedef struct _fer_mesh3_t fer_mesh3_t;
 
 
 struct _fer_mesh3_vertex_t {
-    fer_vec3_t v;    /*!< Coordinates of vertex */
-    fer_list_t list; /*!< Connection into list of all vertices */
+    const fer_vec3_t *v; /*!< User provided coordinates of vertex */
+    fer_list_t list;     /*!< Connection into list of all vertices */
 
     fer_list_t edges; /*!< List of all incidenting edges */
     size_t edges_len; /*!< Number of edges in list */
@@ -63,7 +101,7 @@ struct _fer_mesh3_edge_t {
     fer_mesh3_vertex_t *v[2];       /*!< Start and end point of edge */
     struct _fer_mesh3_face_t *f[2]; /*!< Incidenting faces */
 
-    fer_list_t list;     /*!< Connection into listo of all edges */
+    fer_list_t list;       /*!< Connection into list of all edges */
     fer_list_m_t vlist[2]; /*!< Connection into list of edges incidenting
                                 with vertex.
                                 .vlist[0] correspond with vertex .v[0] and
@@ -82,17 +120,23 @@ typedef struct _fer_mesh3_face_t fer_mesh3_face_t;
 /**
  * Vertex
  * -------
+ *
+ * Vertex holds list of incidenting edges and *user-defined* vec3
+ * coordinates. See above for example how to provide vec3 to vertex.
+ *
+ * Vertex don't have to be initialized because ferMesh3AddVertex()
+ * initializes it when it's added to mesh.
+ * Note that since there is no initialization function it is not safe to
+ * use any ferMesh3Vertex*() function until it's added to mesh.
+ * Note also that nothing ever touches fer_vec3_t vector stored (as
+ * pointer) in vertex. It is safe anytime (even if it is not added to mesh)
+ * to get or set coords - ferMesh3Vertex{,Set}Coords{,W}().
  */
 
 /**
  * Allocates and initializes new vertex.
  */
-fer_mesh3_vertex_t *ferMesh3VertexNew(fer_real_t x, fer_real_t y, fer_real_t z);
-
-/**
- * Allocates and initializes new vertex using coordinates given as vec3.
- */
-fer_mesh3_vertex_t *ferMesh3VertexNew2(const fer_vec3_t *coords);
+fer_mesh3_vertex_t *ferMesh3VertexNew(void);
 
 /**
  * Deletes vertex.
@@ -101,9 +145,20 @@ void ferMesh3VertexDel(fer_mesh3_vertex_t *v);
 
 
 /**
- * Returns pointer vector representing coordinates of vertex.
+ * Sets pointer to user-defined vec3 coordinates.
  */
-_fer_inline fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v);
+_fer_inline void ferMesh3VertexSetCoords(fer_mesh3_vertex_t *v,
+                                         const fer_vec3_t *coords);
+
+/**
+ * Returns pointer to vector representing coordinates of vertex.
+ */
+_fer_inline const fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v);
+
+/**
+ * Returns writeable pointer to vec3 coordinates.
+ */
+_fer_inline fer_vec3_t *ferMesh3VertexCoordsW(fer_mesh3_vertex_t *v);
 
 /**
  * Returns number of edges incidenting with given vertex.
@@ -126,7 +181,11 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
 /**
  * Edge
  * -----
- * TODO
+ * 
+ * Edge doesn't have to be initialized explicitly - ferMesh3AddEdge()
+ * initialize it when added to mesh. Note that since there is no
+ * initialization function it is not safe to use any ferMesh3Edge*()
+ * function until it's added to mesh.
  */
 
 /**
@@ -182,6 +241,8 @@ int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
 /**
  * Face
  * -----
+ *
+ * Same as with edges - faces don't have to be initialized.
  */
 
 /**
@@ -226,6 +287,33 @@ _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
 /**
  * Mesh
  * -----
+ *
+ * Mesh must be allocated on heap - no static declaration is allowed - use
+ * ferMesh3New() function for allocation and ferMesh3Del() for
+ * deallocation. If you need to deallocate also vertices, edges or faces
+ * along with deallocation of whole mesh, use ferMesh3Del2() function that
+ * allows you to provide callback for deallocation of elements.
+ *
+ * For iteration over vertices use this approach:
+ * ----
+ *   // note: mesh hold pointer to fer_mesh3_t
+ *   fer_list_t *item;
+ *   fer_mesh3_vertex_t *v;
+ *   ferListForEach(ferMesh3Vertices(mesh), item) {
+ *       v = ferListEntry(item, fer_mesh3_vertex_t, list);
+ *       // here you have vertex stored in v
+ *       ...
+ *   }
+ * ----
+ * Similar approach can be used for edges and faces, only different type is
+ * used in ferListEntry():
+ * ----
+ *   ferListEntry(item, fer_mesh3_{edge,face}_t, list);
+ * ----
+ *
+ * TODO: Maybe some macros could be provided for iteration over vertices,
+ *       edges and faces.
+ *
  */
 
 /**
@@ -283,8 +371,6 @@ _fer_inline fer_list_t *ferMesh3Edges(fer_mesh3_t *m);
  * Returns list of faces.
  */
 _fer_inline fer_list_t *ferMesh3Faces(fer_mesh3_t *m);
-
-// TODO: forEach{Vertex,Edge,Face}
 
 
 /**
@@ -350,9 +436,20 @@ void ferMesh3DumpPovray(fer_mesh3_t *m, FILE *out);
 
 
 /**** INLINES ****/
-_fer_inline fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v)
+_fer_inline void ferMesh3VertexSetCoords(fer_mesh3_vertex_t *v,
+                                         const fer_vec3_t *coords)
 {
-    return &v->v;
+    v->v = coords;
+}
+
+_fer_inline const fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v)
+{
+    return v->v;
+}
+
+_fer_inline fer_vec3_t *ferMesh3VertexCoordsW(fer_mesh3_vertex_t *v)
+{
+    return (fer_vec3_t *)v->v;
 }
 
 _fer_inline size_t ferMesh3VertexEdgesLen(const fer_mesh3_vertex_t *v)
