@@ -97,6 +97,12 @@ void ferPCPermutate(fer_pc_t *pc);
  */
 size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename);
 
+/**
+ * Returns axis-aligned bounding box of all points in point cloud.
+ * [xmin, xmax, ymin, ymax, zmin, zmax]
+ */
+_fer_inline const fer_real_t *ferPCAABB(const fer_pc_t *pc);
+
 
 /**
  * Initializes point cloud iterator and set iterator to beggining.
@@ -138,6 +144,10 @@ _fer_inline size_t ferPCLen(const fer_pc_t *pc)
     return pc->len;
 }
 
+_fer_inline const fer_real_t *ferPCAABB(const fer_pc_t *pc)
+{
+    return pc->aabb;
+}
 
 
 

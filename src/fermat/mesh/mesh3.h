@@ -177,6 +177,12 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
                                       const fer_mesh3_edge_t *e);
 
 
+/**
+ * Returns edge (first) connecting given pair of vertices.
+ */
+fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
+                                           const fer_mesh3_vertex_t *v2);
+
 
 /**
  * Edge
@@ -229,13 +235,19 @@ _fer_inline int ferMesh3EdgeHasFace(const fer_mesh3_edge_t *e,
  */
 _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e);
 
+
+/**
+ * Returns the other (start/end) vertex than provided.
+ */
+_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
+                                                        const fer_mesh3_vertex_t *v);
+
 /**
  * Returns true if given triplet of edges form triangle.
  */
 int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
                          const fer_mesh3_edge_t *e2,
                          const fer_mesh3_edge_t *e3);
-
 
 
 /**
@@ -281,7 +293,6 @@ _fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
  */
 _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
                                       fer_mesh3_vertex_t **vs);
-
 
 
 /**
@@ -516,6 +527,14 @@ _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e)
     }else{
         return 2;
     }
+}
+
+_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
+                                                        const fer_mesh3_vertex_t *v)
+{
+    if (e->v[0] == v)
+        return e->v[1];
+    return e->v[0];
 }
 
 
