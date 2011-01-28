@@ -61,6 +61,9 @@ TEST(testMesh){
     assertTrue(ferMesh3VertexHasEdge(&v[2], &e[1]));
     assertTrue(ferMesh3VertexHasEdge(&v[2], &e[2]));
 
+    assertEquals(ferMesh3VertexCommonEdge(&v[0], &v[1]), &e[0]);
+    assertEquals(ferMesh3VertexCommonEdge(&v[2], &v[1]), &e[2]);
+
     assertTrue(ferMesh3EdgeTriCheck(&e[0], &e[1], &e[2]));
     assertTrue(ferMesh3EdgeTriCheck(&e[2], &e[3], &e[4]));
     assertEquals(ferMesh3AddFace(mesh, &f[0], &e[0], &e[1], &e[2]), 0);
