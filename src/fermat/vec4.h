@@ -23,32 +23,33 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Vec4 - 4D vector
+ * =================
+ */
+
+/** vvvvv */
 #ifdef FER_SSE
-
 # ifdef FER_SSE_SINGLE
-
 union _fer_vec4_t {
     __m128 v;
     float f[4];
 } fer_aligned(16) fer_packed;
 typedef union _fer_vec4_t fer_vec4_t;
-
 # else /* FER_SSE_SINGLE */
-
 union _fer_vec4_t {
     __m128d v[2];
     double f[4];
 } fer_aligned(16) fer_packed;
 typedef union _fer_vec4_t fer_vec4_t;
-
 # endif /* FER_SSE_SINGLE */
-
 #else /* FER_SSE */
 struct _fer_vec4_t {
     fer_real_t f[4];
 };
 typedef struct _fer_vec4_t fer_vec4_t;
 #endif /* FER_SSE */
+/** ^^^^^ */
 
 
 /**

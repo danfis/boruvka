@@ -25,6 +25,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * Vec - wrapper around GSL vectors
+ * =================================
+ *
  * This is basically wrapper around GSL. Feel free to use .v member of
  * struct in any GSL function directly.
  */

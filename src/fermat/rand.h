@@ -30,6 +30,9 @@
 #endif /* FER_RAND_MAX_RAND_NUMS */
 
 /**
+ * Rand
+ * =====
+ *
  * Struct representing random number generator.
  */
 struct _fer_rand_t {

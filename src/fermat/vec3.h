@@ -23,32 +23,33 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Vec3 - 3D vector
+ * =================
+ */
+
+/** vvvvv */
 #ifdef FER_SSE
-
 # ifdef FER_SSE_SINGLE
-
 union _fer_vec3_t {
     __m128 v;
     float f[4];
 } fer_aligned(16) fer_packed;
 typedef union _fer_vec3_t fer_vec3_t;
-
 # else /* FER_SSE_SINGLE */
-
 union _fer_vec3_t {
     __m128d v[2];
     double f[4];
 } fer_aligned(16) fer_packed;
 typedef union _fer_vec3_t fer_vec3_t;
-
 # endif /* FER_SSE_SINGLE */
-
 #else /* FER_SSE */
 struct _fer_vec3_t {
     fer_real_t f[4];
 };
 typedef struct _fer_vec3_t fer_vec3_t;
 #endif /* FER_SSE */
+/** ^^^^^ */
 
 
 /**
@@ -69,6 +70,11 @@ extern size_t fer_points_on_sphere_len;
     fer_vec3_t name = FER_VEC3_STATIC((x), (y), (z))
 
 /**
+ * Functions
+ * ----------
+ */
+
+/**
  * Allocate and initialize new vector.
  */
 fer_vec3_t *ferVec3New(fer_real_t x, fer_real_t y, fer_real_t z);
@@ -85,6 +91,10 @@ void ferVec3Del(fer_vec3_t *);
  * Use ferVec3ArrDel() to free allocated memory.
  */
 fer_vec3_t *ferVec3ArrNew(size_t num_vecs);
+
+/**
+ * Deletes array created by ferVec3ArrNew().
+ */
 void ferVec3ArrDel(fer_vec3_t *);
 
 /**

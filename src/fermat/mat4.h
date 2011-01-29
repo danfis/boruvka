@@ -26,7 +26,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * 4 x 4 matrix
+ * Mat4 - 4x4 matrix
+ * ==================
  */
 union _fer_mat4_t {
     fer_vec4_t v[4];
@@ -61,6 +62,11 @@ extern const fer_mat4_t *fer_mat4_zero;
                                       (f21), (f22), (f23), (f24), \
                                       (f31), (f32), (f33), (f34), \
                                       (f41), (f42), (f43), (f44))
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Allocates uninitialized new matrix.

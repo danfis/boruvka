@@ -25,6 +25,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * Mat - wrapper around GSL matrices
+ * ==================================
+ *
  * This is basically wrapper around GSL. Feel free to use .m member of
  * struct in any GSL function directly.
  */
