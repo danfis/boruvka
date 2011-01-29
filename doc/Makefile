@@ -133,5 +133,5 @@ doctest:
 
 clean:
 	rm -f $(RSTS)
-	rm -rf $(BUILDDIR)/*
+	rm -rf html/ doctrees/
 
