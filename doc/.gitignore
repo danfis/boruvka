@@ -3,3 +3,4 @@ html
 .doctrees
 doctrees/
 *.html
+*.h.rst

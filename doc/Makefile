@@ -1,11 +1,13 @@
-# Makefile for Sphinx documentation
-#
+-include ../src/Makefile.include
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = .
+
+RSTS = vec2 vec3 vec4 mat3 mat4 vec mat list point_cloud quat rand
+RSTS := $(foreach header,$(RSTS),$(header).h.rst)
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -33,10 +35,7 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
-clean:
-	-rm -rf $(BUILDDIR)/*
-
-html:
+html: $(RSTS)
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -128,3 +127,11 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
+
+%.h.rst: ../src/fermat/%.h
+	$(PYTHON) doc.py $< >$@
+
+clean:
+	rm -f $(RSTS)
+	rm -rf $(BUILDDIR)/*
+

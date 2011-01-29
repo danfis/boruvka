@@ -9,30 +9,24 @@ Welcome to Fermat's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    core.rst
-   vec2.rst
+   vec2.h.rst
+   vec3.h.rst
+   vec4.h.rst
+   quat.h.rst
+   mat3.h.rst
+   mat4.h.rst
 
-.. c:function:: int a(void)
+   vec.h.rst
+   mat.h.rst
 
-    asfasdf
+   point_cloud.h.rst
 
-.. cpp:function:: bool namespaced::theclass::method(int arg1, std::string arg2)
+   rand.h.rst
+   list.h.rst
 
-   Describes a method with parameters and types.
-
-.. cpp:function:: bool namespaced::theclass::method(arg1, arg2)
-
-   Describes a method without types.
-
-.. cpp:function:: const T &array<T>::operator[]() const
-
-   Describes the constant indexing operator of a templated array.
-
-.. cpp:function:: operator bool() const
-
-   Describe a casting operator here.
 
 .. cpp:member:: std::string theclass::name
 
