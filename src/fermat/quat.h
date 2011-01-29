@@ -24,6 +24,12 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Quat - quaternions
+ * ===================
+ */
+
+/** vvvvv */
 typedef fer_vec4_t fer_quat_t;
 
 #define FER_QUAT_STATIC FER_VEC4_STATIC
@@ -56,6 +62,7 @@ typedef fer_vec4_t fer_quat_t;
 #define ferQuatEq2    ferVec4Eq2
 #define ferQuatNEq2   ferVec4NEq2
 #define ferQuatIsZero ferVec4IsZero
+/** ^^^^^ */
 
 
 _fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,

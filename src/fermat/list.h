@@ -21,6 +21,10 @@
 #include <string.h>
 #include <fermat/core.h>
 
+/**
+ * List
+ * =====
+ */
 struct _fer_list_t {
     struct _fer_list_t *next, *prev;
 };
@@ -95,7 +99,16 @@ typedef struct _fer_list_m_t fer_list_m_t;
  */
 _fer_inline void ferListInit(fer_list_t *l);
 
+/**
+ * Returns next element in list. If called on head first element is
+ * returned.
+ */
 _fer_inline fer_list_t *ferListNext(fer_list_t *l);
+
+/**
+ * Returns previous element in list. If called on head last element is
+ * returned.
+ */
 _fer_inline fer_list_t *ferListPrev(fer_list_t *l);
 
 /**

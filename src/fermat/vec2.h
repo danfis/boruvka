@@ -17,22 +17,24 @@
 #ifndef __FER_VEC2_H__
 #define __FER_VEC2_H__
 
-/**
- * Implementation of vectors.
- * Functions defined should be optimized as possible, so if you see some
- * drawback in implementation feel free to fix it!
- */
-
 #include <fermat/core.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-
 /**
- * Structure representing 2D vector.
+ * Vec2 - 2D vector
+ * =================
+ *
+ * Functions defined should be optimized as possible, so if you see some
+ * drawback in implementation feel free to fix it!
+ *
+ *
+ * .. c:type:: fer_vec2_t
  */
+
+/** vvvvv */
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
 union _fer_vec2_t {
@@ -48,13 +50,12 @@ union _fer_vec2_t {
 typedef union _fer_vec2_t fer_vec2_t;
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-
 struct _fer_vec2_t {
     fer_real_t f[2];
 };
 typedef struct _fer_vec2_t fer_vec2_t;
-
 #endif /* FER_SSE */
+/** ^^^^^ */
 
 /**
  * Holds origin (0,0) - this variable is meant to be read-only!
@@ -66,6 +67,12 @@ extern const fer_vec2_t *fer_vec2_origin;
 
 #define FER_VEC2(name, x, y) \
     fer_vec2_t name = FER_VEC2_STATIC((x), (y))
+
+
+/**
+ * Functions
+ * ----------
+ */
 
 
 /**
@@ -88,21 +95,59 @@ _fer_inline fer_vec2_t *ferVec2Clone(const fer_vec2_t *v);
  */
 _fer_inline void ferVec2Copy(fer_vec2_t *v, const fer_vec2_t *w);
 
-
+/**
+ * Returns X coordinate
+ */
 _fer_inline fer_real_t ferVec2X(const fer_vec2_t *v);
+
+/**
+ * Returns Y coordinate
+ */
 _fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v);
+
+/**
+ * Returns coordinate according to argument d (0 or 1).
+ */
 _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d);
 
-
+/**
+ * Sets X coordinate.
+ */
 _fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val);
+
+/**
+ * Sets Y coordinate
+ */
 _fer_inline void ferVec2SetY(fer_vec2_t *v, fer_real_t val);
+
+/**
+ * Sets X and Y coordinates.
+ */
 _fer_inline void ferVec2Set(fer_vec2_t *v, fer_real_t x, fer_real_t y);
+
+/**
+ * Sets i'th coordinate (0 or 1)
+ */
 _fer_inline void ferVec2SetCoord(fer_vec2_t *v, size_t i, fer_real_t val);
 
+/**
+ * Returns true if two given vectors equals to each other.
+ */
 _fer_inline int ferVec2Eq(const fer_vec2_t *x, const fer_vec2_t *y);
+
+/**
+ * Opposite of ferVec2Eq().
+ */
 _fer_inline int ferVec2NEq(const fer_vec2_t *x, const fer_vec2_t *y);
 
+/**
+ * Returns true if vector v equals to [x, y]
+ */
 _fer_inline int ferVec2Eq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y);
+
+/**
+ * Opposite of ferVec2Eq2().
+ */
 _fer_inline int ferVec2NEq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y);
 
 
@@ -149,9 +194,24 @@ _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w);
  */
 _fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_t *ww);
 
+/**
+ * Adds constant to vector v: v = v + f.
+ */
 _fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f);
+
+/**
+ * d = v + f
+ */
 _fer_inline void ferVec2AddConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
+
+/**
+ * v = v - f
+ */
 _fer_inline void ferVec2SubConst(fer_vec2_t *v, fer_real_t f);
+
+/**
+ * d = v - f
+ */
 _fer_inline void ferVec2SubConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
 
 
@@ -247,8 +307,8 @@ int ferVec2LiesOn(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c)
 /**
  * Returns true if a is collinear with b and c.
  */
-#define ferVec2Collinear(a, b, c) \
-    ferEq(ferVec2Area2((b), (c), (a)), FER_ZERO)
+_fer_inline int ferVec2Collinear(const fer_vec2_t *a, const fer_vec2_t *b,
+                                 const fer_vec2_t *c);
 
 /**
  * Returns true, if vector v is in cone formed by p1, c, p2 (in
@@ -716,6 +776,11 @@ _fer_inline fer_real_t ferVec2SignedAngle(const fer_vec2_t *a,
     return -1 * ang;
 }
 
+_fer_inline int ferVec2Collinear(const fer_vec2_t *a, const fer_vec2_t *b,
+                                 const fer_vec2_t *c)
+{
+    return ferEq(ferVec2Area2((b), (c), (a)), FER_ZERO);
+}
 
 
 _fer_inline int ferVec2IntersectProp(const fer_vec2_t *a,

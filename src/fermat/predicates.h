@@ -16,6 +16,9 @@
 
 
 /**
+ * Predicates
+ * ===========
+ *
  * This is port of Jonathan Richard Shewchuk's robust predicates to fermat
  * library. See http://www.cs.cmu.edu/~quake/robust.html for papers,
  * original code and other informations.

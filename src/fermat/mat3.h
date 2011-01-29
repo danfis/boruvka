@@ -26,7 +26,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * 3 x 3 matrix
+ * Mat3 - 3x3 matrix
+ * ==================
  */
 union _fer_mat3_t {
     fer_vec3_t v[3];
@@ -57,6 +58,11 @@ extern const fer_mat3_t *fer_mat3_zero;
     fer_mat3_t name = FER_MAT3_STATIC(f11, f12, f13, \
                                       f21, f22, f23, \
                                       f31, f32, f33)
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Allocates uninitialized new matrix.

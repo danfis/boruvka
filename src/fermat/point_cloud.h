@@ -25,6 +25,9 @@
 #endif /* FER_PC_MIN_CHUNK_SIZE */
 
 /**
+ * Point Cloud
+ * ============
+ *
  * Struct representing point cloud.
  * Point cloud is internally allocated using several memory chunks to be
  * able to represent huge amount points.
