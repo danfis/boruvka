@@ -37,6 +37,11 @@ struct _fer_mat_t {
 typedef struct _fer_mat_t fer_mat_t;
 
 /**
+ * Functions
+ * ----------
+ */
+
+/**
  * Allocates and initializes new matrix.
  */
 fer_mat_t *ferMatNew(size_t rows, size_t cols);

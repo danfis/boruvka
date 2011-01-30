@@ -46,16 +46,9 @@ typedef struct _fer_pc_t fer_pc_t;
 
 
 /**
- * Iterator over point cloud.
- * See ferPCIt*() functions.
+ * Functions
+ * ----------
  */
-struct _fer_pc_it_t {
-    fer_pc_t *pc; /*!< Reference point cloud */
-    fer_pc_mem_t *mem; /*!< Current mem chunk */
-    size_t pos;       /*!< Current position in mem chunk */
-};
-typedef struct _fer_pc_it_t fer_pc_it_t;
-
 
 /**
  * Creates and deletes point cloud.
@@ -100,6 +93,27 @@ void ferPCPermutate(fer_pc_t *pc);
  */
 size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename);
 
+
+
+/**
+ * Point Cloud Iterator
+ * ---------------------
+ *
+ * Iterator over point cloud.
+ * See ferPCIt*() functions.
+ */
+struct _fer_pc_it_t {
+    fer_pc_t *pc; /*!< Reference point cloud */
+    fer_pc_mem_t *mem; /*!< Current mem chunk */
+    size_t pos;       /*!< Current position in mem chunk */
+};
+typedef struct _fer_pc_it_t fer_pc_it_t;
+
+
+/**
+ * Functions
+ * ^^^^^^^^^^
+ */
 
 /**
  * Initializes point cloud iterator and set iterator to beggining.

@@ -38,6 +38,11 @@ typedef struct _fer_vec_t fer_vec_t;
 
 
 /**
+ * Functions
+ * ----------
+ */
+
+/**
  * Allocate and initialize new vector.
  */
 fer_vec_t *ferVecNew(size_t size);

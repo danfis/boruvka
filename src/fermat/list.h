@@ -95,6 +95,11 @@ typedef struct _fer_list_m_t fer_list_m_t;
 
 
 /**
+ * Functions
+ * ----------
+ */
+
+/**
  * Initialize list.
  */
 _fer_inline void ferListInit(fer_list_t *l);

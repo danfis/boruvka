@@ -9,7 +9,7 @@ Welcome to Fermat's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    core.rst
    vec2.h.rst

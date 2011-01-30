@@ -26,6 +26,9 @@ extern "C" {
 /**
  * Vec3 - 3D vector
  * =================
+ *
+ *
+ * .. c:type:: fer_vec3_t
  */
 
 /** vvvvv */
@@ -151,7 +154,8 @@ _fer_inline fer_real_t ferVec3Dist(const fer_vec3_t *a, const fer_vec3_t *b);
 
 
 /**
- * Adds coordinates of vector w to vector v. v = v + w
+ * Adds coordinates of vector w to vector v.
+ * v = v + w
  */
 _fer_inline void ferVec3Add(fer_vec3_t *v, const fer_vec3_t *w);
 
@@ -162,7 +166,8 @@ _fer_inline void ferVec3Add2(fer_vec3_t *d, const fer_vec3_t *v, const fer_vec3_
 
 
 /**
- * Substracts coordinates of vector w from vector v. v = v - w
+ * Substracts coordinates of vector w from vector v.
+ * v = v - w
  */
 _fer_inline void ferVec3Sub(fer_vec3_t *v, const fer_vec3_t *w);
 
@@ -183,9 +188,9 @@ _fer_inline void ferVec3SubConst2(fer_vec3_t *d, const fer_vec3_t *v, fer_real_t
 _fer_inline void ferVec3Scale(fer_vec3_t *d, fer_real_t k);
 
 /**
- * d = a * k;
+ * d = v * k;
  */
-_fer_inline void ferVec3Scale2(fer_vec3_t *d, const fer_vec3_t *a, fer_real_t k);
+_fer_inline void ferVec3Scale2(fer_vec3_t *d, const fer_vec3_t *v, fer_real_t k);
 
 /**
  * Scales vector v to given length.
@@ -205,9 +210,9 @@ _fer_inline fer_real_t ferVec3Dot(const fer_vec3_t *a, const fer_vec3_t *b);
 
 /**
  * Multiplies vectors component wise:
- *  a.x = a.x * b.x
- *  a.y = a.y * b.y
- *  a.z = a.z * b.z
+ * a.x = a.x * b.x
+ * a.y = a.y * b.y
+ * a.z = a.z * b.z
  */
 _fer_inline void ferVec3MulComp(fer_vec3_t *a, const fer_vec3_t *b);
 
@@ -219,7 +224,8 @@ _fer_inline void ferVec3MulComp(fer_vec3_t *a, const fer_vec3_t *b);
 _fer_inline void ferVec3MulComp2(fer_vec3_t *a, const fer_vec3_t *b, const fer_vec3_t *c);
 
 /**
- * Cross product: d = a x b.
+ * Cross product:
+ * d = a x b.
  */
 _fer_inline void ferVec3Cross(fer_vec3_t *d, const fer_vec3_t *a, const fer_vec3_t *b);
 

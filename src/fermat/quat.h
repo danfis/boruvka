@@ -27,11 +27,21 @@ extern "C" {
 /**
  * Quat - quaternions
  * ===================
+ *
+ *
+ * .. c:type:: fer_quat_t
  */
 
 /** vvvvv */
 typedef fer_vec4_t fer_quat_t;
+/** ^^^^^ */
 
+/**
+ * Functions
+ * ----------
+ */
+
+/** vvvvv */
 #define FER_QUAT_STATIC FER_VEC4_STATIC
 #define FER_QUAT(name, x, y, z, w) \
     fer_quat_t name = FER_QUAT_STATIC((x), (y), (z), (w))
@@ -65,8 +75,11 @@ typedef fer_vec4_t fer_quat_t;
 /** ^^^^^ */
 
 
+/**
+ * Sets quaternion as rotation of given angle around given axis.
+ */
 _fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
-                                   fer_real_t angle, const fer_vec3_t *axis);
+                                     fer_real_t angle, const fer_vec3_t *axis);
 
 /**
  * Composition of two quaternions.

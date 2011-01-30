@@ -26,6 +26,9 @@ extern "C" {
 /**
  * Vec4 - 4D vector
  * =================
+ *
+ *
+ * .. c:type:: fer_vec4_t
  */
 
 /** vvvvv */
@@ -63,6 +66,11 @@ extern const fer_vec4_t *fer_vec4_origin;
 
 #define FER_VEC4(name, x, y, z, w) \
     fer_vec4_t name = FER_VEC4_STATIC((x), (y), (z), (w))
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Allocate and initialize new vector.
@@ -139,7 +147,8 @@ _fer_inline fer_real_t ferVec4Dist(const fer_vec4_t *a, const fer_vec4_t *b);
 
 
 /**
- * Adds coordinates of vector w to vector v. v = v + w
+ * Adds coordinates of vector w to vector v.
+ * v = v + w
  */
 _fer_inline void ferVec4Add(fer_vec4_t *v, const fer_vec4_t *w);
 
@@ -150,7 +159,8 @@ _fer_inline void ferVec4Add2(fer_vec4_t *d, const fer_vec4_t *v, const fer_vec4_
 
 
 /**
- * Substracts coordinates of vector w from vector v. v = v - w
+ * Substracts coordinates of vector w from vector v.
+ * v = v - w
  */
 _fer_inline void ferVec4Sub(fer_vec4_t *v, const fer_vec4_t *w);
 
@@ -170,9 +180,9 @@ _fer_inline void ferVec4SubConst2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t
 _fer_inline void ferVec4Scale(fer_vec4_t *d, fer_real_t k);
 
 /**
- * d = a * k;
+ * d = v * k;
  */
-_fer_inline void ferVec4Scale2(fer_vec4_t *d, const fer_vec4_t *a, fer_real_t k);
+_fer_inline void ferVec4Scale2(fer_vec4_t *d, const fer_vec4_t *v, fer_real_t k);
 
 /**
  * Scales vector v to given length.
@@ -192,10 +202,10 @@ _fer_inline fer_real_t ferVec4Dot(const fer_vec4_t *a, const fer_vec4_t *b);
 
 /**
  * Multiplies vectors component wise:
- *  a.x = a.x * b.x
- *  a.y = a.y * b.y
- *  a.z = a.z * b.z
- *  a.w = a.w * b.w
+ * a.x = a.x * b.x
+ * a.y = a.y * b.y
+ * a.z = a.z * b.z
+ * a.w = a.w * b.w
  */
 _fer_inline void ferVec4MulComp(fer_vec4_t *a, const fer_vec4_t *b);
 

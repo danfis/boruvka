@@ -10,17 +10,48 @@ pat_struct_start  = re.compile(r'(struct|union) ([a-z_0-9]+_t).*{$')
 pat_code_block_start = re.compile(r'^/\*\* v+ \*/$')
 pat_code_block_end   = re.compile(r'^/\*\* \^+ \*/$')
 
+CONTEXT = None
+
 class Element(object):
+    def _formatCommentLine(self, line, line_prefix):
+        s = line_prefix + line + '\n'
+
+        if len(line) == 0:
+            s = '\n'
+        else:
+            if CONTEXT == 'vec':
+                if line.find('=') > 0 \
+                    and (line.find('+') >= 0 \
+                            or line.find('-') >= 0 \
+                            or line.find('*') >= 0 \
+                            or line.find('/') >= 0):
+                    
+                    if line.find('.x') >= 0 or line.find('.y') >= 0 or line.find('.z') >= 0 or line.find('.w') >= 0:
+                        line = line.replace('.x', '_x')
+                        line = line.replace('.y', '_y')
+                        line = line.replace('.z', '_z')
+                        line = line.replace('.w', '_w')
+                    else:
+                        line = line.replace("d ", "\\vec{d} ")
+                        line = line.replace("w", "\\vec{w}")
+                        line = line.replace("v ", "\\vec{v} ")
+                        line = line.replace(" v", " \\vec{v}")
+
+                    s  = '\n'
+                    s += line_prefix + ':math:`'
+                    s += line
+                    s += '`\n'
+        return s
+
     def formatComment(self, comment, line_prefix = ''):
         s = ''
         for line in comment:
             if line == '/**' or line == ' */':
                 continue
             if line[:3] == ' * ':
-                s += line_prefix
-                s += line[3:] + '\n'
+                s += self._formatCommentLine(line[3:], line_prefix)
             elif line == ' *':
-                s += '\n'
+                s += self._formatCommentLine(line[2:], line_prefix)
 
         return s
 
@@ -158,6 +189,11 @@ def parseCode(line, lines_it):
     return Code(code)
 
 def parse(fn):
+    global CONTEXT
+
+    if fn.find('vec') >= 0:
+        CONTEXT = 'vec'
+
     lines = fileLines(fn)
 
     sections = []

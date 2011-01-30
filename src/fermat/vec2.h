@@ -27,10 +27,6 @@ extern "C" {
  * Vec2 - 2D vector
  * =================
  *
- * Functions defined should be optimized as possible, so if you see some
- * drawback in implementation feel free to fix it!
- *
- *
  * .. c:type:: fer_vec2_t
  */
 
@@ -190,12 +186,13 @@ _fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_
 _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w);
 
 /**
- *  v = w - ww
+ * d = v - w
  */
-_fer_inline void ferVec2Sub2(fer_vec2_t *v, const fer_vec2_t *w, const fer_vec2_t *ww);
+_fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w);
 
 /**
- * Adds constant to vector v: v = v + f.
+ * Adds constant to vector v:
+ * v = v + f.
  */
 _fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f);
 
@@ -248,7 +245,7 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
 
 /**
  * Scales vector V using constant k:
- *  v = k * v
+ * v = k * v
  */
 _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k);
 

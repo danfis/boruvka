@@ -42,6 +42,14 @@ struct _fer_rand_t {
 };
 typedef struct _fer_rand_t fer_rand_t;
 
+/**
+ * Functions
+ * ----------
+ */
+
+/**
+ * Initializes rand struct.
+ */
 _fer_inline void ferRandInit(fer_rand_t *r);
 
 /**
