@@ -19,13 +19,12 @@
 #include <fermat/dbg.h>
 
 struct _node_t {
-    // TODO: must be changed to pointer (SSE)
     fer_vec3_t *v; /*!< Position of node (weight vector) */
 
     fer_real_t err_counter;  /*!< Error counter */
     size_t err_counter_mark; /*!< Mark used for accumulated error counter */
 
-    int simpl_ban; /*!< true if node is banned from simplification (deletion) */
+    int simpl_ban; /*!< TODO true if node is banned from simplification (deletion) */
 
     fer_mesh3_vertex_t vert; /*!< Vertex in mesh */
     fer_cubes3_el_t cubes;   /*!< Struct for NN search */
@@ -48,50 +47,67 @@ typedef struct _face_t face_t;
 struct _fer_gsrm_cache_t {
     fer_vec3_t *is;     /*!< Input signal */
     node_t *nearest[2]; /*!< Two nearest nodes */
-    node_t **common_neighb; /*!< Array of common neighbors */
-    size_t common_neighb_size;
-    size_t common_neighb_len;
 
-    size_t err_counter_mark; /*!< TODO */
-    fer_real_t err_counter_scale; /*!< TODO */
+    node_t **common_neighb;    /*!< Array of common neighbors */
+    size_t common_neighb_size; /*!< Size of .common_neighb - num allocated
+                                    bytes */
+    size_t common_neighb_len;  /*!< Number of nodes in .common_neighb */
+
+    size_t err_counter_mark;      /*!< Contains mark used for accumalet
+                                       error counter. It holds how many
+                                       times were applied parameter alpha */
+    fer_real_t err_counter_scale; /*!< Accumulated error counter - alpha^mark */
 };
 typedef struct _fer_gsrm_cache_t fer_gsrm_cache_t;
+
 
 /** Allocates and deallocates cache */
 static fer_gsrm_cache_t *cacheNew(void);
 static void cacheDel(fer_gsrm_cache_t *c);
 
-/** Creates new node */
+
+/** --- Node functions --- */
+/** Creates new node and sets its weight to given vector */
 static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v);
 /** Deletes node */
 static void nodeDel(fer_gsrm_t *g, node_t *n);
+/** Deletes node - proposed for ferMesh3Del2() function */
 static void nodeDel2(fer_mesh3_vertex_t *v, void *data);
-
-/** TODO */
+/** Applies cumulative error counter on node's err counter */
 static void nodeErrCounterApply(fer_gsrm_t *g, node_t *n);
+/** Returns error counter of node.
+ *  This function must be used instead of direct access to struct because
+ *  of cumulative error counter */
 static fer_real_t nodeErrCounter(fer_gsrm_t *g, node_t *n);
+/** Scales error counter by given factor */
 static fer_real_t nodeErrCounterScale(fer_gsrm_t *g, node_t *n, fer_real_t s);
+/** Resets error counter - applies cumulative one and resets mark to zero */
 static fer_real_t nodeErrCounterReset(fer_gsrm_t *g, node_t *n);
-/** Increases error counter (TODO) */
+/** Increases error counter by given value */
 static void nodeErrCounterInc(fer_gsrm_t *g, node_t *n, const fer_vec3_t *v);
-/** Reset all error counters */
+/** Reset all error counters. */
 static void nodeErrCounterResetAll(fer_gsrm_t *g);
-/** Scale all error counters */
+/** Scale all error counters. */
 static void nodeErrCounterScaleAll(fer_gsrm_t *g);
 
 
+/** --- Edge functions --- */
+/** Creates new edge as connection between two given nodes */
 static edge_t *edgeNew(fer_gsrm_t *g, node_t *n1, node_t *n2);
+/** Deletes edge */
 static void edgeDel(fer_gsrm_t *g, edge_t *e);
+/** Deteles edge - proposed for ferMesh3Del2() function */
 static void edgeDel2(fer_mesh3_edge_t *v, void *data);
 
-/** TODO */
+/** --- Face functions --- */
 static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n);
 static void faceDel(fer_gsrm_t *g, face_t *e);
 static void faceDel2(fer_mesh3_face_t *v, void *data);
 
 
-/* Initializes mesh with three random numbers from input */
+/* Initializes mesh with three random nodes from input */
 static void meshInit(fer_gsrm_t *g);
+
 static void drawInputPoint(fer_gsrm_t *g);
 /** Performes Extended Competitive Hebbian Learning */
 static void echl(fer_gsrm_t *g);
@@ -101,6 +117,50 @@ static void echlUpdate(fer_gsrm_t *g);
 /** Creates new node */
 static void createNewNode(fer_gsrm_t *g);
 /** Decreases error counter */
+static void decreaseErrCounter(fer_gsrm_t *g);
+
+/** Initializes mesh with three random nodes from input */
+static void meshInit(fer_gsrm_t *g);
+/** Choose random input signal and stores it in cache */
+static void drawInputPoint(fer_gsrm_t *g);
+
+
+/** --- ECHL functions --- */
+/** Performs ECHL algorithm */
+static void echl(fer_gsrm_t *g);
+/** Gathers common neighbors of n1 and n2 and stores them in cache. */
+static void echlCommonNeighbors(fer_gsrm_t *g, node_t *n1, node_t *n2);
+/** Remove edge if it is inside thales sphere of n1, n2 and theirs common
+ *  neighbors */
+static void echlRemoveThales(fer_gsrm_t *g, edge_t *e, node_t *n1, node_t *n2);
+/** Removes all edges that connect common neighbors between each other */
+static void echlRemoveNeighborsEdges(fer_gsrm_t *g);
+/** Create faces between given edge and common neighbors stored in cache's
+ *  .common_neighb array */
+static void echlCreateFaces(fer_gsrm_t *g, edge_t *e);
+/** Connect winner nodes and if they are already connected update that
+ *  connection */
+static void echlConnectNodes(fer_gsrm_t *g);
+/** Moves node towards input signal by given factor */
+_fer_inline void echlMoveNode(fer_gsrm_t *g, node_t *n, fer_real_t k);
+/** Move winner nodes towards input signal */
+static void echlMove(fer_gsrm_t *g);
+/** Updates all edges emitating from winning node */
+static void echlUpdate(fer_gsrm_t *g);
+
+
+/** -- Create New Node functions --- */
+/** Performs "Create New Node" operation */
+static void createNewNode(fer_gsrm_t *g);
+/** Returns node with highest error counter */
+static node_t *nodeWithHighestErrCounter(fer_gsrm_t *g);
+/** Returns node with highests error counter that is neighbor of sq */
+static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq);
+/** Actually creates new node between sq and sf */
+static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf);
+
+
+/** Decreases error counter for all nodes */
 static void decreaseErrCounter(fer_gsrm_t *g);
 
 
@@ -178,25 +238,22 @@ int ferGSRMRun(fer_gsrm_t *g)
         return -1;
     }
 
-    DBG2("Init cache");
     // initialize cache
     if (!g->c)
         g->c = cacheNew();
 
-    DBG2("Init NN search");
     // initialize NN search structure
     if (!g->cubes){
         aabb = ferPCAABB(g->is);
         g->cubes = ferCubes3New(aabb, g->param.num_cubes);
     }
 
-    DBG2("PC");
     // first shuffle of all input signals
     ferPCPermutate(g->is);
-    // and initialize is's iterator
+    // and initialize its iterator
     ferPCItInit(&g->isit, g->is);
 
-    // initialize mesh
+    // initialize mesh with three random nodes
     meshInit(g);
 
     step = 1;
@@ -218,7 +275,9 @@ int ferGSRMRun(fer_gsrm_t *g)
         step++;
     }
 
-    // TODO
+    // TODO: Postprocess
+    // TODO: Simplification ??
+
     return -1;
 }
 
@@ -250,6 +309,7 @@ static void cacheDel(fer_gsrm_cache_t *c)
 
 
 
+/** --- Node functions --- **/
 static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
 {
     node_t *n;
@@ -309,7 +369,6 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     // remove node from cubes
     ferCubes3Remove(g->cubes, &n->cubes);
 
-    //DBG("n: %lx, vert: %lx", (long)n, (long)&n->vert);
     // Note: no need of deallocation of .vert and .cubes
     free(n);
 }
@@ -347,7 +406,6 @@ static void nodeErrCounterApply(fer_gsrm_t *g, node_t *n)
             n->err_counter *= err;
         }
     }
-    //DBG("err_counter: %g", n->err_counter);
 
     n->err_counter_mark = g->c->err_counter_mark;
 }
@@ -397,6 +455,7 @@ static void nodeErrCounterScaleAll(fer_gsrm_t *g)
 
 
 
+/** --- Edge functions --- **/
 static edge_t *edgeNew(fer_gsrm_t *g, node_t *n1, node_t *n2)
 {
     edge_t *e;
@@ -429,7 +488,6 @@ static void edgeDel(fer_gsrm_t *g, edge_t *e)
         exit(-1);
     }
 
-    //DBG("e: %lx, edge: %lx", (long)e, (long)&e->edge);
     free(e);
 }
 
@@ -443,6 +501,7 @@ static void edgeDel2(fer_mesh3_edge_t *edge, void *data)
 
 
 
+/** --- Face functions --- **/
 static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n)
 {
     face_t *f;
@@ -459,8 +518,6 @@ static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n)
 
     f = FER_ALLOC(face_t);
 
-    //DBG("e: %lx, e2: %lx, e3: %lx", (long)e, (long)e2, (long)e3);
-    //DBG("f: %lx, face: %lx", (long)f, (long)&f->face);
     res = ferMesh3AddFace(g->mesh, &f->face, &e->edge, e2, e3);
     if (fer_unlikely(res != 0)){
         free(f);
@@ -475,7 +532,6 @@ static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n)
 static void faceDel(fer_gsrm_t *g, face_t *f)
 {
     ferMesh3RemoveFace(g->mesh, &f->face);
-    //DBG("f: %lx, face: %lx", (long)f, (long)&f->face);
     free(f);
 }
 
@@ -485,6 +541,8 @@ static void faceDel2(fer_mesh3_face_t *face, void *data)
     f = fer_container_of(face, face_t, face);
     free(f);
 }
+
+
 
 
 static void meshInit(fer_gsrm_t *g)
@@ -514,45 +572,30 @@ static void drawInputPoint(fer_gsrm_t *g)
         ferPCItInit(&g->isit, g->is);
     }
     g->c->is = ferPCItGet(&g->isit);
-    //DBG_VEC3(g->c->is, "IS: ");
     ferPCItNext(&g->isit);
 }
 
+
+
+/** --- ECHL functions --- **/
 static void echl(fer_gsrm_t *g)
 {
     fer_cubes3_el_t *el[2];
 
-    //DBG2("1. ");
-    //DBG("%lx", (long)g->c->is);
     // 1. Find two nearest nodes
     ferCubes3Nearest(g->cubes, g->c->is, 2, el);
     g->c->nearest[0] = fer_container_of(el[0], node_t, cubes);
     g->c->nearest[1] = fer_container_of(el[1], node_t, cubes);
-    /*
-    DBG("nearest[0]: %lx %g %g %g", (long)g->c->nearest[0],
-        ferVec3X(&g->c->nearest[0]->v),
-        ferVec3Y(&g->c->nearest[0]->v),
-        ferVec3Z(&g->c->nearest[0]->v));
-    DBG("nearest[1]: %lx %g %g %g", (long)g->c->nearest[1],
-        ferVec3X(&g->c->nearest[1]->v),
-        ferVec3Y(&g->c->nearest[1]->v),
-        ferVec3Z(&g->c->nearest[1]->v));
-    */
 
-    //DBG2("2. ");
-    //DBG("%lx", (long)g->c->is);
     // 2. Updates winners error counter
     nodeErrCounterInc(g, g->c->nearest[0], g->c->is);
 
-    //DBG2("3. ");
     // 3. Connect winning nodes
     echlConnectNodes(g);
 
-    //DBG2("4. ");
     // 4. Move winning node and its neighbors towards input signal
     echlMove(g);
 
-    //DBG2("5. ");
     // 5. Update all edges emitating from winning node
     echlUpdate(g);
 }
@@ -581,14 +624,12 @@ static void echlCommonNeighbors(fer_gsrm_t *g, node_t *n1, node_t *n2)
     len = 0;
     ferListForEach(list1, item1){
         edge1 = ferMesh3EdgeFromVertexList(item1);
-        //DBG("edge1: %lx", (long)edge1);
         o1 = ferMesh3EdgeVertex(edge1, 0);
         if (o1 == &n1->vert)
             o1 = ferMesh3EdgeVertex(edge1, 1);
 
         ferListForEach(list2, item2){
             edge2 = ferMesh3EdgeFromVertexList(item2);
-            //DBG("edge2: %lx", (long)edge2);
             o2 = ferMesh3EdgeVertex(edge2, 0);
             if (o2 == &n2->vert)
                 o2 = ferMesh3EdgeVertex(edge2, 1);
@@ -638,7 +679,6 @@ static void echlRemoveNeighborsEdges(fer_gsrm_t *g)
             edge = ferMesh3VertexCommonEdge(&ns[i]->vert, &ns[j]->vert);
             if (edge != NULL){
                 e = fer_container_of(edge, edge_t, edge);
-                //DBG("Deleting edge %lx (%lx)", (long)e, (long)edge);
                 edgeDel(g, e);
             }
         }
@@ -701,13 +741,13 @@ static void echlConnectNodes(fer_gsrm_t *g)
 _fer_inline void echlMoveNode(fer_gsrm_t *g, node_t *n, fer_real_t k)
 {
     fer_vec3_t v;
+
+    // compute shifting
     ferVec3Sub2(&v, g->c->is, n->v);
     ferVec3Scale(&v, k);
-    //DBG_VEC3(g->c->is, "g->c->is: ");
-    //DBG_VEC3(&n->v, "n->v: ");
+
+    // move node
     ferVec3Add(n->v, &v);
-    //DBG_VEC3(&n->v, "n->v: ");
-    //DBG2("");
 }
 
 static void echlMove(fer_gsrm_t *g)
@@ -727,7 +767,6 @@ static void echlMove(fer_gsrm_t *g)
     list = ferMesh3VertexEdges(wvert);
     ferListForEach(list, item){
         edge = ferMesh3EdgeFromVertexList(item);
-        //DBG("edge: %lx", (long)edge);
         vert = ferMesh3EdgeOtherVertex(edge, wvert);
 
         echlMoveNode(g, fer_container_of(vert, node_t, vert), g->param.en);
@@ -776,6 +815,8 @@ static void echlUpdate(fer_gsrm_t *g)
 
 
 
+
+/** --- Create New Node functions --- **/
 static node_t *nodeWithHighestErrCounter(fer_gsrm_t *g)
 {
     fer_list_t *list, *item;
@@ -791,7 +832,6 @@ static node_t *nodeWithHighestErrCounter(fer_gsrm_t *g)
         err  = nodeErrCounterReset(g, n);
 
         if (err > max_err){
-            //DBG("err: %g, %lx", err, (long)n);
             max_err = err;
             max_n   = n;
         }
@@ -876,6 +916,7 @@ static void createNewNode(fer_gsrm_t *g)
     edgeNew(g, sq, sr);
     edgeNew(g, sf, sr);
 }
+
 
 
 
