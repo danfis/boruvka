@@ -20,7 +20,7 @@
 
 struct _node_t {
     // TODO: must be changed to pointer (SSE)
-    fer_vec3_t v; /*!< Position of node (weight vector) */
+    fer_vec3_t *v; /*!< Position of node (weight vector) */
 
     fer_real_t err_counter;  /*!< Error counter */
     size_t err_counter_mark; /*!< Mark used for accumulated error counter */
@@ -255,13 +255,13 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
     node_t *n;
 
     n = FER_ALLOC(node_t);
-    ferVec3Copy(&n->v, v);
+    n->v = ferVec3Clone(v);
 
     // initialize mesh's vertex struct with weight vector
-    ferMesh3VertexSetCoords(&n->vert, &n->v);
+    ferMesh3VertexSetCoords(&n->vert, n->v);
 
     // initialize cubes struct with its own weight vector
-    ferCubes3ElInit(&n->cubes, &n->v);
+    ferCubes3ElInit(&n->cubes, n->v);
 
     // add node into mesh
     ferMesh3AddVertex(g->mesh, &n->vert);
@@ -304,6 +304,8 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
         exit(-1);
     }
 
+    ferVec3Del(n->v);
+
     // remove node from cubes
     ferCubes3Remove(g->cubes, &n->cubes);
 
@@ -317,6 +319,8 @@ static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
     fer_gsrm_t *g = (fer_gsrm_t *)data;
     node_t *n;
     n = fer_container_of(v, node_t, vert);
+
+    ferVec3Del(n->v);
 
     // remove node from cubes
     ferCubes3Remove(g->cubes, &n->cubes);
@@ -372,7 +376,7 @@ static void nodeErrCounterInc(fer_gsrm_t *g, node_t *n, const fer_vec3_t *v)
 {
     fer_real_t dist;
 
-    dist = ferVec3Dist2(&n->v, v);
+    dist = ferVec3Dist2(n->v, v);
 
     nodeErrCounterApply(g, n);
     n->err_counter += dist;
@@ -609,7 +613,7 @@ static void echlRemoveThales(fer_gsrm_t *g, edge_t *e, node_t *n1, node_t *n2)
     for (i=0; i < len; i++){
         nb = g->c->common_neighb[i];
 
-        if (ferVec3Angle(&n1->v, &nb->v, &n2->v) > M_PI_2){
+        if (ferVec3Angle(n1->v, nb->v, n2->v) > M_PI_2){
             // remove edge
             edgeDel(g, e);
             return;
@@ -697,11 +701,11 @@ static void echlConnectNodes(fer_gsrm_t *g)
 _fer_inline void echlMoveNode(fer_gsrm_t *g, node_t *n, fer_real_t k)
 {
     fer_vec3_t v;
-    ferVec3Sub2(&v, g->c->is, &n->v);
+    ferVec3Sub2(&v, g->c->is, n->v);
     ferVec3Scale(&v, k);
     //DBG_VEC3(g->c->is, "g->c->is: ");
     //DBG_VEC3(&n->v, "n->v: ");
-    ferVec3Add(&n->v, &v);
+    ferVec3Add(n->v, &v);
     //DBG_VEC3(&n->v, "n->v: ");
     //DBG2("");
 }
@@ -827,7 +831,7 @@ static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf)
     node_t *sr;
     fer_vec3_t v;
 
-    ferVec3Add2(&v, &sq->v, &sf->v);
+    ferVec3Add2(&v, sq->v, sf->v);
     ferVec3Scale(&v, FER_REAL(0.5));
 
     sr = nodeNew(g, &v);
