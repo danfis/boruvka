@@ -176,7 +176,6 @@ _fer_inline fer_list_t *ferMesh3VertexEdges(fer_mesh3_vertex_t *v);
 _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
                                       const fer_mesh3_edge_t *e);
 
-
 /**
  * Returns edge (first) connecting given pair of vertices.
  */
@@ -248,6 +247,12 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
 int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
                          const fer_mesh3_edge_t *e2,
                          const fer_mesh3_edge_t *e3);
+
+/**
+ * Return pointer of edge struct based on list item (pointer to vlist[0|1].
+ */
+_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l);
+
 
 
 /**
@@ -537,6 +542,16 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
     return e->v[0];
 }
 
+_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
+{
+    fer_list_m_t *m;
+    fer_mesh3_edge_t *e;
+
+    m = ferListMFromList(l);
+    e = ferListEntry(l, fer_mesh3_edge_t, vlist[m->mark]);
+
+    return e;
+}
 
 
 
