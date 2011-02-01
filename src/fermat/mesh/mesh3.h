@@ -299,6 +299,17 @@ _fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
 _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
                                       fer_mesh3_vertex_t **vs);
 
+/**
+ * Returns twice an area of a face.
+ */
+_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f);
+
+/**
+ * Returns the last vertex bounding the face.
+ */
+_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
+                                                        fer_mesh3_vertex_t *v1,
+                                                        fer_mesh3_vertex_t *v2);
 
 /**
  * Mesh
@@ -592,6 +603,27 @@ _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
     }
 }
 
+_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f)
+{
+    fer_mesh3_vertex_t *vs[3];
+    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+    return ferVec3TriArea2(vs[0]->v, vs[1]->v, vs[2]->v);
+}
+
+_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
+                                                        fer_mesh3_vertex_t *v1,
+                                                        fer_mesh3_vertex_t *v2)
+{
+    fer_mesh3_vertex_t *vs[3];
+
+    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+
+    if (vs[0] != v1 && vs[0] != v2)
+        return vs[0];
+    if (vs[1] != v1 && vs[1] != v2)
+        return vs[1];
+    return vs[2];
+}
 
 
 

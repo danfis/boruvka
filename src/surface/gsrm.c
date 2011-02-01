@@ -57,6 +57,9 @@ struct _fer_gsrm_cache_t {
                                        error counter. It holds how many
                                        times were applied parameter alpha */
     fer_real_t err_counter_scale; /*!< Accumulated error counter - alpha^mark */
+
+    fer_real_t pp_min, pp_max; /*!< Min and max area2 of face - used in
+                                    postprocessing */
 };
 typedef struct _fer_gsrm_cache_t fer_gsrm_cache_t;
 
@@ -163,6 +166,40 @@ static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf);
 /** Decreases error counter for all nodes */
 static void decreaseErrCounter(fer_gsrm_t *g);
 
+
+/** --- Postprocessing functions --- */
+/** Returns (via min, max, avg arguments) minimum, maximum and average area
+ *  of faces in a mesh. */
+static void faceAreaStat(fer_gsrm_t *g, fer_real_t *min, fer_real_t *max,
+                         fer_real_t *avg);
+/** Deletes incorrect faces from mesh */
+static void delIncorrectFaces(fer_gsrm_t *g);
+/** Deletes incorrect edges from mesh */
+static void delIncorrectEdges(fer_gsrm_t *g);
+/** Merges all edges that can be merged */
+static void mergeEdges(fer_gsrm_t *g);
+/** Tries to finish (triangulate) surface */
+static void finishSurface(fer_gsrm_t *g);
+/** Deletes lonely nodes, edges and faces */
+static void delLonelyNodesEdgesFaces(fer_gsrm_t *g);
+/** Embed triangles everywhere it can */
+static void finishSurfaceEmbedTriangles(fer_gsrm_t *g);
+/** Returns true if all internal angles of face is smaller than
+ *  g->param.max_angle */
+static int faceCheckAngle(fer_gsrm_t *g, fer_mesh3_vertex_t *v1,
+                          fer_mesh3_vertex_t *v2, fer_mesh3_vertex_t *v3);
+/** Deletes one of triangles (the triangles are considered to have dihedral
+ *  angle smaller than g->param.min_dangle.
+ *  First is deleted face that have less incidenting faces. If both have
+ *  same, faces with smaller area is deleted. */
+static void delFacesDangle(fer_gsrm_t *g, face_t *f1, face_t *f2);
+/** Returns true if given edge can't be used for face creation */
+static int edgeNotUsable(fer_mesh3_edge_t *e);
+/** Tries to finish triangle incidenting with e.
+ *  It's assumend that e has already one incidenting face. */
+static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e);
+/** Tries to create completely new face */
+static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e);
 
 fer_gsrm_t *ferGSRMNew(void)
 {
@@ -275,12 +312,70 @@ int ferGSRMRun(fer_gsrm_t *g)
         step++;
     }
 
-    // TODO: Postprocess
     // TODO: Simplification ??
 
-    return -1;
+    return 0;
 }
 
+
+int ferGSRMPostprocess(fer_gsrm_t *g)
+{
+    fer_real_t min, max, avg;
+
+    // set up limits
+    faceAreaStat(g, &min, &max, &avg);
+    g->c->pp_min = min;
+    g->c->pp_max = max;
+    DBG("min: %g, max: %g, avg: %g", min, max, avg);
+
+    // Phase 1:
+    // Remove incorrect faces from whole mesh.
+    // Incorrect faces are those that have any of internal angle bigger
+    // than treshold (.param.max_angle) or if dihedral angle with any other
+    // face is smaller than treshold (.param.min_dangle)
+    delIncorrectFaces(g);
+    //gsrmMeshInfo(m, "  -1- DIF: ");
+
+    // Remove incorrect edges.
+    // Incorrect edges are those that have (on one end) no incidenting
+    // edge or if edge can't be used for face creation.
+    delIncorrectEdges(g);
+
+    // Merge edges.
+    // Merge all pairs of edges that have common node that have no other
+    // incidenting edges than the two.
+    mergeEdges(g);
+
+    // Finish surface
+    finishSurface(g);
+
+
+    // Phase 2:
+    // Del incorrect edges again
+    delIncorrectEdges(g);
+    //gsrmMeshInfo(m, "  -2- DIE: ");
+
+    // finish surface
+    finishSurface(g);
+    //gsrmMeshInfo(m, "  -2- FS:  ");
+
+
+    // Phase 3:
+    // delete lonely faces, edges and nodes
+    delLonelyNodesEdgesFaces(g);
+    //gsrmMeshInfo(m, "  -3- DL:  ");
+
+    // try finish surface again
+    finishSurface(g);
+
+    // Phase 4:
+    // delete lonely faces, edges and nodes
+    delLonelyNodesEdgesFaces(g);
+
+    finishSurfaceEmbedTriangles(g);
+
+    return 0;
+}
 
 
 
@@ -923,4 +1018,538 @@ static void createNewNode(fer_gsrm_t *g)
 static void decreaseErrCounter(fer_gsrm_t *g)
 {
     nodeErrCounterScaleAll(g);
+}
+
+
+
+
+/** --- Postprocessing functions --- */
+static void faceAreaStat(fer_gsrm_t *g, fer_real_t *_min, fer_real_t *_max,
+                         fer_real_t *_avg)
+{
+    fer_real_t area, min, max, avg;
+    fer_list_t *list, *item;
+    fer_mesh3_face_t *face;
+
+    max = avg = FER_ZERO;
+    min = FER_REAL_MAX;
+    list = ferMesh3Faces(g->mesh);
+    ferListForEach(list, item){
+        face = ferListEntry(item, fer_mesh3_face_t, list);
+        area = ferMesh3FaceArea2(face);
+
+        if (area < min){
+            min = area;
+        }
+
+        if (area > max){
+            max = area;
+        }
+
+        avg += area;
+    }
+
+    avg /= (fer_real_t)ferMesh3FacesLen(g->mesh);
+
+    *_min = min;
+    *_max = max;
+    *_avg = avg;
+}
+
+static void delIncorrectFaces(fer_gsrm_t *g)
+{
+    fer_mesh3_vertex_t *vs[4];
+    fer_list_t *list, *item, *item_tmp;
+    fer_mesh3_face_t *face, *faces[2];
+    fer_mesh3_edge_t *edge;
+    face_t *f, *fs[2];
+    fer_real_t dangle;
+
+    // iterate over all faces
+    list = ferMesh3Faces(g->mesh);
+    ferListForEachSafe(list, item, item_tmp){
+        face = ferListEntry(item, fer_mesh3_face_t, list);
+        ferMesh3FaceVertices(face, vs);
+
+        // check internal angle of face
+        if (!faceCheckAngle(g, vs[0], vs[1], vs[2])){
+            f = fer_container_of(face, face_t, face);
+            faceDel(g, f);
+        }
+    }
+
+    // iterate over all edges
+    list = ferMesh3Edges(g->mesh);
+    ferListForEachSafe(list, item, item_tmp){
+        edge = ferListEntry(item, fer_mesh3_edge_t, list);
+
+        if (ferMesh3EdgeFacesLen(edge) == 2){
+            // get incidenting faces
+            faces[0] = ferMesh3EdgeFace(edge, 0);
+            faces[1] = ferMesh3EdgeFace(edge, 1);
+
+            // get end points of edge
+            vs[0] = ferMesh3EdgeVertex(edge, 0);
+            vs[1] = ferMesh3EdgeVertex(edge, 1);
+
+            // get remaining two points defining the two faces
+            vs[2] = ferMesh3FaceOtherVertex(faces[0], vs[0], vs[1]);
+            vs[3] = ferMesh3FaceOtherVertex(faces[1], vs[0], vs[1]);
+
+            // check dihedral angle between faces and if it is smaller than
+            // treshold delete one of them
+            dangle = ferVec3DihedralAngle(vs[2]->v, vs[0]->v, vs[1]->v, vs[3]->v);
+            if (dangle < g->param.min_dangle){
+                fs[0] = fer_container_of(faces[0], face_t, face);
+                fs[1] = fer_container_of(faces[1], face_t, face);
+                delFacesDangle(g, fs[0], fs[1]);
+            }
+        }
+    }
+}
+
+static void delIncorrectEdges(fer_gsrm_t *g)
+{
+    int madechange;
+    fer_list_t *list, *item, *item_tmp;
+    fer_mesh3_edge_t *edge;
+    fer_mesh3_vertex_t *vs[2];
+    edge_t *e;
+
+    madechange = 1;
+    while (madechange){
+        madechange = 0;
+
+        list = ferMesh3Edges(g->mesh);
+        ferListForEachSafe(list, item, item_tmp){
+            edge = ferListEntry(item, fer_mesh3_edge_t, list);
+            vs[0] = ferMesh3EdgeVertex(edge, 0);
+            vs[1] = ferMesh3EdgeVertex(edge, 1);
+
+            if (ferMesh3VertexEdgesLen(vs[0]) == 1
+                    || ferMesh3VertexEdgesLen(vs[1]) == 1
+                    || edgeNotUsable(edge)){
+                e = fer_container_of(edge, edge_t, edge);
+                edgeDel(g, e);
+                madechange = 1;
+            }
+        }
+    }
+}
+
+static void mergeEdges(fer_gsrm_t *g)
+{
+    int madechange;
+    fer_list_t *list, *item, *item_tmp, *list2;
+    fer_mesh3_vertex_t *vert;
+    fer_mesh3_vertex_t *vs[2];
+    fer_mesh3_edge_t *edge[2];
+    fer_real_t angle;
+    edge_t *e[2];
+    node_t *n[2];
+
+    madechange = 1;
+    while (madechange){
+        madechange = 0;
+
+        list = ferMesh3Vertices(g->mesh);
+        ferListForEachSafe(list, item, item_tmp){
+            vert = ferListEntry(item, fer_mesh3_vertex_t, list);
+            if (ferMesh3VertexEdgesLen(vert) == 2){
+                // get incidenting edges
+                list2 = ferMesh3VertexEdges(vert);
+                edge[0] = ferMesh3EdgeFromVertexList(ferListNext(list2));
+                edge[1] = ferMesh3EdgeFromVertexList(ferListPrev(list2));
+
+                // only edges that don't incident with any face can be
+                // merged
+                if (ferMesh3EdgeFacesLen(edge[0]) == 0
+                        && ferMesh3EdgeFacesLen(edge[1]) == 0){
+                    // get and points of edges
+                    vs[0] = ferMesh3EdgeOtherVertex(edge[0], vert);
+                    vs[1] = ferMesh3EdgeOtherVertex(edge[1], vert);
+
+                    // compute angle between edges and check if it is big
+                    // enough to perform merging
+                    angle = ferVec3Angle(vs[0]->v, vert->v, vs[1]->v);
+                    if (angle > g->param.angle_merge_edges){
+                        // finally, we can merge edges
+                        e[0] = fer_container_of(edge[0], edge_t, edge);
+                        e[1] = fer_container_of(edge[1], edge_t, edge);
+                        n[0] = fer_container_of(vert, node_t, vert);
+
+                        // first, remove edges
+                        edgeDel(g, e[0]);
+                        edgeDel(g, e[1]);
+
+                        // then remove node
+                        nodeDel(g, n[0]);
+
+                        // and finally create new node
+                        n[0] = fer_container_of(vs[0], node_t, vert);
+                        n[1] = fer_container_of(vs[1], node_t, vert);
+                        edgeNew(g, n[0], n[1]);
+                        madechange = 1;
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void finishSurface(fer_gsrm_t *g)
+{
+    int madechange;
+    fer_list_t *list, *item;
+    fer_mesh3_edge_t *edge;
+    edge_t *e;
+
+    madechange = 1;
+    while (madechange){
+        madechange = 0;
+
+        list = ferMesh3Edges(g->mesh);
+        ferListForEach(list, item){
+            edge = ferListEntry(item, fer_mesh3_edge_t, list);
+
+            // if it is border edge
+            if (ferMesh3EdgeFacesLen(edge) == 1){
+                e = fer_container_of(edge, edge_t, edge);
+
+                // try to finish triangle face
+                if (finishSurfaceTriangle(g, e) == 0){
+                    madechange = 1;
+
+                    // try to create face incidenting with edge
+                }else if (finishSurfaceNewFace(g, e) == 0){
+                    madechange = 1;
+                }
+            }
+        }
+    }
+}
+
+static void delLonelyNodesEdgesFaces(fer_gsrm_t *g)
+{
+    fer_list_t *list, *item, *item_tmp;
+    fer_mesh3_face_t *face;
+    fer_mesh3_edge_t *edge;
+    fer_mesh3_vertex_t *vert;
+    fer_mesh3_edge_t *es[3];
+    face_t *f;
+    edge_t *e;
+    node_t *n;
+
+    list = ferMesh3Faces(g->mesh);
+    ferListForEachSafe(list, item, item_tmp){
+        face = ferListEntry(item, fer_mesh3_face_t, list);
+        es[0] = ferMesh3FaceEdge(face, 0);
+        es[1] = ferMesh3FaceEdge(face, 1);
+        es[2] = ferMesh3FaceEdge(face, 2);
+
+        if (ferMesh3EdgeFacesLen(es[0]) == 1
+                && ferMesh3EdgeFacesLen(es[1]) == 1
+                && ferMesh3EdgeFacesLen(es[2]) == 1){
+            f = fer_container_of(face, face_t, face);
+            faceDel(g, f);
+        }
+
+    }
+
+
+    list = ferMesh3Edges(g->mesh);
+    ferListForEachSafe(list, item, item_tmp){
+        edge = ferListEntry(item, fer_mesh3_edge_t, list);
+        if (ferMesh3EdgeFacesLen(edge) == 0){
+            e = fer_container_of(edge, edge_t, edge);
+            edgeDel(g, e);
+        }
+    }
+
+
+    list = ferMesh3Vertices(g->mesh);
+    ferListForEachSafe(list, item, item_tmp){
+        vert = ferListEntry(item, fer_mesh3_vertex_t, list);
+        if (ferMesh3VertexEdgesLen(vert) == 0){
+            n = fer_container_of(vert, node_t, vert);
+            nodeDel(g, n);
+        }
+    }
+}
+
+static void finishSurfaceEmbedTriangles(fer_gsrm_t *g)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_edge_t *es[3];
+    fer_mesh3_vertex_t *vs[3];
+    edge_t *e;
+    node_t *n[3];
+    size_t i;
+
+    list = ferMesh3Edges(g->mesh);
+    ferListForEach(list, item){
+        es[0] = ferListEntry(item, fer_mesh3_edge_t, list);
+
+        vs[0] = ferMesh3EdgeVertex(es[0], 0);
+        vs[1] = ferMesh3EdgeVertex(es[0], 1);
+        n[0]  = fer_container_of(vs[0], node_t, vert);
+        n[1]  = fer_container_of(vs[1], node_t, vert);
+
+        echlCommonNeighbors(g, n[0], n[1]);
+
+        for (i = 0; i < g->c->common_neighb_len; i++){
+            n[2] = g->c->common_neighb[i];
+
+            es[1] = ferMesh3VertexCommonEdge(vs[0], &n[2]->vert);
+            if (!es[1] || ferMesh3EdgeFacesLen(es[1]) != 1)
+                continue;
+
+            es[2] = ferMesh3VertexCommonEdge(vs[1], &n[2]->vert);
+            if (!es[2] || ferMesh3EdgeFacesLen(es[2]) != 1)
+                continue;
+
+            e = fer_container_of(es[0], edge_t, edge);
+            faceNew(g, e, n[2]);
+            break;
+        }
+    }
+}
+
+static int faceCheckAngle(fer_gsrm_t *g, fer_mesh3_vertex_t *v1,
+                          fer_mesh3_vertex_t *v2, fer_mesh3_vertex_t *v3)
+{
+    if (ferVec3Angle(v1->v, v2->v, v3->v) > g->param.max_angle
+            || ferVec3Angle(v2->v, v3->v, v1->v) > g->param.max_angle
+            || ferVec3Angle(v3->v, v1->v, v2->v) > g->param.max_angle)
+        return 0;
+    return 1;
+}
+
+static void delFacesDangle(fer_gsrm_t *g, face_t *f1, face_t *f2)
+{
+    int f1_neighbors, f2_neighbors;
+    size_t i;
+
+    f1_neighbors = f2_neighbors = 0;
+    for (i = 0; i < 3; i++){
+        if (ferMesh3EdgeFacesLen(ferMesh3FaceEdge(&f1->face, i)) == 2)
+            f1_neighbors++;
+        if (ferMesh3EdgeFacesLen(ferMesh3FaceEdge(&f2->face, i)) == 2)
+            f2_neighbors++;
+    }
+
+    if (f1_neighbors < f2_neighbors){
+        faceDel(g, f1);
+    }else if (f1_neighbors > f2_neighbors){
+        faceDel(g, f2);
+    }else{
+        if (ferMesh3FaceArea2(&f1->face) < ferMesh3FaceArea2(&f2->face)){
+            faceDel(g, f1);
+        }else{
+            faceDel(g, f2);
+        }
+    }
+}
+
+static int edgeNotUsable(fer_mesh3_edge_t *e)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *vs[2];
+    fer_mesh3_edge_t *edge;
+    size_t i, usable_edges;
+
+    vs[0] = ferMesh3EdgeVertex(e, 0);
+    vs[1] = ferMesh3EdgeVertex(e, 1);
+    for (i = 0; i < 2; i++){
+        usable_edges = 0;
+
+        list = ferMesh3VertexEdges(vs[0]);
+        ferListForEach(list, item){
+            edge = ferMesh3EdgeFromVertexList(item);
+            if (ferMesh3EdgeFacesLen(edge) < 2)
+                usable_edges++;
+        }
+
+        if (usable_edges == 1)
+            return 1;
+    }
+
+    return 0;
+}
+
+static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e)
+{
+    size_t i;
+    int ret;
+    fer_mesh3_face_t *face;
+    fer_mesh3_edge_t *es[2];
+    fer_mesh3_vertex_t *vs[3];
+    node_t *n[3];
+    node_t *s;
+    fer_real_t dangle;
+
+    ret = -1;
+
+    // get nodes of already existing face
+    face = ferMesh3EdgeFace(&e->edge, 0);
+    vs[0] = ferMesh3EdgeVertex(&e->edge, 0);
+    vs[1] = ferMesh3EdgeVertex(&e->edge, 1);
+    vs[2] = ferMesh3FaceOtherVertex(face, vs[0], vs[1]);
+
+    n[0] = fer_container_of(vs[0], node_t, vert);
+    n[1] = fer_container_of(vs[1], node_t, vert);
+    n[2] = fer_container_of(vs[2], node_t, vert);
+    echlCommonNeighbors(g, n[0], n[1]);
+
+    // all common neighbors of n[0,1] form triangles
+    for (i = 0; i < g->c->common_neighb_len; i++){
+        if (ferMesh3EdgeFacesLen(&e->edge) == 2)
+            break;
+
+        s = g->c->common_neighb[i];
+        if (s != n[2]){
+            // check angle
+            if (!faceCheckAngle(g, vs[0], vs[1], &s->vert))
+                continue;
+
+            // check dihedral angle
+            dangle = ferVec3DihedralAngle(vs[2]->v, vs[0]->v, vs[1]->v, s->v);
+            if (dangle < g->param.min_dangle)
+                continue;
+
+            // check if face can be created inside triplet of edges
+            es[0] = ferMesh3VertexCommonEdge(vs[0], &s->vert);
+            es[1] = ferMesh3VertexCommonEdge(vs[1], &s->vert);
+            if ((es[0] && ferMesh3EdgeFacesLen(es[0]) == 2)
+                    || (es[1] && ferMesh3EdgeFacesLen(es[1]) == 2))
+                continue;
+
+            // create edges if necessary
+            if (!es[0]){
+                edgeNew(g, n[0], s);
+            }
+
+            if (!es[1]){
+                edgeNew(g, n[1], s);
+            }
+
+            faceNew(g, e, s);
+            ret = 0;
+        }
+    }
+
+    return ret;
+}
+
+static edge_t *finishSurfaceGetEdge(edge_t *e, node_t *n)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_edge_t *edge;
+    edge_t *s, *s2;
+
+    s2 = NULL;
+    list = ferMesh3VertexEdges(&n->vert);
+    ferListForEach(list, item){
+        edge = ferMesh3EdgeFromVertexList(item);
+
+        if (ferMesh3EdgeFacesLen(edge) == 0)
+            return NULL;
+
+        s = fer_container_of(edge, edge_t, edge);
+        if (s != e && ferMesh3EdgeFacesLen(edge) == 1){
+            // there is more than two border edges incidenting with n
+            if (s2 != NULL)
+                return NULL;
+            s2 = s;
+        }
+    }
+
+    return s2;
+}
+
+static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e)
+{
+    fer_mesh3_edge_t *edge;
+    fer_mesh3_vertex_t *vs[2];
+    node_t *ns[2], *ns2[2];
+    edge_t *es[2];
+    edge_t *e2, *e_new;
+
+    // get start and end points
+    vs[0] = ferMesh3EdgeVertex(&e->edge, 0);
+    vs[1] = ferMesh3EdgeVertex(&e->edge, 1);
+    ns[0] = fer_container_of(vs[0], node_t, vert);
+    ns[1] = fer_container_of(vs[1], node_t, vert);
+
+    es[0] = finishSurfaceGetEdge(e, ns[0]);
+    es[1] = finishSurfaceGetEdge(e, ns[1]);
+
+    if (es[0] != NULL && es[1] != NULL){
+        // try to create both faces
+
+        // obtain opossite nodes than wich already have from edge e
+        vs[0] = ferMesh3EdgeOtherVertex(&es[0]->edge, &ns[0]->vert);
+        vs[1] = ferMesh3EdgeOtherVertex(&es[1]->edge, &ns[1]->vert);
+        ns2[0] = fer_container_of(vs[0], node_t, vert);
+        ns2[1] = fer_container_of(vs[1], node_t, vert);
+
+        e_new = NULL;
+        edge = ferMesh3VertexCommonEdge(&ns[0]->vert, &ns2[1]->vert);
+        if (edge){
+            e2 = fer_container_of(edge, edge_t, edge);
+        }else{
+            e_new = e2 = edgeNew(g, ns[0], ns2[1]);
+        }
+        if (finishSurfaceTriangle(g, e) != 0){
+            if (e_new)
+                edgeDel(g, e_new);
+            return -1;
+        }
+
+        e_new = NULL;
+        if (!ferMesh3VertexCommonEdge(&ns2[0]->vert, &ns2[1]->vert)){
+            e_new = edgeNew(g, ns2[0], ns2[1]);
+        }
+
+        if (finishSurfaceTriangle(g, e2) != 0){
+            if (e_new)
+                edgeDel(g, e_new);
+            return -1;
+        }
+
+        return 0;
+    }else if (es[0] != NULL){
+        vs[0] = ferMesh3EdgeOtherVertex(&es[0]->edge, &ns[0]->vert);
+        ns2[0] = fer_container_of(vs[0], node_t, vert);
+
+        e_new = NULL;
+        edge = ferMesh3VertexCommonEdge(&ns[1]->vert, &ns2[0]->vert);
+        if (!edge){
+            e_new = edgeNew(g, ns[1], ns2[0]);
+        }
+        if (finishSurfaceTriangle(g, e) != 0){
+            if (e_new)
+                edgeDel(g, e_new);
+            return -1;
+        }
+        return 0;
+
+    }else if (es[1] != NULL){
+        vs[1] = ferMesh3EdgeOtherVertex(&es[1]->edge, &ns[1]->vert);
+        ns2[1] = fer_container_of(vs[1], node_t, vert);
+
+        e_new = NULL;
+        edge = ferMesh3VertexCommonEdge(&ns[0]->vert, &ns2[1]->vert);
+        if (!edge){
+            e_new = edgeNew(g, ns[0], ns2[1]);
+        }
+        if (finishSurfaceTriangle(g, e) != 0){
+            if (e_new)
+                edgeDel(g, e_new);
+            return -1;
+        }
+        return 0;
+    }
+
+    return -1;
 }

@@ -83,9 +83,15 @@ size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn);
 /**
  * Runs GSRM algorithm.
  * Returns 0 on success.
- * TODO: error codes
+ * Returns -1 if no there are no input signals.
  */
 int ferGSRMRun(fer_gsrm_t *g);
+
+/**
+ * Performs postprocessing of mesh.
+ * This function should be called _after_ ferGSRMRun().
+ */
+int ferGSRMPostprocess(fer_gsrm_t *g);
 
 #ifdef __cplusplus
 } /* extern "C" */
