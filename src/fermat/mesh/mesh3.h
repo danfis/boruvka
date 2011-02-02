@@ -176,6 +176,11 @@ _fer_inline fer_list_t *ferMesh3VertexEdges(fer_mesh3_vertex_t *v);
 _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
                                       const fer_mesh3_edge_t *e);
 
+/**
+ * Returns edge (first) connecting given pair of vertices.
+ */
+fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
+                                           const fer_mesh3_vertex_t *v2);
 
 
 /**
@@ -229,12 +234,24 @@ _fer_inline int ferMesh3EdgeHasFace(const fer_mesh3_edge_t *e,
  */
 _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e);
 
+
+/**
+ * Returns the other (start/end) vertex than provided.
+ */
+_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
+                                                        const fer_mesh3_vertex_t *v);
+
 /**
  * Returns true if given triplet of edges form triangle.
  */
 int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
                          const fer_mesh3_edge_t *e2,
                          const fer_mesh3_edge_t *e3);
+
+/**
+ * Return pointer of edge struct based on list item (pointer to vlist[0|1].
+ */
+_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l);
 
 
 
@@ -282,7 +299,17 @@ _fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
 _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
                                       fer_mesh3_vertex_t **vs);
 
+/**
+ * Returns twice an area of a face.
+ */
+_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f);
 
+/**
+ * Returns the last vertex bounding the face.
+ */
+_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
+                                                        fer_mesh3_vertex_t *v1,
+                                                        fer_mesh3_vertex_t *v2);
 
 /**
  * Mesh
@@ -518,6 +545,24 @@ _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e)
     }
 }
 
+_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
+                                                        const fer_mesh3_vertex_t *v)
+{
+    if (e->v[0] == v)
+        return e->v[1];
+    return e->v[0];
+}
+
+_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
+{
+    fer_list_m_t *m;
+    fer_mesh3_edge_t *e;
+
+    m = ferListMFromList(l);
+    e = ferListEntry(l, fer_mesh3_edge_t, vlist[m->mark]);
+
+    return e;
+}
 
 
 
@@ -558,6 +603,27 @@ _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
     }
 }
 
+_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f)
+{
+    fer_mesh3_vertex_t *vs[3];
+    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+    return ferVec3TriArea2(vs[0]->v, vs[1]->v, vs[2]->v);
+}
+
+_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
+                                                        fer_mesh3_vertex_t *v1,
+                                                        fer_mesh3_vertex_t *v2)
+{
+    fer_mesh3_vertex_t *vs[3];
+
+    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+
+    if (vs[0] != v1 && vs[0] != v2)
+        return vs[0];
+    if (vs[1] != v1 && vs[1] != v2)
+        return vs[1];
+    return vs[2];
+}
 
 
 

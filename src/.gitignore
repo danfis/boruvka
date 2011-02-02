@@ -2,3 +2,4 @@
 *.o
 *~
 fermat/config.h
+gsrm

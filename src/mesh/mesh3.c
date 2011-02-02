@@ -31,6 +31,31 @@ void ferMesh3VertexDel(fer_mesh3_vertex_t *v)
     free(v);
 }
 
+fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
+                                           const fer_mesh3_vertex_t *v2)
+{
+    fer_list_t *item;
+    fer_list_m_t *mitem;
+    const fer_mesh3_vertex_t *vtmp;
+    fer_mesh3_edge_t *e;
+
+    // set v1 as vertex with less edges
+    if (ferMesh3VertexEdgesLen(v2) < ferMesh3VertexEdgesLen(v1)){
+        FER_SWAP(v1, v2, vtmp);
+    }
+
+    ferListForEach(&v1->edges, item){
+        mitem = ferListMFromList(item);
+        e = ferListEntry(item, fer_mesh3_edge_t, vlist[mitem->mark]);
+        if (v2 == ferMesh3EdgeVertex(e, 0)
+                || v2 == ferMesh3EdgeVertex(e, 1)){
+            return e;
+        }
+    }
+
+    return NULL;
+}
+
 
 fer_mesh3_edge_t *ferMesh3EdgeNew(void)
 {

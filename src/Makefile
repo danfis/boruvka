@@ -1,7 +1,7 @@
 ###
 # fermat
 # -------
-# Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
+# Copyright (c)2010-2011 Daniel Fiser <danfis@danfis.cz>
 #
 #  This file is part of fermat.
 #
@@ -17,13 +17,15 @@
 -include Makefile.include
 
 CFLAGS += -I. -g
+LDFLAGS += -L. -lfermat -lm -lrt
 
-TARGETS = libfermat.a
+TARGETS = libfermat.a gsrm
 OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
        point_cloud.o point_cloud_internal.o \
-       mat3.o mat4.o predicates.o
+       mat3.o mat4.o predicates.o timer.o
 OBJS += nearest/cubes3.o
 OBJS += mesh/mesh3.o
+OBJS += surface/gsrm.o
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
@@ -36,6 +38,9 @@ libfermat.a: $(OBJS)
 	ar cr $@ $(OBJS)
 	ranlib $@
 
+gsrm: surface/gsrm-main.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
 fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
@@ -44,6 +49,8 @@ fermat/config.h: fermat/config.h.m4
 nearest/%.o: nearest/%.c fermat/nearest/%.h fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
 mesh/%.o: mesh/%.c fermat/mesh/%.h fermat/config.h
+	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
+surface/%.o: surface/%.c fermat/surface/%.h fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
 %.o: %.c fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
