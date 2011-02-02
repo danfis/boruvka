@@ -116,6 +116,7 @@ _fer_inline void ferMat4Set(fer_mat4_t *m,
 
 /**
  * Set identity matrix.
+ * ~~~~
  *     | 1 0 0 0 |
  * m = | 0 1 0 0 |
  *     | 0 0 1 0 |
@@ -130,6 +131,7 @@ _fer_inline void ferMat4SetZero(fer_mat4_t *m);
 
 /**
  * Set scale matrix.
+ * ~~~~
  *     | s 0 0 0 |
  * m = | 0 s 0 0 |
  *     | 0 0 s 0 |
@@ -139,6 +141,7 @@ _fer_inline void ferMat4SetScale(fer_mat4_t *m, fer_real_t s);
 
 /**
  * Set diagonal.
+ * ~~~~
  *     | s 0 0 0 |
  * m = | 0 s 0 0 |
  *     | 0 0 s 0 |
@@ -148,6 +151,7 @@ _fer_inline void ferMat4SetDiag(fer_mat4_t *m, fer_real_t s);
 
 /**
  * Set translation matrix (translation along v vector).
+ * ~~~~
  *     | 1 0 0 x |
  * m = | 0 1 0 y |
  *     | 0 0 1 z |
@@ -163,6 +167,7 @@ _fer_inline void ferMat4SetRot(fer_mat4_t *m,
 
 /**
  * Apply scale transfomation.
+ * ~~~~
  *     | s 0 0 0 |
  * m = | 0 s 0 0 | . m
  *     | 0 0 s 0 |
@@ -172,6 +177,7 @@ _fer_inline void ferMat4TrScale(fer_mat4_t *m, fer_real_t s);
 
 /**
  * Translate transformation matrix towards vector v.
+ * ~~~~
  *     | 1 0 0 x |
  * m = | 0 1 0 y | . m
  *     | 0 0 0 z |
@@ -265,6 +271,7 @@ _fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b);
 
 /**
  * Multiplies two matrices by components.
+ * ~~~~
  *     | a11*b11 a12*b12 a13*b13 a14*b14 |
  * a = | a21*b21 a22*b22 a23*b23 a24*b24 |
  *     | a31*b31 a32*b32 a33*b33 a34*b34 |
@@ -303,7 +310,7 @@ _fer_inline int ferMat4Inv(fer_mat4_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
- *  m = inv(a)
+ * m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
 int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a);
@@ -322,6 +329,7 @@ _fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
  * coordinate is divided by resulting third coordinate.
  * In fact, this operation is applying transform matrix on vector w.
  *
+ * ~~~~
  *         | w.x |
  * v = m * | w.y |
  *         | w.z |

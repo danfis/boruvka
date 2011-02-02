@@ -9,9 +9,10 @@ Welcome to Fermat's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    core.rst
+
    vec2.h.rst
    vec3.h.rst
    vec4.h.rst
@@ -24,13 +25,14 @@ Contents:
 
    point_cloud.h.rst
 
-   rand.h.rst
    list.h.rst
+   rand.h.rst
+   timer.h.rst
+   parse.h.rst
 
-
-.. cpp:member:: std::string theclass::name
-
-.. cpp:type:: theclass::const_iterator
+   mesh.rst
+   nearest.rst
+   surface.rst
 
 
 Indices and tables

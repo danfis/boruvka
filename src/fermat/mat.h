@@ -236,7 +236,7 @@ int ferMatInv(fer_mat_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
- *  m = inv(a)
+ * m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
 int ferMatInv2(fer_mat_t *m, const fer_mat_t *a);

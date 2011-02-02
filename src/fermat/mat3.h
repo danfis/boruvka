@@ -111,6 +111,7 @@ _fer_inline void ferMat3Set(fer_mat3_t *m,
 
 /**
  * Set identity matrix.
+ * ~~~~
  *     | 1 0 0 |
  * m = | 0 1 0 |
  *     | 0 0 1 |
@@ -124,6 +125,7 @@ _fer_inline void ferMat3SetZero(fer_mat3_t *m);
 
 /**
  * Set scale matrix.
+ * ~~~~
  *     | s 0 0 |
  * m = | 0 s 0 |
  *     | 0 0 1 |
@@ -132,6 +134,7 @@ _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s);
 
 /**
  * Set diagonal.
+ * ~~~~
  *     | s 0 0 |
  * m = | 0 s 0 |
  *     | 0 0 s |
@@ -140,6 +143,7 @@ _fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s);
 
 /**
  * Set translation matrix (translation along v vector).
+ * ~~~~
  *     | 1 0 x |
  * m = | 0 1 y |
  *     | 0 0 1 |
@@ -148,6 +152,7 @@ _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v);
 
 /**
  * Set rotation matrix (2D).
+ * ~~~~
  *     | cos(a) -sin(a) 0 |
  * m = | sin(a)  cos(a) 0 |
  *     |   0       0    1 |
@@ -156,6 +161,7 @@ _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle);
 
 /**
  * Apply scale transfomation.
+ * ~~~~
  *     | s 0 0 |
  * m = | 0 s 0 | . m
  *     | 0 0 1 |
@@ -164,6 +170,7 @@ _fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s);
 
 /**
  * Translate transformation matrix towards vector v.
+ * ~~~~
  *     | 1 0 x |
  * m = | 0 1 y | . m
  *     | 0 0 1 |
@@ -172,6 +179,7 @@ _fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v);
 
 /**
  * Rotate transformation matrix.
+ * ~~~~
  *     | cos(a) -sin(a) 0 |
  * m = | sin(a)  cos(a) 0 | . m
  *     |   0       0    1 |
@@ -258,6 +266,7 @@ _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b);
 
 /**
  * Multiplies two matrices by components.
+ * ~~~~
  *     | a11*b11 a12*b12 a13*b13 |
  * a = | a21*b21 a22*b22 a23*b23 |
  *     | a31*b31 a32*b32 a33*313 |
@@ -295,7 +304,7 @@ _fer_inline int ferMat3Inv(fer_mat3_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
- *  m = inv(a)
+ * m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
 _fer_inline int ferMat3Inv2(fer_mat3_t *m, const fer_mat3_t *a);
@@ -313,7 +322,7 @@ _fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
  * Third coordinate is filled with 1 and after multiplication x and y
  * coordinate is divided by resulting third coordinate.
  * In fact, this operation is applying transform matrix on vector w.
- *
+ * ~~~~
  *         | w.x |
  * v = m * | w.y |
  *         |  1  |

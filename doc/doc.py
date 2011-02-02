@@ -9,8 +9,12 @@ pat_typedef       = re.compile(r'^typedef .* ([a-z0-9_]+_t);$')
 pat_struct_start  = re.compile(r'(struct|union) ([a-z_0-9]+_t).*{$')
 pat_code_block_start = re.compile(r'^/\*\* v+ \*/$')
 pat_code_block_end   = re.compile(r'^/\*\* \^+ \*/$')
+pat_inline_code_block_start = re.compile(r'^~+$')
+pat_inline_code_block_end   = re.compile(r'^~+$')
+pat_see_struct = re.compile(r'^See ([a-z0-9_]+_t).$')
 
 CONTEXT = None
+STRUCTS = {}
 
 class Element(object):
     def _formatCommentLine(self, line, line_prefix):
@@ -43,15 +47,50 @@ class Element(object):
                     s += '`\n'
         return s
 
-    def formatComment(self, comment, line_prefix = ''):
+    def _formatCommentCodeBlock(self, line, itline, line_prefix):
         s = ''
-        for line in comment:
+
+        for line in itline:
+            if line[:3] == ' * ':
+                match = pat_inline_code_block_end.match(line[3:])
+                if match:
+                    break
+
+                s += self._formatCommentLine(line[3:], line_prefix + '    ')
+            elif line == ' *':
+                s += line_prefix + '    ' + '\n'
+
+        if len(s) > 0:
+            s = '\n' + line_prefix + '.. code-block:: c\n\n' + s + '\n'
+        return s
+
+    def _formatSeeStruct(self, key, line_prefix):
+        struct = STRUCTS.get(key, None)
+        if struct is None:
+            return ''
+
+        return struct.formatStruct(line_prefix)
+
+    def formatComment(self, comment, line_prefix = ''):
+        itline = iter(comment)
+        s = ''
+        for line in itline:
             if line == '/**' or line == ' */':
                 continue
             if line[:3] == ' * ':
+                match = pat_inline_code_block_start.match(line[3:])
+                if match:
+                    s += self._formatCommentCodeBlock(line, itline, line_prefix)
+                    continue
+
+                match = pat_see_struct.match(line[3:])
+                if match:
+                    s += self._formatSeeStruct(match.group(1), line_prefix)
+                    continue
+
                 s += self._formatCommentLine(line[3:], line_prefix)
             elif line == ' *':
-                s += self._formatCommentLine(line[2:], line_prefix)
+                s += line_prefix + '\n'
 
         return s
 
@@ -90,20 +129,34 @@ class Struct(Element):
         self.struct  = struct
         self.typedef = typedef
 
+        self.name = 'noname'
+        match = pat_typedef.match(typedef)
+        if match:
+            self.name = match.group(1)
+
+        STRUCTS[self.name] = self
+
+    def formatStruct(self, line_prefix = ''):
+        s = ''
+
+        match = pat_typedef.match(self.typedef)
+        if match:
+            s += line_prefix + '.. c:type:: {0}\n\n'.format(match.group(1))
+
+        s += line_prefix + '.. code-block:: c\n\n'
+        for line in self.struct:
+            s += line_prefix + '    ' + line + '\n'
+        s += line_prefix + '    ' + self.typedef + '\n'
+
+        s += line_prefix + '\n'
+
+        return s
+
     def format(self):
         s = self.formatComment(self.comment)
         s += '\n'
 
-        match = pat_typedef.match(self.typedef)
-        if match:
-            s += '.. c:type:: {0}\n\n'.format(match.group(1))
-
-        s += '.. code-block:: c\n\n'
-        for line in self.struct:
-            s += '    ' + line + '\n'
-        s += '    ' + self.typedef + '\n'
-
-        s += '\n'
+        s += self.formatStruct()
 
         return s
 
@@ -211,6 +264,10 @@ def parse(fn):
             section = parseCode(line, lines_it)
             if section is not None:
                 sections.append(section)
+
+        match = pat_struct_start.match(line)
+        if match:
+            parseStruct([], line, lines_it)
 
     for section in sections:
         print(section.format())

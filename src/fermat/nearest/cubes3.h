@@ -28,6 +28,9 @@ extern "C" {
 struct _fer_cubes3_cache_t;
 
 /**
+ * Cubes3
+ * =======
+ *
  * Cubes structure for nearest neighbor search in 3D space.
  *
  * TODO: example

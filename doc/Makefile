@@ -6,8 +6,14 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = .
 
-RSTS = vec2 vec3 vec4 mat3 mat4 vec mat list point_cloud quat rand
+RSTS = vec2 vec3 vec4 mat3 mat4 vec mat quat point_cloud \
+       list rand timer parse
+RSTS += mesh-mesh3
+RSTS += nearest-cubes3
+RSTS += surface-gsrm
+
 RSTS := $(foreach header,$(RSTS),$(header).h.rst)
+
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -128,6 +134,12 @@ doctest:
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
+mesh-%.h.rst: ../src/fermat/mesh/%.h
+	$(PYTHON) doc.py $< >$@
+nearest-%.h.rst: ../src/fermat/nearest/%.h
+	$(PYTHON) doc.py $< >$@
+surface-%.h.rst: ../src/fermat/surface/%.h
+	$(PYTHON) doc.py $< >$@
 %.h.rst: ../src/fermat/%.h
 	$(PYTHON) doc.py $< >$@
 
