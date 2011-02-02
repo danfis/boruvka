@@ -158,3 +158,43 @@ int ferParseVec3(const char *_str, const char *strend, fer_vec3_t *vec, char **n
 
     return 0;
 }
+
+int ferParseLong(const char *str, const char *strend, long *val, char **next)
+{
+    char c;
+    int negative = 0;
+
+    if (str >= strend)
+        return -1;
+
+    // skip initial whitespace
+    while (!NOT_WS(*str))
+        ++str;
+
+    c = *str;
+    *val = 0L;
+
+    /* process sign */
+    if (c == '-'){
+        negative = 1;
+        c = *++str;
+    }else if (c == '+')
+        c = *++str;
+
+    /* process initial digits */
+    while (c != 0 && NOT_WS(c) && str < strend){
+        /* not number -> invalid string */
+        if (c < 48 || c > 57)
+            return -1;
+
+        *val = *val * 10L + (c - 48);
+        c = *++str;
+    }
+
+    if (negative)
+        *val = -1L * *val;
+
+    if (next)
+        *next = (char *)str;
+    return 0;
+}

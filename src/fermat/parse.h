@@ -36,4 +36,12 @@ int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **ne
  */
 int ferParseVec3(const char *str, const char *strend, fer_vec3_t *v, char **next);
 
+/**
+ * Parses given string that starts at str ands ends at strend (exclusively)
+ * into long int number *val* and if next is non-NULL stores there
+ * pointer to string after parsed number.
+ * Returns 0 on success, -1 otherwise.
+ */
+int ferParseLong(const char *str, const char *strend, long *val, char **next);
+
 #endif /* __FER_PARSE_H__ */
