@@ -18,13 +18,31 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+/** Print progress */
+#define PR_PROGRESS(g) \
+    ferTimerStop(&g->timer); \
+    ferTimerPrintElapsed(&(g)->timer, stderr, " n: %d/%d, e: %d, f: %d\r", \
+                         ferMesh3VerticesLen((g)->mesh), \
+                         (g)->param.max_nodes, \
+                         ferMesh3EdgesLen((g)->mesh), \
+                         ferMesh3FacesLen((g)->mesh)); \
+    fflush(stderr)
+
+#define PR_PROGRESS_PREFIX(g, prefix) \
+    ferTimerStop(&(g)->timer); \
+    ferTimerPrintElapsed(&(g)->timer, stderr, prefix " n: %d/%d, e: %d, f: %d\n", \
+                         ferMesh3VerticesLen((g)->mesh), \
+                         (g)->param.max_nodes, \
+                         ferMesh3EdgesLen((g)->mesh), \
+                         ferMesh3FacesLen((g)->mesh)); \
+    fflush(stderr)
+
+
 struct _node_t {
     fer_vec3_t *v; /*!< Position of node (weight vector) */
 
     fer_real_t err_counter;  /*!< Error counter */
     size_t err_counter_mark; /*!< Mark used for accumulated error counter */
-
-    int simpl_ban; /*!< TODO true if node is banned from simplification (deletion) */
 
     fer_mesh3_vertex_t vert; /*!< Vertex in mesh */
     fer_cubes3_el_t cubes;   /*!< Struct for NN search */
@@ -33,7 +51,6 @@ typedef struct _node_t node_t;
 
 struct _edge_t {
     int age;      /*!< Age of edge */
-    int obsolete; /*!< Obsolete flag (TODO) */
 
     fer_mesh3_edge_t edge; /*!< Edge in mesh */
 };
@@ -201,6 +218,7 @@ static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e);
 /** Tries to create completely new face */
 static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e);
 
+
 fer_gsrm_t *ferGSRMNew(void)
 {
     fer_gsrm_t *g;
@@ -221,10 +239,6 @@ fer_gsrm_t *ferGSRMNew(void)
     g->param.max_angle = M_PI_2 * 1.5;
     g->param.angle_merge_edges = M_PI * 0.9;
 
-    g->param.simpl_dist_treshold = 0.;
-    g->param.simpl_max_node_dec = -1.;
-    g->param.simpl_max_face_dec = -1.;
-
     // initialize point cloude (input signals)
     g->is = ferPCNew();
 
@@ -234,6 +248,8 @@ fer_gsrm_t *ferGSRMNew(void)
     // init cubes for NN search to NULL, actual allocation will be made
     // after we know what area do we need to cover
     g->cubes = NULL;
+
+    g->verbosity = 0;
 
     g->c = NULL;
 
@@ -267,7 +283,7 @@ size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
 int ferGSRMRun(fer_gsrm_t *g)
 {
     const fer_real_t *aabb;
-    size_t step;
+    size_t step, step_progress;
 
     // check if there are some input signals
     if (ferPCLen(g->is) <= 3){
@@ -290,21 +306,30 @@ int ferGSRMRun(fer_gsrm_t *g)
     // and initialize its iterator
     ferPCItInit(&g->isit, g->is);
 
+    // start timer
+    ferTimerStart(&g->timer);
+
     // initialize mesh with three random nodes
     meshInit(g);
 
     step = 1;
+    step_progress = 0;
     while (ferMesh3VerticesLen(g->mesh) < g->param.max_nodes){
-        fprintf(stderr, "%06d, %08d\r", step, ferMesh3VerticesLen(g->mesh));
-
         drawInputPoint(g);
 
         echl(g);
 
-        if (step >= g->param.lambda){
+        if (fer_unlikely(step >= g->param.lambda)){
             createNewNode(g);
             step = 0;
             //ferMesh3DumpSVT(g->mesh, stdout, "1");
+
+            if (g->verbosity >= 2
+                    && fer_unlikely(step_progress % FER_GSRM_PROGRESS_REFRESH == 0)){
+                PR_PROGRESS(g);
+                step_progress = 0;
+            }
+            step_progress++;
         }
 
         decreaseErrCounter(g);
@@ -312,7 +337,10 @@ int ferGSRMRun(fer_gsrm_t *g)
         step++;
     }
 
-    // TODO: Simplification ??
+    if (g->verbosity >= 1){
+        PR_PROGRESS(g);
+        fprintf(stderr, "\n");
+    }
 
     return 0;
 }
@@ -326,7 +354,6 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     faceAreaStat(g, &min, &max, &avg);
     g->c->pp_min = min;
     g->c->pp_max = max;
-    DBG("min: %g, max: %g, avg: %g", min, max, avg);
 
     // Phase 1:
     // Remove incorrect faces from whole mesh.
@@ -334,45 +361,82 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // than treshold (.param.max_angle) or if dihedral angle with any other
     // face is smaller than treshold (.param.min_dangle)
     delIncorrectFaces(g);
-    //gsrmMeshInfo(m, "  -1- DIF: ");
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -1- DIF:");
+    }
 
     // Remove incorrect edges.
     // Incorrect edges are those that have (on one end) no incidenting
     // edge or if edge can't be used for face creation.
     delIncorrectEdges(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -1- DIE:");
+    }
 
     // Merge edges.
     // Merge all pairs of edges that have common node that have no other
     // incidenting edges than the two.
     mergeEdges(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -1- ME: ");
+    }
 
     // Finish surface
     finishSurface(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -1- FS: ");
+    }else if (g->verbosity >= 2){
+        PR_PROGRESS_PREFIX(g, " -1-");
+    }
 
 
     // Phase 2:
     // Del incorrect edges again
     delIncorrectEdges(g);
-    //gsrmMeshInfo(m, "  -2- DIE: ");
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -2- DIE:");
+    }
 
     // finish surface
     finishSurface(g);
-    //gsrmMeshInfo(m, "  -2- FS:  ");
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -2- FS: ");
+    }else if (g->verbosity >= 2){
+        PR_PROGRESS_PREFIX(g, " -2-");
+    }
 
 
     // Phase 3:
     // delete lonely faces, edges and nodes
     delLonelyNodesEdgesFaces(g);
-    //gsrmMeshInfo(m, "  -3- DL:  ");
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -3- DL: ");
+    }
 
     // try finish surface again
     finishSurface(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -3- FS: ");
+    }else if (g->verbosity >= 2){
+        PR_PROGRESS_PREFIX(g, " -3-");
+    }
 
     // Phase 4:
     // delete lonely faces, edges and nodes
     delLonelyNodesEdgesFaces(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -4- DL: ");
+    }
 
     finishSurfaceEmbedTriangles(g);
+    if (g->verbosity >= 3){
+        PR_PROGRESS_PREFIX(g, " -4- FET:");
+    }else if (g->verbosity >= 2){
+        PR_PROGRESS_PREFIX(g, " -4-");
+    }else if (g->verbosity >= 1){
+        PR_PROGRESS(g);
+        fprintf(stderr, "\n");
+    }
 
     return 0;
 }
@@ -557,7 +621,6 @@ static edge_t *edgeNew(fer_gsrm_t *g, node_t *n1, node_t *n2)
 
     e = FER_ALLOC(edge_t);
     e->age = 0;
-    e->obsolete = 0;
 
     ferMesh3AddEdge(g->mesh, &e->edge, &n1->vert, &n2->vert);
 

@@ -18,6 +18,7 @@
 #define __FER_GSRM_H__
 
 #include <fermat/core.h>
+#include <fermat/timer.h>
 #include <fermat/point_cloud.h>
 #include <fermat/mesh/mesh3.h>
 #include <fermat/nearest/cubes3.h>
@@ -28,29 +29,37 @@ extern "C" {
 
 struct _fer_gsrm_cache_t;
 
+/** How often progress should be printed - it will be _approximately_
+ *  every FER_GSRM_PROGRESS_REFRESH'th new node. */
+#define FER_GSRM_PROGRESS_REFRESH 1000
+
+/**
+ * GSRM
+ * =====
+ *
+ * TODO
+ */
+
+/** vvvv */
 struct _fer_gsrm_param_t {
-    size_t lambda;
-    fer_real_t eb, en;
-    fer_real_t alpha, beta;
-    int age_max;
-    size_t max_nodes;
-    size_t num_cubes;
+    size_t lambda;    /*!< Number of steps between adding nodes */
+    fer_real_t eb;    /*!< Winner node learning rate */
+    fer_real_t en;    /*!< Winners' neighbor learning rate */
+    fer_real_t alpha; /*!< Decrease error counter rate */
+    fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
+    int age_max;      /*!< Maximal age of edge */
 
-    fer_real_t min_dangle; /*! minimal dihedral angle between faces */
-    fer_real_t max_angle; /*! max angle between nodes to form face */
-    fer_real_t angle_merge_edges;
+    size_t max_nodes; /*!< Number of cubes that will be used for nearest
+                           neighbor search */
+    size_t num_cubes; /*!< Termination condition - a goal number of nodes */
 
-    // simplification:
-    fer_real_t simpl_dist_treshold; /*! max distance of node from average
-                                        plane to be removed */
-    fer_real_t simpl_max_node_dec; /*! max. node decimation */
-    fer_real_t simpl_max_face_dec; /*! max. face decimation */
+    fer_real_t min_dangle;        /*! minimal dihedral angle between faces */
+    fer_real_t max_angle;         /*! max angle between nodes to form face */
+    fer_real_t angle_merge_edges; /*!< minimal angle between two edges to
+                                       be merged */
 };
 typedef struct _fer_gsrm_param_t fer_gsrm_param_t;
 
-/**
- * TODO
- */
 struct _fer_gsrm_t {
     fer_gsrm_param_t param; /*!< Parameters of algorithm */
 
@@ -59,9 +68,13 @@ struct _fer_gsrm_t {
     fer_mesh3_t *mesh;   /*!< Reconstructed mesh */
     fer_cubes3_t *cubes; /*!< Search structure for nearest neighbor */
 
+    int verbosity; /*!< Verbosity level */
+    fer_timer_t timer;
+
     struct _fer_gsrm_cache_t *c; /*!< Internal cache, don't touch it! */
 };
 typedef struct _fer_gsrm_t fer_gsrm_t;
+/** ^^^^ */
 
 
 /**
@@ -92,6 +105,50 @@ int ferGSRMRun(fer_gsrm_t *g);
  * This function should be called _after_ ferGSRMRun().
  */
 int ferGSRMPostprocess(fer_gsrm_t *g);
+
+/**
+ * Return struct with GSRM parameters.
+ */
+_fer_inline fer_gsrm_param_t *ferGSRMParam(fer_gsrm_t *g);
+
+/**
+ * Returns pointer to mesh.
+ */
+_fer_inline fer_mesh3_t *ferGSRMMesh(fer_gsrm_t *g);
+
+
+/**
+ * Returns verbosity level.
+ */
+_fer_inline int ferGSRMVerbosity(const fer_gsrm_t *g);
+
+/**
+ * Set verbosity level.
+ * TODO: Describe all levels
+ */
+_fer_inline void ferGSRMSetVerbosity(fer_gsrm_t *g, int level);
+
+
+/**** INLINES ****/
+_fer_inline fer_gsrm_param_t *ferGSRMParam(fer_gsrm_t *g)
+{
+    return &g->param;
+}
+
+_fer_inline fer_mesh3_t *ferGSRMMesh(fer_gsrm_t *g)
+{
+    return g->mesh;
+}
+
+_fer_inline int ferGSRMVerbosity(const fer_gsrm_t *g)
+{
+    return g->verbosity;
+}
+
+_fer_inline void ferGSRMSetVerbosity(fer_gsrm_t *g, int level)
+{
+    g->verbosity = level;
+}
 
 #ifdef __cplusplus
 } /* extern "C" */
