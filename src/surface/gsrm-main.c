@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
     fer_mesh3_t *mesh;
     size_t islen;
     FILE *outfile;
+    fer_timer_t timer;
 
     gsrm = ferGSRMNew();
     ferGSRMSetVerbosity(gsrm, 1);
@@ -96,22 +97,36 @@ int main(int argc, char *argv[])
         }
     }
 
-    fprintf(stderr, "Reading input signals:\n");
-    fprintf(stderr, "  -- '%s'...\n", is_fn);
+    ferTimerStart(&timer);
+    ferTimerStopAndPrintElapsed(&timer, stderr, " Reading input signals:\n");
+    ferTimerStopAndPrintElapsed(&timer, stderr, "   -- '%s'...\n", is_fn);
     islen = ferGSRMAddInputSignals(gsrm, is_fn);
-    fprintf(stderr, "    --  Added %d input signals.\n", islen);
+    ferTimerStopAndPrintElapsed(&timer, stderr, "     --  Added %d input signals.\n", islen);
+    fprintf(stderr, "\n");
 
     if (ferGSRMRun(gsrm) == 0){
         ferGSRMPostprocess(gsrm);
 
+        ferTimerStart(&timer);
+
         mesh = ferGSRMMesh(gsrm);
         ferMesh3DumpSVT(mesh, outfile, "Result");
-        fprintf(stderr, "Mesh dumped to '%s'.\n", (outfile == stdout ? "stdout" : outfile_fn));
+
+        if (ferGSRMVerbosity(gsrm) >= 2){
+            fprintf(stderr, "\n");
+            ferTimerStopAndPrintElapsed(&timer, stderr, " Mesh dumped to '%s'.\n",
+                                        (outfile == stdout ? "stdout" : outfile_fn));
+        }
 
         if (dump_triangles != NULL){
             ferMesh3DumpTriangles(mesh, dump_triangles);
             fclose(dump_triangles);
-            fprintf(stderr, "Mesh dumped as triangles into '%s'.\n", dump_triangles_fn);
+
+            if (ferGSRMVerbosity(gsrm) >= 2){
+                ferTimerStopAndPrintElapsed(&timer, stderr,
+                                            " Mesh dumped as triangles into '%s'.\n",
+                                            dump_triangles_fn);
+            }
         }
     }
 

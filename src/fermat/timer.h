@@ -61,6 +61,19 @@ _fer_inline const struct timespec *ferTimerElapsed(const fer_timer_t *t);
  */
 void ferTimerPrintElapsed(const fer_timer_t *t, FILE *out,
                           const char *format, ...);
+/**
+ * Stops timer and prints output same as ferTimerPrintElapsed().
+ */
+void ferTimerStopAndPrintElapsed(fer_timer_t *t, FILE *out,
+                                 const char *format, ...);
+
+/**
+ * Equivalent to ferTimerPrintElapsed() expect it is called with va_list
+ * instead of variable number of arguments.
+ */
+_fer_inline void ferTimerPrintElapsed2(const fer_timer_t *t, FILE *out,
+                                       const char *format, va_list ap);
+
 
 /**
  * Macro version of ferTimerPrintElapsed().
@@ -72,7 +85,6 @@ void ferTimerPrintElapsed(const fer_timer_t *t, FILE *out,
             ferTimerElapsedMs(timer)); \
     \
     fprintf(fout, format, ## __VA_ARGS__)
-
 
 /**
  * Returns nanosecond part of elapsed time.
@@ -161,6 +173,19 @@ _fer_inline void ferTimerStop(fer_timer_t *t)
 _fer_inline const struct timespec *ferTimerElapsed(const fer_timer_t *t)
 {
     return &t->t_elapsed;
+}
+
+_fer_inline void ferTimerPrintElapsed2(const fer_timer_t *t, FILE *out,
+                                       const char *format, va_list ap)
+{
+    // print elapsed time
+    fprintf(out, "[%02ld:%02ld.%03ld]",
+            ferTimerElapsedM(t),
+            ferTimerElapsedS(t),
+            ferTimerElapsedMs(t));
+
+    // print the rest
+    vfprintf(out, format, ap);
 }
 
 _fer_inline long ferTimerElapsedNs(const fer_timer_t *t)
