@@ -15,7 +15,10 @@
  */
 
 #include <unistd.h>
+#include <sys/mman.h>
 #include <fermat/point_cloud_internal.h>
+#include <fermat/alloc.h>
+#include <fermat/dbg.h>
 #include <fermat/alloc.h>
 
 static size_t __fer_page_size = 0;
@@ -37,8 +40,8 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size)
     memsize /= __fer_page_size;
     memsize  = (memsize + 1) * __fer_page_size;
 
-    // allocated memory (TODO: use mmap??)
-    mem = malloc(memsize);
+    // allocated memory
+    mem = ferRealloc(NULL, memsize);
 
     // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of
