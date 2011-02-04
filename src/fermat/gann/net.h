@@ -23,31 +23,31 @@
 struct _gann_net_t {
     fer_list_t nodes; /*!< List of nodes */
     size_t nodes_len; /*!< Number of nodes in list */
-    fer_list_t conns; /*!< List of conns */
-    size_t conns_len; /*!< Number of conns in list */
+    fer_list_t edges; /*!< List of edges */
+    size_t edges_len; /*!< Number of edges in list */
 };
 typedef struct _gann_net_t gann_net_t;
 
 
 struct _gann_net_node_t {
-    fer_list_t list;     /*!< Connection into list of all nodes */
+    fer_list_t list;     /*!< Edgeection into list of all nodes */
 
-    fer_list_t conns; /*!< List of all incidenting connections */
-    size_t conns_len; /*!< Number of connections in list */
+    fer_list_t edges; /*!< List of all incidenting edgeections */
+    size_t edges_len; /*!< Number of edgeections in list */
 };
 typedef struct _gann_net_node_t gann_net_node_t;
 
 
-struct _gann_net_conn_t {
-    gann_net_node_t *n[2]; /*!< Start and end nodes of conn */
-    fer_list_m_t nlist[2]; /*!< Connection into list of connections
+struct _gann_net_edge_t {
+    gann_net_node_t *n[2]; /*!< Start and end nodes of edge */
+    fer_list_m_t nlist[2]; /*!< Edgeection into list of edgeections
                                 incidenting with node.
                                 .nlist[0] correspond with node .n[0] and
                                 .nlist[1] with .n[1] */
 
-    fer_list_t list;       /*!< Connection into list of all conns */
+    fer_list_t list;       /*!< Edgeection into list of all edges */
 };
-typedef struct _gann_net_conn_t gann_net_conn_t;
+typedef struct _gann_net_edge_t gann_net_edge_t;
 
 
 /**
@@ -67,73 +67,73 @@ gann_net_node_t *gannNetNodeNew(void);
 void gannNetNodeDel(gann_net_node_t *v);
 
 /**
- * Returns number of connections incidenting with given node.
+ * Returns number of edgeections incidenting with given node.
  */
-_fer_inline size_t gannNetNodeConnsLen(const gann_net_node_t *v);
+_fer_inline size_t gannNetNodeEdgesLen(const gann_net_node_t *v);
 
 /**
- * Returns head of list of connections incidenting with node.
+ * Returns head of list of edgeections incidenting with node.
  */
-_fer_inline fer_list_t *gannNetNodeConns(gann_net_node_t *n);
+_fer_inline fer_list_t *gannNetNodeEdges(gann_net_node_t *n);
 
 /**
- * Returns true if node incidents with given connection.
+ * Returns true if node incidents with given edgeection.
  */
-_fer_inline int gannNetNodeHasConn(const gann_net_node_t *n,
-                                   const gann_net_conn_t *e);
+_fer_inline int gannNetNodeHasEdge(const gann_net_node_t *n,
+                                   const gann_net_edge_t *e);
 
 /**
- * Returns connection (first) connecting given pair of nodes.
+ * Returns edgeection (first) edgeecting given pair of nodes.
  */
-gann_net_conn_t *gannNetNodeCommonConn(const gann_net_node_t *n1,
+gann_net_edge_t *gannNetNodeCommonEdge(const gann_net_node_t *n1,
                                        const gann_net_node_t *n2);
 
 
 /**
- * Conn
+ * Edge
  * -----
  * TODO
  */
 
 /**
- * Allocates and initializes connection.
+ * Allocates and initializes edgeection.
  */
-gann_net_conn_t *gannNetConnNew(void);
+gann_net_edge_t *gannNetEdgeNew(void);
 
 /**
- * Deletes connection.
+ * Deletes edgeection.
  */
-void gannNetConnDel(gann_net_conn_t *e);
+void gannNetEdgeDel(gann_net_edge_t *e);
 
 /**
- * Returns start or end node of conn.
+ * Returns start or end node of edge.
  * Parameter i can be either 0 or 1 (no check is performed).
  */
-_fer_inline gann_net_node_t *gannNetConnNode(gann_net_conn_t *e, size_t i);
+_fer_inline gann_net_node_t *gannNetEdgeNode(gann_net_edge_t *e, size_t i);
 
 /**
- * Returns true if connection incidents with given node.
+ * Returns true if edgeection incidents with given node.
  */
-_fer_inline int gannNetConnHasNode(const gann_net_conn_t *e,
+_fer_inline int gannNetEdgeHasNode(const gann_net_edge_t *e,
                                    const gann_net_node_t *n);
 
 /**
  * Returns the other (start/end) node than provided.
  */
-_fer_inline gann_net_node_t *gannNetConnOtherNode(gann_net_conn_t *e,
+_fer_inline gann_net_node_t *gannNetEdgeOtherNode(gann_net_edge_t *e,
                                                   const gann_net_node_t *n);
 
 /**
- * Returns true if given triplet of connections form triangle.
+ * Returns true if given triplet of edgeections form triangle.
  */
-int gannNetConnTriCheck(const gann_net_conn_t *e1,
-                        const gann_net_conn_t *e2,
-                        const gann_net_conn_t *e3);
+int gannNetEdgeTriCheck(const gann_net_edge_t *e1,
+                        const gann_net_edge_t *e2,
+                        const gann_net_edge_t *e3);
 
 /**
- * Return pointer of conn struct based on list item (pointer to nlist[0|1].
+ * Return pointer of edge struct based on list item (pointer to nlist[0|1].
  */
-_fer_inline gann_net_conn_t *gannNetConnFromNodeList(fer_list_t *l);
+_fer_inline gann_net_edge_t *gannNetEdgeFromNodeList(fer_list_t *l);
 
 
 
@@ -151,7 +151,7 @@ gann_net_t *gannNetNew(void);
 
 /**
  * Deletes network.
- * Warning: No nodes or conns are deleted because they were
+ * Warning: No nodes or edges are deleted because they were
  * allocated outside a net! See gannNetDel2() if you want more
  * sofisticated destructor.
  */
@@ -159,15 +159,15 @@ void gannNetDel(gann_net_t *m);
 
 /**
  * Deletes net. This destructor can be used for deleting all nodes and
- * conns contained in net.
+ * edges contained in net.
  *
  * Before freeing a net, destructor iterates over all nodes. Each
- * node is first disconnected from net and then delnode is called with
- * second argument ndata. Similarly are iterated conns.
+ * node is first disedgeected from net and then delnode is called with
+ * second argument ndata. Similarly are iterated edges.
  */
 void gannNetDel2(gann_net_t *m,
                  void (*delnode)(gann_net_node_t *, void *), void *ndata,
-                 void (*delconn)(gann_net_conn_t *, void *), void *cdata);
+                 void (*deledge)(gann_net_edge_t *, void *), void *cdata);
 
 /**
  * Returns number of nodes stored in net.
@@ -175,9 +175,9 @@ void gannNetDel2(gann_net_t *m,
 _fer_inline size_t gannNetNodesLen(const gann_net_t *m);
 
 /**
- * Returns number of conns stored in net.
+ * Returns number of edges stored in net.
  */
-_fer_inline size_t gannNetConnsLen(const gann_net_t *m);
+_fer_inline size_t gannNetEdgesLen(const gann_net_t *m);
 
 /**
  * Returns list of nodes.
@@ -185,9 +185,9 @@ _fer_inline size_t gannNetConnsLen(const gann_net_t *m);
 _fer_inline fer_list_t *gannNetNodes(gann_net_t *m);
 
 /**
- * Returns list of connections.
+ * Returns list of edgeections.
  */
-_fer_inline fer_list_t *gannNetConns(gann_net_t *m);
+_fer_inline fer_list_t *gannNetEdges(gann_net_t *m);
 
 /**
  * Adds node into net.
@@ -196,21 +196,21 @@ void gannNetAddNode(gann_net_t *m, gann_net_node_t *v);
 
 /**
  * Removes node from net.
- * If node is connected with any connection, node can't be removed and -1
+ * If node is edgeected with any edgeection, node can't be removed and -1
  * is returned. On success 0 is returned.
  */
 int gannNetRemoveNode(gann_net_t *m, gann_net_node_t *v);
 
 /**
- * Adds connection into net. Start and end points (nodes) must be provided.
+ * Adds edgeection into net. Start and end points (nodes) must be provided.
  */
-void gannNetAddConn(gann_net_t *m, gann_net_conn_t *e,
+void gannNetAddEdge(gann_net_t *m, gann_net_edge_t *e,
                     gann_net_node_t *start, gann_net_node_t *end);
 
 /**
- * Removes connection from net.
+ * Removes edgeection from net.
  */
-void gannNetRemoveConn(gann_net_t *m, gann_net_conn_t *e);
+void gannNetRemoveEdge(gann_net_t *m, gann_net_edge_t *e);
 
 
 #if 0
@@ -235,25 +235,25 @@ void gannNetDumpPovray(gann_net_t *m, FILE *out);
 
 
 /**** INLINES ****/
-_fer_inline size_t gannNetNodeConnsLen(const gann_net_node_t *v)
+_fer_inline size_t gannNetNodeEdgesLen(const gann_net_node_t *v)
 {
-    return v->conns_len;
+    return v->edges_len;
 }
 
-_fer_inline fer_list_t *gannNetNodeConns(gann_net_node_t *v)
+_fer_inline fer_list_t *gannNetNodeEdges(gann_net_node_t *v)
 {
-    return &v->conns;
+    return &v->edges;
 }
 
-_fer_inline int gannNetNodeHasConn(const gann_net_node_t *v,
-                                      const gann_net_conn_t *e)
+_fer_inline int gannNetNodeHasEdge(const gann_net_node_t *v,
+                                      const gann_net_edge_t *e)
 {
     fer_list_t *item;
-    gann_net_conn_t *conn;
+    gann_net_edge_t *edge;
 
-    ferListForEach(&v->conns, item){
-        conn = gannNetConnFromNodeList(item);
-        if (conn == e)
+    ferListForEach(&v->edges, item){
+        edge = gannNetEdgeFromNodeList(item);
+        if (edge == e)
             return 1;
     }
 
@@ -264,18 +264,18 @@ _fer_inline int gannNetNodeHasConn(const gann_net_node_t *v,
 
 
 
-_fer_inline gann_net_node_t *gannNetConnNode(gann_net_conn_t *e, size_t i)
+_fer_inline gann_net_node_t *gannNetEdgeNode(gann_net_edge_t *e, size_t i)
 {
     return e->n[i];
 }
 
-_fer_inline int gannNetConnHasNode(const gann_net_conn_t *e,
+_fer_inline int gannNetEdgeHasNode(const gann_net_edge_t *e,
                                    const gann_net_node_t *n)
 {
     return e->n[0] == n || e->n[1] == n;
 }
 
-_fer_inline gann_net_node_t *gannNetConnOtherNode(gann_net_conn_t *e,
+_fer_inline gann_net_node_t *gannNetEdgeOtherNode(gann_net_edge_t *e,
                                                   const gann_net_node_t *v)
 {
     if (e->n[0] == v)
@@ -283,13 +283,13 @@ _fer_inline gann_net_node_t *gannNetConnOtherNode(gann_net_conn_t *e,
     return e->n[0];
 }
 
-_fer_inline gann_net_conn_t *gannNetConnFromNodeList(fer_list_t *l)
+_fer_inline gann_net_edge_t *gannNetEdgeFromNodeList(fer_list_t *l)
 {
     fer_list_m_t *m;
-    gann_net_conn_t *e;
+    gann_net_edge_t *e;
 
     m = ferListMFromList(l);
-    e = ferListEntry(l, gann_net_conn_t, nlist[m->mark]);
+    e = ferListEntry(l, gann_net_edge_t, nlist[m->mark]);
 
     return e;
 }
@@ -300,9 +300,9 @@ _fer_inline size_t gannNetNodesLen(const gann_net_t *n)
     return n->nodes_len;
 }
 
-_fer_inline size_t gannNetConnsLen(const gann_net_t *n)
+_fer_inline size_t gannNetEdgesLen(const gann_net_t *n)
 {
-    return n->conns_len;
+    return n->edges_len;
 }
 
 _fer_inline fer_list_t *gannNetNodes(gann_net_t *n)
@@ -310,9 +310,9 @@ _fer_inline fer_list_t *gannNetNodes(gann_net_t *n)
     return &n->nodes;
 }
 
-_fer_inline fer_list_t *gannNetConns(gann_net_t *n)
+_fer_inline fer_list_t *gannNetEdges(gann_net_t *n)
 {
-    return &n->conns;
+    return &n->edges;
 }
 
 #endif /* __FER_GANN_NET_H__ */
