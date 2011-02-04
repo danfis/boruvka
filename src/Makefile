@@ -24,7 +24,7 @@ TARGETS += fer-qdelaunay
 OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
        point_cloud.o point_cloud_internal.o \
        mat3.o mat4.o predicates.o timer.o
-OBJS += nearest/cubes3.o
+OBJS += nearest/cubes3.o nearest/linear.o
 OBJS += mesh/mesh3.o mesh/qhull.o
 OBJS += surface/gsrm.o
 #OBJS += gann/gann.o

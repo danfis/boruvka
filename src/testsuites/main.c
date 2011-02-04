@@ -8,6 +8,7 @@
 #include "mat4.h"
 #include "cubes3.h"
 #include "mesh3.h"
+#include "nearest.h"
 
 #ifdef FER_GSL
 #include "vec.h"
@@ -25,6 +26,7 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSCubes3),
     TEST_SUITE_ADD(TSMesh3),
+    TEST_SUITE_ADD(TSNearest),
 
 #ifdef FER_GSL
     TEST_SUITE_ADD(TSVec),
