@@ -20,11 +20,12 @@ CFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
 TARGETS = libfermat.a gsrm
+TARGETS += fer-qdelaunay
 OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
        point_cloud.o point_cloud_internal.o \
        mat3.o mat4.o predicates.o timer.o
 OBJS += nearest/cubes3.o
-OBJS += mesh/mesh3.o
+OBJS += mesh/mesh3.o mesh/qhull.o
 OBJS += surface/gsrm.o
 
 ifeq '$(USE_GSL)' 'yes'
@@ -39,6 +40,8 @@ libfermat.a: $(OBJS)
 	ranlib $@
 
 gsrm: surface/gsrm-main.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+fer-qdelaunay: mesh/qdelaunay-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 fermat/config.h: fermat/config.h.m4
