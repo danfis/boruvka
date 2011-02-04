@@ -27,6 +27,8 @@ OBJS = alloc.o vec4.o vec3.o vec2.o parse.o \
 OBJS += nearest/cubes3.o
 OBJS += mesh/mesh3.o mesh/qhull.o
 OBJS += surface/gsrm.o
+#OBJS += gann/gann.o
+OBJS += gann/net.o
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
@@ -54,6 +56,8 @@ nearest/%.o: nearest/%.c fermat/nearest/%.h fermat/config.h
 mesh/%.o: mesh/%.c fermat/mesh/%.h fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
 surface/%.o: surface/%.c fermat/surface/%.h fermat/config.h
+	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
+gann/%.o: gann/%.c fermat/gann/%.h fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
 %.o: %.c fermat/config.h
 	$(CC) $(CFLAGS) $(DEFS) -c -o $@ $<
