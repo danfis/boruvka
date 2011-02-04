@@ -1,7 +1,7 @@
 # force some options
 DEBUG = yes
 
--include ../Makefile.include
+-include ../../Makefile.include
 CFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lfermat
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure

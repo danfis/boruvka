@@ -1,5 +1,5 @@
 #DYNAMIC = yes
--include ../Makefile.include
+-include ../../Makefile.include
 
 CFLAGS += -fno-strict-aliasing
 CFLAGS += -I..

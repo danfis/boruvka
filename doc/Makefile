@@ -1,4 +1,4 @@
--include ../src/Makefile.include
+-include ../Makefile.include
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
