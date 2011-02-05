@@ -28,7 +28,7 @@ OBJS += nearest/cubes3.o nearest/linear.o
 OBJS += mesh/mesh3.o mesh/qhull.o
 OBJS += surface/gsrm.o
 #OBJS += gann/gann.o
-OBJS += gann/net.o
+OBJS += gann/net.o gann/gng.o
 
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
