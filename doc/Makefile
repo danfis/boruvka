@@ -3,16 +3,22 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-PAPER         =
+PAPER         = a4
 BUILDDIR      = .
 
-RSTS = vec2 vec3 vec4 mat3 mat4 vec mat quat point_cloud \
-       list rand timer parse
-RSTS += mesh-mesh3
-RSTS += nearest-cubes3
-RSTS += surface-gsrm
+FER_RSTS  = list rand timer parse
+FER_RSTS += vec2 vec3 vec4 mat3 mat4 vec mat quat
+FER_RSTS += pc
+FER_RSTS += mesh3
+FER_RSTS += cubes3 nearest-linear
+FER_RSTS += gsrm
 
-RSTS := $(foreach header,$(RSTS),$(header).h.rst)
+GANN_RSTS = net gng
+
+FER_RSTS := $(foreach header,$(FER_RSTS),fer-$(header).h.rst)
+GANN_RSTS := $(foreach header,$(GANN_RSTS),gann-$(header).h.rst)
+
+RSTS := $(FER_RSTS) $(GANN_RSTS)
 
 
 # Internal variables.
@@ -134,13 +140,9 @@ doctest:
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
-mesh-%.h.rst: ../src/fermat/mesh/%.h
+fer-%.h.rst: ../fermat/fermat/%.h
 	$(PYTHON) doc.py $< >$@
-nearest-%.h.rst: ../src/fermat/nearest/%.h
-	$(PYTHON) doc.py $< >$@
-surface-%.h.rst: ../src/fermat/surface/%.h
-	$(PYTHON) doc.py $< >$@
-%.h.rst: ../src/fermat/%.h
+gann-%.h.rst: ../gann/gann/%.h
 	$(PYTHON) doc.py $< >$@
 
 clean:

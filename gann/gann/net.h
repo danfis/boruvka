@@ -20,6 +20,12 @@
 #include <fermat/core.h>
 #include <fermat/list.h>
 
+/**
+ * Net - Neural Network
+ * =====================
+ * TODO
+ */
+
 struct _gann_net_t {
     fer_list_t nodes; /*!< List of nodes */
     size_t nodes_len; /*!< Number of nodes in list */
@@ -54,6 +60,8 @@ typedef struct _gann_net_edge_t gann_net_edge_t;
  * Node
  * -------
  * TODO
+ *
+ * See gann_net_node_t.
  */
 
 /**
@@ -93,6 +101,8 @@ gann_net_edge_t *gannNetNodeCommonEdge(const gann_net_node_t *n1,
  * Edge
  * -----
  * TODO
+ *
+ * See gann_net_edge_t.
  */
 
 /**
@@ -139,9 +149,11 @@ _fer_inline gann_net_edge_t *gannNetEdgeFromNodeList(fer_list_t *l);
 
 
 /**
- * Network
- * --------
+ * Net
+ * ----
  * TODO
+ *
+ * See gann_net_t.
  */
 
 /**

@@ -6,39 +6,49 @@
 Welcome to Fermat's documentation!
 ==================================
 
-Contents:
+Fermat:
+--------
 
 .. toctree::
    :maxdepth: 1
 
-   core.rst
+   fer-core.rst
 
-   vec2.h.rst
-   vec3.h.rst
-   vec4.h.rst
-   quat.h.rst
-   mat3.h.rst
-   mat4.h.rst
+   fer-list.h.rst
+   fer-rand.h.rst
+   fer-timer.h.rst
+   fer-parse.h.rst
 
-   vec.h.rst
-   mat.h.rst
+.. toctree::
+   :maxdepth: 1
 
-   point_cloud.h.rst
+   fer-vec2.h.rst
+   fer-vec3.h.rst
+   fer-vec4.h.rst
+   fer-quat.h.rst
+   fer-mat3.h.rst
+   fer-mat4.h.rst
 
-   list.h.rst
-   rand.h.rst
-   timer.h.rst
-   parse.h.rst
+   fer-vec.h.rst
+   fer-mat.h.rst
+
+   fer-pc.h.rst
+
+.. toctree::
+   :maxdepth: 1
 
    mesh.rst
    nearest.rst
    surface.rst
 
 
-Indices and tables
-==================
+Growing Artificial Neural Networks
+-----------------------------------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. toctree::
+   :maxdepth: 1
+
+   gann-net.h.rst
+   gann-gng.h.rst
+
 
