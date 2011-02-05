@@ -19,6 +19,13 @@
 
 #include <fermat/gann/net.h>
 
+/**
+ * Growing Neural Gas
+ * ===================
+ * TODO
+ */
+
+
 struct _gann_gng_node_t {
     gann_net_node_t node;
 
@@ -40,6 +47,8 @@ typedef struct _gann_gng_edge_t gann_gng_edge_t;
  * GNG Operations
  * ---------------
  * TODO
+ *
+ * See gann_gng_ops_t.
  */
 
 /**
@@ -136,6 +145,11 @@ void gannGNGParamsInit(gann_gng_params_t *params);
 
 
 
+/**
+ * GNG Algorithm
+ * --------------
+ * TODO
+ */
 struct _gann_gng_t {
     gann_net_t *net;
     gann_gng_ops_t ops;
@@ -171,6 +185,8 @@ fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n
 
 /**
  * Returns age of edge.
+ *
+ * Always use this function instead of direct access to struct!
  */
 int gannGNGEdgeAge(const gann_gng_t *gng, const gann_gng_edge_t *edge);
 
