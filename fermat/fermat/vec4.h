@@ -224,12 +224,7 @@ _fer_inline void ferVec4MulComp2(fer_vec4_t *a, const fer_vec4_t *b, const fer_v
 _fer_inline fer_vec4_t *ferVec4Align(void *mem)
 {
 #ifdef FER_SSE
-    long padding;
-    long align;
-
-    align = (long)sizeof(fer_vec4_t);
-    padding = align - (long)mem % align;
-    return (fer_vec4_t *)((long)mem + padding);
+    return (fer_vec4_t *)ferAlign(mem, 16);
 #else /* FER_SSE */
     return (fer_vec4_t *)mem;
 #endif /* FER_SSE */

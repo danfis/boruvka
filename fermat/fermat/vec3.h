@@ -307,12 +307,7 @@ _fer_inline void ferVec3TriCentroid(const fer_vec3_t *a, const fer_vec3_t *b,
 _fer_inline fer_vec3_t *ferVec3Align(void *mem)
 {
 #ifdef FER_SSE
-    long padding;
-    long align;
-
-    align = (long)sizeof(fer_vec3_t);
-    padding = align - (long)mem % align;
-    return (fer_vec3_t *)((long)mem + padding);
+    return (fer_vec3_t *)ferAlign(mem, 16);
 #else /* FER_SSE */
     return (fer_vec3_t *)mem;
 #endif /* FER_SSE */

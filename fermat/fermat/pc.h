@@ -64,8 +64,7 @@ _fer_inline void ferPCSetMinChunkSize(fer_pc_t *pc, size_t size);
 /**
  * Adds point to point cloud.
  */
-_fer_inline void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v);
-void ferPCAddCoords(fer_pc_t *pc, fer_real_t x, fer_real_t y, fer_real_t z);
+void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v);
 
 /**
  * Returns number of points in point cloud.
@@ -151,11 +150,6 @@ _fer_inline void ferPCSetMinChunkSize(fer_pc_t *pc, size_t size)
     pc->min_chunk_size = size;
 }
 
-_fer_inline void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v)
-{
-    ferPCAddCoords(pc, ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
-}
-
 _fer_inline size_t ferPCLen(const fer_pc_t *pc)
 {
     return pc->len;
@@ -183,7 +177,7 @@ _fer_inline int ferPCItEnd(const fer_pc_it_t *it)
 
 _fer_inline fer_vec3_t *ferPCItGet(fer_pc_it_t *it)
 {
-    return ferPCMemGet(it->mem, it->pos);
+    return ferPCMemGet(it->mem, it->pos, fer_vec3_t);
 }
 
 _fer_inline void ferPCItNext(fer_pc_it_t *it)
