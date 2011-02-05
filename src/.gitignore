@@ -1,6 +1,0 @@
-*.a
-*.o
-*~
-fermat/config.h
-gsrm
-fer-*

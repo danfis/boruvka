@@ -1,0 +1,7 @@
+*.a
+*.so
+*.o
+*~
+config.h
+fer-*
+gann-*
