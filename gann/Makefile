@@ -19,7 +19,7 @@
 CFLAGS += -I. -I../fermat
 LDFLAGS += -L. -lgann -L../fermat -lfermat -lm -lrt
 
-BIN_TARGETS =
+BIN_TARGETS = gann-gng-3d
 
 TARGETS = libgann.a
 OBJS  = net.o

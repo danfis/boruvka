@@ -16,6 +16,7 @@
 
 #include <gann/gng.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 /** Node functions */
 /** Initialize node */
@@ -31,6 +32,8 @@ _fer_inline void nodeIncErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
 /** Scale error counter of node */
 _fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                     fer_real_t s);
+/** Final destructor for nodes */
+static void nodeFinalDel(gann_net_node_t *node, void *data);
 
 /** Edge functions */
 /** Creates and initializes new edge between n1 and n2 */
@@ -41,8 +44,6 @@ _fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *edge);
 /** Delete callback */
 typedef void (*delnode_t)(gann_net_node_t *, void *);
 static void delEdge(gann_net_edge_t *edge, void *data);
-/** Returns edge based on list item */
-_fer_inline gann_gng_edge_t *edgeFromList(fer_list_t *l);
 
 static void gngInit(gann_gng_t *gng);
 static void gngLearn(gann_gng_t *gng);
@@ -94,7 +95,7 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
 void gannGNGDel(gann_gng_t *gng)
 {
     if (gng->net){
-        gannNetDel2(gng->net, (delnode_t)gng->ops.del_node, gng->data,
+        gannNetDel2(gng->net, nodeFinalDel, gng,
                               delEdge, gng);
     }
 
@@ -113,7 +114,6 @@ void gannGNGRun(gann_gng_t *gng)
         if (step % gng->params.lambda == 0){
             gngNewNode(gng);
         }
-
         gngDecreaseErrCounters(gng);
 
         step++;
@@ -122,6 +122,11 @@ void gannGNGRun(gann_gng_t *gng)
 
 
 /*** Node functions ***/
+fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n)
+{
+    return n->err_counter;
+}
+
 _fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n)
 {
     n->err_counter = FER_ZERO;
@@ -150,6 +155,15 @@ _fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
     n->err_counter *= s;
 }
 
+static void nodeFinalDel(gann_net_node_t *node, void *data)
+{
+    gann_gng_t *gng = (gann_gng_t *)data;
+    gann_gng_node_t *n;
+
+    n = fer_container_of(node, gann_gng_node_t, node);
+    gng->ops.del_node(n, gng->data);
+}
+
 
 
 /*** Edge functions ***/
@@ -175,13 +189,6 @@ _fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *e)
 static void delEdge(gann_net_edge_t *edge, void *data)
 {
     free(edge);
-}
-
-_fer_inline gann_gng_edge_t *edgeFromList(fer_list_t *l)
-{
-    gann_net_edge_t *e;
-    e = ferListEntry(l, gann_net_edge_t, list);
-    return fer_container_of(e, gann_gng_edge_t, edge);
 }
 
 
@@ -237,9 +244,10 @@ static void gngLearn(gann_gng_t *gng)
     // + 7. Remove edges with age higher than age_max
     gng->ops.move_towards(n1, input_signal, gng->params.eb, gng->data);
     // adapt also direct topological neighbors of winner node
-    list = gannNetEdges(gng->net);
+    list = gannNetNodeEdges(&n1->node);
     ferListForEachSafe(list, item, item_tmp){
-        edge = edgeFromList(item);
+        nedge = gannNetEdgeFromNodeList(item);
+        edge  = fer_container_of(nedge, gann_gng_edge_t, edge);
         nn   = gannNetEdgeOtherNode(&edge->edge, &n1->node);
         n    = fer_container_of(nn, gann_gng_node_t, node);
 
@@ -345,7 +353,7 @@ static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
 
     list = gannNetNodeEdges(&q->node);
     ferListForEach(list, item){
-        ne = ferListEntry(item, gann_net_edge_t, list);
+        ne = gannNetEdgeFromNodeList(item);
         nn = gannNetEdgeOtherNode(ne, &q->node);
         n  = fer_container_of(nn, gann_gng_node_t, node);
         err = gannGNGNodeErrCounter(gng, n);

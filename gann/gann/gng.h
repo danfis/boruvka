@@ -190,5 +190,27 @@ fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n
  */
 int gannGNGEdgeAge(const gann_gng_t *gng, const gann_gng_edge_t *edge);
 
+/**
+ * Returns net of nodes.
+ */
+_fer_inline gann_net_t *gannGNGNet(gann_gng_t *gng);
+
+/**
+ * Returns number of nodes in net.
+ */
+_fer_inline size_t gannGNGNodesLen(const gann_gng_t *gng);
+
+
+/**** INLINES ****/
+_fer_inline gann_net_t *gannGNGNet(gann_gng_t *gng)
+{
+    return gng->net;
+}
+
+_fer_inline size_t gannGNGNodesLen(const gann_gng_t *gng)
+{
+    return gannNetNodesLen(gng->net);
+}
+
 #endif /* __FER_GANN_GNG_H__ */
 
