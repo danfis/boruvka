@@ -34,31 +34,30 @@
  * User must define several callbacks and fill *gann_gng_ops_t* structure,
  * gannGNG*() functions take care of the core of algorithm.
  *
- * +--------------------------------------------------------------------------------------+
- * | Algorithm works as follows:                                                          |
- * +======================================================================================+
- * | 1. Initializes network by two random nodes. [*gannGNGInit()*]                        |
- * | 2. Check termination condition                                                       |
- * | 3. Learn topology. ['gannGNGLearn()*]                                                |
- * |     1. Get random input signal                                                       |
- * |     2. Find two nearest nodes to input signal - *n1*, *n2*                           |
- * |     3. Create connection between *n1* and *n2* if doesn't exist and set age          |
- * |        to zero                                                                       |
- * |     4. Increase error counter of winner node.                                        |
- * |     5. Adapt nodes to input signal using fractions *eb* and *en*                     |
- * |     6. Increment age of all edges that incident with winner node by one              |
- * |     7. Remove all edges with age higher than *age_max*                               |
- * | 4. If the number of input signals presented so far to the network is an              |
- * |    integer multiple of the parameter *lambda*, create new node. [*gannGNGNewNode()*] |
- * |     1. Get node with highest error counter -> *q*                                    |
- * |     2. Get q's neighbor node with highest error counter -> *f*                       |
- * |     3. Create new node between *q* and *f* -> *r*                                    |
- * |     4. Create *q-r* and *f-r* edges and delete *q-f* edge.                           |
- * |     5. Decrease error counter of *q* and *f* (*alpha* parameter).                    |
- * |     6. Set error counter of *r* as average error counter of *q* and *f*.             |
- * | 5. Decrease error counters of all nodes [*gannGNGDecreaseErrCounters()*]             |
- * | 6. Go to 2.                                                                          |
- * +--------------------------------------------------------------------------------------+
+ *
+ * **Algorithm works as follows:**
+ *
+ * 1. Initializes network by two random nodes. [*gannGNGInit()*]
+ * 2. Check termination condition
+ * 3. Learn topology. ['gannGNGLearn()*]
+ *     1. Get random input signal
+ *     2. Find two nearest nodes to input signal - {n1}, {n2}
+ *     3. Create connection between {n1} and {n2} if doesn't exist and set age
+ *        to zero
+ *     4. Increase error counter of winner node.
+ *     5. Adapt nodes to input signal using fractions {eb} and {en}
+ *     6. Increment age of all edges that incident with winner node by one
+ *     7. Remove all edges with age higher than {age_max}
+ * 4. If the number of input signals presented so far to the network is an
+ *    integer multiple of the parameter {lambda}, create new node. [*gannGNGNewNode()*]
+ *     1. Get node with highest error counter -> {q}
+ *     2. Get {q}'s neighbor node with highest error counter -> {f}
+ *     3. Create new node between {q} and {f} -> {r}
+ *     4. Create {q-r} and {f-r} edges and delete {q-f} edge.
+ *     5. Decrease error counter of {q} and {f} ({alpha} parameter).
+ *     6. Set error counter of {r} as average error counter of {q} and {f}.
+ * 5. Decrease error counters of all nodes [*gannGNGDecreaseErrCounters()*]
+ * 6. Go to 2.
  */
 
 
@@ -188,8 +187,6 @@ void gannGNGParamsInit(gann_gng_params_t *params);
  * --------------
  *
  * See gann_gng_t.
- * See gann_gng_node_t.
- * See gann_gng_edge_t.
  */
 
 struct _gann_gng_t {
@@ -281,6 +278,14 @@ void gannGNGDecreaseErrCounters(gann_gng_t *gng);
 
 
 /**
+ * Net Related API
+ * ----------------
+ *
+ * See gann_gng_node_t.
+ * See gann_gng_edge_t.
+ */
+
+/**
  * Returns error counter of node.
  *
  * Always use this function instead of direct access to struct!
@@ -300,9 +305,66 @@ int gannGNGEdgeAge(const gann_gng_t *gng, const gann_gng_edge_t *edge);
 _fer_inline gann_net_t *gannGNGNet(gann_gng_t *gng);
 
 /**
+ * Returns list of nodes.
+ */
+_fer_inline fer_list_t *gannGNGNodes(gann_gng_t *gng);
+
+/**
  * Returns number of nodes in net.
  */
 _fer_inline size_t gannGNGNodesLen(const gann_gng_t *gng);
+
+/**
+ * Returns list of edges.
+ */
+_fer_inline fer_list_t *gannGNGNodes(gann_gng_t *gng);
+
+/**
+ * Returns number of edges in net.
+ */
+_fer_inline size_t gannGNGEdgesLen(const gann_gng_t *gng);
+
+/**
+ * Returns GNG node from list pointer.
+ *
+ * Usage:
+ * ~~~~~
+ * fer_list_t *list, *item;
+ * gann_gng_node_t *n;
+ *
+ * list = gannGNGNodes(gng);
+ * ferListForEach(list, item){
+ *     n = gannGNGNodeFromList(item);
+ *     ....
+ * }
+ */
+_fer_inline gann_gng_node_t *gannGNGNodeFromList(fer_list_t *item);
+
+/**
+ * Similar to *gannGNGNodeFromList()* but works with nodes.
+ */
+_fer_inline gann_gng_edge_t *gannGNGEdgeFromList(fer_list_t *item);
+
+/**
+ * Cast Net node to GNG node.
+ */
+_fer_inline gann_gng_node_t *gannGNGNodeFromNet(gann_net_node_t *n);
+
+/**
+ * Cast Net edge to GNG edge.
+ */
+_fer_inline gann_gng_edge_t *gannGNGEdgeFromNet(gann_net_edge_t *e);
+
+/**
+ * Cast GNG node to Net node.
+ */
+_fer_inline gann_net_node_t *gannGNGNodeToNet(gann_gng_node_t *n);
+
+/**
+ * Cast GNG edge to Net edge.
+ */
+_fer_inline gann_net_edge_t *gannGNGEdgeToNet(gann_gng_edge_t *e);
+
 
 
 /**** INLINES ****/
@@ -311,9 +373,64 @@ _fer_inline gann_net_t *gannGNGNet(gann_gng_t *gng)
     return gng->net;
 }
 
+_fer_inline fer_list_t *gannGNGNodes(gann_gng_t *gng)
+{
+    return gannNetNodes(gng->net);
+}
+
 _fer_inline size_t gannGNGNodesLen(const gann_gng_t *gng)
 {
     return gannNetNodesLen(gng->net);
+}
+
+_fer_inline fer_list_t *gannGNGEdges(gann_gng_t *gng)
+{
+    return gannNetEdges(gng->net);
+}
+
+_fer_inline size_t gannGNGEdgesLen(const gann_gng_t *gng)
+{
+    return gannNetEdgesLen(gng->net);
+}
+
+_fer_inline gann_gng_node_t *gannGNGNodeFromList(fer_list_t *item)
+{
+    gann_net_node_t *nn;
+    gann_gng_node_t *n;
+
+    nn = ferListEntry(item, gann_net_node_t, list);
+    n  = fer_container_of(nn, gann_gng_node_t, node);
+    return n;
+}
+
+_fer_inline gann_gng_edge_t *gannGNGEdgeFromList(fer_list_t *item)
+{
+    gann_net_edge_t *nn;
+    gann_gng_edge_t *n;
+
+    nn = ferListEntry(item, gann_net_edge_t, list);
+    n  = fer_container_of(nn, gann_gng_edge_t, edge);
+    return n;
+}
+
+_fer_inline gann_gng_node_t *gannGNGNodeFromNet(gann_net_node_t *n)
+{
+    return fer_container_of(n, gann_gng_node_t, node);
+}
+
+_fer_inline gann_gng_edge_t *gannGNGEdgeFromNet(gann_net_edge_t *e)
+{
+    return fer_container_of(e, gann_gng_edge_t, edge);
+}
+
+_fer_inline gann_net_node_t *gannGNGNodeToNet(gann_gng_node_t *n)
+{
+    return &n->node;
+}
+
+_fer_inline gann_net_edge_t *gannGNGEdgeToNet(gann_gng_edge_t *e)
+{
+    return &e->edge;
 }
 
 #endif /* __FER_GANN_GNG_H__ */

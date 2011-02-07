@@ -199,7 +199,6 @@ static int terminate(void *data)
 static void netDumpSVT(gng_t *gng, FILE *out)
 {
     fer_list_t *list, *item;
-    gann_net_t *net;
     gann_net_node_t *nn;
     gann_gng_node_t *gn;
     gann_net_edge_t *e;
@@ -208,14 +207,11 @@ static void netDumpSVT(gng_t *gng, FILE *out)
 
     fprintf(out, "--------\n");
 
-    net = gannGNGNet(gng->gng);
-
     fprintf(out, "Points:\n");
-    list = gannNetNodes(net);
+    list = gannGNGNodes(gng->gng);
     i = 0;
     ferListForEach(list, item){
-        nn = ferListEntry(item, gann_net_node_t, list);
-        gn = fer_container_of(nn, gann_gng_node_t, node);
+        gn = gannGNGNodeFromList(item);
         n  = fer_container_of(gn, node_t, node);
 
         n->_id = i++;
@@ -224,17 +220,17 @@ static void netDumpSVT(gng_t *gng, FILE *out)
 
 
     fprintf(out, "Edges:\n");
-    list = gannNetEdges(net);
+    list = gannGNGEdges(gng->gng);
     ferListForEach(list, item){
         e = ferListEntry(item, gann_net_edge_t, list);
 
         nn = gannNetEdgeNode(e, 0);
-        gn = fer_container_of(nn, gann_gng_node_t, node);
+        gn = gannGNGNodeFromNet(nn);
         n  = fer_container_of(gn, node_t, node);
         id1 = n->_id;
 
         nn = gannNetEdgeNode(e, 1);
-        gn = fer_container_of(nn, gann_gng_node_t, node);
+        gn = gannGNGNodeFromNet(nn);
         n  = fer_container_of(gn, node_t, node);
         id2 = n->_id;
         fprintf(out, "%d %d\n", id1, id2);

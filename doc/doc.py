@@ -12,6 +12,7 @@ pat_code_block_end   = re.compile(r'^/\*\* \^+ \*/$')
 pat_inline_code_block_start = re.compile(r'^~+$')
 pat_inline_code_block_end   = re.compile(r'^~+$')
 pat_see_struct = re.compile(r'^See ([a-z0-9_]+_t).$')
+pat_monotype = re.compile(r'\{([a-zA-Z0-9_-]+)\}')
 
 CONTEXT = None
 STRUCTS = {}
@@ -23,6 +24,8 @@ class Element(object):
         if len(line) == 0:
             s = '\n'
         else:
+            s = pat_monotype.sub(r'``\1``', s)
+
             if CONTEXT == 'vec':
                 if line.find('=') > 0 \
                     and (line.find('+') >= 0 \

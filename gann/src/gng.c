@@ -144,7 +144,7 @@ void gannGNGLearn(gann_gng_t *gng)
     // 1. Get input signal
     input_signal = gng->ops.input_signal(gng->data);
 
-    // 2. Find two nearest node to input signal
+    // 2. Find two nearest nodes to input signal
     gng->ops.nearest(input_signal, &n1, &n2, gng->data);
 
     // 3. Create connection between n1 and n2 if doesn't exist and set age
