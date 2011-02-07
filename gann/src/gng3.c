@@ -113,11 +113,12 @@ void gannGNG3Run(gann_gng3_t *gng)
     ferPCPermutate(gng->pc);
     ferPCItInit(&gng->pcit, gng->pc);
 
-    if (gng->cubes)
-        ferCubes3Del(gng->cubes);
-
-    aabb = ferPCAABB(gng->pc);
-    gng->cubes = ferCubes3New(aabb, gng->params.num_cubes);
+    if (gng->params.use_cubes){
+        if (gng->cubes)
+            ferCubes3Del(gng->cubes);
+        aabb = ferPCAABB(gng->pc);
+        gng->cubes = ferCubes3New(aabb, gng->params.num_cubes);
+    }
 
     gannGNGRun(gng->gng);
 }
@@ -131,8 +132,10 @@ static gann_gng_node_t *newNode(const void *input_signal, void *data)
     n = FER_ALLOC(gann_gng3_node_t);
     n->w = ferVec3Clone((const fer_vec3_t *)input_signal);
 
-    ferCubes3ElInit(&n->cubes, n->w);
-    ferCubes3Add(gng->cubes, &n->cubes);
+    if (gng->params.use_cubes){
+        ferCubes3ElInit(&n->cubes, n->w);
+        ferCubes3Add(gng->cubes, &n->cubes);
+    }
 
     return &n->node;
 }
@@ -160,7 +163,9 @@ static void delNode(gann_gng_node_t *_n, void *data)
 
     n = fer_container_of(_n, gann_gng3_node_t, node);
 
-    ferCubes3Remove(gng->cubes, &n->cubes);
+    if (gng->params.use_cubes){
+        ferCubes3Remove(gng->cubes, &n->cubes);
+    }
 
     ferVec3Del(n->w);
 
@@ -244,7 +249,9 @@ static void moveTowards(gann_gng_node_t *node, const void *input_signal,
     ferVec3Scale(&move, fraction);
     ferVec3Add(n->w, &move);
 
-    ferCubes3Update(gng->cubes, &n->cubes);
+    if (gng->params.use_cubes){
+        ferCubes3Update(gng->cubes, &n->cubes);
+    }
 }
 
 void gannGNG3DumpSVT(gann_gng3_t *gng, FILE *out, const char *name)
