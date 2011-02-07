@@ -50,5 +50,6 @@ Growing Artificial Neural Networks
 
    gann-net.h.rst
    gann-gng.h.rst
+   gann-gng3.h.rst
 
 
