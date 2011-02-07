@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef PY_PC_H_
-#define PY_PC_H_
+#ifndef PY_PC3_H_
+#define PY_PC3_H_
 
 #include <Python.h>
 #include <fermat/pc.h>
@@ -30,4 +30,4 @@ extern PyTypeObject py_pc_type;
 
 void pcInit(PyObject *module);
 
-#endif /* PY_PC_H_ */
+#endif /* PY_PC3_H_ */

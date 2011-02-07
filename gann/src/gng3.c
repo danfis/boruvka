@@ -87,7 +87,7 @@ gann_gng3_t *gannGNG3New(const gann_gng3_ops_t *ops3,
 
     gng->gng = gannGNGNew(&ops, &gng->params.gng);
 
-    gng->pc = ferPCNew();
+    gng->pc = ferPC3New();
 
     gng->cubes = NULL;
 
@@ -97,7 +97,7 @@ gann_gng3_t *gannGNG3New(const gann_gng3_ops_t *ops3,
 
 void gannGNG3Del(gann_gng3_t *gng)
 {
-    ferPCDel(gng->pc);
+    ferPC3Del(gng->pc);
     gannGNGDel(gng->gng);
 
     if (gng->cubes)
@@ -110,13 +110,13 @@ void gannGNG3Run(gann_gng3_t *gng)
 {
     const fer_real_t *aabb;
 
-    ferPCPermutate(gng->pc);
-    ferPCItInit(&gng->pcit, gng->pc);
+    ferPC3Permutate(gng->pc);
+    ferPC3ItInit(&gng->pcit, gng->pc);
 
     if (gng->params.use_cubes){
         if (gng->cubes)
             ferCubes3Del(gng->cubes);
-        aabb = ferPCAABB(gng->pc);
+        aabb = ferPC3AABB(gng->pc);
         gng->cubes = ferCubes3New(aabb, gng->params.num_cubes);
     }
 
@@ -177,13 +177,13 @@ static const void *inputSignal(void *data)
     gann_gng3_t *gng = (gann_gng3_t *)data;
     const fer_vec3_t *v;
 
-    if (ferPCItEnd(&gng->pcit)){
-        ferPCPermutate(gng->pc);
-        ferPCItInit(&gng->pcit, gng->pc);
+    if (ferPC3ItEnd(&gng->pcit)){
+        ferPC3Permutate(gng->pc);
+        ferPC3ItInit(&gng->pcit, gng->pc);
     }
 
-    v = ferPCItGet(&gng->pcit);
-    ferPCItNext(&gng->pcit);
+    v = ferPC3ItGet(&gng->pcit);
+    ferPC3ItNext(&gng->pcit);
 
     return v;
 }

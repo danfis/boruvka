@@ -91,7 +91,7 @@ void ferQDelaunaySetPath(fer_qdelaunay_t *q, const char *path);
  * Performs 3D delaunay triangulation on given point cloud.
  * New Mesh3 instance is returned.
  */
-fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc_t *pc);
+fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc3_t *pc);
 
 /**** INLINES ****/
 _fer_inline fer_mesh3_t *ferQHullMesh3(fer_qhull_mesh3_t *m)

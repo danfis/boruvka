@@ -29,25 +29,25 @@
 /**
  * Updates given AABB using given point.
  */
-_fer_inline void ferPCAABBUpdate(fer_real_t *aabb, fer_real_t x, fer_real_t y, fer_real_t z);
+_fer_inline void ferPC3AABBUpdate(fer_real_t *aabb, fer_real_t x, fer_real_t y, fer_real_t z);
 
-fer_pc_t *ferPCNew(void)
+fer_pc3_t *ferPC3New(void)
 {
-    fer_pc_t *pc;
+    fer_pc3_t *pc;
 
-    pc = FER_ALLOC(fer_pc_t);
+    pc = FER_ALLOC(fer_pc3_t);
     ferListInit(&pc->head);
     pc->len = 0;
     pc->aabb[0] = pc->aabb[2] = pc->aabb[4] = FER_REAL_MAX;
     pc->aabb[1] = pc->aabb[3] = pc->aabb[5] = FER_REAL_MIN;
 
-    pc->min_chunk_size = FER_PC_MIN_CHUNK_SIZE;
+    pc->min_chunk_size = FER_PC3_MIN_CHUNK_SIZE;
     
 
     return pc;
 }
 
-void ferPCDel(fer_pc_t *pc)
+void ferPC3Del(fer_pc3_t *pc)
 {
     fer_list_t *item, *tmp;
     fer_pc_mem_t *mem;
@@ -60,7 +60,7 @@ void ferPCDel(fer_pc_t *pc)
     free(pc);
 }
 
-void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v)
+void ferPC3Add(fer_pc3_t *pc, const fer_vec3_t *v)
 {
     fer_list_t *item;
     fer_pc_mem_t *mem;
@@ -77,11 +77,11 @@ void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v)
     }
 
     ferPCMemAdd(mem, v, fer_vec3_t);
-    ferPCAABBUpdate(pc->aabb, ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
+    ferPC3AABBUpdate(pc->aabb, ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
     pc->len++;
 }
 
-fer_vec3_t *ferPCGet(fer_pc_t *pc, size_t n)
+fer_vec3_t *ferPC3Get(fer_pc3_t *pc, size_t n)
 {
     fer_list_t *item;
     fer_pc_mem_t *mem;
@@ -107,7 +107,7 @@ fer_vec3_t *ferPCGet(fer_pc_t *pc, size_t n)
 /** Returns (via other and other_pos) memory chunk and position within it
  *  randomly chosen from point cloud from range starting at position from
  *  of mem chunk mem_from. */
-static void ferPCPermutateOther(fer_pc_mem_t *mem_from, size_t from,
+static void ferPC3PermutateOther(fer_pc_mem_t *mem_from, size_t from,
                                size_t len, fer_rand_t *rand,
                                fer_pc_mem_t **other, size_t *other_pos)
 {
@@ -131,7 +131,7 @@ static void ferPCPermutateOther(fer_pc_mem_t *mem_from, size_t from,
     *other_pos = pos;
 }
 
-void ferPCPermutate(fer_pc_t *pc)
+void ferPC3Permutate(fer_pc3_t *pc)
 {
     fer_list_t *item;
     fer_pc_mem_t *cur_mem, *other_mem;
@@ -149,7 +149,7 @@ void ferPCPermutate(fer_pc_t *pc)
         cur_mem = ferListEntry(item, fer_pc_mem_t, list);
         for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
             // choose other point for swapping
-            ferPCPermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,
+            ferPC3PermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,
                                &other_mem, &other_pos);
 
             // swap points
@@ -160,13 +160,13 @@ void ferPCPermutate(fer_pc_t *pc)
             ferVec3Copy(cur, &v);
         }
 
-        // length must be decreased because ferPCPermutateOther takes
+        // length must be decreased because ferPC3PermutateOther takes
         // length which is relative to first mem chunk
         pc_len -= cur_mem->len;
     }
 }
 
-size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename)
+size_t ferPC3AddFromFile(fer_pc3_t *pc, const char *filename)
 {
 
     int fd;
@@ -210,7 +210,7 @@ size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename)
     fstr = (char *)file;
     fend = (char *)file + size;
     while (ferParseVec3(fstr, fend, &v, &fnext) == 0){
-        ferPCAdd(pc, &v);
+        ferPC3Add(pc, &v);
         added++;
         fstr = fnext;
     }
@@ -224,7 +224,7 @@ size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename)
     return added;
 }
 
-_fer_inline void ferPCAABBUpdate(fer_real_t *aabb, fer_real_t x, fer_real_t y, fer_real_t z)
+_fer_inline void ferPC3AABBUpdate(fer_real_t *aabb, fer_real_t x, fer_real_t y, fer_real_t z)
 {
     if (aabb[0] > x)
         aabb[0] = x;

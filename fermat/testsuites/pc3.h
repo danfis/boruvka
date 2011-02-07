@@ -1,5 +1,5 @@
-#ifndef TEST_PC_H
-#define TEST_PC_H
+#ifndef TEST_PC3_H
+#define TEST_PC3_H
 
 TEST(pcSetUp);
 TEST(pcTearDown);
@@ -8,7 +8,7 @@ TEST(pcPermutate);
 TEST(pcFromFile);
 
 
-TEST_SUITE(TSPC) {
+TEST_SUITE(TSPC3) {
     TEST_ADD(pcSetUp),
 
     TEST_ADD(pcPermutate),

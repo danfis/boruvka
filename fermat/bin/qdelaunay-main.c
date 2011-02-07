@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
     fer_timer_t timer;
     fer_qdelaunay_t *q;
     fer_qhull_mesh3_t *mesh;
-    fer_pc_t *pc;
+    fer_pc3_t *pc;
     size_t len;
 
     if (argc != 2){
@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    pc = ferPCNew();
-    len = ferPCAddFromFile(pc, argv[1]);
+    pc = ferPC3New();
+    len = ferPC3AddFromFile(pc, argv[1]);
     fprintf(stderr, "Read %d points from %s\n", len, argv[1]);
 
     q = ferQDelaunayNew();
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     ferMesh3DumpSVT(ferQHullMesh3(mesh), stdout, NULL);
     ferQHullMesh3Del(mesh);
-    ferPCDel(pc);
+    ferPC3Del(pc);
 
     return 0;
 }

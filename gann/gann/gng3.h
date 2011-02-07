@@ -18,7 +18,7 @@
 #define __FER_GANN_GNG3_H__
 
 #include <fermat/vec3.h>
-#include <fermat/pc.h>
+#include <fermat/pc3.h>
 #include <fermat/cubes3.h>
 #include <gann/gng.h>
 
@@ -82,8 +82,8 @@ void gannGNG3ParamsInit(gann_gng3_params_t *p);
  */
 struct _gann_gng3_t {
     gann_gng_t *gng;     /*!< Pointer to GNG structure */
-    fer_pc_t *pc;        /*!< Point cloud - input signals */
-    fer_pc_it_t pcit;    /*!< Iterator over .pc */
+    fer_pc3_t *pc;       /*!< Point cloud - input signals */
+    fer_pc3_it_t pcit;   /*!< Iterator over .pc */
     fer_cubes3_t *cubes; /*!< Cubes3 for nearest neighbor search */
 
     gann_gng3_ops_t ops;
@@ -122,7 +122,7 @@ _fer_inline size_t gannGNG3AddInputSignalsFromFile(gann_gng3_t *gng,
 /**
  * Returns point cloud.
  */
-_fer_inline fer_pc_t *gannGNG3PC(gann_gng3_t *gng);
+_fer_inline fer_pc3_t *gannGNG3PC(gann_gng3_t *gng);
 
 /**
  * Returns GNG structure.
@@ -167,16 +167,16 @@ void gannGNG3DumpSVT(gann_gng3_t *gng, FILE *out, const char *name);
 /**** INLINES ****/
 _fer_inline void gannGNG3AddInputSignal(gann_gng3_t *gng, const fer_vec3_t *is)
 {
-    ferPCAdd(gng->pc, is);
+    ferPC3Add(gng->pc, is);
 }
 
 _fer_inline size_t gannGNG3AddInputSignalsFromFile(gann_gng3_t *gng,
                                                    const char *fn)
 {
-    return ferPCAddFromFile(gng->pc, fn);
+    return ferPC3AddFromFile(gng->pc, fn);
 }
 
-_fer_inline fer_pc_t *gannGNG3PC(gann_gng3_t *gng)
+_fer_inline fer_pc3_t *gannGNG3PC(gann_gng3_t *gng)
 {
     return gng->pc;
 }

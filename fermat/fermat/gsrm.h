@@ -63,8 +63,8 @@ typedef struct _fer_gsrm_param_t fer_gsrm_param_t;
 struct _fer_gsrm_t {
     fer_gsrm_param_t param; /*!< Parameters of algorithm */
 
-    fer_pc_t *is;        /*!< Input signals */
-    fer_pc_it_t isit;    /*!< Iterator over is */
+    fer_pc3_t *is;        /*!< Input signals */
+    fer_pc3_it_t isit;    /*!< Iterator over is */
     fer_mesh3_t *mesh;   /*!< Reconstructed mesh */
     fer_cubes3_t *cubes; /*!< Search structure for nearest neighbor */
 

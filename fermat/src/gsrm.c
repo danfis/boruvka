@@ -240,7 +240,7 @@ fer_gsrm_t *ferGSRMNew(void)
     g->param.angle_merge_edges = M_PI * 0.9;
 
     // initialize point cloude (input signals)
-    g->is = ferPCNew();
+    g->is = ferPC3New();
 
     // init 3D mesh
     g->mesh = ferMesh3New();
@@ -262,7 +262,7 @@ void ferGSRMDel(fer_gsrm_t *g)
         cacheDel(g->c);
 
     if (g->is)
-        ferPCDel(g->is);
+        ferPC3Del(g->is);
 
     if (g->mesh)
         ferMesh3Del2(g->mesh, nodeDel2, (void *)g,
@@ -277,7 +277,7 @@ void ferGSRMDel(fer_gsrm_t *g)
 
 size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
 {
-    return ferPCAddFromFile(g->is, fn);
+    return ferPC3AddFromFile(g->is, fn);
 }
 
 int ferGSRMRun(fer_gsrm_t *g)
@@ -286,7 +286,7 @@ int ferGSRMRun(fer_gsrm_t *g)
     size_t step, step_progress;
 
     // check if there are some input signals
-    if (ferPCLen(g->is) <= 3){
+    if (ferPC3Len(g->is) <= 3){
         DBG2("No input signals!");
         return -1;
     }
@@ -297,14 +297,14 @@ int ferGSRMRun(fer_gsrm_t *g)
 
     // initialize NN search structure
     if (!g->cubes){
-        aabb = ferPCAABB(g->is);
+        aabb = ferPC3AABB(g->is);
         g->cubes = ferCubes3New(aabb, g->param.num_cubes);
     }
 
     // first shuffle of all input signals
-    ferPCPermutate(g->is);
+    ferPC3Permutate(g->is);
     // and initialize its iterator
-    ferPCItInit(&g->isit, g->is);
+    ferPC3ItInit(&g->isit, g->is);
 
     // start timer
     ferTimerStart(&g->timer);
@@ -711,26 +711,26 @@ static void meshInit(fer_gsrm_t *g)
 
     for (i = 0; i < 3; i++){
         // obtain input signal
-        v = ferPCItGet(&g->isit);
+        v = ferPC3ItGet(&g->isit);
 
         // create new node
         n = nodeNew(g, v);
 
         // move to next point
-        ferPCItNext(&g->isit);
+        ferPC3ItNext(&g->isit);
     }
 }
 
 static void drawInputPoint(fer_gsrm_t *g)
 {
-    if (ferPCItEnd(&g->isit)){
+    if (ferPC3ItEnd(&g->isit)){
         // if iterator is at the end permutate point cloud again
-        ferPCPermutate(g->is);
+        ferPC3Permutate(g->is);
         // and re-initialize iterator
-        ferPCItInit(&g->isit, g->is);
+        ferPC3ItInit(&g->isit, g->is);
     }
-    g->c->is = ferPCItGet(&g->isit);
-    ferPCItNext(&g->isit);
+    g->c->is = ferPC3ItGet(&g->isit);
+    ferPC3ItNext(&g->isit);
 }
 
 
