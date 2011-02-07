@@ -28,7 +28,11 @@
  * Marks inline function.
  */
 #ifdef __GNUC__
-# define _fer_inline static inline __attribute__((always_inline))
+# ifdef FER_DEBUG
+#  define _fer_inline static
+# else /* FER_DEBUG */
+#  define _fer_inline static inline __attribute__((always_inline))
+# endif /* FER_DEBUG */
 #else /* __GNUC__ */
 # define _fer_inline static inline
 #endif /* __GNUC__ */

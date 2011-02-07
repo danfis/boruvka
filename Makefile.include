@@ -48,8 +48,9 @@ ifeq '$(PROFIL)' 'yes'
 endif
 
 ifeq '$(DEBUG)' 'yes'
-  CFLAGS = -g
-  CXXFLAGS = -g
+  CFLAGS = -g -Wno-unused-functions
+  CXXFLAGS = -g -Wno-unused-functions
+  CONFIG_FLAGS += -DDEBUG
 endif
 ifeq '$(PROFIL)' 'yes'
   CFLAGS += -pg
