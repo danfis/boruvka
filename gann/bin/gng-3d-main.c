@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <fermat/dbg.h>
+#include <fermat/timer.h>
 #include <gann/gng3.h>
 
 struct _params_t {
     size_t max_nodes;
     gann_gng3_t *gng;
+    fer_timer_t timer;
 };
 typedef struct _params_t params_t;
 
@@ -44,6 +46,7 @@ int main(int argc, char *argv[])
         p.max_nodes = atoi(argv[2]);
     }
 
+    ferTimerStart(&p.timer);
     gannGNG3Run(gng);
     callback(&p);
     fprintf(stderr, "\n");
@@ -69,5 +72,5 @@ static void callback(void *data)
 
     nodes_len = gannGNG3NodesLen(p->gng);
 
-    fprintf(stderr, "%d / %d\r", nodes_len, p->max_nodes);
+    ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
 }
