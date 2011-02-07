@@ -23,7 +23,7 @@
 
 static size_t __fer_page_size = 0;
 
-fer_pc_mem_t *ferPCMemNew(size_t min_size)
+fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
 {
     fer_pc_mem_t *m;
     void *mem, *datamem;
@@ -35,7 +35,7 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size)
     // Try to estimate how many memory do we need.
     // Estimation is based od assumption that one chunk will contain at
     // least min_size points.
-    memsize  = min_size * sizeof(fer_vec3_t);
+    memsize  = min_size * elsize;
     memsize += sizeof(fer_pc_mem_t);
     memsize /= __fer_page_size;
     memsize  = (memsize + 1) * __fer_page_size;
@@ -51,9 +51,9 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size)
     ferListInit(&m->list);
 
     datamem = (void *)((long)m + sizeof(fer_pc_mem_t));
-    datamem = ferVec3Align(datamem);
+    datamem = ferAlign(datamem, align);
     m->data = datamem;
-    m->size = ((long)mem + (long)memsize - (long)datamem) / sizeof(fer_vec3_t);
+    m->size = ((long)mem + (long)memsize - (long)datamem) / elsize;
 
     //DBG("Alloc mem: %ld of size %d (%d)", (long)m, memsize, m->size);
 

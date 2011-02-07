@@ -17,14 +17,13 @@
 #ifndef __FER_PC_INTERNAL_H__
 #define __FER_PC_INTERNAL_H__
 
-#include <fermat/vec3.h>
 #include <fermat/list.h>
 
 /**
  * One memory chunk used for storing points.
  */
 struct _fer_pc_mem_t {
-    fer_vec3_t *data;
+    void *data;
     size_t len;  /*! actual number of points in data array */
     size_t size; /*! number of points that can be stored in data array */
     fer_list_t list;
@@ -37,7 +36,7 @@ typedef struct _fer_pc_mem_t fer_pc_mem_t;
  * should be able to hold. It is also base number from which will be
  * estimated amount of allocated memory.
  */
-fer_pc_mem_t *ferPCMemNew(size_t min_size);
+fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align);
 void ferPCMemDel(fer_pc_mem_t *m);
 
 /**
@@ -46,16 +45,21 @@ void ferPCMemDel(fer_pc_mem_t *m);
 _fer_inline int ferPCMemFull(const fer_pc_mem_t *m);
 
 /**
- * Returns point stored on i'th position. No boundaries are checked!
+ * Returns element (of given type) stored on pos'th position.
+ * No boundaries are checked!
  */
-_fer_inline fer_vec3_t *ferPCMemGet(fer_pc_mem_t *m, size_t i);
+#define ferPCMemGet(mem, pos, TYPE) \
+    (TYPE *)((char *)(mem)->data + ((pos) * sizeof(TYPE)))
 
 /**
- * Adds point to chunk. No boundaries are checked!
+ * Adds element (of given type) to chunk.
+ * No boundaries are checked!
  */
-_fer_inline void ferPCMemAdd(fer_pc_mem_t *m, const fer_vec3_t *v);
-_fer_inline void ferPCMemAddCoords(fer_pc_mem_t *m,
-                                 fer_real_t x, fer_real_t y, fer_real_t z);
+#define ferPCMemAdd(mem, el, TYPE) \
+    do { \
+        *((TYPE *)((char *)(mem)->data + ((mem)->len * sizeof(TYPE)))) = *(el); \
+        (mem)->len++; \
+    } while (0)
 
 
 
@@ -63,24 +67,6 @@ _fer_inline void ferPCMemAddCoords(fer_pc_mem_t *m,
 _fer_inline int ferPCMemFull(const fer_pc_mem_t *m)
 {
     return m->len >= m->size;
-}
-
-_fer_inline fer_vec3_t *ferPCMemGet(fer_pc_mem_t *m, size_t i)
-{
-    return m->data + i;
-}
-
-_fer_inline void ferPCMemAdd(fer_pc_mem_t *m, const fer_vec3_t *v)
-{
-    ferVec3Copy(m->data + m->len, v);
-    m->len++;
-}
-
-_fer_inline void ferPCMemAddCoords(fer_pc_mem_t *m,
-                                 fer_real_t x, fer_real_t y, fer_real_t z)
-{
-    ferVec3Set(m->data + m->len, x, y, z);
-    m->len++;
 }
 
 #endif /* __FER_PC_INTERNAL_H__ */

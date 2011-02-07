@@ -60,7 +60,7 @@ void ferPCDel(fer_pc_t *pc)
     free(pc);
 }
 
-void ferPCAddCoords(fer_pc_t *pc, fer_real_t x, fer_real_t y, fer_real_t z)
+void ferPCAdd(fer_pc_t *pc, const fer_vec3_t *v)
 {
     fer_list_t *item;
     fer_pc_mem_t *mem;
@@ -68,12 +68,16 @@ void ferPCAddCoords(fer_pc_t *pc, fer_real_t x, fer_real_t y, fer_real_t z)
     item = ferListPrev(&pc->head);
     mem = ferListEntry(item, fer_pc_mem_t, list);
     if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
-        mem = ferPCMemNew(pc->min_chunk_size);
+#ifdef FER_SSE
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec3_t), 16);
+#else /* FER_SSE */
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec3_t), 0);
+#endif /* FER_SSE */
         ferListAppend(&pc->head, &mem->list);
     }
 
-    ferPCMemAddCoords(mem, x, y, z);
-    ferPCAABBUpdate(pc->aabb, x, y, z);
+    ferPCMemAdd(mem, v, fer_vec3_t);
+    ferPCAABBUpdate(pc->aabb, ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
     pc->len++;
 }
 
@@ -91,7 +95,7 @@ fer_vec3_t *ferPCGet(fer_pc_t *pc, size_t n)
     ferListForEach(&pc->head, item){
         mem = ferListEntry(item, fer_pc_mem_t, list);
         if (pos + mem->len > n){
-            p = ferPCMemGet(mem, n - pos);
+            p = ferPCMemGet(mem, n - pos, fer_vec3_t);
             break;
         }
         pos += mem->len;
@@ -149,8 +153,8 @@ void ferPCPermutate(fer_pc_t *pc)
                                &other_mem, &other_pos);
 
             // swap points
-            cur   = ferPCMemGet(cur_mem, cur_pos);
-            other = ferPCMemGet(other_mem, other_pos);
+            cur   = ferPCMemGet(cur_mem, cur_pos, fer_vec3_t);
+            other = ferPCMemGet(other_mem, other_pos, fer_vec3_t);
             ferVec3Copy(&v, other);
             ferVec3Copy(other, cur);
             ferVec3Copy(cur, &v);

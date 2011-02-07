@@ -154,6 +154,11 @@ _fer_inline fer_real_t ferRecp(fer_real_t v);
 _fer_inline fer_real_t ferRsqrt(fer_real_t v);
 
 
+/**
+ * Alignes given memory.
+ */
+_fer_inline void *ferAlign(void *mem, int alignment);
+
 /***** INLINES *****/
 #ifdef FER_SSE
 _fer_inline fer_real_t __ferSqrt(fer_real_t val)
@@ -232,6 +237,17 @@ _fer_inline fer_real_t ferRsqrt(fer_real_t v)
 #else /* FER_SSE_SINGLE */
     return FER_ONE / FER_SQRT(v);
 # endif /* FER_SSE_SINGLE */
+}
+
+_fer_inline void *ferAlign(void *mem, int align)
+{
+    long padding;
+
+    if (align == 0)
+        return mem;
+
+    padding = align - (long)mem % align;
+    return (void *)((long)mem + padding);
 }
 
 #ifdef __cplusplus
