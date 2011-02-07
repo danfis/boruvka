@@ -25,7 +25,7 @@ TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
 OBJS += vec4.o vec3.o vec2.o
 OBJS += mat4.o mat3.o
-OBJS += pc3.o pc-internal.o
+OBJS += pc2.o pc3.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes3.o nearest-linear.o
 OBJS += mesh3.o qhull.o
@@ -55,6 +55,10 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+fermat/pc3.h: fermat/pcN.h.in
+	cat $< | sed 's|{{N}}|3|g' >$@
+fermat/pc2.h: fermat/pcN.h.in
+	cat $< | sed 's|{{N}}|2|g' >$@
 %.h: fermat/config.h
 %.c: fermat/config.h
 

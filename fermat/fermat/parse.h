@@ -17,6 +17,7 @@
 #ifndef __FER_PARSE_H__
 #define __FER_PARSE_H__
 
+#include <fermat/vec2.h>
 #include <fermat/vec3.h>
 
 /**
@@ -40,6 +41,12 @@ int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **ne
  * Returns 0 on success -1 otherwise.
  */
 int ferParseVec3(const char *str, const char *strend, fer_vec3_t *v, char **next);
+
+/**
+ * Similar function to ferParseVec3() but parses 2D vectors.
+ */
+int ferParseVec2(const char *str, const char *strend, fer_vec2_t *v, char **next);
+
 
 /**
  * Parses given string that starts at str ands ends at strend (exclusively)
