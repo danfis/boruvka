@@ -19,12 +19,12 @@
 
 #include <fermat/vec3.h>
 #include <fermat/pc.h>
+#include <fermat/cubes3.h>
 #include <gann/gng.h>
 
 /**
  * Growing Neural Gas In 3-D
  * ==========================
- * TODO
  */
 
 
@@ -54,12 +54,19 @@ typedef struct _gann_gng3_ops_t gann_gng3_ops_t;
  */
 void gannGNG3OpsInit(gann_gng3_ops_t *ops);
 
+
+
 /**
  * GNG 3-D Parameters
  * -------------------
  */
 struct _gann_gng3_params_t {
     gann_gng_params_t gng;
+
+    int use_cubes;    /*!< Set to true to enable using cubes3 for nearest
+                           neighbor search. [default true] */
+    size_t num_cubes; /*!< Number of cubes3 used for nearest neighbor
+                           search. [default 10000] */
 };
 typedef struct _gann_gng3_params_t gann_gng3_params_t;
 
@@ -74,9 +81,10 @@ void gannGNG3ParamsInit(gann_gng3_params_t *p);
  * -----------------
  */
 struct _gann_gng3_t {
-    gann_gng_t *gng;  /*!< Pointer to GNG structure */
-    fer_pc_t *pc;     /*!< Point cloud - input signals */
-    fer_pc_it_t pcit; /*!< Iterator over .pc */
+    gann_gng_t *gng;     /*!< Pointer to GNG structure */
+    fer_pc_t *pc;        /*!< Point cloud - input signals */
+    fer_pc_it_t pcit;    /*!< Iterator over .pc */
+    fer_cubes3_t *cubes; /*!< Cubes3 for nearest neighbor search */
 
     gann_gng3_ops_t ops;
     gann_gng3_params_t params;
@@ -127,10 +135,11 @@ _fer_inline gann_gng_t *gannGNG3GNG(gann_gng3_t *gng);
  * ----------------
  */
 struct _gann_gng3_node_t {
-    gann_gng_node_t node;
-    fer_vec3_t *w; /*!< Weight vector */
+    gann_gng_node_t node;  /*!< GNG node */
+    fer_vec3_t *w;         /*!< Weight vector */
+    fer_cubes3_el_t cubes; /*!< Struct for searching in cubes3 */
 
-    int _id;
+    int _id; /*!< Currently useful only for gannGNG3DumpSVT(). */
 };
 typedef struct _gann_gng3_node_t gann_gng3_node_t;
 
