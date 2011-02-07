@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <fermat/pc.h>
+#include <fermat/pc3.h>
 #include <fermat/rand.h>
 #include <fermat/parse.h>
 #include <fermat/alloc.h>

@@ -18,7 +18,7 @@
 #define __FER_QHULL_H__
 
 #include <fermat/core.h>
-#include <fermat/pc.h>
+#include <fermat/pc3.h>
 #include <fermat/mesh3.h>
 
 /** Default path to qdelaunay binary */

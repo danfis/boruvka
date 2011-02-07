@@ -19,7 +19,7 @@
 
 #include <fermat/core.h>
 #include <fermat/timer.h>
-#include <fermat/pc.h>
+#include <fermat/pc3.h>
 #include <fermat/mesh3.h>
 #include <fermat/cubes3.h>
 

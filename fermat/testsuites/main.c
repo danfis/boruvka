@@ -3,7 +3,7 @@
 #include "vec3.h"
 #include "vec2.h"
 #include "quat.h"
-#include "point_cloud.h"
+#include "pc3.h"
 #include "mat3.h"
 #include "mat4.h"
 #include "cubes3.h"

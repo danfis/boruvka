@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/pc.h>
+#include <fermat/pc3.h>
 #include <fermat/dbg.h>
 
 TEST(pcSetUp)
