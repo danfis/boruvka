@@ -32,6 +32,8 @@ _fer_inline void nodeIncErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
 /** Scale error counter of node */
 _fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                     fer_real_t s);
+/** Applies accumulated error counter */
+_fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n);
 /** Final destructor for nodes */
 static void nodeFinalDel(gann_net_node_t *node, void *data);
 
@@ -67,6 +69,8 @@ void gannGNGParamsInit(gann_gng_params_t *params)
     params->alpha   = 0.95;
     params->beta    = 0.9995;
     params->age_max = 200;
+
+    params->use_acc_err_counter = 1;
 }
 
 
@@ -101,6 +105,9 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
         gng->ops.terminate_data = gng->ops.data;
     if (!gng->ops.callback_data)
         gng->ops.callback_data = gng->ops.data;
+
+    gng->err_counter_mark = 0;
+    gng->err_counter_scale = FER_ONE;
 
     return gng;
 }
@@ -150,12 +157,10 @@ void gannGNGInit(gann_gng_t *gng)
 
     is = gng->ops.input_signal(gng->ops.input_signal_data);
     n  = gng->ops.new_node(is, gng->ops.new_node_data);
-    nodeInit(gng, n);
     nodeAdd(gng, n);
 
     is = gng->ops.input_signal(gng->ops.input_signal_data);
     n  = gng->ops.new_node(is, gng->ops.new_node_data);
-    nodeInit(gng, n);
     nodeAdd(gng, n);
 }
 
@@ -253,15 +258,20 @@ void gannGNGNewNode(gann_gng_t *gng)
 
 void gannGNGDecreaseErrCounters(gann_gng_t *gng)
 {
-    fer_list_t *list, *item;
-    gann_net_node_t *nn;
-    gann_gng_node_t *n;
+    if (gng->params.use_acc_err_counter){
+        gng->err_counter_mark++;
+        gng->err_counter_scale *= gng->params.beta;
+    }else{
+        fer_list_t *list, *item;
+        gann_net_node_t *nn;
+        gann_gng_node_t *n;
 
-    list = gannNetNodes(gng->net);
-    ferListForEach(list, item){
-        nn = ferListEntry(item, gann_net_node_t, list);
-        n  = fer_container_of(nn, gann_gng_node_t, node);
-        nodeScaleErrCounter(gng, n, gng->params.beta);
+        list = gannNetNodes(gng->net);
+        ferListForEach(list, item){
+            nn = ferListEntry(item, gann_net_node_t, list);
+            n  = fer_container_of(nn, gann_gng_node_t, node);
+            nodeScaleErrCounter(gng, n, gng->params.beta);
+        }
     }
 }
 
@@ -269,16 +279,19 @@ void gannGNGDecreaseErrCounters(gann_gng_t *gng)
 /*** Node functions ***/
 fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n)
 {
+    nodeApplyErrCounter((gann_gng_t *)gng, (gann_gng_node_t *)n);
     return n->err_counter;
 }
 
 _fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n)
 {
     n->err_counter = FER_ZERO;
+    n->err_counter_mark = gng->err_counter_mark;
 }
 
 _fer_inline void nodeAdd(gann_gng_t *gng, gann_gng_node_t *n)
 {
+    nodeInit(gng, n);
     gannNetAddNode(gng->net, &n->node);
 }
 
@@ -286,18 +299,47 @@ _fer_inline void nodeSetErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                    fer_real_t err)
 {
     n->err_counter = err;
+    n->err_counter_mark = gng->err_counter_mark;
 }
 
 _fer_inline void nodeIncErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                    fer_real_t inc)
 {
+    nodeApplyErrCounter(gng, n);
     n->err_counter += inc;
 }
 
 _fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                      fer_real_t s)
 {
+    nodeApplyErrCounter(gng, n);
     n->err_counter *= s;
+}
+
+_fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n)
+{
+    size_t mark, left;
+    fer_real_t err;
+
+    if (!gng->params.use_acc_err_counter)
+        return;
+
+    mark = n->err_counter_mark;
+    left = gng->err_counter_mark - mark;
+
+    if (fer_likely(left > 0)){
+        if (fer_likely(left == gng->err_counter_mark)){
+            // most of nodes in mesh are not touched while ECHL phase - so
+            // scale factor can be cumulated and can be used directly
+            // without pow() operation
+            n->err_counter *= gng->err_counter_scale;
+        }else{
+            err = FER_POW(gng->params.beta, (fer_real_t)left);
+            n->err_counter *= err;
+        }
+    }
+
+    n->err_counter_mark = gng->err_counter_mark;
 }
 
 static void nodeFinalDel(gann_net_node_t *node, void *data)
@@ -358,7 +400,19 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
             err_highest = err;
             n_highest   = n;
         }
+
+        // Accumulated error counter was applied to all nodes.
+        // Now it is safe to reset all nodes' error counters.
+        // Note that it is safe to don't check if accumulated error counter
+        // is enabled.
+        n->err_counter_mark = 0;
     }
+
+    // Reset global accumulated error counter
+    // Note that it is safe to don't check if accumulated error counter
+    // is enabled.
+    gng->err_counter_scale = FER_ONE;
+    gng->err_counter_mark = 0;
 
     return n_highest;
 }

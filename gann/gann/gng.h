@@ -64,7 +64,8 @@
 struct _gann_gng_node_t {
     gann_net_node_t node;
 
-    fer_real_t err_counter;
+    fer_real_t err_counter;  /*!< Error counter */
+    size_t err_counter_mark; /*!< Mark used for a accumulated error counter */
 };
 typedef struct _gann_gng_node_t gann_gng_node_t;
 
@@ -195,6 +196,16 @@ struct _gann_gng_params_t {
     fer_real_t alpha; /*!< Decrease error counter rate */
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
+
+    int use_acc_err_counter; /*!< Set to true if you want to use
+                                  accumulated error counter.
+                                  Note that this can be unsafe (due to
+                                  inaccuracy of floating point numbers) if
+                                  parameter beta is too small or/and
+                                  parameter lambda is too big. In short, if
+                                  beta^lambda is too far from value what
+                                  should really be, don't use this feature.
+                                  [default true] */
 };
 typedef struct _gann_gng_params_t gann_gng_params_t;
 
@@ -216,6 +227,11 @@ struct _gann_gng_t {
     gann_net_t *net;
     gann_gng_ops_t ops;
     gann_gng_params_t params;
+
+    size_t err_counter_mark;      /*!< Contains mark used for accumulated
+                                       error counter. It holds how many
+                                       times were applied parameter beta */
+    fer_real_t err_counter_scale; /*!< Accumulated error counter - beta^mark */
 };
 typedef struct _gann_gng_t gann_gng_t;
 
