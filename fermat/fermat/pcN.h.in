@@ -25,8 +25,8 @@
 #endif /* FER_PC{{N}}_MIN_CHUNK_SIZE */
 
 /**
- * Point Cloud
- * ============
+ * Point Cloud - {{N}}-D
+ * ======================
  *
  * Struct representing point cloud.
  * Point cloud is internally allocated using several memory chunks to be

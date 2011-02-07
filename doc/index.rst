@@ -32,7 +32,8 @@ Fermat:
    fer-vec.h.rst
    fer-mat.h.rst
 
-   fer-pc.h.rst
+   fer-pc2.h.rst
+   fer-pc3.h.rst
 
 .. toctree::
    :maxdepth: 1

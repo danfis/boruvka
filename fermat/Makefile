@@ -73,7 +73,7 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
-	rm -f fermat/config.h
+	rm -f fermat/config.h fermat/pc{2,3}.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:
