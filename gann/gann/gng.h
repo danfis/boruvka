@@ -139,6 +139,13 @@ typedef void (*gann_gng_move_towards)(gann_gng_node_t *node,
  */
 typedef int (*gann_gng_terminate)(void *);
 
+/**
+ * Callback that is peridically called from GNG.
+ *
+ * It is called every .callback_period'th added node.
+ */
+typedef void (*gann_gng_callback)(void *);
+
 /** ^^^^ */
 
 struct _gann_gng_ops_t {
@@ -150,6 +157,22 @@ struct _gann_gng_ops_t {
     gann_gng_dist2            dist2;
     gann_gng_move_towards     move_towards;
     gann_gng_terminate        terminate;
+
+    gann_gng_callback callback;
+    unsigned long callback_period;
+
+    void *data; /*!< Data pointer that will be provided to all callbacks if
+                     not specified otherwise. */
+
+    void *new_node_data;
+    void *new_node_between_data;
+    void *del_node_data;
+    void *input_signal_data;
+    void *nearest_data;
+    void *dist2_data;
+    void *move_towards_data;
+    void *terminate_data;
+    void *callback_data;
 };
 typedef struct _gann_gng_ops_t gann_gng_ops_t;
 
@@ -193,7 +216,6 @@ struct _gann_gng_t {
     gann_net_t *net;
     gann_gng_ops_t ops;
     gann_gng_params_t params;
-    void *data;
 };
 typedef struct _gann_gng_t gann_gng_t;
 
@@ -202,8 +224,7 @@ typedef struct _gann_gng_t gann_gng_t;
  * Creates new instance of GNG algorithm.
  */
 gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
-                       const gann_gng_params_t *params,
-                       void *data);
+                       const gann_gng_params_t *params);
 
 /**
  * Deletes GNG.

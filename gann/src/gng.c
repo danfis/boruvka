@@ -71,8 +71,7 @@ void gannGNGParamsInit(gann_gng_params_t *params)
 
 
 gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
-                       const gann_gng_params_t *params,
-                       void *data)
+                       const gann_gng_params_t *params)
 {
     gann_gng_t *gng;
 
@@ -82,7 +81,26 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
 
     gng->ops    = *ops;
     gng->params = *params;
-    gng->data   = data;
+
+    // set up ops data pointers
+    if (!gng->ops.new_node_data)
+        gng->ops.new_node_data = gng->ops.data;
+    if (!gng->ops.new_node_between_data)
+        gng->ops.new_node_between_data = gng->ops.data;
+    if (!gng->ops.del_node_data)
+        gng->ops.del_node_data = gng->ops.data;
+    if (!gng->ops.input_signal_data)
+        gng->ops.input_signal_data = gng->ops.data;
+    if (!gng->ops.nearest_data)
+        gng->ops.nearest_data = gng->ops.data;
+    if (!gng->ops.dist2_data)
+        gng->ops.dist2_data = gng->ops.data;
+    if (!gng->ops.move_towards_data)
+        gng->ops.move_towards_data = gng->ops.data;
+    if (!gng->ops.terminate_data)
+        gng->ops.terminate_data = gng->ops.data;
+    if (!gng->ops.callback_data)
+        gng->ops.callback_data = gng->ops.data;
 
     return gng;
 }
@@ -100,14 +118,24 @@ void gannGNGDel(gann_gng_t *gng)
 void gannGNGRun(gann_gng_t *gng)
 {
     size_t step;
+    unsigned long cb_step;
+
     gannGNGInit(gng);
 
     step = 1;
-    while (!gng->ops.terminate(gng->data)){
+    cb_step = 1L;
+    while (!gng->ops.terminate(gng->ops.terminate_data)){
         gannGNGLearn(gng);
 
         if (step % gng->params.lambda == 0){
             gannGNGNewNode(gng);
+
+            if (gng->ops.callback
+                    && cb_step == gng->ops.callback_period){
+                gng->ops.callback(gng->ops.callback_data);
+                cb_step = 0L;
+            }
+            cb_step++;
         }
         gannGNGDecreaseErrCounters(gng);
 
@@ -120,13 +148,13 @@ void gannGNGInit(gann_gng_t *gng)
     const void *is;
     gann_gng_node_t *n;
 
-    is = gng->ops.input_signal(gng->data);
-    n  = gng->ops.new_node(is, gng->data);
+    is = gng->ops.input_signal(gng->ops.input_signal_data);
+    n  = gng->ops.new_node(is, gng->ops.new_node_data);
     nodeInit(gng, n);
     nodeAdd(gng, n);
 
-    is = gng->ops.input_signal(gng->data);
-    n  = gng->ops.new_node(is, gng->data);
+    is = gng->ops.input_signal(gng->ops.input_signal_data);
+    n  = gng->ops.new_node(is, gng->ops.new_node_data);
     nodeInit(gng, n);
     nodeAdd(gng, n);
 }
@@ -142,10 +170,10 @@ void gannGNGLearn(gann_gng_t *gng)
     fer_list_t *list, *item, *item_tmp;
 
     // 1. Get input signal
-    input_signal = gng->ops.input_signal(gng->data);
+    input_signal = gng->ops.input_signal(gng->ops.input_signal_data);
 
     // 2. Find two nearest nodes to input signal
-    gng->ops.nearest(input_signal, &n1, &n2, gng->data);
+    gng->ops.nearest(input_signal, &n1, &n2, gng->ops.nearest_data);
 
     // 3. Create connection between n1 and n2 if doesn't exist and set age
     //    to zero
@@ -158,13 +186,14 @@ void gannGNGLearn(gann_gng_t *gng)
     edge->age = 0;
 
     // 4. Increase error counter of winner node
-    dist2 = gng->ops.dist2(input_signal, n1, gng->data);
+    dist2 = gng->ops.dist2(input_signal, n1, gng->ops.dist2_data);
     nodeIncErrCounter(gng, n1, dist2);
 
     // 5. Adapt nodes to input signal using fractions eb and en
     // + 6. Increment age of all edges by one
     // + 7. Remove edges with age higher than age_max
-    gng->ops.move_towards(n1, input_signal, gng->params.eb, gng->data);
+    gng->ops.move_towards(n1, input_signal, gng->params.eb,
+                          gng->ops.move_towards_data);
     // adapt also direct topological neighbors of winner node
     list = gannNetNodeEdges(&n1->node);
     ferListForEachSafe(list, item, item_tmp){
@@ -174,7 +203,8 @@ void gannGNGLearn(gann_gng_t *gng)
         n    = fer_container_of(nn, gann_gng_node_t, node);
 
         // move node (5.)
-        gng->ops.move_towards(n, input_signal, gng->params.en, gng->data);
+        gng->ops.move_towards(n, input_signal, gng->params.en,
+                              gng->ops.move_towards_data);
 
         // increase age (6.)
         edge->age += 1;
@@ -202,7 +232,7 @@ void gannGNGNewNode(gann_gng_t *gng)
     }
 
     // 3. Create new node between q and f
-    r = gng->ops.new_node_between(q, f, gng->data);
+    r = gng->ops.new_node_between(q, f, gng->ops.new_node_between_data);
     nodeAdd(gng, r);
 
     // 4. Create q-r and f-r edges and remove q-f edge (which is eqf)
@@ -276,7 +306,7 @@ static void nodeFinalDel(gann_net_node_t *node, void *data)
     gann_gng_node_t *n;
 
     n = fer_container_of(node, gann_gng_node_t, node);
-    gng->ops.del_node(n, gng->data);
+    gng->ops.del_node(n, gng->ops.del_node_data);
 }
 
 

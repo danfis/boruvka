@@ -23,7 +23,7 @@ BIN_TARGETS = gann-gng-3d
 
 TARGETS = libgann.a
 OBJS  = net.o
-OBJS += gng.o
+OBJS += gng.o gng3.o
 
 OBJS := $(foreach obj,$(OBJS),.objs/$(obj))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
