@@ -17,6 +17,7 @@
 #ifndef __FER_VEC3_H__
 #define __FER_VEC3_H__
 
+#include <stdio.h>
 #include <fermat/core.h>
 
 #ifdef __cplusplus
@@ -229,6 +230,11 @@ _fer_inline void ferVec3MulComp2(fer_vec3_t *a, const fer_vec3_t *b, const fer_v
  */
 _fer_inline void ferVec3Cross(fer_vec3_t *d, const fer_vec3_t *a, const fer_vec3_t *b);
 
+
+/**
+ * Prints vector to *out* in form "x y z".
+ */
+_fer_inline void ferVec3Print(const fer_vec3_t *v, FILE *out);
 
 /**
  * Returns distance^2 of point P to segment ab.
@@ -710,6 +716,12 @@ _fer_inline void ferVec3Cross(fer_vec3_t *d, const fer_vec3_t *a, const fer_vec3
     d->f[1] = (a->f[2] * b->f[0]) - (a->f[0] * b->f[2]);
     d->f[2] = (a->f[0] * b->f[1]) - (a->f[1] * b->f[0]);
 #endif /* FER_SSE */
+}
+
+_fer_inline void ferVec3Print(const fer_vec3_t *v, FILE *out)
+{
+    fprintf(out, "%lg %lg %lg",
+            (double)ferVec3X(v), (double)ferVec3Y(v), (double)ferVec3Z(v));
 }
 
 _fer_inline void ferVec3TriCentroid(const fer_vec3_t *a, const fer_vec3_t *b,

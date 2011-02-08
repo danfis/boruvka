@@ -61,6 +61,12 @@ static void ferCubes3NearestRangesSides(fer_cubes3_t *cs, size_t *center,
                                         size_t radius,
                                         size_t *ranges, unsigned int *sides);
 
+/** Fills pos[3] with coordinates of cube where belongs point with given
+ *  coordinates. */
+_fer_inline void __ferCubes3PosCoords(const fer_cubes3_t *cs,
+                                      const fer_vec3_t *coords,
+                                      size_t *pos);
+
 
 fer_cubes3_t *ferCubes3New(const fer_real_t *bound, size_t num_cubes)
 {
@@ -361,3 +367,47 @@ static void ferCubes3NearestRangesSides(fer_cubes3_t *cs, size_t *center,
     }
 }
 
+
+
+size_t __ferCubes3IDCoords(const fer_cubes3_t *cs, const fer_vec3_t *coords)
+{
+    size_t cube_id, cube_pos[3];
+
+    __ferCubes3PosCoords(cs, coords, cube_pos);
+
+    // now we have coordinates of cube we are looking for, lets compute
+    // actual id
+    cube_id = cube_pos[0]
+                + cube_pos[1] * cs->dim[0]
+                + cube_pos[2] * cs->dim[0] * cs->dim[1];
+
+    return cube_id;
+}
+
+_fer_inline void __ferCubes3PosCoords(const fer_cubes3_t *cs,
+                                      const fer_vec3_t *coords,
+                                      size_t *cube_pos)
+{
+    fer_vec3_t pos; // position in cubes space (shifted position and
+                    // aligned with space covered by cubes)
+
+    // compute shifted position
+    ferVec3Add2(&pos, coords, cs->shift);
+
+    // Align position with cubes boundaries.
+    // Border cubes hold vectors which are out of mapped space.
+    // To do this shifted coordinates can't run out before 0
+    ferVec3Set(&pos, FER_FMAX(ferVec3X(&pos), FER_ZERO),
+                     FER_FMAX(ferVec3Y(&pos), FER_ZERO),
+                     FER_FMAX(ferVec3Z(&pos), FER_ZERO));
+
+    // and if it runs above higher bound of space, last coordinate of
+    // cube is picked
+    ferVec3Scale(&pos, ferRecp((fer_real_t)cs->size));
+    cube_pos[0] = (size_t)ferVec3X(&pos);
+    cube_pos[1] = (size_t)ferVec3Y(&pos);
+    cube_pos[2] = (size_t)ferVec3Z(&pos);
+    cube_pos[0] = FER_MIN(cube_pos[0], cs->dim[0] - 1);
+    cube_pos[1] = FER_MIN(cube_pos[1], cs->dim[1] - 1);
+    cube_pos[2] = FER_MIN(cube_pos[2], cs->dim[2] - 1);
+}

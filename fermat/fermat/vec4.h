@@ -17,6 +17,7 @@
 #ifndef __FER_VEC4_H__
 #define __FER_VEC4_H__
 
+#include <stdio.h>
 #include <fermat/core.h>
 
 #ifdef __cplusplus
@@ -217,6 +218,11 @@ _fer_inline void ferVec4MulComp(fer_vec4_t *a, const fer_vec4_t *b);
  */
 _fer_inline void ferVec4MulComp2(fer_vec4_t *a, const fer_vec4_t *b, const fer_vec4_t *c);
 
+
+/**
+ * Prints vector to *out* in form "x y z w".
+ */
+_fer_inline void ferVec4Print(const fer_vec4_t *v, FILE *out);
 
 
 
@@ -602,6 +608,13 @@ _fer_inline void ferVec4MulComp2(fer_vec4_t *a, const fer_vec4_t *b, const fer_v
     ferVec4MulComp(a, c);
 }
 
+
+_fer_inline void ferVec4Print(const fer_vec4_t *v, FILE *out)
+{
+    fprintf(out, "%lg %lg %lg %lg",
+            (double)ferVec4X(v), (double)ferVec4Y(v),
+            (double)ferVec4Z(v), (double)ferVec4W(v));
+}
 
 #ifdef __cplusplus
 }

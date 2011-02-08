@@ -19,11 +19,11 @@
 CFLAGS += -I. -I../fermat
 LDFLAGS += -L. -lgann -L../fermat -lfermat -lm -lrt
 
-BIN_TARGETS = gann-gng-3d
+BIN_TARGETS = gann-gng-2d gann-gng-3d
 
 TARGETS = libgann.a
 OBJS  = net.o
-OBJS += gng.o gng3.o
+OBJS += gng.o gng2.o gng3.o
 
 OBJS := $(foreach obj,$(OBJS),.objs/$(obj))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
@@ -43,6 +43,16 @@ bin/gann-%: bin/%-main.c libgann.a ../fermat/libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+src/gng2.c: src/gngN.c
+	sed 's|`N`|2|g' <$< >$@
+gann/gng2.h: gann/gngN.h
+	sed 's|`N`|2|g' <$< >$@
+src/gng3.c: src/gngN.c
+	sed 's|`N`|3|g' <$< >$@
+bin/gng-2d-main.c: bin/gng-Nd-main.c
+	sed 's|`N`|2|g' <$< >$@
+bin/gng-3d-main.c: bin/gng-Nd-main.c
+	sed 's|`N`|3|g' <$< >$@
 
 
 install:
@@ -55,6 +65,9 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
+	rm -f src/gng{2,3}.c
+	rm -f gann/gng{2,3}.h
+	rm -f bin/gng-{2,3}d-main.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:

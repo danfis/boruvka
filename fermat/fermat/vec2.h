@@ -17,6 +17,7 @@
 #ifndef __FER_VEC2_H__
 #define __FER_VEC2_H__
 
+#include <stdio.h>
 #include <fermat/core.h>
 
 #ifdef __cplusplus
@@ -249,6 +250,11 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
  */
 _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k);
 
+
+/**
+ * Prints vector to *out* in form "x y".
+ */
+_fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out);
 
 /**
  * Returns twice area enclosed by given vectors.
@@ -687,6 +693,10 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
 }
 
 
+_fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out)
+{
+    fprintf(out, "%lg %lg", (double)ferVec2X(v), (double)ferVec2Y(v));
+}
 
 #include <stdio.h>
 _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
