@@ -19,6 +19,7 @@
 
 #include <fermat/vec2.h>
 #include <fermat/vec3.h>
+#include <fermat/vec4.h>
 
 /**
  * Parse
@@ -47,6 +48,10 @@ int ferParseVec3(const char *str, const char *strend, fer_vec3_t *v, char **next
  */
 int ferParseVec2(const char *str, const char *strend, fer_vec2_t *v, char **next);
 
+/**
+ * Similar function to ferParseVec3() but parses 4D vectors.
+ */
+int ferParseVec4(const char *str, const char *strend, fer_vec4_t *v, char **next);
 
 /**
  * Parses given string that starts at str ands ends at strend (exclusively)

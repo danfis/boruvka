@@ -182,6 +182,29 @@ int ferParseVec2(const char *_str, const char *strend, fer_vec2_t *vec, char **n
     return 0;
 }
 
+int ferParseVec4(const char *_str, const char *strend, fer_vec4_t *vec, char **n)
+{
+    fer_real_t v[4];
+    size_t i;
+    char *str, *next;
+
+    str = (char *)_str;
+    for (i = 0; i < 4 && str < strend; i++){
+        if (ferParseReal(str, strend, &v[i], &next) != 0)
+            break;
+        str = next;
+    }
+
+    if (i != 4)
+        return -1;
+
+    ferVec4Set(vec, v[0], v[1], v[2], v[3]);
+    if (n)
+        *n = str;
+
+    return 0;
+}
+
 int ferParseLong(const char *str, const char *strend, long *val, char **next)
 {
     char c;
