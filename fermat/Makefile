@@ -27,7 +27,7 @@ OBJS += vec4.o vec3.o vec2.o
 OBJS += mat4.o mat3.o
 OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
-OBJS += cubes3.o nearest-linear.o
+OBJS += cubes2.o cubes3.o nearest-linear.o
 OBJS += mesh3.o qhull.o
 OBJS += gsrm.o
 
@@ -67,6 +67,11 @@ fermat/pc3.h: fermat/pcN.h.in
 	cat $< | sed 's|`N`|3|g' >$@
 fermat/pc4.h: fermat/pcN.h.in
 	cat $< | sed 's|`N`|4|g' >$@
+
+fermat/cubes2.h: fermat/cubesN.h
+	cat $< | sed 's|`N`|2|g' >$@
+src/cubes2.c: src/cubesN.c
+	cat $< | sed 's|`N`|2|g' >$@
 
 fermat/cubes3.h: fermat/cubesN.h
 	cat $< | sed 's|`N`|3|g' >$@

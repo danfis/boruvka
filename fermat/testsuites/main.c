@@ -7,6 +7,7 @@
 #include "mat3.h"
 #include "mat4.h"
 #include "cubes3.h"
+#include "cubes2.h"
 #include "mesh3.h"
 #include "nearest.h"
 
@@ -25,6 +26,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSMat4),
 
     TEST_SUITE_ADD(TSCubes3),
+    TEST_SUITE_ADD(TSCubes2),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),
 

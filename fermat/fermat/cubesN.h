@@ -36,18 +36,18 @@ struct _fer_cubes`N`_cache_t;
  * TODO: example
  */
 struct _fer_cubes`N`_t {
-    fer_real_t size;   /*!< Size of edge of one cube. */
+    fer_real_t size;     /*!< Size of edge of one cube. */
     size_t dim[`N`];     /*!< How many cubes are along x, y or z axis
-                            respectively. */
+                              respectively. */
     fer_vec`N`_t *shift; /*!< Shifting of points stored in cubes.
-                            For easiest navigation in cubes, cubes structure
-                            is built from origin towards x, y, z axis.
-                            This vector is always added to point coordinates
-                            that are searched to move it into space covered by
-                            cubes. */
+                              For easiest navigation in cubes, cubes structure
+                              is built from origin towards x, y, z axis.
+                              This vector is always added to point coordinates
+                              that are searched to move it into space covered by
+                              cubes. */
 
     fer_cubes_cube_t *cubes; /*! Array of all cubes - it has (.dim[0] *
-                                  .dim[1] * .dim[2]) elements. */
+                                  .dim[1] * .dim[2] * ...) elements. */
     size_t cubes_len;        /*! Length of .cubes array. */
 
     size_t num_els; /*!< Number of elements stored in cubes */

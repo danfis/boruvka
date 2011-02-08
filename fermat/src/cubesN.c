@@ -16,8 +16,7 @@
 
 #include <fermat/cubes`N`.h>
 #include <fermat/alloc.h>
-
-#define CUBES_`N`
+#include <fermat/dbg.h>
 
 struct _fer_cubes`N`_cache_t {
     fer_cubes`N`_el_t **els; /*!< Elements that we are searching for */
@@ -31,43 +30,46 @@ struct _fer_cubes`N`_cache_t {
 typedef struct _fer_cubes`N`_cache_t fer_cubes`N`_cache_t;
 
 /** Initializes and destroys .cache member of fer_cubes`N`_t */
-static void ferCubes`N`CacheInit(fer_cubes`N`_t *cs, fer_cubes`N`_el_t **els,
-                               size_t max_len, const fer_vec`N`_t *p);
-static void ferCubes`N`CacheDestroy(fer_cubes`N`_t *cs);
+static void ferCubesCacheInit(fer_cubes`N`_t *cs, fer_cubes`N`_el_t **els,
+                              size_t max_len, const fer_vec`N`_t *p);
+static void ferCubesCacheDestroy(fer_cubes`N`_t *cs);
 
 /** Searches for nearest points in radius from center. */
-static void ferCubes`N`NearestInRadius(fer_cubes`N`_t *cs, size_t *center,
+static void ferCubesNearestInRadius(fer_cubes`N`_t *cs, size_t *center,
                                      size_t radius);
 
 /** Searches specified area of cubes. Area is specified in cube coordinates
  *  (xmin, xmax, ymin, ymax, zmin, zmax) */
-static void ferCubes`N`NearestInArea(fer_cubes`N`_t *cs, size_t *r);
+static void ferCubesNearestInArea(fer_cubes`N`_t *cs, size_t *r);
 
 /** Searches specified only specified cube */
-static void ferCubes`N`NearestInCube(fer_cubes`N`_t *cs, size_t id);
+static void ferCubesNearestInCube(fer_cubes`N`_t *cs, size_t id);
 
 /** Checks if given element isn't closer than the ones already stored in
  *  cache. */
-static void ferCubes`N`NearestCheck(fer_cubes`N`_cache_t *c, fer_cubes`N`_el_t *el);
+static void ferCubesNearestCheck(fer_cubes`N`_cache_t *c, fer_cubes`N`_el_t *el);
 
 /** Bubble sort. Takes the last element in .els and bubble it towards
  *  smaller ones (according to .dist[] value). */
-static void ferCubes`N`NearestBubbleUp(fer_cubes`N`_cache_t *c);
+static void ferCubesNearestBubbleUp(fer_cubes`N`_cache_t *c);
 
 /** Fills sides[6] with 0 or 1 depending on whether this side of cube area
  *  has to be searched, i.e. 0 means that on that side we are out of
  *  covered area (and we searched that in previous step).
  *  It also fills ranges[6] with range of coordinates (x, y, z) which
  *  covers search area in given radius from center. */
-static void ferCubes`N`NearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
-                                        size_t radius,
-                                        size_t *ranges, unsigned int *sides);
+static void ferCubesNearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
+                                       size_t radius,
+                                       size_t *ranges, unsigned int *sides);
 
 /** Fills pos[`N`] with coordinates of cube where belongs point with given
  *  coordinates. */
-_fer_inline void __ferCubes`N`PosCoords(const fer_cubes`N`_t *cs,
-                                      const fer_vec`N`_t *coords,
-                                      size_t *pos);
+_fer_inline void __ferCubesPosCoords(const fer_cubes`N`_t *cs,
+                                     const fer_vec`N`_t *coords,
+                                     size_t *pos);
+
+/** Converts cube position in grid to cube's ID */
+_fer_inline size_t __ferCubesPosToID(const fer_cubes`N`_t *cs, const size_t *pos);
 
 
 fer_cubes`N`_t *ferCubes`N`New(const fer_real_t *bound, size_t num_cubes)
@@ -82,26 +84,32 @@ fer_cubes`N`_t *ferCubes`N`New(const fer_real_t *bound, size_t num_cubes)
     cs = FER_ALLOC(fer_cubes`N`_t);
 
     // compute shifting
-    cs->shift = ferVec`N`New(bound[0], bound[2], bound[4]);
+    cs->shift = ferVec`N`Clone(fer_vec`N`_origin);
+    for (i = 0; i < `N`; i++){
+        ferVec`N`SetCoord(cs->shift, i, bound[2 * i]);
+    }
     ferVec`N`Scale(cs->shift, -FER_ONE);
     //DBG("Cubes: shift[0]: %f", cs->shift[0]);
     //DBG("Cubes: shift[1]: %f", cs->shift[1]);
     //DBG("Cubes: shift[2]: %f", cs->shift[2]);
 
     // compute dimension of mapped space
-    edge[0] = FER_FABS(bound[1] - bound[0]);
-    edge[1] = FER_FABS(bound[`N`] - bound[2]);
-    edge[2] = FER_FABS(bound[5] - bound[4]);
+    for (i = 0; i < `N`; i++){
+        edge[i] = FER_FABS(bound[2 * i + 1] - bound[2 * i]);
+    }
 
     // Compute size of cube:
 
     // volume of mapped space
-    volume = edge[0] * edge[1] * edge[2];
+    volume = edge[0];
+    for (i = 1; i < `N`; i++){
+        volume *= edge[i];
+    }
     //DBG("Cubes: volume: %f", volume);
     // estimate volume of one cube
     cvol = volume * ferRecp(num_cubes);
     //DBG("Cubes: cvol: %f", cvol);
-    // size of cube - third root of volume
+    // size of cube - third root of volume (for 3-D)
     cs->size = FER_POW(cvol, ferRecp(FER_REAL(`N`.)));
     //DBG("Cubes: size: %f", cs->size);
 
@@ -114,7 +122,10 @@ fer_cubes`N`_t *ferCubes`N`New(const fer_real_t *bound, size_t num_cubes)
     }
 
     // length of array
-    len = cs->dim[0] * cs->dim[1] * cs->dim[2];
+    len = cs->dim[0];
+    for (i = 1; i < `N`; i++){
+        len *= cs->dim[i];
+    }
     //DBG("Cubes: len: %d", len);
 
     // allocate and initialize cubes
@@ -141,7 +152,7 @@ void ferCubes`N`Del(fer_cubes`N`_t *cs)
     ferVec`N`Del(cs->shift);
 
     if (cs->cache)
-        ferCubes`N`CacheDestroy(cs);
+        ferCubesCacheDestroy(cs);
 
     free(cs->cubes);
     free(cs);
@@ -149,25 +160,25 @@ void ferCubes`N`Del(fer_cubes`N`_t *cs)
 
 
 size_t ferCubes`N`Nearest(fer_cubes`N`_t *cs, const fer_vec`N`_t *p, size_t num,
-                        fer_cubes`N`_el_t **els)
+                          fer_cubes`N`_el_t **els)
 {
     size_t center[`N`];
     fer_real_t border;
     int radius;
 
     // initialize cache
-    ferCubes`N`CacheInit(cs, els, FER_MIN(num, cs->num_els), p);
+    ferCubesCacheInit(cs, els, FER_MIN(num, cs->num_els), p);
 
     if (cs->cache->max_len == 0)
         return 0;
 
     // compute center cube from point p - this is where we start searching
-    __ferCubes`N`PosCoords(cs, p, center);
+    __ferCubesPosCoords(cs, p, center);
 
     border = FER_ZERO;
     radius = 0;
     while (1){
-        ferCubes`N`NearestInRadius(cs, center, radius);
+        ferCubesNearestInRadius(cs, center, radius);
 
         border = (fer_real_t)(radius) * cs->size;
         // border must be squared because internaly are distances managed
@@ -189,8 +200,8 @@ size_t ferCubes`N`Nearest(fer_cubes`N`_t *cs, const fer_vec`N`_t *p, size_t num,
 }
 
 
-static void ferCubes`N`CacheInit(fer_cubes`N`_t *cs, fer_cubes`N`_el_t **els,
-                               size_t max_len, const fer_vec`N`_t *p)
+static void ferCubesCacheInit(fer_cubes`N`_t *cs, fer_cubes`N`_el_t **els,
+                                 size_t max_len, const fer_vec`N`_t *p)
 {
     if (cs->cache == NULL){
         cs->cache = FER_ALLOC(fer_cubes`N`_cache_t);
@@ -209,7 +220,7 @@ static void ferCubes`N`CacheInit(fer_cubes`N`_t *cs, fer_cubes`N`_el_t **els,
     cs->cache->p       = p;
 }
 
-static void ferCubes`N`CacheDestroy(fer_cubes`N`_t *cs)
+static void ferCubesCacheDestroy(fer_cubes`N`_t *cs)
 {
     if (cs->cache){
         if (cs->cache->dist)
@@ -219,23 +230,23 @@ static void ferCubes`N`CacheDestroy(fer_cubes`N`_t *cs)
     cs->cache = NULL;
 }
 
-static void ferCubes`N`NearestInRadius(fer_cubes`N`_t *cs, size_t *center,
+static void ferCubesNearestInRadius(fer_cubes`N`_t *cs, size_t *center,
                                      size_t radius)
 {
-    size_t ranges[6];
-    unsigned int sides[6];
+    size_t ranges[2 * `N`];
+    unsigned int sides[2 * `N`];
     size_t i, j, p;
-    size_t r[6];
+    size_t r[2 * `N`];
 
     // fill ranges and sides
-    ferCubes`N`NearestRangesSides(cs, center, radius, ranges, sides);
+    ferCubesNearestRangesSides(cs, center, radius, ranges, sides);
 
-    for (i = 0; i < 6; i++){
+    for (i = 0; i < 2 * `N`; i++){
         if (!sides[i])
             continue;
 
 
-        for (j=0; j < 6; j++)
+        for (j=0; j < 2 * `N`; j++)
             r[j] = ranges[j];
 
         p = i / 2;
@@ -259,14 +270,14 @@ static void ferCubes`N`NearestInRadius(fer_cubes`N`_t *cs, size_t *center,
                 r[`N`] -= 1;
         }
 
-        ferCubes`N`NearestInArea(cs, r);
+        ferCubesNearestInArea(cs, r);
     }
 }
 
 #define FOR_DIM(dim) \
     for (pos[dim] = r[2 * dim]; pos[dim] <= r[2 * dim + 1]; pos[dim]++)
 
-static void ferCubes`N`NearestInArea(fer_cubes`N`_t *cs, size_t *r)
+static void ferCubesNearestInArea(fer_cubes`N`_t *cs, size_t *r)
 {
     size_t pos[`N`], id;
 
@@ -274,19 +285,21 @@ static void ferCubes`N`NearestInArea(fer_cubes`N`_t *cs, size_t *r)
     // note that in one axis is dimension always 1
     FOR_DIM(0){
         FOR_DIM(1){
+#if `N` >= 3
             FOR_DIM(2){
+#endif
                 //DBG("(%d %d %d)", pos[0], pos[1], pos[2]);
                 // TODO: move this to separate function?
-                id = pos[0]
-                        + pos[1] * cs->dim[0]
-                        + pos[2] * cs->dim[0] * cs->dim[1];
-                ferCubes`N`NearestInCube(cs, id);
+                id = __ferCubesPosToID(cs, pos);
+                ferCubesNearestInCube(cs, id);
+#if `N` >= 3
             }
+#endif
         }
     }
 }
 
-static void ferCubes`N`NearestInCube(fer_cubes`N`_t *cs, size_t id)
+static void ferCubesNearestInCube(fer_cubes`N`_t *cs, size_t id)
 {
     fer_list_t *list, *item;
     fer_cubes`N`_el_t *el;
@@ -294,11 +307,11 @@ static void ferCubes`N`NearestInCube(fer_cubes`N`_t *cs, size_t id)
     list = ferCubesCubeList(&cs->cubes[id]);
     ferListForEach(list, item){
         el = ferListEntry(item, fer_cubes`N`_el_t, list);
-        ferCubes`N`NearestCheck(cs->cache, el);
+        ferCubesNearestCheck(cs->cache, el);
     }
 }
 
-static void ferCubes`N`NearestCheck(fer_cubes`N`_cache_t *c, fer_cubes`N`_el_t *el)
+static void ferCubesNearestCheck(fer_cubes`N`_cache_t *c, fer_cubes`N`_el_t *el)
 {
     fer_real_t dist;
 
@@ -308,16 +321,16 @@ static void ferCubes`N`NearestCheck(fer_cubes`N`_cache_t *c, fer_cubes`N`_el_t *
         c->dist[c->len] = dist;
         c->len++;
 
-        ferCubes`N`NearestBubbleUp(c);
+        ferCubesNearestBubbleUp(c);
     }else if (dist < c->dist[c->len - 1]){
         c->els[c->len - 1]  = el;
         c->dist[c->len - 1] = dist;
 
-        ferCubes`N`NearestBubbleUp(c);
+        ferCubesNearestBubbleUp(c);
     }
 }
 
-static void ferCubes`N`NearestBubbleUp(fer_cubes`N`_cache_t *c)
+static void ferCubesNearestBubbleUp(fer_cubes`N`_cache_t *c)
 {
     size_t i;
     fer_real_t tmpd;
@@ -334,16 +347,16 @@ static void ferCubes`N`NearestBubbleUp(fer_cubes`N`_cache_t *c)
     }
 }
 
-static void ferCubes`N`NearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
-                                        size_t radius,
-                                        size_t *ranges, unsigned int *sides)
+static void ferCubesNearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
+                                          size_t radius,
+                                          size_t *ranges, unsigned int *sides)
 {
     size_t i;
     int coord;
 
     // set ranges and sides to browse just center
     if (radius == 0){
-        for (i=0; i < 6; i++){
+        for (i=0; i < 2 * `N`; i++){
             sides[i] = 0;
             ranges[i] = center[i / 2];
         }
@@ -353,7 +366,7 @@ static void ferCubes`N`NearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
     }
 
     // set all sides as enabled
-    for (i=0; i < 6; i++)
+    for (i=0; i < 2 * `N`; i++)
         sides[i] = 1;
 
     for (i=0; i < `N`; i++){
@@ -371,28 +384,26 @@ static void ferCubes`N`NearestRangesSides(fer_cubes`N`_t *cs, size_t *center,
 
 
 
-#ifdef CUBES_3
 size_t __ferCubes`N`IDCoords(const fer_cubes`N`_t *cs, const fer_vec`N`_t *coords)
 {
     size_t cube_id, cube_pos[`N`];
 
-    __ferCubes`N`PosCoords(cs, coords, cube_pos);
+    __ferCubesPosCoords(cs, coords, cube_pos);
 
     // now we have coordinates of cube we are looking for, lets compute
     // actual id
-    cube_id = cube_pos[0]
-                + cube_pos[1] * cs->dim[0]
-                + cube_pos[2] * cs->dim[0] * cs->dim[1];
+    cube_id = __ferCubesPosToID(cs, cube_pos);
 
     return cube_id;
 }
 
-_fer_inline void __ferCubes`N`PosCoords(const fer_cubes`N`_t *cs,
-                                      const fer_vec`N`_t *coords,
-                                      size_t *cube_pos)
+_fer_inline void __ferCubesPosCoords(const fer_cubes`N`_t *cs,
+                                     const fer_vec`N`_t *coords,
+                                     size_t *cube_pos)
 {
+    size_t i;
     fer_vec`N`_t pos; // position in cubes space (shifted position and
-                    // aligned with space covered by cubes)
+                      // aligned with space covered by cubes)
 
     // compute shifted position
     ferVec`N`Add2(&pos, coords, cs->shift);
@@ -400,18 +411,36 @@ _fer_inline void __ferCubes`N`PosCoords(const fer_cubes`N`_t *cs,
     // Align position with cubes boundaries.
     // Border cubes hold vectors which are out of mapped space.
     // To do this shifted coordinates can't run out before 0
-    ferVec`N`Set(&pos, FER_FMAX(ferVec`N`X(&pos), FER_ZERO),
-                       FER_FMAX(ferVec`N`Y(&pos), FER_ZERO),
-                       FER_FMAX(ferVec`N`Z(&pos), FER_ZERO));
+#if `N` == 2
+    ferVec2Set(&pos, FER_FMAX(ferVec2X(&pos), FER_ZERO),
+                     FER_FMAX(ferVec2Y(&pos), FER_ZERO));
+#endif
+#if `N` == 3
+    ferVec3Set(&pos, FER_FMAX(ferVec3X(&pos), FER_ZERO),
+                     FER_FMAX(ferVec3Y(&pos), FER_ZERO),
+                     FER_FMAX(ferVec3Z(&pos), FER_ZERO));
+#endif
 
     // and if it runs above higher bound of space, last coordinate of
     // cube is picked
     ferVec`N`Scale(&pos, ferRecp((fer_real_t)cs->size));
-    cube_pos[0] = (size_t)ferVec`N`X(&pos);
-    cube_pos[1] = (size_t)ferVec`N`Y(&pos);
-    cube_pos[2] = (size_t)ferVec`N`Z(&pos);
-    cube_pos[0] = FER_MIN(cube_pos[0], cs->dim[0] - 1);
-    cube_pos[1] = FER_MIN(cube_pos[1], cs->dim[1] - 1);
-    cube_pos[2] = FER_MIN(cube_pos[2], cs->dim[2] - 1);
+    for (i = 0; i < `N`; i++){
+        cube_pos[i] = (size_t)ferVec`N`Get(&pos, i);
+        cube_pos[i] = FER_MIN(cube_pos[i], cs->dim[i] - 1);
+    }
 }
-#endif
+
+_fer_inline size_t __ferCubesPosToID(const fer_cubes`N`_t *cs, const size_t *pos)
+{
+    size_t cube_id, mul;
+    size_t i;
+
+    cube_id = pos[0];
+    mul = 1;
+    for (i = 1; i < `N`; i++){
+        mul *= cs->dim[i - 1];
+        cube_id += pos[i] * mul;
+    }
+
+    return cube_id;
+}
