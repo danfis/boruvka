@@ -67,6 +67,12 @@ fermat/pc3.h: fermat/pcN.h.in
 	cat $< | sed 's|`N`|3|g' >$@
 fermat/pc4.h: fermat/pcN.h.in
 	cat $< | sed 's|`N`|4|g' >$@
+
+fermat/cubes3.h: fermat/cubesN.h
+	cat $< | sed 's|`N`|3|g' >$@
+src/cubes3.c: src/cubesN.c
+	cat $< | sed 's|`N`|3|g' >$@
+
 %.h: fermat/config.h
 %.c: fermat/config.h
 
@@ -84,6 +90,8 @@ clean:
 	rm -f fermat/config.h
 	rm -f fermat/pc{2,3,4}.h
 	rm -f src/pc{2,3,4}.c
+	rm -f fermat/cubes{2,3,4}.h
+	rm -f src/cubes{2,3,4}.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:

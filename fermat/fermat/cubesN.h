@@ -14,47 +14,47 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_CUBES3_H__
-#define __FER_CUBES3_H__
+#ifndef __FER_CUBES`N`_H__
+#define __FER_CUBES`N`_H__
 
 #include <fermat/core.h>
-#include <fermat/vec3.h>
-#include <fermat/cubes3-internal.h>
+#include <fermat/vec`N`.h>
+#include <fermat/cubes-internal.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-struct _fer_cubes3_cache_t;
+struct _fer_cubes`N`_cache_t;
 
 /**
- * Cubes3
+ * Cubes`N`
  * =======
  *
- * Cubes structure for nearest neighbor search in 3D space.
+ * Cubes structure for nearest neighbor search in `N`-D space.
  *
  * TODO: example
  */
-struct _fer_cubes3_t {
+struct _fer_cubes`N`_t {
     fer_real_t size;   /*!< Size of edge of one cube. */
-    size_t dim[3];     /*!< How many cubes are along x, y or z axis
+    size_t dim[`N`];     /*!< How many cubes are along x, y or z axis
                             respectively. */
-    fer_vec3_t *shift; /*!< Shifting of points stored in cubes.
+    fer_vec`N`_t *shift; /*!< Shifting of points stored in cubes.
                             For easiest navigation in cubes, cubes structure
                             is built from origin towards x, y, z axis.
                             This vector is always added to point coordinates
                             that are searched to move it into space covered by
                             cubes. */
 
-    fer_cubes3_cube_t *cubes; /*! Array of all cubes - it has (.dim[0] *
+    fer_cubes_cube_t *cubes; /*! Array of all cubes - it has (.dim[0] *
                                   .dim[1] * .dim[2]) elements. */
-    size_t cubes_len;         /*! Length of .cubes array. */
+    size_t cubes_len;        /*! Length of .cubes array. */
 
     size_t num_els; /*!< Number of elements stored in cubes */
 
-    struct _fer_cubes3_cache_t *cache;
+    struct _fer_cubes`N`_cache_t *cache;
 };
-typedef struct _fer_cubes3_t fer_cubes3_t;
+typedef struct _fer_cubes`N`_t fer_cubes`N`_t;
 
 
 /**
@@ -62,23 +62,23 @@ typedef struct _fer_cubes3_t fer_cubes3_t;
  *
  * TODO: example
  */
-struct _fer_cubes3_el_t {
+struct _fer_cubes`N`_el_t {
     fer_list_t list; /*!< List struct which is used for connection to cubes */
     size_t cube_id;  /*!< Id of cube where is element currently registered,
-                          i.e. .list is connected into fer_cubes3_t's
+                          i.e. .list is connected into fer_cubes`N`_t's
                           .cubes[.cube_id] cube. */
 
-    const fer_vec3_t *coords; /*!< Coordinates of element. Assign pointer
+    const fer_vec`N`_t *coords; /*!< Coordinates of element. Assign pointer
                                    to your vector here. */
 };
-typedef struct _fer_cubes3_el_t fer_cubes3_el_t;
+typedef struct _fer_cubes`N`_el_t fer_cubes`N`_el_t;
 
 
 /**
- * Initializes fer_cubes3_el_t structure.
+ * Initializes fer_cubes`N`_el_t structure.
  * No "destroy" functions needs to be called.
  */
-_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el, const fer_vec3_t *coords);
+_fer_inline void ferCubes`N`ElInit(fer_cubes`N`_el_t *el, const fer_vec`N`_t *coords);
 
 
 /**
@@ -89,32 +89,32 @@ _fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el, const fer_vec3_t *coords);
  * note that this is only initial guess - finite number of cubes can be
  * little bit more.
  */
-fer_cubes3_t *ferCubes3New(const fer_real_t *bound, size_t num_cubes);
+fer_cubes`N`_t *ferCubes`N`New(const fer_real_t *bound, size_t num_cubes);
 
 /**
  * Deletes cubes structure.
  */
-void ferCubes3Del(fer_cubes3_t *c);
+void ferCubes`N`Del(fer_cubes`N`_t *c);
 
 /**
  * Returns number of cubes stored in structure.
  */
-_fer_inline size_t ferCubes3Len(const fer_cubes3_t *c);
+_fer_inline size_t ferCubes`N`Len(const fer_cubes`N`_t *c);
 
 /**
  * Returns size (length) of edge of one cube.
  */
-_fer_inline fer_real_t ferCubes3Size(const fer_cubes3_t *c);
+_fer_inline fer_real_t ferCubes`N`Size(const fer_cubes`N`_t *c);
 
 /**
  * Returns number of cubes alogn x, y, z (, ...) axis.
  */
-_fer_inline const size_t *ferCubes3Dim(const fer_cubes3_t *c);
+_fer_inline const size_t *ferCubes`N`Dim(const fer_cubes`N`_t *c);
 
 /**
  * Returns number of elements stored in cubes.
  */
-_fer_inline size_t ferCubes3NumEls(const fer_cubes3_t *c);
+_fer_inline size_t ferCubes`N`NumEls(const fer_cubes`N`_t *c);
 
 
 /**
@@ -122,11 +122,11 @@ _fer_inline size_t ferCubes3NumEls(const fer_cubes3_t *c);
  * This function should be called only once.
  *
  * First parameter is pointer to cubes structure.
- * Second parameter is cubes3 element structure - this structure is used
+ * Second parameter is cubes`N` element structure - this structure is used
  * for connection into cubes structure.
  * Third parameter is coordinates of element.
  */
-_fer_inline void ferCubes3Add(fer_cubes3_t *cs, fer_cubes3_el_t *el);
+_fer_inline void ferCubes`N`Add(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el);
 
 /**
  * Removes element from cubes.
@@ -135,23 +135,23 @@ _fer_inline void ferCubes3Add(fer_cubes3_t *cs, fer_cubes3_el_t *el);
  * Second parameter is pointer to list struct using which were element
  * connected in cubes.
  */
-_fer_inline void ferCubes3Remove(fer_cubes3_t *cs, fer_cubes3_el_t *el);
+_fer_inline void ferCubes`N`Remove(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el);
 
 /**
  * Updates elements position in cubes.
  * Call this function anytime element is moved. If you don't do that
  * position of element in cubes could be incorrect.
  *
- * Parameters are same as in ferCubes3Add().
+ * Parameters are same as in ferCubes`N`Add().
  */
-_fer_inline void ferCubes3Update(fer_cubes3_t *cs, fer_cubes3_el_t *el);
+_fer_inline void ferCubes`N`Update(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el);
 
 /**
- * This function si similar to ferCubes3Update() but given element is
+ * This function si similar to ferCubes`N`Update() but given element is
  * always removed from cubes and then added again. No checking if
  * re-registering is needed is performed.
  */
-_fer_inline void ferCubes3UpdateForce(fer_cubes3_t *cs, fer_cubes3_el_t *el);
+_fer_inline void ferCubes`N`UpdateForce(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el);
 
 
 /**
@@ -161,8 +161,8 @@ _fer_inline void ferCubes3UpdateForce(fer_cubes3_t *cs, fer_cubes3_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point *p*. Number of found elements is returned.
  */
-size_t ferCubes3Nearest(fer_cubes3_t *cs, const fer_vec3_t *p, size_t num,
-                        fer_cubes3_el_t **els);
+size_t ferCubes`N`Nearest(fer_cubes`N`_t *cs, const fer_vec`N`_t *p, size_t num,
+                        fer_cubes`N`_el_t **els);
 
 
 
@@ -171,74 +171,74 @@ size_t ferCubes3Nearest(fer_cubes3_t *cs, const fer_vec3_t *p, size_t num,
  * given coordinates.
  * This function _always_ returns correct ID.
  */
-size_t __ferCubes3IDCoords(const fer_cubes3_t *cs, const fer_vec3_t *coords);
+size_t __ferCubes`N`IDCoords(const fer_cubes`N`_t *cs, const fer_vec`N`_t *coords);
 
 
 /**** INLINES ****/
-_fer_inline void ferCubes3ElInit(fer_cubes3_el_t *el, const fer_vec3_t *coords)
+_fer_inline void ferCubes`N`ElInit(fer_cubes`N`_el_t *el, const fer_vec`N`_t *coords)
 {
     ferListInit(&el->list);
     el->cube_id = (size_t)-1;
     el->coords = coords;
 }
 
-_fer_inline size_t ferCubes3Len(const fer_cubes3_t *c)
+_fer_inline size_t ferCubes`N`Len(const fer_cubes`N`_t *c)
 {
     return c->cubes_len;
 }
 
-_fer_inline fer_real_t ferCubes3Size(const fer_cubes3_t *c)
+_fer_inline fer_real_t ferCubes`N`Size(const fer_cubes`N`_t *c)
 {
     return c->size;
 }
 
-_fer_inline const size_t *ferCubes3Dim(const fer_cubes3_t *c)
+_fer_inline const size_t *ferCubes`N`Dim(const fer_cubes`N`_t *c)
 {
     return c->dim;
 }
 
-_fer_inline size_t ferCubes3NumEls(const fer_cubes3_t *c)
+_fer_inline size_t ferCubes`N`NumEls(const fer_cubes`N`_t *c)
 {
     return c->num_els;
 }
 
-_fer_inline void ferCubes3Add(fer_cubes3_t *cs, fer_cubes3_el_t *el)
+_fer_inline void ferCubes`N`Add(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el)
 {
     size_t id;
 
-    id = __ferCubes3IDCoords(cs, el->coords);
-    ferCubes3CubeAdd(&cs->cubes[id], &el->list);
+    id = __ferCubes`N`IDCoords(cs, el->coords);
+    ferCubesCubeAdd(&cs->cubes[id], &el->list);
     el->cube_id = id;
     cs->num_els++;
 }
 
-_fer_inline void ferCubes3Remove(fer_cubes3_t *cs, fer_cubes3_el_t *el)
+_fer_inline void ferCubes`N`Remove(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el)
 {
-    ferCubes3CubeRemove(&el->list);
+    ferCubesCubeRemove(&el->list);
     el->cube_id = (size_t)-1;
     cs->num_els--;
 }
 
-_fer_inline void ferCubes3Update(fer_cubes3_t *cs, fer_cubes3_el_t *el)
+_fer_inline void ferCubes`N`Update(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el)
 {
     size_t correct_id;
 
-    correct_id = __ferCubes3IDCoords(cs, el->coords);
+    correct_id = __ferCubes`N`IDCoords(cs, el->coords);
     if (correct_id != el->cube_id){
-        ferCubes3Remove(cs, el);
-        ferCubes3Add(cs, el);
+        ferCubes`N`Remove(cs, el);
+        ferCubes`N`Add(cs, el);
     }
 }
 
-_fer_inline void ferCubes3UpdateForce(fer_cubes3_t *cs, fer_cubes3_el_t *el)
+_fer_inline void ferCubes`N`UpdateForce(fer_cubes`N`_t *cs, fer_cubes`N`_el_t *el)
 {
-    ferCubes3Remove(cs, el);
-    ferCubes3Add(cs, el);
+    ferCubes`N`Remove(cs, el);
+    ferCubes`N`Add(cs, el);
 }
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_CUBES3_H__ */
+#endif /* __FER_CUBES`N`_H__ */
 
