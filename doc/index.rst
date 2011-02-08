@@ -34,6 +34,7 @@ Fermat:
 
    fer-pc2.h.rst
    fer-pc3.h.rst
+   fer-pc4.h.rst
 
 .. toctree::
    :maxdepth: 1
