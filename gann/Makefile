@@ -37,6 +37,8 @@ libgann.a: $(OBJS)
 bin/gann-%: bin/%-main.c libgann.a ../fermat/libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
+.objs/gng.o: src/gng.c gann/gng.h src/gng-algorithm.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c gann/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c
