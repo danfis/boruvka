@@ -96,8 +96,7 @@ static void _gannGNGRun(gann_gng_t *gng)
 
     step = 1;
     cb_step = 1L;
-    //while (!gng->ops.terminate(gng->ops.terminate_data)){
-    while (gannGNGNodesLen(gng) <= 10000){
+    while (!gng->ops.terminate(gng->ops.terminate_data)){
         _gannGNGLearn(gng);
 
         if (fer_unlikely(step >= gng->params.lambda)){
