@@ -134,8 +134,9 @@ void gannGNGRun(gann_gng_t *gng)
     while (!gng->ops.terminate(gng->ops.terminate_data)){
         gannGNGLearn(gng);
 
-        if (step % gng->params.lambda == 0){
+        if (step >= gng->params.lambda){
             gannGNGNewNode(gng);
+            step = 0;
 
             if (gng->ops.callback
                     && cb_step == gng->ops.callback_period){
@@ -207,18 +208,35 @@ void gannGNGLearn(gann_gng_t *gng)
         nn   = gannNetEdgeOtherNode(&edge->edge, &n1->node);
         n    = fer_container_of(nn, gann_gng_node_t, node);
 
-        // move node (5.)
-        gng->ops.move_towards(n, input_signal, gng->params.en,
-                              gng->ops.move_towards_data);
-
         // increase age (6.)
         edge->age += 1;
 
         // remove edge if it has age higher than age_max (7.)
         if (edge->age > gng->params.age_max){
             edgeDel(gng, edge);
+
+            // if node, that did incident with removed edge, has no other
+            // connection into net - remove it also
+            if (gannNetNodeEdgesLen(nn) == 0){
+                gannNetRemoveNode(gng->net, nn);
+                gng->ops.del_node(n, gng->ops.del_node_data);
+                n = NULL;
+            }
+        }
+
+        if (n != NULL){
+            // move node (5.)
+            gng->ops.move_towards(n, input_signal, gng->params.en,
+                                  gng->ops.move_towards_data);
         }
     }
+
+    // remove winning node if not connected into net anymore
+    if (gannNetNodeEdgesLen(&n1->node) == 0){
+        // remove node if not connected into net anymore
+        gannNetRemoveNode(gng->net, &n1->node);
+        gng->ops.del_node(n1, gng->ops.del_node_data);
+     }
 }
 
 void gannGNGNewNode(gann_gng_t *gng)
@@ -233,6 +251,8 @@ void gannGNGNewNode(gann_gng_t *gng)
     // 2. Get q's neighbor with highest error counter
     f = nodeWithHighestErr2(gng, q, &eqf);
     if (!f){
+        ERR2("Node with highest error counter doesn't have any neighbors! "
+             "This shouldn't happen - something's wrong with algorithm.");
         return;
     }
 
@@ -387,7 +407,7 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
     gann_gng_node_t *n, *n_highest;
     fer_real_t err, err_highest;
 
-    err_highest = FER_REAL_MIN;
+    err_highest = -FER_ONE;
     n_highest   = NULL;
 
     list = gannNetNodes(gng->net);
@@ -427,7 +447,7 @@ static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
     gann_gng_node_t *n, *n_highest;
     fer_real_t err, err_highest;
 
-    err_highest = FER_REAL_MIN;
+    err_highest = -FER_ONE;
     n_highest = NULL;
     e_highest = NULL;
 
