@@ -96,11 +96,13 @@ static void _gannGNGRun(gann_gng_t *gng)
 
     step = 1;
     cb_step = 1L;
-    while (!gng->ops.terminate(gng->ops.terminate_data)){
+    //while (!gng->ops.terminate(gng->ops.terminate_data)){
+    while (gannGNGNodesLen(gng) <= 10000){
         _gannGNGLearn(gng);
 
-        if (step % gng->params.lambda == 0){
+        if (fer_unlikely(step >= gng->params.lambda)){
             _gannGNGNewNode(gng);
+            step = 0;
 
             if (gng->ops.callback
                     && cb_step == gng->ops.callback_period){
@@ -118,15 +120,17 @@ static void _gannGNGRun(gann_gng_t *gng)
 static void _gannGNGInit(gann_gng_t *gng)
 {
     const void *is;
-    gann_gng_node_t *n;
+    gann_gng_node_t *n1, *n2;
 
     is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
-    n  = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
-    nodeAdd(gng, n);
+    n1 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+    nodeAdd(gng, n1);
 
     is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
-    n  = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
-    nodeAdd(gng, n);
+    n2 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+    nodeAdd(gng, n2);
+
+    edgeNew(gng, n1, n2);
 }
 
 static void _gannGNGLearn(gann_gng_t *gng)
@@ -172,17 +176,33 @@ static void _gannGNGLearn(gann_gng_t *gng)
         nn   = gannNetEdgeOtherNode(&edge->edge, &n1->node);
         n    = fer_container_of(nn, gann_gng_node_t, node);
 
-        // move node (5.)
-        OPS(gng, move_towards)(n, input_signal, gng->params.en,
-                               OPS_DATA(gng, move_towards));
-
         // increase age (6.)
         edge->age += 1;
 
         // remove edge if it has age higher than age_max (7.)
         if (edge->age > gng->params.age_max){
             edgeDel(gng, edge);
+
+            if (gannNetNodeEdgesLen(nn) == 0){
+                // remove node if not connected into net anymore
+                gannNetRemoveNode(gng->net, nn);
+                gng->ops.del_node(n, gng->ops.del_node_data);
+                n = NULL;
+            }
         }
+
+        // move node (5.)
+        if (n){
+            OPS(gng, move_towards)(n, input_signal, gng->params.en,
+                OPS_DATA(gng, move_towards));
+        }
+    }
+
+    // remove winning node if not connected into net
+    if (gannNetNodeEdgesLen(&n1->node) == 0){
+        // remove node if not connected into net anymore
+        gannNetRemoveNode(gng->net, &n1->node);
+        gng->ops.del_node(n1, gng->ops.del_node_data);
     }
 }
 
@@ -198,6 +218,8 @@ static void _gannGNGNewNode(gann_gng_t *gng)
     // 2. Get q's neighbor with highest error counter
     f = nodeWithHighestErr2(gng, q, &eqf);
     if (!f){
+        ERR2("Node with highest error counter doesn't have any neighbors! "
+             "This shouldn't happen - something's wrong with algorithm.");
         return;
     }
 
@@ -338,7 +360,7 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
     gann_gng_node_t *n, *n_highest;
     fer_real_t err, err_highest;
 
-    err_highest = FER_REAL_MIN;
+    err_highest = -FER_ONE;
     n_highest   = NULL;
 
     list = gannNetNodes(gng->net);
@@ -378,7 +400,7 @@ static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
     gann_gng_node_t *n, *n_highest;
     fer_real_t err, err_highest;
 
-    err_highest = FER_REAL_MIN;
+    err_highest = -FER_ONE;
     n_highest = NULL;
     e_highest = NULL;
 
