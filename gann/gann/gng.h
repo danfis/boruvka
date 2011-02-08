@@ -24,8 +24,10 @@
  * ===================
  * Generalized implementation of Growing Neural Gas algorithm as was
  * described in:
+ *
  *      B. Fritzke, "A growing neural gas network learns topologies,"
  *      Neural Inf. Process. Syst., vol. 7, pp. 625­632, 1995.
+ *
  *
  * This implementation is not limited to 2-D, 3-D or any other dimensions.
  * In fact, nodes doesn't have assigned any weight vector - it is user's
@@ -35,29 +37,29 @@
  * gannGNG*() functions take care of the core of algorithm.
  *
  *
- * **Algorithm works as follows:**
- *
- * 1. Initializes network by two random nodes. [*gannGNGInit()*]
- * 2. Check termination condition
- * 3. Learn topology. ['gannGNGLearn()*]
- *     1. Get random input signal
- *     2. Find two nearest nodes to input signal - {n1}, {n2}
- *     3. Create connection between {n1} and {n2} if doesn't exist and set age
- *        to zero
- *     4. Increase error counter of winner node.
- *     5. Adapt nodes to input signal using fractions {eb} and {en}
- *     6. Increment age of all edges that incident with winner node by one
- *     7. Remove all edges with age higher than {age_max}
- * 4. If the number of input signals presented so far to the network is an
- *    integer multiple of the parameter {lambda}, create new node. [*gannGNGNewNode()*]
- *     1. Get node with highest error counter -> {q}
- *     2. Get {q}'s neighbor node with highest error counter -> {f}
- *     3. Create new node between {q} and {f} -> {r}
- *     4. Create {q-r} and {f-r} edges and delete {q-f} edge.
- *     5. Decrease error counter of {q} and {f} ({alpha} parameter).
- *     6. Set error counter of {r} as average error counter of {q} and {f}.
- * 5. Decrease error counters of all nodes [*gannGNGDecreaseErrCounters()*]
- * 6. Go to 2.
+ * | **Algorithm works as follows:**
+ * |
+ * | 1. Initializes network by two random nodes. [*gannGNGInit()*]
+ * | 2. Check termination condition
+ * | 3. Learn topology. ['gannGNGLearn()*]
+ * |     1. Get random input signal
+ * |     2. Find two nearest nodes to input signal - {n1}, {n2}
+ * |     3. Create connection between {n1} and {n2} if doesn't exist and set age
+ * |        to zero
+ * |     4. Increase error counter of winner node.
+ * |     5. Adapt nodes to input signal using fractions {eb} and {en}
+ * |     6. Increment age of all edges that incident with winner node by one
+ * |     7. Remove all edges with age higher than {age_max}
+ * | 4. If the number of input signals presented so far to the network is an
+ * |    integer multiple of the parameter {lambda}, create new node. [*gannGNGNewNode()*]
+ * |     1. Get node with highest error counter -> {q}
+ * |     2. Get {q}'s neighbor node with highest error counter -> {f}
+ * |     3. Create new node between {q} and {f} -> {r}
+ * |     4. Create {q-r} and {f-r} edges and delete {q-f} edge.
+ * |     5. Decrease error counter of {q} and {f} ({alpha} parameter).
+ * |     6. Set error counter of {r} as average error counter of {q} and {f}.
+ * | 5. Decrease error counters of all nodes [*gannGNGDecreaseErrCounters()*]
+ * | 6. Go to 2.
  */
 
 

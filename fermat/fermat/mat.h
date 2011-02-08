@@ -99,6 +99,7 @@ _fer_inline void ferMatSetAll(fer_mat_t *m, fer_real_t val);
 
 /**
  * Set identity matrix.
+ * ~~~~
  *     | 1 0 0 .. |
  * m = | 0 1 0 .. |
  *     | 0 0 1 .. |
@@ -113,6 +114,7 @@ _fer_inline void ferMatSetZero(fer_mat_t *m);
 
 /**
  * Set diagonal.
+ * ~~~~
  *     | s 0 0 .. |
  * m = | 0 s 0 .. |
  *     | 0 0 s .. |
@@ -192,6 +194,7 @@ int ferMatMulLeft(fer_mat_t *a, const fer_mat_t *b);
 
 /**
  * Multiplies two matrices by components.
+ * ~~~~
  *     | a11*b11 a12*b12 a13*b13 .. |
  * a = | a21*b21 a22*b22 a23*b23 .. |
  *     | a31*b31 a32*b32 a33*b33 .. |

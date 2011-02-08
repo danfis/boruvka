@@ -137,9 +137,9 @@ _fer_inline fer_real_t ferVecDot(const fer_vec_t *a, const fer_vec_t *b);
 
 /**
  * Multiplies vectors component wise:
- *  a.x = a.x * b.x
- *  a.y = a.y * b.y
- *  a.z = a.z * b.z
+ * a.x = a.x * b.x
+ * a.y = a.y * b.y
+ * a.z = a.z * b.z
  */
 _fer_inline int ferVecMulComp(fer_vec_t *a, const fer_vec_t *b);
 

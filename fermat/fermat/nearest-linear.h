@@ -25,9 +25,19 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * Nearest Linear
+ * ===============
+ */
+
+
+/** vvvv */
+
+/**
  * Callback that takes two items and returns distance between them.
  */
 typedef fer_real_t (*fer_nearest_linear_dist_t)(void *item1, fer_list_t *item2);
+
+/** ^^^^ */
 
 /**
  * Searches list for *num* items nearest to *p*.

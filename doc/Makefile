@@ -10,10 +10,10 @@ FER_RSTS  = list rand timer parse
 FER_RSTS += vec2 vec3 vec4 mat3 mat4 vec mat quat
 FER_RSTS += pc2 pc3 pc4
 FER_RSTS += mesh3
-FER_RSTS += cubes3 nearest-linear
+FER_RSTS += cubes2 cubes3 nearest-linear
 FER_RSTS += gsrm
 
-GANN_RSTS = net gng gng3
+GANN_RSTS = net gng gng2 gng3
 
 FER_RSTS := $(foreach header,$(FER_RSTS),fer-$(header).h.rst)
 GANN_RSTS := $(foreach header,$(GANN_RSTS),gann-$(header).h.rst)

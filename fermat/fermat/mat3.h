@@ -326,8 +326,8 @@ _fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
  *         | w.x |
  * v = m * | w.y |
  *         |  1  |
- * v.x = v.x / w.z
- * v.y = v.y / w.z
+ * v.x = v.x / v.z
+ * v.y = v.y / v.z
  */
 _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
                                                const fer_vec2_t *w);

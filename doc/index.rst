@@ -39,9 +39,15 @@ Fermat:
 .. toctree::
    :maxdepth: 1
 
-   mesh.rst
-   nearest.rst
-   surface.rst
+   fer-cubes2.h.rst
+   fer-cubes3.h.rst
+   fer-nearest-linear.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-mesh3.h.rst
+   fer-gsrm.h.rst
 
 
 Growing Artificial Neural Networks
@@ -52,6 +58,7 @@ Growing Artificial Neural Networks
 
    gann-net.h.rst
    gann-gng.h.rst
+   gann-gng2.h.rst
    gann-gng3.h.rst
 
 

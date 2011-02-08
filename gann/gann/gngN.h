@@ -31,7 +31,7 @@
 
 /**
  * GNG `N`D Operations
- * ---------------
+ * --------------------
  *
  * This is similar to gann_gng_ops_t.
  *
