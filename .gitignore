@@ -6,5 +6,8 @@ config.h
 fermat/fermat/pc4.h
 fermat/fermat/pc3.h
 fermat/fermat/pc2.h
+fermat/src/pc4.c
+fermat/src/pc3.c
+fermat/src/pc2.c
 fer-*
 gann-*

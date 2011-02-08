@@ -1,7 +1,7 @@
 /***
  * fermat
  * -------
- * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
+ * Copyright (c)4011 Daniel Fiser <danfis@danfis.cz>
  *
  *  This file is part of fermat.
  *
@@ -29,19 +29,21 @@
 /**
  * Updates given AABB using given point.
  */
-_fer_inline void ferPC4AABBUpdate(fer_real_t *aabb,
-                                  fer_real_t x, fer_real_t y,
-                                  fer_real_t z, fer_real_t w);
+_fer_inline void AABBUpdate(fer_real_t *aabb, const fer_vec4_t *v);
 
 fer_pc4_t *ferPC4New(void)
 {
     fer_pc4_t *pc;
+    size_t i;
 
     pc = FER_ALLOC(fer_pc4_t);
     ferListInit(&pc->head);
     pc->len = 0;
-    pc->aabb[0] = pc->aabb[2] = pc->aabb[4] = pc->aabb[6] = FER_REAL_MAX;
-    pc->aabb[1] = pc->aabb[3] = pc->aabb[5] = pc->aabb[7] = FER_REAL_MIN;
+
+    for (i = 0; i < 4; i++){
+        pc->aabb[2 * i] = FER_REAL_MAX;
+        pc->aabb[2 * i + 1] = -FER_REAL_MAX;
+    }
 
     pc->min_chunk_size = FER_PC4_MIN_CHUNK_SIZE;
     
@@ -49,34 +51,194 @@ fer_pc4_t *ferPC4New(void)
     return pc;
 }
 
-#define PC_FUNC(n) ferPC4 ## n
-#define PC_T fer_pc4_t
-#define VEC_FUNC(n) ferVec4 ## n
-#define VEC_T fer_vec4_t
-#define PC_UPDATE(pc, v) \
-    ferPC4AABBUpdate((pc)->aabb, ferVec4X(v), ferVec4Y(v), ferVec4Z(v), ferVec4W(v))
-#define PC_PARSE_VEC ferParseVec4
-#include "pc-common.c"
-
-_fer_inline void ferPC4AABBUpdate(fer_real_t *aabb,
-                                  fer_real_t x, fer_real_t y,
-                                  fer_real_t z, fer_real_t w)
+void ferPC4Del(fer_pc4_t *pc)
 {
-    if (aabb[0] > x)
-        aabb[0] = x;
-    if (aabb[1] < x)
-        aabb[1] = x;
-    if (aabb[2] > y)
-        aabb[2] = y;
-    if (aabb[3] < y)
-        aabb[3] = y;
-    if (aabb[4] > z)
-        aabb[4] = z;
-    if (aabb[5] < z)
-        aabb[5] = z;
-    if (aabb[6] > w)
-        aabb[6] = w;
-    if (aabb[7] < w)
-        aabb[7] = w;
+    fer_list_t *item, *tmp;
+    fer_pc_mem_t *mem;
+
+    ferListForEachSafe(&pc->head, item, tmp){
+        mem = ferListEntry(item, fer_pc_mem_t, list);
+        ferPCMemDel(mem);
+    }
+
+    free(pc);
 }
 
+void ferPC4Add(fer_pc4_t *pc, const fer_vec4_t *v)
+{
+    fer_list_t *item;
+    fer_pc_mem_t *mem;
+
+    item = ferListPrev(&pc->head);
+    mem = ferListEntry(item, fer_pc_mem_t, list);
+    if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
+#ifdef FER_SSE
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec4_t), 16);
+#else /* FER_SSE */
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec4_t), 0);
+#endif /* FER_SSE */
+        ferListAppend(&pc->head, &mem->list);
+    }
+
+    ferPCMemAdd(mem, v, fer_vec4_t);
+    AABBUpdate(pc->aabb, v);
+    pc->len++;
+}
+
+fer_vec4_t *ferPC4Get(fer_pc4_t *pc, size_t n)
+{
+    fer_list_t *item;
+    fer_pc_mem_t *mem;
+    size_t pos;
+    fer_vec4_t *p = NULL;
+
+    if (n >= pc->len)
+        return NULL;
+
+    pos = 0;
+    ferListForEach(&pc->head, item){
+        mem = ferListEntry(item, fer_pc_mem_t, list);
+        if (pos + mem->len > n){
+            p = ferPCMemGet(mem, n - pos, fer_vec4_t);
+            break;
+        }
+        pos += mem->len;
+    }
+
+    return p;
+}
+
+/** Returns (via other and other_pos) memory chunk and position within it
+ *  randomly chosen from point cloud from range starting at position from
+ *  of mem chunk mem_from. */
+static void ferPC4PermutateOther(fer_pc_mem_t *mem_from, size_t from,
+                                   size_t len, fer_rand_t *rand,
+                                   fer_pc_mem_t **other, size_t *other_pos)
+{
+    size_t pos;
+    fer_pc_mem_t *mem;
+    fer_list_t *item;
+
+    mem = mem_from;
+
+    // choose position
+    pos = ferRand(rand, (fer_real_t)from, (fer_real_t)len);
+
+    // find correct mem chunk
+    while (pos >= mem->len){
+        pos -= mem->len;
+        item = ferListNext(&mem->list);
+        mem = ferListEntry(item, fer_pc_mem_t, list);
+    }
+
+    *other = mem;
+    *other_pos = pos;
+}
+
+void ferPC4Permutate(fer_pc4_t *pc)
+{
+    fer_list_t *item;
+    fer_pc_mem_t *cur_mem, *other_mem;
+    size_t cur_pos, pc_len, other_pos;
+    fer_rand_t rand;
+    fer_vec4_t v, *cur, *other;
+
+    ferRandInit(&rand);
+    pc_len = pc->len;
+
+    // iterate over all positions in all chunks consequently from beginning
+    // and choose some point from rest of point cloud (from positions _after_
+    // the current one) and swap points
+    ferListForEach(&pc->head, item){
+        cur_mem = ferListEntry(item, fer_pc_mem_t, list);
+        for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
+            // choose other point for swapping
+            ferPC4PermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,
+                                    &other_mem, &other_pos);
+
+            // swap points
+            cur   = ferPCMemGet(cur_mem, cur_pos, fer_vec4_t);
+            other = ferPCMemGet(other_mem, other_pos, fer_vec4_t);
+            ferVec4Copy(&v, other);
+            ferVec4Copy(other, cur);
+            ferVec4Copy(cur, &v);
+        }
+
+        // length must be decreased because ferPC4PermutateOther takes
+        // length which is relative to first mem chunk
+        pc_len -= cur_mem->len;
+    }
+}
+
+size_t ferPC4AddFromFile(fer_pc4_t *pc, const char *filename)
+{
+
+    int fd;
+    size_t size;
+    struct stat st;
+    void *file;
+    char *fstr, *fend, *fnext;
+    fer_vec4_t v;
+    size_t added = 0;
+
+    // open file
+    if ((fd = open(filename, O_RDONLY)) == -1){
+        ERR("Can't open file '%s'", filename);
+        return added;
+    }
+
+    // get stats (mainly size of file)
+    if (fstat(fd, &st) == -1){
+        close(fd);
+        ERR("Can't get file info of '%s'", filename);
+        return added;
+    }
+
+    // pick up size of file
+    size = st.st_size;
+
+    // mmap whole file into memory, we need only read from it and don't need
+    // to share anything
+    file = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (file == MAP_FAILED){
+        close(fd);
+        ERR("Can't map file '%s' into memory: %s", filename, strerror(errno));
+
+        // Fall to stdio method if it's not possible to map whole file into
+        // memory
+        // TODO gsrmInsigAddFromFileSTDIO(is, filename);
+        return added;
+    }
+
+    // set up char pointers to current char (fstr) and to end of memory (fend)
+    fstr = (char *)file;
+    fend = (char *)file + size;
+    while (ferParseVec4(fstr, fend, &v, &fnext) == 0){
+        ferPC4Add(pc, &v);
+        added++;
+        fstr = fnext;
+    }
+
+    // unmap mapped memory
+    munmap(file, size);
+
+    // close file
+    close(fd);
+
+    return added;
+}
+
+
+_fer_inline void AABBUpdate(fer_real_t *aabb, const fer_vec4_t *v)
+{
+    size_t i;
+    fer_real_t x;
+
+    for (i = 0; i < 4; i++){
+        x = ferVec4Get(v, i);
+        if (aabb[2 * i] > x)
+            aabb[2 * i] = x;
+        if (aabb[2 * i + 1] < x)
+            aabb[2 * i + 1] = x;
+    }
+}

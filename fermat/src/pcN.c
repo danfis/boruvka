@@ -1,7 +1,7 @@
 /***
  * fermat
  * -------
- * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
+ * Copyright (c)`N`011 Daniel Fiser <danfis@danfis.cz>
  *
  *  This file is part of fermat.
  *
@@ -14,7 +14,44 @@
  *  See the License for more information.
  */
 
-void PC_FUNC(Del)(PC_T *pc)
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <fermat/pc`N`.h>
+#include <fermat/rand.h>
+#include <fermat/parse.h>
+#include <fermat/alloc.h>
+#include <fermat/dbg.h>
+
+/**
+ * Updates given AABB using given point.
+ */
+_fer_inline void AABBUpdate(fer_real_t *aabb, const fer_vec`N`_t *v);
+
+fer_pc`N`_t *ferPC`N`New(void)
+{
+    fer_pc`N`_t *pc;
+    size_t i;
+
+    pc = FER_ALLOC(fer_pc`N`_t);
+    ferListInit(&pc->head);
+    pc->len = 0;
+
+    for (i = 0; i < `N`; i++){
+        pc->aabb[2 * i] = FER_REAL_MAX;
+        pc->aabb[2 * i + 1] = -FER_REAL_MAX;
+    }
+
+    pc->min_chunk_size = FER_PC`N`_MIN_CHUNK_SIZE;
+    
+
+    return pc;
+}
+
+void ferPC`N`Del(fer_pc`N`_t *pc)
 {
     fer_list_t *item, *tmp;
     fer_pc_mem_t *mem;
@@ -27,7 +64,7 @@ void PC_FUNC(Del)(PC_T *pc)
     free(pc);
 }
 
-void PC_FUNC(Add)(PC_T *pc, const VEC_T *v)
+void ferPC`N`Add(fer_pc`N`_t *pc, const fer_vec`N`_t *v)
 {
     fer_list_t *item;
     fer_pc_mem_t *mem;
@@ -36,24 +73,24 @@ void PC_FUNC(Add)(PC_T *pc, const VEC_T *v)
     mem = ferListEntry(item, fer_pc_mem_t, list);
     if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
 #ifdef FER_SSE
-        mem = ferPCMemNew(pc->min_chunk_size, sizeof(VEC_T), 16);
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec`N`_t), 16);
 #else /* FER_SSE */
-        mem = ferPCMemNew(pc->min_chunk_size, sizeof(VEC_T), 0);
+        mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec`N`_t), 0);
 #endif /* FER_SSE */
         ferListAppend(&pc->head, &mem->list);
     }
 
-    ferPCMemAdd(mem, v, VEC_T);
-    PC_UPDATE(pc, v);
+    ferPCMemAdd(mem, v, fer_vec`N`_t);
+    AABBUpdate(pc->aabb, v);
     pc->len++;
 }
 
-VEC_T *PC_FUNC(Get)(PC_T *pc, size_t n)
+fer_vec`N`_t *ferPC`N`Get(fer_pc`N`_t *pc, size_t n)
 {
     fer_list_t *item;
     fer_pc_mem_t *mem;
     size_t pos;
-    VEC_T *p = NULL;
+    fer_vec`N`_t *p = NULL;
 
     if (n >= pc->len)
         return NULL;
@@ -62,7 +99,7 @@ VEC_T *PC_FUNC(Get)(PC_T *pc, size_t n)
     ferListForEach(&pc->head, item){
         mem = ferListEntry(item, fer_pc_mem_t, list);
         if (pos + mem->len > n){
-            p = ferPCMemGet(mem, n - pos, VEC_T);
+            p = ferPCMemGet(mem, n - pos, fer_vec`N`_t);
             break;
         }
         pos += mem->len;
@@ -74,9 +111,9 @@ VEC_T *PC_FUNC(Get)(PC_T *pc, size_t n)
 /** Returns (via other and other_pos) memory chunk and position within it
  *  randomly chosen from point cloud from range starting at position from
  *  of mem chunk mem_from. */
-static void PC_FUNC(PermutateOther)(fer_pc_mem_t *mem_from, size_t from,
-                                    size_t len, fer_rand_t *rand,
-                                    fer_pc_mem_t **other, size_t *other_pos)
+static void ferPC`N`PermutateOther(fer_pc_mem_t *mem_from, size_t from,
+                                   size_t len, fer_rand_t *rand,
+                                   fer_pc_mem_t **other, size_t *other_pos)
 {
     size_t pos;
     fer_pc_mem_t *mem;
@@ -98,13 +135,13 @@ static void PC_FUNC(PermutateOther)(fer_pc_mem_t *mem_from, size_t from,
     *other_pos = pos;
 }
 
-void PC_FUNC(Permutate)(PC_T *pc)
+void ferPC`N`Permutate(fer_pc`N`_t *pc)
 {
     fer_list_t *item;
     fer_pc_mem_t *cur_mem, *other_mem;
     size_t cur_pos, pc_len, other_pos;
     fer_rand_t rand;
-    VEC_T v, *cur, *other;
+    fer_vec`N`_t v, *cur, *other;
 
     ferRandInit(&rand);
     pc_len = pc->len;
@@ -116,24 +153,24 @@ void PC_FUNC(Permutate)(PC_T *pc)
         cur_mem = ferListEntry(item, fer_pc_mem_t, list);
         for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
             // choose other point for swapping
-            PC_FUNC(PermutateOther)(cur_mem, cur_pos + 1, pc_len, &rand,
+            ferPC`N`PermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,
                                     &other_mem, &other_pos);
 
             // swap points
-            cur   = ferPCMemGet(cur_mem, cur_pos, VEC_T);
-            other = ferPCMemGet(other_mem, other_pos, VEC_T);
-            VEC_FUNC(Copy)(&v, other);
-            VEC_FUNC(Copy)(other, cur);
-            VEC_FUNC(Copy)(cur, &v);
+            cur   = ferPCMemGet(cur_mem, cur_pos, fer_vec`N`_t);
+            other = ferPCMemGet(other_mem, other_pos, fer_vec`N`_t);
+            ferVec`N`Copy(&v, other);
+            ferVec`N`Copy(other, cur);
+            ferVec`N`Copy(cur, &v);
         }
 
-        // length must be decreased because ferPC2PermutateOther takes
+        // length must be decreased because ferPC`N`PermutateOther takes
         // length which is relative to first mem chunk
         pc_len -= cur_mem->len;
     }
 }
 
-size_t PC_FUNC(AddFromFile)(PC_T *pc, const char *filename)
+size_t ferPC`N`AddFromFile(fer_pc`N`_t *pc, const char *filename)
 {
 
     int fd;
@@ -141,7 +178,7 @@ size_t PC_FUNC(AddFromFile)(PC_T *pc, const char *filename)
     struct stat st;
     void *file;
     char *fstr, *fend, *fnext;
-    VEC_T v;
+    fer_vec`N`_t v;
     size_t added = 0;
 
     // open file
@@ -176,8 +213,8 @@ size_t PC_FUNC(AddFromFile)(PC_T *pc, const char *filename)
     // set up char pointers to current char (fstr) and to end of memory (fend)
     fstr = (char *)file;
     fend = (char *)file + size;
-    while (PC_PARSE_VEC(fstr, fend, &v, &fnext) == 0){
-        PC_FUNC(Add)(pc, &v);
+    while (ferParseVec`N`(fstr, fend, &v, &fnext) == 0){
+        ferPC`N`Add(pc, &v);
         added++;
         fstr = fnext;
     }
@@ -189,4 +226,19 @@ size_t PC_FUNC(AddFromFile)(PC_T *pc, const char *filename)
     close(fd);
 
     return added;
+}
+
+
+_fer_inline void AABBUpdate(fer_real_t *aabb, const fer_vec`N`_t *v)
+{
+    size_t i;
+    fer_real_t x;
+
+    for (i = 0; i < `N`; i++){
+        x = ferVec`N`Get(v, i);
+        if (aabb[2 * i] > x)
+            aabb[2 * i] = x;
+        if (aabb[2 * i + 1] < x)
+            aabb[2 * i + 1] = x;
+    }
 }

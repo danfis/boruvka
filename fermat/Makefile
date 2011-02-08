@@ -55,12 +55,18 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+src/pc2.c: src/pcN.c
+	cat $< | sed 's|`N`|2|g' >$@
+src/pc3.c: src/pcN.c
+	cat $< | sed 's|`N`|3|g' >$@
+src/pc4.c: src/pcN.c
+	cat $< | sed 's|`N`|4|g' >$@
 fermat/pc2.h: fermat/pcN.h.in
-	cat $< | sed 's|{{N}}|2|g' >$@
+	cat $< | sed 's|`N`|2|g' >$@
 fermat/pc3.h: fermat/pcN.h.in
-	cat $< | sed 's|{{N}}|3|g' >$@
+	cat $< | sed 's|`N`|3|g' >$@
 fermat/pc4.h: fermat/pcN.h.in
-	cat $< | sed 's|{{N}}|4|g' >$@
+	cat $< | sed 's|`N`|4|g' >$@
 %.h: fermat/config.h
 %.c: fermat/config.h
 
@@ -75,7 +81,9 @@ clean:
 	rm -f $(OBJS)
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
-	rm -f fermat/config.h fermat/pc{2,3,4}.h
+	rm -f fermat/config.h
+	rm -f fermat/pc{2,3,4}.h
+	rm -f src/pc{2,3,4}.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:
