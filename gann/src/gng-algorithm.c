@@ -36,7 +36,6 @@
  * Operations that are covered by OPS() and OPS_DATA() macros are:
  *    - new_node
  *    - new_node_between
- *    - del_node
  *    - input_signal
  *    - nearest
  *    - dist2
@@ -73,8 +72,6 @@ _fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
                                     fer_real_t s);
 /** Applies accumulated error counter */
 _fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n);
-/** Final destructor for nodes */
-static void nodeFinalDel(gann_net_node_t *node, void *data);
 
 /** Edge functions */
 /** Creates and initializes new edge between n1 and n2 */
@@ -82,9 +79,6 @@ _fer_inline gann_gng_edge_t *edgeNew(gann_gng_t *gng, gann_gng_node_t *n1,
                                                       gann_gng_node_t *n2);
 /** Deletes edge */
 _fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *edge);
-/** Delete callback */
-typedef void (*delnode_t)(gann_net_node_t *, void *);
-static void delEdge(gann_net_edge_t *edge, void *data);
 
 /** Returns node with highest error counter */
 static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng);
@@ -98,15 +92,15 @@ static void _gannGNGRun(gann_gng_t *gng)
     size_t step;
     unsigned long cb_step;
 
-    gannGNGInit(gng);
+    _gannGNGInit(gng);
 
     step = 1;
     cb_step = 1L;
     while (!gng->ops.terminate(gng->ops.terminate_data)){
-        gannGNGLearn(gng);
+        _gannGNGLearn(gng);
 
         if (step % gng->params.lambda == 0){
-            gannGNGNewNode(gng);
+            _gannGNGNewNode(gng);
 
             if (gng->ops.callback
                     && cb_step == gng->ops.callback_period){
@@ -115,7 +109,7 @@ static void _gannGNGRun(gann_gng_t *gng)
             }
             cb_step++;
         }
-        gannGNGDecreaseErrCounters(gng);
+        _gannGNGDecreaseErrCounters(gng);
 
         step++;
     }
@@ -313,15 +307,6 @@ _fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n)
     n->err_counter_mark = gng->err_counter_mark;
 }
 
-static void nodeFinalDel(gann_net_node_t *node, void *data)
-{
-    gann_gng_t *gng = (gann_gng_t *)data;
-    gann_gng_node_t *n;
-
-    n = fer_container_of(node, gann_gng_node_t, node);
-    OPS(gng, del_node)(n, OPS_DATA(gng, del_node));
-}
-
 
 
 /*** Edge functions ***/
@@ -342,11 +327,6 @@ _fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *e)
 {
     gannNetRemoveEdge(gng->net, &e->edge);
     free(e);
-}
-
-static void delEdge(gann_net_edge_t *edge, void *data)
-{
-    free(edge);
 }
 
 

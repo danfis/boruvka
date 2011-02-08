@@ -22,6 +22,9 @@
 #define OPS_DATA(gng, name) (gng)->ops.name ## _data
 #include "gng-algorithm.c"
 
+/** Delete callbacks */
+static void nodeFinalDel(gann_net_node_t *node, void *data);
+static void delEdge(gann_net_edge_t *edge, void *data);
 
 void gannGNGOpsInit(gann_gng_ops_t *ops)
 {
@@ -120,3 +123,18 @@ fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n
     return _gannGNGNodeErrCounter(gng, n);
 }
 
+
+
+static void nodeFinalDel(gann_net_node_t *node, void *data)
+{
+    gann_gng_t *gng = (gann_gng_t *)data;
+    gann_gng_node_t *n;
+
+    n = fer_container_of(node, gann_gng_node_t, node);
+    gng->ops.del_node(n, gng->ops.del_node_data);
+}
+
+static void delEdge(gann_net_edge_t *edge, void *data)
+{
+    free(edge);
+}
