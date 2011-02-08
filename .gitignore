@@ -3,6 +3,7 @@
 *.o
 *~
 config.h
+fermat/fermat/pc4.h
 fermat/fermat/pc3.h
 fermat/fermat/pc2.h
 fer-*
