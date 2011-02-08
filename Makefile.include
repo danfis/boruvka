@@ -17,6 +17,7 @@
 CC ?= gcc
 CXX ?= g++
 M4 ?= m4
+SED ?= sed
 PYTHON ?= python
 
 GSL_CONFIG 	  ?= gsl-config
@@ -31,6 +32,7 @@ SYSTEM_LDFLAGS =
 
 ifeq '$(SYSTEM)' 'FreeBSD'
   SYSTEM_CXXFLAGS = -Wno-long-long
+  SED ?= gsed
 else
 endif
 
@@ -126,6 +128,7 @@ showvars:
 	@echo "CC      = $(CC)"
 	@echo "CXX     = $(CXX)"
 	@echo "M4      = $(M4)"
+	@echo "SED     = $(SED)"
 	@echo "PYTHON  = $(PYTHON)"
 	@echo ""
 	@echo "GSL_CONFIG     = $(GSL_CONFIG)"

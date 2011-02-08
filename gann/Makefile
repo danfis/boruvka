@@ -25,10 +25,13 @@ TARGETS = libgann.a
 OBJS  = net.o
 OBJS += gng.o gng2.o gng3.o
 
-OBJS := $(foreach obj,$(OBJS),.objs/$(obj))
+HEADERS = gng2.h gng3.h
+
+OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
+HEADERS     := $(foreach h,$(HEADERS),gann/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
-all: $(TARGETS) $(BIN_TARGETS)
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
 libgann.a: $(OBJS)
 	ar cr $@ $(OBJS)
@@ -44,20 +47,24 @@ bin/gann-%: bin/%-main.c libgann.a ../fermat/libfermat.a
 .objs/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-src/gng2.c: src/gngN.c
-	sed 's|`N`|2|g' <$< >$@
-gann/gng2.h: gann/gngN.h
-	sed 's|`N`|2|g' <$< >$@
+%2.c: %N.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.c: %N.c
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.c: %N.c
+	$(SED) 's|`N`|4|g' <$< >$@
 
-src/gng3.c: src/gngN.c
-	sed 's|`N`|3|g' <$< >$@
-gann/gng3.h: gann/gngN.h
-	sed 's|`N`|3|g' <$< >$@
+%2.h: %N.h
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.h: %N.h
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.h: %N.h
+	$(SED) 's|`N`|4|g' <$< >$@
 
-bin/gng-2d-main.c: bin/gng-Nd-main.c
-	sed 's|`N`|2|g' <$< >$@
-bin/gng-3d-main.c: bin/gng-Nd-main.c
-	sed 's|`N`|3|g' <$< >$@
+%2d-main.c: %Nd-main.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3d-main.c: %Nd-main.c
+	$(SED) 's|`N`|3|g' <$< >$@
 
 
 install:

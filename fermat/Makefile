@@ -31,15 +31,20 @@ OBJS += cubes2.o cubes3.o nearest-linear.o
 OBJS += mesh3.o qhull.o
 OBJS += gsrm.o
 
+# header files that must be generated
+HEADERS  = pc2.h pc3.h pc4.h
+HEADERS += cubes2.h cubes3.h
+
 ifeq '$(USE_GSL)' 'yes'
   OBJS += mat.o vec.o
   CFLAGS += $(GSL_CFLAGS)
 endif
 
-OBJS := $(foreach obj,$(OBJS),.objs/$(obj))
+OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
+HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
-all: $(TARGETS) $(BIN_TARGETS)
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
 libfermat.a: $(OBJS)
 	ar cr $@ $(OBJS)
@@ -55,28 +60,20 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-src/pc2.c: src/pcN.c
-	cat $< | sed 's|`N`|2|g' >$@
-src/pc3.c: src/pcN.c
-	cat $< | sed 's|`N`|3|g' >$@
-src/pc4.c: src/pcN.c
-	cat $< | sed 's|`N`|4|g' >$@
-fermat/pc2.h: fermat/pcN.h.in
-	cat $< | sed 's|`N`|2|g' >$@
-fermat/pc3.h: fermat/pcN.h.in
-	cat $< | sed 's|`N`|3|g' >$@
-fermat/pc4.h: fermat/pcN.h.in
-	cat $< | sed 's|`N`|4|g' >$@
 
-fermat/cubes2.h: fermat/cubesN.h
-	cat $< | sed 's|`N`|2|g' >$@
-src/cubes2.c: src/cubesN.c
-	cat $< | sed 's|`N`|2|g' >$@
+%2.c: %N.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.c: %N.c
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.c: %N.c
+	$(SED) 's|`N`|4|g' <$< >$@
 
-fermat/cubes3.h: fermat/cubesN.h
-	cat $< | sed 's|`N`|3|g' >$@
-src/cubes3.c: src/cubesN.c
-	cat $< | sed 's|`N`|3|g' >$@
+%2.h: %N.h
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.h: %N.h
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.h: %N.h
+	$(SED) 's|`N`|4|g' <$< >$@
 
 %.h: fermat/config.h
 %.c: fermat/config.h
