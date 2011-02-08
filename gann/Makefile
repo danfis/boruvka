@@ -43,12 +43,17 @@ bin/gann-%: bin/%-main.c libgann.a ../fermat/libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
 src/gng2.c: src/gngN.c
 	sed 's|`N`|2|g' <$< >$@
 gann/gng2.h: gann/gngN.h
 	sed 's|`N`|2|g' <$< >$@
+
 src/gng3.c: src/gngN.c
 	sed 's|`N`|3|g' <$< >$@
+gann/gng3.h: gann/gngN.h
+	sed 's|`N`|3|g' <$< >$@
+
 bin/gng-2d-main.c: bin/gng-Nd-main.c
 	sed 's|`N`|2|g' <$< >$@
 bin/gng-3d-main.c: bin/gng-Nd-main.c
