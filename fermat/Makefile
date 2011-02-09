@@ -29,6 +29,7 @@ OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes2.o cubes3.o nearest-linear.o
 OBJS += mesh3.o qhull.o
+OBJS += fibo.o
 OBJS += gsrm.o
 
 # header files that must be generated
