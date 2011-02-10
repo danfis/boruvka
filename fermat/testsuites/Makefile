@@ -1,7 +1,10 @@
-# force some options
-DEBUG = yes
+
+ifneq '$(DEBUG)' 'no'
+  DEBUG := yes
+endif
 
 -include ../../Makefile.include
+
 CFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lfermat
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
@@ -9,6 +12,8 @@ CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-l
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
+TARGETS = test bench-heap
+BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o quat.o pc3.o \
        mat3.o mat4.o cubes3.o cubes2.o mesh3.o nearest.o \
        fibo.o pairheap.o \
@@ -23,13 +28,19 @@ ifeq '$(USE_GSL)' 'yes'
 endif
 
 
-all: test
+all: $(TARGETS)
 
 test: cu $(OBJS) main.c
 	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
 bench: cu bench.c data-vec3.o data-quat.o
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c data.o $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
+
+bench-heap: $(BENCH_HEAP)
+bench-heap-fibo: bench-heap-fibo.c bench-heap.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -64,6 +75,7 @@ clean:
 	rm -f test bench bench2
 	rm -f tmp.*
 	rm -f regressions/tmp.*
+	rm -f $(BENCH_HEAP)
 
-.PHONY: all clean check check-valgrind cu
+.PHONY: all clean check check-valgrind cu bench-heap
 	
