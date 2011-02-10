@@ -111,7 +111,6 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph);
 
 
 /**** INLINES ****/
-#include <fermat/dbg.h>
 _fer_inline int ferPairHeapEmpty(const fer_pairheap_t *ph)
 {
     return ferListEmpty(&ph->root);
