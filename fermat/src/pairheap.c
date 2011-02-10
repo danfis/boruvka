@@ -16,6 +16,7 @@
 
 #include <fermat/pairheap.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than)
 {
@@ -48,7 +49,8 @@ void ferPairHeapRemove(fer_pairheap_t *ph, fer_pairheap_node_t *n)
         ferListAppend(&ph->root, &c->list);
     }
 
-    __ferPairHeapConsolidate(ph);
+    // remove n itself
+    ferListDel(&n->list);
 }
 
 void __ferPairHeapConsolidate(fer_pairheap_t *ph)
@@ -68,9 +70,11 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
 
         // compare them
         if (ph->lt(n1, n2)){ // n1 < n2
+            ferListDel(&n2->list);
             ferListAppend(&n1->children, &n2->list);
             item = ferListNext(&n1->list);
         }else{
+            ferListDel(&n1->list);
             ferListAppend(&n2->children, &n1->list);
             item = ferListNext(&n2->list);
         }
@@ -89,8 +93,10 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
         n2 = ferListEntry(item_next, fer_pairheap_node_t, list);
 
         if (ph->lt(n1, n2)){ // n1 < n2
+            ferListDel(&n2->list);
             ferListAppend(&n1->children, &n2->list);
         }else{
+            ferListDel(&n1->list);
             ferListAppend(&n2->children, &n1->list);
             item = item_next;
         }

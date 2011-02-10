@@ -11,6 +11,7 @@
 #include "mesh3.h"
 #include "nearest.h"
 #include "fibo.h"
+#include "pairheap.h"
 
 #ifdef FER_GSL
 #include "vec.h"
@@ -32,6 +33,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSNearest),
 
     TEST_SUITE_ADD(TSFibo),
+    TEST_SUITE_ADD(TSPairHeap),
 
 #ifdef FER_GSL
     TEST_SUITE_ADD(TSVec),

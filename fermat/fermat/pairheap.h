@@ -48,8 +48,7 @@ typedef int (*fer_pairheap_lt)(const fer_pairheap_node_t *n1, const fer_pairheap
 struct _fer_pairheap_t {
     fer_list_t root; /*!< List of root nodes. In fact, pairing heap has
                           always one root node, but we need this to make
-                          effecient mergin.
-                          TODO: think about lazy merging */
+                          effecient (lazy) merging. */
     fer_pairheap_lt lt; /*!< "Less than" callback provided by user */
 };
 typedef struct _fer_pairheap_t fer_pairheap_t;
@@ -112,6 +111,7 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph);
 
 
 /**** INLINES ****/
+#include <fermat/dbg.h>
 _fer_inline int ferPairHeapEmpty(const fer_pairheap_t *ph)
 {
     return ferListEmpty(&ph->root);
@@ -126,6 +126,13 @@ _fer_inline fer_pairheap_node_t *ferPairHeapMin(fer_pairheap_t *ph)
         return NULL;
 
     item = ferListNext(&ph->root);
+
+    // if root doesn't contain only one node, heap must be consolidated
+    if (ferListNext(item) != &ph->root){
+        __ferPairHeapConsolidate(ph);
+        item = ferListNext(&ph->root);
+    }
+
     el = ferListEntry(item, fer_pairheap_node_t, list);
     return el;
 }
@@ -134,16 +141,12 @@ _fer_inline void ferPairHeapAdd(fer_pairheap_t *ph, fer_pairheap_node_t *n)
 {
     ferListInit(&n->children);
     ferListAppend(&ph->root, &n->list);
-
-    __ferPairHeapConsolidate(ph);
 }
 
 _fer_inline void ferPairHeapDecreaseKey(fer_pairheap_t *ph, fer_pairheap_node_t *n)
 {
     ferListDel(&n->list);
     ferListAppend(&ph->root, &n->list);
-
-    __ferPairHeapConsolidate(ph);
 }
 
 _fer_inline void ferPairHeapUpdate(fer_pairheap_t *ph, fer_pairheap_node_t *n)

@@ -1,5 +1,6 @@
 regressions/tmp.*
 regressions/TSFibo.rand-*
+regressions/TSPairHeap.rand-*
 bench-out/*
 *.o
 test
