@@ -1,4 +1,5 @@
 regressions/tmp.*
+regressions/TSFibo.rand-*
 bench-out/*
 *.o
 test

@@ -44,6 +44,8 @@ fer_fibo_t *ferFiboNew(void)
     bzero(fibo, sizeof(fer_fibo_t));
     ferListInit(&fibo->root);
 
+    fibo->max_degree = 0;
+
     return fibo;
 }
 
@@ -90,7 +92,17 @@ void ferFiboDecreaseKey(fer_fibo_t *f, fer_fibo_node_t *n)
 
 void ferFiboRemove(fer_fibo_t *f, fer_fibo_node_t *n)
 {
+    fer_list_t *list, *item, *item_tmp;
+    fer_fibo_node_t *c;
+
     __ferFiboCutCascade(f, n);
+
+    // remove all its children
+    list = &n->children;
+    ferListForEachSafe(list, item, item_tmp){
+        c = fer_container_of(item, fer_fibo_node_t, list);
+        __ferFiboCut(f, c, n);
+    }
 
     // remove from root list
     ferListDel(&n->list);
@@ -106,9 +118,11 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
     unsigned int degree;
     size_t i;
 
-    for (i = 0; i < FER_FIBO_CONS_SIZE; i++){
+    for (i = 0; i <= f->max_degree; i++){
         f->cons[i] = NULL;
     }
+
+    f->max_degree = 0;
 
     list = &f->root;
     ferListForEachSafe(list, item, tmp_item){
@@ -129,11 +143,13 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
         }
 
         f->cons[degree] = n;
+        if (degree > f->max_degree)
+            f->max_degree = degree;
     }
 
     // find minimum
     f->min = NULL;
-    for (i = 0; i < FER_FIBO_CONS_SIZE; i++){
+    for (i = 0; i <= f->max_degree; i++){
         // TODO
         if (!f->min || (f->cons[i] && f->min->value > f->cons[i]->value)){
             f->min = f->cons[i];

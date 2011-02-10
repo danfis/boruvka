@@ -43,12 +43,18 @@ struct _fer_fibo_node_t {
 };
 typedef struct _fer_fibo_node_t fer_fibo_node_t;
 
+/**
+ * Callback that should return true if {n1} is smaller than {n2}.
+ */
+typedef int (*fer_fibo_lt)(const fer_fibo_node_t *n1, const fer_fibo_node_t *n2);
+
 struct _fer_fibo_t {
     fer_list_t root;      /*!< List of root nodes */
     fer_fibo_node_t *min; /*!< Minimal node */
     fer_fibo_node_t *cons[FER_FIBO_CONS_SIZE]; /*!< Consolidation array
                                                     with bitlength(degree)
                                                     elements */
+    unsigned int max_degree; /*!< Maximal degree used in .cons */
 };
 typedef struct _fer_fibo_t fer_fibo_t;
 
@@ -63,6 +69,11 @@ fer_fibo_t *ferFiboNew(void);
  * Note that individual nodes are not disconnected from heap.
  */
 void ferFiboDel(fer_fibo_t *fibo);
+
+/**
+ * Returns true if heap is empty.
+ */
+_fer_inline int ferFiboEmpty(const fer_fibo_t *f);
 
 /**
  * Returns minimal node.
@@ -95,7 +106,13 @@ _fer_inline void ferFiboUpdate(fer_fibo_t *f, fer_fibo_node_t *n);
  */
 void ferFiboRemove(fer_fibo_t *f, fer_fibo_node_t *n);
 
+
 /**** INLINES ****/
+_fer_inline int ferFiboEmpty(const fer_fibo_t *f)
+{
+    return ferListEmpty(&f->root);
+}
+
 _fer_inline fer_fibo_node_t *ferFiboMin(fer_fibo_t *f)
 {
     return f->min;
