@@ -34,7 +34,7 @@ extern "C" {
 
 struct _fer_fibo_node_t {
     unsigned int degree; /*!< Degree of node */
-    int mark; // TODO
+    int mark;
     struct _fer_fibo_node_t *parent; /*!< Parent node */
     fer_list_t children;             /*!< List of children */
     fer_list_t list;                 /*!< Connection into list of siblings */
