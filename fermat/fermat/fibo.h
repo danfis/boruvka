@@ -38,8 +38,6 @@ struct _fer_fibo_node_t {
     struct _fer_fibo_node_t *parent; /*!< Parent node */
     fer_list_t children;             /*!< List of children */
     fer_list_t list;                 /*!< Connection into list of siblings */
-
-    int value;
 };
 typedef struct _fer_fibo_node_t fer_fibo_node_t;
 
@@ -55,14 +53,17 @@ struct _fer_fibo_t {
                                                     with bitlength(degree)
                                                     elements */
     unsigned int max_degree; /*!< Maximal degree used in .cons */
+
+    fer_fibo_lt lt; /*!< "Less than" callback provided by user */
 };
 typedef struct _fer_fibo_t fer_fibo_t;
 
 
 /**
- * Creates new empty Fibonnacci heap
+ * Creates new empty Fibonnacci heap.
+ * Callback for comparison must be provided.
  */
-fer_fibo_t *ferFiboNew(void);
+fer_fibo_t *ferFiboNew(fer_fibo_lt less_than);
 
 /**
  * Deletes fibonnacci heap.
@@ -92,12 +93,14 @@ fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f);
 
 /**
  * Update position of node in heap in case its value was decreased.
- * If value wasn't decreased call ferFiboUpdate() instead.
+ * If value wasn't decreased (or you are not sure) call ferFiboUpdate()
+ * instead.
  */
 void ferFiboDecreaseKey(fer_fibo_t *f, fer_fibo_node_t *n);
 
 /**
  * Updates position of node in heap.
+ * This generalized (and slower) version of ferFiboDecreaseKey() function.
  */
 _fer_inline void ferFiboUpdate(fer_fibo_t *f, fer_fibo_node_t *n);
 
@@ -126,8 +129,7 @@ _fer_inline void ferFiboAdd(fer_fibo_t *f, fer_fibo_node_t *n)
     ferListInit(&n->children);
     ferListAppend(&f->root, &n->list);
 
-    // TODO:
-    if (!f->min || n->value < f->min->value)
+    if (!f->min || f->lt(n, f->min))
         f->min = n;
 }
 

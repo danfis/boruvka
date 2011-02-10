@@ -50,7 +50,6 @@ static el_t *randomEls(size_t num)
     for (i = 0; i < num; i++){
         val = ferRand(&r, -500., 500.);
         els[i].val = val;
-        els[i].node.value = val;
         els[i].id = i;
     }
 
@@ -68,6 +67,16 @@ static int cmpIncEl(const void *i1, const void *i2)
     if (e1->val < e2->val)
         return -1;
     return 1;
+}
+
+static int ltEl(const fer_fibo_node_t *n1, const fer_fibo_node_t *n2)
+{
+    el_t *el1, *el2;
+
+    el1 = fer_container_of(n1, el_t, node);
+    el2 = fer_container_of(n2, el_t, node);
+
+    return el1->val < el2->val;
 }
 
 
@@ -89,7 +98,7 @@ static void checkCorrect(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew();
+    fibo = ferFiboNew(ltEl);
     for (i = 0; i < num; i++){
         ferFiboAdd(fibo, &els[i].node);
     }
@@ -99,7 +108,8 @@ static void checkCorrect(int ID, size_t num)
         n = ferFiboExtractMin(fibo);
         //if (num == 100)
         //    fiboDump(fibo);
-        fprintf(fout1, "%d\n", n->value);
+        el = fer_container_of(n, el_t, node);
+        fprintf(fout1, "%d\n", el->val);
 
         el = fer_container_of(n, el_t, node);
         ids[i] = el->id;
@@ -141,21 +151,21 @@ static void checkCorrect2(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew();
+    fibo = ferFiboNew(ltEl);
     for (i = 0; i < num; i++){
         ferFiboAdd(fibo, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
         els[i].val -= ferRand(&r, 1, 100);
-        els[i].node.value = els[i].val;
         ferFiboDecreaseKey(fibo, &els[i].node);
     }
 
     i = 0;
     while (!ferFiboEmpty(fibo)){
         n = ferFiboExtractMin(fibo);
-        fprintf(fout1, "%d\n", n->value);
+        el = fer_container_of(n, el_t, node);
+        fprintf(fout1, "%d\n", el->val);
 
         el = fer_container_of(n, el_t, node);
         ids[i] = el->id;
@@ -198,21 +208,21 @@ static void checkCorrect3(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew();
+    fibo = ferFiboNew(ltEl);
     for (i = 0; i < num; i++){
         ferFiboAdd(fibo, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
         els[i].val += ferRand(&r, 1, 100);
-        els[i].node.value = els[i].val;
         ferFiboUpdate(fibo, &els[i].node);
     }
 
     i = 0;
     while (!ferFiboEmpty(fibo)){
         n = ferFiboExtractMin(fibo);
-        fprintf(fout1, "%d\n", n->value);
+        el = fer_container_of(n, el_t, node);
+        fprintf(fout1, "%d\n", el->val);
 
         el = fer_container_of(n, el_t, node);
         ids[i] = el->id;
