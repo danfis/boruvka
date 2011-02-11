@@ -50,6 +50,7 @@ static void _gannGNGRun(gann_gng_t *gng);
 static void _gannGNGInit(gann_gng_t *gng);
 static void _gannGNGLearn(gann_gng_t *gng, size_t step);
 static void _gannGNGNewNode(gann_gng_t *gng);
+static gann_gng_node_t *_gannGNGConnectNewNode(gann_gng_t *gng, const void *is);
 
 /** Node functions */
 /** Initialize node */
@@ -235,6 +236,24 @@ static void _gannGNGNewNode(gann_gng_t *gng)
     // 6. Set error counter of new node (r)
     r->err  = q->err + f->err;
     r->err /= FER_REAL(2.);
+}
+
+static gann_gng_node_t *_gannGNGConnectNewNode(gann_gng_t *gng, const void *is)
+{
+    gann_gng_node_t *r, *n1, *n2;
+    gann_gng_edge_t *edge;
+
+    OPS(gng, nearest)(is, &n1, &n2, OPS_DATA(gng, nearest));
+
+    r = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+    nodeAdd(gng, r);
+
+    edge = edgeNew(gng, r, n1);
+    edge->age = 0;
+    edge = edgeNew(gng, r, n2);
+    edge->age = 0;
+
+    return r;
 }
 
 

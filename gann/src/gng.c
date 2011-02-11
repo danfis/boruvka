@@ -100,6 +100,10 @@ void gannGNGRun(gann_gng_t *gng)
     _gannGNGRun(gng);
 }
 
+gann_gng_node_t *gannGNGConnectNewNode(gann_gng_t *gng, const void *is)
+{
+    return _gannGNGConnectNewNode(gng, is);
+}
 
 
 static void nodeFinalDel(gann_net_node_t *node, void *data)

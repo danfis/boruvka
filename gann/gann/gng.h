@@ -266,6 +266,11 @@ void gannGNGRun(gann_gng_t *gng);
  */
 
 /**
+ * Connects new node at given position (is).
+ */
+gann_gng_node_t *gannGNGConnectNewNode(gann_gng_t *gng, const void *is);
+
+/**
  * Returns error counter of node.
  *
  * Always use this function instead of direct access to struct!
