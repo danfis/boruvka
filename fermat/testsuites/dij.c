@@ -6,8 +6,8 @@
 
 
 static fer_real_t dist(const fer_dij_node_t *n1,
-                       const fer_dij_node_t *n2);
-static void expand(fer_dij_node_t *n, fer_list_t *list);
+                       const fer_dij_node_t *n2, void *);
+static void expand(fer_dij_node_t *n, fer_list_t *list, void *);
 
 struct _node_t {
     fer_vec2_t v;
@@ -153,7 +153,7 @@ TEST(dij1)
 }
 
 static fer_real_t dist(const fer_dij_node_t *_n1,
-                       const fer_dij_node_t *_n2)
+                       const fer_dij_node_t *_n2, void *_)
 {
     node_t *n1, *n2;
     n1 = fer_container_of(_n1, node_t, dij);
@@ -162,7 +162,7 @@ static fer_real_t dist(const fer_dij_node_t *_n1,
     return ferVec2Dist(&n1->v, &n2->v);
 }
 
-static void expand(fer_dij_node_t *_n, fer_list_t *list)
+static void expand(fer_dij_node_t *_n, fer_list_t *list, void *_)
 {
     size_t i;
     node_t *n;

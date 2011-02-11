@@ -79,7 +79,7 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
         // empty list
         ferListInit(&list);
         // let user's function to fill list with nodes
-        dij->ops.expand(node, &list);
+        dij->ops.expand(node, &list, dij->ops.data);
         // iterate over all nodes in list
         ferListForEach(&list, item){
             nextnode = ferListEntry(item, fer_dij_node_t, _list);
@@ -90,7 +90,7 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
                 continue;
 
             // get distance from current node
-            dist = dij->ops.dist(node, nextnode);
+            dist = dij->ops.dist(node, nextnode, dij->ops.data);
 
             // Relax operation.
             dist += node->dist;
