@@ -120,7 +120,7 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
 
 void ferDijPath(fer_dij_node_t *endnode, fer_list_t *list)
 {
-    fer_dij_node_t *node, *prev;
+    fer_dij_node_t *node;
 
     node = endnode;
     while (node){
