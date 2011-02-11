@@ -57,6 +57,8 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
     gng->params = *params;
 
     // set up ops data pointers
+    if (!gng->ops.init_data)
+        gng->ops.init_data = gng->ops.data;
     if (!gng->ops.new_node_data)
         gng->ops.new_node_data = gng->ops.data;
     if (!gng->ops.new_node_between_data)

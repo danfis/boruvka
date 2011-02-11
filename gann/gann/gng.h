@@ -91,6 +91,15 @@ typedef struct _gann_gng_edge_t gann_gng_edge_t;
 /** vvvv */
 
 /**
+ * Return two nodes that will be used for network initialization.
+ * If not specified (NULL) two random input ignals are use for
+ * initialization.
+ */
+typedef void (*gann_gng_init)(gann_gng_node_t **n1,
+                              gann_gng_node_t **n2,
+                              void *);
+
+/**
  * Create new node initialized weight vector to input_signal.
  */
 typedef gann_gng_node_t *(*gann_gng_new_node)(const void *input_signal, void *);
@@ -152,6 +161,7 @@ typedef void (*gann_gng_callback)(void *);
 /** ^^^^ */
 
 struct _gann_gng_ops_t {
+    gann_gng_init             init;
     gann_gng_new_node         new_node;
     gann_gng_new_node_between new_node_between;
     gann_gng_del_node         del_node;
@@ -167,6 +177,7 @@ struct _gann_gng_ops_t {
     void *data; /*!< Data pointer that will be provided to all callbacks if
                      not specified otherwise. */
 
+    void *init_data;
     void *new_node_data;
     void *new_node_between_data;
     void *del_node_data;

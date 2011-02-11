@@ -21,6 +21,9 @@
 #include <fermat/dbg.h>
 
 /** Operations for gann_gng_ops_t struct */
+_fer_inline void gng`N`_init(gann_gng_node_t **n1, gann_gng_node_t **n2, void *_)
+{}
+
 _fer_inline gann_gng_node_t *gng`N`_new_node(const void *input_signal, void *);
 
 _fer_inline gann_gng_node_t *gng`N`_new_node_between(const gann_gng_node_t *n1,

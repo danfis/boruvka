@@ -121,14 +121,18 @@ static void _gannGNGInit(gann_gng_t *gng)
     const void *is;
     gann_gng_node_t *n1, *n2;
 
-    is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
-    n1 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+    if (gng->ops.init){
+        OPS(gng, init)(&n1, &n2, OPS_DATA(gng, init));
+    }else{
+        is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
+        n1 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+
+        is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
+        n2 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
+    }
+
     nodeAdd(gng, n1);
-
-    is = OPS(gng, input_signal)(OPS_DATA(gng, input_signal));
-    n2 = OPS(gng, new_node)(is, OPS_DATA(gng, new_node));
     nodeAdd(gng, n2);
-
     edgeNew(gng, n1, n2);
 }
 
