@@ -127,6 +127,11 @@ _fer_inline int ferListEmpty(const fer_list_t *head);
 _fer_inline void ferListAppend(fer_list_t *l, fer_list_t *item);
 
 /**
+ * Prepends item before first item in list.
+ */
+_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *item);
+
+/**
  * Removes item from list.
  */
 _fer_inline void ferListDel(fer_list_t *item);
@@ -183,6 +188,14 @@ _fer_inline void ferListAppend(fer_list_t *l, fer_list_t *new)
     new->next = l;
     l->prev->next = new;
     l->prev = new;
+}
+
+_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *new)
+{
+    new->next = l->next;
+    new->prev = l;
+    l->next->prev = new;
+    l->next = new;
 }
 
 _fer_inline void ferListDel(fer_list_t *item)
