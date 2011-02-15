@@ -112,7 +112,6 @@ static void _gannGNGInit(gann_gng_t *gng)
     gng->beta_n[0] = gng->params.beta;
     for (i = 1; i < gng->params.lambda; i++){
         gng->beta_n[i] = gng->beta_n[i - 1] * gng->params.beta;
-        DBG("%g", gng->beta_n[i - 1]);
     }
 
 
