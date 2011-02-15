@@ -39,8 +39,6 @@ void gannGNGParamsInit(gann_gng_params_t *params)
     params->alpha   = 0.95;
     params->beta    = 0.9995;
     params->age_max = 200;
-
-    params->use_acc_err_counter = 1;
 }
 
 
@@ -78,14 +76,16 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
     if (!gng->ops.callback_data)
         gng->ops.callback_data = gng->ops.data;
 
-    gng->err_counter_mark = 0;
-    gng->err_counter_scale = FER_ONE;
+    gng->beta_n = NULL;
 
     return gng;
 }
 
 void gannGNGDel(gann_gng_t *gng)
 {
+    if (gng->beta_n)
+        free(gng->beta_n);
+
     if (gng->net){
         gannNetDel2(gng->net, nodeFinalDel, gng,
                               delEdge, gng);
@@ -98,31 +98,6 @@ void gannGNGDel(gann_gng_t *gng)
 void gannGNGRun(gann_gng_t *gng)
 {
     _gannGNGRun(gng);
-}
-
-void gannGNGInit(gann_gng_t *gng)
-{
-    _gannGNGInit(gng);
-}
-
-void gannGNGLearn(gann_gng_t *gng)
-{
-    _gannGNGLearn(gng);
-}
-
-void gannGNGNewNode(gann_gng_t *gng)
-{
-    _gannGNGNewNode(gng);
-}
-
-void gannGNGDecreaseErrCounters(gann_gng_t *gng)
-{
-    _gannGNGDecreaseErrCounters(gng);
-}
-
-fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n)
-{
-    return _gannGNGNodeErrCounter(gng, n);
 }
 
 

@@ -66,8 +66,8 @@
 struct _gann_gng_node_t {
     gann_net_node_t node;
 
-    fer_real_t err_counter;  /*!< Error counter */
-    size_t err_counter_mark; /*!< Mark used for a accumulated error counter */
+    fer_real_t err_local; /*!< Local error */
+    fer_real_t err;       /*!< Overall error */
 };
 typedef struct _gann_gng_node_t gann_gng_node_t;
 
@@ -209,16 +209,6 @@ struct _gann_gng_params_t {
     fer_real_t alpha; /*!< Decrease error counter rate */
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
-
-    int use_acc_err_counter; /*!< Set to true if you want to use
-                                  accumulated error counter.
-                                  Note that this can be unsafe (due to
-                                  inaccuracy of floating point numbers) if
-                                  parameter beta is too small or/and
-                                  parameter lambda is too big. In short, if
-                                  beta^lambda is too far from value what
-                                  should really be, don't use this feature.
-                                  [default true] */
 };
 typedef struct _gann_gng_params_t gann_gng_params_t;
 
@@ -241,10 +231,7 @@ struct _gann_gng_t {
     gann_gng_ops_t ops;
     gann_gng_params_t params;
 
-    size_t err_counter_mark;      /*!< Contains mark used for accumulated
-                                       error counter. It holds how many
-                                       times were applied parameter beta */
-    fer_real_t err_counter_scale; /*!< Accumulated error counter - beta^mark */
+    fer_real_t *beta_n; /*!< Precomputed beta^n for n = 1, ..., lambda */
 };
 typedef struct _gann_gng_t gann_gng_t;
 
@@ -264,67 +251,10 @@ void gannGNGDel(gann_gng_t *gng);
  * Runs GNG algorithm.
  *
  * This runs whole algorithm in loop until operation terminate() returns
- * true:
- *
- * 1. gannGNGInit()
- * 2. Terminate?
- * 3. gannGNGLearn()
- * 4. If the number of input signals presented so far to the network is an
- *    integer multiple of the parameter lambda: gannGNGNewNode().
- * 5. gannGNGDecreaseErrCounters()
- * 6. Go to 2.
+ * true.
  */
 void gannGNGRun(gann_gng_t *gng);
 
-/**
- * Initializes neural network.
- *
- * Gets two input signals and create two node (unconnected) from them.
- *
- * Operations input_signal() and new_node() must be set.
- */
-void gannGNGInit(gann_gng_t *gng);
-
-/**
- * One step of learning of neutal network.
- *
- * Algorithm works as follows:
- *
- * 1. Get random input signal
- * 2. Find two nearest nodes to input signal - n1, n2
- * 3. Create connection between n1 and n2 if doesn't exist and set age to
- *    zero
- * 4. Increase error counter of winner node
- * 5. Adapt nodes to input signal using fractions eb and en
- * 6. Increment age of all edges that incident with winner node by one
- * 7. Remove all edges with age higher than age_max
- *
- * Operations input_signal(), nearest(), dist2() and move_towards() must be
- * set.
- */
-void gannGNGLearn(gann_gng_t *gng);
-
-/**
- * Creates new node.
- *
- * Algorithm works as follows:
- *
- * 1. Get node with highest error counter -> q
- * 2. Get q's neighbor node with highest error counter -> f
- * 3. Create new node between q and f -> r
- * 4. Create q-r and f-r edges and delete q-f edge.
- * 5. Decrease error counter of q and f (alpha parameter).
- * 6. Set error counter of r as average error counter of q and f.
- *
- * Operations new_node_between() must be set.
- */
-void gannGNGNewNode(gann_gng_t *gng);
-
-/**
- * Decreases error counters of all nodes by multiplication by parameter
- * beta.
- */
-void gannGNGDecreaseErrCounters(gann_gng_t *gng);
 
 
 /**

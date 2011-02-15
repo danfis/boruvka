@@ -48,30 +48,14 @@
 /** For public API */
 static void _gannGNGRun(gann_gng_t *gng);
 static void _gannGNGInit(gann_gng_t *gng);
-static void _gannGNGLearn(gann_gng_t *gng);
+static void _gannGNGLearn(gann_gng_t *gng, size_t step);
 static void _gannGNGNewNode(gann_gng_t *gng);
-static void _gannGNGDecreaseErrCounters(gann_gng_t *gng);
-/** Returns node's err counter */
-_fer_inline fer_real_t _gannGNGNodeErrCounter(const gann_gng_t *gng,
-                                              const gann_gng_node_t *n);
 
 /** Node functions */
 /** Initialize node */
 _fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n);
 /** Adds node into network */
 _fer_inline void nodeAdd(gann_gng_t *gng, gann_gng_node_t *n);
-
-/** Set error counter of node */
-_fer_inline void nodeSetErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                   fer_real_t err);
-/** Increases error counter of node */
-_fer_inline void nodeIncErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                   fer_real_t inc);
-/** Scale error counter of node */
-_fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                    fer_real_t s);
-/** Applies accumulated error counter */
-_fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n);
 
 /** Edge functions */
 /** Creates and initializes new edge between n1 and n2 */
@@ -97,7 +81,7 @@ static void _gannGNGRun(gann_gng_t *gng)
     step = 1;
     cb_step = 1L;
     while (!gng->ops.terminate(gng->ops.terminate_data)){
-        _gannGNGLearn(gng);
+        _gannGNGLearn(gng, step);
 
         if (fer_unlikely(step >= gng->params.lambda)){
             _gannGNGNewNode(gng);
@@ -110,7 +94,6 @@ static void _gannGNGRun(gann_gng_t *gng)
             }
             cb_step++;
         }
-        _gannGNGDecreaseErrCounters(gng);
 
         step++;
     }
@@ -120,6 +103,17 @@ static void _gannGNGInit(gann_gng_t *gng)
 {
     const void *is;
     gann_gng_node_t *n1, *n2;
+    size_t i;
+
+    // precompute beta^n
+    if (gng->beta_n)
+        free(gng->beta_n);
+    gng->beta_n = FER_ALLOC_ARR(fer_real_t, gng->params.lambda);
+    gng->beta_n[0] = gng->params.beta;
+    for (i = 1; i < gng->params.lambda; i++){
+        gng->beta_n[i] = gng->beta_n[i] * gng->params.beta;
+    }
+
 
     if (gng->ops.init){
         OPS(gng, init)(&n1, &n2, OPS_DATA(gng, init));
@@ -136,7 +130,7 @@ static void _gannGNGInit(gann_gng_t *gng)
     edgeNew(gng, n1, n2);
 }
 
-static void _gannGNGLearn(gann_gng_t *gng)
+static void _gannGNGLearn(gann_gng_t *gng, size_t step)
 {
     const void *input_signal;
     gann_net_node_t *nn;
@@ -164,7 +158,7 @@ static void _gannGNGLearn(gann_gng_t *gng)
 
     // 4. Increase error counter of winner node
     dist2 = OPS(gng, dist2)(input_signal, n1, OPS_DATA(gng, dist2));
-    nodeIncErrCounter(gng, n1, dist2);
+    n1->err_local += dist2 * gng->beta_n[gng->params.lambda - step];
 
     // 5. Adapt nodes to input signal using fractions eb and en
     // + 6. Increment age of all edges by one
@@ -213,7 +207,6 @@ static void _gannGNGNewNode(gann_gng_t *gng)
 {
     gann_gng_node_t *q, *f, *r;
     gann_gng_edge_t *eqf;
-    fer_real_t err;
 
     // 1. Get node with highest error counter
     q = nodeWithHighestErr(gng);
@@ -236,100 +229,27 @@ static void _gannGNGNewNode(gann_gng_t *gng)
     edgeNew(gng, f, r);
 
     // 5. Decrease error counters of q and f
-    nodeScaleErrCounter(gng, q, gng->params.alpha);
-    nodeScaleErrCounter(gng, f, gng->params.alpha);
+    q->err *= gng->params.alpha;
+    f->err *= gng->params.alpha;
 
     // 6. Set error counter of new node (r)
-    err  = _gannGNGNodeErrCounter(gng, q);
-    err += _gannGNGNodeErrCounter(gng, q);
-    err /= FER_REAL(2.);
-    nodeSetErrCounter(gng, r, err);
-}
-
-static void _gannGNGDecreaseErrCounters(gann_gng_t *gng)
-{
-    if (gng->params.use_acc_err_counter){
-        gng->err_counter_mark++;
-        gng->err_counter_scale *= gng->params.beta;
-    }else{
-        fer_list_t *list, *item;
-        gann_net_node_t *nn;
-        gann_gng_node_t *n;
-
-        list = gannNetNodes(gng->net);
-        ferListForEach(list, item){
-            nn = ferListEntry(item, gann_net_node_t, list);
-            n  = fer_container_of(nn, gann_gng_node_t, node);
-            nodeScaleErrCounter(gng, n, gng->params.beta);
-        }
-    }
+    r->err  = q->err + f->err;
+    r->err /= FER_REAL(2.);
 }
 
 
 /*** Node functions ***/
-_fer_inline fer_real_t _gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n)
-{
-    nodeApplyErrCounter((gann_gng_t *)gng, (gann_gng_node_t *)n);
-    return n->err_counter;
-}
 
 _fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n)
 {
-    n->err_counter = FER_ZERO;
-    n->err_counter_mark = gng->err_counter_mark;
+    n->err_local = FER_ZERO;
+    n->err = FER_ZERO;
 }
 
 _fer_inline void nodeAdd(gann_gng_t *gng, gann_gng_node_t *n)
 {
     nodeInit(gng, n);
     gannNetAddNode(gng->net, &n->node);
-}
-
-_fer_inline void nodeSetErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                   fer_real_t err)
-{
-    n->err_counter = err;
-    n->err_counter_mark = gng->err_counter_mark;
-}
-
-_fer_inline void nodeIncErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                   fer_real_t inc)
-{
-    nodeApplyErrCounter(gng, n);
-    n->err_counter += inc;
-}
-
-_fer_inline void nodeScaleErrCounter(gann_gng_t *gng, gann_gng_node_t *n,
-                                     fer_real_t s)
-{
-    nodeApplyErrCounter(gng, n);
-    n->err_counter *= s;
-}
-
-_fer_inline void nodeApplyErrCounter(gann_gng_t *gng, gann_gng_node_t *n)
-{
-    size_t mark, left;
-    fer_real_t err;
-
-    if (!gng->params.use_acc_err_counter)
-        return;
-
-    mark = n->err_counter_mark;
-    left = gng->err_counter_mark - mark;
-
-    if (fer_likely(left > 0)){
-        if (fer_likely(left == gng->err_counter_mark)){
-            // most of nodes in mesh are not touched while ECHL phase - so
-            // scale factor can be cumulated and can be used directly
-            // without pow() operation
-            n->err_counter *= gng->err_counter_scale;
-        }else{
-            err = FER_POW(gng->params.beta, (fer_real_t)left);
-            n->err_counter *= err;
-        }
-    }
-
-    n->err_counter_mark = gng->err_counter_mark;
 }
 
 
@@ -361,7 +281,7 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
     fer_list_t *list, *item;
     gann_net_node_t *nn;
     gann_gng_node_t *n, *n_highest;
-    fer_real_t err, err_highest;
+    fer_real_t err_highest;
 
     err_highest = -FER_ONE;
     n_highest   = NULL;
@@ -370,25 +290,16 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
     ferListForEach(list, item){
         nn = ferListEntry(item, gann_net_node_t, list);
         n  = fer_container_of(nn, gann_gng_node_t, node);
-        err = _gannGNGNodeErrCounter(gng, n);
 
-        if (err > err_highest){
-            err_highest = err;
+        n->err  = n->err * gng->beta_n[gng->params.lambda];
+        n->err += n->err_local;
+        n->err_local = FER_ZERO;
+
+        if (n->err > err_highest){
+            err_highest = n->err;
             n_highest   = n;
         }
-
-        // Accumulated error counter was applied to all nodes.
-        // Now it is safe to reset all nodes' error counters.
-        // Note that it is safe to don't check if accumulated error counter
-        // is enabled.
-        n->err_counter_mark = 0;
     }
-
-    // Reset global accumulated error counter
-    // Note that it is safe to don't check if accumulated error counter
-    // is enabled.
-    gng->err_counter_scale = FER_ONE;
-    gng->err_counter_mark = 0;
 
     return n_highest;
 }
@@ -401,7 +312,7 @@ static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
     gann_gng_edge_t *e_highest;
     gann_net_node_t *nn;
     gann_gng_node_t *n, *n_highest;
-    fer_real_t err, err_highest;
+    fer_real_t err_highest;
 
     err_highest = -FER_ONE;
     n_highest = NULL;
@@ -412,10 +323,9 @@ static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
         ne = gannNetEdgeFromNodeList(item);
         nn = gannNetEdgeOtherNode(ne, &q->node);
         n  = fer_container_of(nn, gann_gng_node_t, node);
-        err = _gannGNGNodeErrCounter(gng, n);
 
-        if (err > err_highest){
-            err_highest = err;
+        if (n->err > err_highest){
+            err_highest = n->err;
             n_highest   = n;
             e_highest   = fer_container_of(ne, gann_gng_edge_t, edge);
         }
