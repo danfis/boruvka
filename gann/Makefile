@@ -19,11 +19,13 @@
 CFLAGS += -I. -I../fermat
 LDFLAGS += -L. -lgann -L../fermat -lfermat -lm -lrt
 
-BIN_TARGETS = gann-gng-2d gann-gng-3d gann-plan-2d
+BIN_TARGETS  = gann-gng-2d gann-gng-3d gann-plan-2d
+BIN_TARGETS += gann-gngp
 
 TARGETS = libgann.a
 OBJS  = net.o
 OBJS += gng.o gng2.o gng3.o
+OBJS += gng-plan.o
 
 HEADERS = gng2.h gng3.h
 

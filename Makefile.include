@@ -28,6 +28,7 @@ SYSTEM = $(shell uname)
 
 SYSTEM_CXXFLAGS =
 SYSTEM_LDFLAGS =
+CONFIG_FLAGS =
 
 ifeq '$(SYSTEM)' 'FreeBSD'
   SYSTEM_CXXFLAGS = -Wno-long-long
