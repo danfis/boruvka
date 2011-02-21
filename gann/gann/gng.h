@@ -271,13 +271,6 @@ void gannGNGRun(gann_gng_t *gng);
 gann_gng_node_t *gannGNGConnectNewNode(gann_gng_t *gng, const void *is);
 
 /**
- * Returns error counter of node.
- *
- * Always use this function instead of direct access to struct!
- */
-fer_real_t gannGNGNodeErrCounter(const gann_gng_t *gng, const gann_gng_node_t *n);
-
-/**
  * Returns age of edge.
  *
  * Always use this function instead of direct access to struct!
