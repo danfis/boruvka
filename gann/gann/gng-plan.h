@@ -27,8 +27,9 @@
  * ================================
  */
 
-#define GANN_GNGP_FREE 0
-#define GANN_GNGP_OBST 1
+#define GANN_GNGP_NONE 0
+#define GANN_GNGP_FREE 1
+#define GANN_GNGP_OBST 2
 
 struct _gann_gngp_node_t {
     gann_net_node_t node;  /*!< Connection into net */
@@ -42,6 +43,8 @@ struct _gann_gngp_node_t {
 
     fer_real_t err_local; /*!< Local error */
     fer_real_t err;       /*!< Overall error */
+
+    int _id;
 };
 typedef struct _gann_gngp_node_t gann_gngp_node_t;
 
@@ -77,6 +80,13 @@ typedef int (*gann_gngp_terminate)(void *);
  */
 typedef int (*gann_gngp_eval)(const fer_vec2_t *w, void *);
 
+/**
+ * Callback that is peridically called from GNG.
+ *
+ * It is called every .callback_period'th added node.
+ */
+typedef void (*gann_gngp_callback)(void *);
+
 /** ^^^^ */
 
 struct _gann_gngp_ops_t {
@@ -84,12 +94,16 @@ struct _gann_gngp_ops_t {
     gann_gngp_terminate        terminate;
     gann_gngp_eval             eval;
 
+    gann_gng_callback callback;
+    unsigned long callback_period;
+
     void *data; /*!< Data pointer that will be provided to all callbacks if
                      not specified otherwise. */
 
     void *input_signal_data;
     void *terminate_data;
     void *eval_data;
+    void *callback_data;
 };
 typedef struct _gann_gngp_ops_t gann_gngp_ops_t;
 
@@ -114,6 +128,7 @@ struct _gann_gngp_params_t {
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
 
+    size_t cut_subnet_nodes;
     size_t num_cubes;
     fer_real_t aabb[4];
 };
@@ -166,6 +181,12 @@ void gannGNGPRun(gann_gngp_t *gng);
  * Returns number of nodes in net.
  */
 _fer_inline size_t gannGNGPNodesLen(const gann_gngp_t *gng);
+
+
+/**
+ * Dumps net in SVT format.
+ */
+void gannGNGPDumpSVT(gann_gngp_t *gng, FILE *out, const char *name);
 
 
 /**** INLINES ****/

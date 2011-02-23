@@ -67,6 +67,7 @@ void gannGNGPParamsInit(gann_gngp_params_t *params)
     params->beta    = 0.9995;
     params->age_max = 200;
 
+    params->cut_subnet_nodes = 5000;
     params->num_cubes = 10000;
     params->aabb[0] = -FER_ONE;
     params->aabb[1] =  FER_ONE;
@@ -93,6 +94,8 @@ gann_gngp_t *gannGNGPNew(const gann_gngp_ops_t *ops,
         gng->ops.terminate_data = gng->ops.data;
     if (gng->ops.eval_data == NULL)
         gng->ops.eval_data = gng->ops.data;
+    if (gng->ops.callback_data == NULL)
+        gng->ops.callback_data = gng->ops.data;
     // TODO: check for non-null ops
 
 
@@ -118,8 +121,9 @@ void gannGNGPDel(gann_gngp_t *gng)
 
 void gannGNGPRun(gann_gngp_t *gng)
 {
-    size_t step;
+    size_t step, cycle;
 
+    cycle = 0;
     init(gng);
     do {
         for (step = 1; step <= gng->params.lambda; step++){
@@ -127,8 +131,74 @@ void gannGNGPRun(gann_gngp_t *gng)
         }
         newNode(gng);
 
-        DBG("nodes: %d", (int)gannGNGPNodesLen(gng));
+        cycle++;
+        if (gng->ops.callback && gng->ops.callback_period == cycle){
+            gng->ops.callback(gng->ops.callback_data);
+            cycle = 0;
+        }
     } while (!gng->ops.terminate(gng->ops.terminate_data));
+}
+
+static void dumpSet(gann_gngp_t *gng, int set, FILE *out, const char *name,
+                    const char *setname, const char *color)
+{
+    fer_list_t *list, *item;
+    gann_net_node_t *nn;
+    gann_gngp_node_t *n;
+    gann_net_edge_t *e;
+    size_t i, id1, id2;
+
+    fprintf(out, "--------\n");
+    fprintf(out, "Edge color: %s\n", color);
+
+    if (name){
+        fprintf(out, "Name: %s (%s)\n", name, setname);
+    }else{
+        fprintf(out, "Name: (%s)\n", setname);
+    }
+
+    fprintf(out, "Points:\n");
+    list = gannNetNodes(gng->net);
+    i = 0;
+    ferListForEach(list, item){
+        nn = ferListEntry(item, gann_net_node_t, list);
+        n  = fer_container_of(nn, gann_gngp_node_t, node);
+        if (n->set != set)
+            continue;
+
+        n->_id = i++;
+        ferVec2Print(&n->w, out);
+        fprintf(out, "\n");
+    }
+
+
+    fprintf(out, "Edges:\n");
+    list = gannNetEdges(gng->net);
+    ferListForEach(list, item){
+        e = ferListEntry(item, gann_net_edge_t, list);
+
+        nn = gannNetEdgeNode(e, 0);
+        n  = fer_container_of(nn, gann_gngp_node_t, node);
+        id1 = n->_id;
+        if (n->set != set)
+            continue;
+
+        nn = gannNetEdgeNode(e, 1);
+        n  = fer_container_of(nn, gann_gngp_node_t, node);
+        id2 = n->_id;
+        if (n->set != set)
+            continue;
+
+        fprintf(out, "%d %d\n", id1, id2);
+    }
+
+    fprintf(out, "--------\n");
+}
+
+void gannGNGPDumpSVT(gann_gngp_t *gng, FILE *out, const char *name)
+{
+    dumpSet(gng, GANN_GNGP_FREE, out, name, "free", "0 0 0.8");
+    dumpSet(gng, GANN_GNGP_OBST, out, name, "obst", "0.8 0 0");
 }
 
 
@@ -160,6 +230,7 @@ static void adapt(gann_gngp_t *gng, size_t step)
     gann_gngp_node_t *n1, *n2;
     gann_gngp_edge_t *e;
     gann_net_edge_t *edge;
+    int set;
 
     // 1. Get random input signal
     is = gng->ops.input_signal(gng->ops.input_signal_data);
@@ -186,9 +257,13 @@ static void adapt(gann_gngp_t *gng, size_t step)
         learn(gng, step, n1, is);
 
     }else{
-        // TODO
-        learn(gng, step, n1, is);
-        learn(gng, step, n2, is);
+        set = gng->ops.eval(is, gng->ops.eval_data);
+
+        if (set == n1->set){
+            learn(gng, step, n1, is);
+        }else{
+            learn(gng, step, n2, is);
+        }
     }
 }
 
@@ -226,11 +301,13 @@ static void newNode(gann_gngp_t *gng)
     m->err  = n1->err + n2->err;
     m->err /= FER_REAL(2.);
 
-    // 5. Evaluate new node and set up its set properly
-    m->set = gng->ops.eval(&m->w, gng->ops.eval_data);
+    if (gannNetNodesLen(gng->net) > gng->params.cut_subnet_nodes){
+        // 5. Evaluate new node and set up its set properly
+        m->set = gng->ops.eval(&m->w, gng->ops.eval_data);
 
-    // 6. Cut m's subnet if necessary
-    cutSubnet(gng, m);
+        // 6. Cut m's subnet if necessary
+        cutSubnet(gng, m);
+    }
 }
 
 static int nearest(gann_gngp_t *gng, const fer_vec2_t *w,
@@ -387,8 +464,9 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
 
     // 2. Add m into fifo
     ferListAppend(&fifo, &m->fifo);
+    m->evaled = 1;
 
-    DBG("rank(m): %d", gannNetNodeEdgesLen(&m->node));
+    //DBG("rank(m): %d", gannNetNodeEdgesLen(&m->node));
 
     while (!ferListEmpty(&fifo)){
         // Pop next item form fifo
@@ -396,7 +474,7 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
         ferListDel(item);
         n = ferListEntry(item, gann_gngp_node_t, fifo);
 
-        DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
+        //DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
         // Iterate over n's neighbors that are _not_ in same set as m
         list = gannNetNodeEdges(&n->node);
         ferListForEachSafe(list, item, item_tmp){
@@ -404,15 +482,45 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
             node = gannNetEdgeOtherNode(edge, &n->node);
             o    = fer_container_of(node, gann_gngp_node_t, node);
 
+            // if o is already in same set as m we don't need to check it
+            if (o->set == m->set)
+                continue;
+
+            // evaluate o, before evaluation we know that o belongs to
+            // other set than m
+            if (!o->evaled){
+                o->set = gng->ops.eval(&o->w, gng->ops.eval_data);
+                o->evaled = 1;
+
+                if (o->set == m->set){
+                    // if o belongs to same set as m add it into fifo (i.e. set
+                    // of o was changed)
+                    ferListAppend(&fifo, &o->fifo);
+                }
+            }
+
+            if (o->set != m->set){
+                // if set doesn't belong to same set as m, disconnect it
+                // from m's subnet
+                e = fer_container_of(edge, gann_gngp_edge_t, edge);
+                edgeDel(gng, e);
+
+                //DBG("edgesLen(o) %lx", (long)o);
+                if (gannNetNodeEdgesLen(&o->node) == 0){
+                    nodeDel(gng, o);
+                }
+            }
+            /*
+
             // if already evaluated in this cycle...
             if (o->evaled){
                 // if o doesn't belong to same set as m, disconnect it from
                 // n (because we know that n belongs to same set)
                 if (o->set != m->set){
                     e = fer_container_of(edge, gann_gngp_edge_t, edge);
-                    DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
+                    //DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
                     edgeDel(gng, e);
-                    DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
+                    //DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
 
                     if (gannNetNodeEdgesLen(&o->node) == 0){
                         nodeDel(gng, o);
@@ -440,18 +548,15 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
                     nodeDel(gng, o);
                 }
             }
+            */
         }
 
 
-        DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
+        //DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
+        //DBG("edgesLen(n) %lx", (long)n);
         if (gannNetNodeEdgesLen(&n->node) == 0){
             nodeDel(gng, n);
         }
-    }
-
-    DBG("rank(m): %d", gannNetNodeEdgesLen(&m->node));
-    if (gannNetNodeEdgesLen(&m->node) == 0){
-        nodeDel(gng, m);
     }
 }
 
@@ -463,7 +568,7 @@ static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w)
 
     n = FER_ALLOC(gann_gngp_node_t);
 
-    n->set = GANN_GNGP_FREE;
+    n->set = GANN_GNGP_NONE;
     n->evaled = 0;
 
     ferVec2Copy(&n->w, w);
