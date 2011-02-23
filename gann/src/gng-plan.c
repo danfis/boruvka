@@ -44,6 +44,9 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m);
 /*** Node functions ***/
 static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w);
 static void nodeDel(gann_gngp_t *gng, gann_gngp_node_t *n);
+static void nodeChangeSet(gann_gngp_t *gng, gann_gngp_node_t *n, int set);
+static void nodeMoveTowards(gann_gngp_t *gng, gann_gngp_node_t *n,
+                            const fer_vec2_t *to, fer_real_t frac);
 static void netNodeDel(gann_net_node_t *n, void *);
 
 /*** Edge functions ***/
@@ -98,15 +101,15 @@ gann_gngp_t *gannGNGPNew(const gann_gngp_ops_t *ops,
         gng->ops.callback_data = gng->ops.data;
     // TODO: check for non-null ops
 
+    gng->set_size[0] = gng->set_size[1] = gng->set_size[2] = 0;
 
     return gng;
 }
 
 void gannGNGPDel(gann_gngp_t *gng)
 {
-    if (gng->cubes){
+    if (gng->cubes)
         ferCubes2Del(gng->cubes);
-    }
 
     if (gng->net){
         gannNetDel2(gng->net, netNodeDel, NULL,
@@ -197,8 +200,23 @@ static void dumpSet(gann_gngp_t *gng, int set, FILE *out, const char *name,
 
 void gannGNGPDumpSVT(gann_gngp_t *gng, FILE *out, const char *name)
 {
-    dumpSet(gng, GANN_GNGP_FREE, out, name, "free", "0 0 0.8");
-    dumpSet(gng, GANN_GNGP_OBST, out, name, "obst", "0.8 0 0");
+    if (gng->set_size[GANN_GNGP_NONE] > 0){
+        dumpSet(gng, GANN_GNGP_NONE, out, name, "none", "0.7 0.7 0.7");
+    }else{
+        fprintf(out, "Points:\n0 0 0\nPoint size: 0\n---\n");
+    }
+
+    if (gng->set_size[GANN_GNGP_FREE] > 0){
+        dumpSet(gng, GANN_GNGP_FREE, out, name, "free", "0 0 0.8");
+    }else{
+        fprintf(out, "Points:\n0 0 0\nPoint size: 0\n---\n");
+    }
+
+    if (gng->set_size[GANN_GNGP_OBST] > 0){
+        dumpSet(gng, GANN_GNGP_OBST, out, name, "obst", "0.8 0 0");
+    }else{
+        fprintf(out, "Points:\n0 0 0\nPoint size: 0\n---\n");
+    }
 }
 
 
@@ -273,6 +291,7 @@ static void newNode(gann_gngp_t *gng)
     gann_net_edge_t *edge;
     gann_gngp_edge_t *e;
     fer_vec2_t w;
+    int set;
 
     // 1. Get node with highest error and its neighbor with highest error
     n1 = nodeWithMaxErr(gng);
@@ -303,7 +322,14 @@ static void newNode(gann_gngp_t *gng)
 
     if (gannNetNodesLen(gng->net) > gng->params.cut_subnet_nodes){
         // 5. Evaluate new node and set up its set properly
-        m->set = gng->ops.eval(&m->w, gng->ops.eval_data);
+        set = gng->ops.eval(&m->w, gng->ops.eval_data);
+        nodeChangeSet(gng, m, set);
+
+        if (n1->set != m->set && n2->set != m->set
+                && n1->set == n2->set
+                && n1->set != GANN_GNGP_NONE){
+            fprintf(stdout, "%g %g\n", ferVec2X(&m->w), ferVec2Y(&m->w));
+        }
 
         // 6. Cut m's subnet if necessary
         cutSubnet(gng, m);
@@ -335,7 +361,6 @@ static int nearest(gann_gngp_t *gng, const fer_vec2_t *w,
 static void learn(gann_gngp_t *gng, size_t step,
                   gann_gngp_node_t *n, const fer_vec2_t *is)
 {
-    fer_vec2_t move;
     fer_list_t *list, *item, *item_tmp;
     gann_net_node_t *other;
     gann_gngp_node_t *o;
@@ -367,10 +392,7 @@ static void learn(gann_gngp_t *gng, size_t step,
             }
         }else{
             // move o towards input signal
-            ferVec2Sub2(&move, is, &o->w);
-            ferVec2Scale(&move, gng->params.en);
-            ferVec2Add(&o->w, &move);
-            ferCubes2Update(gng->cubes, &o->cubes);
+            nodeMoveTowards(gng, o, is, gng->params.en);
         }
     }
 
@@ -379,13 +401,10 @@ static void learn(gann_gngp_t *gng, size_t step,
         nodeDel(gng, n);
     }else{
         // move node towards input signal
-        ferVec2Sub2(&move, is, &n->w);
-        err = ferVec2Len2(&move);
-        ferVec2Scale(&move, gng->params.eb);
-        ferVec2Add(&n->w, &move);
-        ferCubes2Update(gng->cubes, &n->cubes);
+        nodeMoveTowards(gng, n, is, gng->params.eb);
 
         // update error counter of node n
+        err = ferVec2Dist2(&n->w, is);
         n->err_local += err * gng->beta_n[gng->params.lambda - step];
     }
 }
@@ -458,6 +477,7 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
     gann_net_node_t *node;
     gann_gngp_node_t *n, *o;
     gann_gngp_edge_t *e;
+    int set;
 
     // 1. Initialize FIFO queue
     ferListInit(&fifo);
@@ -489,8 +509,8 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
             // evaluate o, before evaluation we know that o belongs to
             // other set than m
             if (!o->evaled){
-                o->set = gng->ops.eval(&o->w, gng->ops.eval_data);
-                o->evaled = 1;
+                set = gng->ops.eval(&o->w, gng->ops.eval_data);
+                nodeChangeSet(gng, o, set);
 
                 if (o->set == m->set){
                     // if o belongs to same set as m add it into fifo (i.e. set
@@ -555,6 +575,11 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
         //DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
         //DBG("edgesLen(n) %lx", (long)n);
         if (gannNetNodeEdgesLen(&n->node) == 0){
+            /*
+            if (n == m){
+                DBG("Cutting new node %d", m->set);
+            }
+            */
             nodeDel(gng, n);
         }
     }
@@ -568,7 +593,8 @@ static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w)
 
     n = FER_ALLOC(gann_gngp_node_t);
 
-    n->set = GANN_GNGP_NONE;
+    n->set = -1;
+    nodeChangeSet(gng, n, GANN_GNGP_NONE);
     n->evaled = 0;
 
     ferVec2Copy(&n->w, w);
@@ -596,6 +622,27 @@ static void nodeDel(gann_gngp_t *gng, gann_gngp_node_t *n)
     free(n);
 }
 
+static void nodeChangeSet(gann_gngp_t *gng, gann_gngp_node_t *n, int set)
+{
+    if (n->set != set){
+        if (n->set >= 0)
+            gng->set_size[n->set]--;
+        n->set = set;
+        gng->set_size[n->set]++;
+        n->evaled = 1;
+    }
+}
+
+static void nodeMoveTowards(gann_gngp_t *gng, gann_gngp_node_t *n,
+                            const fer_vec2_t *to, fer_real_t frac)
+{
+    fer_vec2_t move;
+
+    ferVec2Sub2(&move, to, &n->w);
+    ferVec2Scale(&move, frac);
+    ferVec2Add(&n->w, &move);
+    ferCubes2Update(gng->cubes, &n->cubes);
+}
 
 static void netNodeDel(gann_net_node_t *_n, void *_)
 {

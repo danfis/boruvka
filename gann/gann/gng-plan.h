@@ -154,6 +154,8 @@ struct _gann_gngp_t {
     gann_gngp_params_t params;
 
     fer_real_t *beta_n; /*!< Precomputed beta^n for n = 1, ..., lambda */
+
+    size_t set_size[3]; /*!< Holds size of sets NONE, FREE, OBST */
 };
 typedef struct _gann_gngp_t gann_gngp_t;
 

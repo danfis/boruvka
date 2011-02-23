@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     ops.input_signal = inputSignal;
     ops.eval         = eval;
     ops.callback  = callback;
-    ops.callback_period = 100;
+    ops.callback_period = 500;
     ops.data = &p;
 
     ferRandInit(&p.rand);
@@ -81,6 +81,7 @@ static void callback(void *data)
     size_t nodes_len;
 
     nodes_len = gannGNGPNodesLen(p->gng);
+    //gannGNGPDumpSVT(p->gng, stdout, NULL);
 
     ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
 }
