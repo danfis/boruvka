@@ -9,3 +9,4 @@ bench.s
 bench2
 bench-heap*
 !bench-heap*.c
+test-rand-mt

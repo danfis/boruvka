@@ -32,6 +32,7 @@ OBJS += mesh3.o qhull.o
 OBJS += fibo.o pairheap.o
 OBJS += dij.o
 OBJS += gsrm.o
+OBJS += rand-mt.o
 
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h

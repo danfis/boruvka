@@ -12,7 +12,7 @@ CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-l
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-TARGETS = test bench-heap
+TARGETS = test bench-heap test-rand-mt
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o quat.o pc3.o \
        mat3.o mat4.o cubes3.o cubes2.o mesh3.o nearest.o \
@@ -35,6 +35,9 @@ test: cu $(OBJS) main.c
 bench: cu bench.c data-vec3.o data-quat.o
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c data.o $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
+
+test-rand-mt: test-rand-mt.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c
