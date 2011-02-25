@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
-#include <fermat/rand.h>
+#include <fermat/rand-mt.h>
 #include <gann/gng-plan.h>
 
 struct _params_t {
@@ -9,7 +9,7 @@ struct _params_t {
     gann_gngp_t *gng;
     fer_timer_t timer;
 
-    fer_rand_t rand;
+    fer_rand_mt_t *rand;
     fer_vec2_t is;
 };
 typedef struct _params_t params_t;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     ops.callback_period = 500;
     ops.data = &p;
 
-    ferRandInit(&p.rand);
+    p.rand = ferRandMTNewAuto();
     params.aabb[0] = -5;
     params.aabb[1] = 5;
     params.aabb[2] = -5;
@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
     gannGNGPDumpSVT(gng, stdout, NULL);
 
     gannGNGPDel(gng);
+
+    ferRandMTDel(p.rand);
 
     return 0;
 }
@@ -97,8 +99,8 @@ static const fer_vec2_t *inputSignal(void *data)
     params_t *p = (params_t *)data;
     fer_real_t x, y;
 
-    x = ferRand(&p->rand, -5, 5);
-    y = ferRand(&p->rand, -5, 5);
+    x = ferRandMT(p->rand, -5, 5);
+    y = ferRandMT(p->rand, -5, 5);
     ferVec2Set(&p->is, x, y);
     return &p->is;
 }
