@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 
     p.max_nodes = atoi(argv[1]);
     params.num_cubes = p.max_nodes;
-    params.cut_subnet_nodes = p.max_nodes / 2;
-    //params.cut_subnet_nodes = 500;
+    //params.cut_subnet_nodes = p.max_nodes / 2;
+    params.cut_subnet_nodes = 20000;
 
     gng = gannGNGPNew(&ops, &params);
     p.gng = gng;
@@ -79,9 +79,15 @@ static void callback(void *data)
 {
     params_t *p = data;
     size_t nodes_len;
+    FILE *fout;
+    char fn[1000];
 
     nodes_len = gannGNGPNodesLen(p->gng);
-    //gannGNGPDumpSVT(p->gng, stdout, NULL);
+
+    sprintf(fn, "out/%010d.svt", gannGNGPNodesLen(p->gng));
+    fout = fopen(fn, "w");
+    gannGNGPDumpSVT(p->gng, fout, NULL);
+    fclose(fout);
 
     ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
 }

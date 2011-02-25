@@ -257,8 +257,11 @@ static void adapt(gann_gngp_t *gng, size_t step)
     nearest(gng, is, &n1, &n2);
 
     // 3. Learn net according to set of n1 and n2
-    if (n1->set == n2->set){
+    if (n1->set == n2->set
+            || n1->set == GANN_GNGP_NONE
+            || n2->set == GANN_GNGP_NONE){
         // n1 and n2 both belong to same set (free or obstacle)
+        // or we don't know to which set belongs one of them
 
         // 3.1. Create edge n1-n2 if doesn't exist
         edge = gannNetNodeCommonEdge(&n1->node, &n2->node);
@@ -333,6 +336,28 @@ static void newNode(gann_gngp_t *gng)
 
         // 6. Cut m's subnet if necessary
         cutSubnet(gng, m);
+        if (gannNetNodeEdgesLen(&m->node) == 0){
+            // the new node was completely cut from net, so there is some
+            // kind of island surrounded by nodes from other set.
+            // So, create the island by three nodes positioned at same
+            // place - we will assume that island will spread.
+
+            // create new nodes
+            n1 = nodeNew(gng, &m->w);
+            n2 = nodeNew(gng, &m->w);
+
+            // connect triplet of nodes
+            edgeNew(gng, m, n1);
+            edgeNew(gng, m, n2);
+            edgeNew(gng, n1, n2);
+
+            // assign all nodes to same set
+            nodeChangeSet(gng, n1, set);
+            nodeChangeSet(gng, n2, set);
+
+            // set error of all nodes to same value
+            n1->err = n2->err = m->err;
+        }
     }
 }
 
@@ -519,8 +544,9 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
                 }
             }
 
-            if (o->set != m->set){
-                // if set doesn't belong to same set as m, disconnect it
+            if (o->set != m->set && o->set != GANN_GNGP_NONE){
+                // if set doesn't belong to same set as m as is already
+                // assigne to some set (other than NONE), disconnect it
                 // from m's subnet
                 e = fer_container_of(edge, gann_gngp_edge_t, edge);
                 edgeDel(gng, e);
@@ -530,51 +556,12 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
                     nodeDel(gng, o);
                 }
             }
-            /*
-
-            // if already evaluated in this cycle...
-            if (o->evaled){
-                // if o doesn't belong to same set as m, disconnect it from
-                // n (because we know that n belongs to same set)
-                if (o->set != m->set){
-                    e = fer_container_of(edge, gann_gngp_edge_t, edge);
-                    //DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
-                    edgeDel(gng, e);
-                    //DBG("    rank(o): %d", gannNetNodeEdgesLen(&o->node));
-
-                    if (gannNetNodeEdgesLen(&o->node) == 0){
-                        nodeDel(gng, o);
-                    }
-                }
-
-                // skip to next node
-                continue;
-            }
-
-            // evaluate node and record the cycle
-            o->set = gng->ops.eval(&o->w, gng->ops.eval_data);
-            o->evaled = 1;
-
-            if (o->set == m->set){
-                // if o belongs to same set as m add it into fifo
-                ferListAppend(&fifo, &o->fifo);
-            }else{
-                // if set doesn't belong to same set as m, disconnect it
-                // from m's subnet
-                e = fer_container_of(edge, gann_gngp_edge_t, edge);
-                edgeDel(gng, e);
-
-                if (gannNetNodeEdgesLen(&o->node) == 0){
-                    nodeDel(gng, o);
-                }
-            }
-            */
         }
 
 
         //DBG("  rank(n): %d", gannNetNodeEdgesLen(&n->node));
         //DBG("edgesLen(n) %lx", (long)n);
-        if (gannNetNodeEdgesLen(&n->node) == 0){
+        if (gannNetNodeEdgesLen(&n->node) == 0 && n != m){
             /*
             if (n == m){
                 DBG("Cutting new node %d", m->set);
