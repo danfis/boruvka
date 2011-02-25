@@ -40,10 +40,26 @@ static gann_gngp_node_t *nodeWithMaxErr(gann_gngp_t *gng);
 static gann_gngp_node_t *nodeNeighborWithMaxErr(gann_gngp_node_t *n);
 /** Cuts subnet containing given node */
 static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m);
+/** Creates new node at given position and connects it between two nearest
+ *  nodes */
+static gann_gngp_node_t *connectNewNode(gann_gngp_t *gng, const fer_vec2_t *w);
+
+/*** Find path ***/
+static fer_real_t findPathDist(const fer_dij_node_t *_n1,
+                               const fer_dij_node_t *_n2, void *_);
+static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_);
+/** Initializes all nodes in net for dijkstra search */
+static void findPathDijInit(gann_gngp_t *gng);
+/** Fills given list by path from s to g.
+ *  It is assumed that the path exists! */
+static void obtainPath(gann_gngp_node_t *s, gann_gngp_node_t *g,
+                       fer_list_t *list);
+
 
 /*** Node functions ***/
 static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w);
 static void nodeDel(gann_gngp_t *gng, gann_gngp_node_t *n);
+static void nodeDelWithEdges(gann_gngp_t *gng, gann_gngp_node_t *n);
 static void nodeChangeSet(gann_gngp_t *gng, gann_gngp_node_t *n, int set);
 static void nodeMoveTowards(gann_gngp_t *gng, gann_gngp_node_t *n,
                             const fer_vec2_t *to, fer_real_t frac);
@@ -70,7 +86,8 @@ void gannGNGPParamsInit(gann_gngp_params_t *params)
     params->beta    = 0.9995;
     params->age_max = 200;
 
-    params->cut_subnet_nodes = 5000;
+    params->warm_start = 5000;
+
     params->num_cubes = 10000;
     params->aabb[0] = -FER_ONE;
     params->aabb[1] =  FER_ONE;
@@ -85,8 +102,9 @@ gann_gngp_t *gannGNGPNew(const gann_gngp_ops_t *ops,
 
     gng = FER_ALLOC(gann_gngp_t);
 
-    gng->net = gannNetNew();
+    gng->net   = gannNetNew();
     gng->cubes = ferCubes2New(params->aabb, params->num_cubes);
+
     gng->params = *params;
     gng->beta_n = NULL;
 
@@ -245,7 +263,7 @@ static void init(gann_gngp_t *gng)
 static void adapt(gann_gngp_t *gng, size_t step)
 {
     const fer_vec2_t *is;
-    gann_gngp_node_t *n1, *n2;
+    gann_gngp_node_t *n1 = NULL, *n2 = NULL;
     gann_gngp_edge_t *e;
     gann_net_edge_t *edge;
     int set;
@@ -323,16 +341,10 @@ static void newNode(gann_gngp_t *gng)
     m->err  = n1->err + n2->err;
     m->err /= FER_REAL(2.);
 
-    if (gannNetNodesLen(gng->net) > gng->params.cut_subnet_nodes){
+    if (gannNetNodesLen(gng->net) > gng->params.warm_start){
         // 5. Evaluate new node and set up its set properly
         set = gng->ops.eval(&m->w, gng->ops.eval_data);
         nodeChangeSet(gng, m, set);
-
-        if (n1->set != m->set && n2->set != m->set
-                && n1->set == n2->set
-                && n1->set != GANN_GNGP_NONE){
-            fprintf(stdout, "%g %g\n", ferVec2X(&m->w), ferVec2Y(&m->w));
-        }
 
         // 6. Cut m's subnet if necessary
         cutSubnet(gng, m);
@@ -573,6 +585,128 @@ static void cutSubnet(gann_gngp_t *gng, gann_gngp_node_t *m)
 }
 
 
+
+/*** Find path ***/
+static fer_real_t findPathDist(const fer_dij_node_t *_n1,
+                               const fer_dij_node_t *_n2, void *_)
+{
+    gann_gngp_node_t *n1, *n2;
+    n1 = fer_container_of(_n1, gann_gngp_node_t, dij);
+    n2 = fer_container_of(_n2, gann_gngp_node_t, dij);
+    return ferVec2Dist(&n1->w, &n2->w);
+}
+
+static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
+{
+    fer_list_t *list, *item;
+    gann_gngp_node_t *n, *o;
+    gann_net_edge_t *edge;
+    gann_net_node_t *node;
+
+    n = fer_container_of(_n, gann_gngp_node_t, dij);
+
+    list = gannNetNodeEdges(&n->node);
+    ferListForEach(list, item){
+        edge = gannNetEdgeFromNodeList(item);
+        node = gannNetEdgeOtherNode(edge, &n->node);
+        o    = fer_container_of(node, gann_gngp_node_t, node);
+
+        if (!ferDijNodeClosed(&o->dij)){
+            ferDijNodeAdd(&o->dij, expand);
+        }
+    }
+}
+
+/** Initializes all nodes in net for dijkstra search */
+static void findPathDijInit(gann_gngp_t *gng)
+{
+    fer_list_t *list, *item;
+    gann_net_node_t *node;
+    gann_gngp_node_t *n;
+
+    list = gannNetNodes(gng->net);
+    ferListForEach(list, item){
+        node = ferListEntry(item, gann_net_node_t, list);
+        n    = fer_container_of(node, gann_gngp_node_t, node);
+        ferDijNodeInit(&n->dij);
+    }
+}
+
+/** Fills given list by path from s to g.
+ *  It is assumed that the path exists! */
+static void obtainPath(gann_gngp_node_t *s, gann_gngp_node_t *g,
+                       fer_list_t *list)
+{
+    gann_gngp_node_t *n;
+    fer_dij_node_t *dn;
+
+    ferListPrepend(list, &g->path);
+    dn = g->dij.prev;
+    while (dn != &s->dij){
+        n = fer_container_of(dn, gann_gngp_node_t, dij);
+        ferListPrepend(list, &n->path);
+
+        dn = dn->prev;
+    }
+}
+
+int gannGNGPFindPath(gann_gngp_t *gng,
+                     const fer_vec2_t *wstart, const fer_vec2_t *wgoal,
+                     fer_list_t *list)
+{
+    fer_dij_ops_t ops;
+    fer_dij_t *dij;
+    gann_gngp_node_t *start, *goal;
+    int result;
+
+    // create start and goal nodes
+    start = connectNewNode(gng, wstart);
+    goal  = connectNewNode(gng, wgoal);
+
+    // initialize whole net
+    findPathDijInit(gng);
+
+    // initialize operations
+    ferDijOpsInit(&ops);
+    ops.dist   = findPathDist;
+    ops.expand = findPathExpand;
+    ops.data   = (void *)gng;
+
+    // create dijkstra algorithm
+    dij = ferDijNew(&ops);
+
+    // run dijkstra
+    result = ferDijRun(dij, &start->dij, &goal->dij);
+
+    if (result == 0){
+        obtainPath(start, goal, list);
+        return 0;
+    }
+
+    // remove previously created nodes
+    nodeDelWithEdges(gng, start);
+    nodeDelWithEdges(gng, goal);
+
+    return -1;
+}
+
+
+static gann_gngp_node_t *connectNewNode(gann_gngp_t *gng, const fer_vec2_t *w)
+{
+    gann_gngp_node_t *n;
+    gann_gngp_node_t *n1 = NULL, *n2 = NULL;
+
+    nearest(gng, w, &n1, &n2);
+    n = nodeNew(gng, w);
+    nodeChangeSet(gng, n, GANN_GNGP_FREE);
+    edgeNew(gng, n, n1);
+    edgeNew(gng, n, n2);
+
+    return n;
+}
+
+
+
 /*** Node functions ***/
 static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w)
 {
@@ -607,6 +741,21 @@ static void nodeDel(gann_gngp_t *gng, gann_gngp_node_t *n)
     }
 
     free(n);
+}
+
+static void nodeDelWithEdges(gann_gngp_t *gng, gann_gngp_node_t *n)
+{
+    fer_list_t *list, *item, *item_tmp;
+    gann_net_edge_t *edge;
+    gann_gngp_edge_t *e;
+
+    list = gannNetNodeEdges(&n->node);
+    ferListForEachSafe(list, item, item_tmp){
+        edge = gannNetEdgeFromNodeList(item);
+        e    = fer_container_of(edge, gann_gngp_edge_t, edge);
+        edgeDel(gng, e);
+    }
+    nodeDel(gng, n);
 }
 
 static void nodeChangeSet(gann_gngp_t *gng, gann_gngp_node_t *n, int set)

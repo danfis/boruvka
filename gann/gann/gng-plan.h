@@ -21,6 +21,7 @@
 #include <gann/gng.h>
 #include <fermat/vec2.h>
 #include <fermat/cubes2.h>
+#include <fermat/dij.h>
 
 /**
  * Growing Neural Gas for Planning
@@ -43,6 +44,9 @@ struct _gann_gngp_node_t {
 
     fer_real_t err_local; /*!< Local error */
     fer_real_t err;       /*!< Overall error */
+
+    fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
+    fer_list_t path;    /*!< Connection into list representing path */
 
     int _id;
 };
@@ -128,7 +132,8 @@ struct _gann_gngp_params_t {
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
 
-    size_t cut_subnet_nodes;
+    size_t warm_start;
+
     size_t num_cubes;
     fer_real_t aabb[4];
 };
@@ -184,6 +189,15 @@ void gannGNGPRun(gann_gngp_t *gng);
  */
 _fer_inline size_t gannGNGPNodesLen(const gann_gngp_t *gng);
 
+/**
+ * Tries to find path in net from start to goal.
+ * If path was found 0 is returned and argument list is filled by nodes
+ * representing path. Nodes are connected into this list by member .path.
+ * If path wasn't found -1 is returned.
+ */
+int gannGNGPFindPath(gann_gngp_t *gng,
+                     const fer_vec2_t *start, const fer_vec2_t *goal,
+                     fer_list_t *list);
 
 /**
  * Dumps net in SVT format.
