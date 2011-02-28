@@ -22,25 +22,11 @@
 fer_vec_t *ferVecNew(size_t size)
 {
     fer_vec_t *v;
-
-    v = FER_ALLOC(fer_vec_t);
-    ferVecInit(v, size);
+    v = FER_ALLOC_ARR(fer_vec_t, size);
     return v;
 }
 
 void ferVecDel(fer_vec_t *v)
 {
-    ferVecDestroy(v);
     free(v);
 }
-
-void ferVecInit(fer_vec_t *v, size_t size)
-{
-    v->v = fer_gsl_vector_alloc(size);
-}
-
-void ferVecDestroy(fer_vec_t *v)
-{
-    fer_gsl_vector_free(v->v);
-}
-

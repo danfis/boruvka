@@ -1,7 +1,7 @@
 /***
  * fermat
  * -------
- * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
+ * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
  *  This file is part of fermat.
  *
@@ -18,24 +18,21 @@
 #define __FER_VEC_H__
 
 #include <fermat/core.h>
-#include <fermat/gsl.h>
+#include <fermat/vec2.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Vec - wrapper around GSL vectors
- * =================================
+ * Vec - Genral Vectors
+ * =====================
  *
- * This is basically wrapper around GSL. Feel free to use .v member of
- * struct in any GSL function directly.
  */
-struct _fer_vec_t {
-    fer_gsl_vector *v;
-};
-typedef struct _fer_vec_t fer_vec_t;
+typedef fer_real_t fer_vec_t;
 
+/** TODO: Static declarations */
+/** TODO: ToVec2/3/4 functions */
 
 /**
  * Functions
@@ -53,87 +50,72 @@ fer_vec_t *ferVecNew(size_t size);
 void ferVecDel(fer_vec_t *);
 
 /**
- * Initialize staticaly defined vector.
+ * Clone given fer_vec_t that must be size length. This does deep copy.
  */
-void ferVecInit(fer_vec_t *v, size_t size);
-
-/**
- * Destroys previously initialized vector.
- */
-void ferVecDestroy(fer_vec_t *v);
-
-/**
- * Returns size of vector.
- */
-_fer_inline size_t ferVecSize(const fer_vec_t *v);
-
-/**
- * Clone given fer_vec_t. This does deep copy.
- */
-_fer_inline fer_vec_t *ferVecClone(const fer_vec_t *v);
+_fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v);
 
 /**
  * v = w
  */
-_fer_inline int ferVecCopy(fer_vec_t *v, const fer_vec_t *w);
+_fer_inline void ferVecCopy(size_t size, fer_vec_t *v, const fer_vec_t *w);
 
 
 _fer_inline fer_real_t ferVecGet(const fer_vec_t *v, size_t d);
 
 _fer_inline void ferVecSet(fer_vec_t *v, size_t d, fer_real_t val);
-_fer_inline void ferVecSetAll(fer_vec_t *v, fer_real_t val);
-_fer_inline void ferVecSetZero(fer_vec_t *v);
+_fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val);
+_fer_inline void ferVecSetZero(size_t size, fer_vec_t *v);
 
 
 /**
  * Returns squared length of vector.
  */
-_fer_inline fer_real_t ferVecLen2(const fer_vec_t *v);
-_fer_inline fer_real_t ferVecLen(const fer_vec_t *v);
+_fer_inline fer_real_t ferVecLen2(size_t size, const fer_vec_t *v);
+_fer_inline fer_real_t ferVecLen(size_t size, const fer_vec_t *v);
 
 /**
  * Returns squared distance between a and b.
  */
-_fer_inline fer_real_t ferVecDist2(const fer_vec_t *a, const fer_vec_t *b);
-_fer_inline fer_real_t ferVecDist(const fer_vec_t *a, const fer_vec_t *b);
+_fer_inline fer_real_t ferVecDist2(size_t size, const fer_vec_t *a, const fer_vec_t *b);
+_fer_inline fer_real_t ferVecDist(size_t size, const fer_vec_t *a, const fer_vec_t *b);
 
 
 /**
  * Adds coordinates of vector w to vector v. v = v + w
  */
-_fer_inline int ferVecAdd(fer_vec_t *v, const fer_vec_t *w);
+_fer_inline void ferVecAdd(size_t size, fer_vec_t *v, const fer_vec_t *w);
 
 /**
  * d = v + w
  */
-_fer_inline int ferVecAdd2(fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w);
+_fer_inline void ferVecAdd2(size_t size, fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w);
 
 
 /**
  * Substracts coordinates of vector w from vector v. v = v - w
  */
-_fer_inline int ferVecSub(fer_vec_t *v, const fer_vec_t *w);
+_fer_inline void ferVecSub(size_t size, fer_vec_t *v, const fer_vec_t *w);
 
 /**
  * d = v - w
  */
-_fer_inline int ferVecSub2(fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w);
+_fer_inline void ferVecSub2(size_t size, fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w);
 
-_fer_inline void ferVecAddConst(fer_vec_t *v, fer_real_t f);
-_fer_inline int ferVecAddConst2(fer_vec_t *d, const fer_vec_t *v, fer_real_t f);
-_fer_inline void ferVecSubConst(fer_vec_t *v, fer_real_t f);
-_fer_inline int ferVecSubConst2(fer_vec_t *d, const fer_vec_t *v, fer_real_t f);
+_fer_inline void ferVecAddConst(size_t size, fer_vec_t *v, fer_real_t f);
+_fer_inline void ferVecAddConst2(size_t size, fer_vec_t *d, const fer_vec_t *v, fer_real_t f);
+_fer_inline void ferVecSubConst(size_t size, fer_vec_t *v, fer_real_t f);
+_fer_inline void ferVecSubConst2(size_t size, fer_vec_t *d, const fer_vec_t *v, fer_real_t f);
 
 
 /**
  * d = d * k;
  */
-_fer_inline void ferVecScale(fer_vec_t *d, fer_real_t k);
+_fer_inline void ferVecScale(size_t size, fer_vec_t *d, fer_real_t k);
 
 /**
  * Dot product of two vectors.
  */
-_fer_inline fer_real_t ferVecDot(const fer_vec_t *a, const fer_vec_t *b);
+_fer_inline fer_real_t ferVecDot(size_t size, const fer_vec_t *a, const fer_vec_t *b);
 
 /**
  * Multiplies vectors component wise:
@@ -141,164 +123,180 @@ _fer_inline fer_real_t ferVecDot(const fer_vec_t *a, const fer_vec_t *b);
  * a.y = a.y * b.y
  * a.z = a.z * b.z
  */
-_fer_inline int ferVecMulComp(fer_vec_t *a, const fer_vec_t *b);
+_fer_inline void ferVecMulComp(size_t size, fer_vec_t *a, const fer_vec_t *b);
 
 /**
  * a.x = b.x * c.x
  * a.y = b.y * c.y
  * a.z = b.z * c.z
  */
-_fer_inline int ferVecMulComp2(fer_vec_t *a, const fer_vec_t *b, const fer_vec_t *c);
+_fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, const fer_vec_t *c);
 
 
 
 
 /**** INLINES ****/
-#define __FER_VEC_CHECKSIZE(a, b) \
-    if (ferVecSize(a) != ferVecSize(b)) \
-        return -1
-
-_fer_inline size_t ferVecSize(const fer_vec_t *v)
-{
-    return v->v->size;
-}
-
-_fer_inline fer_vec_t *ferVecClone(const fer_vec_t *v)
+_fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v)
 {
     fer_vec_t *w;
-    w = ferVecNew(ferVecSize(v));
-    ferVecCopy(w, v);
+    w = ferVecNew(size);
+    ferVecCopy(size, w, v);
     return w;
 }
 
 _fer_inline fer_real_t ferVecGet(const fer_vec_t *v, size_t d)
 {
-    return fer_gsl_vector_get(v->v, d);
+    return v[d];
 }
 
 
-_fer_inline fer_real_t ferVecLen2(const fer_vec_t *v)
+_fer_inline fer_real_t ferVecLen2(size_t size, const fer_vec_t *v)
 {
-    return ferVecDot(v, v);
+    return ferVecDot(size, v, v);
 }
-_fer_inline fer_real_t ferVecLen(const fer_vec_t *v)
+_fer_inline fer_real_t ferVecLen(size_t size, const fer_vec_t *v)
 {
-    return FER_SQRT(ferVecLen2(v));
+    return FER_SQRT(ferVecLen2(size, v));
 }
 
-_fer_inline fer_real_t ferVecDist2(const fer_vec_t *a, const fer_vec_t *b)
+_fer_inline fer_real_t ferVecDist2(size_t size, const fer_vec_t *a, const fer_vec_t *b)
 {
-    fer_vec_t ab;
-    fer_real_t dist2;
+    fer_real_t f, dot;
+    size_t i;
 
-    ferVecInit(&ab, ferVecSize(a));
-    ferVecSub2(&ab, a, b);
-    dist2 = ferVecLen2(&ab);
-    ferVecDestroy(&ab);
-    return dist2;
+    dot = FER_ZERO;
+    for (i = 0; i < size; i++){
+        f = a[i] - b[i];
+        dot += FER_CUBE(f);
+    }
+
+    return dot;
 }
-_fer_inline fer_real_t ferVecDist(const fer_vec_t *a, const fer_vec_t *b)
+_fer_inline fer_real_t ferVecDist(size_t size, const fer_vec_t *a, const fer_vec_t *b)
 {
-    return FER_SQRT(ferVecDist2(a, b));
+    return FER_SQRT(ferVecDist2(size, a, b));
 }
 
 _fer_inline void ferVecSet(fer_vec_t *v, size_t d, fer_real_t val)
 {
-    fer_gsl_vector_set(v->v, d, val);
+    v[d] = val;
 }
 
-_fer_inline void ferVecSetAll(fer_vec_t *v, fer_real_t val)
+_fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val)
 {
-    fer_gsl_vector_set_all(v->v, val);
+    size_t i;
+    for (i = 0; i < size; i++){
+        v[i] = val;
+    }
 }
 
-_fer_inline void ferVecSetZero(fer_vec_t *v)
+_fer_inline void ferVecSetZero(size_t size, fer_vec_t *v)
 {
-    fer_gsl_vector_set_zero(v->v);
-}
-
-
-_fer_inline int ferVecCopy(fer_vec_t *v, const fer_vec_t *w)
-{
-    __FER_VEC_CHECKSIZE(v, w);
-    fer_gsl_vector_memcpy(v->v, w->v);
-    return 0;
-}
-
-_fer_inline int ferVecAdd(fer_vec_t *v, const fer_vec_t *w)
-{
-    __FER_VEC_CHECKSIZE(v, w);
-    fer_gsl_vector_add(v->v, w->v);
-    return 0;
-}
-
-_fer_inline int ferVecAdd2(fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w)
-{
-    if (ferVecCopy(d, v) != 0)
-        return -1;
-    return ferVecAdd(d, w);
-}
-
-_fer_inline int ferVecSub(fer_vec_t *v, const fer_vec_t *w)
-{
-    __FER_VEC_CHECKSIZE(v, w);
-    fer_gsl_vector_sub(v->v, w->v);
-    return 0;
-}
-_fer_inline int ferVecSub2(fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w)
-{
-    if (ferVecCopy(d, v) != 0)
-        return -1;
-    return ferVecSub(d, w);
-}
-
-_fer_inline void ferVecAddConst(fer_vec_t *v, fer_real_t f)
-{
-    fer_gsl_vector_add_constant(v->v, f);
-}
-
-_fer_inline int ferVecAddConst2(fer_vec_t *d, const fer_vec_t *v, fer_real_t f)
-{
-    ferVecCopy(d, v);
-    ferVecAddConst(d, f);
-    return 0;
-}
-
-_fer_inline void ferVecSubConst(fer_vec_t *v, fer_real_t f)
-{
-    ferVecAddConst(v, -f);
-}
-
-_fer_inline int ferVecSubConst2(fer_vec_t *d, const fer_vec_t *v, fer_real_t f)
-{
-    return ferVecAddConst2(d, v, -f);
-}
-
-_fer_inline void ferVecScale(fer_vec_t *d, fer_real_t k)
-{
-    fer_gsl_vector_scale(d->v, k);
+    ferVecSetAll(size, v, FER_ZERO);
 }
 
 
-_fer_inline fer_real_t ferVecDot(const fer_vec_t *a, const fer_vec_t *b)
+_fer_inline void ferVecCopy(size_t size, fer_vec_t *v, const fer_vec_t *w)
 {
-    fer_real_t res;
-    fer_gsl_blas_dot(a->v, b->v, &res);
-    return res;
+    size_t i;
+    for (i = 0; i < size; i++){
+        v[i] = w[i];
+    }
 }
 
-_fer_inline int ferVecMulComp(fer_vec_t *a, const fer_vec_t *b)
+_fer_inline void ferVecAdd(size_t size, fer_vec_t *v, const fer_vec_t *w)
 {
-    __FER_VEC_CHECKSIZE(a, b);
-    fer_gsl_vector_mul(a->v, b->v);
-    return 0;
+    size_t i;
+    for (i = 0; i < size; i++){
+        v[i] += w[i];
+    }
 }
 
-_fer_inline int ferVecMulComp2(fer_vec_t *a, const fer_vec_t *b, const fer_vec_t *c)
+_fer_inline void ferVecAdd2(size_t size, fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w)
 {
-    if (ferVecCopy(a, b) != 0)
-        return -1;
-    return ferVecMulComp(a, c);
+    size_t i;
+    for (i = 0; i < size; i++){
+        d[i] = v[i] + w[i];
+    }
+}
+
+_fer_inline void ferVecSub(size_t size, fer_vec_t *v, const fer_vec_t *w)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        v[i] -= w[i];
+    }
+}
+_fer_inline void ferVecSub2(size_t size, fer_vec_t *d, const fer_vec_t *v, const fer_vec_t *w)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        d[i] = v[i] - w[i];
+    }
+}
+
+_fer_inline void ferVecAddConst(size_t size, fer_vec_t *v, fer_real_t f)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        v[i] += f;
+    }
+}
+
+_fer_inline void ferVecAddConst2(size_t size, fer_vec_t *d, const fer_vec_t *v, fer_real_t f)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        d[i] = v[i] + f;
+    }
+}
+
+_fer_inline void ferVecSubConst(size_t size, fer_vec_t *v, fer_real_t f)
+{
+    ferVecAddConst(size, v, -f);
+}
+
+_fer_inline void ferVecSubConst2(size_t size, fer_vec_t *d, const fer_vec_t *v, fer_real_t f)
+{
+    ferVecAddConst2(size, d, v, -f);
+}
+
+_fer_inline void ferVecScale(size_t size, fer_vec_t *d, fer_real_t k)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        d[i] *= k;
+    }
+}
+
+
+_fer_inline fer_real_t ferVecDot(size_t size, const fer_vec_t *a, const fer_vec_t *b)
+{
+    fer_real_t dot;
+    size_t i;
+
+    dot = FER_ZERO;
+    for (i = 0; i < size; i++){
+        dot += a[i] * b[i];
+    }
+
+    return dot;
+}
+
+_fer_inline void ferVecMulComp(size_t size, fer_vec_t *a, const fer_vec_t *b)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        a[i] *= b[i];
+    }
+}
+
+_fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, const fer_vec_t *c)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        a[i] = b[i] * c[i];
+    }
 }
 
 

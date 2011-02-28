@@ -16,6 +16,7 @@
 
 #include <fermat/nncells.h>
 #include <fermat/alloc.h>
+#include <fermat/vec.h>
 #include <fermat/dbg.h>
 
 
@@ -26,7 +27,7 @@ struct fer_nncells_cache_t {
     size_t len;             /*!< Number of so far found elements */
     size_t max_len;         /*!< Maximal number of elements we want to find */
 
-    const fer_vec2_t *p;
+    const fer_vec_t *p;
 };
 
 static void cellInit(fer_nncells_t *cs, fer_nncells_cell_t *c, size_t id);
@@ -37,7 +38,7 @@ static void cellClear(fer_list_t *list);
 
 /** Initializes and destroys .cache member of fer_cubes`N`_t */
 static void cacheInit(fer_nncells_t *cs, fer_nncells_el_t **els,
-                      size_t max_len, const fer_vec2_t *p);
+                      size_t max_len, const fer_vec_t *p);
 static void cacheDestroy(fer_nncells_t *cs);
 
 
@@ -45,7 +46,7 @@ static void cacheDestroy(fer_nncells_t *cs);
 static void nearestInCube(fer_nncells_t *cs, fer_nncells_cell_t *c);
 /** Checks if given element isn't closer than the ones already stored in
  *  cache. */
-static void nearestCheck(struct fer_nncells_cache_t *c, fer_nncells_el_t *el);
+static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el);
 /** Bubble sort. Takes the last element in .els and bubble it towards
  *  smaller ones (according to .dist[] value). */
 static void nearestBubbleUp(struct fer_nncells_cache_t *c);
@@ -140,7 +141,7 @@ void ferNNCellsDel(fer_nncells_t *c)
     free(c);
 }
 
-size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec2_t *p, size_t num,
+size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
                          fer_nncells_el_t **els)
 {
     size_t center_id;
@@ -287,7 +288,7 @@ static void cellClear(fer_list_t *list)
 
 
 static void cacheInit(fer_nncells_t *cs, fer_nncells_el_t **els,
-                      size_t max_len, const fer_vec2_t *p)
+                      size_t max_len, const fer_vec_t *p)
 {
     if (cs->cache == NULL){
         cs->cache = FER_ALLOC(struct fer_nncells_cache_t);
@@ -325,15 +326,16 @@ static void nearestInCube(fer_nncells_t *cs, fer_nncells_cell_t *c)
     list = &c->list;
     ferListForEach(list, item){
         el = ferListEntry(item, fer_nncells_el_t, list);
-        nearestCheck(cs->cache, el);
+        nearestCheck(cs, el);
     }
 }
 
-static void nearestCheck(struct fer_nncells_cache_t *c, fer_nncells_el_t *el)
+static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el)
 {
     fer_real_t dist;
+    struct fer_nncells_cache_t *c = cs->cache;
 
-    dist = ferVec2Dist2(c->p, el->coords);
+    dist = ferVecDist2(cs->d, c->p, el->coords);
     if (c->len < c->max_len){
         c->els[c->len]  = el;
         c->dist[c->len] = dist;

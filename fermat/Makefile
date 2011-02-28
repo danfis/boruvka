@@ -23,7 +23,7 @@ BIN_TARGETS = fer-gsrm fer-qdelaunay
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
-OBJS += vec4.o vec3.o vec2.o
+OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
 OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
@@ -39,7 +39,7 @@ HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
 
 ifeq '$(USE_GSL)' 'yes'
-  OBJS += mat.o vec.o
+  OBJS += mat.o
   CFLAGS += $(GSL_CFLAGS)
 endif
 

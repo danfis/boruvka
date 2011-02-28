@@ -1,5 +1,6 @@
 #include <cu/cu.h>
 #include <fermat/nncells.h>
+#include <fermat/vec2.h>
 #include <fermat/rand.h>
 #include <fermat/nearest-linear.h>
 #include <fermat/dbg.h>
@@ -45,8 +46,7 @@ TEST(nncellsEl2)
     printf("nncellsNode:\n");
 
     ferVec2Set(&n.v, 0., 0.);
-    ferNNCellsElInit(&n.c, &n.v);
-    n.c.coords = &n.v;
+    ferNNCellsElInit(&n.c, (const fer_vec_t *)&n.v);
 
     cs = ferNNCellsNew(2, range, num);
 
@@ -106,7 +106,7 @@ static void elNew(el_t *ns, size_t len, fer_list_t *head)
         y = ferRand(&r, -10., 10.);
 
         ferVec2Set(&ns[i].v, x, y);
-        ferNNCellsElInit(&ns[i].c, &ns[i].v);
+        ferNNCellsElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
 
         ferListAppend(head, &ns[i].list);
     }
@@ -163,7 +163,7 @@ TEST(nncellsNearest2)
         for (i=0; i < N_LOOPS; i++){
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNCellsNearest(cs, &v, k + 1, nsc);
+            ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
             ferNearestLinear(&head, &v, dist2, nsl, k + 1);
 
             for (j = 0; j < k + 1; j++){

@@ -16,8 +16,8 @@
 #include "dij.h"
 
 #ifdef FER_GSL
-#include "vec.h"
-#include "mat.h"
+//#include "vec.h"
+//#include "mat.h"
 #endif
 
 TEST_SUITES {
@@ -41,8 +41,8 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSDij),
 
 #ifdef FER_GSL
-    TEST_SUITE_ADD(TSVec),
-    TEST_SUITE_ADD(TSMat),
+    //TEST_SUITE_ADD(TSVec),
+    //TEST_SUITE_ADD(TSMat),
 #endif
 
     TEST_SUITES_CLOSURE

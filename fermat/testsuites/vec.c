@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "cu.h"
 
-#include <fermat/vec.h>
+#include <fermat/vec-gsl.h>
 
 TEST(vecSetUp)
 {

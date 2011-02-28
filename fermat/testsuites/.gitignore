@@ -10,3 +10,4 @@ bench2
 bench-heap*
 !bench-heap*.c
 test-rand-mt
+test-nn
