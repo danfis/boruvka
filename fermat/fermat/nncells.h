@@ -31,7 +31,6 @@ struct _fer_nncells_cell_t {
 
     int radius;
     fer_list_t layer_list;
-    fer_list_t fifo_list;
     fer_list_t clear_list;
 };
 typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
