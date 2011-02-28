@@ -16,6 +16,7 @@
 
 #include <fermat/nearest-linear.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 static void bubbleUp(fer_real_t *dists, fer_list_t **nearest, size_t len);
 
@@ -40,12 +41,14 @@ size_t ferNearestLinear(fer_list_t *list, void *p,
             dists[len]   = dist;
             nearest[len] = item;
             len++;
+
+            bubbleUp(dists, nearest, len);
         }else if (dist < dists[len - 1]){
             dists[len - 1]   = dist;
             nearest[len - 1] = item;
-        }
 
-        bubbleUp(dists, nearest, len);
+            bubbleUp(dists, nearest, len);
+        }
     }
 
     free(dists);

@@ -15,7 +15,7 @@ CHECK_TS ?=
 TARGETS = test bench-heap test-rand-mt
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o quat.o pc3.o \
-       mat3.o mat4.o cubes3.o cubes2.o mesh3.o nearest.o \
+       mat3.o mat4.o cubes3.o cubes2.o nncells.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o \
        data-vec2.o data-vec3.o data-quat.o data-vec4.o \
        data-mat3.o data-mat4.o

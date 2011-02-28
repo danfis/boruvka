@@ -1,0 +1,12 @@
+nncellsNode:
+cube size: 0.707107
+nncells2 len: 18
+nncells2 dim: 3 6
+------ nncellsNode
+
+nncells2Nearest:
+cube size: 2.846050
+nncells2 len: 49
+nncells2 dim: 7 7
+------ nncellsNearest
+

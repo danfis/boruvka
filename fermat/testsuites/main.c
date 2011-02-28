@@ -8,6 +8,7 @@
 #include "mat4.h"
 #include "cubes3.h"
 #include "cubes2.h"
+#include "nncells.h"
 #include "mesh3.h"
 #include "nearest.h"
 #include "fibo.h"
@@ -30,6 +31,7 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSCubes3),
     TEST_SUITE_ADD(TSCubes2),
+    TEST_SUITE_ADD(TSNNCells),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),
 
