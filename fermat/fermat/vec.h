@@ -18,6 +18,7 @@
 #define __FER_VEC_H__
 
 #include <fermat/core.h>
+#include <fermat/vec2.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,17 @@ typedef fer_real_t fer_vec_t;
 
 
 /** TODO: ToVec2/3/4 functions */
+
+/**
+ * Cast from Vec2 to Vec.
+ */
+_fer_inline fer_vec_t *ferVecFromVec2(fer_vec2_t *v);
+
+/**
+ * Cast from Vec2 to Vec.
+ */
+_fer_inline const fer_vec_t *ferVecFromVec2Const(const fer_vec2_t *v);
+
 
 /**
  * Functions
@@ -141,6 +153,17 @@ _fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, c
 
 
 /**** INLINES ****/
+_fer_inline fer_vec_t *ferVecFromVec2(fer_vec2_t *v)
+{
+    return (fer_vec_t *)v;
+}
+
+_fer_inline const fer_vec_t *ferVecFromVec2Const(const fer_vec2_t *v)
+{
+    return (const fer_vec_t *)v;
+}
+
+
 _fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v)
 {
     fer_vec_t *w;
