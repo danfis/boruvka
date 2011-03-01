@@ -20,7 +20,7 @@
 #include <gann/net.h>
 #include <gann/gng.h>
 #include <fermat/vec2.h>
-#include <fermat/cubes2.h>
+#include <fermat/nncells.h>
 #include <fermat/dij.h>
 
 /**
@@ -33,10 +33,10 @@
 #define GANN_GNGP_OBST 2
 
 struct _gann_gngp_node_t {
-    gann_net_node_t node;  /*!< Connection into net */
-    fer_cubes2_el_t cubes; /*!< Connection into cubes */
-    int set;               /*!< Specifies into which set node belongs to */
-    fer_vec2_t w;          /*!< Weight vector */
+    gann_net_node_t node;   /*!< Connection into net */
+    fer_nncells_el_t cells; /*!< Connection into cells */
+    int set;                /*!< Specifies into which set node belongs to */
+    fer_vec2_t w;           /*!< Weight vector */
 
     fer_list_t fifo; /*!< Connection into fifo queue - used internally */
     int evaled;      /*!< Marks nodes that were already evalueated - used
@@ -134,7 +134,7 @@ struct _gann_gngp_params_t {
 
     size_t warm_start;
 
-    size_t num_cubes;
+    size_t num_cells;
     fer_real_t aabb[4];
 };
 typedef struct _gann_gngp_params_t gann_gngp_params_t;
@@ -154,7 +154,7 @@ void gannGNGPParamsInit(gann_gngp_params_t *params);
 
 struct _gann_gngp_t {
     gann_net_t *net;
-    fer_cubes2_t *cubes;
+    fer_nncells_t *cells;
     gann_gngp_ops_t ops;
     gann_gngp_params_t params;
 

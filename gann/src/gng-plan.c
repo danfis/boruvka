@@ -88,7 +88,7 @@ void gannGNGPParamsInit(gann_gngp_params_t *params)
 
     params->warm_start = 5000;
 
-    params->num_cubes = 10000;
+    params->num_cells = 10000;
     params->aabb[0] = -FER_ONE;
     params->aabb[1] =  FER_ONE;
     params->aabb[2] = -FER_ONE;
@@ -103,7 +103,7 @@ gann_gngp_t *gannGNGPNew(const gann_gngp_ops_t *ops,
     gng = FER_ALLOC(gann_gngp_t);
 
     gng->net   = gannNetNew();
-    gng->cubes = ferCubes2New(params->aabb, params->num_cubes);
+    gng->cells = ferNNCellsNew(2, params->aabb, params->num_cells);
 
     gng->params = *params;
     gng->beta_n = NULL;
@@ -126,8 +126,8 @@ gann_gngp_t *gannGNGPNew(const gann_gngp_ops_t *ops,
 
 void gannGNGPDel(gann_gngp_t *gng)
 {
-    if (gng->cubes)
-        ferCubes2Del(gng->cubes);
+    if (gng->cells)
+        ferNNCellsDel(gng->cells);
 
     if (gng->net){
         gannNetDel2(gng->net, netNodeDel, NULL,
@@ -376,20 +376,20 @@ static void newNode(gann_gngp_t *gng)
 static int nearest(gann_gngp_t *gng, const fer_vec2_t *w,
                    gann_gngp_node_t **n1, gann_gngp_node_t **n2)
 {
-    fer_cubes2_el_t *els[2];
+    fer_nncells_el_t *els[2];
     gann_gngp_node_t *n;
     size_t found;
 
     els[0] = els[1] = NULL;
-    found = ferCubes2Nearest(gng->cubes, w, 2, els);
+    found = ferNNCellsNearest(gng->cells, ferVecFromVec2Const(w), 2, els);
     if (found != 2){
         DBG2("Not found two nearest nodes! This shouldn't happen!");
         return -1;
     }
 
-    n = fer_container_of(els[0], gann_gngp_node_t, cubes);
+    n = fer_container_of(els[0], gann_gngp_node_t, cells);
     *n1 = n;
-    n = fer_container_of(els[1], gann_gngp_node_t, cubes);
+    n = fer_container_of(els[1], gann_gngp_node_t, cells);
     *n2 = n;
 
     return 0;
@@ -720,8 +720,8 @@ static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w)
 
     ferVec2Copy(&n->w, w);
 
-    ferCubes2ElInit(&n->cubes, &n->w);
-    ferCubes2Add(gng->cubes, &n->cubes);
+    ferNNCellsElInit(&n->cells, ferVecFromVec2Const(&n->w));
+    ferNNCellsAdd(gng->cells, &n->cells);
 
     n->err_local = FER_ZERO;
     n->err       = FER_ZERO;
@@ -733,7 +733,7 @@ static gann_gngp_node_t *nodeNew(gann_gngp_t *gng, const fer_vec2_t *w)
 
 static void nodeDel(gann_gngp_t *gng, gann_gngp_node_t *n)
 {
-    ferCubes2Remove(gng->cubes, &n->cubes);
+    ferNNCellsRemove(gng->cells, &n->cells);
 
     if (gannNetRemoveNode(gng->net, &n->node) != 0){
         DBG2("Can't remove node! You called this prematurely!");
@@ -777,7 +777,7 @@ static void nodeMoveTowards(gann_gngp_t *gng, gann_gngp_node_t *n,
     ferVec2Sub2(&move, to, &n->w);
     ferVec2Scale(&move, frac);
     ferVec2Add(&n->w, &move);
-    ferCubes2Update(gng->cubes, &n->cubes);
+    ferNNCellsUpdate(gng->cells, &n->cells);
 }
 
 static void netNodeDel(gann_net_node_t *_n, void *_)
