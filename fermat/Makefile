@@ -38,11 +38,6 @@ OBJS += rand-mt.o
 HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
 
-ifeq '$(USE_GSL)' 'yes'
-  OBJS += mat.o
-  CFLAGS += $(GSL_CFLAGS)
-endif
-
 OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))

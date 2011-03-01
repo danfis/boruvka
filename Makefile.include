@@ -20,7 +20,6 @@ M4 ?= m4
 SED ?= sed
 PYTHON ?= python
 
-GSL_CONFIG 	  ?= gsl-config
 PYTHON_CONFIG ?= python-config
 
 CC_NOT_GCC = no
@@ -76,18 +75,7 @@ endif
 endif
 
 USE_SSE ?= no
-USE_GSL ?= auto
 CONFIG_FLAGS =
-
-
-ifeq '$(USE_GSL)' 'auto'
-  HAVE_GSL := $(shell if $(GSL_CONFIG) --version >/dev/null 2>&1; then echo "yes"; else echo "no"; fi;)
-  ifeq '$(HAVE_GSL)' 'yes'
-    USE_GSL = yes
-  else
-    USE_GSL = no
-  endif
-endif
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -100,11 +88,6 @@ endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
   CFLAGS += -msse3
-endif
-ifeq '$(USE_GSL)' 'yes'
-  CONFIG_FLAGS += -DUSE_GSL
-  GSL_CFLAGS  = $(shell $(GSL_CONFIG) --cflags)
-  GSL_LDFLAGS = $(shell $(GSL_CONFIG) --libs)
 endif
 
 ifneq '$(CC_NOT_GCC)' 'yes'
@@ -131,7 +114,6 @@ showvars:
 	@echo "SED     = $(SED)"
 	@echo "PYTHON  = $(PYTHON)"
 	@echo ""
-	@echo "GSL_CONFIG     = $(GSL_CONFIG)"
 	@echo "PYTHON_CONFIG  = $(PYTHON_CONFIG)"
 	@echo ""
 	@echo "CC_NOT_GCC = $(CC_NOT_GCC)"
@@ -143,7 +125,6 @@ showvars:
 	@echo "USE_SINGLE = $(USE_SINGLE)"
 	@echo "USE_DOUBLE = $(USE_DOUBLE)"
 	@echo "USE_SSE    = $(USE_SSE)"
-	@echo "USE_GSL    = $(USE_GSL)"
 	@echo ""
 	@echo "CFLAGS       = $(CFLAGS)"
 	@echo "CXXFLAGS     = $(CXXFLAGS)"
@@ -151,8 +132,6 @@ showvars:
 	@echo "CONFIG_FLAGS = $(CONFIG_FLAGS)"
 	@echo "PYTHON_CFLAGS  = $(PYTHON_CFLAGS)"
 	@echo "PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
-	@echo "GSL_CFLAGS     = $(GSL_CFLAGS)"
-	@echo "GSL_LDFLAGS    = $(GSL_LDFLAGS)"
 	@echo ""
 	@echo "PREFIX     = $(PREFIX)"
 	@echo "INCLUDEDIR = $(INCLUDEDIR)"

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "cu.h"
 
-#include <fermat/vec-gsl.h>
+#include <fermat/vec.h>
 
 TEST(vecSetUp)
 {
@@ -13,25 +13,18 @@ TEST(vecTearDown)
 
 TEST(vecInit)
 {
-    fer_vec_t vec;
-    fer_vec_t *vec2;
+    fer_vec_t *vec;
 
-    ferVecInit(&vec, 32);
-    assertEquals(ferVecSize(&vec), 32);
-    ferVecDestroy(&vec);
-
-    vec2 = ferVecNew(34);
-    assertEquals(ferVecSize(vec2), 34);
-    ferVecDel(vec2);
+    vec = ferVecNew(34);
+    ferVecDel(vec);
 }
 
-static void prVec(const char *prefix, const fer_vec_t *v)
+static void prVec(size_t len, const char *prefix, const fer_vec_t *v)
 {
-    size_t i, len;
+    size_t i;
 
     fprintf(stdout, prefix);
 
-    len = ferVecSize(v);
     fprintf(stdout, "[");
     for (i = 0; i < len; i++){
         fprintf(stdout, " %g", ferVecGet(v, i));
@@ -41,69 +34,59 @@ static void prVec(const char *prefix, const fer_vec_t *v)
 
 TEST(vecOperators)
 {
-    fer_vec_t u, v, w, q;
+    FER_VEC(u, 6);
+    FER_VEC(v, 6);
+    FER_VEC(w, 6);
 
     printf("---- vecOperators ---\n");
 
-    ferVecInit(&u, 6);
-    ferVecInit(&v, 6);
-    ferVecInit(&w, 6);
-    ferVecInit(&q, 1);
-
-    ferVecSetAll(&v, 1.);
-    prVec("v: ", &v);
-    ferVecSetZero(&v);
-    prVec("v: ", &v);
+    ferVecSetAll(6, v, 1.);
+    prVec(6, "v: ", v);
+    ferVecSetZero(6, v);
+    prVec(6, "v: ", v);
     printf("\n");
 
-    ferVecSet(&v, 0, 1.);
-    ferVecSet(&v, 1, 2.);
-    ferVecSet(&v, 2, 1.4);
-    ferVecSet(&v, 3, -.6);
-    ferVecSet(&v, 4, 8.3);
-    ferVecSet(&v, 5, 11.);
-    prVec("v: ", &v);
-    assertTrue(ferEq(ferVecLen2(&v), 197.21));
+    ferVecSet(v, 0, 1.);
+    ferVecSet(v, 1, 2.);
+    ferVecSet(v, 2, 1.4);
+    ferVecSet(v, 3, -.6);
+    ferVecSet(v, 4, 8.3);
+    ferVecSet(v, 5, 11.);
+    prVec(6, "v: ", v);
+    assertTrue(ferEq(ferVecLen2(6, v), 197.21));
 
-    ferVecSet(&w, 0, 3.);
-    ferVecSet(&w, 1, 1.);
-    ferVecSet(&w, 2, 9.4);
-    ferVecSet(&w, 3, -3.3);
-    ferVecSet(&w, 4, 1.2);
-    ferVecSet(&w, 5, 14.);
-    prVec("w: ", &w);
+    ferVecSet(w, 0, 3.);
+    ferVecSet(w, 1, 1.);
+    ferVecSet(w, 2, 9.4);
+    ferVecSet(w, 3, -3.3);
+    ferVecSet(w, 4, 1.2);
+    ferVecSet(w, 5, 14.);
+    prVec(6, "w: ", w);
 
 
-    assertNotEquals(ferVecAdd(&v, &q), 0);
-    assertEquals(ferVecAdd2(&u, &v, &w), 0);
-    prVec("u = v + w ", &u);
-    assertEquals(ferVecAdd(&u, &v), 0);
-    prVec("u += v    ", &u);
-    assertEquals(ferVecSub2(&u, &v, &w), 0);
-    prVec("u = v - w ", &u);
-    assertEquals(ferVecSub(&u, &v), 0);
-    prVec("u -= v    ", &u);
-    assertEquals(ferVecAddConst2(&u, &v, 10.), 0);
-    prVec("u = v + 10 ", &u);
-    ferVecAddConst(&u, 100.);
-    prVec("u += 100   ", &u);
-    assertEquals(ferVecSubConst2(&u, &v, 10.), 0);
-    prVec("u = v - 10 ", &u);
-    ferVecSubConst(&u, 100.);
-    prVec("u -= 100   ", &u);
+    ferVecAdd2(6, u, v, w);
+    prVec(6, "u = v + w ", u);
+    ferVecAdd(6, u, v);
+    prVec(6, "u += v    ", u);
+    ferVecSub2(6, u, v, w);
+    prVec(6, "u = v - w ", u);
+    ferVecSub(6, u, v);
+    prVec(6, "u -= v    ", u);
+    ferVecAddConst2(6, u, v, 10.);
+    prVec(6, "u = v + 10 ", u);
+    ferVecAddConst(6, u, 100.);
+    prVec(6, "u += 100   ", u);
+    ferVecSubConst2(6, u, v, 10.);
+    prVec(6, "u = v - 10 ", u);
+    ferVecSubConst(6, u, 100.);
+    prVec(6, "u -= 100   ", u);
 
-    ferVecScale(&u, 2.);
-    prVec("u *= 2    ", &u);
+    ferVecScale(6, u, 2.);
+    prVec(6, "u *= 2    ", u);
     printf("\n");
 
-    assertEquals(ferVecMulComp2(&u, &v, &w), 0);
-    prVec("u = v .* w ", &u);
-    assertEquals(ferVecMulComp(&u, &w), 0);
-    prVec("u .*= w    ", &u);
-
-
-    ferVecDestroy(&u);
-    ferVecDestroy(&v);
-    ferVecDestroy(&w);
-    ferVecDestroy(&q);
+    ferVecMulComp2(6, u, v, w);
+    prVec(6, "u = v .* w ", u);
+    ferVecMulComp(6, u, w);
+    prVec(6, "u .*= w    ", u);
 }

@@ -18,7 +18,6 @@
 #define __FER_VEC_H__
 
 #include <fermat/core.h>
-#include <fermat/vec2.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +30,13 @@ extern "C" {
  */
 typedef fer_real_t fer_vec_t;
 
-/** TODO: Static declarations */
+/**
+ * Static declaration of vector.
+ */
+#define FER_VEC(name, size) \
+    fer_vec_t name[size]
+
+
 /** TODO: ToVec2/3/4 functions */
 
 /**

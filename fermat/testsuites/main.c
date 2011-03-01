@@ -2,6 +2,7 @@
 #include "vec4.h"
 #include "vec3.h"
 #include "vec2.h"
+#include "vec.h"
 #include "quat.h"
 #include "pc3.h"
 #include "mat3.h"
@@ -15,15 +16,11 @@
 #include "pairheap.h"
 #include "dij.h"
 
-#ifdef FER_GSL
-//#include "vec.h"
-//#include "mat.h"
-#endif
-
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
     TEST_SUITE_ADD(TSVec3),
     TEST_SUITE_ADD(TSVec2),
+    TEST_SUITE_ADD(TSVec),
     TEST_SUITE_ADD(TSQuat),
     TEST_SUITE_ADD(TSPC3),
     TEST_SUITE_ADD(TSMat3),
@@ -39,11 +36,6 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPairHeap),
 
     TEST_SUITE_ADD(TSDij),
-
-#ifdef FER_GSL
-    //TEST_SUITE_ADD(TSVec),
-    //TEST_SUITE_ADD(TSMat),
-#endif
 
     TEST_SUITES_CLOSURE
 };
