@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
     p.max_nodes = atoi(argv[1]);
     p.find_path = atoi(argv[2]);
     params.num_cubes = p.max_nodes;
+    //params.num_cubes = 30000;
     params.warm_start = p.find_path;
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&p.goal, FER_REAL(1.5), FER_REAL(4.5));
@@ -69,14 +70,13 @@ int main(int argc, char *argv[])
     gannGNGPRun(gng);
     callback(&p);
     fprintf(stderr, "\n");
-
-    fprintf(stdout, "# ");
-    ferTimerStopAndPrintElapsed(&p.timer, stdout, " n: %d / %d\r",
-                                gannGNGPNodesLen(p.gng), p.max_nodes);
-    fprintf(stdout, "# Evals: %ld\n", p.evals);
     fprintf(stderr, "Evals: %ld\n", p.evals);
 
     gannGNGPDumpSVT(gng, stdout, NULL);
+    fprintf(stdout, "# ");
+    ferTimerStopAndPrintElapsed(&p.timer, stdout, " n: %d / %d\n",
+                                gannGNGPNodesLen(p.gng), p.max_nodes);
+    fprintf(stdout, "# Evals: %ld\n", p.evals);
 
     gannGNGPDel(gng);
 
@@ -148,7 +148,7 @@ static int eval(const fer_vec2_t *w, void *data)
     p->evals += 1L;
 
     if (y < -2
-            || (y < 4 && y > -2 && x > -0.03 && x < 0.03)
+            || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
             || (y > 4 && x > -2 && x < 2)){
         return GANN_GNGP_FREE;
     }
