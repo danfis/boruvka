@@ -30,8 +30,8 @@ static void elNew(el_t *ns, size_t len, fer_list_t *head)
     ferListInit(head);
 
     for (i = 0; i < len; i++){
-        x = ferRand(&r, -10., 10.);
-        y = ferRand(&r, -10., 10.);
+        x = ferRand(&r, -15., 15.);
+        y = ferRand(&r, -20., 20.);
 
         ferVec2Set(&ns[i].v, x, y);
         ferNNCellsElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
@@ -72,8 +72,8 @@ static void testCorrect(void)
     el_t *near[10];
     fer_nncells_t *cs;
     fer_cubes2_t *cs2;
-    fer_real_t range[4] = { -9., 9., -11., 7. };
-    size_t num = 40, i, j, k;
+    fer_real_t range[4] = { -15., 15., -18., 17. };
+    size_t num = 500, i, j, k;
     int incorrect = 0;
 
     printf("nncells2Nearest:\n");

@@ -25,13 +25,6 @@ struct fer_nncells_cache_t;
 /** Internal structure */
 struct _fer_nncells_cell_t {
     fer_list_t list; /*!< List of all elements inside cell */
-
-    struct _fer_nncells_cell_t **cells; /*!< Array of neighbor cells */
-    size_t cells_len;                   /*!< Number of neighbor cells */
-
-    int radius;
-    fer_list_t layer_list;
-    fer_list_t clear_list;
 };
 typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
 
