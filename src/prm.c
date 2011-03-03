@@ -22,6 +22,7 @@
 static fer_prm_node_t *nodeNew(fer_prm_t *prm, const fer_vec_t *p);
 static void nodeDel(fer_prm_t *prm, fer_prm_node_t *n);
 static void edgeNew(fer_prm_t *prm, fer_prm_node_t *n1, fer_prm_node_t *n2);
+static void edgeDel(fer_prm_t *prm, fer_net_edge_t *n);
 static void nodeNetDel(fer_net_node_t *n, void *);
 static void edgeNetDel(fer_net_edge_t *n, void *);
 static fer_prm_node_t *connectNewNode(fer_prm_t *prm, const fer_vec_t *c);
@@ -308,12 +309,15 @@ int ferPRMFindPath(fer_prm_t *prm,
 
     if (result == 0){
         obtainPath(start, goal, list);
+        ferDijDel(dij);
         return 0;
     }
 
     // remove previously created nodes
     nodeDelWithEdges(prm, start);
     nodeDelWithEdges(prm, goal);
+
+    ferDijDel(dij);
 
     return -1;
 }
@@ -361,6 +365,12 @@ static void edgeNew(fer_prm_t *prm, fer_prm_node_t *n1, fer_prm_node_t *n2)
         c2 = topComponent(n2);
         c1->parent = c2;
     }
+}
+
+static void edgeDel(fer_prm_t *prm, fer_net_edge_t *e)
+{
+    ferNetRemoveEdge(prm->net, e);
+    free(e);
 }
 
 static void nodeNetDel(fer_net_node_t *_n, void *_)
@@ -478,7 +488,7 @@ static void nodeDelWithEdges(fer_prm_t *prm, fer_prm_node_t *n)
     list = ferNetNodeEdges(&n->node);
     ferListForEachSafe(list, item, item_tmp){
         edge = ferNetEdgeFromNodeList(item);
-        edgeNetDel(edge, prm);
+        edgeDel(prm, edge);
     }
     nodeDel(prm, n);
 }
