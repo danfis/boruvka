@@ -14,14 +14,14 @@
  *  See the License for more information.
  */
 
-#include <gann/gng.h>
+#include <fermat/gng.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
 /**
  * Here is implemented Growing Neural Gas algorithm  completely in static
  * functions. The purpose is to be able to get rid of some indirect calls
- * of functions (see gann_gng_t.ops struct).
+ * of functions (see fer_gng_t.ops struct).
  *
  * Indirect calls can be very expensive, so if you need to speed up
  * an algorithm and you really know what you are doing you can use these
@@ -32,7 +32,7 @@
  *
  * Before including this file macros OPS() and OPS_DATA() must be defined
  * because these macros are used to expand to "operation" calls as defined
- * in gann_gng_ops_t struct.
+ * in fer_gng_ops_t struct.
  * Operations that are covered by OPS() and OPS_DATA() macros are:
  *    - new_node
  *    - new_node_between
@@ -46,46 +46,46 @@
 
 
 /** For public API */
-static void _gannGNGRun(gann_gng_t *gng);
-static void _gannGNGInit(gann_gng_t *gng);
-static void _gannGNGLearn(gann_gng_t *gng, size_t step);
-static void _gannGNGNewNode(gann_gng_t *gng);
-static gann_gng_node_t *_gannGNGConnectNewNode(gann_gng_t *gng, const void *is);
+static void _ferGNGRun(fer_gng_t *gng);
+static void _ferGNGInit(fer_gng_t *gng);
+static void _ferGNGLearn(fer_gng_t *gng, size_t step);
+static void _ferGNGNewNode(fer_gng_t *gng);
+static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
 
 /** Node functions */
 /** Initialize node */
-_fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n);
+_fer_inline void nodeInit(fer_gng_t *gng, fer_gng_node_t *n);
 /** Adds node into network */
-_fer_inline void nodeAdd(gann_gng_t *gng, gann_gng_node_t *n);
+_fer_inline void nodeAdd(fer_gng_t *gng, fer_gng_node_t *n);
 
 /** Edge functions */
 /** Creates and initializes new edge between n1 and n2 */
-_fer_inline gann_gng_edge_t *edgeNew(gann_gng_t *gng, gann_gng_node_t *n1,
-                                                      gann_gng_node_t *n2);
+_fer_inline fer_gng_edge_t *edgeNew(fer_gng_t *gng, fer_gng_node_t *n1,
+                                                    fer_gng_node_t *n2);
 /** Deletes edge */
-_fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *edge);
+_fer_inline void edgeDel(fer_gng_t *gng, fer_gng_edge_t *edge);
 
 /** Returns node with highest error counter */
-static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng);
+static fer_gng_node_t *nodeWithHighestErr(fer_gng_t *gng);
 /** Returns q's neighbor with highest error counter and edge that connects
  *  that node with q. */
-static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
-                                            gann_gng_edge_t **edge);
+static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
+                                           fer_gng_edge_t **edge);
 
-static void _gannGNGRun(gann_gng_t *gng)
+static void _ferGNGRun(fer_gng_t *gng)
 {
     size_t step;
     unsigned long cb_step;
 
-    _gannGNGInit(gng);
+    _ferGNGInit(gng);
 
     step = 1;
     cb_step = 1L;
     while (!gng->ops.terminate(gng->ops.terminate_data)){
-        _gannGNGLearn(gng, step);
+        _ferGNGLearn(gng, step);
 
         if (fer_unlikely(step >= gng->params.lambda)){
-            _gannGNGNewNode(gng);
+            _ferGNGNewNode(gng);
             step = 0;
 
             if (gng->ops.callback
@@ -100,10 +100,10 @@ static void _gannGNGRun(gann_gng_t *gng)
     }
 }
 
-static void _gannGNGInit(gann_gng_t *gng)
+static void _ferGNGInit(fer_gng_t *gng)
 {
     const void *is;
-    gann_gng_node_t *n1, *n2;
+    fer_gng_node_t *n1, *n2;
     size_t i;
 
     // precompute beta^n
@@ -131,13 +131,13 @@ static void _gannGNGInit(gann_gng_t *gng)
     edgeNew(gng, n1, n2);
 }
 
-static void _gannGNGLearn(gann_gng_t *gng, size_t step)
+static void _ferGNGLearn(fer_gng_t *gng, size_t step)
 {
     const void *input_signal;
-    gann_net_node_t *nn;
-    gann_gng_node_t *n1, *n2, *n;
-    gann_net_edge_t *nedge;
-    gann_gng_edge_t *edge;
+    fer_net_node_t *nn;
+    fer_gng_node_t *n1, *n2, *n;
+    fer_net_edge_t *nedge;
+    fer_gng_edge_t *edge;
     fer_real_t dist2;
     fer_list_t *list, *item, *item_tmp;
 
@@ -149,11 +149,11 @@ static void _gannGNGLearn(gann_gng_t *gng, size_t step)
 
     // 3. Create connection between n1 and n2 if doesn't exist and set age
     //    to zero
-    nedge = gannNetNodeCommonEdge(&n1->node, &n2->node);
+    nedge = ferNetNodeCommonEdge(&n1->node, &n2->node);
     if (!nedge){
         edge = edgeNew(gng, n1, n2);
     }else{
-        edge = fer_container_of(nedge, gann_gng_edge_t, edge);
+        edge = fer_container_of(nedge, fer_gng_edge_t, edge);
     }
     edge->age = 0;
 
@@ -167,12 +167,12 @@ static void _gannGNGLearn(gann_gng_t *gng, size_t step)
     OPS(gng, move_towards)(n1, input_signal, gng->params.eb,
                            OPS_DATA(gng, move_towards));
     // adapt also direct topological neighbors of winner node
-    list = gannNetNodeEdges(&n1->node);
+    list = ferNetNodeEdges(&n1->node);
     ferListForEachSafe(list, item, item_tmp){
-        nedge = gannNetEdgeFromNodeList(item);
-        edge  = fer_container_of(nedge, gann_gng_edge_t, edge);
-        nn   = gannNetEdgeOtherNode(&edge->edge, &n1->node);
-        n    = fer_container_of(nn, gann_gng_node_t, node);
+        nedge = ferNetEdgeFromNodeList(item);
+        edge  = fer_container_of(nedge, fer_gng_edge_t, edge);
+        nn   = ferNetEdgeOtherNode(&edge->edge, &n1->node);
+        n    = fer_container_of(nn, fer_gng_node_t, node);
 
         // increase age (6.)
         edge->age += 1;
@@ -181,9 +181,9 @@ static void _gannGNGLearn(gann_gng_t *gng, size_t step)
         if (edge->age > gng->params.age_max){
             edgeDel(gng, edge);
 
-            if (gannNetNodeEdgesLen(nn) == 0){
+            if (ferNetNodeEdgesLen(nn) == 0){
                 // remove node if not connected into net anymore
-                gannNetRemoveNode(gng->net, nn);
+                ferNetRemoveNode(gng->net, nn);
                 gng->ops.del_node(n, gng->ops.del_node_data);
                 n = NULL;
             }
@@ -197,17 +197,17 @@ static void _gannGNGLearn(gann_gng_t *gng, size_t step)
     }
 
     // remove winning node if not connected into net
-    if (gannNetNodeEdgesLen(&n1->node) == 0){
+    if (ferNetNodeEdgesLen(&n1->node) == 0){
         // remove node if not connected into net anymore
-        gannNetRemoveNode(gng->net, &n1->node);
+        ferNetRemoveNode(gng->net, &n1->node);
         gng->ops.del_node(n1, gng->ops.del_node_data);
     }
 }
 
-static void _gannGNGNewNode(gann_gng_t *gng)
+static void _ferGNGNewNode(fer_gng_t *gng)
 {
-    gann_gng_node_t *q, *f, *r;
-    gann_gng_edge_t *eqf;
+    fer_gng_node_t *q, *f, *r;
+    fer_gng_edge_t *eqf;
 
     // 1. Get node with highest error counter
     q = nodeWithHighestErr(gng);
@@ -238,10 +238,10 @@ static void _gannGNGNewNode(gann_gng_t *gng)
     r->err /= FER_REAL(2.);
 }
 
-static gann_gng_node_t *_gannGNGConnectNewNode(gann_gng_t *gng, const void *is)
+static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
 {
-    gann_gng_node_t *r, *n1, *n2;
-    gann_gng_edge_t *edge;
+    fer_gng_node_t *r, *n1, *n2;
+    fer_gng_edge_t *edge;
 
     OPS(gng, nearest)(is, &n1, &n2, OPS_DATA(gng, nearest));
 
@@ -259,56 +259,56 @@ static gann_gng_node_t *_gannGNGConnectNewNode(gann_gng_t *gng, const void *is)
 
 /*** Node functions ***/
 
-_fer_inline void nodeInit(gann_gng_t *gng, gann_gng_node_t *n)
+_fer_inline void nodeInit(fer_gng_t *gng, fer_gng_node_t *n)
 {
     n->err_local = FER_ZERO;
     n->err = FER_ZERO;
 }
 
-_fer_inline void nodeAdd(gann_gng_t *gng, gann_gng_node_t *n)
+_fer_inline void nodeAdd(fer_gng_t *gng, fer_gng_node_t *n)
 {
     nodeInit(gng, n);
-    gannNetAddNode(gng->net, &n->node);
+    ferNetAddNode(gng->net, &n->node);
 }
 
 
 
 /*** Edge functions ***/
-_fer_inline gann_gng_edge_t *edgeNew(gann_gng_t *gng, gann_gng_node_t *n1,
-                                                      gann_gng_node_t *n2)
+_fer_inline fer_gng_edge_t *edgeNew(fer_gng_t *gng, fer_gng_node_t *n1,
+                                                    fer_gng_node_t *n2)
 {
-    gann_gng_edge_t *e;
+    fer_gng_edge_t *e;
 
-    e = FER_ALLOC(gann_gng_edge_t);
+    e = FER_ALLOC(fer_gng_edge_t);
     e->age = 0;
 
-    gannNetAddEdge(gng->net, &e->edge, &n1->node, &n2->node);
+    ferNetAddEdge(gng->net, &e->edge, &n1->node, &n2->node);
 
     return e;
 }
 
-_fer_inline void edgeDel(gann_gng_t *gng, gann_gng_edge_t *e)
+_fer_inline void edgeDel(fer_gng_t *gng, fer_gng_edge_t *e)
 {
-    gannNetRemoveEdge(gng->net, &e->edge);
+    ferNetRemoveEdge(gng->net, &e->edge);
     free(e);
 }
 
 
 
-static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
+static fer_gng_node_t *nodeWithHighestErr(fer_gng_t *gng)
 {
     fer_list_t *list, *item;
-    gann_net_node_t *nn;
-    gann_gng_node_t *n, *n_highest;
+    fer_net_node_t *nn;
+    fer_gng_node_t *n, *n_highest;
     fer_real_t err_highest;
 
     err_highest = -FER_ONE;
     n_highest   = NULL;
 
-    list = gannNetNodes(gng->net);
+    list = ferNetNodes(gng->net);
     ferListForEach(list, item){
-        nn = ferListEntry(item, gann_net_node_t, list);
-        n  = fer_container_of(nn, gann_gng_node_t, node);
+        nn = ferListEntry(item, fer_net_node_t, list);
+        n  = fer_container_of(nn, fer_gng_node_t, node);
 
         n->err  = n->err * gng->beta_n[gng->params.lambda];
         n->err += n->err_local;
@@ -323,30 +323,30 @@ static gann_gng_node_t *nodeWithHighestErr(gann_gng_t *gng)
     return n_highest;
 }
 
-static gann_gng_node_t *nodeWithHighestErr2(gann_gng_t *gng, gann_gng_node_t *q,
-                                            gann_gng_edge_t **edge)
+static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
+                                           fer_gng_edge_t **edge)
 {
     fer_list_t *list, *item;
-    gann_net_edge_t *ne;
-    gann_gng_edge_t *e_highest;
-    gann_net_node_t *nn;
-    gann_gng_node_t *n, *n_highest;
+    fer_net_edge_t *ne;
+    fer_gng_edge_t *e_highest;
+    fer_net_node_t *nn;
+    fer_gng_node_t *n, *n_highest;
     fer_real_t err_highest;
 
     err_highest = -FER_ONE;
     n_highest = NULL;
     e_highest = NULL;
 
-    list = gannNetNodeEdges(&q->node);
+    list = ferNetNodeEdges(&q->node);
     ferListForEach(list, item){
-        ne = gannNetEdgeFromNodeList(item);
-        nn = gannNetEdgeOtherNode(ne, &q->node);
-        n  = fer_container_of(nn, gann_gng_node_t, node);
+        ne = ferNetEdgeFromNodeList(item);
+        nn = ferNetEdgeOtherNode(ne, &q->node);
+        n  = fer_container_of(nn, fer_gng_node_t, node);
 
         if (n->err > err_highest){
             err_highest = n->err;
             n_highest   = n;
-            e_highest   = fer_container_of(ne, gann_gng_edge_t, edge);
+            e_highest   = fer_container_of(ne, fer_gng_edge_t, edge);
         }
     }
 

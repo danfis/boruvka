@@ -14,40 +14,40 @@
  *  See the License for more information.
  */
 
-#include <gann/net.h>
+#include <fermat/net.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-gann_net_node_t *gannNetNodeNew(void)
+fer_net_node_t *ferNetNodeNew(void)
 {
-    gann_net_node_t *n;
-    n = FER_ALLOC(gann_net_node_t);
+    fer_net_node_t *n;
+    n = FER_ALLOC(fer_net_node_t);
     return n;
 }
 
-void gannNetNodeDel(gann_net_node_t *v)
+void ferNetNodeDel(fer_net_node_t *v)
 {
     free(v);
 }
 
-gann_net_edge_t *gannNetNodeCommonEdge(const gann_net_node_t *v1,
-                                       const gann_net_node_t *v2)
+fer_net_edge_t *ferNetNodeCommonEdge(const fer_net_node_t *v1,
+                                       const fer_net_node_t *v2)
 {
     fer_list_t *item;
     fer_list_m_t *mitem;
-    const gann_net_node_t *vtmp;
-    gann_net_edge_t *e;
+    const fer_net_node_t *vtmp;
+    fer_net_edge_t *e;
 
     // set v1 as node with less edges
-    if (gannNetNodeEdgesLen(v2) < gannNetNodeEdgesLen(v1)){
+    if (ferNetNodeEdgesLen(v2) < ferNetNodeEdgesLen(v1)){
         FER_SWAP(v1, v2, vtmp);
     }
 
     ferListForEach(&v1->edges, item){
         mitem = ferListMFromList(item);
-        e = ferListEntry(item, gann_net_edge_t, nlist[mitem->mark]);
-        if (v2 == gannNetEdgeNode(e, 0)
-                || v2 == gannNetEdgeNode(e, 1)){
+        e = ferListEntry(item, fer_net_edge_t, nlist[mitem->mark]);
+        if (v2 == ferNetEdgeNode(e, 0)
+                || v2 == ferNetEdgeNode(e, 1)){
             return e;
         }
     }
@@ -56,21 +56,21 @@ gann_net_edge_t *gannNetNodeCommonEdge(const gann_net_node_t *v1,
 }
 
 
-gann_net_edge_t *gannNetEdgeNew(void)
+fer_net_edge_t *ferNetEdgeNew(void)
 {
-    gann_net_edge_t *e;
-    e = FER_ALLOC(gann_net_edge_t);
+    fer_net_edge_t *e;
+    e = FER_ALLOC(fer_net_edge_t);
     return e;
 }
 
-void gannNetEdgeDel(gann_net_edge_t *e)
+void ferNetEdgeDel(fer_net_edge_t *e)
 {
     free(e);
 }
 
 /** Returns true if two given edges have exactly one common node */
-_fer_inline int gannNetEdgeTriCheckCommon(const gann_net_edge_t *e1,
-                                           const gann_net_edge_t *e2)
+_fer_inline int ferNetEdgeTriCheckCommon(const fer_net_edge_t *e1,
+                                           const fer_net_edge_t *e2)
 {
     if (e1->n[0] == e2->n[0]){
         if (e1->n[1] == e2->n[1])
@@ -87,18 +87,18 @@ _fer_inline int gannNetEdgeTriCheckCommon(const gann_net_edge_t *e1,
     return 1;
 }
 
-int gannNetEdgeTriCheck(const gann_net_edge_t *e1,
-                        const gann_net_edge_t *e2,
-                        const gann_net_edge_t *e3)
+int ferNetEdgeTriCheck(const fer_net_edge_t *e1,
+                        const fer_net_edge_t *e2,
+                        const fer_net_edge_t *e3)
 {
     // 1) Any two edges must have exactly one common node.
     // 2) Start and end vertices must differ (within one edge)
     // I think that if these two preconditions hold then it is certain that
     // edges form triangle.
 
-    return gannNetEdgeTriCheckCommon(e1, e2)
-                && gannNetEdgeTriCheckCommon(e1, e3)
-                && gannNetEdgeTriCheckCommon(e2, e3);
+    return ferNetEdgeTriCheckCommon(e1, e2)
+                && ferNetEdgeTriCheckCommon(e1, e3)
+                && ferNetEdgeTriCheckCommon(e2, e3);
 }
 
 
@@ -106,10 +106,10 @@ int gannNetEdgeTriCheck(const gann_net_edge_t *e1,
 
 
 
-gann_net_t *gannNetNew(void)
+fer_net_t *ferNetNew(void)
 {
-    gann_net_t *m;
-    m = FER_ALLOC(gann_net_t);
+    fer_net_t *m;
+    m = FER_ALLOC(fer_net_t);
 
     ferListInit(&m->nodes);
     m->nodes_len = 0;
@@ -119,24 +119,24 @@ gann_net_t *gannNetNew(void)
     return m;
 }
 
-void gannNetDel(gann_net_t *m)
+void ferNetDel(fer_net_t *m)
 {
-    gannNetDel2(m, NULL, NULL, NULL, NULL);
+    ferNetDel2(m, NULL, NULL, NULL, NULL);
 }
 
-void gannNetDel2(gann_net_t *m,
-                  void (*delnode)(gann_net_node_t *, void *), void *vdata,
-                  void (*deledge)(gann_net_edge_t *, void *), void *edata)
+void ferNetDel2(fer_net_t *m,
+                  void (*delnode)(fer_net_node_t *, void *), void *vdata,
+                  void (*deledge)(fer_net_edge_t *, void *), void *edata)
 {
-    gann_net_node_t *v;
-    gann_net_edge_t *e;
+    fer_net_node_t *v;
+    fer_net_edge_t *e;
     fer_list_t *item;
 
     // disedgeect all edges
     while (!ferListEmpty(&m->edges)){
         item = ferListNext(&m->edges);
-        e = ferListEntry(item, gann_net_edge_t, list);
-        gannNetRemoveEdge(m, e);
+        e = ferListEntry(item, fer_net_edge_t, list);
+        ferNetRemoveEdge(m, e);
 
         if (deledge){
             deledge(e, edata);
@@ -146,8 +146,8 @@ void gannNetDel2(gann_net_t *m,
     // disedgeect all vertices
     while (!ferListEmpty(&m->nodes)){
         item = ferListNext(&m->nodes);
-        v = ferListEntry(item, gann_net_node_t, list);
-        gannNetRemoveNode(m, v);
+        v = ferListEntry(item, fer_net_node_t, list);
+        ferNetRemoveNode(m, v);
 
         if (delnode){
             delnode(v, vdata);
@@ -157,7 +157,7 @@ void gannNetDel2(gann_net_t *m,
     free(m);
 }
 
-void gannNetAddNode(gann_net_t *m, gann_net_node_t *v)
+void ferNetAddNode(fer_net_t *m, fer_net_node_t *v)
 {
     ferListAppend(&m->nodes, &v->list);
     m->nodes_len++;
@@ -166,7 +166,7 @@ void gannNetAddNode(gann_net_t *m, gann_net_node_t *v)
     v->edges_len = 0;
 }
 
-int gannNetRemoveNode(gann_net_t *m, gann_net_node_t *v)
+int ferNetRemoveNode(fer_net_t *m, fer_net_node_t *v)
 {
     if (!ferListEmpty(&v->edges))
         return -1;
@@ -176,8 +176,8 @@ int gannNetRemoveNode(gann_net_t *m, gann_net_node_t *v)
     return 0;
 }
 
-void gannNetAddEdge(gann_net_t *m, gann_net_edge_t *e,
-                     gann_net_node_t *start, gann_net_node_t *end)
+void ferNetAddEdge(fer_net_t *m, fer_net_edge_t *e,
+                     fer_net_node_t *start, fer_net_node_t *end)
 {
     // assign start and end point
     e->n[0] = start;
@@ -196,7 +196,7 @@ void gannNetAddEdge(gann_net_t *m, gann_net_edge_t *e,
     m->edges_len++;
 }
 
-void gannNetRemoveEdge(gann_net_t *m, gann_net_edge_t *e)
+void ferNetRemoveEdge(fer_net_t *m, fer_net_edge_t *e)
 {
     // remove edge from lists in vertices
     ferListDel(ferListMAsList(&e->nlist[0]));

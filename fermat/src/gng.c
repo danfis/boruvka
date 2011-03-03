@@ -14,7 +14,7 @@
  *  See the License for more information.
  */
 
-#include <gann/gng.h>
+#include <fermat/gng.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
@@ -23,15 +23,15 @@
 #include "gng-algorithm.c"
 
 /** Delete callbacks */
-static void nodeFinalDel(gann_net_node_t *node, void *data);
-static void delEdge(gann_net_edge_t *edge, void *data);
+static void nodeFinalDel(fer_net_node_t *node, void *data);
+static void delEdge(fer_net_edge_t *edge, void *data);
 
-void gannGNGOpsInit(gann_gng_ops_t *ops)
+void ferGNGOpsInit(fer_gng_ops_t *ops)
 {
-    bzero(ops, sizeof(gann_gng_ops_t));
+    bzero(ops, sizeof(fer_gng_ops_t));
 }
 
-void gannGNGParamsInit(gann_gng_params_t *params)
+void ferGNGParamsInit(fer_gng_params_t *params)
 {
     params->lambda  = 200;
     params->eb      = 0.05;
@@ -42,14 +42,14 @@ void gannGNGParamsInit(gann_gng_params_t *params)
 }
 
 
-gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
-                       const gann_gng_params_t *params)
+fer_gng_t *ferGNGNew(const fer_gng_ops_t *ops,
+                     const fer_gng_params_t *params)
 {
-    gann_gng_t *gng;
+    fer_gng_t *gng;
 
-    gng = FER_ALLOC(gann_gng_t);
+    gng = FER_ALLOC(fer_gng_t);
 
-    gng->net = gannNetNew();
+    gng->net = ferNetNew();
 
     gng->ops    = *ops;
     gng->params = *params;
@@ -81,13 +81,13 @@ gann_gng_t *gannGNGNew(const gann_gng_ops_t *ops,
     return gng;
 }
 
-void gannGNGDel(gann_gng_t *gng)
+void ferGNGDel(fer_gng_t *gng)
 {
     if (gng->beta_n)
         free(gng->beta_n);
 
     if (gng->net){
-        gannNetDel2(gng->net, nodeFinalDel, gng,
+        ferNetDel2(gng->net, nodeFinalDel, gng,
                               delEdge, gng);
     }
 
@@ -95,27 +95,27 @@ void gannGNGDel(gann_gng_t *gng)
 }
 
 
-void gannGNGRun(gann_gng_t *gng)
+void ferGNGRun(fer_gng_t *gng)
 {
-    _gannGNGRun(gng);
+    _ferGNGRun(gng);
 }
 
-gann_gng_node_t *gannGNGConnectNewNode(gann_gng_t *gng, const void *is)
+fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
 {
-    return _gannGNGConnectNewNode(gng, is);
+    return _ferGNGConnectNewNode(gng, is);
 }
 
 
-static void nodeFinalDel(gann_net_node_t *node, void *data)
+static void nodeFinalDel(fer_net_node_t *node, void *data)
 {
-    gann_gng_t *gng = (gann_gng_t *)data;
-    gann_gng_node_t *n;
+    fer_gng_t *gng = (fer_gng_t *)data;
+    fer_gng_node_t *n;
 
-    n = fer_container_of(node, gann_gng_node_t, node);
+    n = fer_container_of(node, fer_gng_node_t, node);
     gng->ops.del_node(n, gng->ops.del_node_data);
 }
 
-static void delEdge(gann_net_edge_t *edge, void *data)
+static void delEdge(fer_net_edge_t *edge, void *data)
 {
     free(edge);
 }

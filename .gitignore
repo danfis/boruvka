@@ -9,6 +9,6 @@ fermat/fermat/pc[234].h
 fermat/fermat/cubes[234].h
 fermat/src/pc[234].c
 fermat/src/cubes[234].c
-gann/src/gng[23].c
-gann/gann/gng[23].h
-gann/bin/gng-[23]d-main.h
+fermat/src/gng[23].c
+fermat/fermat/gng[23].h
+fermat/bin/gng-[23]d-main.h

@@ -19,7 +19,9 @@
 CFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
-BIN_TARGETS = fer-gsrm fer-qdelaunay
+BIN_TARGETS  = fer-gsrm fer-qdelaunay
+BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
+BIN_TARGETS += fer-gngp
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -28,15 +30,18 @@ OBJS += mat4.o mat3.o
 OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
-OBJS += mesh3.o qhull.o
+OBJS += mesh3.o qhull.o net.o
 OBJS += fibo.o pairheap.o
 OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
+OBJS += gng.o gng2.o gng3.o
+OBJS += gng-plan.o
 
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
+HEADERS += gng2.h gng3.h
 
 OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
@@ -72,6 +77,11 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(SED) 's|`N`|3|g' <$< >$@
 %4.h: %N.h
 	$(SED) 's|`N`|4|g' <$< >$@
+
+%2d-main.c: %Nd-main.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3d-main.c: %Nd-main.c
+	$(SED) 's|`N`|3|g' <$< >$@
 
 %.h: fermat/config.h
 %.c: fermat/config.h

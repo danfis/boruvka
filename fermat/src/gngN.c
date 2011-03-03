@@ -15,43 +15,43 @@
  */
 
 #include <stdio.h>
-#include <gann/gng`N`.h>
+#include <fermat/gng`N`.h>
 #include <fermat/nearest-linear.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-/** Operations for gann_gng_ops_t struct */
-_fer_inline void gng`N`_init(gann_gng_node_t **n1, gann_gng_node_t **n2, void *_)
+/** Operations for fer_gng_ops_t struct */
+_fer_inline void gng`N`_init(fer_gng_node_t **n1, fer_gng_node_t **n2, void *_)
 {}
 
-_fer_inline gann_gng_node_t *gng`N`_new_node(const void *input_signal, void *);
+_fer_inline fer_gng_node_t *gng`N`_new_node(const void *input_signal, void *);
 
-_fer_inline gann_gng_node_t *gng`N`_new_node_between(const gann_gng_node_t *n1,
-                                                   const gann_gng_node_t *n2,
-                                                   void *);
+_fer_inline fer_gng_node_t *gng`N`_new_node_between(const fer_gng_node_t *n1,
+                                                    const fer_gng_node_t *n2,
+                                                    void *);
 
-static void gng`N`_del_node(gann_gng_node_t *n, void *);
+static void gng`N`_del_node(fer_gng_node_t *n, void *);
 
 _fer_inline const void *gng`N`_input_signal(void *);
 
 _fer_inline void gng`N`_nearest(const void *input_signal,
-                              gann_gng_node_t **n1,
-                              gann_gng_node_t **n2,
-                              void *);
+                               fer_gng_node_t **n1,
+                               fer_gng_node_t **n2,
+                               void *);
 _fer_inline void nearestLinear(const void *input_signal,
-                               gann_gng_node_t **n1,
-                               gann_gng_node_t **n2,
+                               fer_gng_node_t **n1,
+                               fer_gng_node_t **n2,
                                void *);
 _fer_inline void nearestCubes(const void *input_signal,
-                              gann_gng_node_t **n1,
-                              gann_gng_node_t **n2,
+                              fer_gng_node_t **n1,
+                              fer_gng_node_t **n2,
                               void *);
 
 _fer_inline fer_real_t gng`N`_dist2(const void *input_signal,
-                                  const gann_gng_node_t *node,
+                                  const fer_gng_node_t *node,
                                   void *);
 
-_fer_inline void gng`N`_move_towards(gann_gng_node_t *node,
+_fer_inline void gng`N`_move_towards(fer_gng_node_t *node,
                                    const void *input_signal,
                                    fer_real_t fraction, void *);
 
@@ -60,26 +60,26 @@ _fer_inline void gng`N`_move_towards(gann_gng_node_t *node,
 #define OPS_DATA(gng, name) (gng)->ops.name ## _data
 #include "gng-algorithm.c"
 
-void gannGNG`N`OpsInit(gann_gng`N`_ops_t *ops)
+void ferGNG`N`OpsInit(fer_gng`N`_ops_t *ops)
 {
-    bzero(ops, sizeof(gann_gng`N`_ops_t));
+    bzero(ops, sizeof(fer_gng`N`_ops_t));
 }
 
-void gannGNG`N`ParamsInit(gann_gng`N`_params_t *p)
+void ferGNG`N`ParamsInit(fer_gng`N`_params_t *p)
 {
-    gannGNGParamsInit(&p->gng);
+    ferGNGParamsInit(&p->gng);
 
     p->use_cubes = 1;
     p->num_cubes = 10000;
 }
 
-gann_gng`N`_t *gannGNG`N`New(const gann_gng`N`_ops_t *ops`N`,
-                         const gann_gng`N`_params_t *params)
+fer_gng`N`_t *ferGNG`N`New(const fer_gng`N`_ops_t *ops`N`,
+                         const fer_gng`N`_params_t *params)
 {
-    gann_gng`N`_t *gng;
-    gann_gng_ops_t ops;
+    fer_gng`N`_t *gng;
+    fer_gng_ops_t ops;
 
-    gng = FER_ALLOC(gann_gng`N`_t);
+    gng = FER_ALLOC(fer_gng`N`_t);
 
     gng->ops = *ops`N`;
     gng->params = *params;
@@ -90,7 +90,7 @@ gann_gng`N`_t *gannGNG`N`New(const gann_gng`N`_ops_t *ops`N`,
     if (!gng->ops.callback_data)
         gng->ops.callback_data = gng->ops.data;
 
-    gannGNGOpsInit(&ops);
+    ferGNGOpsInit(&ops);
     ops.del_node         = gng`N`_del_node;
     ops.data = gng;
 
@@ -100,7 +100,7 @@ gann_gng`N`_t *gannGNG`N`New(const gann_gng`N`_ops_t *ops`N`,
     ops.callback_period  = gng->ops.callback_period;
     ops.callback_data    = gng->ops.callback_data;
 
-    gng->gng = gannGNGNew(&ops, &gng->params.gng);
+    gng->gng = ferGNGNew(&ops, &gng->params.gng);
 
     gng->pc = ferPC`N`New();
 
@@ -110,10 +110,10 @@ gann_gng`N`_t *gannGNG`N`New(const gann_gng`N`_ops_t *ops`N`,
 }
 
 
-void gannGNG`N`Del(gann_gng`N`_t *gng)
+void ferGNG`N`Del(fer_gng`N`_t *gng)
 {
     ferPC`N`Del(gng->pc);
-    gannGNGDel(gng->gng);
+    ferGNGDel(gng->gng);
 
     if (gng->cubes)
         ferCubes`N`Del(gng->cubes);
@@ -121,7 +121,7 @@ void gannGNG`N`Del(gann_gng`N`_t *gng)
     free(gng);
 }
 
-void gannGNG`N`Run(gann_gng`N`_t *gng)
+void ferGNG`N`Run(fer_gng`N`_t *gng)
 {
     const fer_real_t *aabb;
 
@@ -135,16 +135,16 @@ void gannGNG`N`Run(gann_gng`N`_t *gng)
         gng->cubes = ferCubes`N`New(aabb, gng->params.num_cubes);
     }
 
-    _gannGNGRun(gng->gng);
+    _ferGNGRun(gng->gng);
 }
 
 
-_fer_inline gann_gng_node_t *gng`N`_new_node(const void *input_signal, void *data)
+_fer_inline fer_gng_node_t *gng`N`_new_node(const void *input_signal, void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
-    gann_gng`N`_node_t *n;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
+    fer_gng`N`_node_t *n;
 
-    n = FER_ALLOC(gann_gng`N`_node_t);
+    n = FER_ALLOC(fer_gng`N`_node_t);
     n->w = ferVec`N`Clone((const fer_vec`N`_t *)input_signal);
 
     if (gng->params.use_cubes){
@@ -155,15 +155,15 @@ _fer_inline gann_gng_node_t *gng`N`_new_node(const void *input_signal, void *dat
     return &n->node;
 }
 
-_fer_inline gann_gng_node_t *gng`N`_new_node_between(const gann_gng_node_t *_n1,
-                                                   const gann_gng_node_t *_n2,
+_fer_inline fer_gng_node_t *gng`N`_new_node_between(const fer_gng_node_t *_n1,
+                                                   const fer_gng_node_t *_n2,
                                                    void *data)
 {
     fer_vec`N`_t w;
-    gann_gng`N`_node_t *n1, *n2;
+    fer_gng`N`_node_t *n1, *n2;
 
-    n1 = fer_container_of(_n1, gann_gng`N`_node_t, node);
-    n2 = fer_container_of(_n2, gann_gng`N`_node_t, node);
+    n1 = fer_container_of(_n1, fer_gng`N`_node_t, node);
+    n2 = fer_container_of(_n2, fer_gng`N`_node_t, node);
 
     ferVec`N`Add2(&w, n1->w, n2->w);
     ferVec`N`Scale(&w, FER_REAL(0.5));
@@ -171,12 +171,12 @@ _fer_inline gann_gng_node_t *gng`N`_new_node_between(const gann_gng_node_t *_n1,
     return gng`N`_new_node(&w, data);
 }
 
-static void gng`N`_del_node(gann_gng_node_t *_n, void *data)
+static void gng`N`_del_node(fer_gng_node_t *_n, void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
-    gann_gng`N`_node_t *n;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
+    fer_gng`N`_node_t *n;
 
-    n = fer_container_of(_n, gann_gng`N`_node_t, node);
+    n = fer_container_of(_n, fer_gng`N`_node_t, node);
 
     if (gng->params.use_cubes){
         ferCubes`N`Remove(gng->cubes, &n->cubes);
@@ -189,7 +189,7 @@ static void gng`N`_del_node(gann_gng_node_t *_n, void *data)
 
 _fer_inline const void *gng`N`_input_signal(void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
     const fer_vec`N`_t *v;
 
     if (ferPC`N`ItEnd(&gng->pcit)){
@@ -205,20 +205,20 @@ _fer_inline const void *gng`N`_input_signal(void *data)
 
 static fer_real_t dist22(void *is, fer_list_t *nlist)
 {
-    gann_gng_node_t *gn;
-    gann_gng`N`_node_t *n;
+    fer_gng_node_t *gn;
+    fer_gng`N`_node_t *n;
 
-    gn = gannGNGNodeFromList(nlist);
-    n = fer_container_of(gn, gann_gng`N`_node_t, node);
+    gn = ferGNGNodeFromList(nlist);
+    n = fer_container_of(gn, fer_gng`N`_node_t, node);
     return ferVec`N`Dist2((const fer_vec`N`_t *)is, n->w);
 }
 
 _fer_inline void gng`N`_nearest(const void *input_signal,
-                              gann_gng_node_t **n1,
-                              gann_gng_node_t **n2,
+                              fer_gng_node_t **n1,
+                              fer_gng_node_t **n2,
                               void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
 
     if (gng->params.use_cubes){
         nearestCubes(input_signal, n1, n2, data);
@@ -228,58 +228,58 @@ _fer_inline void gng`N`_nearest(const void *input_signal,
 }
 
 _fer_inline void nearestLinear(const void *input_signal,
-                               gann_gng_node_t **n1,
-                               gann_gng_node_t **n2,
+                               fer_gng_node_t **n1,
+                               fer_gng_node_t **n2,
                                void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
     fer_list_t *ns[2];
 
     ns[0] = ns[1] = NULL;
-    ferNearestLinear(gannGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2);
+    ferNearestLinear(ferGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2);
 
-    *n1 = gannGNGNodeFromList(ns[0]);
-    *n2 = gannGNGNodeFromList(ns[1]);
+    *n1 = ferGNGNodeFromList(ns[0]);
+    *n2 = ferGNGNodeFromList(ns[1]);
 }
 
 _fer_inline void nearestCubes(const void *input_signal,
-                              gann_gng_node_t **n1,
-                              gann_gng_node_t **n2,
+                              fer_gng_node_t **n1,
+                              fer_gng_node_t **n2,
                               void *data)
 {
     fer_cubes`N`_el_t *els[2];
-    gann_gng`N`_node_t *n;
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
+    fer_gng`N`_node_t *n;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
 
     *n1 = *n2 = NULL;
 
     ferCubes`N`Nearest(gng->cubes, (const fer_vec`N`_t *)input_signal, 2, els);
 
-    n = fer_container_of(els[0], gann_gng`N`_node_t, cubes);
+    n = fer_container_of(els[0], fer_gng`N`_node_t, cubes);
     *n1 = &n->node;
-    n = fer_container_of(els[1], gann_gng`N`_node_t, cubes);
+    n = fer_container_of(els[1], fer_gng`N`_node_t, cubes);
     *n2 = &n->node;
 }
 
 _fer_inline fer_real_t gng`N`_dist2(const void *input_signal,
-                                  const gann_gng_node_t *node,
+                                  const fer_gng_node_t *node,
                                   void *_)
 {
-    gann_gng`N`_node_t *n;
-    n = fer_container_of(node, gann_gng`N`_node_t, node);
+    fer_gng`N`_node_t *n;
+    n = fer_container_of(node, fer_gng`N`_node_t, node);
     return ferVec`N`Dist2((const fer_vec`N`_t *)input_signal, n->w);
 }
 
-_fer_inline void gng`N`_move_towards(gann_gng_node_t *node,
+_fer_inline void gng`N`_move_towards(fer_gng_node_t *node,
                                    const void *input_signal,
                                    fer_real_t fraction,
                                    void *data)
 {
-    gann_gng`N`_t *gng = (gann_gng`N`_t *)data;
-    gann_gng`N`_node_t *n;
+    fer_gng`N`_t *gng = (fer_gng`N`_t *)data;
+    fer_gng`N`_node_t *n;
     fer_vec`N`_t move;
 
-    n = fer_container_of(node, gann_gng`N`_node_t, node);
+    n = fer_container_of(node, fer_gng`N`_node_t, node);
     ferVec`N`Sub2(&move, (const fer_vec`N`_t *)input_signal, n->w);
     ferVec`N`Scale(&move, fraction);
     ferVec`N`Add(n->w, &move);
@@ -289,13 +289,13 @@ _fer_inline void gng`N`_move_towards(gann_gng_node_t *node,
     }
 }
 
-void gannGNG`N`DumpSVT(gann_gng`N`_t *gng, FILE *out, const char *name)
+void ferGNG`N`DumpSVT(fer_gng`N`_t *gng, FILE *out, const char *name)
 {
     fer_list_t *list, *item;
-    gann_net_node_t *nn;
-    gann_gng_node_t *gn;
-    gann_net_edge_t *e;
-    gann_gng`N`_node_t *n;
+    fer_net_node_t *nn;
+    fer_gng_node_t *gn;
+    fer_net_edge_t *e;
+    fer_gng`N`_node_t *n;
     size_t i, id1, id2;
 
     fprintf(out, "--------\n");
@@ -304,11 +304,11 @@ void gannGNG`N`DumpSVT(gann_gng`N`_t *gng, FILE *out, const char *name)
         fprintf(out, "Name: %s\n", name);
 
     fprintf(out, "Points:\n");
-    list = gannGNGNodes(gng->gng);
+    list = ferGNGNodes(gng->gng);
     i = 0;
     ferListForEach(list, item){
-        gn = gannGNGNodeFromList(item);
-        n  = gannGNG`N`NodeFromGNG(gn);
+        gn = ferGNGNodeFromList(item);
+        n  = ferGNG`N`NodeFromGNG(gn);
 
         n->_id = i++;
         ferVec`N`Print(n->w, out);
@@ -317,16 +317,16 @@ void gannGNG`N`DumpSVT(gann_gng`N`_t *gng, FILE *out, const char *name)
 
 
     fprintf(out, "Edges:\n");
-    list = gannGNGEdges(gng->gng);
+    list = ferGNGEdges(gng->gng);
     ferListForEach(list, item){
-        e = ferListEntry(item, gann_net_edge_t, list);
+        e = ferListEntry(item, fer_net_edge_t, list);
 
-        nn = gannNetEdgeNode(e, 0);
-        n  = gannGNG`N`NodeFromNet(nn);
+        nn = ferNetEdgeNode(e, 0);
+        n  = ferGNG`N`NodeFromNet(nn);
         id1 = n->_id;
 
-        nn = gannNetEdgeNode(e, 1);
-        n  = gannGNG`N`NodeFromNet(nn);
+        nn = ferNetEdgeNode(e, 1);
+        n  = ferGNG`N`NodeFromNet(nn);
         id2 = n->_id;
         fprintf(out, "%d %d\n", id1, id2);
     }

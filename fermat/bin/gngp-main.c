@@ -2,12 +2,12 @@
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
 #include <fermat/rand-mt.h>
-#include <gann/gng-plan.h>
+#include <fermat/gng-plan.h>
 
 struct _params_t {
     size_t max_nodes;
     size_t find_path;
-    gann_gngp_t *gng;
+    fer_gngp_t *gng;
     fer_timer_t timer;
 
     fer_vec2_t start, goal;
@@ -28,9 +28,9 @@ static void printPath(fer_list_t *path, FILE *out);
 
 int main(int argc, char *argv[])
 {
-    gann_gngp_params_t params;
-    gann_gngp_ops_t ops;
-    gann_gngp_t *gng;
+    fer_gngp_params_t params;
+    fer_gngp_ops_t ops;
+    fer_gngp_t *gng;
     params_t p;
 
     if (argc < 3){
@@ -38,9 +38,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    gannGNGPParamsInit(&params);
+    ferGNGPParamsInit(&params);
 
-    gannGNGPOpsInit(&ops);
+    ferGNGPOpsInit(&ops);
     ops.terminate    = terminate;
     ops.input_signal = inputSignal;
     ops.eval         = eval;
@@ -63,23 +63,23 @@ int main(int argc, char *argv[])
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&p.goal, FER_REAL(1.5), FER_REAL(4.5));
 
-    gng = gannGNGPNew(&ops, &params);
+    gng = ferGNGPNew(&ops, &params);
     p.gng = gng;
 
     ferTimerStart(&p.timer);
     callback(&p);
-    gannGNGPRun(gng);
+    ferGNGPRun(gng);
     callback(&p);
     fprintf(stderr, "\n");
     fprintf(stderr, "Evals: %ld\n", p.evals);
 
-    gannGNGPDumpSVT(gng, stdout, NULL);
+    ferGNGPDumpSVT(gng, stdout, NULL);
     fprintf(stdout, "# ");
     ferTimerStopAndPrintElapsed(&p.timer, stdout, " n: %d / %d\n",
-                                gannGNGPNodesLen(p.gng), p.max_nodes);
+                                ferGNGPNodesLen(p.gng), p.max_nodes);
     fprintf(stdout, "# Evals: %ld\n", p.evals);
 
-    gannGNGPDel(gng);
+    ferGNGPDel(gng);
 
     ferRandMTDel(p.rand);
 
@@ -95,20 +95,20 @@ static int terminate(void *data)
     int res;
     fer_list_t path;
 
-    if (gannGNGPNodesLen(p->gng) > p->find_path
-            && gannGNGPNodesLen(p->gng) % p->find_path == 0){
+    if (ferGNGPNodesLen(p->gng) > p->find_path
+            && ferGNGPNodesLen(p->gng) % p->find_path == 0){
         ferListInit(&path);
-        res = gannGNGPFindPath(p->gng, &p->start, &p->goal, &path);
+        res = ferGNGPFindPath(p->gng, &p->start, &p->goal, &path);
         if (res == 0){
             fprintf(stderr, "\n");
             fprintf(stderr, "Path found. Nodes: %d\n",
-                    (int)gannGNGPNodesLen(p->gng));
+                    (int)ferGNGPNodesLen(p->gng));
             printPath(&path, stdout);
             return 1;
         }
     }
 
-    return gannGNGPNodesLen(p->gng) >= p->max_nodes;
+    return ferGNGPNodesLen(p->gng) >= p->max_nodes;
 }
 
 static void callback(void *data)
@@ -118,11 +118,11 @@ static void callback(void *data)
     FILE *fout;
     char fn[1000];
 
-    nodes_len = gannGNGPNodesLen(p->gng);
+    nodes_len = ferGNGPNodesLen(p->gng);
 
-    sprintf(fn, "out/%010d.svt", gannGNGPNodesLen(p->gng));
+    sprintf(fn, "out/%010d.svt", ferGNGPNodesLen(p->gng));
     fout = fopen(fn, "w");
-    gannGNGPDumpSVT(p->gng, fout, NULL);
+    ferGNGPDumpSVT(p->gng, fout, NULL);
     fclose(fout);
 
     ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
@@ -151,15 +151,15 @@ static int eval(const fer_vec2_t *w, void *data)
     if (y < -2
             || (y < 4 && y > -2 && x > -0.05 && x < 0.05)
             || (y > 4 && x > -2 && x < 2)){
-        return GANN_GNGP_FREE;
+        return FER_GNGP_FREE;
     }
-    return GANN_GNGP_OBST;
+    return FER_GNGP_OBST;
 }
 
 static void printPath(fer_list_t *path, FILE *out)
 {
     fer_list_t *item;
-    gann_gngp_node_t *n;
+    fer_gngp_node_t *n;
     size_t id;
 
     fprintf(out, "------\n");
@@ -169,7 +169,7 @@ static void printPath(fer_list_t *path, FILE *out)
 
     fprintf(out, "Points:\n");
     ferListForEach(path, item){
-        n = ferListEntry(item, gann_gngp_node_t, path);
+        n = ferListEntry(item, fer_gngp_node_t, path);
         ferVec2Print(&n->w, out);
         fprintf(out, "\n");
     }
@@ -180,7 +180,7 @@ static void printPath(fer_list_t *path, FILE *out)
         if (ferListNext(item) == path)
             break;
 
-        n = ferListEntry(item, gann_gngp_node_t, path);
+        n = ferListEntry(item, fer_gngp_node_t, path);
         fprintf(out, "%d %d\n", id, id + 1);
         id++;
     }
