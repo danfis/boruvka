@@ -36,7 +36,7 @@ OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
-OBJS += gng-plan.o
+OBJS += gng-plan.o prm.o
 
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
