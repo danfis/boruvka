@@ -27,6 +27,8 @@ struct _alg_t {
     fer_vec2_t start, goal;
 
     size_t max_nodes;
+
+    unsigned long evals;
 };
 typedef struct _alg_t alg_t;
 
@@ -72,6 +74,7 @@ int main(int argc, char *argv[])
     alg.max_nodes = atoi(argv[1]);
     ferVec2Set(&alg.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&alg.goal, FER_REAL(1.5), FER_REAL(4.5));
+    alg.evals = 0;
 
     alg.rand = ferRandMTNewAuto();
 
@@ -102,6 +105,9 @@ int main(int argc, char *argv[])
 
     ferPRMDel(alg.prm);
     ferRandMTDel(alg.rand);
+    
+    fprintf(stderr, "Evals: %ld\n", alg.evals);
+    fprintf(stdout, "# Evals: %ld\n", alg.evals);
 
     return 0;
 }
@@ -139,13 +145,13 @@ static const fer_vec_t *conf(void *data)
 
 static int eval(const fer_vec_t *conf, void *data)
 {
-    //alg_t *alg = (alg_t *)data;
+    alg_t *alg = (alg_t *)data;
     fer_real_t x, y;
 
     x = ferVecGet(conf, 0);
     y = ferVecGet(conf, 1);
 
-    //p->evals += 1L;
+    alg->evals += 1L;
 
     if (y < -2
             || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
