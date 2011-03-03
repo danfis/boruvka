@@ -5,10 +5,10 @@
 config.h
 fer-*
 gann-*
-fermat/fermat/pc[234].h
-fermat/fermat/cubes[234].h
-fermat/src/pc[234].c
-fermat/src/cubes[234].c
-fermat/src/gng[23].c
-fermat/fermat/gng[23].h
-fermat/bin/gng-[23]d-main.h
+fermat/pc[234].h
+fermat/cubes[234].h
+fermat/gng[23].h
+src/pc[234].c
+src/cubes[234].c
+src/gng[23].c
+bin/gng-[23]d-main.h

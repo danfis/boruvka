@@ -1,7 +1,7 @@
 ###
 # fermat
 # -------
-# Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
+# Copyright (c)2010-2011 Daniel Fiser <danfis@danfis.cz>
 #
 #  This file is part of fermat.
 #
@@ -16,35 +16,101 @@
 
 -include Makefile.include
 
-TARGETS = fermat gann
+CFLAGS += -I.
+LDFLAGS += -L. -lfermat -lm -lrt
 
-all: $(TARGETS)
+BIN_TARGETS  = fer-gsrm fer-qdelaunay
+BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
+BIN_TARGETS += fer-gngp
 
-fermat:
-	$(MAKE) -C fermat
+TARGETS = libfermat.a
+OBJS  = alloc.o timer.o parse.o
+OBJS += vec4.o vec3.o vec2.o vec.o
+OBJS += mat4.o mat3.o
+OBJS += pc2.o pc3.o pc4.o pc-internal.o
+OBJS += predicates.o
+OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
+OBJS += mesh3.o qhull.o net.o
+OBJS += fibo.o pairheap.o
+OBJS += dij.o
+OBJS += gsrm.o
+OBJS += rand-mt.o
+OBJS += gng.o gng2.o gng3.o
+OBJS += gng-plan.o
 
-gann: fermat
-	$(MAKE) -C gann
+# header files that must be generated
+HEADERS  = pc2.h pc3.h pc4.h
+HEADERS += cubes2.h cubes3.h
+HEADERS += gng2.h gng3.h
+
+OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
+HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
+BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
+
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
+
+libfermat.a: $(OBJS)
+	ar cr $@ $(OBJS)
+	ranlib $@
+
+fermat/config.h: fermat/config.h.m4
+	$(M4) $(CONFIG_FLAGS) $< >$@
+
+bin/fer-%: bin/%-main.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+.objs/%.o: src/%.c fermat/%.h fermat/config.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+.objs/%.o: src/%.c fermat/config.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+%2.c: %N.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.c: %N.c
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.c: %N.c
+	$(SED) 's|`N`|4|g' <$< >$@
+
+%2.h: %N.h
+	$(SED) 's|`N`|2|g' <$< >$@
+%3.h: %N.h
+	$(SED) 's|`N`|3|g' <$< >$@
+%4.h: %N.h
+	$(SED) 's|`N`|4|g' <$< >$@
+
+%2d-main.c: %Nd-main.c
+	$(SED) 's|`N`|2|g' <$< >$@
+%3d-main.c: %Nd-main.c
+	$(SED) 's|`N`|3|g' <$< >$@
+
+%.h: fermat/config.h
+%.c: fermat/config.h
 
 
-install: install-fermat install-gann
-install-fermat:
-	$(MAKE) -C fermat install
-install-gann:
-	$(MAKE) -C gann install
+install:
+	mkdir -p $(PREFIX)/$(INCLUDEDIR)/fermat
+	mkdir -p $(PREFIX)/$(LIBDIR)
+	cp -r fermat/* $(PREFIX)/$(INCLUDEDIR)/fermat/
+	cp libfermat.a $(PREFIX)/$(LIBDIR)
 
-clean: clean-fermat clean-gann
-clean-fermat:
-	$(MAKE) -C fermat clean
-clean-gann:
-	$(MAKE) -C gann clean
+clean:
+	rm -f $(OBJS)
+	rm -f $(TARGETS)
+	rm -f $(BIN_TARGETS)
+	rm -f fermat/config.h
+	rm -f fermat/pc{2,3,4}.h
+	rm -f src/pc{2,3,4}.c
+	rm -f fermat/cubes{2,3,4}.h
+	rm -f src/cubes{2,3,4}.c
+	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
-check: check-fermat
-check-fermat:
-	$(MAKE) -C fermat check
-check-valgrind: check-valgrind-fermat
-check-valgrind-fermat:
-	$(MAKE) -C fermat check-valgrind
+check:
+	$(MAKE) -C testsuites check
+check-valgrind:
+	$(MAKE) -C testsuites check-valgrind
+
+python:
+	$(MAKE) -C python
 
 
 help:
@@ -69,5 +135,4 @@ help:
 	@echo "    LIBDIR     - Directory where library will be installed (PREFIX/LIBDIR) (default: lib)"
 	@echo ""
 
-.PHONY: all fermat gann clean check check-valgrind help
-
+.PHONY: all clean check check-valgrind help
