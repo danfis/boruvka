@@ -178,3 +178,95 @@ TEST(nncellsNearest2)
 
     printf("------ nncellsNearest\n\n");
 }
+
+
+struct _el6_t {
+    FER_VEC(v, 6);
+    fer_nncells_el_t c;
+    fer_list_t list;
+};
+typedef struct _el6_t el6_t;
+
+static void el6New(el6_t *ns, size_t len, fer_list_t *head)
+{
+    size_t i, j;
+    fer_real_t v[6];
+
+    ferListInit(head);
+
+    for (i = 0; i < len; i++){
+        for (j = 0; j < 6; j++){
+            ferVecSet(ns[i].v, j, ferRand(&r, -10., 10.));
+        }
+
+        ferNNCellsElInit(&ns[i].c, ns[i].v);
+
+        ferListAppend(head, &ns[i].list);
+    }
+}
+
+static void el6Add(fer_nncells_t *cs, el6_t *ns, size_t len)
+{
+    size_t i;
+
+    for (i = 0; i < len; i++){
+        ferNNCellsAdd(cs, &ns[i].c);
+    }
+}
+
+static fer_real_t dist62(void *item1, fer_list_t *item2)
+{
+    el6_t *el2;
+    fer_vec_t *v;
+
+    v   = (fer_vec_t *)item1;
+    el2 = fer_container_of(item2, el6_t, list);
+    return ferVecDist2(6, v, el2->v);
+}
+
+TEST(nncellsNearest6)
+{
+    FER_VEC(v, 6);
+    fer_list_t head;
+    el6_t ns[N_LEN];
+    fer_nncells_el_t *nsc[5];
+    fer_list_t *nsl[5];
+    el6_t *near[10];
+    fer_nncells_t *cs;
+    fer_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
+    size_t num = 40000, i, j, k;
+    const size_t *dim;
+
+    printf("nncells6Nearest:\n");
+
+    cs = ferNNCellsNew(6, range, num);
+    el6New(ns, N_LEN, &head);
+    el6Add(cs, ns, N_LEN);
+
+
+    printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
+    printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
+    dim = ferNNCellsDim(cs);
+    printf("nncells2 dim: %d %d %d %d %d %d\n", dim[0], dim[1], dim[2], dim[3], dim[4], dim[5]);
+
+    for (k = 0; k < 5; k++){
+        for (i=0; i < N_LOOPS; i++){
+            for (j = 0; j < 6; j++){
+                ferVecSet(v, j, ferRand(&r, -10., 10.));
+            }
+
+            ferNNCellsNearest(cs, v, k + 1, nsc);
+            ferNearestLinear(&head, v, dist62, nsl, k + 1);
+
+            for (j = 0; j < k + 1; j++){
+                near[0] = fer_container_of(nsc[j], el6_t, c);
+                near[1] = ferListEntry(nsl[j], el6_t, list);
+                assertEquals(near[0], near[1]);
+            }
+        }
+    }
+
+    ferNNCellsDel(cs);
+
+    printf("------ nncells6Nearest\n\n");
+}

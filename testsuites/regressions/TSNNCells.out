@@ -10,3 +10,9 @@ nncells2 len: 49
 nncells2 dim: 7 7
 ------ nncellsNearest
 
+nncells6Nearest:
+cube size: 3.426812
+nncells2 len: 68040
+nncells2 dim: 6 6 5 6 7 9
+------ nncells6Nearest
+
