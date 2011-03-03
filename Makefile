@@ -21,7 +21,7 @@ LDFLAGS += -L. -lfermat -lm -lrt
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
-BIN_TARGETS += fer-gngp
+BIN_TARGETS += fer-gngp fer-prm-2d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o

@@ -20,6 +20,7 @@
 #include <fermat/vec.h>
 #include <fermat/net.h>
 #include <fermat/nncells.h>
+#include <fermat/dij.h>
 
 #define FER_PRM_FREE 1
 #define FER_PRM_OBST 2
@@ -150,6 +151,11 @@ struct _fer_prm_node_t {
     fer_prm_component_t *comp;
     fer_net_node_t node;
     fer_nncells_el_t cells;
+
+    fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
+    fer_list_t path;
+
+    int _id;
 };
 typedef struct _fer_prm_node_t fer_prm_node_t;
 
@@ -171,10 +177,24 @@ void ferPRMDel(fer_prm_t *prm);
 void ferPRMRun(fer_prm_t *prm);
 
 /**
+ * Tries to find path in net from start to goal.
+ * If path was found 0 is returned and argument list is filled by nodes
+ * representing path. Nodes are connected into this list by member .path.
+ * If path wasn't found -1 is returned.
+ */
+int ferPRMFindPath(fer_prm_t *prm,
+                   const fer_vec_t *start, const fer_vec_t *goal,
+                   fer_list_t *list);
+
+/**
  * Returns number of nodes in roadmap.
  */
 _fer_inline size_t ferPRMNodesLen(const fer_prm_t *prm);
 
+/**
+ * Dumps net in SVT format.
+ */
+void ferPRMDumpSVT(fer_prm_t *prm, FILE *out, const char *name);
 
 /**** INLINES ****/
 _fer_inline size_t ferPRMNodesLen(const fer_prm_t *prm)
