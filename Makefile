@@ -21,7 +21,7 @@ LDFLAGS += -L. -lfermat -lm -lrt
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
-BIN_TARGETS += fer-gngp fer-prm-2d
+BIN_TARGETS += fer-gngp fer-prm-2d fer-rrt-2d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -36,7 +36,7 @@ OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
-OBJS += gng-plan.o prm.o
+OBJS += gng-plan.o prm.o rrt.o
 
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
