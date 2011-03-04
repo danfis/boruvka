@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
     p.evals = 0L;
     p.max_nodes = atoi(argv[1]);
     p.find_path = atoi(argv[2]);
-    params.num_cells = p.max_nodes;
-    //params.num_cubes = 30000;
+    //params.num_cells = p.max_nodes;
+    params.num_cells = 50000;
     params.warm_start = p.find_path;
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&p.goal, FER_REAL(1.5), FER_REAL(4.5));
@@ -115,6 +115,7 @@ static void callback(void *data)
 {
     params_t *p = data;
     size_t nodes_len;
+    /*
     FILE *fout;
     char fn[1000];
 
@@ -124,7 +125,9 @@ static void callback(void *data)
     fout = fopen(fn, "w");
     ferGNGPDumpSVT(p->gng, fout, NULL);
     fclose(fout);
+    */
 
+    nodes_len = ferGNGPNodesLen(p->gng);
     ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
 }
 
@@ -149,7 +152,7 @@ static int eval(const fer_vec2_t *w, void *data)
     p->evals += 1L;
 
     if (y < -2
-            || (y < 4 && y > -2 && x > -0.05 && x < 0.05)
+            || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
             || (y > 4 && x > -2 && x < 2)){
         return FER_GNGP_FREE;
     }

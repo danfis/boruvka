@@ -27,6 +27,8 @@ struct _alg_t {
     fer_vec2_t start, goal;
 
     size_t max_nodes;
+    size_t find_path;
+    fer_real_t step;
 
     unsigned long evals;
 };
@@ -55,7 +57,7 @@ int main(int argc, char *argv[])
     ferPRMParamsInit(&params);
 
     params.d = 2;
-    params.max_dist = 0.001;
+    params.max_dist = 0.1;
     params.max_neighbors = 10;
     params.num_cells = 40000;
     params.aabb[0] = -5;
@@ -72,9 +74,11 @@ int main(int argc, char *argv[])
     ops.callback_period = 500;
 
     alg.max_nodes = atoi(argv[1]);
+    alg.find_path = 5000;
     ferVec2Set(&alg.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&alg.goal, FER_REAL(1.5), FER_REAL(4.5));
     alg.evals = 0;
+    alg.step = 0.01;
 
     alg.rand = ferRandMTNewAuto();
 
@@ -88,21 +92,6 @@ int main(int argc, char *argv[])
 
     ferPRMDumpSVT(alg.prm, stdout, "Result");
 
-    {
-        int res;
-        fer_list_t path;
-
-        ferListInit(&path);
-        res = ferPRMFindPath(alg.prm, (fer_vec_t *)&alg.start,
-                                      (fer_vec_t *)&alg.goal, &path);
-        if (res == 0){
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Path found. Nodes: %d\n",
-                    (int)ferPRMNodesLen(alg.prm));
-            printPath(&path, stdout);
-        }
-    }
-
     ferPRMDel(alg.prm);
     ferRandMTDel(alg.rand);
     
@@ -115,7 +104,27 @@ int main(int argc, char *argv[])
 static int terminate(void *data)
 {
     alg_t *alg = (alg_t *)data;
-    return ferPRMNodesLen(alg->prm) >= alg->max_nodes;
+    size_t nodes;
+    int res;
+    fer_list_t path;
+
+    nodes = ferPRMNodesLen(alg->prm);
+
+    if (nodes > alg->find_path && nodes % alg->find_path == 0){
+        ferListInit(&path);
+        res = ferPRMFindPath(alg->prm, (fer_vec_t *)&alg->start,
+                                       (fer_vec_t *)&alg->goal, &path);
+        if (res == 0){
+            fprintf(stderr, "\n");
+            fprintf(stderr, "Path found. Nodes: %d\n",
+                    (int)ferPRMNodesLen(alg->prm));
+            printPath(&path, stdout);
+
+            return 1;
+        }
+    }
+
+    return nodes >= alg->max_nodes;
 }
 
 static void callback(void *data)
@@ -165,7 +174,26 @@ static int eval(const fer_vec_t *conf, void *data)
 
 static int findPath(const fer_vec_t *c1, const fer_vec_t *c2, void *data)
 {
-    //alg_t *alg = (alg_t *)data;
+    alg_t *alg = (alg_t *)data;
+    FER_VEC(move, 2);
+    FER_VEC(c, 2);
+    fer_real_t step;
+    int ev;
+
+    ferVecCopy(2, c, c1);
+    ferVecSub2(2, move, c2, c1);
+    ferVecScale(2, move, alg->step);
+
+    step = alg->step;
+    while (step < FER_ONE){
+        ferVecAdd(2, c, move);
+
+        ev = eval(c, data);
+        if (ev != FER_PRM_FREE)
+            return 0;
+
+        step += alg->step;
+    }
 
     return 1;
 }
