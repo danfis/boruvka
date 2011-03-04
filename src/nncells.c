@@ -52,6 +52,8 @@ static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el);
 /** Bubble sort. Takes the last element in .els and bubble it towards
  *  smaller ones (according to .dist[] value). */
 static void nearestBubbleUp(struct fer_nncells_cache_t *c);
+/** Returns distance of initial border. */
+_fer_inline fer_real_t initBorder(fer_nncells_t *cs, const fer_vec_t *p);
 
 
 /** Converts position in cells to cell's ID */
@@ -114,6 +116,7 @@ fer_nncells_t *ferNNCellsNew(size_t d, const fer_real_t *bound, size_t num_cells
 
     // allocate array of cells
     c->cells = FER_ALLOC_ARR(fer_nncells_cell_t, c->cells_len);
+
     for (i = 0; i < c->cells_len; i++){
         cellInit(c, &c->cells[i], i);
     }
@@ -147,7 +150,7 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     size_t *center, *pos;
     fer_nncells_cell_t *cell;
     int radius;
-    fer_real_t border;
+    fer_real_t border, border2;
 
     if (ferNNCellsSize(cs) == 0)
         return 0;
@@ -164,8 +167,19 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     cell = &cs->cells[center_id];
     nearestInCell(cs, cell);
 
+    border  = initBorder(cs, p);
+    border2 = FER_CUBE(border);
+
     radius = 1;
     while (1){
+        // End searching if we have all points we wanted and the furthest
+        // one from them is before border, i.e. we are sure there is no
+        // nearest point in other cells.
+        if (cs->cache->len == cs->cache->max_len
+                && cs->cache->dist[cs->cache->len - 1] < border2){
+            break;
+        }
+
         if (cs->d == 2){
             if (nearestInRadius2(cs, radius, center, pos) != 0)
                 break;
@@ -174,18 +188,10 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
                 break;
         }
 
-        border = (fer_real_t)(radius) * cs->edge;
+        border += cs->edge;
         // border must be squared because internaly are distances managed
         // as squared distances
-        border *= border;
-
-        // End searching if we have all points we wanted and the furthest
-        // one from them is before border, i.e. we are sure there is no
-        // nearest point in other cells.
-        if (cs->cache->len == cs->cache->max_len
-                && cs->cache->dist[cs->cache->len - 1] < border){
-            break;
-        }
+        border2 = FER_CUBE(border);
 
         radius++;
     }
@@ -441,4 +447,33 @@ _fer_inline void __ferNNCellsIDToPos(const fer_nncells_t *cs, size_t id,
         pos[i] = id % cs->dim[i];
         id     = id / cs->dim[i];
     }
+}
+
+_fer_inline fer_real_t initBorder(fer_nncells_t *cs, const fer_vec_t *p)
+{
+    size_t i;
+    fer_real_t local, min, max;
+    fer_real_t f, b, border;
+
+    border = FER_REAL_MAX;
+
+    for (i = 0; i < cs->d; i++){
+        local = ferVecGet(p, i) + cs->shift[i];
+
+        f = local * ferRecp((fer_real_t)cs->edge);
+        min = f * cs->edge;
+        max = min + cs->edge;
+
+        b = local - min;
+        if (b < border)
+            border = b;
+
+        b = max - local;
+        if (b < border)
+            border = b;
+    }
+
+    if (border < FER_ZERO)
+        border = FER_ZERO;
+    return border;
 }

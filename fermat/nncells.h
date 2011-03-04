@@ -271,7 +271,7 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
         f *= ferRecp((fer_real_t)cs->edge);
 
         tmp = (size_t)f;
-        tmp = FER_MAX(f, 0);
+        tmp = FER_MAX(tmp, 0);
         tmp = FER_MIN(tmp, cs->dim[i] - 1);
 
         id  += tmp * mul;
