@@ -41,23 +41,29 @@ typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
  * -----------
  */
 struct _fer_nncells_params_t {
-    size_t d;         /*!< Dimension of space. Default: 2 */
-    size_t num_cells; /*!< Number of cells that should be created.
-                           Note that this is only initial guess - finite
-                           number of cells can be little bit more.
-                           If set to 0 this parameter is ignored and
-                           parameters .max_dens and .expand parameters are
-                           taken. Default: 10000 */
-    size_t max_dens;  /*!< Maximal densinty (i.e., #elements / #cells).
-                           If density exceeds this treshold number of cells
-                           is increased by .expand parameter. Default: 1 */
-    size_t expand;    /*!< How many cells are added if density exceeds
-                           .max_dens parameter. Default: 1000 */
-
-    fer_real_t *aabb; /*!< Axis aligned bounding box of space that should
-                           be covered by cells. A format is [xmin, xmax,
-                           ymin, ymax, ...], length of array must be
-                           2 * dimension. Default: NULL, i.e. must be set! */
+    size_t d;               /*!< Dimension of space. Default: 2 */
+    size_t num_cells;       /*!< Number of cells that should be created.
+                                 Note that this is only initial guess -
+                                 finite number of cells can be little bit
+                                 more.
+                                 If set to 0 this parameter is ignored and
+                                 parameters .max_dens and .expand
+                                 parameters are taken.
+                                 Default: 10000 */
+    size_t max_dens;        /*!< Maximal densinty (i.e., #elements / #cells).
+                                 If density exceeds this treshold number of
+                                 cells is increased by .expand parameter.
+                                 Default: 1 */
+    fer_real_t expand_rate; /*!< How fast is growing number of cells.
+                                 Everytime density of elements in cells
+                                 exceeds .max_dens .expand_rate times more
+                                 cells are allocated.
+                                 Default: 2. */ 
+    fer_real_t *aabb;       /*!< Axis aligned bounding box of space that
+                                 should be covered by cells. A format is
+                                 [xmin, xmax, ymin, ymax, ...], length of
+                                 array must be 2 * dimension.
+                                 Default: NULL, i.e. must be set! */
 };
 typedef struct _fer_nncells_params_t fer_nncells_params_t;
 
@@ -74,7 +80,7 @@ void ferNNCellsParamsInit(fer_nncells_params_t *p);
 struct _fer_nncells_t {
     size_t d;          /*!< Dimension of covered space */
     size_t max_dens;   /*!< Maximal density - see params.max_dens */
-    size_t expand;     /*!< See params.expand */
+    fer_real_t expand; /*!< See params.expand_rate */
     fer_real_t *shift; /*!< Shifting of points stored in cells.
                             For easiest navigation in cells, cells structure
                             is built from origin towards x, y, z axis.
@@ -89,6 +95,8 @@ struct _fer_nncells_t {
     fer_real_t edge;           /*!< Size of edge of one cell */
     fer_nncells_cell_t *cells; /*!< Array of all cells */
     size_t cells_len;          /*!< Length of .cells array */
+    size_t next_expand;        /*!< Treshold when number of cells should be
+                                    expanded */
 
     struct fer_nncells_cache_t *cache;
 };
@@ -217,6 +225,9 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
                                           const fer_vec_t *coords);
 
 
+/** Expands number of cells. This is function for internal use. Don't use it! */
+void __ferNNCellsExpand(fer_nncells_t *cs);
+
 /**** INLINES ****/
 _fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *coords)
 {
@@ -259,6 +270,9 @@ _fer_inline void ferNNCellsAdd(fer_nncells_t *cs, fer_nncells_el_t *el)
 
     el->cell_id = id;
     cs->num_els++;
+
+    if (cs->num_els >= cs->next_expand)
+        __ferNNCellsExpand(cs);
 }
 
 _fer_inline void ferNNCellsRemove(fer_nncells_t *cs, fer_nncells_el_t *el)

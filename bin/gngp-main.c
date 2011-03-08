@@ -55,7 +55,10 @@ int main(int argc, char *argv[])
     p.max_nodes = atoi(argv[1]);
     p.find_path = atoi(argv[2]);
     //params.num_cells = p.max_nodes;
-    params.cells.num_cells = 50000;
+    //params.cells.num_cells = 10000;
+    params.cells.num_cells = 0;
+    params.cells.max_dens  = 1;
+    params.cells.expand_rate = 2.;
     params.cells.aabb = aabb;
     params.warm_start = p.find_path;
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
@@ -150,7 +153,7 @@ static int eval(const fer_vec2_t *w, void *data)
     p->evals += 1L;
 
     if (y < -2
-            || (y < 4 && y > -2 && x > -0.05 && x < 0.05)
+            || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
             || (y > 4 && x > -2 && x < 2)){
         return FER_GNGP_FREE;
     }

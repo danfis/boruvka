@@ -70,11 +70,11 @@ _fer_inline void __ferNNCellsIDToPos(const fer_nncells_t *cs, size_t id,
 
 void ferNNCellsParamsInit(fer_nncells_params_t *p)
 {
-    p->d         = 2;
-    p->num_cells = 10000;
-    p->max_dens  = 1;
-    p->expand    = 1000;
-    p->aabb      = NULL;
+    p->d           = 2;
+    p->num_cells   = 10000;
+    p->max_dens    = 1;
+    p->expand_rate = FER_REAL(2.);
+    p->aabb        = NULL;
 }
 
 
@@ -88,11 +88,11 @@ fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
 
     c->d = params->d;
     if (params->num_cells > 0){
-        c->max_dens = params->max_dens;
-        c->expand   = params->expand;
-    }else{
         c->max_dens = 0;
-        c->expand   = 0;
+        c->expand   = FER_ZERO;
+    }else{
+        c->max_dens = params->max_dens;
+        c->expand   = params->expand_rate;
     }
 
     c->aabb = FER_ALLOC_ARR(fer_real_t, c->d * 2);
@@ -196,6 +196,37 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     return cs->cache->len;
 }
 
+void __ferNNCellsExpand(fer_nncells_t *cs)
+{
+    fer_nncells_cell_t *cells;
+    size_t i, cells_len;
+    fer_list_t *item;
+    fer_nncells_el_t *el;
+
+    // save old cells
+    cells     = cs->cells;
+    cells_len = cs->cells_len;
+
+    // create new cells
+    cs->num_els = 0;
+    cellsAlloc(cs, cells_len * cs->expand);
+
+    // copy elements from old cells to the new one
+    for (i = 0; i < cells_len; i++){
+        while (!ferListEmpty(&cells[i].list)){
+            item = ferListNext(&cells[i].list);
+            el   = ferListEntry(item, fer_nncells_el_t, list);
+            ferListDel(item);
+
+            ferNNCellsAdd(cs, el);
+        }
+    }
+
+    free(cells);
+
+    //DBG("cells: %d", (int)cs->cells_len);
+}
+
 static void cellsAlloc(fer_nncells_t *c, size_t num_cells)
 {
     size_t i;
@@ -237,6 +268,12 @@ static void cellsAlloc(fer_nncells_t *c, size_t num_cells)
 
     for (i = 0; i < c->cells_len; i++){
         cellInit(c, &c->cells[i], i);
+    }
+
+    if (c->max_dens == 0){
+        c->next_expand = (size_t)-1;
+    }else{
+        c->next_expand = c->cells_len * c->max_dens;
     }
 }
 
