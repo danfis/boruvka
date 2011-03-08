@@ -126,6 +126,8 @@ void ferNNCellsDel(fer_nncells_t *c)
         free(c->dim);
     if (c->shift)
         free(c->shift);
+    if (c->aabb)
+        free(c->aabb);
 
     if (c->cells){
         free(c->cells);

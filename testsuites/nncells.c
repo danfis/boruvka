@@ -19,9 +19,14 @@ TEST(nncellsTearDown)
 TEST(nncellsNew2)
 {
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_real_t bound[4] = { -3, 2, 1, 4 };
 
-    cs = ferNNCellsNew(2, bound, 10);
+    ferNNCellsParamsInit(&params);
+    params.d = 2;
+    params.aabb = bound;
+    params.num_cells = 10;
+    cs = ferNNCellsNew(&params);
     assertEquals(ferNNCellsD(cs), 2);
     assertEquals(ferNNCellsSize(cs), 0);
     ferNNCellsDel(cs);
@@ -38,6 +43,7 @@ TEST(nncellsEl2)
 {
     el_t n;
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_real_t range[6] = { -1., 1.,
                             -2., 2. };
     size_t num = 16;
@@ -48,7 +54,11 @@ TEST(nncellsEl2)
     ferVec2Set(&n.v, 0., 0.);
     ferNNCellsElInit(&n.c, (const fer_vec_t *)&n.v);
 
-    cs = ferNNCellsNew(2, range, num);
+    ferNNCellsParamsInit(&params);
+    params.d = 2;
+    params.aabb = range;
+    params.num_cells = num;
+    cs = ferNNCellsNew(&params);
 
     ferNNCellsAdd(cs, &n.c);
 
@@ -142,13 +152,20 @@ TEST(nncellsNearest2)
     fer_list_t *nsl[5];
     el_t *near[10];
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_real_t range[4] = { -9., 9., -11., 7. };
     size_t num = 40, i, j, k;
     const size_t *dim;
 
     printf("nncells2Nearest:\n");
 
-    cs = ferNNCellsNew(2, range, num);
+    ferNNCellsParamsInit(&params);
+    params.d = 2;
+    params.num_cells = 0;
+    params.max_dens = 1;
+    params.expand_rate = 2.;
+    params.aabb = range;
+    cs = ferNNCellsNew(&params);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, N_LEN, &head);
     elAdd(cs, ns, N_LEN);
@@ -233,13 +250,20 @@ TEST(nncellsNearest6)
     fer_list_t *nsl[5];
     el6_t *near[10];
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
     size_t num = 40000, i, j, k;
     const size_t *dim;
 
     printf("nncells6Nearest:\n");
 
-    cs = ferNNCellsNew(6, range, num);
+    ferNNCellsParamsInit(&params);
+    params.d = 6;
+    params.num_cells = 0;
+    params.max_dens = 1;
+    params.expand_rate = 2.;
+    params.aabb = range;
+    cs = ferNNCellsNew(&params);
     el6New(ns, N_LEN, &head);
     el6Add(cs, ns, N_LEN);
 

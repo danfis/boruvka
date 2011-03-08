@@ -71,6 +71,7 @@ static void testCorrect(void)
     fer_list_t *nsl[50];
     el_t *near[10];
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_cubes2_t *cs2;
     fer_real_t range[4] = { -15., 15., -18., 17. };
     size_t num = 500, i, j, k;
@@ -80,7 +81,13 @@ static void testCorrect(void)
 
     ns = (el_t *)malloc(sizeof(el_t) * arr_len);
 
-    cs = ferNNCellsNew(2, range, num);
+    ferNNCellsParamsInit(&params);
+    params.d = 2;
+    params.num_cells = 0;
+    params.max_dens = 1;
+    params.expand_rate = 2.;
+    params.aabb = range;
+    cs = ferNNCellsNew(&params);
     cs2 = ferCubes2New(range, num);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, arr_len, &head);
@@ -131,6 +138,7 @@ static void bench(void)
     fer_list_t *nsl[50];
     el_t *near[10];
     fer_nncells_t *cs;
+    fer_nncells_params_t params;
     fer_cubes2_t *cs2;
     fer_real_t range[4] = { -9., 9., -11., 7. };
     size_t num = 40, i, j, k;
@@ -141,7 +149,13 @@ static void bench(void)
 
     ns = (el_t *)malloc(sizeof(el_t) * arr_len);
 
-    cs = ferNNCellsNew(2, range, num);
+    ferNNCellsParamsInit(&params);
+    params.d = 2;
+    params.num_cells = 0;
+    params.max_dens = 1;
+    params.expand_rate = 2.;
+    params.aabb = range;
+    cs = ferNNCellsNew(&params);
     cs2 = ferCubes2New(range, num);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, arr_len, &head);
