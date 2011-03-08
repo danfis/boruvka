@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 {
     fer_rrt_ops_t ops;
     fer_rrt_params_t params;
+    fer_real_t aabb[4] = { -5, 5, -5, 5 };
     alg_t alg;
 
     if (argc != 2){
@@ -59,11 +60,8 @@ int main(int argc, char *argv[])
     ferRRTParamsInit(&params);
 
     params.d = 2;
-    params.num_cells = 40000;
-    params.aabb[0] = -5;
-    params.aabb[1] = 5;
-    params.aabb[2] = -5;
-    params.aabb[3] = 5;
+    params.cells.num_cells = 40000;
+    params.cells.aabb = aabb;
 
     ops.data      = &alg;
     ops.conf      = conf;
@@ -184,7 +182,7 @@ static int eval(const fer_vec2_t *conf, alg_t *alg)
     alg->evals += 1L;
 
     if (y < -2
-            || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
+            || (y < 4 && y > -2 && x > -0.15 && x < 0.15)
             || (y > 4 && x > -2 && x < 2)){
         //fprintf(stderr, "eval: FREE\n");
         return FER_RRT_FREE;

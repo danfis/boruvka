@@ -133,8 +133,7 @@ struct _fer_gngp_params_t {
 
     size_t warm_start;
 
-    size_t num_cells;
-    fer_real_t aabb[4];
+    fer_nncells_params_t cells;
 };
 typedef struct _fer_gngp_params_t fer_gngp_params_t;
 

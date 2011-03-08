@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 {
     fer_prm_ops_t ops;
     fer_prm_params_t params;
+    fer_real_t aabb[4] = { -5, 5, -5, 5 };
     alg_t alg;
 
     if (argc != 2){
@@ -59,11 +60,8 @@ int main(int argc, char *argv[])
     params.d = 2;
     params.max_dist = 0.1;
     params.max_neighbors = 10;
-    params.num_cells = 40000;
-    params.aabb[0] = -5;
-    params.aabb[1] = 5;
-    params.aabb[2] = -5;
-    params.aabb[3] = 5;
+    params.cells.num_cells = 40000;
+    params.cells.aabb = aabb;
 
     ops.data      = &alg;
     ops.conf      = conf;

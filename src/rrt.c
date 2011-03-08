@@ -38,17 +38,14 @@ void ferRRTParamsInit(fer_rrt_params_t *params)
 {
     params->d = 2;
 
-    params->num_cells = 10000;
-    params->aabb[0] = -FER_ONE;
-    params->aabb[1] =  FER_ONE;
-    params->aabb[2] = -FER_ONE;
-    params->aabb[3] =  FER_ONE;
+    ferNNCellsParamsInit(&params->cells);
 }
 
 fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
                      const fer_rrt_params_t *params)
 {
     fer_rrt_t *rrt;
+    fer_nncells_params_t pcells;
 
     rrt = FER_ALLOC(fer_rrt_t);
 
@@ -64,8 +61,10 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
         rrt->ops.callback_data = rrt->ops.data;
 
     rrt->net = ferNetNew();
-    rrt->cells = ferNNCellsNew(rrt->params.d, rrt->params.aabb,
-                               rrt->params.num_cells);
+
+    pcells   = params->cells;
+    pcells.d = params->d;
+    rrt->cells = ferNNCellsNew(&pcells);
 
     rrt->node_init = NULL;
     rrt->node_last = NULL;

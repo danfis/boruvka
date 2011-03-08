@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
     fer_gngp_ops_t ops;
     fer_gngp_t *gng;
     params_t p;
+    fer_real_t aabb[4] = { -5, 5, -5, 5 };
 
     if (argc < 3){
         fprintf(stderr, "Usage: %s max_nodes find_path_period\n", argv[0]);
@@ -49,16 +50,13 @@ int main(int argc, char *argv[])
     ops.data = &p;
 
     p.rand = ferRandMTNewAuto();
-    params.aabb[0] = -5;
-    params.aabb[1] = 5;
-    params.aabb[2] = -5;
-    params.aabb[3] = 5;
 
     p.evals = 0L;
     p.max_nodes = atoi(argv[1]);
     p.find_path = atoi(argv[2]);
     //params.num_cells = p.max_nodes;
-    params.num_cells = 50000;
+    params.cells.num_cells = 50000;
+    params.cells.aabb = aabb;
     params.warm_start = p.find_path;
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&p.goal, FER_REAL(1.5), FER_REAL(4.5));
@@ -152,7 +150,7 @@ static int eval(const fer_vec2_t *w, void *data)
     p->evals += 1L;
 
     if (y < -2
-            || (y < 4 && y > -2 && x > -0.01 && x < 0.01)
+            || (y < 4 && y > -2 && x > -0.05 && x < 0.05)
             || (y > 4 && x > -2 && x < 2)){
         return FER_GNGP_FREE;
     }

@@ -32,6 +32,8 @@ struct fer_nncells_cache_t {
 
 static void cellInit(fer_nncells_t *cs, fer_nncells_cell_t *c, size_t id);
 
+static void cellsAlloc(fer_nncells_t *cs, size_t num_cells);
+
 /** Initializes and destroys .cache member of fer_cubes`N`_t */
 static void cacheInit(fer_nncells_t *cs, fer_nncells_el_t **els,
                       size_t max_len, const fer_vec_t *p);
@@ -65,61 +67,53 @@ _fer_inline size_t __ferNNCellsPosToID2(const fer_nncells_t *cs,
 _fer_inline void __ferNNCellsIDToPos(const fer_nncells_t *cs, size_t id,
                                      size_t *pos);
 
-fer_nncells_t *ferNNCellsNew(size_t d, const fer_real_t *bound, size_t num_cells)
+
+void ferNNCellsParamsInit(fer_nncells_params_t *p)
+{
+    p->d         = 2;
+    p->num_cells = 10000;
+    p->max_dens  = 1;
+    p->expand    = 1000;
+    p->aabb      = NULL;
+}
+
+
+fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
 {
     size_t i;
     fer_nncells_t *c;
-    fer_real_t *fdim, volume;
 
     c = FER_ALLOC(fer_nncells_t);
     c->num_els = 0;
 
-    c->d = d;
+    c->d = params->d;
+    if (params->num_cells > 0){
+        c->max_dens = params->max_dens;
+        c->expand   = params->expand;
+    }else{
+        c->max_dens = 0;
+        c->expand   = 0;
+    }
+
+    c->aabb = FER_ALLOC_ARR(fer_real_t, c->d * 2);
+    for (i = 0; i < c->d * 2; i++){
+        c->aabb[i] = params->aabb[i];
+    }
 
     // Compute shifting
     c->shift = FER_ALLOC_ARR(fer_real_t, c->d);
     for (i = 0; i < c->d; i++){
-        c->shift[i] = -FER_ONE * bound[2 * i];
+        c->shift[i] = -FER_ONE * c->aabb[2 * i];
     }
 
-    // Compute dimensions of covered space and size of cell's edge
+
     c->dim = FER_ALLOC_ARR(size_t, c->d);
-    fdim   = FER_ALLOC_ARR(fer_real_t, c->d);
-
-    // dimensions and volume of space
-    volume = 1.;
-    for (i = 0; i < c->d; i++){
-        fdim[i] = FER_FABS(bound[2 * i + 1] - bound[2 * i]);
-        volume *= fdim[i];
+    if (params->num_cells > 0){
+        cellsAlloc(c, params->num_cells);
+    }else{
+        cellsAlloc(c, 1);
     }
 
-    // estimate volume of one cell
-    volume *= ferRecp(num_cells);
-
-    // set edge size as d'th root of volume
-    c->edge = FER_POW(volume, ferRecp(c->d));
-
-    // and finally compute number of cells along each axis
-    // there is addition of 1 to be sure that whole space will be mapped to
-    // cubes
-    for (i = 0; i < c->d; i++){
-        c->dim[i] = (size_t)(fdim[i] / c->edge) + (size_t)1;
-    }
-    free(fdim);
-
-
-    // compute number of cells
-    c->cells_len = c->dim[0];
-    for (i = 1; i < c->d; i++){
-        c->cells_len *= c->dim[i];
-    }
-
-    // allocate array of cells
-    c->cells = FER_ALLOC_ARR(fer_nncells_cell_t, c->cells_len);
-
-    for (i = 0; i < c->cells_len; i++){
-        cellInit(c, &c->cells[i], i);
-    }
 
     c->cache = NULL;
 
@@ -202,6 +196,49 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     return cs->cache->len;
 }
 
+static void cellsAlloc(fer_nncells_t *c, size_t num_cells)
+{
+    size_t i;
+    fer_real_t *fdim, volume;
+
+    // Compute dimensions of covered space and size of cell's edge
+    fdim   = FER_ALLOC_ARR(fer_real_t, c->d);
+
+    // dimensions and volume of space
+    volume = 1.;
+    for (i = 0; i < c->d; i++){
+        fdim[i] = FER_FABS(c->aabb[2 * i + 1] - c->aabb[2 * i]);
+        volume *= fdim[i];
+    }
+
+    // estimate volume of one cell
+    volume *= ferRecp(num_cells);
+
+    // set edge size as d'th root of volume
+    c->edge = FER_POW(volume, ferRecp(c->d));
+
+    // and finally compute number of cells along each axis
+    // there is addition of 1 to be sure that whole space will be mapped to
+    // cubes
+    for (i = 0; i < c->d; i++){
+        c->dim[i] = (size_t)(fdim[i] / c->edge) + (size_t)1;
+    }
+    free(fdim);
+
+
+    // compute number of cells
+    c->cells_len = c->dim[0];
+    for (i = 1; i < c->d; i++){
+        c->cells_len *= c->dim[i];
+    }
+
+    // allocate array of cells
+    c->cells = FER_ALLOC_ARR(fer_nncells_cell_t, c->cells_len);
+
+    for (i = 0; i < c->cells_len; i++){
+        cellInit(c, &c->cells[i], i);
+    }
+}
 
 
 static void cellInit(fer_nncells_t *cs, fer_nncells_cell_t *c, size_t id)

@@ -35,20 +35,58 @@ typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
  *
  * TODO: example
  */
-struct _fer_nncells_t {
-    size_t d;    /*!< Dimension of covered space */
-    size_t *dim; /*!< How many cells are along x, y, z, ... axis */
-    fer_real_t edge; /*!< Size of edge of one cell */
 
+/**
+ * Parameters
+ * -----------
+ */
+struct _fer_nncells_params_t {
+    size_t d;         /*!< Dimension of space. Default: 2 */
+    size_t num_cells; /*!< Number of cells that should be created.
+                           Note that this is only initial guess - finite
+                           number of cells can be little bit more.
+                           If set to 0 this parameter is ignored and
+                           parameters .max_dens and .expand parameters are
+                           taken. Default: 10000 */
+    size_t max_dens;  /*!< Maximal densinty (i.e., #elements / #cells).
+                           If density exceeds this treshold number of cells
+                           is increased by .expand parameter. Default: 1 */
+    size_t expand;    /*!< How many cells are added if density exceeds
+                           .max_dens parameter. Default: 1000 */
+
+    fer_real_t *aabb; /*!< Axis aligned bounding box of space that should
+                           be covered by cells. A format is [xmin, xmax,
+                           ymin, ymax, ...], length of array must be
+                           2 * dimension. Default: NULL, i.e. must be set! */
+};
+typedef struct _fer_nncells_params_t fer_nncells_params_t;
+
+/**
+ * Initializes params struct.
+ */
+void ferNNCellsParamsInit(fer_nncells_params_t *p);
+
+
+/**
+ * NNCells
+ * --------
+ */
+struct _fer_nncells_t {
+    size_t d;          /*!< Dimension of covered space */
+    size_t max_dens;   /*!< Maximal density - see params.max_dens */
+    size_t expand;     /*!< See params.expand */
     fer_real_t *shift; /*!< Shifting of points stored in cells.
                             For easiest navigation in cells, cells structure
                             is built from origin towards x, y, z axis.
                             This vector is always added to point coordinates
                             that are searched to move it into space covered by
                             cubes. */
+    fer_real_t *aabb;  /*!< Axis aligned bounding box of covered space */
 
     size_t num_els; /*!< Number of elements in cells */
 
+    size_t *dim;               /*!< How many cells are along x, y, ... axis */
+    fer_real_t edge;           /*!< Size of edge of one cell */
     fer_nncells_cell_t *cells; /*!< Array of all cells */
     size_t cells_len;          /*!< Length of .cells array */
 
@@ -87,16 +125,8 @@ _fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *coords)
 
 /**
  * Creates and initialize new nncells structure.
- *
- * First argument {d} is dimension of covered space.
- * Second argument {bound} is bounding box that should be covered by cells.
- * Format is [xmin, xmax, ymin, ymax, ... ] - length of this array must be,
- * obviously, 2 * {d}.
- * Third argument {num_cells} is number of cells that should be created.
- * Note that this is only initial guess - finite number of cells can be
- * little bit more.
  */
-fer_nncells_t *ferNNCellsNew(size_t d, const fer_real_t *bound, size_t num_cells);
+fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params);
 
 /**
  * Deletes nncells struct.

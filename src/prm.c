@@ -52,11 +52,7 @@ void ferPRMParamsInit(fer_prm_params_t *params)
     params->max_dist = 0.001;
     params->max_neighbors = 10;
 
-    params->num_cells = 10000;
-    params->aabb[0] = -FER_ONE;
-    params->aabb[1] =  FER_ONE;
-    params->aabb[2] = -FER_ONE;
-    params->aabb[3] =  FER_ONE;
+    ferNNCellsParamsInit(&params->cells);
 }
 
 
@@ -64,6 +60,7 @@ fer_prm_t *ferPRMNew(const fer_prm_ops_t *ops,
                      const fer_prm_params_t *params)
 {
     fer_prm_t *prm;
+    fer_nncells_params_t pcells;
 
     prm = FER_ALLOC(fer_prm_t);
 
@@ -81,8 +78,10 @@ fer_prm_t *ferPRMNew(const fer_prm_ops_t *ops,
         prm->ops.callback_data = prm->ops.data;
 
     prm->net = ferNetNew();
-    prm->cells = ferNNCellsNew(prm->params.d, prm->params.aabb,
-                               prm->params.num_cells);
+
+    pcells   = params->cells;
+    pcells.d = params->d;
+    prm->cells = ferNNCellsNew(&pcells);
 
     ferListInit(&prm->components);
 

@@ -113,8 +113,7 @@ struct _fer_prm_params_t {
     fer_real_t max_neighbors; /*!< Maximum number of calls of the local
                                    planner per node */
 
-    size_t num_cells;
-    fer_real_t aabb[4];
+    fer_nncells_params_t cells;
 };
 typedef struct _fer_prm_params_t fer_prm_params_t;
 

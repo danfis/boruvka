@@ -101,8 +101,7 @@ void ferRRTOpsInit(fer_rrt_ops_t *ops);
 struct _fer_rrt_params_t {
     int d; /*!< Dimension of problem */
 
-    size_t num_cells;
-    fer_real_t aabb[4];
+    fer_nncells_params_t cells;
 };
 typedef struct _fer_rrt_params_t fer_rrt_params_t;
 

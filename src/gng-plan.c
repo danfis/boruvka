@@ -88,22 +88,22 @@ void ferGNGPParamsInit(fer_gngp_params_t *params)
 
     params->warm_start = 5000;
 
-    params->num_cells = 10000;
-    params->aabb[0] = -FER_ONE;
-    params->aabb[1] =  FER_ONE;
-    params->aabb[2] = -FER_ONE;
-    params->aabb[3] =  FER_ONE;
+    ferNNCellsParamsInit(&params->cells);
 }
 
 fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
                        const fer_gngp_params_t *params)
 {
     fer_gngp_t *gng;
+    fer_nncells_params_t pcells;
 
     gng = FER_ALLOC(fer_gngp_t);
 
     gng->net   = ferNetNew();
-    gng->cells = ferNNCellsNew(2, params->aabb, params->num_cells);
+
+    pcells   = params->cells;
+    //pcells.d = params->d;
+    gng->cells = ferNNCellsNew(&pcells);
 
     gng->params = *params;
     gng->beta_n = NULL;
