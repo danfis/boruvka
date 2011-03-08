@@ -611,7 +611,7 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
         node = ferNetEdgeOtherNode(edge, &n->node);
         o    = fer_container_of(node, fer_gngp_node_t, node);
 
-        if (!ferDijNodeClosed(&o->dij)){
+        if (!ferDijNodeClosed(&o->dij) && o->set == n->set){
             ferDijNodeAdd(&o->dij, expand);
         }
     }
