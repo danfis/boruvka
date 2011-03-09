@@ -61,6 +61,9 @@ int main(int argc, char *argv[])
     params.cells.expand_rate = 2.;
     params.cells.aabb = aabb;
     params.warm_start = p.find_path;
+    params.alpha = 0.;
+    params.beta  = 1.;
+    params.lambda = 200;
     ferVec2Set(&p.start, FER_REAL(-4.), FER_REAL(-4.));
     ferVec2Set(&p.goal, FER_REAL(1.5), FER_REAL(4.5));
 

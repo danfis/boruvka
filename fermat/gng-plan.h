@@ -41,8 +41,8 @@ struct _fer_gngp_node_t {
     int evaled;      /*!< Marks nodes that were already evalueated - used
                           internally */
 
-    fer_real_t err_local; /*!< Local error */
-    fer_real_t err;       /*!< Overall error */
+    fer_real_t err;      /*!< Error counter */
+    unsigned long cycle; /*!< Last cycle in which were .err changed */
 
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
@@ -157,8 +157,15 @@ struct _fer_gngp_t {
     fer_gngp_params_t params;
 
     fer_real_t *beta_n; /*!< Precomputed beta^n for n = 1, ..., lambda */
+    fer_real_t *beta_lambda_n; /*!< Precomputed beta^(n*lambda) for
+                                    n = 1, ..., .beta_lambda_n_len */
+    size_t beta_lambda_n_len;
 
     size_t set_size[3]; /*!< Holds size of sets NONE, FREE, OBST */
+
+    size_t step;
+    unsigned long cycle;          /*!< Number of cycle */
+    fer_gngp_node_t *max1, *max2; /*!< First and second node with max error */
 };
 typedef struct _fer_gngp_t fer_gngp_t;
 

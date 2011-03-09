@@ -23,7 +23,7 @@
 static void init(fer_gngp_t *gng);
 /** Adapts net to input signal number of step (1, ..., lambda) must be
  *  provided */
-static void adapt(fer_gngp_t *gng, size_t step);
+static void adapt(fer_gngp_t *gng);
 /** Adds new node into net */
 static void newNode(fer_gngp_t *gng);
 /** Finds two nearest nodes to given input signal */
@@ -37,7 +37,7 @@ static void learn(fer_gngp_t *gng, size_t step,
 /** Returns node with highest error */
 static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng);
 /** Returns node's neighbor with highest error */
-static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_node_t *n);
+static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_t *gng, fer_gngp_node_t *n);
 /** Cuts subnet containing given node */
 static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m);
 /** Creates new node at given position and connects it between two nearest
@@ -62,7 +62,10 @@ static void nodeDel(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void nodeDelWithEdges(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void nodeChangeSet(fer_gngp_t *gng, fer_gngp_node_t *n, int set);
 static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
-                            const fer_vec2_t *to, fer_real_t frac);
+                            const fer_vec2_t *to, fer_real_t frac,
+                            int incerr);
+_fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n);
+_fer_inline void nodeCheckError(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void netNodeDel(fer_net_node_t *n, void *);
 
 /*** Edge functions ***/
@@ -107,6 +110,7 @@ fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
 
     gng->params = *params;
     gng->beta_n = NULL;
+    gng->beta_lambda_n = NULL;
 
     gng->ops = *ops;
     if (gng->ops.input_signal_data == NULL)
@@ -136,19 +140,24 @@ void ferGNGPDel(fer_gngp_t *gng)
 
     if (gng->beta_n)
         free(gng->beta_n);
+    if (gng->beta_lambda_n)
+        free(gng->beta_lambda_n);
 
     free(gng);
 }
 
 void ferGNGPRun(fer_gngp_t *gng)
 {
-    size_t step, cycle;
+    size_t cycle;
 
     cycle = 0;
     init(gng);
+
+    gng->cycle = 1L;
+    gng->max1 = gng->max2 = NULL;
     do {
-        for (step = 1; step <= gng->params.lambda; step++){
-            adapt(gng, step);
+        for (gng->step = 1; gng->step <= gng->params.lambda; gng->step++){
+            adapt(gng);
         }
         newNode(gng);
 
@@ -157,6 +166,8 @@ void ferGNGPRun(fer_gngp_t *gng)
             gng->ops.callback(gng->ops.callback_data);
             cycle = 0;
         }
+
+        gng->cycle++;
     } while (!gng->ops.terminate(gng->ops.terminate_data));
 }
 
@@ -242,6 +253,7 @@ static void init(fer_gngp_t *gng)
 {
     const fer_vec2_t *is;
     size_t i;
+    fer_real_t maxbeta;
 
     // precompute beta^n
     if (gng->beta_n)
@@ -253,6 +265,19 @@ static void init(fer_gngp_t *gng)
         gng->beta_n[i] = gng->beta_n[i - 1] * gng->params.beta;
     }
 
+    // precompute beta^(n * lambda)
+    if (gng->beta_lambda_n)
+        free(gng->beta_lambda_n);
+
+    maxbeta = gng->beta_n[gng->params.lambda - 1];
+
+    gng->beta_lambda_n_len = 1000;
+    gng->beta_lambda_n = FER_ALLOC_ARR(fer_real_t, gng->beta_lambda_n_len);
+    gng->beta_lambda_n[0] = maxbeta;
+    for (i = 1; i < gng->beta_lambda_n_len; i++){
+        gng->beta_lambda_n[i] = gng->beta_lambda_n[i - 1] * maxbeta;
+    }
+
     // create two initial nodes
     is = gng->ops.input_signal(gng->ops.input_signal_data);
     nodeNew(gng, is);
@@ -260,7 +285,7 @@ static void init(fer_gngp_t *gng)
     nodeNew(gng, is);
 }
 
-static void adapt(fer_gngp_t *gng, size_t step)
+static void adapt(fer_gngp_t *gng)
 {
     const fer_vec2_t *is;
     fer_gngp_node_t *n1 = NULL, *n2 = NULL;
@@ -293,15 +318,15 @@ static void adapt(fer_gngp_t *gng, size_t step)
         e->age = 0;
 
         // 3.3. Learn net around n1
-        learn(gng, step, n1, is);
+        learn(gng, gng->step, n1, is);
 
     }else{
         set = gng->ops.eval(is, gng->ops.eval_data);
 
         if (set == n1->set){
-            learn(gng, step, n1, is);
+            learn(gng, gng->step, n1, is);
         }else{
-            learn(gng, step, n2, is);
+            learn(gng, gng->step, n2, is);
         }
     }
 }
@@ -316,11 +341,14 @@ static void newNode(fer_gngp_t *gng)
 
     // 1. Get node with highest error and its neighbor with highest error
     n1 = nodeWithMaxErr(gng);
-    n2 = nodeNeighborWithMaxErr(n1);
+    n2 = nodeNeighborWithMaxErr(gng, n1);
     if (!n1 || !n2){
         DBG("%d", ferNetNodeEdgesLen(&n1->node));
         DBG("%lx %lx", (long)n1, (long)n2);
     }
+
+    gng->max1 = gng->max2;
+    gng->max2 = NULL;
 
     // 2. Create new node between n1 and n2
     ferVec2Add2(&w, &n1->w, &n2->w);
@@ -340,6 +368,9 @@ static void newNode(fer_gngp_t *gng)
     n2->err *= gng->params.alpha;
     m->err  = n1->err + n2->err;
     m->err /= FER_REAL(2.);
+    nodeCheckError(gng, n1);
+    nodeCheckError(gng, n2);
+    nodeCheckError(gng, m);
 
     if (ferNetNodesLen(gng->net) > gng->params.warm_start){
         // 5. Evaluate new node and set up its set properly
@@ -369,6 +400,9 @@ static void newNode(fer_gngp_t *gng)
 
             // set error of all nodes to same value
             n1->err = n2->err = m->err;
+            nodeCheckError(gng, n1);
+            nodeCheckError(gng, n2);
+            nodeCheckError(gng, m);
         }
     }
 }
@@ -403,7 +437,6 @@ static void learn(fer_gngp_t *gng, size_t step,
     fer_gngp_node_t *o;
     fer_net_edge_t *edge;
     fer_gngp_edge_t *e;
-    fer_real_t err;
 
 
     // increase age of all outgoing edges from n, move all neighbor nodes
@@ -429,7 +462,7 @@ static void learn(fer_gngp_t *gng, size_t step,
             }
         }else{
             // move o towards input signal
-            nodeMoveTowards(gng, o, is, gng->params.en);
+            nodeMoveTowards(gng, o, is, gng->params.en, 0);
         }
     }
 
@@ -437,12 +470,8 @@ static void learn(fer_gngp_t *gng, size_t step,
         // remove node if it's not connected into net anymore
         nodeDel(gng, n);
     }else{
-        // move node towards input signal
-        nodeMoveTowards(gng, n, is, gng->params.eb);
-
-        // update error counter of node n
-        err = ferVec2Dist2(&n->w, is);
-        n->err_local += err * gng->beta_n[gng->params.lambda - step];
+        // move node towards input signal and increase error
+        nodeMoveTowards(gng, n, is, gng->params.eb, 1);
     }
 }
 
@@ -454,6 +483,12 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
     fer_gngp_node_t *max_n;
     fer_real_t max_err;
 
+    if (gng->max2){
+        //DBG("max1: %g", gng->max1->err);
+        return gng->max1;
+    }
+    //DBG2("iter");
+
     max_err = -FER_ONE;
     max_n   = NULL;
 
@@ -463,9 +498,7 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
         n    = fer_container_of(node, fer_gngp_node_t, node);
 
         // fix error
-        n->err  = n->err * gng->beta_n[gng->params.lambda - 1];
-        n->err += n->err_local;
-        n->err_local = FER_ZERO;
+        nodeFixError(gng, n);
 
         // reset .evaled mark - we need this because of cutSubnet()
         n->evaled = 0;
@@ -479,7 +512,7 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
     return max_n;
 }
 
-static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_node_t *n)
+static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_t *gng, fer_gngp_node_t *n)
 {
     fer_list_t *list, *item;
     fer_net_node_t *other;
@@ -723,8 +756,8 @@ static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w)
     ferNNCellsElInit(&n->cells, ferVecFromVec2Const(&n->w));
     ferNNCellsAdd(gng->cells, &n->cells);
 
-    n->err_local = FER_ZERO;
-    n->err       = FER_ZERO;
+    n->err = FER_ZERO;
+    n->cycle = gng->cycle;
 
     ferNetAddNode(gng->net, &n->node);
 
@@ -770,14 +803,50 @@ static void nodeChangeSet(fer_gngp_t *gng, fer_gngp_node_t *n, int set)
 }
 
 static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
-                            const fer_vec2_t *to, fer_real_t frac)
+                            const fer_vec2_t *to, fer_real_t frac,
+                            int incerr)
 {
     fer_vec2_t move;
+    fer_real_t err;
 
     ferVec2Sub2(&move, to, &n->w);
     ferVec2Scale(&move, frac);
     ferVec2Add(&n->w, &move);
     ferNNCellsUpdate(gng->cells, &n->cells);
+
+    // increase error counter
+    if (incerr){
+        nodeFixError(gng, n);
+
+        err = ferVec2Dist2(&n->w, to);
+        n->err += err * gng->beta_n[gng->params.lambda - gng->step];
+
+        nodeCheckError(gng, n);
+    }
+}
+
+_fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n)
+{
+    unsigned long diff;
+
+    diff = gng->cycle - n->cycle;
+    if (diff > 0 && diff <= gng->beta_lambda_n_len){
+        n->err *= gng->beta_lambda_n[diff - 1];
+    }else if (diff > 0){
+        n->err *= gng->beta_lambda_n[gng->params.lambda - 1];
+
+        diff = diff - gng->beta_lambda_n_len;
+        n->err *= pow(gng->beta_n[gng->params.lambda - 1], diff);
+    }
+    n->cycle = gng->cycle;
+}
+
+_fer_inline void nodeCheckError(fer_gngp_t *gng, fer_gngp_node_t *n)
+{
+    if (!gng->max1 || n->err > gng->max1->err){
+        gng->max2 = gng->max1;
+        gng->max1 = n;
+    }
 }
 
 static void netNodeDel(fer_net_node_t *_n, void *_)
