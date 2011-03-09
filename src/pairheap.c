@@ -18,13 +18,14 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than)
+fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data)
 {
     fer_pairheap_t *ph;
 
     ph = FER_ALLOC(fer_pairheap_t);
     ferListInit(&ph->root);
     ph->lt = less_than;
+    ph->data = data;
 
     return ph;
 }
@@ -69,7 +70,7 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
         n2 = ferListEntry(item_next, fer_pairheap_node_t, list);
 
         // compare them
-        if (ph->lt(n1, n2)){ // n1 < n2
+        if (ph->lt(n1, n2, ph->data)){ // n1 < n2
             ferListDel(&n2->list);
             ferListAppend(&n1->children, &n2->list);
             item = ferListNext(&n1->list);
@@ -92,7 +93,7 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
         n1 = ferListEntry(item, fer_pairheap_node_t, list);
         n2 = ferListEntry(item_next, fer_pairheap_node_t, list);
 
-        if (ph->lt(n1, n2)){ // n1 < n2
+        if (ph->lt(n1, n2, ph->data)){ // n1 < n2
             ferListDel(&n2->list);
             ferListAppend(&n1->children, &n2->list);
         }else{

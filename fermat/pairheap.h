@@ -43,13 +43,16 @@ typedef struct _fer_pairheap_node_t fer_pairheap_node_t;
 /**
  * Callback that should return true if {n1} is smaller than {n2}.
  */
-typedef int (*fer_pairheap_lt)(const fer_pairheap_node_t *n1, const fer_pairheap_node_t *n2);
+typedef int (*fer_pairheap_lt)(const fer_pairheap_node_t *n1,
+                               const fer_pairheap_node_t *n2,
+                               void *data);
 
 struct _fer_pairheap_t {
     fer_list_t root; /*!< List of root nodes. In fact, pairing heap has
                           always one root node, but we need this to make
                           effecient (lazy) merging. */
     fer_pairheap_lt lt; /*!< "Less than" callback provided by user */
+    void *data;
 };
 typedef struct _fer_pairheap_t fer_pairheap_t;
 
@@ -58,7 +61,8 @@ typedef struct _fer_pairheap_t fer_pairheap_t;
  * Creates new empty Pairing heap.
  * Callback for comparison must be provided.
  */
-fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than);
+fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data);
+
 
 /**
  * Deletes pairing heap.

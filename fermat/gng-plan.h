@@ -21,6 +21,7 @@
 #include <fermat/vec2.h>
 #include <fermat/nncells.h>
 #include <fermat/dij.h>
+#include <fermat/pairheap.h>
 
 /**
  * Growing Neural Gas for Planning
@@ -41,8 +42,9 @@ struct _fer_gngp_node_t {
     unsigned int evaled; /*!< Marks nodes that were already evalueated - used
                               internally */
 
-    fer_real_t err;      /*!< Error counter */
-    unsigned long cycle; /*!< Last cycle in which were .err changed */
+    fer_real_t err;               /*!< Error counter */
+    unsigned long err_cycle;      /*!< Last cycle in which were .err changed */
+    fer_pairheap_node_t err_heap; /*!< Connection into error heap */
 
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
@@ -168,8 +170,7 @@ struct _fer_gngp_t {
     size_t step;
     unsigned long cycle;          /*!< Number of cycle */
 
-    fer_gngp_node_t **maxerr;
-    size_t maxerr_size, maxerr_len;
+    fer_pairheap_t *err_heap;
 };
 typedef struct _fer_gngp_t fer_gngp_t;
 

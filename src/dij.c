@@ -20,7 +20,8 @@
 
 /** Compares two nodes and returns true if n1 < n2. */
 static int heapLT(const fer_pairheap_node_t *n1,
-                  const fer_pairheap_node_t *n2);
+                  const fer_pairheap_node_t *n2,
+                  void *_);
 
 fer_dij_t *ferDijNew(const fer_dij_ops_t *ops)
 {
@@ -53,7 +54,7 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
         ferPairHeapDel(dij->heap);
 
     // create priority heap
-    dij->heap = ferPairHeapNew(heapLT);
+    dij->heap = ferPairHeapNew(heapLT, NULL);
 
     // push start node on heap
     start->dist = FER_ZERO;
@@ -131,7 +132,8 @@ void ferDijPath(fer_dij_node_t *endnode, fer_list_t *list)
 
 
 static int heapLT(const fer_pairheap_node_t *h1,
-                  const fer_pairheap_node_t *h2)
+                  const fer_pairheap_node_t *h2,
+                  void *_)
 {
     fer_dij_node_t *n1, *n2;
     n1 = fer_container_of(h1, fer_dij_node_t, _heap);
