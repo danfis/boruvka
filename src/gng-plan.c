@@ -55,6 +55,13 @@ static void findPathDijInit(fer_gngp_t *gng);
 static void obtainPath(fer_gngp_node_t *s, fer_gngp_node_t *g,
                        fer_list_t *list);
 
+/** Initializes max error heap */
+_fer_inline void maxErrInit(fer_gngp_t *gng);
+/** Checks if given node can't be added to max error heap */
+_fer_inline void maxErrCheck(fer_gngp_t *gng, fer_gngp_node_t *n);
+/** Pop node with highest error counter */
+_fer_inline fer_gngp_node_t *maxErrPop(fer_gngp_t *gng);
+
 
 /*** Node functions ***/
 static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w);
@@ -65,7 +72,7 @@ static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
                             const fer_vec2_t *to, fer_real_t frac,
                             int incerr);
 _fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n);
-_fer_inline void nodeCheckError(fer_gngp_t *gng, fer_gngp_node_t *n);
+//_fer_inline void nodeCheckError(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void netNodeDel(fer_net_node_t *n, void *);
 
 /*** Edge functions ***/
@@ -154,7 +161,7 @@ void ferGNGPRun(fer_gngp_t *gng)
     init(gng);
 
     gng->cycle = 1L;
-    gng->max1 = gng->max2 = NULL;
+    maxErrInit(gng);
     do {
         for (gng->step = 1; gng->step <= gng->params.lambda; gng->step++){
             adapt(gng);
@@ -340,15 +347,13 @@ static void newNode(fer_gngp_t *gng)
     int set;
 
     // 1. Get node with highest error and its neighbor with highest error
-    n1 = nodeWithMaxErr(gng);
+    //n1 = nodeWithMaxErr(gng);
+    n1 = maxErrPop(gng);
     n2 = nodeNeighborWithMaxErr(gng, n1);
     if (!n1 || !n2){
         DBG("%d", ferNetNodeEdgesLen(&n1->node));
         DBG("%lx %lx", (long)n1, (long)n2);
     }
-
-    gng->max1 = gng->max2;
-    gng->max2 = NULL;
 
     // 2. Create new node between n1 and n2
     ferVec2Add2(&w, &n1->w, &n2->w);
@@ -368,9 +373,9 @@ static void newNode(fer_gngp_t *gng)
     n2->err *= gng->params.alpha;
     m->err  = n1->err + n2->err;
     m->err /= FER_REAL(2.);
-    nodeCheckError(gng, n1);
-    nodeCheckError(gng, n2);
-    nodeCheckError(gng, m);
+    maxErrCheck(gng, n1);
+    maxErrCheck(gng, n2);
+    maxErrCheck(gng, m);
 
     if (ferNetNodesLen(gng->net) > gng->params.warm_start){
         // 5. Evaluate new node and set up its set properly
@@ -400,9 +405,9 @@ static void newNode(fer_gngp_t *gng)
 
             // set error of all nodes to same value
             n1->err = n2->err = m->err;
-            nodeCheckError(gng, n1);
-            nodeCheckError(gng, n2);
-            nodeCheckError(gng, m);
+            maxErrCheck(gng, n1);
+            maxErrCheck(gng, n2);
+            maxErrCheck(gng, m);
         }
     }
 }
@@ -483,9 +488,9 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
     fer_gngp_node_t *max_n;
     fer_real_t max_err;
 
-    if (gng->max2){
+    if (gng->max[1]){
         //DBG("max1: %g", gng->max1->err);
-        return gng->max1;
+        return gng->max[0];
     }
     //DBG2("iter");
 
@@ -500,12 +505,19 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
         // fix error
         nodeFixError(gng, n);
 
+        // TODO
         // reset .evaled mark - we need this because of cutSubnet()
         n->evaled = 0;
 
-        if (n->err > max_err){
-            max_err = n->err;
-            max_n   = n;
+        if (!gng->max[0] || n->err > gng->max[0]->err){
+            gng->max[2] = gng->max[1];
+            gng->max[1] = gng->max[0];
+            gng->max[0] = n;
+        }else if (!gng->max[1] || n->err > gng->max[1]->err){
+            gng->max[2] = gng->max[1];
+            gng->max[1] = n;
+        }else if (!gng->max[2] || n->err > gng->max[2]->err){
+            gng->max[2] = n;
         }
     }
 
@@ -554,7 +566,7 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
 
     // 2. Add m into fifo
     ferListAppend(&fifo, &m->fifo);
-    m->evaled = 1;
+    m->evaled = gng->cycle;
 
     //DBG("rank(m): %d", ferNetNodeEdgesLen(&m->node));
 
@@ -578,9 +590,10 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
 
             // evaluate o, before evaluation we know that o belongs to
             // other set than m
-            if (!o->evaled){
+            if (o->evaled != gng->cycle){
                 set = gng->ops.eval(&o->w, gng->ops.eval_data);
                 nodeChangeSet(gng, o, set);
+                o->evaled = gng->cycle;
 
                 if (o->set == m->set){
                     // if o belongs to same set as m add it into fifo (i.e. set
@@ -682,6 +695,137 @@ static void obtainPath(fer_gngp_node_t *s, fer_gngp_node_t *g,
         dn = dn->prev;
     }
 }
+
+_fer_inline void maxErrInit(fer_gngp_t *gng)
+{
+    //gng->max[0] = gng->max[1] = gng->max[2] = NULL;
+    gng->max[0] = gng->max[1] = NULL;
+}
+
+_fer_inline void maxErrCheck(fer_gngp_t *gng, fer_gngp_node_t *n)
+{
+    if (gng->max[0] == n){
+        gng->max[0] = gng->max[1];
+        gng->max[1] = gng->max[2];
+        gng->max[2] = gng->max[3];
+        gng->max[3] = NULL;
+    }else if (gng->max[1] == n){
+        gng->max[1] = gng->max[2];
+        gng->max[2] = gng->max[3];
+        gng->max[3] = NULL;
+    }else if (gng->max[2] == n){
+        gng->max[2] = gng->max[3];
+        gng->max[3] = NULL;
+    }else if (gng->max[3] == n){
+        gng->max[3] = NULL;
+    }
+
+    if (gng->max[0] && n->err > gng->max[0]->err){
+        gng->max[3] = gng->max[2];
+        gng->max[2] = gng->max[1];
+        gng->max[1] = gng->max[0];
+        gng->max[0] = n;
+    }else if (gng->max[1] && n->err > gng->max[1]->err){
+        gng->max[3] = gng->max[2];
+        gng->max[2] = gng->max[1];
+        gng->max[1] = n;
+    }else if (gng->max[2] && n->err > gng->max[2]->err){
+        gng->max[3] = gng->max[2];
+        gng->max[2] = n;
+    }else if (gng->max[3] && n->err > gng->max[3]->err){
+        gng->max[3] = n;
+    }
+}
+
+_fer_inline fer_gngp_node_t *maxErrPop(fer_gngp_t *gng)
+{
+    fer_list_t *list, *item;
+    fer_net_node_t *node;
+    fer_gngp_node_t *n;
+    fer_gngp_node_t *max;
+
+#if 0
+    if (gng->max[0]){
+        fprintf(stderr, "%lx(%g) ", (long)gng->max[0], gng->max[0]->err);
+    }else{
+        fprintf(stderr, "NULL ");
+    }
+    if (gng->max[1]){
+        fprintf(stderr, "%lx(%g) ", (long)gng->max[1], gng->max[1]->err);
+    }else{
+        fprintf(stderr, "NULL ");
+    }
+    if (gng->max[2]){
+        fprintf(stderr, "%lx(%g)\n", (long)gng->max[2], gng->max[2]->err);
+    }else{
+        fprintf(stderr, "NULL\n");
+    }
+#endif
+    
+
+    if (gng->max[0]){
+        max = gng->max[0];
+        gng->max[0] = gng->max[1];
+        gng->max[1] = gng->max[2];
+        gng->max[2] = gng->max[3];
+        gng->max[3] = NULL;
+    }else{
+        maxErrInit(gng);
+
+        //DBG2("iter");
+        list = ferNetNodes(gng->net);
+        ferListForEach(list, item){
+            node = ferListEntry(item, fer_net_node_t, list);
+            n    = fer_container_of(node, fer_gngp_node_t, node);
+
+            // fix error
+            nodeFixError(gng, n);
+
+            if (!gng->max[0] || n->err > gng->max[0]->err){
+                gng->max[3] = gng->max[2];
+                gng->max[2] = gng->max[1];
+                gng->max[1] = gng->max[0];
+                gng->max[0] = n;
+            }else if (!gng->max[1] || n->err > gng->max[1]->err){
+                gng->max[3] = gng->max[2];
+                gng->max[2] = gng->max[1];
+                gng->max[1] = n;
+            }else if (!gng->max[2] || n->err > gng->max[2]->err){
+                gng->max[3] = gng->max[2];
+                gng->max[2] = n;
+            }else if (!gng->max[3] || n->err > gng->max[3]->err){
+                gng->max[3] = n;
+            }
+        }
+
+        max = gng->max[0];
+    }
+
+#if 0
+    {
+        fer_gngp_node_t *mmax;
+
+        mmax = NULL;
+        list = ferNetNodes(gng->net);
+        ferListForEach(list, item){
+            node = ferListEntry(item, fer_net_node_t, list);
+            n    = fer_container_of(node, fer_gngp_node_t, node);
+
+            if (!mmax || n->err > mmax->err){
+                mmax = n;
+            }
+        }
+        if (mmax != max){
+            DBG("mmax (%lx) != max (%lx) [%d]", (long)mmax, (long)max, (int)ferNetNodesLen(gng->net));
+            DBG("mmax->err: %g, max->err: %g", mmax->err, max->err);
+        }
+    }
+#endif
+
+    return max;
+}
+
+
 
 int ferGNGPFindPath(fer_gngp_t *gng,
                     const fer_vec2_t *wstart, const fer_vec2_t *wgoal,
@@ -798,7 +942,6 @@ static void nodeChangeSet(fer_gngp_t *gng, fer_gngp_node_t *n, int set)
             gng->set_size[n->set]--;
         n->set = set;
         gng->set_size[n->set]++;
-        n->evaled = 1;
     }
 }
 
@@ -821,7 +964,7 @@ static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
         err = ferVec2Dist2(&n->w, to);
         n->err += err * gng->beta_n[gng->params.lambda - gng->step];
 
-        nodeCheckError(gng, n);
+        maxErrCheck(gng, n);
     }
 }
 
@@ -839,14 +982,6 @@ _fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n)
         n->err *= pow(gng->beta_n[gng->params.lambda - 1], diff);
     }
     n->cycle = gng->cycle;
-}
-
-_fer_inline void nodeCheckError(fer_gngp_t *gng, fer_gngp_node_t *n)
-{
-    if (!gng->max1 || n->err > gng->max1->err){
-        gng->max2 = gng->max1;
-        gng->max1 = n;
-    }
 }
 
 static void netNodeDel(fer_net_node_t *_n, void *_)

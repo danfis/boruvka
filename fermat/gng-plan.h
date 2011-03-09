@@ -37,9 +37,9 @@ struct _fer_gngp_node_t {
     int set;                /*!< Specifies into which set node belongs to */
     fer_vec2_t w;           /*!< Weight vector */
 
-    fer_list_t fifo; /*!< Connection into fifo queue - used internally */
-    int evaled;      /*!< Marks nodes that were already evalueated - used
-                          internally */
+    fer_list_t fifo;     /*!< Connection into fifo queue - used internally */
+    unsigned int evaled; /*!< Marks nodes that were already evalueated - used
+                              internally */
 
     fer_real_t err;      /*!< Error counter */
     unsigned long cycle; /*!< Last cycle in which were .err changed */
@@ -165,7 +165,8 @@ struct _fer_gngp_t {
 
     size_t step;
     unsigned long cycle;          /*!< Number of cycle */
-    fer_gngp_node_t *max1, *max2; /*!< First and second node with max error */
+    fer_gngp_node_t *max[4];
+    /*!< First and second node with max error */
 };
 typedef struct _fer_gngp_t fer_gngp_t;
 
