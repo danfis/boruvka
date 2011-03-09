@@ -44,7 +44,9 @@ typedef struct _fer_fibo_node_t fer_fibo_node_t;
 /**
  * Callback that should return true if {n1} is smaller than {n2}.
  */
-typedef int (*fer_fibo_lt)(const fer_fibo_node_t *n1, const fer_fibo_node_t *n2);
+typedef int (*fer_fibo_lt)(const fer_fibo_node_t *n1,
+                           const fer_fibo_node_t *n2,
+                           void *data);
 
 struct _fer_fibo_t {
     fer_list_t root;      /*!< List of root nodes */
@@ -55,6 +57,7 @@ struct _fer_fibo_t {
     unsigned int max_degree; /*!< Maximal degree used in .cons */
 
     fer_fibo_lt lt; /*!< "Less than" callback provided by user */
+    void *data;
 };
 typedef struct _fer_fibo_t fer_fibo_t;
 
@@ -63,7 +66,7 @@ typedef struct _fer_fibo_t fer_fibo_t;
  * Creates new empty Fibonnacci heap.
  * Callback for comparison must be provided.
  */
-fer_fibo_t *ferFiboNew(fer_fibo_lt less_than);
+fer_fibo_t *ferFiboNew(fer_fibo_lt less_than, void *data);
 
 /**
  * Deletes fibonnacci heap.
@@ -129,7 +132,7 @@ _fer_inline void ferFiboAdd(fer_fibo_t *f, fer_fibo_node_t *n)
     ferListInit(&n->children);
     ferListAppend(&f->root, &n->list);
 
-    if (!f->min || f->lt(n, f->min))
+    if (!f->min || f->lt(n, f->min, f->data))
         f->min = n;
 }
 

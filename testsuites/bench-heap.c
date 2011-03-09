@@ -30,7 +30,7 @@ static el_t *randomEls(size_t num)
     return els;
 }
 
-static int ltEl(const HNODE *n1, const HNODE *n2)
+static int ltEl(const HNODE *n1, const HNODE *n2, void *_)
 {
     el_t *el1, *el2;
 
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     num = atoi(argv[2]);
 
     els = randomEls(num);
-    heap = HFUNC(New)(ltEl);
+    heap = HFUNC(New)(ltEl, NULL);
 
     ferTimerStart(&timer);
 

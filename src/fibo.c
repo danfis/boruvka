@@ -35,7 +35,7 @@ _fer_inline void __ferFiboCut(fer_fibo_t *f, fer_fibo_node_t *x,
 _fer_inline void __ferFiboCutCascade(fer_fibo_t *f, fer_fibo_node_t *n);
 
 
-fer_fibo_t *ferFiboNew(fer_fibo_lt lt)
+fer_fibo_t *ferFiboNew(fer_fibo_lt lt, void *data)
 {
     fer_fibo_t *fibo;
 
@@ -47,6 +47,7 @@ fer_fibo_t *ferFiboNew(fer_fibo_lt lt)
     fibo->max_degree = 0;
 
     fibo->lt = lt;
+    fibo->data = data;
 
     return fibo;
 }
@@ -88,7 +89,7 @@ void ferFiboDecreaseKey(fer_fibo_t *f, fer_fibo_node_t *n)
 {
     __ferFiboCutCascade(f, n);
 
-    if (n != f->min && (!f->min || f->lt(n, f->min)))
+    if (n != f->min && (!f->min || f->lt(n, f->min, f->data)))
         f->min = n;
 }
 
@@ -132,7 +133,7 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
 
         degree = n->degree;
         while (f->cons[degree] != NULL){
-            if (f->lt(f->cons[degree], n)){
+            if (f->lt(f->cons[degree], n, f->data)){
                 __ferFiboLink(f, n, f->cons[degree]);
                 n = f->cons[degree];
             }else{
@@ -151,7 +152,7 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
     // find minimum
     f->min = NULL;
     for (i = 0; i <= f->max_degree; i++){
-        if (!f->min || (f->cons[i] && f->lt(f->cons[i], f->min))){
+        if (!f->min || (f->cons[i] && f->lt(f->cons[i], f->min, f->data))){
             f->min = f->cons[i];
         }
     }
@@ -183,7 +184,7 @@ _fer_inline void __ferFiboCutCascade(fer_fibo_t *f, fer_fibo_node_t *n)
 
     p = n->parent;
 
-    if (p && f->lt(n, p)){
+    if (p && f->lt(n, p, f->data)){
         __ferFiboCut(f, n, p);
 
         while (p){

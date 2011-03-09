@@ -44,7 +44,7 @@ static int cmpIncEl(const void *i1, const void *i2)
     return 1;
 }
 
-static int ltEl(const fer_pairheap_node_t *n1, const fer_pairheap_node_t *n2)
+static int ltEl(const fer_pairheap_node_t *n1, const fer_pairheap_node_t *n2, void *_)
 {
     el_t *el1, *el2;
 
@@ -73,7 +73,7 @@ static void checkCorrect(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl);
+    heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
         ferPairHeapAdd(heap, &els[i].node);
     }
@@ -126,7 +126,7 @@ static void checkCorrect2(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl);
+    heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
         ferPairHeapAdd(heap, &els[i].node);
     }
@@ -183,7 +183,7 @@ static void checkCorrect3(int ID, size_t num)
     els = randomEls(num);
     ids = FER_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl);
+    heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
         ferPairHeapAdd(heap, &els[i].node);
     }
