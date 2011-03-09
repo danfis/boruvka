@@ -47,6 +47,8 @@ struct _fer_gngp_node_t {
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
 
+    int maxerr_idx;
+
     int _id;
 };
 typedef struct _fer_gngp_node_t fer_gngp_node_t;
@@ -165,8 +167,9 @@ struct _fer_gngp_t {
 
     size_t step;
     unsigned long cycle;          /*!< Number of cycle */
-    fer_gngp_node_t *max[4];
-    /*!< First and second node with max error */
+
+    fer_gngp_node_t **maxerr;
+    size_t maxerr_size, maxerr_len;
 };
 typedef struct _fer_gngp_t fer_gngp_t;
 
