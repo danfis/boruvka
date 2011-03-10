@@ -50,7 +50,7 @@ struct _fer_nncells_params_t {
                                  parameters .max_dens and .expand
                                  parameters are taken.
                                  Default: 10000 */
-    size_t max_dens;        /*!< Maximal densinty (i.e., #elements / #cells).
+    fer_real_t max_dens;    /*!< Maximal densinty (i.e., #elements / #cells).
                                  If density exceeds this treshold number of
                                  cells is increased by .expand parameter.
                                  Default: 1 */
@@ -78,16 +78,16 @@ void ferNNCellsParamsInit(fer_nncells_params_t *p);
  * --------
  */
 struct _fer_nncells_t {
-    size_t d;          /*!< Dimension of covered space */
-    size_t max_dens;   /*!< Maximal density - see params.max_dens */
-    fer_real_t expand; /*!< See params.expand_rate */
-    fer_real_t *shift; /*!< Shifting of points stored in cells.
-                            For easiest navigation in cells, cells structure
-                            is built from origin towards x, y, z axis.
-                            This vector is always added to point coordinates
-                            that are searched to move it into space covered by
-                            cubes. */
-    fer_real_t *aabb;  /*!< Axis aligned bounding box of covered space */
+    size_t d;            /*!< Dimension of covered space */
+    fer_real_t max_dens; /*!< Maximal density - see params.max_dens */
+    fer_real_t expand;   /*!< See params.expand_rate */
+    fer_real_t *shift;   /*!< Shifting of points stored in cells.
+                              For easiest navigation in cells, cells structure
+                              is built from origin towards x, y, z axis.
+                              This vector is always added to point coordinates
+                              that are searched to move it into space covered by
+                              cubes. */
+    fer_real_t *aabb;    /*!< Axis aligned bounding box of covered space */
 
     size_t num_els; /*!< Number of elements in cells */
 

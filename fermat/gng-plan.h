@@ -179,7 +179,7 @@ typedef struct _fer_gngp_t fer_gngp_t;
  * Creates new instance of GNGP algorithm.
  */
 fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
-                         const fer_gngp_params_t *params);
+                       const fer_gngp_params_t *params);
 
 /**
  * Deletes GNGP.
