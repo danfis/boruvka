@@ -387,6 +387,7 @@ static void newNode(fer_gngp_t *gng)
     nodeScaleError(gng, n2, gng->params.alpha);
     m->err  = n1->err + n2->err;
     m->err /= FER_REAL(2.);
+    m->err_cycle = gng->cycle;
     ferPairHeapUpdate(gng->err_heap, &m->err_heap);
 
     if (ferNetNodesLen(gng->net) > gng->params.warm_start){

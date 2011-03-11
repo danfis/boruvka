@@ -49,8 +49,6 @@ struct _fer_gngp_node_t {
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
 
-    int maxerr_idx;
-
     int _id;
 };
 typedef struct _fer_gngp_node_t fer_gngp_node_t;

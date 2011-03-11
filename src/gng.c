@@ -50,6 +50,7 @@ fer_gng_t *ferGNGNew(const fer_gng_ops_t *ops,
     gng = FER_ALLOC(fer_gng_t);
 
     gng->net = ferNetNew();
+    gng->err_heap = NULL;
 
     gng->ops    = *ops;
     gng->params = *params;
@@ -77,6 +78,8 @@ fer_gng_t *ferGNGNew(const fer_gng_ops_t *ops,
         gng->ops.callback_data = gng->ops.data;
 
     gng->beta_n = NULL;
+    gng->beta_lambda_n = NULL;
+    gng->beta_lambda_n_len = 0;
 
     return gng;
 }
@@ -85,11 +88,16 @@ void ferGNGDel(fer_gng_t *gng)
 {
     if (gng->beta_n)
         free(gng->beta_n);
+    if (gng->beta_lambda_n)
+        free(gng->beta_lambda_n);
 
     if (gng->net){
         ferNetDel2(gng->net, nodeFinalDel, gng,
                               delEdge, gng);
     }
+
+    if (gng->err_heap)
+        ferPairHeapDel(gng->err_heap);
 
     free(gng);
 }

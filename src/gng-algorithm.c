@@ -53,10 +53,18 @@ static void _ferGNGNewNode(fer_gng_t *gng);
 static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
 
 /** Node functions */
-/** Initialize node */
-_fer_inline void nodeInit(fer_gng_t *gng, fer_gng_node_t *n);
 /** Adds node into network */
 _fer_inline void nodeAdd(fer_gng_t *gng, fer_gng_node_t *n);
+/** Removes node from network */
+_fer_inline void nodeRemove(fer_gng_t *gng, fer_gng_node_t *n);
+/** Fixes node's error counter, i.e. applies correct beta^(n * lambda) */
+_fer_inline void nodeFixError(fer_gng_t *gng, fer_gng_node_t *n);
+/** Increment error counter */
+_fer_inline void nodeIncError(fer_gng_t *gng, fer_gng_node_t *n,
+                              fer_real_t inc);
+/** Scales error counter */
+_fer_inline void nodeScaleError(fer_gng_t *gng, fer_gng_node_t *n,
+                                fer_real_t scale);
 
 /** Edge functions */
 /** Creates and initializes new edge between n1 and n2 */
@@ -72,32 +80,31 @@ static fer_gng_node_t *nodeWithHighestErr(fer_gng_t *gng);
 static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
                                            fer_gng_edge_t **edge);
 
+/** Should return true if n1 > n2 - this is used for err-heap */
+static int errHeapLT(const fer_pairheap_node_t *n1,
+                     const fer_pairheap_node_t *n2, void *);
+
 static void _ferGNGRun(fer_gng_t *gng)
 {
-    size_t step;
-    unsigned long cb_step;
+    unsigned long cycle;
 
+    cycle = 0;
     _ferGNGInit(gng);
 
-    step = 1;
-    cb_step = 1L;
-    while (!gng->ops.terminate(gng->ops.terminate_data)){
-        _ferGNGLearn(gng, step);
+    do {
+        for (gng->step = 1; gng->step <= gng->params.lambda; gng->step++){
+            _ferGNGLearn(gng, gng->step);
+        }
+        _ferGNGNewNode(gng);
 
-        if (fer_unlikely(step >= gng->params.lambda)){
-            _ferGNGNewNode(gng);
-            step = 0;
-
-            if (gng->ops.callback
-                    && cb_step == gng->ops.callback_period){
-                gng->ops.callback(gng->ops.callback_data);
-                cb_step = 0L;
-            }
-            cb_step++;
+        cycle++;
+        if (gng->ops.callback && gng->ops.callback_period == cycle){
+            gng->ops.callback(gng->ops.callback_data);
+            cycle = 0L;
         }
 
-        step++;
-    }
+        gng->cycle++;
+    } while (!gng->ops.terminate(gng->ops.terminate_data));
 }
 
 static void _ferGNGInit(fer_gng_t *gng)
@@ -105,6 +112,14 @@ static void _ferGNGInit(fer_gng_t *gng)
     const void *is;
     fer_gng_node_t *n1, *n2;
     size_t i;
+    fer_real_t maxbeta;
+
+    gng->cycle = 1L;
+
+    // initialize error heap
+    if (gng->err_heap)
+        ferPairHeapDel(gng->err_heap);
+    gng->err_heap = ferPairHeapNew(errHeapLT, (void *)gng);
 
     // precompute beta^n
     if (gng->beta_n)
@@ -113,6 +128,19 @@ static void _ferGNGInit(fer_gng_t *gng)
     gng->beta_n[0] = gng->params.beta;
     for (i = 1; i < gng->params.lambda; i++){
         gng->beta_n[i] = gng->beta_n[i - 1] * gng->params.beta;
+    }
+
+    // precompute beta^(n * lambda)
+    if (gng->beta_lambda_n)
+        free(gng->beta_lambda_n);
+
+    maxbeta = gng->beta_n[gng->params.lambda - 1];
+
+    gng->beta_lambda_n_len = 1000;
+    gng->beta_lambda_n = FER_ALLOC_ARR(fer_real_t, gng->beta_lambda_n_len);
+    gng->beta_lambda_n[0] = maxbeta;
+    for (i = 1; i < gng->beta_lambda_n_len; i++){
+        gng->beta_lambda_n[i] = gng->beta_lambda_n[i - 1] * maxbeta;
     }
 
 
@@ -159,7 +187,7 @@ static void _ferGNGLearn(fer_gng_t *gng, size_t step)
 
     // 4. Increase error counter of winner node
     dist2 = OPS(gng, dist2)(input_signal, n1, OPS_DATA(gng, dist2));
-    n1->err_local += dist2 * gng->beta_n[gng->params.lambda - step];
+    nodeIncError(gng, n1, dist2 * gng->beta_n[gng->params.lambda - step]);
 
     // 5. Adapt nodes to input signal using fractions eb and en
     // + 6. Increment age of all edges by one
@@ -183,8 +211,7 @@ static void _ferGNGLearn(fer_gng_t *gng, size_t step)
 
             if (ferNetNodeEdgesLen(nn) == 0){
                 // remove node if not connected into net anymore
-                ferNetRemoveNode(gng->net, nn);
-                gng->ops.del_node(n, gng->ops.del_node_data);
+                nodeRemove(gng, n);
                 n = NULL;
             }
         }
@@ -199,8 +226,7 @@ static void _ferGNGLearn(fer_gng_t *gng, size_t step)
     // remove winning node if not connected into net
     if (ferNetNodeEdgesLen(&n1->node) == 0){
         // remove node if not connected into net anymore
-        ferNetRemoveNode(gng->net, &n1->node);
-        gng->ops.del_node(n1, gng->ops.del_node_data);
+        nodeRemove(gng, n1);
     }
 }
 
@@ -230,12 +256,14 @@ static void _ferGNGNewNode(fer_gng_t *gng)
     edgeNew(gng, f, r);
 
     // 5. Decrease error counters of q and f
-    q->err *= gng->params.alpha;
-    f->err *= gng->params.alpha;
+    nodeScaleError(gng, q, gng->params.alpha);
+    nodeScaleError(gng, f, gng->params.alpha);
 
     // 6. Set error counter of new node (r)
     r->err  = q->err + f->err;
     r->err /= FER_REAL(2.);
+    r->err_cycle = gng->cycle;
+    ferPairHeapUpdate(gng->err_heap, &r->err_heap);
 }
 
 static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
@@ -259,16 +287,52 @@ static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
 
 /*** Node functions ***/
 
-_fer_inline void nodeInit(fer_gng_t *gng, fer_gng_node_t *n)
-{
-    n->err_local = FER_ZERO;
-    n->err = FER_ZERO;
-}
-
 _fer_inline void nodeAdd(fer_gng_t *gng, fer_gng_node_t *n)
 {
-    nodeInit(gng, n);
+    n->err       = FER_ZERO;
+    n->err_cycle = gng->cycle;
+    ferPairHeapAdd(gng->err_heap, &n->err_heap);
+
     ferNetAddNode(gng->net, &n->node);
+}
+
+_fer_inline void nodeRemove(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    ferPairHeapRemove(gng->err_heap, &n->err_heap);
+    ferNetRemoveNode(gng->net, &n->node);
+    gng->ops.del_node(n, gng->ops.del_node_data);
+}
+
+_fer_inline void nodeFixError(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    unsigned long diff;
+
+    diff = gng->cycle - n->err_cycle;
+    if (diff > 0 && diff <= gng->beta_lambda_n_len){
+        n->err *= gng->beta_lambda_n[diff - 1];
+    }else if (diff > 0){
+        n->err *= gng->beta_lambda_n[gng->params.lambda - 1];
+
+        diff = diff - gng->beta_lambda_n_len;
+        n->err *= pow(gng->beta_n[gng->params.lambda - 1], diff);
+    }
+    n->err_cycle = gng->cycle;
+}
+
+_fer_inline void nodeIncError(fer_gng_t *gng, fer_gng_node_t *n,
+                              fer_real_t inc)
+{
+    nodeFixError(gng, n);
+    n->err += inc;
+    ferPairHeapUpdate(gng->err_heap, &n->err_heap);
+}
+
+_fer_inline void nodeScaleError(fer_gng_t *gng, fer_gng_node_t *n,
+                                fer_real_t scale)
+{
+    nodeFixError(gng, n);
+    n->err *= scale;
+    ferPairHeapUpdate(gng->err_heap, &n->err_heap);
 }
 
 
@@ -297,30 +361,13 @@ _fer_inline void edgeDel(fer_gng_t *gng, fer_gng_edge_t *e)
 
 static fer_gng_node_t *nodeWithHighestErr(fer_gng_t *gng)
 {
-    fer_list_t *list, *item;
-    fer_net_node_t *nn;
-    fer_gng_node_t *n, *n_highest;
-    fer_real_t err_highest;
+    fer_pairheap_node_t *max;
+    fer_gng_node_t *maxn;
 
-    err_highest = -FER_ONE;
-    n_highest   = NULL;
+    max  = ferPairHeapMin(gng->err_heap);
+    maxn = fer_container_of(max, fer_gng_node_t, err_heap);
 
-    list = ferNetNodes(gng->net);
-    ferListForEach(list, item){
-        nn = ferListEntry(item, fer_net_node_t, list);
-        n  = fer_container_of(nn, fer_gng_node_t, node);
-
-        n->err  = n->err * gng->beta_n[gng->params.lambda];
-        n->err += n->err_local;
-        n->err_local = FER_ZERO;
-
-        if (n->err > err_highest){
-            err_highest = n->err;
-            n_highest   = n;
-        }
-    }
-
-    return n_highest;
+    return maxn;
 }
 
 static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
@@ -343,6 +390,8 @@ static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
         nn = ferNetEdgeOtherNode(ne, &q->node);
         n  = fer_container_of(nn, fer_gng_node_t, node);
 
+        nodeFixError(gng, n);
+
         if (n->err > err_highest){
             err_highest = n->err;
             n_highest   = n;
@@ -354,3 +403,17 @@ static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
     return n_highest;
 }
 
+static int errHeapLT(const fer_pairheap_node_t *_n1,
+                     const fer_pairheap_node_t *_n2,
+                     void *data)
+{
+    fer_gng_t *gng = (fer_gng_t *)data;
+    fer_gng_node_t *n1, *n2;
+
+    n1 = fer_container_of(_n1, fer_gng_node_t, err_heap);
+    n2 = fer_container_of(_n2, fer_gng_node_t, err_heap);
+
+    nodeFixError(gng, n1);
+    nodeFixError(gng, n2);
+    return n1->err > n2->err;
+}

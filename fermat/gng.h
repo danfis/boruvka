@@ -18,6 +18,7 @@
 #define __FER_GNG_H__
 
 #include <fermat/net.h>
+#include <fermat/pairheap.h>
 
 /**
  * Growing Neural Gas
@@ -66,8 +67,9 @@
 struct _fer_gng_node_t {
     fer_net_node_t node;
 
-    fer_real_t err_local; /*!< Local error */
-    fer_real_t err;       /*!< Overall error */
+    fer_real_t err;               /*!< Overall error */
+    unsigned long err_cycle;      /*!< Last cycle in which were .err changed */
+    fer_pairheap_node_t err_heap; /*!< Connection to error heap */
 };
 typedef struct _fer_gng_node_t fer_gng_node_t;
 
@@ -228,10 +230,17 @@ void ferGNGParamsInit(fer_gng_params_t *params);
 
 struct _fer_gng_t {
     fer_net_t *net;
+    fer_pairheap_t *err_heap;
+
     fer_gng_ops_t ops;
     fer_gng_params_t params;
 
     fer_real_t *beta_n; /*!< Precomputed beta^n for n = 1, ..., lambda */
+    fer_real_t *beta_lambda_n; /*!< Precomputed beta^(n*lambda) */
+    size_t beta_lambda_n_len;
+
+    size_t step;
+    unsigned long cycle;
 };
 typedef struct _fer_gng_t fer_gng_t;
 

@@ -22,12 +22,17 @@ int main(int argc, char *argv[])
     params_t p;
     size_t size;
 
-    if (argc < 2){
-        fprintf(stderr, "Usage: %s file.pts [ max_nodes ]\n", argv[0]);
+    if (argc < 3){
+        fprintf(stderr, "Usage: %s file.pts max_nodes\n", argv[0]);
         return -1;
     }
 
+    p.max_nodes = atoi(argv[2]);
+
+
     ferGNG`N`ParamsInit(&params);
+    params.use_cubes = 1;
+    params.num_cubes = p.max_nodes;
 
     ferGNG`N`OpsInit(&ops);
     ops.terminate = terminate;
@@ -36,15 +41,10 @@ int main(int argc, char *argv[])
     ops.data = &p;
 
     gng = ferGNG`N`New(&ops, &params);
+    p.gng = gng;
     size = ferGNG`N`AddInputSignalsFromFile(gng, argv[1]);
     fprintf(stderr, "Added %d points from %s\n", size, argv[1]);
 
-    p.max_nodes = 1000;
-    p.gng = gng;
-
-    if (argc >= 3){
-        p.max_nodes = atoi(argv[2]);
-    }
 
     ferTimerStart(&p.timer);
     ferGNG`N`Run(gng);
