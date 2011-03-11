@@ -18,7 +18,7 @@
 #define __FER_GNG_PLAN_H__
 
 #include <fermat/net.h>
-#include <fermat/vec2.h>
+#include <fermat/vec.h>
 #include <fermat/nncells.h>
 #include <fermat/dij.h>
 #include <fermat/pairheap.h>
@@ -36,7 +36,7 @@ struct _fer_gngp_node_t {
     fer_net_node_t node;   /*!< Connection into net */
     fer_nncells_el_t cells; /*!< Connection into cells */
     int set;                /*!< Specifies into which set node belongs to */
-    fer_vec2_t w;           /*!< Weight vector */
+    fer_vec_t *w;           /*!< Weight vector */
 
     fer_list_t fifo;     /*!< Connection into fifo queue - used internally */
     unsigned int evaled; /*!< Marks nodes that were already evalueated - used
@@ -73,7 +73,7 @@ typedef struct _fer_gngp_edge_t fer_gngp_edge_t;
 /**
  * Returns random input signal.
  */
-typedef const fer_vec2_t *(*fer_gngp_input_signal)(void *);
+typedef const fer_vec_t *(*fer_gngp_input_signal)(void *);
 
 /**
  * Returns true if algorithm should terminate.
@@ -83,7 +83,7 @@ typedef int (*fer_gngp_terminate)(void *);
 /**
  * TODO
  */
-typedef int (*fer_gngp_eval)(const fer_vec2_t *w, void *);
+typedef int (*fer_gngp_eval)(const fer_vec_t *w, void *);
 
 /**
  * Callback that is peridically called from GNG.
@@ -126,6 +126,7 @@ void ferGNGPOpsInit(fer_gngp_ops_t *ops);
  * ---------------
  */
 struct _fer_gngp_params_t {
+    size_t d;         /*!< Dimension. Default: 2 */
     size_t lambda;    /*!< Number of steps between adding nodes */
     fer_real_t eb;    /*!< Winner node learning rate */
     fer_real_t en;    /*!< Winners' neighbors learning rate */
@@ -204,7 +205,7 @@ _fer_inline size_t ferGNGPNodesLen(const fer_gngp_t *gng);
  * If path wasn't found -1 is returned.
  */
 int ferGNGPFindPath(fer_gngp_t *gng,
-                     const fer_vec2_t *start, const fer_vec2_t *goal,
+                     const fer_vec_t *start, const fer_vec_t *goal,
                      fer_list_t *list);
 
 /**

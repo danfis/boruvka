@@ -27,13 +27,13 @@ static void adapt(fer_gngp_t *gng);
 /** Adds new node into net */
 static void newNode(fer_gngp_t *gng);
 /** Finds two nearest nodes to given input signal */
-static int nearest(fer_gngp_t *gng, const fer_vec2_t *w,
+static int nearest(fer_gngp_t *gng, const fer_vec_t *w,
                    fer_gngp_node_t **n1, fer_gngp_node_t **n2);
 /** Learns the part of net around given node. It will adapt it to given
  *  input signal. Also edges with age > age_max are removed along with
  *  abandonded nodes. */
 static void learn(fer_gngp_t *gng, size_t step,
-                  fer_gngp_node_t *n, const fer_vec2_t *is);
+                  fer_gngp_node_t *n, const fer_vec_t *is);
 /** Returns node with highest error */
 static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng);
 /** Returns node's neighbor with highest error */
@@ -42,7 +42,7 @@ static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_t *gng, fer_gngp_node_t 
 static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m);
 /** Creates new node at given position and connects it between two nearest
  *  nodes */
-static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec2_t *w);
+static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec_t *w);
 
 /*** Find path ***/
 static fer_real_t findPathDist(const fer_dij_node_t *_n1,
@@ -63,12 +63,12 @@ static int errHeapLT(const fer_pairheap_node_t *n1,
 
 
 /*** Node functions ***/
-static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w);
+static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec_t *w);
 static void nodeDel(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void nodeDelWithEdges(fer_gngp_t *gng, fer_gngp_node_t *n);
 static void nodeChangeSet(fer_gngp_t *gng, fer_gngp_node_t *n, int set);
 static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
-                            const fer_vec2_t *to, fer_real_t frac,
+                            const fer_vec_t *to, fer_real_t frac,
                             int incerr);
 /** Fixes node's error counter, i.e. applies correct beta^(n * lambda) */
 _fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n);
@@ -95,6 +95,7 @@ void ferGNGPOpsInit(fer_gngp_ops_t *ops)
 
 void ferGNGPParamsInit(fer_gngp_params_t *params)
 {
+    params->d       = 2;
     params->lambda  = 200;
     params->eb      = 0.05;
     params->en      = 0.0006;
@@ -118,7 +119,7 @@ fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
     gng->net   = ferNetNew();
 
     pcells   = params->cells;
-    //pcells.d = params->d;
+    pcells.d = params->d;
     gng->cells = ferNNCellsNew(&pcells);
 
     gng->params = *params;
@@ -213,7 +214,7 @@ static void dumpSet(fer_gngp_t *gng, int set, FILE *out, const char *name,
             continue;
 
         n->_id = i++;
-        ferVec2Print(&n->w, out);
+        ferVecPrint(gng->params.d, n->w, out);
         fprintf(out, "\n");
     }
 
@@ -265,7 +266,7 @@ void ferGNGPDumpSVT(fer_gngp_t *gng, FILE *out, const char *name)
 
 static void init(fer_gngp_t *gng)
 {
-    const fer_vec2_t *is;
+    const fer_vec_t *is;
     size_t i;
     fer_real_t maxbeta;
 
@@ -308,7 +309,7 @@ static void init(fer_gngp_t *gng)
 
 static void adapt(fer_gngp_t *gng)
 {
-    const fer_vec2_t *is;
+    const fer_vec_t *is;
     fer_gngp_node_t *n1 = NULL, *n2 = NULL;
     fer_gngp_edge_t *e;
     fer_net_edge_t *edge;
@@ -357,8 +358,10 @@ static void newNode(fer_gngp_t *gng)
     fer_gngp_node_t *n1, *n2, *m;
     fer_net_edge_t *edge;
     fer_gngp_edge_t *e;
-    fer_vec2_t w;
+    fer_vec_t *w;
     int set;
+
+    w = ferVecNew(gng->params.d);
 
     // 1. Get node with highest error and its neighbor with highest error
     n1 = nodeWithMaxErr(gng);
@@ -370,9 +373,9 @@ static void newNode(fer_gngp_t *gng)
     }
 
     // 2. Create new node between n1 and n2
-    ferVec2Add2(&w, &n1->w, &n2->w);
-    ferVec2Scale(&w, FER_REAL(0.5));
-    m = nodeNew(gng, &w);
+    ferVecAdd2(gng->params.d, w, n1->w, n2->w);
+    ferVecScale(gng->params.d, w, FER_REAL(0.5));
+    m = nodeNew(gng, w);
 
     // 3. Create edges m-n1 and m-n2 and remove edge n1-n2
     edgeNew(gng, m, n1);
@@ -392,7 +395,7 @@ static void newNode(fer_gngp_t *gng)
 
     if (ferNetNodesLen(gng->net) > gng->params.warm_start){
         // 5. Evaluate new node and set up its set properly
-        set = gng->ops.eval(&m->w, gng->ops.eval_data);
+        set = gng->ops.eval(m->w, gng->ops.eval_data);
         nodeChangeSet(gng, m, set);
 
         // 6. Cut m's subnet if necessary
@@ -404,8 +407,8 @@ static void newNode(fer_gngp_t *gng)
             // place - we will assume that island will spread.
 
             // create new nodes
-            n1 = nodeNew(gng, &m->w);
-            n2 = nodeNew(gng, &m->w);
+            n1 = nodeNew(gng, m->w);
+            n2 = nodeNew(gng, m->w);
 
             // connect triplet of nodes
             edgeNew(gng, m, n1);
@@ -422,9 +425,11 @@ static void newNode(fer_gngp_t *gng)
             ferPairHeapUpdate(gng->err_heap, &n2->err_heap);
         }
     }
+
+    ferVecDel(w);
 }
 
-static int nearest(fer_gngp_t *gng, const fer_vec2_t *w,
+static int nearest(fer_gngp_t *gng, const fer_vec_t *w,
                    fer_gngp_node_t **n1, fer_gngp_node_t **n2)
 {
     fer_nncells_el_t *els[2];
@@ -432,7 +437,7 @@ static int nearest(fer_gngp_t *gng, const fer_vec2_t *w,
     size_t found;
 
     els[0] = els[1] = NULL;
-    found = ferNNCellsNearest(gng->cells, ferVecFromVec2Const(w), 2, els);
+    found = ferNNCellsNearest(gng->cells, w, 2, els);
     if (found != 2){
         DBG2("Not found two nearest nodes! This shouldn't happen!");
         return -1;
@@ -447,7 +452,7 @@ static int nearest(fer_gngp_t *gng, const fer_vec2_t *w,
 }
 
 static void learn(fer_gngp_t *gng, size_t step,
-                  fer_gngp_node_t *n, const fer_vec2_t *is)
+                  fer_gngp_node_t *n, const fer_vec_t *is)
 {
     fer_list_t *list, *item, *item_tmp;
     fer_net_node_t *other;
@@ -597,7 +602,7 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
             // evaluate o, before evaluation we know that o belongs to
             // other set than m
             if (o->evaled != gng->cycle){
-                set = gng->ops.eval(&o->w, gng->ops.eval_data);
+                set = gng->ops.eval(o->w, gng->ops.eval_data);
                 nodeChangeSet(gng, o, set);
                 o->evaled = gng->cycle;
 
@@ -635,12 +640,14 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
 
 /*** Find path ***/
 static fer_real_t findPathDist(const fer_dij_node_t *_n1,
-                               const fer_dij_node_t *_n2, void *_)
+                               const fer_dij_node_t *_n2, void *data)
 {
+    fer_gngp_t *gng = (fer_gngp_t *)data;
     fer_gngp_node_t *n1, *n2;
+
     n1 = fer_container_of(_n1, fer_gngp_node_t, dij);
     n2 = fer_container_of(_n2, fer_gngp_node_t, dij);
-    return ferVec2Dist(&n1->w, &n2->w);
+    return ferVecDist(gng->params.d, n1->w, n2->w);
 }
 
 static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
@@ -714,7 +721,7 @@ static int errHeapLT(const fer_pairheap_node_t *_n1,
 
 
 int ferGNGPFindPath(fer_gngp_t *gng,
-                    const fer_vec2_t *wstart, const fer_vec2_t *wgoal,
+                    const fer_vec_t *wstart, const fer_vec_t *wgoal,
                     fer_list_t *list)
 {
     fer_dij_ops_t ops;
@@ -757,7 +764,7 @@ int ferGNGPFindPath(fer_gngp_t *gng,
 }
 
 
-static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec2_t *w)
+static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec_t *w)
 {
     fer_gngp_node_t *n;
     fer_gngp_node_t *n1 = NULL, *n2 = NULL;
@@ -774,7 +781,7 @@ static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec2_t *w)
 
 
 /*** Node functions ***/
-static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w)
+static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec_t *w)
 {
     fer_gngp_node_t *n;
 
@@ -784,9 +791,9 @@ static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w)
     nodeChangeSet(gng, n, FER_GNGP_NONE);
     n->evaled = 0;
 
-    ferVec2Copy(&n->w, w);
+    n->w = ferVecClone(gng->params.d, w);
 
-    ferNNCellsElInit(&n->cells, ferVecFromVec2Const(&n->w));
+    ferNNCellsElInit(&n->cells, n->w);
     ferNNCellsAdd(gng->cells, &n->cells);
 
     n->err = FER_ZERO;
@@ -800,6 +807,8 @@ static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec2_t *w)
 
 static void nodeDel(fer_gngp_t *gng, fer_gngp_node_t *n)
 {
+    ferVecDel(n->w);
+
     ferNNCellsRemove(gng->cells, &n->cells);
 
     ferPairHeapRemove(gng->err_heap, &n->err_heap);
@@ -838,23 +847,27 @@ static void nodeChangeSet(fer_gngp_t *gng, fer_gngp_node_t *n, int set)
 }
 
 static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
-                            const fer_vec2_t *to, fer_real_t frac,
+                            const fer_vec_t *to, fer_real_t frac,
                             int incerr)
 {
-    fer_vec2_t move;
+    fer_vec_t *move;
     fer_real_t err;
 
-    ferVec2Sub2(&move, to, &n->w);
-    ferVec2Scale(&move, frac);
-    ferVec2Add(&n->w, &move);
+    move = ferVecNew(gng->params.d);
+
+    ferVecSub2(gng->params.d, move, to, n->w);
+    ferVecScale(gng->params.d, move, frac);
+    ferVecAdd(gng->params.d, n->w, move);
     ferNNCellsUpdate(gng->cells, &n->cells);
 
     // increase error counter
     if (incerr){
-        err  = ferVec2Dist2(&n->w, to);
+        err  = ferVecDist2(gng->params.d, n->w, to);
         err *= gng->beta_n[gng->params.lambda - gng->step];
         nodeIncError(gng, n, err);
     }
+
+    ferVecDel(move);
 }
 
 _fer_inline void nodeFixError(fer_gngp_t *gng, fer_gngp_node_t *n)
@@ -893,6 +906,7 @@ static void netNodeDel(fer_net_node_t *_n, void *_)
 {
     fer_gngp_node_t *n;
     n = fer_container_of(_n, fer_gngp_node_t, node);
+    ferVecDel(n->w);
     free(n);
 }
 

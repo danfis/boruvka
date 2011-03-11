@@ -10,10 +10,10 @@ struct _params_t {
     fer_gngp_t *gng;
     fer_timer_t timer;
 
-    fer_vec2_t start, goal;
+    fer_vec_t *start, *goal;
 
     fer_rand_mt_t *rand;
-    fer_vec2_t is;
+    fer_vec_t *is;
 
     unsigned long evals;
 };
@@ -22,20 +22,21 @@ typedef struct _params_t params_t;
 
 static int terminate(void *data);
 static void callback(void *data);
-static const fer_vec2_t *inputSignal(void *data);
-static void setUpScene(const char *scene, params_t *p, fer_gngp_ops_t *ops);
-static int eval1_1(const fer_vec2_t *w, void *data);
-static int eval1_3(const fer_vec2_t *w, void *data);
-static int eval1_5(const fer_vec2_t *w, void *data);
-static int eval2_1(const fer_vec2_t *w, void *data);
-static int eval2_3(const fer_vec2_t *w, void *data);
-static int eval2_5(const fer_vec2_t *w, void *data);
-static int eval3_1(const fer_vec2_t *w, void *data);
-static int eval3_3(const fer_vec2_t *w, void *data);
-static int eval3_5(const fer_vec2_t *w, void *data);
-static int eval4_1(const fer_vec2_t *w, void *data);
-static int eval4_3(const fer_vec2_t *w, void *data);
-static int eval4_5(const fer_vec2_t *w, void *data);
+static const fer_vec_t *inputSignal(void *data);
+static void setUpScene(const char *scene, params_t *p, fer_gngp_ops_t *ops,
+                       fer_vec_t *start, fer_vec_t *goal);
+static int eval1_1(const fer_vec_t *w, void *data);
+static int eval1_3(const fer_vec_t *w, void *data);
+static int eval1_5(const fer_vec_t *w, void *data);
+static int eval2_1(const fer_vec_t *w, void *data);
+static int eval2_3(const fer_vec_t *w, void *data);
+static int eval2_5(const fer_vec_t *w, void *data);
+static int eval3_1(const fer_vec_t *w, void *data);
+static int eval3_3(const fer_vec_t *w, void *data);
+static int eval3_5(const fer_vec_t *w, void *data);
+static int eval4_1(const fer_vec_t *w, void *data);
+static int eval4_3(const fer_vec_t *w, void *data);
+static int eval4_5(const fer_vec_t *w, void *data);
 static void printPath(fer_list_t *path, FILE *out);
 
 int main(int argc, char *argv[])
@@ -60,11 +61,15 @@ int main(int argc, char *argv[])
     ops.callback_period = 500;
     ops.data = &p;
 
+    p.start = ferVecNew(2);
+    p.goal  = ferVecNew(2);
+    p.is    = ferVecNew(2);
     p.rand = ferRandMTNewAuto();
 
     p.evals = 0L;
     p.max_nodes = atoi(argv[1]);
     p.find_path = atoi(argv[2]);
+    params.d = 2;
     //params.num_cells = p.max_nodes;
     //params.cells.num_cells = 10000;
     params.cells.num_cells = 0;
@@ -76,7 +81,7 @@ int main(int argc, char *argv[])
     params.beta  = 1.;
     params.lambda = 200;
 
-    setUpScene(argv[3], &p, &ops);
+    setUpScene(argv[3], &p, &ops, p.start, p.goal);
 
     gng = ferGNGPNew(&ops, &params);
     p.gng = gng;
@@ -86,7 +91,7 @@ int main(int argc, char *argv[])
     ferGNGPRun(gng);
     callback(&p);
     fprintf(stderr, "\n");
-    fprintf(stderr, "Evals: %ld\n", p.evals);
+    fprintf(stderr, "Evals: %lu\n", p.evals);
 
     ferGNGPDumpSVT(gng, stdout, NULL);
     fprintf(stdout, "# ");
@@ -98,6 +103,9 @@ int main(int argc, char *argv[])
 
     ferRandMTDel(p.rand);
 
+    ferVecDel(p.start);
+    ferVecDel(p.goal);
+    ferVecDel(p.is);
     
 
     return 0;
@@ -113,7 +121,7 @@ static int terminate(void *data)
     if (ferGNGPNodesLen(p->gng) > p->find_path
             && ferGNGPNodesLen(p->gng) % p->find_path == 0){
         ferListInit(&path);
-        res = ferGNGPFindPath(p->gng, &p->start, &p->goal, &path);
+        res = ferGNGPFindPath(p->gng, p->start, p->goal, &path);
         if (res == 0){
             fprintf(stderr, "\n");
             fprintf(stderr, "Path found. Nodes: %d\n",
@@ -146,77 +154,78 @@ static void callback(void *data)
     ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d\r", nodes_len, p->max_nodes);
 }
 
-static const fer_vec2_t *inputSignal(void *data)
+static const fer_vec_t *inputSignal(void *data)
 {
     params_t *p = (params_t *)data;
     fer_real_t x, y;
 
     x = ferRandMT(p->rand, -5, 5);
     y = ferRandMT(p->rand, -5, 5);
-    ferVec2Set(&p->is, x, y);
-    return &p->is;
+    ferVec2Set((fer_vec2_t *)p->is, x, y);
+    return p->is;
 }
 
-static void setUpScene(const char *scene, params_t *p, fer_gngp_ops_t *ops)
+static void setUpScene(const char *scene, params_t *p, fer_gngp_ops_t *ops,
+                       fer_vec_t *start, fer_vec_t *goal)
 {
 
     if (strcmp(scene, "1_1") == 0){
         ops->eval = eval1_1;
-        ferVec2Set(&p->start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set(&p->goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
     }else if (strcmp(scene, "1_3") == 0){
         ops->eval = eval1_3;
-        ferVec2Set(&p->start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set(&p->goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
     }else if (strcmp(scene, "1_5") == 0){
         ops->eval = eval1_5;
-        ferVec2Set(&p->start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set(&p->goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
     }else if (strcmp(scene, "2_1") == 0){
         ops->eval = eval2_1;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "2_3") == 0){
         ops->eval = eval2_3;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "2_5") == 0){
         ops->eval = eval2_5;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "3_1") == 0){
         ops->eval = eval3_1;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "3_3") == 0){
         ops->eval = eval3_3;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "3_5") == 0){
         ops->eval = eval3_5;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
     }else if (strcmp(scene, "4_1") == 0){
         ops->eval = eval4_1;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
     }else if (strcmp(scene, "4_3") == 0){
         ops->eval = eval4_3;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
     }else if (strcmp(scene, "4_5") == 0){
         ops->eval = eval4_5;
-        ferVec2Set(&p->start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set(&p->goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
     }
 }
 
-static int eval1(const fer_vec2_t *w, void *data, fer_real_t r)
+static int eval1(const fer_vec_t *w, void *data, fer_real_t r)
 {
     params_t *p = (params_t *)data;
     fer_real_t x, y;
-    x = ferVec2X(w);
-    y = ferVec2Y(w);
+    x = ferVecGet(w, 0);
+    y = ferVecGet(w, 1);
 
     p->evals += 1L;
 
@@ -228,27 +237,27 @@ static int eval1(const fer_vec2_t *w, void *data, fer_real_t r)
     return FER_GNGP_OBST;
 }
 
-static int eval1_1(const fer_vec2_t *w, void *data)
+static int eval1_1(const fer_vec_t *w, void *data)
 {
     return eval1(w, data, 0.01);
 }
 
-static int eval1_3(const fer_vec2_t *w, void *data)
+static int eval1_3(const fer_vec_t *w, void *data)
 {
     return eval1(w, data, 0.03);
 }
 
-static int eval1_5(const fer_vec2_t *w, void *data)
+static int eval1_5(const fer_vec_t *w, void *data)
 {
     return eval1(w, data, 0.05);
 }
 
-static int eval2(const fer_vec2_t *w, void *data, fer_real_t r)
+static int eval2(const fer_vec_t *w, void *data, fer_real_t r)
 {
     params_t *p = (params_t *)data;
     fer_real_t x, y;
-    x = ferVec2X(w);
-    y = ferVec2Y(w);
+    x = ferVecGet(w, 0);
+    y = ferVecGet(w, 1);
 
     p->evals += 1L;
 
@@ -260,28 +269,28 @@ static int eval2(const fer_vec2_t *w, void *data, fer_real_t r)
     return FER_GNGP_OBST;
 }
 
-static int eval2_1(const fer_vec2_t *w, void *data)
+static int eval2_1(const fer_vec_t *w, void *data)
 {
     return eval2(w, data, 0.01);
 }
 
-static int eval2_3(const fer_vec2_t *w, void *data)
+static int eval2_3(const fer_vec_t *w, void *data)
 {
     return eval2(w, data, 0.03);
 }
 
-static int eval2_5(const fer_vec2_t *w, void *data)
+static int eval2_5(const fer_vec_t *w, void *data)
 {
     return eval2(w, data, 0.05);
 }
 
 
-static int eval3(const fer_vec2_t *w, void *data, fer_real_t r)
+static int eval3(const fer_vec_t *w, void *data, fer_real_t r)
 {
     params_t *p = (params_t *)data;
     fer_real_t x, y;
-    x = ferVec2X(w);
-    y = ferVec2Y(w);
+    x = ferVecGet(w, 0);
+    y = ferVecGet(w, 1);
 
     p->evals += 1L;
 
@@ -294,28 +303,27 @@ static int eval3(const fer_vec2_t *w, void *data, fer_real_t r)
     return FER_GNGP_OBST;
 }
 
-static int eval3_1(const fer_vec2_t *w, void *data)
+static int eval3_1(const fer_vec_t *w, void *data)
 {
     return eval3(w, data, 0.01);
 }
 
-static int eval3_3(const fer_vec2_t *w, void *data)
+static int eval3_3(const fer_vec_t *w, void *data)
 {
     return eval3(w, data, 0.03);
 }
 
-static int eval3_5(const fer_vec2_t *w, void *data)
+static int eval3_5(const fer_vec_t *w, void *data)
 {
     return eval3(w, data, 0.05);
 }
 
-static int eval4(const fer_vec2_t *w, void *data, fer_real_t r)
+static int eval4(const fer_vec_t *w, void *data, fer_real_t r)
 {
     params_t *p = (params_t *)data;
     fer_real_t x, y;
-
-    x = ferVec2X(w);
-    y = ferVec2Y(w);
+    x = ferVecGet(w, 0);
+    y = ferVecGet(w, 1);
 
     p->evals += 1L;
 
@@ -341,17 +349,17 @@ static int eval4(const fer_vec2_t *w, void *data, fer_real_t r)
     return FER_GNGP_OBST;
 }
 
-static int eval4_1(const fer_vec2_t *w, void *data)
+static int eval4_1(const fer_vec_t *w, void *data)
 {
     return eval4(w, data, 0.01);
 }
 
-static int eval4_3(const fer_vec2_t *w, void *data)
+static int eval4_3(const fer_vec_t *w, void *data)
 {
     return eval4(w, data, 0.03);
 }
 
-static int eval4_5(const fer_vec2_t *w, void *data)
+static int eval4_5(const fer_vec_t *w, void *data)
 {
     return eval4(w, data, 0.05);
 }
@@ -372,7 +380,7 @@ static void printPath(fer_list_t *path, FILE *out)
     fprintf(out, "Points:\n");
     ferListForEach(path, item){
         n = ferListEntry(item, fer_gngp_node_t, path);
-        ferVec2Print(&n->w, out);
+        ferVecPrint(2, n->w, out);
         fprintf(out, "\n");
     }
 

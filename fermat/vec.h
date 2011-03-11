@@ -149,6 +149,10 @@ _fer_inline void ferVecMulComp(size_t size, fer_vec_t *a, const fer_vec_t *b);
  */
 _fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, const fer_vec_t *c);
 
+/**
+ * Prints vector to *out* in form "x y".
+ */
+_fer_inline void ferVecPrint(size_t size, const fer_vec_t *v, FILE *out);
 
 
 
@@ -327,6 +331,14 @@ _fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, c
     }
 }
 
+_fer_inline void ferVecPrint(size_t size, const fer_vec_t *v, FILE *out)
+{
+    size_t i;
+    fprintf(out, "%lg", (double)ferVecGet(v, 0));
+    for (i = 1; i < size; i++){
+        fprintf(out, " %lg", (double)ferVecGet(v, 1));
+    }
+}
 
 #ifdef __cplusplus
 } /* extern "C" */
