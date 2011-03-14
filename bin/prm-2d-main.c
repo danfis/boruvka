@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
     alg.rand = ferRandMTNewAuto();
 
-    setUpScene(argv[2], &alg, &ops, &alg.start, &alg.goal);
+    setUpScene(argv[2], &alg, &ops, (fer_vec_t *)&alg.start, (fer_vec_t *)&alg.goal);
 
     alg.prm = ferPRMNew(&ops, &params);
 
