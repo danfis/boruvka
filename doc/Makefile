@@ -6,19 +6,15 @@ SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = .
 
-FER_RSTS  = list rand timer parse
-FER_RSTS += vec2 vec3 vec4 mat3 mat4 vec mat quat
-FER_RSTS += pc2 pc3 pc4
-FER_RSTS += mesh3
-FER_RSTS += cubes2 cubes3 nearest-linear
-FER_RSTS += gsrm
+RSTS  = list rand timer parse
+RSTS += vec vec2 vec3 vec4 quat mat3 mat4
+RSTS += pc2 pc3 pc4
+RSTS += mesh3
+RSTS += cubes2 cubes3 nearest-linear
+RSTS += gsrm
+RSTS += net gng gng2 gng3
 
-GANN_RSTS = net gng gng2 gng3
-
-FER_RSTS := $(foreach header,$(FER_RSTS),fer-$(header).h.rst)
-GANN_RSTS := $(foreach header,$(GANN_RSTS),gann-$(header).h.rst)
-
-RSTS := $(FER_RSTS) $(GANN_RSTS)
+RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
 
 
 # Internal variables.
@@ -140,9 +136,7 @@ doctest:
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
-fer-%.h.rst: ../fermat/fermat/%.h
-	$(PYTHON) doc.py $< >$@
-gann-%.h.rst: ../gann/gann/%.h
+fer-%.h.rst: ../fermat/%.h
 	$(PYTHON) doc.py $< >$@
 
 clean:

@@ -22,15 +22,13 @@ Fermat:
 .. toctree::
    :maxdepth: 1
 
+   fer-vec.h.rst
    fer-vec2.h.rst
    fer-vec3.h.rst
    fer-vec4.h.rst
    fer-quat.h.rst
    fer-mat3.h.rst
    fer-mat4.h.rst
-
-   fer-vec.h.rst
-   fer-mat.h.rst
 
    fer-pc2.h.rst
    fer-pc3.h.rst
@@ -56,9 +54,9 @@ Growing Artificial Neural Networks
 .. toctree::
    :maxdepth: 1
 
-   gann-net.h.rst
-   gann-gng.h.rst
-   gann-gng2.h.rst
-   gann-gng3.h.rst
+   fer-net.h.rst
+   fer-gng.h.rst
+   fer-gng2.h.rst
+   fer-gng3.h.rst
 
 

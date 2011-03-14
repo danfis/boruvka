@@ -25,11 +25,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Vec - Genral Vectors
+ * Vec - N-D Vectors
  * =====================
  *
  */
+
+/** vvvv */
 typedef fer_real_t fer_vec_t;
+/** ^^^^ */
 
 /**
  * Static declaration of vector.
@@ -76,11 +79,24 @@ _fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v);
  */
 _fer_inline void ferVecCopy(size_t size, fer_vec_t *v, const fer_vec_t *w);
 
-
+/**
+ * Returns d'th coordinate.
+ */
 _fer_inline fer_real_t ferVecGet(const fer_vec_t *v, size_t d);
 
+/**
+ * Set d'th coordinate to given value.
+ */
 _fer_inline void ferVecSet(fer_vec_t *v, size_t d, fer_real_t val);
+
+/**
+ * Set all coordinates to given value.
+ */
 _fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val);
+
+/**
+ * Zeroize whole vector.
+ */
 _fer_inline void ferVecSetZero(size_t size, fer_vec_t *v);
 
 
@@ -88,17 +104,26 @@ _fer_inline void ferVecSetZero(size_t size, fer_vec_t *v);
  * Returns squared length of vector.
  */
 _fer_inline fer_real_t ferVecLen2(size_t size, const fer_vec_t *v);
+
+/**
+ * Returns length of vector
+ */
 _fer_inline fer_real_t ferVecLen(size_t size, const fer_vec_t *v);
 
 /**
  * Returns squared distance between a and b.
  */
 _fer_inline fer_real_t ferVecDist2(size_t size, const fer_vec_t *a, const fer_vec_t *b);
+
+/**
+ * Returns distance between a and b.
+ */
 _fer_inline fer_real_t ferVecDist(size_t size, const fer_vec_t *a, const fer_vec_t *b);
 
 
 /**
- * Adds coordinates of vector w to vector v. v = v + w
+ * Adds coordinates of vector w to vector v.
+ * v = v + w
  */
 _fer_inline void ferVecAdd(size_t size, fer_vec_t *v, const fer_vec_t *w);
 
