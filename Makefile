@@ -17,11 +17,13 @@
 -include Makefile.include
 
 CFLAGS += -I.
+CXXFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
 BIN_TARGETS += fer-gngp fer-prm-2d fer-rrt-2d
+BIN_TARGETS += fer-gngp-alpha
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -38,23 +40,29 @@ OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
 OBJS += gng-plan.o prm.o rrt.o
 
+OBJSPP = trimesh.cpp.o
+
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
 HEADERS += gng2.h gng3.h
 
 OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
+OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
-libfermat.a: $(OBJS)
-	ar cr $@ $(OBJS)
+libfermat.a: $(OBJS) $(OBJSPP)
+	ar cr $@ $(OBJS) $(OBJSPP)
 	ranlib $@
 
 fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
+
+bin/fer-gngp-alpha: bin/gngp-alpha-main.c libfermat.a
+	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS)
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
@@ -63,6 +71,11 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+.objs/%.cpp.o: src/%.c fermat/%.h fermat/config.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+.objs/%.cpp.o: src/%.c fermat/config.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %2.c: %N.c
 	$(SED) 's|`N`|2|g' <$< >$@

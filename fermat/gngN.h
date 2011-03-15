@@ -22,6 +22,10 @@
 #include <fermat/cubes`N`.h>
 #include <fermat/gng.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Growing Neural Gas In `N`-D
  * ==========================
@@ -207,5 +211,10 @@ _fer_inline fer_gng`N`_node_t *ferGNG`N`NodeFromGNG(fer_gng_node_t *n)
 {
     return fer_container_of(n, fer_gng`N`_node_t, node);
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
+
 #endif /* __FER_GNG`N`_H__ */
 

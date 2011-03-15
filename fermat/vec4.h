@@ -611,7 +611,7 @@ _fer_inline void ferVec4MulComp2(fer_vec4_t *a, const fer_vec4_t *b, const fer_v
 
 _fer_inline void ferVec4Print(const fer_vec4_t *v, FILE *out)
 {
-    fprintf(out, "%lg %lg %lg %lg",
+    fprintf(out, "%g %g %g %g",
             (double)ferVec4X(v), (double)ferVec4Y(v),
             (double)ferVec4Z(v), (double)ferVec4W(v));
 }

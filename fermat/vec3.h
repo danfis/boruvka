@@ -720,7 +720,7 @@ _fer_inline void ferVec3Cross(fer_vec3_t *d, const fer_vec3_t *a, const fer_vec3
 
 _fer_inline void ferVec3Print(const fer_vec3_t *v, FILE *out)
 {
-    fprintf(out, "%lg %lg %lg",
+    fprintf(out, "%g %g %g",
             (double)ferVec3X(v), (double)ferVec3Y(v), (double)ferVec3Z(v));
 }
 

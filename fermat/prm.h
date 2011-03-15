@@ -22,6 +22,10 @@
 #include <fermat/nncells.h>
 #include <fermat/dij.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define FER_PRM_FREE 1
 #define FER_PRM_OBST 2
 
@@ -201,6 +205,10 @@ _fer_inline size_t ferPRMNodesLen(const fer_prm_t *prm)
     return ferNetNodesLen(prm->net);
 }
 
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_PRM_H__ */
 

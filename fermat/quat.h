@@ -19,6 +19,7 @@
 
 #include <fermat/vec3.h>
 #include <fermat/vec4.h>
+#include <fermat/mat3.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,6 +106,11 @@ _fer_inline int ferQuatInvert2(fer_quat_t *dest, const fer_quat_t *src);
  * Rotate vector v by quaternion q.
  */
 _fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q);
+
+/**
+ * Transforms quaternion into Mat3 rotation matrix.
+ */
+_fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m);
 
 
 /**** INLINES ****/
@@ -300,6 +306,30 @@ _fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q)
             + 2 * ((xz - wy) * ferVec3X(v)
             + (yz + wx) * ferVec3Y(v));
     ferVec3Set(v, vx, vy, vz);
+}
+
+_fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m)
+{
+    fer_real_t x, y, z, w;
+    fer_real_t xx, yy, zz, xy, zw, xz, yw, yz, xw;
+
+    x = ferQuatX(q);
+    y = ferQuatY(q);
+    z = ferQuatZ(q);
+    w = ferQuatW(q);
+    xx = FER_REAL(2.) * x * x;
+    yy = FER_REAL(2.) * y * y;
+    zz = FER_REAL(2.) * z * z;
+    xy = FER_REAL(2.) * x * y;
+    zw = FER_REAL(2.) * z * w;
+    xz = FER_REAL(2.) * x * z;
+    yw = FER_REAL(2.) * y * w;
+    yz = FER_REAL(2.) * y * z;
+    xw = FER_REAL(2.) * x * w;
+
+    ferMat3Set(m, 1.0-yy-zz, xy-zw, xz+yw,
+                  xy+zw, 1.0-xx-zz, yz-xw,
+                  xz-yw, yz+xw, 1.0-xx-yy);
 }
 
 #ifdef __cplusplus

@@ -20,6 +20,10 @@
 #include <stdlib.h>
 #include <fermat/core.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Functions and macros required for memory allocation.
  */
@@ -49,5 +53,9 @@
 
 void *ferRealloc(void *ptr, size_t size);
 void *ferAllocAlign(size_t size, size_t alignment);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_ALLOC_H__ */

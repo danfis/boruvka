@@ -20,6 +20,10 @@
 #include <fermat/core.h>
 #include <fermat/list.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Net - Neural Network
  * =====================
@@ -326,6 +330,10 @@ _fer_inline fer_list_t *ferNetEdges(fer_net_t *n)
 {
     return &n->edges;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_NET_H__ */
 

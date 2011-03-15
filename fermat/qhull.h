@@ -21,6 +21,10 @@
 #include <fermat/pc3.h>
 #include <fermat/mesh3.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Default path to qdelaunay binary */
 #define FER_QDELAUNAY_BIN_PATH "/usr/bin/qdelaunay"
 
@@ -103,6 +107,10 @@ _fer_inline const char *ferQDelaunayPath(const fer_qdelaunay_t *q)
 {
     return q->bin_path;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_QHULL_H__ */
 

@@ -98,6 +98,8 @@ LDFLAGS += $(SYSTEM_LDFLAGS)
 
 PYTHON_CFLAGS  = $(shell $(PYTHON_CONFIG) --includes)
 PYTHON_LDFLAGS = $(shell $(PYTHON_CONFIG) --libs)
+RAPID_CFLAGS  ?=
+RAPID_LDFLAGS ?= -lRAPID
 
 CHECKTARGETS = 
 check-dep: $(CHECKTARGETS)
@@ -133,6 +135,8 @@ showvars:
 	@echo "CONFIG_FLAGS = $(CONFIG_FLAGS)"
 	@echo "PYTHON_CFLAGS  = $(PYTHON_CFLAGS)"
 	@echo "PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
+	@echo "RAPID_CFLAGS  = $(RAPID_CFLAGS)"
+	@echo "RAPID_LDFLAGS = $(RAPID_LDFLAGS)"
 	@echo ""
 	@echo "PREFIX     = $(PREFIX)"
 	@echo "INCLUDEDIR = $(INCLUDEDIR)"

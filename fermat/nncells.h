@@ -20,6 +20,10 @@
 #include <fermat/list.h>
 #include <fermat/vec.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 struct fer_nncells_cache_t;
 
 /** Internal structure */
@@ -323,4 +327,9 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
 
     return id;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
+
 #endif /* __FER_NNCELLS_H__ */

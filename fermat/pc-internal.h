@@ -19,6 +19,10 @@
 
 #include <fermat/list.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * One memory chunk used for storing points.
  */
@@ -68,6 +72,10 @@ _fer_inline int ferPCMemFull(const fer_pc_mem_t *m)
 {
     return m->len >= m->size;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_PC_INTERNAL_H__ */
 

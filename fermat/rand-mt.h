@@ -26,6 +26,10 @@
 #include <stdint.h>
 #include <fermat/core.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /** Length of state vector */
 #define FER_RAND_MT_N 624
 /** Period */
@@ -204,5 +208,9 @@ _fer_inline double ferRandMTNormal(fer_rand_mt_t *g, double mean, double stddev)
     double s = sqrt( -2.0 * log(r) / r );
     return mean + x * s * stddev;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_RAND_MT_H__ */

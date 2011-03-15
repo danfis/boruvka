@@ -21,6 +21,10 @@
 #include <fermat/vec3.h>
 #include <fermat/vec4.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Parse
  * ======
@@ -60,5 +64,9 @@ int ferParseVec4(const char *str, const char *strend, fer_vec4_t *v, char **next
  * Returns 0 on success, -1 otherwise.
  */
 int ferParseLong(const char *str, const char *strend, long *val, char **next);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_PARSE_H__ */

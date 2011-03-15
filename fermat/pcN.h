@@ -20,6 +20,10 @@
 #include <fermat/vec`N`.h>
 #include <fermat/pc-internal.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #ifndef FER_PC`N`_MIN_CHUNK_SIZE
 # define FER_PC`N`_MIN_CHUNK_SIZE 100000
 #endif /* FER_PC`N`_MIN_CHUNK_SIZE */
@@ -203,4 +207,9 @@ _fer_inline void ferPC`N`ItPrev(fer_pc`N`_it_t *it)
         it->pos--;
     }
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
+
 #endif /* __FER_PC`N`_H__ */

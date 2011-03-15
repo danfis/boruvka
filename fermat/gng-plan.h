@@ -23,6 +23,10 @@
 #include <fermat/dij.h>
 #include <fermat/pairheap.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Growing Neural Gas for Planning
  * ================================
@@ -219,6 +223,10 @@ _fer_inline size_t ferGNGPNodesLen(const fer_gngp_t *gng)
 {
     return ferNetNodesLen(gng->net);
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_GNG_PLAN_H__ */
 

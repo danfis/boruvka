@@ -20,6 +20,10 @@
 #include <fermat/net.h>
 #include <fermat/pairheap.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Growing Neural Gas
  * ===================
@@ -419,6 +423,10 @@ _fer_inline fer_net_edge_t *ferGNGEdgeToNet(fer_gng_edge_t *e)
 {
     return &e->edge;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_GNG_H__ */
 

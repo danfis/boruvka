@@ -22,6 +22,10 @@
 #include <unistd.h>
 #include <fermat/core.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * Rand
  * =====
@@ -68,5 +72,9 @@ _fer_inline fer_real_t ferRand(fer_rand_t *r, fer_real_t from, fer_real_t to)
 
     return num;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_RAND_H__ */

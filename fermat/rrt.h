@@ -22,6 +22,10 @@
 #include <fermat/nncells.h>
 #include <fermat/dij.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #define FER_RRT_FREE 1
 #define FER_RRT_OBST 2
 
@@ -232,5 +236,9 @@ _fer_inline const fer_vec_t *ferRRTNodeConf(const fer_rrt_node_t *n)
 {
     return n->conf;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_RRT_H__ */

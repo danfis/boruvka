@@ -21,6 +21,10 @@
 #include <string.h>
 #include <fermat/core.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 /**
  * List
  * =====
@@ -182,20 +186,20 @@ _fer_inline int ferListEmpty(const fer_list_t *head)
     return head->next == head;
 }
 
-_fer_inline void ferListAppend(fer_list_t *l, fer_list_t *new)
+_fer_inline void ferListAppend(fer_list_t *l, fer_list_t *n)
 {
-    new->prev = l->prev;
-    new->next = l;
-    l->prev->next = new;
-    l->prev = new;
+    n->prev = l->prev;
+    n->next = l;
+    l->prev->next = n;
+    l->prev = n;
 }
 
-_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *new)
+_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *n)
 {
-    new->next = l->next;
-    new->prev = l;
-    l->next->prev = new;
-    l->next = new;
+    n->next = l->next;
+    n->prev = l;
+    l->next->prev = n;
+    l->next = n;
 }
 
 _fer_inline void ferListDel(fer_list_t *item)
@@ -227,5 +231,9 @@ _fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l)
 {
     return (fer_list_m_t *)l;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_LIST_H__ */

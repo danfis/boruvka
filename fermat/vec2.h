@@ -695,7 +695,7 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
 
 _fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out)
 {
-    fprintf(out, "%lg %lg", (double)ferVec2X(v), (double)ferVec2Y(v));
+    fprintf(out, "%g %g", (double)ferVec2X(v), (double)ferVec2Y(v));
 }
 
 #include <stdio.h>
