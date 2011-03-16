@@ -217,6 +217,11 @@ int ferGNGPFindPath(fer_gngp_t *gng,
  */
 void ferGNGPDumpSVT(fer_gngp_t *gng, FILE *out, const char *name);
 
+/**
+ * Dump nodes - coordinates and set
+ */
+void ferGNGPDumpNodes(fer_gngp_t *gng, FILE *out);
+
 
 /**** INLINES ****/
 _fer_inline size_t ferGNGPNodesLen(const fer_gngp_t *gng)

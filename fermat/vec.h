@@ -361,7 +361,7 @@ _fer_inline void ferVecPrint(size_t size, const fer_vec_t *v, FILE *out)
     size_t i;
     fprintf(out, "%g", (double)ferVecGet(v, 0));
     for (i = 1; i < size; i++){
-        fprintf(out, " %g", (double)ferVecGet(v, 1));
+        fprintf(out, " %g", (double)ferVecGet(v, i));
     }
 }
 

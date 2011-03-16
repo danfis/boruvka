@@ -263,6 +263,22 @@ void ferGNGPDumpSVT(fer_gngp_t *gng, FILE *out, const char *name)
     }
 }
 
+void ferGNGPDumpNodes(fer_gngp_t *gng, FILE *out)
+{
+    fer_list_t *list, *item;
+    fer_net_node_t *nn;
+    fer_gngp_node_t *n;
+
+    list = ferNetNodes(gng->net);
+    ferListForEach(list, item){
+        nn = ferListEntry(item, fer_net_node_t, list);
+        n  = fer_container_of(nn, fer_gngp_node_t, node);
+
+        ferVecPrint(gng->params.d, n->w, out);
+        fprintf(out, " %d\n", n->set);
+    }
+}
+
 
 static void init(fer_gngp_t *gng)
 {

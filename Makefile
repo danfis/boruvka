@@ -23,7 +23,7 @@ LDFLAGS += -L. -lfermat -lm -lrt
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
 BIN_TARGETS += fer-gngp fer-prm-2d fer-rrt-2d
-BIN_TARGETS += fer-gngp-alpha
+BIN_TARGETS += fer-gngp-alpha fer-print-alpha
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -62,6 +62,8 @@ fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
 bin/fer-gngp-alpha: bin/gngp-alpha-main.c libfermat.a
+	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS)
+bin/fer-print-alpha: bin/print-alpha-main.c libfermat.a
 	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS)
 
 bin/fer-%: bin/%-main.c libfermat.a
