@@ -62,9 +62,9 @@ fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
 bin/fer-gngp-alpha: bin/gngp-alpha-main.c libfermat.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS)
+	$(CC) $(CFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS) -lstdc++
 bin/fer-print-alpha: bin/print-alpha-main.c libfermat.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS)
+	$(CC) $(CFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS) -lstdc++
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
