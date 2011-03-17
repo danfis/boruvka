@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     params.warm_start = atoi(argv[2]);
     params.cells.num_cells = 0;
     params.cells.max_dens  = 1;
-    params.cells.expand_rate = 1.5;
+    params.cells.expand_rate = 1.1;
     params.cells.aabb = aabb;
 
     ferGNGPOpsInit(&ops);
@@ -144,8 +144,6 @@ static int terminate(void *data)
     if (ferGNGPNodesLen(p->gng) > p->warm_start
             && ferGNGPNodesLen(p->gng) % p->find_path == 0){
         ferListInit(&path);
-        ferVecPrint(6, p->start, stderr);
-        fprintf(stderr, "\n");
         res = ferGNGPFindPath(p->gng, p->start, p->goal, &path);
         if (res == 0){
             fprintf(stderr, "\n");
@@ -188,8 +186,9 @@ static void callback(void *data)
     */
 
     nodes_len = ferGNGPNodesLen(p->gng);
-    ferTimerStopAndPrintElapsed(&p->timer, stderr, " n: %d / %d (%lu)\r",
-                                nodes_len, p->max_nodes, p->evals);
+    ferTimerStop(&p->timer);
+    fprintf(stderr, "[%08lu s] ", ferTimerElapsedInS(&p->timer));
+    fprintf(stderr, "n: %d / %d (%lu)\r", nodes_len, p->max_nodes, p->evals);
 }
 
 static const fer_vec_t *inputSignal(void *data)
