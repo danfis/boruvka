@@ -201,7 +201,7 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
 void __ferNNCellsExpand(fer_nncells_t *cs)
 {
     fer_nncells_cell_t *cells;
-    size_t i, cells_len;
+    size_t i, cells_len, newlen;
     fer_list_t *item;
     fer_nncells_el_t *el;
 
@@ -211,7 +211,11 @@ void __ferNNCellsExpand(fer_nncells_t *cs)
 
     // create new cells
     cs->num_els = 0;
-    cellsAlloc(cs, cells_len * cs->expand);
+    newlen = cells_len * cs->expand;
+    if (newlen == cells_len){
+        newlen *= 2;
+    }
+    cellsAlloc(cs, newlen);
 
     // copy elements from old cells to the new one
     for (i = 0; i < cells_len; i++){
