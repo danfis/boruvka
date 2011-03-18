@@ -21,20 +21,22 @@
 /** Print progress */
 #define PR_PROGRESS(g) \
     ferTimerStop(&g->timer); \
-    ferTimerPrintElapsed(&(g)->timer, stderr, " n: %d/%d, e: %d, f: %d\r", \
+    ferTimerPrintElapsed(&(g)->timer, stderr, " n: %d/%d, e: %d, f: %d (%u)\r", \
                          ferMesh3VerticesLen((g)->mesh), \
-                         (g)->param.max_nodes, \
+                         (g)->params.max_nodes, \
                          ferMesh3EdgesLen((g)->mesh), \
-                         ferMesh3FacesLen((g)->mesh)); \
+                         ferMesh3FacesLen((g)->mesh), \
+                         ferNNCellsCellsLen((g)->cells)); \
     fflush(stderr)
 
 #define PR_PROGRESS_PREFIX(g, prefix) \
     ferTimerStop(&(g)->timer); \
-    ferTimerPrintElapsed(&(g)->timer, stderr, prefix " n: %d/%d, e: %d, f: %d\n", \
+    ferTimerPrintElapsed(&(g)->timer, stderr, prefix " n: %d/%d, e: %d, f: %d (%u)\n", \
                          ferMesh3VerticesLen((g)->mesh), \
-                         (g)->param.max_nodes, \
+                         (g)->params.max_nodes, \
                          ferMesh3EdgesLen((g)->mesh), \
-                         ferMesh3FacesLen((g)->mesh)); \
+                         ferMesh3FacesLen((g)->mesh), \
+                         ferNNCellsCellsLen((g)->cells)); \
     fflush(stderr)
 
 
@@ -45,7 +47,7 @@ struct _node_t {
     size_t err_counter_mark; /*!< Mark used for accumulated error counter */
 
     fer_mesh3_vertex_t vert; /*!< Vertex in mesh */
-    fer_cubes3_el_t cubes;   /*!< Struct for NN search */
+    fer_nncells_el_t cells;  /*!< Struct for NN search */
 };
 typedef struct _node_t node_t;
 
@@ -202,11 +204,11 @@ static void delLonelyNodesEdgesFaces(fer_gsrm_t *g);
 /** Embed triangles everywhere it can */
 static void finishSurfaceEmbedTriangles(fer_gsrm_t *g);
 /** Returns true if all internal angles of face is smaller than
- *  g->param.max_angle */
+ *  g->params.max_angle */
 static int faceCheckAngle(fer_gsrm_t *g, fer_mesh3_vertex_t *v1,
                           fer_mesh3_vertex_t *v2, fer_mesh3_vertex_t *v3);
 /** Deletes one of triangles (the triangles are considered to have dihedral
- *  angle smaller than g->param.min_dangle.
+ *  angle smaller than g->params.min_dangle.
  *  First is deleted face that have less incidenting faces. If both have
  *  same, faces with smaller area is deleted. */
 static void delFacesDangle(fer_gsrm_t *g, face_t *f1, face_t *f2);
@@ -219,25 +221,32 @@ static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e);
 static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e);
 
 
-fer_gsrm_t *ferGSRMNew(void)
+void ferGSRMParamsInit(fer_gsrm_params_t *params)
+{
+    params->lambda = 200;
+    params->eb = 0.05;
+    params->en = 0.0006;
+    params->alpha = 0.95;
+    params->beta = 0.9995;
+    params->age_max = 200;
+    params->max_nodes = 5000;
+
+    params->min_dangle = M_PI_4;
+    params->max_angle = M_PI_2 * 1.5;
+    params->angle_merge_edges = M_PI * 0.9;
+
+    params->verbosity = 1;
+
+    ferNNCellsParamsInit(&params->cells);
+    params->cells.d = 3;
+}
+
+fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
 {
     fer_gsrm_t *g;
 
     g = FER_ALLOC(fer_gsrm_t);
-
-    // init params:
-    g->param.lambda = 200;
-    g->param.eb = 0.05;
-    g->param.en = 0.0006;
-    g->param.alpha = 0.95;
-    g->param.beta = 0.9995;
-    g->param.age_max = 200;
-    g->param.max_nodes = 5000;
-    g->param.num_cubes = 5000;
-
-    g->param.min_dangle = M_PI_4;
-    g->param.max_angle = M_PI_2 * 1.5;
-    g->param.angle_merge_edges = M_PI * 0.9;
+    g->params = *params;
 
     // initialize point cloude (input signals)
     g->is = ferPC3New();
@@ -245,11 +254,9 @@ fer_gsrm_t *ferGSRMNew(void)
     // init 3D mesh
     g->mesh = ferMesh3New();
 
-    // init cubes for NN search to NULL, actual allocation will be made
+    // init nncells for NN search to NULL, actual allocation will be made
     // after we know what area do we need to cover
-    g->cubes = NULL;
-
-    g->verbosity = 0;
+    g->cells = NULL;
 
     g->c = NULL;
 
@@ -269,8 +276,8 @@ void ferGSRMDel(fer_gsrm_t *g)
                               edgeDel2, (void *)g,
                               faceDel2, (void *)g);
 
-    if (g->cubes)
-        ferCubes3Del(g->cubes);
+    if (g->cells)
+        ferNNCellsDel(g->cells);
 
     free(g);
 }
@@ -282,7 +289,6 @@ size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
 
 int ferGSRMRun(fer_gsrm_t *g)
 {
-    const fer_real_t *aabb;
     size_t step, step_progress;
 
     // check if there are some input signals
@@ -296,10 +302,12 @@ int ferGSRMRun(fer_gsrm_t *g)
         g->c = cacheNew();
 
     // initialize NN search structure
-    if (!g->cubes){
-        aabb = ferPC3AABB(g->is);
-        g->cubes = ferCubes3New(aabb, g->param.num_cubes);
-    }
+    if (g->cells)
+        ferNNCellsDel(g->cells);
+
+    g->params.cells.d    = 3;
+    g->params.cells.aabb = (fer_real_t *)ferPC3AABB(g->is);
+    g->cells = ferNNCellsNew(&g->params.cells);
 
     // first shuffle of all input signals
     ferPC3Permutate(g->is);
@@ -314,17 +322,17 @@ int ferGSRMRun(fer_gsrm_t *g)
 
     step = 1;
     step_progress = 0;
-    while (ferMesh3VerticesLen(g->mesh) < g->param.max_nodes){
+    while (ferMesh3VerticesLen(g->mesh) < g->params.max_nodes){
         drawInputPoint(g);
 
         echl(g);
 
-        if (fer_unlikely(step >= g->param.lambda)){
+        if (fer_unlikely(step >= g->params.lambda)){
             createNewNode(g);
             step = 0;
             //ferMesh3DumpSVT(g->mesh, stdout, "1");
 
-            if (g->verbosity >= 2
+            if (g->params.verbosity >= 2
                     && fer_unlikely(step_progress % FER_GSRM_PROGRESS_REFRESH == 0)){
                 PR_PROGRESS(g);
                 step_progress = 0;
@@ -337,7 +345,7 @@ int ferGSRMRun(fer_gsrm_t *g)
         step++;
     }
 
-    if (g->verbosity >= 1){
+    if (g->params.verbosity >= 1){
         PR_PROGRESS(g);
         fprintf(stderr, "\n");
     }
@@ -361,7 +369,7 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // than treshold (.param.max_angle) or if dihedral angle with any other
     // face is smaller than treshold (.param.min_dangle)
     delIncorrectFaces(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -1- DIF:");
     }
 
@@ -369,7 +377,7 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // Incorrect edges are those that have (on one end) no incidenting
     // edge or if edge can't be used for face creation.
     delIncorrectEdges(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -1- DIE:");
     }
 
@@ -377,15 +385,15 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // Merge all pairs of edges that have common node that have no other
     // incidenting edges than the two.
     mergeEdges(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -1- ME: ");
     }
 
     // Finish surface
     finishSurface(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -1- FS: ");
-    }else if (g->verbosity >= 2){
+    }else if (g->params.verbosity >= 2){
         PR_PROGRESS_PREFIX(g, " -1-");
     }
 
@@ -393,15 +401,15 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // Phase 2:
     // Del incorrect edges again
     delIncorrectEdges(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -2- DIE:");
     }
 
     // finish surface
     finishSurface(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -2- FS: ");
-    }else if (g->verbosity >= 2){
+    }else if (g->params.verbosity >= 2){
         PR_PROGRESS_PREFIX(g, " -2-");
     }
 
@@ -409,31 +417,31 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
     // Phase 3:
     // delete lonely faces, edges and nodes
     delLonelyNodesEdgesFaces(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -3- DL: ");
     }
 
     // try finish surface again
     finishSurface(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -3- FS: ");
-    }else if (g->verbosity >= 2){
+    }else if (g->params.verbosity >= 2){
         PR_PROGRESS_PREFIX(g, " -3-");
     }
 
     // Phase 4:
     // delete lonely faces, edges and nodes
     delLonelyNodesEdgesFaces(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -4- DL: ");
     }
 
     finishSurfaceEmbedTriangles(g);
-    if (g->verbosity >= 3){
+    if (g->params.verbosity >= 3){
         PR_PROGRESS_PREFIX(g, " -4- FET:");
-    }else if (g->verbosity >= 2){
+    }else if (g->params.verbosity >= 2){
         PR_PROGRESS_PREFIX(g, " -4-");
-    }else if (g->verbosity >= 1){
+    }else if (g->params.verbosity >= 1){
         PR_PROGRESS(g);
         fprintf(stderr, "\n");
     }
@@ -479,13 +487,13 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
     // initialize mesh's vertex struct with weight vector
     ferMesh3VertexSetCoords(&n->vert, n->v);
 
-    // initialize cubes struct with its own weight vector
-    ferCubes3ElInit(&n->cubes, n->v);
+    // initialize cells struct with its own weight vector
+    ferNNCellsElInit(&n->cells, (fer_vec_t *)n->v);
 
     // add node into mesh
     ferMesh3AddVertex(g->mesh, &n->vert);
-    // and add node into cubes
-    ferCubes3Add(g->cubes, &n->cubes);
+    // and add node into cells
+    ferNNCellsAdd(g->cells, &n->cells);
 
     // set error counter (and mark)
     n->err_counter = FER_ZERO;
@@ -525,10 +533,10 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
 
     ferVec3Del(n->v);
 
-    // remove node from cubes
-    ferCubes3Remove(g->cubes, &n->cubes);
+    // remove node from cells
+    ferNNCellsRemove(g->cells, &n->cells);
 
-    // Note: no need of deallocation of .vert and .cubes
+    // Note: no need of deallocation of .vert and .cells
     free(n);
 }
 
@@ -540,8 +548,8 @@ static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
 
     ferVec3Del(n->v);
 
-    // remove node from cubes
-    ferCubes3Remove(g->cubes, &n->cubes);
+    // remove node from cells
+    ferNNCellsRemove(g->cells, &n->cells);
 
     free(n);
 }
@@ -561,7 +569,7 @@ static void nodeErrCounterApply(fer_gsrm_t *g, node_t *n)
             // without pow() operation
             n->err_counter *= g->c->err_counter_scale;
         }else{
-            err = FER_POW(g->param.beta, (fer_real_t)left);
+            err = FER_POW(g->params.beta, (fer_real_t)left);
             n->err_counter *= err;
         }
     }
@@ -607,7 +615,7 @@ static void nodeErrCounterResetAll(fer_gsrm_t *g)
 
 static void nodeErrCounterScaleAll(fer_gsrm_t *g)
 {
-    g->c->err_counter_scale *= g->param.beta;
+    g->c->err_counter_scale *= g->params.beta;
     g->c->err_counter_mark++;
 }
 
@@ -738,12 +746,12 @@ static void drawInputPoint(fer_gsrm_t *g)
 /** --- ECHL functions --- **/
 static void echl(fer_gsrm_t *g)
 {
-    fer_cubes3_el_t *el[2];
+    fer_nncells_el_t *el[2];
 
     // 1. Find two nearest nodes
-    ferCubes3Nearest(g->cubes, g->c->is, 2, el);
-    g->c->nearest[0] = fer_container_of(el[0], node_t, cubes);
-    g->c->nearest[1] = fer_container_of(el[1], node_t, cubes);
+    ferNNCellsNearest(g->cells, (const fer_vec_t *)g->c->is, 2, el);
+    g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
+    g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
 
     // 2. Updates winners error counter
     nodeErrCounterInc(g, g->c->nearest[0], g->c->is);
@@ -919,7 +927,7 @@ static void echlMove(fer_gsrm_t *g)
     wvert = &wn->vert;
 
     // move winning node
-    echlMoveNode(g, wn, g->param.eb);
+    echlMoveNode(g, wn, g->params.eb);
 
     // move nodes connected with the winner
     list = ferMesh3VertexEdges(wvert);
@@ -927,7 +935,7 @@ static void echlMove(fer_gsrm_t *g)
         edge = ferMesh3EdgeFromVertexList(item);
         vert = ferMesh3EdgeOtherVertex(edge, wvert);
 
-        echlMoveNode(g, fer_container_of(vert, node_t, vert), g->param.en);
+        echlMoveNode(g, fer_container_of(vert, node_t, vert), g->params.en);
     }
 }
 
@@ -951,7 +959,7 @@ static void echlUpdate(fer_gsrm_t *g)
 
         // if age of edge is above treshold remove edge and nodes which
         // remain unconnected
-        if (e->age > g->param.age_max){
+        if (e->age > g->params.age_max){
             // get other node than winning one
             vert = ferMesh3EdgeOtherVertex(edge, &wn->vert);
 
@@ -1065,8 +1073,8 @@ static void createNewNode(fer_gsrm_t *g)
     sr = createNewNode2(g, sq, sf);
 
     // set up error counters of sq, sf and sr
-    err  = nodeErrCounterScale(g, sq, g->param.alpha);
-    err += nodeErrCounterScale(g, sf, g->param.alpha);
+    err  = nodeErrCounterScale(g, sq, g->params.alpha);
+    err += nodeErrCounterScale(g, sf, g->params.alpha);
     err *= FER_REAL(0.5);
     sr->err_counter = err;
 
@@ -1162,7 +1170,7 @@ static void delIncorrectFaces(fer_gsrm_t *g)
             // check dihedral angle between faces and if it is smaller than
             // treshold delete one of them
             dangle = ferVec3DihedralAngle(vs[2]->v, vs[0]->v, vs[1]->v, vs[3]->v);
-            if (dangle < g->param.min_dangle){
+            if (dangle < g->params.min_dangle){
                 fs[0] = fer_container_of(faces[0], face_t, face);
                 fs[1] = fer_container_of(faces[1], face_t, face);
                 delFacesDangle(g, fs[0], fs[1]);
@@ -1235,7 +1243,7 @@ static void mergeEdges(fer_gsrm_t *g)
                     // compute angle between edges and check if it is big
                     // enough to perform merging
                     angle = ferVec3Angle(vs[0]->v, vert->v, vs[1]->v);
-                    if (angle > g->param.angle_merge_edges){
+                    if (angle > g->params.angle_merge_edges){
                         // finally, we can merge edges
                         e[0] = fer_container_of(edge[0], edge_t, edge);
                         e[1] = fer_container_of(edge[1], edge_t, edge);
@@ -1381,9 +1389,9 @@ static void finishSurfaceEmbedTriangles(fer_gsrm_t *g)
 static int faceCheckAngle(fer_gsrm_t *g, fer_mesh3_vertex_t *v1,
                           fer_mesh3_vertex_t *v2, fer_mesh3_vertex_t *v3)
 {
-    if (ferVec3Angle(v1->v, v2->v, v3->v) > g->param.max_angle
-            || ferVec3Angle(v2->v, v3->v, v1->v) > g->param.max_angle
-            || ferVec3Angle(v3->v, v1->v, v2->v) > g->param.max_angle)
+    if (ferVec3Angle(v1->v, v2->v, v3->v) > g->params.max_angle
+            || ferVec3Angle(v2->v, v3->v, v1->v) > g->params.max_angle
+            || ferVec3Angle(v3->v, v1->v, v2->v) > g->params.max_angle)
         return 0;
     return 1;
 }
@@ -1477,7 +1485,7 @@ static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e)
 
             // check dihedral angle
             dangle = ferVec3DihedralAngle(vs[2]->v, vs[0]->v, vs[1]->v, s->v);
-            if (dangle < g->param.min_dangle)
+            if (dangle < g->params.min_dangle)
                 continue;
 
             // check if face can be created inside triplet of edges

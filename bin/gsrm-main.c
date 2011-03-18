@@ -37,7 +37,7 @@ typedef enum {
 
     DUMP_TRIANGLES,
 
-    NUM_CUBES
+    NUM_CELLS
 } options_enum;
 
 static struct option options[] = {
@@ -50,7 +50,7 @@ static struct option options[] = {
     { "alpha",     required_argument, NULL, ALPHA },
     { "age-max",   required_argument, NULL, AGE_MAX },
     { "max-nodes", required_argument, NULL, MAX_NODES },
-    { "num-cubes", required_argument, NULL, NUM_CUBES },
+    { "num-cells", required_argument, NULL, NUM_CELLS },
     { "min-dangle", required_argument, NULL, MIN_DANGLE },
     { "max-angle", required_argument, NULL, MAX_ANGLE },
     { "angle-merge-edges", required_argument, NULL, ANGLE_MERGE_EDGES },
@@ -63,6 +63,7 @@ static struct option options[] = {
 };
 
 #define DUMP_TRIANGLES_FN_LEN 100
+static fer_gsrm_params_t params;
 static fer_gsrm_t *gsrm;
 static const char *is_fn = NULL;
 static const char *outfile_fn;
@@ -80,10 +81,10 @@ int main(int argc, char *argv[])
     FILE *outfile;
     fer_timer_t timer;
 
-    gsrm = ferGSRMNew();
-    ferGSRMSetVerbosity(gsrm, 1);
-
     readOptions(argc, argv);
+
+    gsrm = ferGSRMNew(&params);
+
     printAttrs();
 
     // open output file
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
         mesh = ferGSRMMesh(gsrm);
         ferMesh3DumpSVT(mesh, outfile, "Result");
 
-        if (ferGSRMVerbosity(gsrm) >= 2){
+        if (params.verbosity >= 2){
             fprintf(stderr, "\n");
             ferTimerStopAndPrintElapsed(&timer, stderr, " Mesh dumped to '%s'.\n",
                                         (outfile == stdout ? "stdout" : outfile_fn));
@@ -122,7 +123,7 @@ int main(int argc, char *argv[])
             ferMesh3DumpTriangles(mesh, dump_triangles);
             fclose(dump_triangles);
 
-            if (ferGSRMVerbosity(gsrm) >= 2){
+            if (params.verbosity >= 2){
                 ferTimerStopAndPrintElapsed(&timer, stderr,
                                             " Mesh dumped as triangles into '%s'.\n",
                                             dump_triangles_fn);
@@ -146,10 +147,12 @@ void readOptions(int argc, char *argv[])
     int c, option_index;
     long iv;
     fer_real_t fv;
-    int num_cubes_set = 0;
-    fer_gsrm_param_t *param;
 
-    param = ferGSRMParam(gsrm);
+    ferGSRMParamsInit(&params);
+    params.verbosity = 1;
+    params.cells.num_cells = 0;
+    params.cells.max_dens = 0.1;
+    params.cells.expand_rate = 1.5;
 
     while ((c = getopt_long(argc, argv, "hvo:", options, &option_index)) != -1){
         switch(c){
@@ -157,66 +160,65 @@ void readOptions(int argc, char *argv[])
                 usage(argc, argv, NULL);
                 break;
             case VERBOSE:
-                ferGSRMSetVerbosity(gsrm, ferGSRMVerbosity(gsrm) + 1);
+                params.verbosity += 1;
                 break;
             case EPSILON_N:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "epsilon-n must be floating point "
                                       "number");
-                param->en = fv;
+                params.en = fv;
                 break;
             case EPSILON_B:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "epsilon-b must be floating point "
                                       "number");
-                param->eb = fv;
+                params.eb = fv;
                 break;
             case LAMBDA:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
                     usage(argc, argv, "lambda must be fixed point number");
-                param->lambda = iv;
+                params.lambda = iv;
                 break;
             case BETA:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "beta must be floating point number");
-                param->beta = fv;
+                params.beta = fv;
                 break;
             case ALPHA:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "alpha must be floating point number");
-                param->alpha = fv;
+                params.alpha = fv;
                 break;
             case AGE_MAX:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
                     usage(argc, argv, "age-max must be fixed point number");
-                param->age_max = iv;
+                params.age_max = iv;
                 break;
             case MAX_NODES:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
                     usage(argc, argv, "max-nodes must be fixed point number");
-                param->max_nodes = iv;
+                params.max_nodes = iv;
                 break;
-            case NUM_CUBES:
+            case NUM_CELLS:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "num-cubes must be fixed point number");
-                param->num_cubes = iv;
-                num_cubes_set = 1;
+                    usage(argc, argv, "num-cells must be fixed point number");
+                params.cells.num_cells = iv;
                 break;
 
             case MIN_DANGLE:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "min-dangle must be float");
-                param->min_dangle = fv;
+                params.min_dangle = fv;
                 break;
             case MAX_ANGLE:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "max-angle must be float");
-                param->max_angle = fv;
+                params.max_angle = fv;
                 break;
             case ANGLE_MERGE_EDGES:
                 if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
                     usage(argc, argv, "angle-merge-edges must be float");
-                param->angle_merge_edges = fv;
+                params.angle_merge_edges = fv;
                 break;
 
             case DUMP_TRIANGLES:
@@ -242,10 +244,6 @@ void readOptions(int argc, char *argv[])
         usage(argc, argv, "filename must be specified");
     }
     is_fn = argv[argc - 1];
-
-    if (!num_cubes_set){
-        param->num_cubes = param->max_nodes;
-    }
 }
 
 static void usage(int argc, char *argv[], const char *opt_msg)
@@ -263,7 +261,7 @@ static void usage(int argc, char *argv[], const char *opt_msg)
     fprintf(stderr, "            --alpha     float  Error counter decreasing rate\n");
     fprintf(stderr, "            --age-max   int\n");
     fprintf(stderr, "            --max-nodes int    Stop Criterium\n");
-    fprintf(stderr, "            --num-cubes int    Number of cubes (default is value of --max-nodes)\n");
+    fprintf(stderr, "            --num-cells int    Number of cells (default is 0)\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "            --min-dangle        float  Minimal dihedral angle between faces\n");
     fprintf(stderr, "            --max-angle         float  Maximal angle in cusp of face\n");
@@ -283,9 +281,9 @@ static void usage(int argc, char *argv[], const char *opt_msg)
 
 void printAttrs(void)
 {
-    fer_gsrm_param_t *param;
+    const fer_gsrm_params_t *param;
 
-    param = ferGSRMParam(gsrm);
+    param = ferGSRMParams(gsrm);
 
     fprintf(stderr, "Attributes:\n");
     fprintf(stderr, "    lambda:    %d\n", param->lambda);
@@ -295,7 +293,10 @@ void printAttrs(void)
     fprintf(stderr, "    beta:      %f\n", (float)param->beta);
     fprintf(stderr, "    age_max:   %d\n", param->age_max);
     fprintf(stderr, "    max nodes: %d\n", param->max_nodes);
-    fprintf(stderr, "    num cubes: %d\n", param->num_cubes);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "    num cells:   %d\n", param->cells.num_cells);
+    fprintf(stderr, "    max dens:    %f\n", param->cells.max_dens);
+    fprintf(stderr, "    expand rate: %f\n", param->cells.expand_rate);
     fprintf(stderr, "\n");
     fprintf(stderr, "    min d. angle:  %f\n", param->min_dangle);
     fprintf(stderr, "    max angle:     %f\n", param->max_angle);

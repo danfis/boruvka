@@ -21,7 +21,7 @@
 #include <fermat/timer.h>
 #include <fermat/pc3.h>
 #include <fermat/mesh3.h>
-#include <fermat/cubes3.h>
+#include <fermat/nncells.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ struct _fer_gsrm_cache_t;
  */
 
 /** vvvv */
-struct _fer_gsrm_param_t {
+struct _fer_gsrm_params_t {
     size_t lambda;    /*!< Number of steps between adding nodes */
     fer_real_t eb;    /*!< Winner node learning rate */
     fer_real_t en;    /*!< Winners' neighbor learning rate */
@@ -49,26 +49,32 @@ struct _fer_gsrm_param_t {
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
 
-    size_t max_nodes; /*!< Number of cubes that will be used for nearest
-                           neighbor search */
-    size_t num_cubes; /*!< Termination condition - a goal number of nodes */
+    size_t max_nodes; /*!< Termination condition - a goal number of nodes */
 
     fer_real_t min_dangle;        /*! minimal dihedral angle between faces */
     fer_real_t max_angle;         /*! max angle between nodes to form face */
     fer_real_t angle_merge_edges; /*!< minimal angle between two edges to
                                        be merged */
+
+    int verbosity; /*!< Verbosity level */
+
+    fer_nncells_params_t cells; /*!< NNCells parameters */
 };
-typedef struct _fer_gsrm_param_t fer_gsrm_param_t;
+typedef struct _fer_gsrm_params_t fer_gsrm_params_t;
+
+/**
+ * Initializes parameters of GSRM to default values.
+ */
+void ferGSRMParamsInit(fer_gsrm_params_t *params);
 
 struct _fer_gsrm_t {
-    fer_gsrm_param_t param; /*!< Parameters of algorithm */
+    fer_gsrm_params_t params; /*!< Parameters of algorithm */
 
     fer_pc3_t *is;        /*!< Input signals */
     fer_pc3_it_t isit;    /*!< Iterator over is */
-    fer_mesh3_t *mesh;   /*!< Reconstructed mesh */
-    fer_cubes3_t *cubes; /*!< Search structure for nearest neighbor */
+    fer_mesh3_t *mesh;    /*!< Reconstructed mesh */
+    fer_nncells_t *cells; /*!< Search structure for nearest neighbor */
 
-    int verbosity; /*!< Verbosity level */
     fer_timer_t timer;
 
     struct _fer_gsrm_cache_t *c; /*!< Internal cache, don't touch it! */
@@ -80,7 +86,7 @@ typedef struct _fer_gsrm_t fer_gsrm_t;
 /**
  * Allocates core struct and initializes to default values.
  */
-fer_gsrm_t *ferGSRMNew(void);
+fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params);
 
 /**
  * Deallocates struct.
@@ -109,7 +115,7 @@ int ferGSRMPostprocess(fer_gsrm_t *g);
 /**
  * Return struct with GSRM parameters.
  */
-_fer_inline fer_gsrm_param_t *ferGSRMParam(fer_gsrm_t *g);
+_fer_inline const fer_gsrm_params_t *ferGSRMParams(fer_gsrm_t *g);
 
 /**
  * Returns pointer to mesh.
@@ -117,37 +123,15 @@ _fer_inline fer_gsrm_param_t *ferGSRMParam(fer_gsrm_t *g);
 _fer_inline fer_mesh3_t *ferGSRMMesh(fer_gsrm_t *g);
 
 
-/**
- * Returns verbosity level.
- */
-_fer_inline int ferGSRMVerbosity(const fer_gsrm_t *g);
-
-/**
- * Set verbosity level.
- * TODO: Describe all levels
- */
-_fer_inline void ferGSRMSetVerbosity(fer_gsrm_t *g, int level);
-
-
 /**** INLINES ****/
-_fer_inline fer_gsrm_param_t *ferGSRMParam(fer_gsrm_t *g)
+_fer_inline const fer_gsrm_params_t *ferGSRMParams(fer_gsrm_t *g)
 {
-    return &g->param;
+    return &g->params;
 }
 
 _fer_inline fer_mesh3_t *ferGSRMMesh(fer_gsrm_t *g)
 {
     return g->mesh;
-}
-
-_fer_inline int ferGSRMVerbosity(const fer_gsrm_t *g)
-{
-    return g->verbosity;
-}
-
-_fer_inline void ferGSRMSetVerbosity(fer_gsrm_t *g, int level)
-{
-    g->verbosity = level;
 }
 
 #ifdef __cplusplus
