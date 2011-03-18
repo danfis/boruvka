@@ -43,8 +43,9 @@
 struct _node_t {
     fer_vec3_t *v; /*!< Position of node (weight vector) */
 
-    fer_real_t err_counter;  /*!< Error counter */
-    size_t err_counter_mark; /*!< Mark used for accumulated error counter */
+    fer_real_t err;               /*!< Error counter */
+    unsigned long err_cycle;      /*!< Last cycle in which were .err changed */
+    fer_pairheap_node_t err_heap; /*!< Connection into error heap */
 
     fer_mesh3_vertex_t vert; /*!< Vertex in mesh */
     fer_nncells_el_t cells;  /*!< Struct for NN search */
@@ -95,22 +96,12 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v);
 static void nodeDel(fer_gsrm_t *g, node_t *n);
 /** Deletes node - proposed for ferMesh3Del2() function */
 static void nodeDel2(fer_mesh3_vertex_t *v, void *data);
-/** Applies cumulative error counter on node's err counter */
-static void nodeErrCounterApply(fer_gsrm_t *g, node_t *n);
-/** Returns error counter of node.
- *  This function must be used instead of direct access to struct because
- *  of cumulative error counter */
-static fer_real_t nodeErrCounter(fer_gsrm_t *g, node_t *n);
-/** Scales error counter by given factor */
-static fer_real_t nodeErrCounterScale(fer_gsrm_t *g, node_t *n, fer_real_t s);
-/** Resets error counter - applies cumulative one and resets mark to zero */
-static fer_real_t nodeErrCounterReset(fer_gsrm_t *g, node_t *n);
-/** Increases error counter by given value */
-static void nodeErrCounterInc(fer_gsrm_t *g, node_t *n, const fer_vec3_t *v);
-/** Reset all error counters. */
-static void nodeErrCounterResetAll(fer_gsrm_t *g);
-/** Scale all error counters. */
-static void nodeErrCounterScaleAll(fer_gsrm_t *g);
+/** Fixes node's error counter, i.e. applies correct beta^(n * lambda) */
+_fer_inline void nodeFixError(fer_gsrm_t *gng, node_t *n);
+/** Increment error counter */
+_fer_inline void nodeIncError(fer_gsrm_t *gng, node_t *n, fer_real_t inc);
+/** Scales error counter */
+_fer_inline void nodeScaleError(fer_gsrm_t *gng, node_t *n, fer_real_t scale);
 
 
 /** --- Edge functions --- */
@@ -127,6 +118,10 @@ static void faceDel(fer_gsrm_t *g, face_t *e);
 static void faceDel2(fer_mesh3_face_t *v, void *data);
 
 
+static int init(fer_gsrm_t *g);
+static void adapt(fer_gsrm_t *g);
+static void newNode(fer_gsrm_t *g);
+
 /* Initializes mesh with three random nodes from input */
 static void meshInit(fer_gsrm_t *g);
 
@@ -138,8 +133,6 @@ static void echlMove(fer_gsrm_t *g);
 static void echlUpdate(fer_gsrm_t *g);
 /** Creates new node */
 static void createNewNode(fer_gsrm_t *g);
-/** Decreases error counter */
-static void decreaseErrCounter(fer_gsrm_t *g);
 
 /** Initializes mesh with three random nodes from input */
 static void meshInit(fer_gsrm_t *g);
@@ -182,10 +175,6 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq);
 static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf);
 
 
-/** Decreases error counter for all nodes */
-static void decreaseErrCounter(fer_gsrm_t *g);
-
-
 /** --- Postprocessing functions --- */
 /** Returns (via min, max, avg arguments) minimum, maximum and average area
  *  of faces in a mesh. */
@@ -220,6 +209,9 @@ static int finishSurfaceTriangle(fer_gsrm_t *g, edge_t *e);
 /** Tries to create completely new face */
 static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e);
 
+static int errHeapLT(const fer_pairheap_node_t *_n1,
+                     const fer_pairheap_node_t *_n2,
+                     void *data);
 
 void ferGSRMParamsInit(fer_gsrm_params_t *params)
 {
@@ -260,6 +252,12 @@ fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
 
     g->c = NULL;
 
+    g->beta_n = NULL;
+    g->beta_lambda_n = NULL;
+    g->beta_lambda_n_len = 0;
+
+    g->err_heap = NULL;
+
     return g;
 }
 
@@ -279,6 +277,13 @@ void ferGSRMDel(fer_gsrm_t *g)
     if (g->cells)
         ferNNCellsDel(g->cells);
 
+    if (g->beta_n)
+        free(g->beta_n);
+    if (g->beta_lambda_n)
+        free(g->beta_lambda_n);
+    if (g->err_heap)
+        ferPairHeapDel(g->err_heap);
+
     free(g);
 }
 
@@ -289,6 +294,33 @@ size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
 
 int ferGSRMRun(fer_gsrm_t *g)
 {
+    size_t cycle;
+
+    cycle = 0;
+    init(g);
+
+    if (g->params.verbosity >= 1){
+        PR_PROGRESS(g);
+        fprintf(stderr, "\n");
+    }
+
+    do {
+        for (g->step = 1; g->step <= g->params.lambda; g->step++){
+            adapt(g);
+        }
+        newNode(g);
+
+        cycle++;
+        if (g->params.verbosity >= 2
+                && fer_unlikely(cycle == FER_GSRM_PROGRESS_REFRESH)){
+            PR_PROGRESS(g);
+            cycle = 0;
+        }
+
+        g->cycle++;
+    } while (ferMesh3VerticesLen(g->mesh) < g->params.max_nodes);
+
+#if 0
     size_t step, step_progress;
 
     // check if there are some input signals
@@ -349,6 +381,7 @@ int ferGSRMRun(fer_gsrm_t *g)
         PR_PROGRESS(g);
         fprintf(stderr, "\n");
     }
+#endif
 
     return 0;
 }
@@ -450,6 +483,84 @@ int ferGSRMPostprocess(fer_gsrm_t *g)
 }
 
 
+static int init(fer_gsrm_t *g)
+{
+    size_t i;
+    fer_real_t maxbeta;
+
+    // check if there are some input signals
+    if (ferPC3Len(g->is) <= 3){
+        DBG2("No input signals!");
+        return -1;
+    }
+
+    g->cycle = 1L;
+
+    // initialize error heap
+    if (g->err_heap)
+        ferPairHeapDel(g->err_heap);
+    g->err_heap = ferPairHeapNew(errHeapLT, (void *)g);
+
+    // precompute beta^n
+    if (g->beta_n)
+        free(g->beta_n);
+
+    g->beta_n = FER_ALLOC_ARR(fer_real_t, g->params.lambda);
+    g->beta_n[0] = g->params.beta;
+    for (i = 1; i < g->params.lambda; i++){
+        g->beta_n[i] = g->beta_n[i - 1] * g->params.beta;
+    }
+
+    // precompute beta^(n * lambda)
+    if (g->beta_lambda_n)
+        free(g->beta_lambda_n);
+
+    maxbeta = g->beta_n[g->params.lambda - 1];
+
+    g->beta_lambda_n_len = 1000;
+    g->beta_lambda_n = FER_ALLOC_ARR(fer_real_t, g->beta_lambda_n_len);
+    g->beta_lambda_n[0] = maxbeta;
+    for (i = 1; i < g->beta_lambda_n_len; i++){
+        g->beta_lambda_n[i] = g->beta_lambda_n[i - 1] * maxbeta;
+    }
+
+    // initialize cache
+    if (!g->c)
+        g->c = cacheNew();
+
+    // initialize NN search structure
+    if (g->cells)
+        ferNNCellsDel(g->cells);
+    g->params.cells.d    = 3;
+    g->params.cells.aabb = (fer_real_t *)ferPC3AABB(g->is);
+    g->cells = ferNNCellsNew(&g->params.cells);
+
+    // first shuffle of all input signals
+    ferPC3Permutate(g->is);
+    // and initialize its iterator
+    ferPC3ItInit(&g->isit, g->is);
+
+
+    // start timer
+    ferTimerStart(&g->timer);
+
+    // initialize mesh with three random nodes
+    meshInit(g);
+
+    return 0;
+
+}
+
+static void adapt(fer_gsrm_t *g)
+{
+    drawInputPoint(g);
+    echl(g);
+}
+
+static void newNode(fer_gsrm_t *g)
+{
+    createNewNode(g);
+}
 
 static fer_gsrm_cache_t *cacheNew(void)
 {
@@ -495,14 +606,45 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
     // and add node into cells
     ferNNCellsAdd(g->cells, &n->cells);
 
-    // set error counter (and mark)
-    n->err_counter = FER_ZERO;
-    n->err_counter_mark = g->c->err_counter_mark;
+    // set error counter
+    n->err = FER_ZERO;
+    n->err_cycle = g->cycle;
+    ferPairHeapAdd(g->err_heap, &n->err_heap);
 
     //DBG("n: %lx, vert: %lx (%g %g %g)", (long)n, (long)&n->vert,
     //    ferVec3X(&n->v), ferVec3Y(&n->v), ferVec3Z(&n->v));
 
     return n;
+}
+
+_fer_inline void nodeFixError(fer_gsrm_t *g, node_t *n)
+{
+    unsigned long diff;
+
+    diff = g->cycle - n->err_cycle;
+    if (diff > 0 && diff <= g->beta_lambda_n_len){
+        n->err *= g->beta_lambda_n[diff - 1];
+    }else if (diff > 0){
+        n->err *= g->beta_lambda_n[g->params.lambda - 1];
+
+        diff = diff - g->beta_lambda_n_len;
+        n->err *= pow(g->beta_n[g->params.lambda - 1], diff);
+    }
+    n->err_cycle = g->cycle;
+}
+
+_fer_inline void nodeIncError(fer_gsrm_t *g, node_t *n, fer_real_t inc)
+{
+    nodeFixError(g, n);
+    n->err += inc;
+    ferPairHeapUpdate(g->err_heap, &n->err_heap);
+}
+
+_fer_inline void nodeScaleError(fer_gsrm_t *g, node_t *n, fer_real_t scale)
+{
+    nodeFixError(g, n);
+    n->err *= scale;
+    ferPairHeapUpdate(g->err_heap, &n->err_heap);
 }
 
 static void nodeDel(fer_gsrm_t *g, node_t *n)
@@ -536,6 +678,9 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     // remove node from cells
     ferNNCellsRemove(g->cells, &n->cells);
 
+    // remove from error heap
+    ferPairHeapRemove(g->err_heap, &n->err_heap);
+
     // Note: no need of deallocation of .vert and .cells
     free(n);
 }
@@ -553,72 +698,6 @@ static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
 
     free(n);
 }
-
-static void nodeErrCounterApply(fer_gsrm_t *g, node_t *n)
-{
-    size_t mark, left;
-    fer_real_t err;
-
-    mark = n->err_counter_mark;
-    left = g->c->err_counter_mark - mark;
-
-    if (fer_likely(left > 0)){
-        if (fer_likely(left == g->c->err_counter_mark)){
-            // most of nodes in mesh are not touched while ECHL phase - so
-            // scale factor can be cumulated and can be used directly
-            // without pow() operation
-            n->err_counter *= g->c->err_counter_scale;
-        }else{
-            err = FER_POW(g->params.beta, (fer_real_t)left);
-            n->err_counter *= err;
-        }
-    }
-
-    n->err_counter_mark = g->c->err_counter_mark;
-}
-
-static fer_real_t nodeErrCounter(fer_gsrm_t *g, node_t *n)
-{
-    nodeErrCounterApply(g, n);
-    return n->err_counter;
-}
-
-static fer_real_t nodeErrCounterScale(fer_gsrm_t *g, node_t *n, fer_real_t s)
-{
-    nodeErrCounterApply(g, n);
-    n->err_counter *= s;
-    return n->err_counter;
-}
-
-static fer_real_t nodeErrCounterReset(fer_gsrm_t *g, node_t *n)
-{
-    nodeErrCounterApply(g, n);
-    n->err_counter_mark = 0;
-    return n->err_counter;
-}
-
-static void nodeErrCounterInc(fer_gsrm_t *g, node_t *n, const fer_vec3_t *v)
-{
-    fer_real_t dist;
-
-    dist = ferVec3Dist2(n->v, v);
-
-    nodeErrCounterApply(g, n);
-    n->err_counter += dist;
-}
-
-static void nodeErrCounterResetAll(fer_gsrm_t *g)
-{
-    g->c->err_counter_mark = 0;
-    g->c->err_counter_scale = FER_ONE;
-}
-
-static void nodeErrCounterScaleAll(fer_gsrm_t *g)
-{
-    g->c->err_counter_scale *= g->params.beta;
-    g->c->err_counter_mark++;
-}
-
 
 
 
@@ -753,16 +832,13 @@ static void echl(fer_gsrm_t *g)
     g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
     g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
 
-    // 2. Updates winners error counter
-    nodeErrCounterInc(g, g->c->nearest[0], g->c->is);
-
-    // 3. Connect winning nodes
+    // 2. Connect winning nodes
     echlConnectNodes(g);
 
-    // 4. Move winning node and its neighbors towards input signal
+    // 3. Move winning node and its neighbors towards input signal
     echlMove(g);
 
-    // 5. Update all edges emitating from winning node
+    // 4. Update all edges emitating from winning node
     echlUpdate(g);
 }
 
@@ -922,12 +998,18 @@ static void echlMove(fer_gsrm_t *g)
     fer_mesh3_edge_t *edge;
     fer_mesh3_vertex_t *wvert, *vert;
     node_t *wn;
+    fer_real_t err;
 
     wn = g->c->nearest[0];
     wvert = &wn->vert;
 
     // move winning node
     echlMoveNode(g, wn, g->params.eb);
+
+    // increase error counter
+    err  = ferVec3Dist2(wn->v, g->c->is);
+    err *= g->beta_n[g->params.lambda - g->step];
+    nodeIncError(g, wn, err);
 
     // move nodes connected with the winner
     list = ferMesh3VertexEdges(wvert);
@@ -985,27 +1067,13 @@ static void echlUpdate(fer_gsrm_t *g)
 /** --- Create New Node functions --- **/
 static node_t *nodeWithHighestErrCounter(fer_gsrm_t *g)
 {
-    fer_list_t *list, *item;
-    fer_real_t max_err, err;
-    node_t *max_n, *n;
-    fer_mesh3_vertex_t *vert;
+    fer_pairheap_node_t *max;
+    node_t *maxn;
 
-    max_err = FER_REAL_MIN;
-    list = ferMesh3Vertices(g->mesh);
-    ferListForEach(list, item){
-        vert = ferListEntry(item, fer_mesh3_vertex_t, list);
-        n    = fer_container_of(vert, node_t, vert);
-        err  = nodeErrCounterReset(g, n);
+    max  = ferPairHeapMin(g->err_heap);
+    maxn = fer_container_of(max, node_t, err_heap);
 
-        if (err > max_err){
-            max_err = err;
-            max_n   = n;
-        }
-    }
-
-    nodeErrCounterResetAll(g);
-
-    return max_n;
+    return maxn;
 }
 
 static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
@@ -1013,7 +1081,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
     fer_list_t *list, *item;
     fer_mesh3_edge_t *edge;
     fer_mesh3_vertex_t *other_vert;
-    fer_real_t err, max_err;
+    fer_real_t max_err;
     node_t *n, *max_n;
 
     max_err = FER_REAL_MIN;
@@ -1022,9 +1090,11 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
         edge = ferMesh3EdgeFromVertexList(item);
         other_vert = ferMesh3EdgeOtherVertex(edge, &sq->vert);
         n = fer_container_of(other_vert, node_t, vert);
-        err = nodeErrCounter(g, n);
-        if (err > max_err){
-            max_err = err;
+
+        nodeFixError(g, n);
+
+        if (n->err > max_err){
+            max_err = n->err;
             max_n   = n;
         }
     }
@@ -1049,7 +1119,6 @@ static void createNewNode(fer_gsrm_t *g)
 {
     node_t *sq, *sf, *sr;
     fer_mesh3_edge_t *edge;
-    fer_real_t err;
 
 
     // get node with highest error counter and its neighbor with highest
@@ -1073,23 +1142,18 @@ static void createNewNode(fer_gsrm_t *g)
     sr = createNewNode2(g, sq, sf);
 
     // set up error counters of sq, sf and sr
-    err  = nodeErrCounterScale(g, sq, g->params.alpha);
-    err += nodeErrCounterScale(g, sf, g->params.alpha);
-    err *= FER_REAL(0.5);
-    sr->err_counter = err;
+    nodeScaleError(g, sq, g->params.alpha);
+    nodeScaleError(g, sf, g->params.alpha);
+    sr->err  = sq->err + sf->err;
+    sr->err /= FER_REAL(2.);
+    sr->err_cycle = g->cycle;
+    ferPairHeapUpdate(g->err_heap, &sr->err_heap);
 
     // create edges sq-sr and sf-sr
     edgeNew(g, sq, sr);
     edgeNew(g, sf, sr);
 }
 
-
-
-
-static void decreaseErrCounter(fer_gsrm_t *g)
-{
-    nodeErrCounterScaleAll(g);
-}
 
 
 
@@ -1623,4 +1687,20 @@ static int finishSurfaceNewFace(fer_gsrm_t *g, edge_t *e)
     }
 
     return -1;
+}
+
+
+static int errHeapLT(const fer_pairheap_node_t *_n1,
+                     const fer_pairheap_node_t *_n2,
+                     void *data)
+{
+    fer_gsrm_t *g = (fer_gsrm_t *)data;
+    node_t *n1, *n2;
+
+    n1 = fer_container_of(_n1, node_t, err_heap);
+    n2 = fer_container_of(_n2, node_t, err_heap);
+
+    nodeFixError(g, n1);
+    nodeFixError(g, n2);
+    return n1->err > n2->err;
 }

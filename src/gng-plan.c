@@ -151,7 +151,7 @@ void ferGNGPDel(fer_gngp_t *gng)
 
     if (gng->net){
         ferNetDel2(gng->net, netNodeDel, NULL,
-                              netEdgeDel, NULL);
+                             netEdgeDel, NULL);
     }
 
     if (gng->beta_n)

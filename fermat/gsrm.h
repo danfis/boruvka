@@ -22,6 +22,7 @@
 #include <fermat/pc3.h>
 #include <fermat/mesh3.h>
 #include <fermat/nncells.h>
+#include <fermat/pairheap.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,6 +75,15 @@ struct _fer_gsrm_t {
     fer_pc3_it_t isit;    /*!< Iterator over is */
     fer_mesh3_t *mesh;    /*!< Reconstructed mesh */
     fer_nncells_t *cells; /*!< Search structure for nearest neighbor */
+
+    fer_real_t *beta_n;        /*!< Precomputed beta^n for n = 1, ..., lambda */
+    fer_real_t *beta_lambda_n; /*!< Precomputed beta^(n*lambda) for
+                                    n = 1, ..., .beta_lambda_n_len */
+    size_t beta_lambda_n_len;
+    fer_pairheap_t *err_heap;
+
+    size_t step;
+    unsigned long cycle;
 
     fer_timer_t timer;
 
