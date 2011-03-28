@@ -36,6 +36,7 @@ OBJS += mat4.o mat3.o
 OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
+OBJS += nearest-vec-pool.o
 OBJS += mesh3.o qhull.o net.o
 OBJS += fibo.o pairheap.o
 OBJS += dij.o
@@ -60,11 +61,14 @@ OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
-all: $(TARGETS) $(BIN_TARGETS) $(HEADERS) cl-nncells
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS) opencl-nn
 
 libfermat.a: $(OBJS) $(OBJSPP)
 	ar cr $@ $(OBJS) $(OBJSPP)
 	ranlib $@
+
+opencl-nn: opencl-nn.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 #test-nncells: test-nncells.cu
 #	nvcc --compiler-options -fpermissive --compiler-options -Wall -o $@ $< -L. -lfermat
@@ -81,6 +85,9 @@ bin/fer-print-alpha: bin/print-alpha-main.c libfermat.a
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+src/nearest-vec-pool.c: src/nearest-vec-pool-cl.c
+	touch $@
 
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -114,6 +121,9 @@ bin/fer-%: bin/%-main.c libfermat.a
 
 %.h: fermat/config.h
 %.c: fermat/config.h
+
+%-cl.c: %.cl
+	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
 
 
 install:

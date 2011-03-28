@@ -17,6 +17,7 @@
 #ifndef __FER_OPENCL_H__
 #define __FER_OPENCL_H__
 
+#include <stdio.h>
 #include <CL/opencl.h>
 #include <fermat/core.h>
 
