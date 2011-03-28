@@ -20,6 +20,10 @@ CFLAGS += -I.
 CXXFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
+ifeq '$(USE_OPENCL)' 'yes'
+  LDFLAGS += $(OPENCL_LDFLAGS)
+endif
+
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
@@ -42,6 +46,10 @@ OBJS += gng-plan.o prm.o rrt.o
 
 OBJSPP = trimesh.cpp.o
 
+ifeq '$(USE_OPENCL)' 'yes'
+  OBJS += opencl.o
+endif
+
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
@@ -52,11 +60,16 @@ OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
-all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS) cl-nncells
 
 libfermat.a: $(OBJS) $(OBJSPP)
 	ar cr $@ $(OBJS) $(OBJSPP)
 	ranlib $@
+
+#test-nncells: test-nncells.cu
+#	nvcc --compiler-options -fpermissive --compiler-options -Wall -o $@ $< -L. -lfermat
+#nvcc --cuda -o $@.cpp $<
+#$(CXX) $(CXXFLAGS) -fpermissive -Wno-long-long -o $@ $@.cpp
 
 fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
@@ -78,6 +91,7 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 .objs/%.cpp.o: src/%.c fermat/config.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 
 %2.c: %N.c
 	$(SED) 's|`N`|2|g' <$< >$@
