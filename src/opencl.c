@@ -27,6 +27,12 @@ _fer_inline int __ferCLErrorCheck(cl_int err, const char *errstr);
 
 fer_cl_t *ferCLNewSimple(const char *program, const char *buildopts)
 {
+    return ferCLNewSimple2(1, &program, buildopts);
+}
+
+fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
+                          const char *buildopts)
+{
     cl_uint num_platforms, num_devices, i;
     cl_int err;
     cl_platform_id *platforms, platform;
@@ -89,7 +95,7 @@ fer_cl_t *ferCLNewSimple(const char *program, const char *buildopts)
     }
 
     // create program
-    cl->program = clCreateProgramWithSource(cl->context, 1, &program, NULL, &err);
+    cl->program = clCreateProgramWithSource(cl->context, program_count, program, NULL, &err);
     if (__ferCLErrorCheck(err, "Can't create program") != 0){
         clReleaseCommandQueue(cl->queue);
         clReleaseContext(cl->context);
@@ -256,6 +262,12 @@ void ferCLPrintPlatforms(FILE *out)
                                       sizeof(buf_ulong), &buf_ulong, NULL);
                 if (err == CL_SUCCESS){
                     fprintf(out, "        local mem:  %ld\n", (long)buf_ulong);
+                }
+
+                err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_COMPUTE_UNITS,
+                                      sizeof(buf_size), &buf_size, NULL);
+                if (err == CL_SUCCESS){
+                    fprintf(out, "        max compute units: %d\n", (int)buf_size);
                 }
 
                 err = clGetDeviceInfo(devices[j], CL_DEVICE_MAX_WORK_GROUP_SIZE,

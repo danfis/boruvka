@@ -44,6 +44,7 @@ OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
 OBJS += gng-plan.o prm.o rrt.o
+OBJS += surf-matching.o
 
 OBJSPP = trimesh.cpp.o
 
@@ -87,6 +88,8 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 src/nearest-vec-pool.c: src/nearest-vec-pool-cl.c
+	touch $@
+src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
 
 .objs/%.o: src/%.c fermat/%.h fermat/config.h

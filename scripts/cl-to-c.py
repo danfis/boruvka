@@ -9,12 +9,13 @@ if len(sys.argv) != 2:
 var_name = sys.argv[1]
 num_lines = 0
 
-print('static char {0}[] ='.format(var_name))
+print('static char *__{0}[] = {{'.format(var_name))
 
 for line in sys.stdin:
-    print('    "{0}"'.format(line.replace('\n', '\\n')))
+    print('    "{0}",'.format(line.replace('\n', '\\n')))
     num_lines += 1
     
-
-print(';')
+print('};')
+print('static const char **{0} = (const char **)__{0};'.format(var_name))
+print('static size_t {0}_len = {1};'.format(var_name, num_lines))
 #print('static size_t {0}_len = {1};'.format(var_name, num_lines))

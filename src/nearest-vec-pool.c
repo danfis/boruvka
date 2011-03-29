@@ -18,7 +18,7 @@ fer_nn_vec_pool_t *ferNNVecPoolNew(size_t len, size_t dim)
     vp->dists = FER_ALLOC_ARR(fer_real_t, len);
 
 #ifdef FER_OPENCL
-    vp->cl       = ferCLNewSimple(opencl_program, "");
+    vp->cl       = ferCLNewSimple2(opencl_program_len, opencl_program, "");
     ferCLKernelNew(vp->cl, "nearestNeighbor");
     ferCLKernelNew(vp->cl, "nearestNeighbor_2_64");
     vp->vecs_cl  = NULL;

@@ -94,6 +94,13 @@ typedef struct _fer_cl_t fer_cl_t;
 fer_cl_t *ferCLNewSimple(const char *program, const char *buildopts);
 
 /**
+ * Similar to ferCLNewSimple() but program is created from array of
+ * NULL-terminated strings.
+ */
+fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
+                          const char *buildopts);
+
+/**
  * Deletes previoulsy created OpenCL program.
  */
 void ferCLDel(fer_cl_t *cl);
