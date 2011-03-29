@@ -114,15 +114,16 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     FER_CL_COPY_TO_HOST(sm->cl, dist, dist_host, fer_real_t, len1 * len2);
     FER_CL_COPY_TO_HOST(sm->cl, ids, ids_host, int, len1 * len2);
 
-    // TODO
     /*
     {
         int i, j;
         for (i = 0; i < len1; i++){
+            fprintf(stderr, "[%03d]", i);
             for (j = 0; j < len2; j++){
                 fprintf(stderr, " %1.3f", dist_host[len2 * i + j]);
             }
             fprintf(stderr, "\n");
+            fprintf(stderr, "[%03d]", i);
             for (j = 0; j < len2; j++){
                 fprintf(stderr, " % 5d", ids_host[len2 * i + j]);
             }
