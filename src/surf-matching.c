@@ -17,6 +17,7 @@
 #include <fermat/surf-matching.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
+#include <fermat/timer.h>
 
 #include "surf-matching-cl.c"
 
@@ -79,18 +80,25 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     int len1 = _len1, len2 = _len2;
     int row, i, col, pos;
     size_t glob[1], loc[1];
+    fer_timer_t timer;
 
+    ferTimerStart(&timer);
     vecs1 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs1, fer_real_t, len1 * dim);
     vecs2 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs2, fer_real_t, len2 * dim);
     dist  = FER_CL_ALLOC_ARR(sm->cl, fer_real_t, len1 * len2);
     ids   = FER_CL_ALLOC_ARR(sm->cl, int, len1 * len2);
+    ferTimerStop(&timer);
+    DBG("Alloc: %lu us", ferTimerElapsedInUs(&timer));
 
+    ferTimerStart(&timer);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 0, len1);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 1, vecs1);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 2, len2);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 3, vecs2);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 4, dist);
     FER_CL_KERNEL_SET_ARG(sm->cl, 0, 5, ids);
+    ferTimerStop(&timer);
+    DBG("Set arg: %lu us", ferTimerElapsedInUs(&timer));
 
     glob[0] = len2;
     if (len2 < max_threads){
@@ -106,13 +114,19 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
         }
     }
 
+    ferTimerStart(&timer);
     ferCLKernelEnqueue(sm->cl, 0, 1, glob, loc);
     ferCLFinish(sm->cl);
+    ferTimerStop(&timer);
+    DBG("Run: %lu us", ferTimerElapsedInUs(&timer));
 
+    ferTimerStart(&timer);
     dist_host = FER_ALLOC_ARR(fer_real_t, len1 * len2);
     ids_host  = FER_ALLOC_ARR(int, len1 * len2);
     FER_CL_COPY_TO_HOST(sm->cl, dist, dist_host, fer_real_t, len1 * len2);
     FER_CL_COPY_TO_HOST(sm->cl, ids, ids_host, int, len1 * len2);
+    ferTimerStop(&timer);
+    DBG("Copy: %lu us", ferTimerElapsedInUs(&timer));
 
     /*
     {
@@ -132,6 +146,7 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     }
     */
 
+    ferTimerStart(&timer);
     // sort what couldn't be sorted on device
     for (row = 0; row < len1; row++){
         sm->dist2[2 * row] = dist_host[len2 * row];
@@ -171,6 +186,10 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
         }
         */
     }
+    ferTimerStop(&timer);
+    DBG("Sort: %lu us", ferTimerElapsedInUs(&timer));
+
+    ferTimerStart(&timer);
 
     free(dist_host);
     free(ids_host);
@@ -179,6 +198,8 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     FER_CL_FREE(sm->cl, vecs2);
     FER_CL_FREE(sm->cl, dist);
     FER_CL_FREE(sm->cl, ids);
+    ferTimerStop(&timer);
+    DBG("Free: %lu us", ferTimerElapsedInUs(&timer));
 }
 
 

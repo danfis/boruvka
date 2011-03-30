@@ -31,74 +31,61 @@ float vecDist2(__global float *v, __global float *w)
     return dist;
 }
 
+
 __kernel void nearestNeighbor(int len1, __global float *vecs1,
                               int len2, __global float *vecs2,
-                              __global float *dist,
-                              __global int *ids)
+                              __global float *gdist,
+                              __global int *gids)
 {
+    __local float dist[3][32];
+    __local int ids[3][32];
     __global float *v1, *v2;
     int id = get_global_id(0);
     int local_id = get_local_id(0);
     int local_len = get_local_size(0);
-    int local_end = (get_group_id(0) + 1) * local_len;
-    int i;
+    int delay, cycle, cycle_end, row;
     float tmp_dist;
     int tmp_ids;
-    int window_start, window_end;
-    int cycle, row, pos1, pos2;
 
-    if (id < len2){
-        v2 = vecs2 + (dim * id);
 
-        // compute distance of first row
-        v1 = vecs1;
-        ids[id] = id;
-        dist[id] = vecDist2(v1, v2);
-        barrier(CLK_LOCAL_MEM_FENCE);
+    delay = local_len - local_id - 1;
+    cycle_end = local_len - 1 + len1;
+    row = 0;
+    for (cycle = 0; cycle < cycle_end; cycle++){
+        if (cycle >= delay && cycle < delay + len1){
+            // write number on position
+            v2 = vecs2 + (dim * id);
+            v1 = vecs1 + (dim * row);
 
-        // compute window where this thread will be active
-        if (id == local_end - 1){
-            window_start = 0;
-            window_end   = -1;
-        }else{
-            window_start = local_len - local_id - 2;
-            window_end   = window_start + len1;
-        }
+            dist[row % 3][local_id] = vecDist2(v1, v2);
+            ids[row % 3][local_id]  = id;
 
-        // sort local part of matrix
-        row = 0;
-        for (cycle = 0; cycle < local_len - 1 + len1; cycle++){
-            // compute distance for next row if there is any row left
-            if (cycle + 1 < len1){
-                v1 = vecs1 + (dim * (cycle + 1));
 
-                ids[len2 * (cycle + 1) + id] = id;
-                dist[len2 * (cycle + 1) + id] = vecDist2(v1, v2);
-            }
+            // sort 2 or 3 element window
+            if (local_id < local_len - 1){
+                if (dist[row % 3][local_id] > dist[row % 3][local_id + 1]){
+                    SWAP(dist[row % 3][local_id], dist[row % 3][local_id + 1], tmp_dist);
+                    SWAP(ids[row % 3][local_id], ids[row % 3][local_id + 1], tmp_ids);
 
-            // if this thread is active sort the 3-element window, where we
-            // know that last two elements are sorted from previous thread
-            if (cycle >= window_start && cycle < window_end){
-                pos1 = len2 * row + id;
-                pos2 = pos1 + 1;
-
-                if (dist[pos1] > dist[pos2]){
-                    SWAP(dist[pos1], dist[pos2], tmp_dist);
-                    SWAP(ids[pos1], ids[pos2], tmp_ids);
-
-                    ++pos1;
-                    ++pos2;
-                    if (local_id + 2 < local_end && dist[pos1] > dist[pos2]){
-                        SWAP(dist[pos1], dist[pos2], tmp_dist);
-                        SWAP(ids[pos1], ids[pos2], tmp_ids);
+                    if (local_id < local_len - 2
+                            && dist[row % 3][local_id + 1] > dist[row % 3][local_id + 2]){
+                        SWAP(dist[row % 3][local_id + 1], dist[row % 3][local_id + 2], tmp_dist);
+                        SWAP(ids[row % 3][local_id + 1], ids[row % 3][local_id + 2], tmp_ids);
                     }
                 }
-
-
-                row++;
             }
 
-            barrier(CLK_LOCAL_MEM_FENCE);
+            // we have sorted this row - write it to global array
+            if (local_id == 0){
+                gdist[len2 * row + id] = dist[row % 3][0];
+                gdist[len2 * row + id + 1] = dist[row % 3][1];
+                gids[len2 * row + id] = ids[row % 3][0];
+                gids[len2 * row + id + 1] = ids[row % 3][1];
+            }
+
+            row += 1;
         }
+
+        barrier(CLK_LOCAL_MEM_FENCE);
     }
 }
