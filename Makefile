@@ -21,7 +21,7 @@ CXXFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
 ifeq '$(USE_OPENCL)' 'yes'
-  LDFLAGS += $(OPENCL_LDFLAGS)
+  CFLAGS += $(OPENCL_CFLAGS)
 endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
@@ -62,19 +62,11 @@ OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
-all: $(TARGETS) $(BIN_TARGETS) $(HEADERS) opencl-nn
+all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
 libfermat.a: $(OBJS) $(OBJSPP)
 	ar cr $@ $(OBJS) $(OBJSPP)
 	ranlib $@
-
-opencl-nn: opencl-nn.c libfermat.a
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-#test-nncells: test-nncells.cu
-#	nvcc --compiler-options -fpermissive --compiler-options -Wall -o $@ $< -L. -lfermat
-#nvcc --cuda -o $@.cpp $<
-#$(CXX) $(CXXFLAGS) -fpermissive -Wno-long-long -o $@ $@.cpp
 
 fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
