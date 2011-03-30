@@ -22,6 +22,10 @@
 #include "surf-matching-cl.c"
 
 static const int dim = 64; /*!< Dimension of surf vectors */
+static size_t max_threads = 256; /*!< Max threads per block.
+                                      Note that this must correspond to
+                                      lengths of local arrays in device
+                                      function */
 
 
 fer_surf_match_t *ferSurfMatchNew(size_t maxlen1, size_t maxlen2)
@@ -71,35 +75,17 @@ const fer_vec_t *ferSurfMatchGet2(fer_surf_match_t *sm, size_t i)
 
 
 
-void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
-                  size_t max_threads)
+void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2)
 {
     fer_real_t *vecs1, *vecs2;
     fer_real_t *dist, *dist_host, tmp_dist;
     int *ids, *ids_host, tmp_ids;
     int len1 = _len1, len2 = _len2;
     int row, i, col, pos;
-    size_t glob[1], loc[1];
+    size_t glob[1], loc[1], num_blocks;
     fer_timer_t timer;
 
-    ferTimerStart(&timer);
-    vecs1 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs1, fer_real_t, len1 * dim);
-    vecs2 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs2, fer_real_t, len2 * dim);
-    dist  = FER_CL_ALLOC_ARR(sm->cl, fer_real_t, len1 * len2);
-    ids   = FER_CL_ALLOC_ARR(sm->cl, int, len1 * len2);
-    ferTimerStop(&timer);
-    DBG("Alloc: %lu us", ferTimerElapsedInUs(&timer));
-
-    ferTimerStart(&timer);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 0, len1);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 1, vecs1);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 2, len2);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 3, vecs2);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 4, dist);
-    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 5, ids);
-    ferTimerStop(&timer);
-    DBG("Set arg: %lu us", ferTimerElapsedInUs(&timer));
-
+    // compute number of threads per block - loc[0]
     glob[0] = len2;
     if (len2 < max_threads){
         loc[0] = len2;
@@ -113,6 +99,26 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
             }
         }
     }
+    num_blocks = glob[0] / loc[0];
+
+
+    ferTimerStart(&timer);
+    vecs1 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs1, fer_real_t, len1 * dim);
+    vecs2 = FER_CL_CLONE_FROM_HOST(sm->cl, sm->vecs2, fer_real_t, len2 * dim);
+    dist  = FER_CL_ALLOC_ARR(sm->cl, fer_real_t, len1 * 2 * num_blocks);
+    ids   = FER_CL_ALLOC_ARR(sm->cl, int, len1 * 2 * num_blocks);
+    ferTimerStop(&timer);
+    DBG("Alloc: %lu us", ferTimerElapsedInUs(&timer));
+
+    ferTimerStart(&timer);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 0, len1);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 1, vecs1);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 2, len2);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 3, vecs2);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 4, dist);
+    FER_CL_KERNEL_SET_ARG(sm->cl, 0, 5, ids);
+    ferTimerStop(&timer);
+    DBG("Set arg: %lu us", ferTimerElapsedInUs(&timer));
 
     ferTimerStart(&timer);
     ferCLKernelEnqueue(sm->cl, 0, 1, glob, loc);
@@ -121,10 +127,10 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     DBG("Run: %lu us", ferTimerElapsedInUs(&timer));
 
     ferTimerStart(&timer);
-    dist_host = FER_ALLOC_ARR(fer_real_t, len1 * len2);
-    ids_host  = FER_ALLOC_ARR(int, len1 * len2);
-    FER_CL_COPY_TO_HOST(sm->cl, dist, dist_host, fer_real_t, len1 * len2);
-    FER_CL_COPY_TO_HOST(sm->cl, ids, ids_host, int, len1 * len2);
+    dist_host = FER_ALLOC_ARR(fer_real_t, len1 * 2 * num_blocks);
+    ids_host  = FER_ALLOC_ARR(int, len1 * 2 * num_blocks);
+    FER_CL_COPY_TO_HOST(sm->cl, dist, dist_host, fer_real_t, len1 * 2 * num_blocks);
+    FER_CL_COPY_TO_HOST(sm->cl, ids, ids_host, int, len1 * 2 * num_blocks);
     ferTimerStop(&timer);
     DBG("Copy: %lu us", ferTimerElapsedInUs(&timer));
 
@@ -133,13 +139,13 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
         int i, j;
         for (i = 0; i < len1; i++){
             fprintf(stderr, "[%03d]", i);
-            for (j = 0; j < len2; j++){
-                fprintf(stderr, " %1.3f", dist_host[len2 * i + j]);
+            for (j = 0; j < 2 * num_blocks; j++){
+                fprintf(stderr, " %1.3f", dist_host[2 * num_blocks * i + j]);
             }
             fprintf(stderr, "\n");
             fprintf(stderr, "[%03d]", i);
-            for (j = 0; j < len2; j++){
-                fprintf(stderr, " % 5d", ids_host[len2 * i + j]);
+            for (j = 0; j < 2 * num_blocks; j++){
+                fprintf(stderr, " % 5d", ids_host[2 * num_blocks * i + j]);
             }
             fprintf(stderr, "\n");
         }
@@ -149,11 +155,32 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
     ferTimerStart(&timer);
     // sort what couldn't be sorted on device
     for (row = 0; row < len1; row++){
-        sm->dist2[2 * row] = dist_host[len2 * row];
-        sm->dist2[2 * row + 1] = dist_host[len2 * row + 1];
-        sm->nearest[2 * row] = ids_host[len2 * row];
-        sm->nearest[2 * row + 1] = ids_host[len2 * row + 1];
+        pos = 2 * num_blocks * row;
+        sm->dist2[2 * row] = dist_host[pos];
+        sm->dist2[2 * row + 1] = dist_host[pos + 1];
+        sm->nearest[2 * row] = ids_host[pos];
+        sm->nearest[2 * row + 1] = ids_host[pos + 1];
 
+        pos += 1;
+
+        for (col = 0; col < num_blocks - 1; col++){
+            pos += 1;
+            for (i = 0; i < 2; i++){
+                pos += i;
+
+                if (dist_host[pos] < sm->dist2[2 * row + 1]){
+                    sm->dist2[2 * row + 1] = dist_host[pos];
+                    sm->nearest[2 * row + 1] = ids_host[pos];
+
+                    if (sm->dist2[2 * row + 1] < sm->dist2[2 * row]){
+                        FER_SWAP(sm->dist2[2 * row + 1], sm->dist2[2 * row], tmp_dist);
+                        FER_SWAP(sm->nearest[2 * row + 1], sm->nearest[2 * row], tmp_ids);
+                    }
+                }
+            }
+        }
+
+        /*
         for (col = loc[0]; col < glob[0]; col += loc[0]){
             for (i = 0; i < 2; i++){
                 pos = len2 * row + col + i;
@@ -169,6 +196,7 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2,
                 }
             }
         }
+        */
 
         // test correctness
         /*

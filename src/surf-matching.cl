@@ -37,13 +37,13 @@ __kernel void nearestNeighbor(int len1, __global float *vecs1,
                               __global float *gdist,
                               __global int *gids)
 {
-    __local float dist[3][32];
-    __local int ids[3][32];
+    __local float dist[3][256];
+    __local int ids[3][256];
     __global float *v1, *v2;
     int id = get_global_id(0);
     int local_id = get_local_id(0);
     int local_len = get_local_size(0);
-    int delay, cycle, cycle_end, row;
+    int delay, cycle, cycle_end, row, pos;
     float tmp_dist;
     int tmp_ids;
 
@@ -77,10 +77,11 @@ __kernel void nearestNeighbor(int len1, __global float *vecs1,
 
             // we have sorted this row - write it to global array
             if (local_id == 0){
-                gdist[len2 * row + id] = dist[row % 3][0];
-                gdist[len2 * row + id + 1] = dist[row % 3][1];
-                gids[len2 * row + id] = ids[row % 3][0];
-                gids[len2 * row + id + 1] = ids[row % 3][1];
+                pos = row * get_num_groups(0) * 2 + get_group_id(0) * 2;
+                gdist[pos]     = dist[row % 3][0];
+                gdist[pos + 1] = dist[row % 3][1];
+                gids[pos]      = ids[row % 3][0];
+                gids[pos + 1]  = ids[row % 3][1];
             }
 
             row += 1;

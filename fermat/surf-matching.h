@@ -74,8 +74,7 @@ const fer_vec_t *ferSurfMatchGet2(fer_surf_match_t *sm, size_t i);
  * value could be, say, 256.
  * Use function ferSurfMatchNearest() to get results.
  */
-void ferSurfMatch(fer_surf_match_t *sm, size_t len1, size_t len2,
-                  size_t max_threads);
+void ferSurfMatch(fer_surf_match_t *sm, size_t len1, size_t len2);
 
 /**
  * Same as ferSurfMatch() but uses linear search instead of OpenCL.
