@@ -76,8 +76,9 @@ ifeq '$(USE_DOUBLE)' ''
 endif
 endif
 
-USE_SSE ?= no
-CONFIG_FLAGS =
+USE_SSE    ?= no
+USE_OPENCL ?= auto
+USE_RAPID  ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -86,11 +87,43 @@ ifeq '$(USE_SINGLE)' 'yes'
 endif
 ifeq '$(USE_DOUBLE)' 'yes'
   CONFIG_FLAGS += -DUSE_DOUBLE
+  USE_OPENCL := no
 endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
   CFLAGS += -msse3
 endif
+
+
+ifeq '$(USE_OPENCL)' 'auto'
+  ifeq '$(OPENCL_CFLAGS)' ''
+    USE_OPENCL = $(shell if test -f /usr/lib/libOpenCL.so; then echo "yes"; else echo "no"; fi;)
+  else
+    USE_OPENCL = yes
+  endif
+endif
+
+OPENCL_CFLAGS  ?=
+OPENCL_LDFLAGS ?= -lOpenCL
+ifeq '$(USE_OPENCL)' 'yes'
+  CONFIG_FLAGS += -DUSE_OPENCL
+endif
+
+
+ifeq '$(USE_RAPID)' 'auto'
+  ifeq '$(RAPID_CFLAGS)' ''
+    USE_RAPID = $(shell if test -f /usr/lib/libRAPID.a; then echo "yes"; else echo "no"; fi;)
+  else
+    USE_RAPID = yes
+  endif
+endif
+
+RAPID_CFLAGS   ?=
+RAPID_LDFLAGS  ?= -lRAPID
+ifeq '$(USE_RAPID)' 'yes'
+  CONFIG_FLAGS += -DUSE_RAPID
+endif
+
 
 ifneq '$(CC_NOT_GCC)' 'yes'
   CFLAGS += --std=gnu99 -ffast-math
@@ -98,18 +131,8 @@ endif
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
 
-USE_OPENCL     ?= yes
-OPENCL_CFLAGS  ?=
-OPENCL_LDFLAGS ?= -lOpenCL
-
-ifeq '$(USE_OPENCL)' 'yes'
-  CONFIG_FLAGS += -DUSE_OPENCL
-endif
-
-PYTHON_CFLAGS  = $(shell $(PYTHON_CONFIG) --includes)
-PYTHON_LDFLAGS = $(shell $(PYTHON_CONFIG) --libs)
-RAPID_CFLAGS  ?=
-RAPID_LDFLAGS ?= -lRAPID
+PYTHON_CFLAGS  ?= $(shell $(PYTHON_CONFIG) --includes)
+PYTHON_LDFLAGS ?= $(shell $(PYTHON_CONFIG) --libs)
 
 CHECKTARGETS = 
 check-dep: $(CHECKTARGETS)
@@ -139,6 +162,7 @@ showvars:
 	@echo "USE_DOUBLE = $(USE_DOUBLE)"
 	@echo "USE_SSE    = $(USE_SSE)"
 	@echo "USE_OPENCL = $(USE_OPENCL)"
+	@echo "USE_RAPID  = $(USE_RAPID)"
 	@echo ""
 	@echo "CFLAGS         = $(CFLAGS)"
 	@echo "CXXFLAGS       = $(CXXFLAGS)"

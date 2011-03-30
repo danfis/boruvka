@@ -23,11 +23,13 @@ LDFLAGS += -L. -lfermat -lm -lrt
 ifeq '$(USE_OPENCL)' 'yes'
   CFLAGS += $(OPENCL_CFLAGS)
 endif
+ifeq '$(USE_RAPID)' 'yes'
+  CFLAGS += $(RAPID_CFLAGS)
+endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
-BIN_TARGETS += fer-gngp-alpha fer-print-alpha
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -36,7 +38,6 @@ OBJS += mat4.o mat3.o
 OBJS += pc2.o pc3.o pc4.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
-OBJS += nearest-vec-pool.o
 OBJS += mesh3.o qhull.o net.o
 OBJS += fibo.o pairheap.o
 OBJS += dij.o
@@ -44,12 +45,14 @@ OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
 OBJS += gng-plan.o prm.o rrt.o
-OBJS += surf-matching.o
-
-OBJSPP = trimesh.cpp.o
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
+  OBJS += surf-matching.o
+endif
+ifeq '$(USE_RAPID)' 'yes'
+  OBJSPP = trimesh.cpp.o
+  BIN_TARGETS += fer-gngp-alpha fer-print-alpha
 endif
 
 # header files that must be generated
@@ -79,8 +82,6 @@ bin/fer-print-alpha: bin/print-alpha-main.c libfermat.a
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-src/nearest-vec-pool.c: src/nearest-vec-pool-cl.c
-	touch $@
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
 
@@ -129,13 +130,16 @@ install:
 
 clean:
 	rm -f $(OBJS)
+	rm -f .objs/*.o
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
 	rm -f fermat/config.h
 	rm -f fermat/pc{2,3,4}.h
+	rm -f fermat/gng{2,3}.h
 	rm -f src/pc{2,3,4}.c
 	rm -f fermat/cubes{2,3,4}.h
 	rm -f src/cubes{2,3,4}.c
+	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	
 check:
