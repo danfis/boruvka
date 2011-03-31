@@ -31,6 +31,28 @@ extern "C" {
 
 
 /**
+ * OpenCL - Simplified API To OpenCL
+ * ==================================
+ */
+struct _fer_cl_t {
+    cl_platform_id platform;
+    cl_device_id device;
+    cl_context context;
+    cl_command_queue queue;
+    cl_program program;
+
+    cl_kernel *kernels; /*!< List of kernels from program */
+    size_t kernels_len;
+};
+typedef struct _fer_cl_t fer_cl_t;
+
+/**
+ * Functions and Macros
+ * ---------------------
+ */
+
+
+/**
  * Allocates array on device.
  */
 #define FER_CL_ALLOC_ARR(cl, type, count) \
@@ -74,18 +96,6 @@ extern "C" {
 #define FER_CL_FREE(cl, ptr) \
     clReleaseMemObject((void *)(ptr))
 
-
-struct _fer_cl_t {
-    cl_platform_id platform;
-    cl_device_id device;
-    cl_context context;
-    cl_command_queue queue;
-    cl_program program;
-
-    cl_kernel *kernels; /*!< List of kernels from program */
-    size_t kernels_len;
-};
-typedef struct _fer_cl_t fer_cl_t;
 
 /**
  * Creates new OpenCL program from given NULL-terminated string.

@@ -187,7 +187,7 @@ _fer_inline void ferDijNodeAdd(fer_dij_node_t *n, fer_list_t *list)
 
 _fer_inline fer_dij_node_t *ferDijNodeFromList(fer_list_t *item)
 {
-    return ferListEntry(item, fer_dij_node_t, _list);
+    return FER_LIST_ENTRY(item, fer_dij_node_t, _list);
 }
 
 

@@ -93,7 +93,7 @@ _fer_inline fer_list_t *ferCubesCubeList(fer_cubes_cube_t *c)
 _fer_inline int ferCubesCubeHas(const fer_cubes_cube_t *c, fer_list_t *el)
 {
     fer_list_t *i;
-    ferListForEach(&c->list, i){
+    FER_LIST_FOR_EACH(&c->list, i){
         if (i == el)
             return 1;
     }

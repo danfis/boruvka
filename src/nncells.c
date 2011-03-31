@@ -221,7 +221,7 @@ void __ferNNCellsExpand(fer_nncells_t *cs)
     for (i = 0; i < cells_len; i++){
         while (!ferListEmpty(&cells[i].list)){
             item = ferListNext(&cells[i].list);
-            el   = ferListEntry(item, fer_nncells_el_t, list);
+            el   = FER_LIST_ENTRY(item, fer_nncells_el_t, list);
             ferListDel(item);
 
             ferNNCellsAdd(cs, el);
@@ -454,8 +454,8 @@ static void nearestInCell(fer_nncells_t *cs, fer_nncells_cell_t *c)
     fer_nncells_el_t *el;
 
     list = &c->list;
-    ferListForEach(list, item){
-        el = ferListEntry(item, fer_nncells_el_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        el = FER_LIST_ENTRY(item, fer_nncells_el_t, list);
         nearestCheck(cs, el);
     }
 }

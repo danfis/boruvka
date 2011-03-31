@@ -44,9 +44,9 @@ fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
         FER_SWAP(v1, v2, vtmp);
     }
 
-    ferListForEach(&v1->edges, item){
+    FER_LIST_FOR_EACH(&v1->edges, item){
         mitem = ferListMFromList(item);
-        e = ferListEntry(item, fer_mesh3_edge_t, vlist[mitem->mark]);
+        e = FER_LIST_ENTRY(item, fer_mesh3_edge_t, vlist[mitem->mark]);
         if (v2 == ferMesh3EdgeVertex(e, 0)
                 || v2 == ferMesh3EdgeVertex(e, 1)){
             return e;
@@ -152,7 +152,7 @@ void ferMesh3Del2(fer_mesh3_t *m,
     // disconnect all faces
     while (!ferListEmpty(&m->faces)){
         item = ferListNext(&m->faces);
-        f = ferListEntry(item, fer_mesh3_face_t, list);
+        f = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         ferMesh3RemoveFace(m, f);
 
         if (delface){
@@ -163,7 +163,7 @@ void ferMesh3Del2(fer_mesh3_t *m,
     // disconnect all edges
     while (!ferListEmpty(&m->edges)){
         item = ferListNext(&m->edges);
-        e = ferListEntry(item, fer_mesh3_edge_t, list);
+        e = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
         ferMesh3RemoveEdge(m, e);
 
         if (deledge){
@@ -174,7 +174,7 @@ void ferMesh3Del2(fer_mesh3_t *m,
     // disconnect all vertices
     while (!ferListEmpty(&m->verts)){
         item = ferListNext(&m->verts);
-        v = ferListEntry(item, fer_mesh3_vertex_t, list);
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
         ferMesh3RemoveVertex(m, v);
 
         if (delvertex){
@@ -321,8 +321,8 @@ void ferMesh3DumpSVT(fer_mesh3_t *m, FILE *out, const char *name)
 
     fprintf(out, "Points:\n");
     i = 0;
-    ferListForEach(&m->verts, item){
-        v = ferListEntry(item, fer_mesh3_vertex_t, list);
+    FER_LIST_FOR_EACH(&m->verts, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
         v->_id = i++;
         fprintf(out, "%g %g %g\n",
                 ferVec3X(ferMesh3VertexCoords(v)),
@@ -331,15 +331,15 @@ void ferMesh3DumpSVT(fer_mesh3_t *m, FILE *out, const char *name)
     }
 
     fprintf(out, "Edges:\n");
-    ferListForEach(&m->edges, item){
-        e = ferListEntry(item, fer_mesh3_edge_t, list);
+    FER_LIST_FOR_EACH(&m->edges, item){
+        e = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
         fprintf(out, "%d %d\n", ferMesh3EdgeVertex(e, 0)->_id,
                                 ferMesh3EdgeVertex(e, 1)->_id);
     }
 
     fprintf(out, "Faces:\n");
-    ferListForEach(&m->faces, item){
-        f = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH(&m->faces, item){
+        f = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         ferMesh3FaceVertices(f, vs);
         fprintf(out, "%d %d %d\n", vs[0]->_id, vs[1]->_id, vs[2]->_id);
     }
@@ -353,8 +353,8 @@ void ferMesh3DumpTriangles(fer_mesh3_t *m, FILE *out)
     fer_mesh3_face_t *f;
     fer_list_t *item;
 
-    ferListForEach(&m->faces, item){
-        f = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH(&m->faces, item){
+        f = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         ferMesh3FaceVertices(f, vs);
 
         fprintf(out, "%g %g %g %g %g %g %g %g %g\n",
@@ -380,8 +380,8 @@ void ferMesh3DumpPovray(fer_mesh3_t *m, FILE *out)
 
     fprintf(out, "mesh {\n");
 
-    ferListForEach(&m->faces, item){
-        f = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH(&m->faces, item){
+        f = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         ferMesh3FaceVertices(f, vs);
 
         fprintf(out, "triangle { <%g %g %g>, <%g %g %g>, <%g %g %g> }\n",

@@ -173,7 +173,7 @@ _fer_inline const fer_real_t *ferPC`N`AABB(const fer_pc`N`_t *pc)
 _fer_inline void ferPC`N`ItInit(fer_pc`N`_it_t *it, fer_pc`N`_t *pc)
 {
     it->pc = pc;
-    it->mem = ferListEntry(ferListNext(&pc->head), fer_pc_mem_t, list);
+    it->mem = FER_LIST_ENTRY(ferListNext(&pc->head), fer_pc_mem_t, list);
     it->pos = 0;
 }
 
@@ -193,7 +193,7 @@ _fer_inline void ferPC`N`ItNext(fer_pc`N`_it_t *it)
     it->pos++;
     if (it->pos >= it->mem->len
             && ferListNext(&it->mem->list) != &it->pc->head){
-        it->mem = ferListEntry(ferListNext(&it->mem->list), fer_pc_mem_t, list);
+        it->mem = FER_LIST_ENTRY(ferListNext(&it->mem->list), fer_pc_mem_t, list);
         it->pos = 0;
     }
 }
@@ -201,7 +201,7 @@ _fer_inline void ferPC`N`ItNext(fer_pc`N`_it_t *it)
 _fer_inline void ferPC`N`ItPrev(fer_pc`N`_it_t *it)
 {
     if (it->pos == 0 && ferListPrev(&it->mem->list) != &it->pc->head){
-        it->mem = ferListEntry(ferListPrev(&it->mem->list), fer_pc_mem_t, list);
+        it->mem = FER_LIST_ENTRY(ferListPrev(&it->mem->list), fer_pc_mem_t, list);
         it->pos = it->mem->len - 1;
     }else{
         it->pos--;

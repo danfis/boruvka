@@ -70,7 +70,7 @@ fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f)
     // put all children to root list
     while (!ferListEmpty(&min->children)){
         item = ferListNext(&min->children);
-        n    = ferListEntry(item, fer_fibo_node_t, list);
+        n    = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
 
         ferListDel(item);
         ferListAppend(&f->root, item);
@@ -102,7 +102,7 @@ void ferFiboRemove(fer_fibo_t *f, fer_fibo_node_t *n)
 
     // remove all its children
     list = &n->children;
-    ferListForEachSafe(list, item, item_tmp){
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
         c = fer_container_of(item, fer_fibo_node_t, list);
         __ferFiboCut(f, c, n);
     }
@@ -128,8 +128,8 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
     f->max_degree = 0;
 
     list = &f->root;
-    ferListForEachSafe(list, item, tmp_item){
-        n = ferListEntry(item, fer_fibo_node_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, tmp_item){
+        n = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
 
         degree = n->degree;
         while (f->cons[degree] != NULL){

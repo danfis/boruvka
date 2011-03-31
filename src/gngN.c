@@ -306,7 +306,7 @@ void ferGNG`N`DumpSVT(fer_gng`N`_t *gng, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     list = ferGNGNodes(gng->gng);
     i = 0;
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         gn = ferGNGNodeFromList(item);
         n  = ferGNG`N`NodeFromGNG(gn);
 
@@ -318,8 +318,8 @@ void ferGNG`N`DumpSVT(fer_gng`N`_t *gng, FILE *out, const char *name)
 
     fprintf(out, "Edges:\n");
     list = ferGNGEdges(gng->gng);
-    ferListForEach(list, item){
-        e = ferListEntry(item, fer_net_edge_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
 
         nn = ferNetEdgeNode(e, 0);
         n  = ferGNG`N`NodeFromNet(nn);

@@ -15,6 +15,18 @@
  */
 
 
+#ifndef __FER_PREDICATES_H__
+#define __FER_PREDICATES_H__
+
+#include <fermat/core.h>
+#include <fermat/vec2.h>
+#include <fermat/vec3.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+
 /**
  * Predicates
  * ===========
@@ -25,6 +37,7 @@
  *
  * Only API of original code was changed to conform with rest of fermat
  * API. Predicates available are:
+ *
  * 1) ferPredOrient2d() and ferPredOrient2dFast() find out relative
  *    orientation of three 2d points (counterclockwise, clockwise,
  *    collinear).
@@ -43,16 +56,11 @@
  * latter one is approximate and nonrobust (but fast) version.
  */
 
-#ifndef __FER_PREDICATES_H__
-#define __FER_PREDICATES_H__
 
-#include <fermat/core.h>
-#include <fermat/vec2.h>
-#include <fermat/vec3.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Initialize the variables used for exact arithmetic.

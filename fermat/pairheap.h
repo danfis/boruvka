@@ -34,6 +34,7 @@ extern "C" {
  *
  */
 
+/** vvvv */
 struct _fer_pairheap_node_t {
     fer_list_t children;             /*!< List of children */
     fer_list_t list;                 /*!< Connection into list of siblings */
@@ -55,7 +56,13 @@ struct _fer_pairheap_t {
     void *data;
 };
 typedef struct _fer_pairheap_t fer_pairheap_t;
+/** ^^^^ */
 
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Creates new empty Pairing heap.
@@ -136,7 +143,7 @@ _fer_inline fer_pairheap_node_t *ferPairHeapMin(fer_pairheap_t *ph)
         item = ferListNext(&ph->root);
     }
 
-    el = ferListEntry(item, fer_pairheap_node_t, list);
+    el = FER_LIST_ENTRY(item, fer_pairheap_node_t, list);
     return el;
 }
 

@@ -185,7 +185,7 @@ TEST(nncellsNearest2)
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);
-                near[1] = ferListEntry(nsl[j], el_t, list);
+                near[1] = FER_LIST_ENTRY(nsl[j], el_t, list);
                 assertEquals(near[0], near[1]);
             }
         }
@@ -284,7 +284,7 @@ TEST(nncellsNearest6)
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el6_t, c);
-                near[1] = ferListEntry(nsl[j], el6_t, list);
+                near[1] = FER_LIST_ENTRY(nsl[j], el6_t, list);
                 assertEquals(near[0], near[1]);
             }
         }

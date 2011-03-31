@@ -32,6 +32,7 @@ extern "C" {
  *
  */
 
+/** vvvv */
 struct _fer_fibo_node_t {
     unsigned int degree; /*!< Degree of node */
     int mark;
@@ -60,7 +61,13 @@ struct _fer_fibo_t {
     void *data;
 };
 typedef struct _fer_fibo_t fer_fibo_t;
+/** ^^^^ */
 
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Creates new empty Fibonnacci heap.

@@ -34,7 +34,7 @@ size_t ferNearestLinear(fer_list_t *list, void *p,
     dists = FER_ALLOC_ARR(fer_real_t, num);
     len = 0;
 
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         dist = dist_cb(p, item);
 
         if (len < num){

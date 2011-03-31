@@ -298,7 +298,7 @@ static void netDumpSVT(fer_gng_t *gng, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     list = ferGNGNodes(gng);
     i = 0;
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         gn = ferGNGNodeFromList(item);
         n  = fer_container_of(gn, node_t, gng);
 
@@ -310,8 +310,8 @@ static void netDumpSVT(fer_gng_t *gng, FILE *out, const char *name)
 
     fprintf(out, "Edges:\n");
     list = ferGNGEdges(gng);
-    ferListForEach(list, item){
-        e = ferListEntry(item, fer_net_edge_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
 
         nn = ferNetEdgeNode(e, 0);
         gn = ferGNGNodeFromNet(nn);
@@ -353,7 +353,7 @@ static void dij_expand(fer_dij_node_t *_n, fer_list_t *neighbors, void *_p)
 
     net_n = ferGNGNodeToNet(&n->gng);
     list = ferNetNodeEdges(net_n);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         e = ferNetEdgeFromNodeList(item);
         net_o = ferNetEdgeOtherNode(e, net_n);
         gng_o = ferGNGNodeFromNet(net_o);
@@ -392,7 +392,7 @@ static void dijDumpPath(plan_t *p)
 
     fprintf(stdout, "Points:\n");
     size = 0;
-    ferListForEach(&list, item){
+    FER_LIST_FOR_EACH(&list, item){
         n = ferDijNodeFromList(item);
         node = fer_container_of(n, node_t, dij);
         fprintf(stdout, "%g %g\n", ferVec2X(node->w), ferVec2Y(node->w));

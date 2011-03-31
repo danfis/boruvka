@@ -658,7 +658,7 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     if (fer_unlikely(ferMesh3VertexEdgesLen(&n->vert) > 0)){
         // remove edges first
         list = ferMesh3VertexEdges(&n->vert);
-        ferListForEachSafe(list, item, item_tmp){
+        FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
             edge = ferMesh3EdgeFromVertexList(item);
             e = fer_container_of(edge, edge_t, edge);
 
@@ -864,13 +864,13 @@ static void echlCommonNeighbors(fer_gsrm_t *g, node_t *n1, node_t *n2)
     list1 = ferMesh3VertexEdges(&n1->vert);
     list2 = ferMesh3VertexEdges(&n2->vert);
     len = 0;
-    ferListForEach(list1, item1){
+    FER_LIST_FOR_EACH(list1, item1){
         edge1 = ferMesh3EdgeFromVertexList(item1);
         o1 = ferMesh3EdgeVertex(edge1, 0);
         if (o1 == &n1->vert)
             o1 = ferMesh3EdgeVertex(edge1, 1);
 
-        ferListForEach(list2, item2){
+        FER_LIST_FOR_EACH(list2, item2){
             edge2 = ferMesh3EdgeFromVertexList(item2);
             o2 = ferMesh3EdgeVertex(edge2, 0);
             if (o2 == &n2->vert)
@@ -1013,7 +1013,7 @@ static void echlMove(fer_gsrm_t *g)
 
     // move nodes connected with the winner
     list = ferMesh3VertexEdges(wvert);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge = ferMesh3EdgeFromVertexList(item);
         vert = ferMesh3EdgeOtherVertex(edge, wvert);
 
@@ -1032,7 +1032,7 @@ static void echlUpdate(fer_gsrm_t *g)
     wn = g->c->nearest[0];
 
     list = ferMesh3VertexEdges(&wn->vert);
-    ferListForEachSafe(list, item, tmp_item){
+    FER_LIST_FOR_EACH_SAFE(list, item, tmp_item){
         edge = ferMesh3EdgeFromVertexList(item);
         e = fer_container_of(edge, edge_t, edge);
 
@@ -1086,7 +1086,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
 
     max_err = FER_REAL_MIN;
     list = ferMesh3VertexEdges(&sq->vert);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge = ferMesh3EdgeFromVertexList(item);
         other_vert = ferMesh3EdgeOtherVertex(edge, &sq->vert);
         n = fer_container_of(other_vert, node_t, vert);
@@ -1169,8 +1169,8 @@ static void faceAreaStat(fer_gsrm_t *g, fer_real_t *_min, fer_real_t *_max,
     max = avg = FER_ZERO;
     min = FER_REAL_MAX;
     list = ferMesh3Faces(g->mesh);
-    ferListForEach(list, item){
-        face = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        face = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         area = ferMesh3FaceArea2(face);
 
         if (area < min){
@@ -1202,8 +1202,8 @@ static void delIncorrectFaces(fer_gsrm_t *g)
 
     // iterate over all faces
     list = ferMesh3Faces(g->mesh);
-    ferListForEachSafe(list, item, item_tmp){
-        face = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        face = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         ferMesh3FaceVertices(face, vs);
 
         // check internal angle of face
@@ -1215,8 +1215,8 @@ static void delIncorrectFaces(fer_gsrm_t *g)
 
     // iterate over all edges
     list = ferMesh3Edges(g->mesh);
-    ferListForEachSafe(list, item, item_tmp){
-        edge = ferListEntry(item, fer_mesh3_edge_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
 
         if (ferMesh3EdgeFacesLen(edge) == 2){
             // get incidenting faces
@@ -1256,8 +1256,8 @@ static void delIncorrectEdges(fer_gsrm_t *g)
         madechange = 0;
 
         list = ferMesh3Edges(g->mesh);
-        ferListForEachSafe(list, item, item_tmp){
-            edge = ferListEntry(item, fer_mesh3_edge_t, list);
+        FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+            edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
             vs[0] = ferMesh3EdgeVertex(edge, 0);
             vs[1] = ferMesh3EdgeVertex(edge, 1);
 
@@ -1288,8 +1288,8 @@ static void mergeEdges(fer_gsrm_t *g)
         madechange = 0;
 
         list = ferMesh3Vertices(g->mesh);
-        ferListForEachSafe(list, item, item_tmp){
-            vert = ferListEntry(item, fer_mesh3_vertex_t, list);
+        FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+            vert = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
             if (ferMesh3VertexEdgesLen(vert) == 2){
                 // get incidenting edges
                 list2 = ferMesh3VertexEdges(vert);
@@ -1344,8 +1344,8 @@ static void finishSurface(fer_gsrm_t *g)
         madechange = 0;
 
         list = ferMesh3Edges(g->mesh);
-        ferListForEach(list, item){
-            edge = ferListEntry(item, fer_mesh3_edge_t, list);
+        FER_LIST_FOR_EACH(list, item){
+            edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
 
             // if it is border edge
             if (ferMesh3EdgeFacesLen(edge) == 1){
@@ -1376,8 +1376,8 @@ static void delLonelyNodesEdgesFaces(fer_gsrm_t *g)
     node_t *n;
 
     list = ferMesh3Faces(g->mesh);
-    ferListForEachSafe(list, item, item_tmp){
-        face = ferListEntry(item, fer_mesh3_face_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        face = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         es[0] = ferMesh3FaceEdge(face, 0);
         es[1] = ferMesh3FaceEdge(face, 1);
         es[2] = ferMesh3FaceEdge(face, 2);
@@ -1393,8 +1393,8 @@ static void delLonelyNodesEdgesFaces(fer_gsrm_t *g)
 
 
     list = ferMesh3Edges(g->mesh);
-    ferListForEachSafe(list, item, item_tmp){
-        edge = ferListEntry(item, fer_mesh3_edge_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
         if (ferMesh3EdgeFacesLen(edge) == 0){
             e = fer_container_of(edge, edge_t, edge);
             edgeDel(g, e);
@@ -1403,8 +1403,8 @@ static void delLonelyNodesEdgesFaces(fer_gsrm_t *g)
 
 
     list = ferMesh3Vertices(g->mesh);
-    ferListForEachSafe(list, item, item_tmp){
-        vert = ferListEntry(item, fer_mesh3_vertex_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        vert = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
         if (ferMesh3VertexEdgesLen(vert) == 0){
             n = fer_container_of(vert, node_t, vert);
             nodeDel(g, n);
@@ -1422,8 +1422,8 @@ static void finishSurfaceEmbedTriangles(fer_gsrm_t *g)
     size_t i;
 
     list = ferMesh3Edges(g->mesh);
-    ferListForEach(list, item){
-        es[0] = ferListEntry(item, fer_mesh3_edge_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        es[0] = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
 
         vs[0] = ferMesh3EdgeVertex(es[0], 0);
         vs[1] = ferMesh3EdgeVertex(es[0], 1);
@@ -1499,7 +1499,7 @@ static int edgeNotUsable(fer_mesh3_edge_t *e)
         usable_edges = 0;
 
         list = ferMesh3VertexEdges(vs[0]);
-        ferListForEach(list, item){
+        FER_LIST_FOR_EACH(list, item){
             edge = ferMesh3EdgeFromVertexList(item);
             if (ferMesh3EdgeFacesLen(edge) < 2)
                 usable_edges++;
@@ -1584,7 +1584,7 @@ static edge_t *finishSurfaceGetEdge(edge_t *e, node_t *n)
 
     s2 = NULL;
     list = ferMesh3VertexEdges(&n->vert);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge = ferMesh3EdgeFromVertexList(item);
 
         if (ferMesh3EdgeFacesLen(edge) == 0)

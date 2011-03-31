@@ -11,8 +11,8 @@ static void treeDump(fer_list_t *fl, size_t spaces)
     fer_fibo_node_t *n;
     size_t i;
 
-    ferListForEach(fl, item){
-        n = ferListEntry(item, fer_fibo_node_t, list);
+    FER_LIST_FOR_EACH(fl, item){
+        n = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
         for (i = 0; i < spaces; i++){
             fprintf(stdout, " ");
         }

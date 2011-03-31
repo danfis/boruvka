@@ -236,8 +236,8 @@ static void printPath(fer_list_t *path, FILE *out)
     fer_list_t *item;
     fer_gngp_node_t *n;
 
-    ferListForEach(path, item){
-        n = ferListEntry(item, fer_gngp_node_t, path);
+    FER_LIST_FOR_EACH(path, item){
+        n = FER_LIST_ENTRY(item, fer_gngp_node_t, path);
         ferVecPrint(6, n->w, out);
         fprintf(out, "\n");
     }

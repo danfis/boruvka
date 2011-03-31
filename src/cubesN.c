@@ -305,8 +305,8 @@ static void ferCubesNearestInCube(fer_cubes`N`_t *cs, size_t id)
     fer_cubes`N`_el_t *el;
 
     list = ferCubesCubeList(&cs->cubes[id]);
-    ferListForEach(list, item){
-        el = ferListEntry(item, fer_cubes`N`_el_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        el = FER_LIST_ENTRY(item, fer_cubes`N`_el_t, list);
         ferCubesNearestCheck(cs->cache, el);
     }
 }

@@ -56,8 +56,8 @@ void ferPC`N`Del(fer_pc`N`_t *pc)
     fer_list_t *item, *tmp;
     fer_pc_mem_t *mem;
 
-    ferListForEachSafe(&pc->head, item, tmp){
-        mem = ferListEntry(item, fer_pc_mem_t, list);
+    FER_LIST_FOR_EACH_SAFE(&pc->head, item, tmp){
+        mem = FER_LIST_ENTRY(item, fer_pc_mem_t, list);
         ferPCMemDel(mem);
     }
 
@@ -70,7 +70,7 @@ void ferPC`N`Add(fer_pc`N`_t *pc, const fer_vec`N`_t *v)
     fer_pc_mem_t *mem;
 
     item = ferListPrev(&pc->head);
-    mem = ferListEntry(item, fer_pc_mem_t, list);
+    mem = FER_LIST_ENTRY(item, fer_pc_mem_t, list);
     if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
 #ifdef FER_SSE
         mem = ferPCMemNew(pc->min_chunk_size, sizeof(fer_vec`N`_t), 16);
@@ -96,8 +96,8 @@ fer_vec`N`_t *ferPC`N`Get(fer_pc`N`_t *pc, size_t n)
         return NULL;
 
     pos = 0;
-    ferListForEach(&pc->head, item){
-        mem = ferListEntry(item, fer_pc_mem_t, list);
+    FER_LIST_FOR_EACH(&pc->head, item){
+        mem = FER_LIST_ENTRY(item, fer_pc_mem_t, list);
         if (pos + mem->len > n){
             p = ferPCMemGet(mem, n - pos, fer_vec`N`_t);
             break;
@@ -128,7 +128,7 @@ static void ferPC`N`PermutateOther(fer_pc_mem_t *mem_from, size_t from,
     while (pos >= mem->len){
         pos -= mem->len;
         item = ferListNext(&mem->list);
-        mem = ferListEntry(item, fer_pc_mem_t, list);
+        mem = FER_LIST_ENTRY(item, fer_pc_mem_t, list);
     }
 
     *other = mem;
@@ -149,8 +149,8 @@ void ferPC`N`Permutate(fer_pc`N`_t *pc)
     // iterate over all positions in all chunks consequently from beginning
     // and choose some point from rest of point cloud (from positions _after_
     // the current one) and swap points
-    ferListForEach(&pc->head, item){
-        cur_mem = ferListEntry(item, fer_pc_mem_t, list);
+    FER_LIST_FOR_EACH(&pc->head, item){
+        cur_mem = FER_LIST_ENTRY(item, fer_pc_mem_t, list);
         for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
             // choose other point for swapping
             ferPC`N`PermutateOther(cur_mem, cur_pos + 1, pc_len, &rand,

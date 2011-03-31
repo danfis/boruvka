@@ -27,10 +27,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Rand
- * =====
+ * Rand - Random Number Generator
+ * ===============================
  *
- * Struct representing random number generator.
+ * This is only simplified API upon std C erand48(3) function.
  */
 struct _fer_rand_t {
     unsigned short xi[3]; /*! seed for generation random numbers */

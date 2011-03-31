@@ -196,7 +196,7 @@ static void _ferGNGLearn(fer_gng_t *gng, size_t step)
                            OPS_DATA(gng, move_towards));
     // adapt also direct topological neighbors of winner node
     list = ferNetNodeEdges(&n1->node);
-    ferListForEachSafe(list, item, item_tmp){
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
         nedge = ferNetEdgeFromNodeList(item);
         edge  = fer_container_of(nedge, fer_gng_edge_t, edge);
         nn   = ferNetEdgeOtherNode(&edge->edge, &n1->node);
@@ -385,7 +385,7 @@ static fer_gng_node_t *nodeWithHighestErr2(fer_gng_t *gng, fer_gng_node_t *q,
     e_highest = NULL;
 
     list = ferNetNodeEdges(&q->node);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         ne = ferNetEdgeFromNodeList(item);
         nn = ferNetEdgeOtherNode(ne, &q->node);
         n  = fer_container_of(nn, fer_gng_node_t, node);

@@ -31,8 +31,8 @@ extern "C" {
  */
 
 /**
- * Parses given string that starts at str ands ends at strend (exclusively)
- * into floating point number *val* and if next is non-NULL stores there
+ * Parses given string that starts at {str} and ends at {strend} (exclusively)
+ * into floating point number {val} and if {next} is non-NULL stores there
  * pointer to string after parsed number.
  * Returns 0 on success, -1 otherwise.
  */

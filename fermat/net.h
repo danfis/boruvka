@@ -267,7 +267,7 @@ _fer_inline int ferNetNodeHasEdge(const fer_net_node_t *v,
     fer_list_t *item;
     fer_net_edge_t *edge;
 
-    ferListForEach(&v->edges, item){
+    FER_LIST_FOR_EACH(&v->edges, item){
         edge = ferNetEdgeFromNodeList(item);
         if (edge == e)
             return 1;
@@ -305,7 +305,7 @@ _fer_inline fer_net_edge_t *ferNetEdgeFromNodeList(fer_list_t *l)
     fer_net_edge_t *e;
 
     m = ferListMFromList(l);
-    e = ferListEntry(l, fer_net_edge_t, nlist[m->mark]);
+    e = FER_LIST_ENTRY(l, fer_net_edge_t, nlist[m->mark]);
 
     return e;
 }

@@ -207,8 +207,8 @@ static void dumpSet(fer_gngp_t *gng, int set, FILE *out, const char *name,
     fprintf(out, "Points:\n");
     list = ferNetNodes(gng->net);
     i = 0;
-    ferListForEach(list, item){
-        nn = ferListEntry(item, fer_net_node_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n  = fer_container_of(nn, fer_gngp_node_t, node);
         if (n->set != set)
             continue;
@@ -221,8 +221,8 @@ static void dumpSet(fer_gngp_t *gng, int set, FILE *out, const char *name,
 
     fprintf(out, "Edges:\n");
     list = ferNetEdges(gng->net);
-    ferListForEach(list, item){
-        e = ferListEntry(item, fer_net_edge_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
 
         nn = ferNetEdgeNode(e, 0);
         n  = fer_container_of(nn, fer_gngp_node_t, node);
@@ -270,8 +270,8 @@ void ferGNGPDumpNodes(fer_gngp_t *gng, FILE *out)
     fer_gngp_node_t *n;
 
     list = ferNetNodes(gng->net);
-    ferListForEach(list, item){
-        nn = ferListEntry(item, fer_net_node_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n  = fer_container_of(nn, fer_gngp_node_t, node);
 
         ferVecPrint(gng->params.d, n->w, out);
@@ -480,7 +480,7 @@ static void learn(fer_gngp_t *gng, size_t step,
     // increase age of all outgoing edges from n, move all neighbor nodes
     // of n towards input signal and remove all edges with age > age_max
     list = ferNetNodeEdges(&n->node);
-    ferListForEachSafe(list, item, item_tmp){
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
         edge  = ferNetEdgeFromNodeList(item);
         e     = fer_container_of(edge, fer_gngp_edge_t, edge);
         other = ferNetEdgeOtherNode(edge, &n->node);
@@ -530,8 +530,8 @@ static fer_gngp_node_t *nodeWithMaxErr(fer_gngp_t *gng)
 
         mmax = NULL;
         list = ferNetNodes(gng->net);
-        ferListForEach(list, item){
-            node = ferListEntry(item, fer_net_node_t, list);
+        FER_LIST_FOR_EACH(list, item){
+            node = FER_LIST_ENTRY(item, fer_net_node_t, list);
             n    = fer_container_of(node, fer_gngp_node_t, node);
 
             if (!mmax || n->err > mmax->err){
@@ -562,7 +562,7 @@ static fer_gngp_node_t *nodeNeighborWithMaxErr(fer_gngp_t *gng, fer_gngp_node_t 
     max_n   = NULL;
 
     list = ferNetNodeEdges(&n->node);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge  = ferNetEdgeFromNodeList(item);
         other = ferNetEdgeOtherNode(edge, &n->node);
         o     = fer_container_of(other, fer_gngp_node_t, node);
@@ -601,12 +601,12 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
         // Pop next item form fifo
         item = ferListNext(&fifo);
         ferListDel(item);
-        n = ferListEntry(item, fer_gngp_node_t, fifo);
+        n = FER_LIST_ENTRY(item, fer_gngp_node_t, fifo);
 
         //DBG("  rank(n): %d", ferNetNodeEdgesLen(&n->node));
         // Iterate over n's neighbors that are _not_ in same set as m
         list = ferNetNodeEdges(&n->node);
-        ferListForEachSafe(list, item, item_tmp){
+        FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
             edge = ferNetEdgeFromNodeList(item);
             node = ferNetEdgeOtherNode(edge, &n->node);
             o    = fer_container_of(node, fer_gngp_node_t, node);
@@ -676,7 +676,7 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
     n = fer_container_of(_n, fer_gngp_node_t, dij);
 
     list = ferNetNodeEdges(&n->node);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge = ferNetEdgeFromNodeList(item);
         node = ferNetEdgeOtherNode(edge, &n->node);
         o    = fer_container_of(node, fer_gngp_node_t, node);
@@ -695,8 +695,8 @@ static void findPathDijInit(fer_gngp_t *gng)
     fer_gngp_node_t *n;
 
     list = ferNetNodes(gng->net);
-    ferListForEach(list, item){
-        node = ferListEntry(item, fer_net_node_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        node = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n    = fer_container_of(node, fer_gngp_node_t, node);
         ferDijNodeInit(&n->dij);
     }
@@ -844,7 +844,7 @@ static void nodeDelWithEdges(fer_gngp_t *gng, fer_gngp_node_t *n)
     fer_gngp_edge_t *e;
 
     list = ferNetNodeEdges(&n->node);
-    ferListForEachSafe(list, item, item_tmp){
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
         edge = ferNetEdgeFromNodeList(item);
         e    = fer_container_of(edge, fer_gngp_edge_t, edge);
         edgeDel(gng, e);

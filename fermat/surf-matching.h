@@ -24,6 +24,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Surf Matching - OpenCL Implementation
+ * ======================================
+ */
 struct _fer_surf_match_t {
     fer_vec_t *vecs1;
     fer_vec_t *vecs2;
@@ -34,6 +38,11 @@ struct _fer_surf_match_t {
     int *nearest;      /*!< Array of indicies of nearest surfs */
 };
 typedef struct _fer_surf_match_t fer_surf_match_t;
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Creates struct for surf matching, maximal lengths of first and second

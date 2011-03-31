@@ -7,13 +7,17 @@ PAPER         = a4
 BUILDDIR      = .
 
 RSTS  = alloc core compiler
-RSTS += list rand timer parse
+RSTS += list rand rand-mt timer parse predicates opencl
 RSTS += vec vec2 vec3 vec4 quat mat3 mat4
 RSTS += pc2 pc3 pc4
-RSTS += mesh3
-RSTS += cubes2 cubes3 nearest-linear
+RSTS += qhull
+RSTS += dij fibo pairheap
+RSTS += mesh3 trimesh
+RSTS += nncells cubes2 cubes3 nearest-linear
 RSTS += gsrm
 RSTS += net gng gng2 gng3
+RSTS += prm rrt
+RSTS += surf-matching
 
 RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
 
@@ -46,9 +50,6 @@ help:
 
 html: $(RSTS)
 	$(PYTHON2) build.py html
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
-	@echo
-	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 dirhtml:
 	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml

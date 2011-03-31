@@ -18,8 +18,11 @@ Fermat:
 
    fer-list.h.rst
    fer-rand.h.rst
+   fer-rand-mt.h.rst
    fer-timer.h.rst
    fer-parse.h.rst
+   fer-predicates.h.rst
+   fer-opencl.h.rst
 
 .. toctree::
    :maxdepth: 1
@@ -36,9 +39,19 @@ Fermat:
    fer-pc3.h.rst
    fer-pc4.h.rst
 
+   fer-qhull.h.rst
+
 .. toctree::
    :maxdepth: 1
 
+   fer-dij.h.rst
+   fer-fibo.h.rst
+   fer-pairheap.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-nncells.h.rst
    fer-cubes2.h.rst
    fer-cubes3.h.rst
    fer-nearest-linear.h.rst
@@ -47,11 +60,7 @@ Fermat:
    :maxdepth: 1
 
    fer-mesh3.h.rst
-   fer-gsrm.h.rst
-
-
-Growing Artificial Neural Networks
------------------------------------
+   fer-trimesh.h.rst
 
 .. toctree::
    :maxdepth: 1
@@ -60,5 +69,16 @@ Growing Artificial Neural Networks
    fer-gng.h.rst
    fer-gng2.h.rst
    fer-gng3.h.rst
+   fer-gsrm.h.rst
 
 
+.. toctree::
+   :maxdepth: 1
+
+   fer-prm.h.rst
+   fer-rrt.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-surf-matching.h.rst

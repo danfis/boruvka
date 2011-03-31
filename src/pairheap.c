@@ -41,8 +41,8 @@ void ferPairHeapRemove(fer_pairheap_t *ph, fer_pairheap_node_t *n)
     fer_list_t *list, *item, *item_tmp;
 
     list = &n->children;
-    ferListForEachSafe(list, item, item_tmp){
-        c = ferListEntry(item, fer_pairheap_node_t, list);
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        c = FER_LIST_ENTRY(item, fer_pairheap_node_t, list);
 
         // remove from n
         ferListDel(&c->list);
@@ -66,8 +66,8 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
     item_next = ferListNext(item);
     while (item != root && item_next != root){
         // get nodes
-        n1 = ferListEntry(item, fer_pairheap_node_t, list);
-        n2 = ferListEntry(item_next, fer_pairheap_node_t, list);
+        n1 = FER_LIST_ENTRY(item, fer_pairheap_node_t, list);
+        n2 = FER_LIST_ENTRY(item_next, fer_pairheap_node_t, list);
 
         // compare them
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
@@ -90,8 +90,8 @@ void __ferPairHeapConsolidate(fer_pairheap_t *ph)
     item_next = ferListNext(item);
     while (item != root && item_next != root){
         // get nodes
-        n1 = ferListEntry(item, fer_pairheap_node_t, list);
-        n2 = ferListEntry(item_next, fer_pairheap_node_t, list);
+        n1 = FER_LIST_ENTRY(item, fer_pairheap_node_t, list);
+        n2 = FER_LIST_ENTRY(item_next, fer_pairheap_node_t, list);
 
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
             ferListDel(&n2->list);

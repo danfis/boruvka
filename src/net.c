@@ -43,9 +43,9 @@ fer_net_edge_t *ferNetNodeCommonEdge(const fer_net_node_t *v1,
         FER_SWAP(v1, v2, vtmp);
     }
 
-    ferListForEach(&v1->edges, item){
+    FER_LIST_FOR_EACH(&v1->edges, item){
         mitem = ferListMFromList(item);
-        e = ferListEntry(item, fer_net_edge_t, nlist[mitem->mark]);
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, nlist[mitem->mark]);
         if (v2 == ferNetEdgeNode(e, 0)
                 || v2 == ferNetEdgeNode(e, 1)){
             return e;
@@ -135,7 +135,7 @@ void ferNetDel2(fer_net_t *m,
     // disedgeect all edges
     while (!ferListEmpty(&m->edges)){
         item = ferListNext(&m->edges);
-        e = ferListEntry(item, fer_net_edge_t, list);
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
         ferNetRemoveEdge(m, e);
 
         if (deledge){
@@ -146,7 +146,7 @@ void ferNetDel2(fer_net_t *m,
     // disedgeect all vertices
     while (!ferListEmpty(&m->nodes)){
         item = ferListNext(&m->nodes);
-        v = ferListEntry(item, fer_net_node_t, list);
+        v = FER_LIST_ENTRY(item, fer_net_node_t, list);
         ferNetRemoveNode(m, v);
 
         if (delnode){

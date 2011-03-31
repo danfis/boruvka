@@ -49,18 +49,73 @@ struct _fer_list_m_t {
 typedef struct _fer_list_m_t fer_list_m_t;
 
 /**
- * Get the struct for this entry.
- * @ptr:	the &fer_list_t pointer.
- * @type:	the type of the struct this is embedded in.
- * @member:	the name of the list_struct within the struct.
+ * Example
+ * --------
+ *
+ * First define struct that will hold head of list and struct that will be
+ * member of a list.
+ *
+ * ~~~~~~
+ * struct head_t {
+ *     int a, b, c;
+ *     ...
+ *
+ *     fer_list_t head;
+ * };
+ *
+ * struct member_t {
+ *     int d, e, f;
+ *     ...
+ *
+ *     fer_list_t list;
+ * };
+ * ~~~~~~~
+ *
+ * Then initialize a list and new memeber can be added.
+ * ~~~~~~
+ * struct head_t head;
+ * struct member_t m1, m2, m3;
+ *
+ * // init head of list
+ * ferListInit(&head.head);
+ *
+ * // append members to list
+ * ferListAppend(&head.head, &m1.list);
+ * ferListAppend(&head.head, &m2.list);
+ * ferListAppend(&head.head, &m3.list);
+ * ~~~~~~
+ *
+ * Now you can iterate over list or do anything else.
+ * ~~~~~
+ * fer_list_t *item;
+ * struct member_t *m;
+ *
+ * FER_LIST_FOR_EACH(&head.head, item){
+ *     m = FER_LIST_ENTRY(item, struct member_t, list);
+ *     ....
+ * }
+ * ~~~~~
  */
-#define ferListEntry(ptr, type, member) \
+
+/**
+ * Functions and Macros
+ * ---------------------
+ */
+
+
+/**
+ * Get the struct for this entry.
+ * {ptr}: the &fer_list_t pointer.
+ * {type}: the type of the struct this is embedded in.
+ * {member}: the name of the list_struct within the struct.
+ */
+#define FER_LIST_ENTRY(ptr, type, member) \
     fer_container_of(ptr, type, member)
 
 /**
  * Iterates over list.
  */
-#define ferListForEach(list, item) \
+#define FER_LIST_FOR_EACH(list, item) \
         for (item = (list)->next; \
              _fer_prefetch((item)->next), item != (list); \
              item = (item)->next)
@@ -68,40 +123,35 @@ typedef struct _fer_list_m_t fer_list_m_t;
 /**
  * Iterates over list safe against remove of list entry
  */
-#define ferListForEachSafe(list, item, tmp) \
+#define FER_LIST_FOR_EACH_SAFE(list, item, tmp) \
 	    for (item = (list)->next, tmp = (item)->next; \
              item != (list); \
 		     item = tmp, tmp = (item)->next)
 
 /**
  * Iterates over list of given type.
- * @pos:	the type * to use as a loop cursor.
- * @head:	the head for your list.
- * @member:	the name of the list_struct within the struct.
+ * {pos}:    the type * to use as a loop cursor.
+ * {head}:   the head for your list.
+ * {member}: the name of the list_struct within the struct.
  */
-#define ferListForEachEntry(head, postype, pos, member) \
-	for (pos = ferListEntry((head)->next, postype, member);	\
+#define FER_LIST_FOR_EACH_ENTRY(head, postype, pos, member) \
+	for (pos = FER_LIST_ENTRY((head)->next, postype, member);	\
 	     _fer_prefetch(pos->member.next), &pos->member != (head); 	\
-	     pos = ferListEntry(pos->member.next, postype, member))
+	     pos = FER_LIST_ENTRY(pos->member.next, postype, member))
 
 /**
  * Iterates over list of given type safe against removal of list entry
- * @pos:	the type * to use as a loop cursor.
- * @n:		another type * to use as temporary storage
- * @head:	the head for your list.
- * @member:	the name of the list_struct within the struct.
+ * {pos}:	the type * to use as a loop cursor.
+ * {n}:		another type * to use as temporary storage
+ * {head}:	the head for your list.
+ * {member}:the name of the list_struct within the struct.
  */
-#define ferListForEachEntrySafe(head, postype, pos, n, ntype, member)         \
-    for (pos = ferListEntry((head)->next, postype, member),             \
-		 n = ferListEntry(pos->member.next, postype, member);	\
+#define FER_LIST_FOR_EACH_ENTRY_SAFE(head, postype, pos, n, ntype, member)         \
+    for (pos = FER_LIST_ENTRY((head)->next, postype, member),             \
+		 n = FER_LIST_ENTRY(pos->member.next, postype, member);	\
 	     &pos->member != (head); 					\
-	     pos = n, n = ferListEntry(n->member.next, ntype, member))
+	     pos = n, n = FER_LIST_ENTRY(n->member.next, ntype, member))
 
-
-/**
- * Functions
- * ----------
- */
 
 /**
  * Initialize list.
@@ -212,7 +262,7 @@ _fer_inline size_t ferListSize(const fer_list_t *head)
     fer_list_t *item;
     size_t size = 0;
 
-    ferListForEach(head, item){
+    FER_LIST_FOR_EACH(head, item){
         size++;
     }
 

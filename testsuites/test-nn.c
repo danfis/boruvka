@@ -105,7 +105,7 @@ static void testCorrect(void)
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);
                 near[1] = fer_container_of(nsc2[j], el_t, c2);
-                near[2] = ferListEntry(nsl[j], el_t, list);
+                near[2] = FER_LIST_ENTRY(nsl[j], el_t, list);
                 if (near[0] != near[1]
                         || near[0] != near[2]
                         || near[1] != near[2]){
@@ -199,7 +199,7 @@ static void bench(void)
 
             ferNearestLinear(&head, &v, dist2, nsl, k + 1);
             for (j = 0; j < k + 1; j++){
-                near[0] = ferListEntry(nsl[j], el_t, list);
+                near[0] = FER_LIST_ENTRY(nsl[j], el_t, list);
                 write(devnull, &near[0]->v, 1);
             }
         }

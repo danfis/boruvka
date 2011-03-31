@@ -378,19 +378,19 @@ static void printPath(fer_list_t *path, FILE *out)
     fprintf(out, "Edge color: 0 0 0\n");
 
     fprintf(out, "Points:\n");
-    ferListForEach(path, item){
-        n = ferListEntry(item, fer_gngp_node_t, path);
+    FER_LIST_FOR_EACH(path, item){
+        n = FER_LIST_ENTRY(item, fer_gngp_node_t, path);
         ferVecPrint(2, n->w, out);
         fprintf(out, "\n");
     }
 
     fprintf(out, "Edges:\n");
     id = 0;
-    ferListForEach(path, item){
+    FER_LIST_FOR_EACH(path, item){
         if (ferListNext(item) == path)
             break;
 
-        n = ferListEntry(item, fer_gngp_node_t, path);
+        n = FER_LIST_ENTRY(item, fer_gngp_node_t, path);
         fprintf(out, "%d %d\n", id, id + 1);
         id++;
     }

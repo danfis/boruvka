@@ -38,6 +38,11 @@ struct _fer_timer_t {
 typedef struct _fer_timer_t fer_timer_t;
 
 /**
+ * Functions
+ * ----------
+ */
+
+/**
  * Starts timer.
  *
  * In fact, this only fills .t_start member of fer_timer_t struct.

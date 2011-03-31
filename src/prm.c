@@ -182,8 +182,8 @@ void ferPRMDumpSVT(fer_prm_t *prm, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     list = ferNetNodes(prm->net);
     i = 0;
-    ferListForEach(list, item){
-        nn = ferListEntry(item, fer_net_node_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n  = fer_container_of(nn, fer_prm_node_t, node);
 
         n->_id = i++;
@@ -194,8 +194,8 @@ void ferPRMDumpSVT(fer_prm_t *prm, FILE *out, const char *name)
 
     fprintf(out, "Edges:\n");
     list = ferNetEdges(prm->net);
-    ferListForEach(list, item){
-        e = ferListEntry(item, fer_net_edge_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
 
         nn = ferNetEdgeNode(e, 0);
         n  = fer_container_of(nn, fer_prm_node_t, node);
@@ -234,7 +234,7 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
     n = fer_container_of(_n, fer_prm_node_t, dij);
 
     list = ferNetNodeEdges(&n->node);
-    ferListForEach(list, item){
+    FER_LIST_FOR_EACH(list, item){
         edge = ferNetEdgeFromNodeList(item);
         node = ferNetEdgeOtherNode(edge, &n->node);
         o    = fer_container_of(node, fer_prm_node_t, node);
@@ -253,8 +253,8 @@ static void findPathDijInit(fer_prm_t *prm)
     fer_prm_node_t *n;
 
     list = ferNetNodes(prm->net);
-    ferListForEach(list, item){
-        node = ferListEntry(item, fer_net_node_t, list);
+    FER_LIST_FOR_EACH(list, item){
+        node = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n    = fer_container_of(node, fer_prm_node_t, node);
         ferDijNodeInit(&n->dij);
     }
@@ -485,7 +485,7 @@ static void nodeDelWithEdges(fer_prm_t *prm, fer_prm_node_t *n)
     fer_net_edge_t *edge;
 
     list = ferNetNodeEdges(&n->node);
-    ferListForEachSafe(list, item, item_tmp){
+    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
         edge = ferNetEdgeFromNodeList(item);
         edgeDel(prm, edge);
     }

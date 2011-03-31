@@ -82,8 +82,8 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
         // let user's function to fill list with nodes
         dij->ops.expand(node, &list, dij->ops.data);
         // iterate over all nodes in list
-        ferListForEach(&list, item){
-            nextnode = ferListEntry(item, fer_dij_node_t, _list);
+        FER_LIST_FOR_EACH(&list, item){
+            nextnode = FER_LIST_ENTRY(item, fer_dij_node_t, _list);
 
             // skip closed nodes
             // user shouldn't put them in list, but to be sure...

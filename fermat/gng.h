@@ -324,7 +324,7 @@ _fer_inline size_t ferGNGEdgesLen(const fer_gng_t *gng);
  * fer_gng_node_t *n;
  *
  * list = ferGNGNodes(gng);
- * ferListForEach(list, item){
+ * FER_LIST_FOR_EACH(list, item){
  *     n = ferGNGNodeFromList(item);
  *     ....
  * }
@@ -389,7 +389,7 @@ _fer_inline fer_gng_node_t *ferGNGNodeFromList(fer_list_t *item)
     fer_net_node_t *nn;
     fer_gng_node_t *n;
 
-    nn = ferListEntry(item, fer_net_node_t, list);
+    nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
     n  = fer_container_of(nn, fer_gng_node_t, node);
     return n;
 }
@@ -399,7 +399,7 @@ _fer_inline fer_gng_edge_t *ferGNGEdgeFromList(fer_list_t *item)
     fer_net_edge_t *nn;
     fer_gng_edge_t *n;
 
-    nn = ferListEntry(item, fer_net_edge_t, list);
+    nn = FER_LIST_ENTRY(item, fer_net_edge_t, list);
     n  = fer_container_of(nn, fer_gng_edge_t, edge);
     return n;
 }

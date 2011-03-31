@@ -36,8 +36,8 @@ extern "C" {
 #define FER_RAND_MT_M 397
 
 /**
- * RandMT - Mersenne Twister
- * ==========================
+ * RandMT - Mersenne Twister Random Number Generator
+ * ==================================================
  *
  * The Mersenne Twister is an algorithm for generating random numbers.  It
  * was designed with consideration of the flaws in various other generators.

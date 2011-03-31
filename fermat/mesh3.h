@@ -333,17 +333,17 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
  *   // note: mesh hold pointer to fer_mesh3_t
  *   fer_list_t *item;
  *   fer_mesh3_vertex_t *v;
- *   ferListForEach(ferMesh3Vertices(mesh), item) {
- *       v = ferListEntry(item, fer_mesh3_vertex_t, list);
+ *   FER_LIST_FOR_EACH(ferMesh3Vertices(mesh), item) {
+ *       v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
  *       // here you have vertex stored in v
  *       ...
  *   }
  * ~~~~
  *
  * Similar approach can be used for edges and faces, only different type is
- * used in ferListEntry():
+ * used in FER_LIST_ENTRY():
  * ~~~~
- *   ferListEntry(item, fer_mesh3_{edge,face}_t, list);
+ *   FER_LIST_ENTRY(item, fer_mesh3_{edge,face}_t, list);
  * ~~~~
  *
  * TODO: Maybe some macros could be provided for iteration over vertices,
@@ -506,9 +506,9 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
     fer_list_m_t *mitem;
     fer_mesh3_edge_t *edge;
 
-    ferListForEach(&v->edges, item){
+    FER_LIST_FOR_EACH(&v->edges, item){
         mitem = ferListMFromList(item);
-        edge = ferListEntry(item, fer_mesh3_edge_t, vlist[mitem->mark]);
+        edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, vlist[mitem->mark]);
         if (edge == e)
             return 1;
     }
@@ -569,7 +569,7 @@ _fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
     fer_mesh3_edge_t *e;
 
     m = ferListMFromList(l);
-    e = ferListEntry(l, fer_mesh3_edge_t, vlist[m->mark]);
+    e = FER_LIST_ENTRY(l, fer_mesh3_edge_t, vlist[m->mark]);
 
     return e;
 }

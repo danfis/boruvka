@@ -25,6 +25,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Trimesh - Collision Detection Between Triangular Meshes
+ * ========================================================
+ */
 struct _fer_trimesh_t {
     fer_vec3_t pos; /*!< Position */
     fer_quat_t rot; /*!< Rotation */
@@ -32,6 +36,11 @@ struct _fer_trimesh_t {
     void *data;
 };
 typedef struct _fer_trimesh_t fer_trimesh_t;
+
+/**
+ * Functions
+ * ----------
+ */
 
 /**
  * Creates new trimesh.
