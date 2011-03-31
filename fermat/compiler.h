@@ -17,6 +17,8 @@
 #ifndef __FER_COMPILER_H__
 #define __FER_COMPILER_H__
 
+#include <stddef.h>
+
 /**
  * Compiler - Compiler Specific Macros
  * ====================================
