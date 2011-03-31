@@ -16,7 +16,6 @@
 
 CC ?= gcc
 CXX ?= g++
-NVCC ?= nvcc
 M4 ?= m4
 SED ?= sed
 PYTHON ?= python
@@ -143,46 +142,4 @@ PREFIX     ?= /usr/local
 INCLUDEDIR ?= include
 LIBDIR     ?= lib
 
-showvars:
-	@echo "SYSTEM = "$(SYSTEM)
-	@echo ""
-	@echo "CC      = $(CC)"
-	@echo "CXX     = $(CXX)"
-	@echo "M4      = $(M4)"
-	@echo "SED     = $(SED)"
-	@echo "PYTHON  = $(PYTHON)"
-	@echo "PYTHON2 = $(PYTHON2)"
-	@echo "PYTHON3 = $(PYTHON3)"
-	@echo ""
-	@echo "PYTHON_CONFIG  = $(PYTHON_CONFIG)"
-	@echo ""
-	@echo "CC_NOT_GCC = $(CC_NOT_GCC)"
-	@echo ""
-	@echo "DEBUG      = $(DEBUG)"
-	@echo "PROFIL     = $(PROFIL)"
-	@echo "NOWALL     = $(NOWALL)"
-	@echo "NOPEDANTIC = $(NOPEDANTIC)"
-	@echo "USE_SINGLE = $(USE_SINGLE)"
-	@echo "USE_DOUBLE = $(USE_DOUBLE)"
-	@echo "USE_SSE    = $(USE_SSE)"
-	@echo "USE_OPENCL = $(USE_OPENCL)"
-	@echo "USE_RAPID  = $(USE_RAPID)"
-	@echo ""
-	@echo "CFLAGS         = $(CFLAGS)"
-	@echo "CXXFLAGS       = $(CXXFLAGS)"
-	@echo "LDFLAGS        = $(LDFLAGS)"
-	@echo "CONFIG_FLAGS   = $(CONFIG_FLAGS)"
-	@echo "PYTHON_CFLAGS  = $(PYTHON_CFLAGS)"
-	@echo "PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
-	@echo "RAPID_CFLAGS   = $(RAPID_CFLAGS)"
-	@echo "RAPID_LDFLAGS  = $(RAPID_LDFLAGS)"
-	@echo "OPENCL_CFLAGS  = $(OPENCL_CFLAGS)"
-	@echo "OPENCL_LDFLAGS = $(OPENCL_LDFLAGS)"
-	@echo ""
-	@echo "PREFIX     = $(PREFIX)"
-	@echo "INCLUDEDIR = $(INCLUDEDIR)"
-	@echo "LIBDIR     = $(LIBDIR)"
-	@echo ""
-
 .DEFAULT_GOAL := all
-.PHONY: showvars help
