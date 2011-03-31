@@ -31,6 +31,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Core - Core Functions and Macros
+ * =================================
+ */
+
 
 #ifndef FER_SINGLE
 # ifndef FER_DOUBLE
@@ -56,20 +61,19 @@ typedef union _fer_sse_t fer_sse_t;
 
 typedef float fer_real_t;
 
-//# define FER_EPS 1E-6
-# define FER_EPS FLT_EPSILON
-# define FER_REAL_MAX FLT_MAX
-# define FER_REAL_MIN FLT_MIN
+/*# define FER_EPS 1E-6*/
+# define FER_EPS FLT_EPSILON  /*!< epsilon */
+# define FER_REAL_MAX FLT_MAX /*!< maximal real value */
+# define FER_REAL_MIN FLT_MIN /*!< minimal real value */
 
 # define FER_REAL_STR "%.30f"
 
 # define FER_REAL(x)     (x ## f)          /*!< form a constant */
 
 # ifdef FER_SSE
-#  define FER_SQRT(x)     (__ferSqrt(x))     /*!< square root */
-//#  define FER_SQRT(x)     (sqrtf(x))       /*!< square root */
+#  define FER_SQRT(x)     (__ferSqrt(x))   /*!< square root */
 # else /* FER_SSE */
-#  define FER_SQRT(x)     (sqrtf(x))       /*!< square root */
+#  define FER_SQRT(x)     (sqrtf(x))
 # endif /* FER_SSE */
 
 # define FER_FABS(x)     (fabsf(x))        /*!< absolute value */
@@ -88,44 +92,46 @@ typedef float fer_real_t;
 #ifdef FER_DOUBLE
 typedef double fer_real_t;
 
-//# define FER_EPS 1E-10
+/*# define FER_EPS 1E-10*/
 # define FER_EPS DBL_EPSILON
 # define FER_REAL_MAX DBL_MAX
 # define FER_REAL_MIN DBL_MIN
 
 # define FER_REAL_STR "%.30lf"
 
-# define FER_REAL(x)     (x ## f)         /*!< form a constant */
+# define FER_REAL(x)     (x ## f)
 
 # ifdef FER_SSE
-#  define FER_SQRT(x)     (__ferSqrt(x))     /*!< square root */
-//#  define FER_SQRT(x)     (sqrt(x))       /*!< square root */
+#  define FER_SQRT(x)     (__ferSqrt(x))
 # else /* FER_SSE */
-#  define FER_SQRT(x)     (sqrt(x))       /*!< square root */
+#  define FER_SQRT(x)     (sqrt(x))
 # endif /* FER_SSE */
 
-# define FER_FABS(x)     (fabs(x))        /*!< absolute value */
-# define FER_FMAX(x, y)  (fmax((x), (y))) /*!< maximum of two floats */
-# define FER_FMIN(x, y)  (fmin((x), (y))) /*!< minimum of two floats */
-# define FER_CBRT(x)     (cbrt(x)         /*!< cube root */
-# define FER_COS(x)      (cos(x))         /*!< cosine */
-# define FER_SIN(x)      (sin(x))         /*!< sine */
-# define FER_ACOS(x)     (acos(x))        /*!< arc cosine */
-# define FER_ASIN(x)     (asin(x))        /*!< arc sine */
-# define FER_ATAN2(y, x) (atan2(y, x))    /*!< arc tangent of y/x */
-# define FER_POW(x, y)   (pow((x), (y)))  /*!< power function */
+# define FER_FABS(x)     (fabs(x))
+# define FER_FMAX(x, y)  (fmax((x), (y)))
+# define FER_FMIN(x, y)  (fmin((x), (y)))
+# define FER_CBRT(x)     (cbrt(x)
+# define FER_COS(x)      (cos(x))
+# define FER_SIN(x)      (sin(x))
+# define FER_ACOS(x)     (acos(x))
+# define FER_ASIN(x)     (asin(x))
+# define FER_ATAN2(y, x) (atan2(y, x))
+# define FER_POW(x, y)   (pow((x), (y)))
 
 #endif /* FER_DOUBLE */
 
-#define FER_MIN(x, y) ((x) < (y) ? (x) : (y))
-#define FER_MAX(x, y) ((x) > (y) ? (x) : (y))
-#define FER_CUBE(x)   ((x) * (x))
-#define FER_POWL(x, y) (powl((x), (y)))  /*!< power function */
+#define FER_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
+#define FER_MAX(x, y) ((x) > (y) ? (x) : (y)) /*!< maximum */
+#define FER_CUBE(x)   ((x) * (x))             /*!< cube */
+#define FER_POWL(x, y) (powl((x), (y)))       /*!< power function */
 
-#define FER_ONE FER_REAL(1.)
-#define FER_ZERO FER_REAL(0.)
+#define FER_ONE FER_REAL(1.)  /*!< unit constant */
+#define FER_ZERO FER_REAL(0.) /*!< zero contant */
 
 
+/**
+ * Swaps {a} and {b} using given temporary variable {tmp}.
+ */
 #define FER_SWAP(a, b, tmp) \
     (tmp) = (a); \
     (a) = (b); \
@@ -136,12 +142,24 @@ typedef double fer_real_t;
 _fer_inline fer_real_t __ferSqrt(fer_real_t val);
 #endif /* FER_SSE */
 
-/** Returns sign of value. */
+/**
+ * Returns sign of value.
+ */
 _fer_inline int ferSign(fer_real_t val);
-/** Returns true if val is zero. **/
+
+/**
+ * Returns true if val is zero.
+ */
 _fer_inline int ferIsZero(fer_real_t val);
-/** Returns true if a and b equal. **/
+
+/**
+ * Returns true if a and b equal.
+ */
 _fer_inline int ferEq(fer_real_t a, fer_real_t b);
+
+/**
+ * Returns true if a and b not equal.
+ */
 _fer_inline int ferNEq(fer_real_t a, fer_real_t b);
 
 /**

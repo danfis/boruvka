@@ -707,8 +707,8 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
 # ifdef FER_SSE_SINGLE
     __m128 bybx, cycx, x1, x2, x3, x4, x5, x6;
 
-    // TODO: all 4 items of __m128 can be used - it will reduce number of
-    //       instructions.
+    /* TODO: all 4 items of __m128 can be used - it will reduce number of */
+    /*       instructions. */
     bybx = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(0, 0, 0, 1));
     cycx = _mm_shuffle_ps(c->v, c->v, _MM_SHUFFLE(0, 0, 0, 1));
 
@@ -795,9 +795,9 @@ _fer_inline int ferVec2IntersectProp(const fer_vec2_t *a,
                                   const fer_vec2_t *c,
                                   const fer_vec2_t *d)
 {
-    // area2(a, b, c) * area2(a, b, d) is less than zero only if
-    // only one computed area is less than zero, so it means that it is the
-    // same as XOR(pointArea2(a, b, c), pointArea2(a, b, d)) 
+    /* area2(a, b, c) * area2(a, b, d) is less than zero only if */
+    /* only one computed area is less than zero, so it means that it is the */
+    /* same as XOR(pointArea2(a, b, c), pointArea2(a, b, d)) */
     if (ferVec2Area2(a, b, c) * ferVec2Area2(a, b, d) < 0
         && ferVec2Area2(c, d, a) * ferVec2Area2(c, d, b) < 0)
         return 1;

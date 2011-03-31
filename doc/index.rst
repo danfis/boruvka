@@ -12,7 +12,9 @@ Fermat:
 .. toctree::
    :maxdepth: 1
 
-   fer-core.rst
+   fer-core.h.rst
+   fer-compiler.h.rst
+   fer-alloc.h.rst
 
    fer-list.h.rst
    fer-rand.h.rst

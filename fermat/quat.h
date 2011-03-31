@@ -149,7 +149,7 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
 # ifdef FER_SSE_SINGLE
     __m128 a1, a2, a3, a4, b1, b2, b3, b4, sign;
 
-    // shuffle quats
+    /* shuffle quats */
     a1 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(0, 3, 3, 3));
     a2 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(1, 2, 1, 0));
     a3 = _mm_shuffle_ps(a->v, a->v, _MM_SHUFFLE(2, 0, 2, 1));
@@ -160,18 +160,18 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
     b4 = _mm_shuffle_ps(b->v, b->v, _MM_SHUFFLE(3, 0, 2, 1));
     sign = _mm_set_ps(-FER_ONE, FER_ONE, FER_ONE, FER_ONE);
 
-    // mul into a*
+    /* mul into a* */
     a1 = _mm_mul_ps(a1, b1);
     a2 = _mm_mul_ps(a2, b2);
     a3 = _mm_mul_ps(a3, b3);
     a4 = _mm_mul_ps(a4, b4);
 
-    // add into a1
+    /* add into a1  */
     a1 = _mm_add_ps(a1, a2);
     a1 = _mm_add_ps(a1, a3);
     a1 = _mm_sub_ps(a1, a4);
 
-    // change sign of w
+    /* change sign of w */
     q->v = _mm_mul_ps(a1, sign);
 # else /* FER_SSE_SINGLE */
     __m128d a33, a01, a12, a20, a21, a02, a30, a13;

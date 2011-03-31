@@ -164,7 +164,7 @@ _fer_inline double ferRandMT01_53(fer_rand_mt_t *r)
 {
     uint32_t a = ferRandMTInt(r) >> 5;
     uint32_t b = ferRandMTInt(r) >> 6;
-    return (a * 67108864.0 + b) * (1.0/9007199254740992.0);  // by Isaku Wada
+    return (a * 67108864.0 + b) * (1.0/9007199254740992.0);  /* by Isaku Wada */
 }
 
 _fer_inline double ferRandMT(fer_rand_mt_t *r, fer_real_t from, fer_real_t to)
@@ -195,8 +195,8 @@ _fer_inline uint32_t ferRandMTInt(fer_rand_mt_t *r)
 
 _fer_inline double ferRandMTNormal(fer_rand_mt_t *g, double mean, double stddev)
 {
-    // Return a real number from a normal (Gaussian) distribution with given
-    // mean and standard deviation by polar form of Box-Muller transformation
+    /* Return a real number from a normal (Gaussian) distribution with given */
+    /* mean and standard deviation by polar form of Box-Muller transformation */
     double x, y, r;
     do
     {

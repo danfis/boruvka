@@ -17,9 +17,23 @@
 #ifndef __FER_COMPILER_H__
 #define __FER_COMPILER_H__
 
+/**
+ * Compiler - Compiler Specific Macros
+ * ====================================
+ */
 
-#define fer_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
+/** vvvv */
+
+/**
+ * Returns offset of member in given type (struct).
+ */
+#define fer_offsetof(TYPE, MEMBER) offsetof(TYPE, MEMBER)
+/*#define fer_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)*/
+
+/**
+ * Returns container of given member
+ */
 #define fer_container_of(ptr, type, member) \
     (type *)( (char *)ptr - fer_offsetof(type, member))
 
@@ -79,5 +93,6 @@
 # pragma warning(disable:981)
 #endif /* __ICC */
 
-#endif /* __FER_COMPILER_H__ */
+/** ^^^^ */
 
+#endif /* __FER_COMPILER_H__ */

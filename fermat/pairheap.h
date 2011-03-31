@@ -130,7 +130,7 @@ _fer_inline fer_pairheap_node_t *ferPairHeapMin(fer_pairheap_t *ph)
 
     item = ferListNext(&ph->root);
 
-    // if root doesn't contain only one node, heap must be consolidated
+    /* if root doesn't contain only one node, heap must be consolidated */
     if (ferListNext(item) != &ph->root){
         __ferPairHeapConsolidate(ph);
         item = ferListNext(&ph->root);

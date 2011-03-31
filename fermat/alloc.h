@@ -25,29 +25,43 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Functions and macros required for memory allocation.
+ * Alloc - Memory Allocation
+ * ==========================
+ *
+ * Functions and macros for memory allocation.
  */
 
-/* Memory allocation: */
+/* Memory allocation: - internal macro */
 #define _FER_ALLOC_MEMORY(type, ptr_old, size) \
     (type *)ferRealloc((void *)ptr_old, (size))
 
-/** Allocate memory for one element of type.  */
+/**
+ * Allocate memory for one element of given type.
+ */
 #define FER_ALLOC(type) \
     _FER_ALLOC_MEMORY(type, NULL, sizeof(type))
 
-/** Allocates aligned memory */
+/**
+ * Allocates aligned memory
+ */
 #define FER_ALLOC_ALIGN(type, align) \
     (type *)ferAllocAlign(sizeof(type), align)
 
-/** Allocates aligned array */
+/**
+ * Allocates aligned array
+ */
 #define FER_ALLOC_ALIGN_ARR(type, num_els, align) \
     (type *)ferAllocAlign(sizeof(type) * (num_els), align)
 
-/** Allocate memory for array of elements of type type.  */
+/**
+ * Allocate array of elements of given type.
+ */
 #define FER_ALLOC_ARR(type, num_elements) \
     _FER_ALLOC_MEMORY(type, NULL, sizeof(type) * (num_elements))
 
+/**
+ * Reallocates array.
+ */
 #define FER_REALLOC_ARR(ptr, type, num_elements) \
     _FER_ALLOC_MEMORY(type, ptr, sizeof(type) * (num_elements))
 

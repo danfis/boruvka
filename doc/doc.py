@@ -7,6 +7,10 @@ pat_comment_end   = re.compile(r'^ \*/$')
 pat_func_start    = re.compile(r'^[a-z0-9_][a-z0-9_ ]* \**[a-zA-Z0-9]+\(.*$')
 pat_typedef       = re.compile(r'^typedef .* ([a-z0-9_]+_t);$')
 pat_struct_start  = re.compile(r'(struct|union) ([a-z_0-9]+_t).*{$')
+pat_struct_end    = re.compile(r'^}.*;$')
+pat_macro         = re.compile(r'^#define ([A-Z_]+\([a-zA-Z_, ]*\) ).*$')
+pat_macro_inline  = re.compile(r'^# *define ([A-Z_]+\([a-zA-Z_, ]*\)) .*/\*!< (.*) \*/$')
+pat_macro_inline2 = re.compile(r'^# *define ([A-Z_]+) .*/\*!< (.*) \*/$')
 pat_code_block_start = re.compile(r'^/\*\* v+ \*/$')
 pat_code_block_end   = re.compile(r'^/\*\* \^+ \*/$')
 pat_inline_code_block_start = re.compile(r'^~+$')
@@ -174,6 +178,24 @@ class Code(Element):
         s += '\n'
         return s
 
+class Macro(Element):
+    def __init__(self, comment, macro):
+        self.comment = comment
+        self.macro   = macro
+
+    def format(self):
+        s = '.. c:macro:: {0}\n'.format(self.macro)
+        s += '\n'
+        s += self.formatComment(self.comment, '    ')
+        return s
+
+class MacroInline(Macro):
+    def __init__(self, comment_line, macro):
+        comment = ['/**\n']
+        comment.append(' * ' + comment_line + '\n')
+        comment.append('*/\n')
+        Macro.__init__(self, comment, macro)
+
 def fileLines(fn):
     lines = []
     fin = open(fn, 'r')
@@ -202,7 +224,7 @@ def parseStruct(comment, line, lines_it):
     struct = [line]
     for line in lines_it:
         struct.append(line)
-        if line == '};':
+        if pat_struct_end.match(line):
             break
 
     typedef = ''
@@ -212,6 +234,11 @@ def parseStruct(comment, line, lines_it):
         typedef = line
 
     return Struct(comment, struct, typedef)
+
+def parseMacro(comment, macro):
+    return Macro(comment, macro)
+def parseMacroInline(comment, macro):
+    return MacroInline(comment, macro)
 
 def parseSection(line, lines_it):
     comment = [line]
@@ -231,6 +258,11 @@ def parseSection(line, lines_it):
     match = pat_struct_start.match(line)
     if match:
         return parseStruct(comment, line, lines_it)
+
+    match = pat_macro.match(line)
+    if match:
+        return parseMacro(comment, match.group(1))
+
     return None
 
 def parseCode(line, lines_it):
@@ -271,6 +303,18 @@ def parse(fn):
         match = pat_struct_start.match(line)
         if match:
             parseStruct([], line, lines_it)
+
+        match = pat_macro_inline.match(line)
+        if match:
+            section = parseMacroInline(match.group(2), match.group(1))
+            if section is not None:
+                sections.append(section)
+
+        match = pat_macro_inline2.match(line)
+        if match:
+            section = parseMacroInline(match.group(2), match.group(1))
+            if section is not None:
+                sections.append(section)
 
     for section in sections:
         print(section.format())

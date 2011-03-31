@@ -6,7 +6,8 @@ SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = .
 
-RSTS  = list rand timer parse
+RSTS  = alloc core compiler
+RSTS += list rand timer parse
 RSTS += vec vec2 vec3 vec4 quat mat3 mat4
 RSTS += pc2 pc3 pc4
 RSTS += mesh3
@@ -44,6 +45,7 @@ help:
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 
 html: $(RSTS)
+	$(PYTHON2) build.py html
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

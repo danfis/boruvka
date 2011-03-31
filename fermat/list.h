@@ -161,10 +161,7 @@ _fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l);
 
 
 
-///
-/// INLINES:
-///
-
+/**** INLINES ****/
 _fer_inline void ferListInit(fer_list_t *l)
 {
     l->next = l;

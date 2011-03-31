@@ -160,7 +160,7 @@ _fer_inline void ferTimerStop(fer_timer_t *t)
     struct timespec cur;
     clock_gettime(CLOCK_MONOTONIC, &cur);
 
-    // compute diff
+    /* compute diff */
     if (cur.tv_nsec > t->t_start.tv_nsec){
         t->t_elapsed.tv_nsec = cur.tv_nsec - t->t_start.tv_nsec;
         t->t_elapsed.tv_sec = cur.tv_sec - t->t_start.tv_sec;
@@ -178,13 +178,13 @@ _fer_inline const struct timespec *ferTimerElapsed(const fer_timer_t *t)
 _fer_inline void ferTimerPrintElapsed2(const fer_timer_t *t, FILE *out,
                                        const char *format, va_list ap)
 {
-    // print elapsed time
+    /* print elapsed time */
     fprintf(out, "[%02ld:%02ld.%03ld]",
             ferTimerElapsedM(t),
             ferTimerElapsedS(t),
             ferTimerElapsedMs(t));
 
-    // print the rest
+    /* print the rest */
     vfprintf(out, format, ap);
 }
 

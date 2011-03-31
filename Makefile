@@ -147,6 +147,9 @@ check:
 check-valgrind:
 	$(MAKE) -C testsuites check-valgrind
 
+doc:
+	$(MAKE) -C doc
+
 python:
 	$(MAKE) -C python
 
@@ -173,4 +176,4 @@ help:
 	@echo "    LIBDIR     - Directory where library will be installed (PREFIX/LIBDIR) (default: lib)"
 	@echo ""
 
-.PHONY: all clean check check-valgrind help
+.PHONY: all clean check check-valgrind help doc
