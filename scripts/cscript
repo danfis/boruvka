@@ -1,0 +1,47 @@
+#!/bin/bash
+
+###
+# fermat
+# -------
+# Copyright (c)2010-2011 Daniel Fiser <danfis@danfis.cz>
+#
+#  This file is part of fermat.
+#
+#  Distributed under the OSI-approved BSD License (the "License");
+#  see accompanying file BDS-LICENSE for details or see
+#  <http://www.opensource.org/licenses/bsd-license.php>.
+#
+#  This software is distributed WITHOUT ANY WARRANTY; without even the
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#  See the License for more information.
+##
+
+##
+# Script for running C code as a script.
+# CFLAGS and LDFLAGS can be specified anywhere in a source code in form:
+# /* CFLAGS = -some-flag ... */
+# /* LDFLAGS = -some-ld-flag ... */
+#
+
+TMP=/tmp/cscript.$$
+INFILE="$1"
+if [ "$INFILE" = "" ]; then
+    echo "Usage: $0 file.c" 1>&2
+fi;
+
+CFLAGS=$(cat "$INFILE" | grep -e 'CFLAGS *= *' \
+                       | sed 's|CFLAGS *= *||' \
+                       | sed 's|/\** *||' \
+                       | sed 's| *\**/||')
+LDFLAGS=$(cat "$INFILE" | grep -e 'LDFLAGS *= *' \
+                        | sed 's|LDFLAGS *= *||' \
+                        | sed 's|/\** *||' \
+                        | sed 's| *\**/||')
+
+sed 1d "$INFILE" >$TMP.c
+gcc -Wall -pedantic --std=gnu99 $CFLAGS -o $TMP.bin $TMP.c $LDFLAGS
+$TMP.bin
+
+rm $TMP.*;
+
+exit $?
