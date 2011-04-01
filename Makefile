@@ -142,6 +142,7 @@ clean:
 	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
+	if [ -d cython ]; then $(MAKE) -C cython clean; fi;
 	
 check:
 	$(MAKE) -C testsuites check
@@ -151,19 +152,19 @@ check-valgrind:
 doc:
 	$(MAKE) -C doc
 
-python:
-	$(MAKE) -C python
+cython:
+	$(MAKE) -C cython
 
 
 help:
 	@echo "Targets:"
 	@echo "    all            - Build library"
+	@echo "    cython         - Build python bindings using cython"
 	@echo "    doc            - Build documentation"
 	@echo "    check          - Build & Run automated tests"
 	@echo "    check-valgrind - Build & Run automated tests in valgrind(1)"
 	@echo "    clean          - Remove all generated files"
 	@echo "    install        - Install library into system"
-	@echo ""
 	@echo "Options:"
 	@echo "    CC      - Path to C compiler          (=$(CC))"
 	@echo "    CXX     - Path to C++ compiler        (=$(CXX))"
@@ -208,4 +209,4 @@ help:
 	@echo "    OPENCL_CFLAGS  = $(OPENCL_CFLAGS)"
 	@echo "    OPENCL_LDFLAGS = $(OPENCL_LDFLAGS)"
 
-.PHONY: all clean check check-valgrind help doc
+.PHONY: all clean check check-valgrind help doc install cython
