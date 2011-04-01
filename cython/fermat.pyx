@@ -1,5 +1,6 @@
 from core cimport *
 cimport rand
+cimport rand_mt
 
 
 # constants
@@ -42,5 +43,31 @@ cdef class Rand:
     def uniform(self, fer_real_t f, fer_real_t t):
         return rand.ferRand(&self._rand, f, t)
 
-def say_hello_to(name):
-    print("Hello {0}!".format(name))
+
+##
+# RandMT
+##
+cdef class RandMT:
+    cdef rand_mt.fer_rand_mt_t *_rand
+    def __cinit__(self, seed = None):
+        if seed is None:
+            self._rand = rand_mt.ferRandMTNewAuto()
+        else:
+            self._rand = rand_mt.ferRandMTNew(seed)
+
+    def __dealloc__(self):
+        if self._rand:
+            rand_mt.ferRandMTDel(self._rand)
+
+    def reseed(self, seed = None):
+        if seed is not None:
+            rand_mt.ferRandMTReseed(self._rand, seed)
+        else:
+            rand_mt.ferRandMTReseedAuto(self._rand)
+
+
+    def uniform(self, fer_real_t f, fer_real_t t):
+        return rand_mt.ferRandMT(self._rand, f, t)
+
+    def normal(self, fer_real_t mean, fer_real_t stddev):
+        return rand_mt.ferRandMTNormal(self._rand, mean, stddev)

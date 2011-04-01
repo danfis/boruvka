@@ -29,3 +29,12 @@ r = fermat.Rand()
 print('r.uniform(0, 1):', r.uniform(0, 1))
 print('r.uniform(-10, 1):', r.uniform(-10, 1))
 print('')
+
+
+print('RandMT:')
+r = fermat.RandMT()
+print('r.uniform(0, 1):', r.uniform(0, 1))
+print('r.uniform(-10, 1):', r.uniform(-10, 1))
+print('r.normal(0, 1):', r.normal(0, 1))
+print('r.normal(-10, 1):', r.normal(-10, 1))
+print('')
