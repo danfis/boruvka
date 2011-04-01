@@ -2,6 +2,7 @@ from core cimport *
 cimport rand
 cimport rand_mt
 cimport timer
+cimport vec2
 
 
 # constants
@@ -112,3 +113,103 @@ cdef class Timer:
         return timer.ferTimerElapsedInM(&self._timer)
     def inH(self):
         return timer.ferTimerElapsedInH(&self._timer)
+
+
+##
+# Vec2
+##
+cdef class Vec2:
+    cdef vec2.fer_vec2_t _vec
+
+    property x:
+        def __get__(self):
+            return vec2.ferVec2X(&self._vec)
+        def __set__(self, fer_real_t val):
+            vec2.ferVec2SetX(&self._vec, val)
+
+    property y:
+        def __get__(self):
+            return vec2.ferVec2Y(&self._vec)
+        def __set__(self, fer_real_t val):
+            vec2.ferVec2SetY(&self._vec, val)
+
+    def __cinit__(self, fer_real_t x = 0, fer_real_t y = 0):
+        vec2.ferVec2Set(&self._vec, x, y)
+
+    def __str__(self):
+        return '<fermat.Vec2 ({0}, {1})>'.format(self.x, self.y)
+
+    def dist2(self, Vec2 w):
+        return vec2.ferVec2Dist2(&self._vec, &w._vec)
+    def dist(self, Vec2 w):
+        return vec2.ferVec2Dist(&self._vec, &w._vec)
+    def len2(self):
+        return vec2.ferVec2Len2(&self._vec)
+    def len(self):
+        return vec2.ferVec2Len(&self._vec)
+
+    def add(self, Vec2 o):
+        vec2.ferVec2Add(&self._vec, &o._vec)
+        return self
+    def add2(self, Vec2 o):
+        cdef Vec2 w = Vec2()
+        vec2.ferVec2Add2(&w._vec, &self._vec, &o._vec)
+        return w
+    def sub(self, Vec2 o):
+        vec2.ferVec2Sub(&self._vec, &o._vec)
+        return self
+    def sub2(self, Vec2 o):
+        cdef Vec2 w = Vec2()
+        vec2.ferVec2Sub2(&w._vec, &self._vec, &o._vec)
+        return w
+
+    def addConst(self, fer_real_t r):
+        vec2.ferVec2AddConst(&self._vec, r)
+        return self
+    def addConst2(self, fer_real_t r):
+        cdef Vec2 w
+        vec2.ferVec2AddConst2(&w._vec, &self._vec, r)
+        return w
+    def subConst(self, fer_real_t r):
+        vec2.ferVec2SubConst(&self._vec, r)
+        return self
+    def subConst2(self, fer_real_t r):
+        cdef Vec2 w
+        vec2.ferVec2SubConst2(&w._vec, &self._vec, r)
+        return w
+
+    def scaleToLen(self, fer_real_t l):
+        vec2.ferVec2ScaleToLen(&self._vec, l)
+        return self
+    def normalize(self):
+        vec2.ferVec2Normalize(&self._vec)
+        return self
+
+    def dot(self, Vec2 o):
+        return vec2.ferVec2Dot(&self._vec, &o._vec)
+    def mulComp(self, Vec2 o):
+        vec2.ferVec2MulComp(&self._vec, &o._vec)
+        return self
+    def mulComp2(self, Vec2 o):
+        cdef Vec2 w = Vec2()
+        vec2.ferVec2MulComp2(&w._vec, &self._vec, &o._vec)
+        return w
+
+    def scale(self, fer_real_t f):
+        vec2.ferVec2Scale(&self._vec, f)
+        return self
+
+    def area2(self, Vec2 b, Vec2 c):
+        return vec2.ferVec2Area2(&self._vec, &b._vec, &c._vec)
+    def angle(self, Vec2 b, Vec2 c):
+        return vec2.ferVec2Angle(&self._vec, &b._vec, &c._vec)
+    def signedAngle(self, Vec2 b, Vec2 c):
+        return vec2.ferVec2SignedAngle(&self._vec, &b._vec, &c._vec)
+
+    def projectOntoSegment(self, Vec2 a, Vec2 b):
+        cdef Vec2 x
+        cdef int res
+        res = vec2.ferVec2ProjectionPointOntoSegment(&a._vec, &b._vec, &self._vec, &x._vec)
+        if res == 0:
+            return x
+        return None
