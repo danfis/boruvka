@@ -172,6 +172,7 @@ help:
 	@echo "    PYTHON  - Path to python interpret    (=$(PYTHON))"
 	@echo "    PYTHON2 - Path to python interpret v2 (=$(PYTHON2))"
 	@echo "    PYTHON3 - Path to python interpret v3 (=$(PYTHON3))"
+	@echo "    CYTHON  - Path to cython              (=$(CYTHON))"
 	@echo ""
 	@echo "    CC_NOT_GCC 'yes'/'no' - If set to 'yes' no gcc specific options will be used (=$(CC_NOT_GCC))"
 	@echo ""

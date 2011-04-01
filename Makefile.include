@@ -21,6 +21,7 @@ SED ?= sed
 PYTHON ?= python
 PYTHON2 ?= python2
 PYTHON3 ?= python3
+CYTHON  ?= cython
 
 PYTHON_CONFIG ?= python-config
 
