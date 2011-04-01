@@ -23,3 +23,9 @@ print('rsqrt(4):', fermat.rsqrt(4))
 print('swap(10, 11)', fermat.swap(10, 11))
 print('')
 
+
+print('Rand:')
+r = fermat.Rand()
+print('r.uniform(0, 1):', r.uniform(0, 1))
+print('r.uniform(-10, 1):', r.uniform(-10, 1))
+print('')

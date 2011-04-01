@@ -1,7 +1,8 @@
 
-ctypedef float fer_real_t
 
 cdef extern from "../fermat/core.h":
+    ctypedef float fer_real_t
+
     fer_real_t FER_EPS
     fer_real_t FER_REAL_MAX
     fer_real_t FER_REAL_MIN

@@ -1,4 +1,5 @@
 from core cimport *
+cimport rand
 
 
 # constants
@@ -29,6 +30,17 @@ cpdef fer_real_t rsqrt(fer_real_t v):
 cpdef swap(a, b):
     return (b, a)
 
+
+##
+# Rand
+##
+cdef class Rand:
+    cdef rand.fer_rand_t _rand
+    def __cinit__(self):
+        rand.ferRandInit(&self._rand)
+
+    def uniform(self, fer_real_t f, fer_real_t t):
+        return rand.ferRand(&self._rand, f, t)
 
 def say_hello_to(name):
     print("Hello {0}!".format(name))

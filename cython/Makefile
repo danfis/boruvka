@@ -56,6 +56,9 @@ fermat.so: $(OBJS)
 %.c: %.pyx
 	$(CYTHON) $(CYTHON_FLAGS) -o $@ $<
 
+fermat.pyx: core.pxd rand.pxd
+	touch $@
+
 
 install:
 	echo "TODO"
