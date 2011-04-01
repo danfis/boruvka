@@ -1,6 +1,7 @@
 from core cimport *
 cimport rand
 cimport rand_mt
+cimport timer
 
 
 # constants
@@ -71,3 +72,43 @@ cdef class RandMT:
 
     def normal(self, fer_real_t mean, fer_real_t stddev):
         return rand_mt.ferRandMTNormal(self._rand, mean, stddev)
+
+
+##
+# Timer
+##
+cdef class Timer:
+    cdef timer.fer_timer_t _timer
+    def __cinit__(self):
+        pass
+
+    def start(self):
+        timer.ferTimerStart(&self._timer)
+    def stop(self):
+        timer.ferTimerStop(&self._timer)
+
+    def ns(self):
+        return timer.ferTimerElapsedNs(&self._timer)
+    def us(self):
+        return timer.ferTimerElapsedUs(&self._timer)
+    def ms(self):
+        return timer.ferTimerElapsedMs(&self._timer)
+    def s(self):
+        return timer.ferTimerElapsedS(&self._timer)
+    def m(self):
+        return timer.ferTimerElapsedM(&self._timer)
+    def h(self):
+        return timer.ferTimerElapsedH(&self._timer)
+
+    def inNs(self):
+        return timer.ferTimerElapsedInNs(&self._timer)
+    def inUs(self):
+        return timer.ferTimerElapsedInUs(&self._timer)
+    def inMs(self):
+        return timer.ferTimerElapsedInMs(&self._timer)
+    def inS(self):
+        return timer.ferTimerElapsedInS(&self._timer)
+    def inM(self):
+        return timer.ferTimerElapsedInM(&self._timer)
+    def inH(self):
+        return timer.ferTimerElapsedInH(&self._timer)
