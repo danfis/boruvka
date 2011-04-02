@@ -19,9 +19,9 @@
 #include <fermat/alloc.h>
 
 static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p);
-static void nodeDel(fer_rrt_t *rrt, fer_rrt_node_t *n);
+//static void nodeDel(fer_rrt_t *rrt, fer_rrt_node_t *n);
 static void edgeNew(fer_rrt_t *rrt, fer_rrt_node_t *n1, fer_rrt_node_t *n2);
-static void edgeDel(fer_rrt_t *rrt, fer_net_edge_t *n);
+//static void edgeDel(fer_rrt_t *rrt, fer_net_edge_t *n);
 static void nodeNetDel(fer_net_node_t *n, void *);
 static void edgeNetDel(fer_net_edge_t *n, void *);
 /*
@@ -305,11 +305,13 @@ static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
     return n;
 }
 
+/*
 static void nodeDel(fer_rrt_t *rrt, fer_rrt_node_t *n)
 {
     ferVecDel(n->conf);
     free(n);
 }
+*/
 
 static void edgeNew(fer_rrt_t *rrt, fer_rrt_node_t *n1, fer_rrt_node_t *n2)
 {
@@ -319,10 +321,12 @@ static void edgeNew(fer_rrt_t *rrt, fer_rrt_node_t *n1, fer_rrt_node_t *n2)
     ferNetAddEdge(rrt->net, e, &n1->node, &n2->node);
 }
 
+/*
 static void edgeDel(fer_rrt_t *rrt, fer_net_edge_t *e)
 {
     free(e);
 }
+*/
 
 static void nodeNetDel(fer_net_node_t *_n, void *_)
 {

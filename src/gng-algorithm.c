@@ -50,7 +50,9 @@ static void _ferGNGRun(fer_gng_t *gng);
 static void _ferGNGInit(fer_gng_t *gng);
 static void _ferGNGLearn(fer_gng_t *gng, size_t step);
 static void _ferGNGNewNode(fer_gng_t *gng);
+#ifndef NO_CONNECT_NEW_NODE
 static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
+#endif
 
 /** Node functions */
 /** Adds node into network */
@@ -266,6 +268,7 @@ static void _ferGNGNewNode(fer_gng_t *gng)
     ferPairHeapUpdate(gng->err_heap, &r->err_heap);
 }
 
+#ifndef NO_CONNECT_NEW_NODE
 static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
 {
     fer_gng_node_t *r, *n1, *n2;
@@ -283,6 +286,7 @@ static fer_gng_node_t *_ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
 
     return r;
 }
+#endif
 
 
 /*** Node functions ***/

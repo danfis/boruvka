@@ -58,6 +58,7 @@ _fer_inline void gng`N`_move_towards(fer_gng_node_t *node,
 
 #define OPS(gng, name) gng`N`_ ## name
 #define OPS_DATA(gng, name) (gng)->ops.name ## _data
+#define NO_CONNECT_NEW_NODE
 #include "gng-algorithm.c"
 
 void ferGNG`N`OpsInit(fer_gng`N`_ops_t *ops)
