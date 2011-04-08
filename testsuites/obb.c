@@ -51,3 +51,72 @@ TEST(obbNew)
              2, 2.3, 0.2,
              1, 1, -2.1);
 }
+
+TEST(obbCollide)
+{
+    fer_vec3_t c1, c2, a11, a12, a13, a21, a22, a23, e1, e2;
+    fer_vec3_t tr1, tr2;
+    fer_mat3_t rot1, rot2;
+    fer_obb_t *obb1, *obb2;
+    int res;
+
+    ferVec3Set(&c1, 0., 0., 0.);
+    ferVec3Set(&a11, 1., 0., 0.);
+    ferVec3Set(&a12, 0., 1., 0.);
+    ferVec3Set(&a13, 0., 0., 1.);
+    ferVec3Set(&e1, 0.5, 0.5, 0.5);
+    ferVec3Set(&c2, 2., 0., 0.);
+    ferVec3Set(&a21, 1., 0., 0.);
+    ferVec3Set(&a22, 0., 1., 0.);
+    ferVec3Set(&a23, 0., 0., 1.);
+    ferVec3Set(&e2, 0.5, 0.5, 0.5);
+
+    obb1 = ferOBBNew(&c1, &a11, &a12, &a13, &e1, NULL);
+    obb2 = ferOBBNew(&c2, &a21, &a22, &a23, &e2, NULL);
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, 0., 0., 0.);
+    ferMat3SetRot3D(&rot2, 0., 0., 0.);
+    res = ferOBBDisjoint(obb1, &rot1, &tr1, obb2, &rot2, &tr2);
+    assertTrue(res);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, -1.2, 0., 0.);
+    ferMat3SetRot3D(&rot2, 0., 0., 0.);
+    res = ferOBBDisjoint(obb1, &rot1, &tr1, obb2, &rot2, &tr2);
+    assertFalse(res);
+
+    ferVec3Set(&obb2->center, 1.01, 0., 0.);
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, 0., 0., 0.);
+    ferMat3SetRot3D(&rot2, 0., 0., 0.);
+    res = ferOBBDisjoint(obb1, &rot1, &tr1, obb2, &rot2, &tr2);
+    assertTrue(res);
+
+    ferVec3Set(&obb2->center, 1.1, 0., 0.);
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, 0., 0., 0.);
+    ferMat3SetRot3D(&rot2, 0., M_PI_4, 0.);
+    res = ferOBBDisjoint(obb1, &rot1, &tr1, obb2, &rot2, &tr2);
+    assertFalse(res);
+
+    ferVec3Set(&obb2->center, 1.1, 0., 0.);
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., M_PI_4);
+    ferVec3Set(&tr2, 0., 0., 0.);
+    ferMat3SetRot3D(&rot2, 0., 0, 0.);
+    res = ferOBBDisjoint(obb1, &rot1, &tr1, obb2, &rot2, &tr2);
+    assertFalse(res);
+
+    //fprintf(stderr, "res: %d\n", res);
+    //ferOBBDumpSVT(obb1, stdout, "OBB1C");
+    //ferOBBDumpSVT(obb2, stdout, "OBB2C");
+
+    ferOBBDel(obb1);
+    ferOBBDel(obb2);
+}

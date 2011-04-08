@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <fermat/core.h>
 #include <fermat/vec3.h>
+#include <fermat/mat3.h>
 #include <fermat/list.h>
 
 #ifdef __cplusplus
@@ -98,6 +99,15 @@ fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri);
  * Frees allocated memory.
  */
 void ferOBBDel(fer_obb_t *obb);
+
+/**
+ * Returns true if given obbs are disjoint, relative rotation and
+ * translation are also given.
+ */
+int ferOBBDisjoint(const fer_obb_t *obb1,
+                   const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                   const fer_obb_t *obb2,
+                   const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 
 void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name);

@@ -160,6 +160,13 @@ _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v);
 _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle);
 
 /**
+ * Set rotation matrix (3D) defined by rotation about x, y, z axis
+ * respectively.
+ */
+_fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
+                                 fer_real_t ax, fer_real_t ay, fer_real_t az);
+
+/**
  * Apply scale transfomation.
  * ~~~~
  *     | s 0 0 |
@@ -263,6 +270,14 @@ _fer_inline void ferMat3Mul2(fer_mat3_t *d, const fer_mat3_t *a,
  */
 _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b);
 
+/**
+ * Multiplies {a} by matrix defined by three column vectors.
+ */
+_fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
+                                    const fer_vec3_t *col1,
+                                    const fer_vec3_t *col2,
+                                    const fer_vec3_t *col3);
+
 
 /**
  * Multiplies two matrices by components.
@@ -331,6 +346,11 @@ _fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
  */
 _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
                                                const fer_vec2_t *w);
+
+/**
+ * dst = ABS(src)
+ */
+_fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src);
 
 
 /**
@@ -444,6 +464,26 @@ _fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle)
     ferMat3Set(m, FER_COS(angle), -FER_SIN(angle), FER_ZERO,
                   FER_SIN(angle),  FER_COS(angle), FER_ZERO,
                   FER_ZERO, FER_ZERO, FER_ONE);
+}
+
+_fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
+                                 fer_real_t ax, fer_real_t ay, fer_real_t az)
+{
+    m->f[0] = FER_COS(ay) * FER_COS(az);
+    m->f[1]  = -FER_COS(ax) * FER_SIN(az);
+    m->f[1] += FER_SIN(ax) * FER_SIN(ay) * FER_COS(az);
+    m->f[2]  = FER_SIN(ax) * FER_SIN(az);
+    m->f[2] += FER_COS(ax) * FER_SIN(ay) * FER_COS(az);
+
+    m->f[4] = FER_COS(ay) * FER_SIN(az);
+    m->f[5]  = FER_COS(ax) * FER_COS(az);
+    m->f[5] += FER_SIN(ax) * FER_SIN(ay) * FER_SIN(az);
+    m->f[6]  = -FER_SIN(ax) * FER_COS(az);
+    m->f[6] += FER_COS(ax) * FER_SIN(ay) * FER_SIN(az);
+
+    m->f[8] = -FER_SIN(ay);
+    m->f[9] = FER_SIN(ax) * FER_COS(ay);
+    m->f[10] = FER_COS(ax) * FER_COS(ay);
 }
 
 _fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s)
@@ -609,6 +649,24 @@ _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b)
 
 }
 
+_fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
+                                    const fer_vec3_t *col1,
+                                    const fer_vec3_t *col2,
+                                    const fer_vec3_t *col3)
+{
+    d->f[0]  = ferMat3DotRow(a, 0, col1);
+    d->f[1]  = ferMat3DotRow(a, 0, col2);
+    d->f[2]  = ferMat3DotRow(a, 0, col3);
+
+    d->f[4]  = ferMat3DotRow(a, 1, col1);
+    d->f[5]  = ferMat3DotRow(a, 1, col2);
+    d->f[6]  = ferMat3DotRow(a, 1, col3);
+
+    d->f[8]  = ferMat3DotRow(a, 2, col1);
+    d->f[9]  = ferMat3DotRow(a, 2, col2);
+    d->f[10] = ferMat3DotRow(a, 2, col3);
+}
+
 _fer_inline void ferMat3MulComp(fer_mat3_t *a, const fer_mat3_t *b)
 {
     ferVec3MulComp(a->v + 0, b->v + 0);
@@ -721,6 +779,19 @@ _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
     ferVec2SetY(v, ferMat3DotRow(m, 1, &w));
     denom = ferMat3DotRow(m, 2, &w);
     ferVec2Scale(v, ferRecp(denom));
+}
+
+
+_fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src)
+{
+    size_t i, j;
+
+    for (i = 0; i < 3 * 4;){
+        for (j = 0; j < 3; j++, i++){
+            dst->f[i] = FER_FABS(src->f[i]);
+        }
+        i++;
+    }
 }
 
 
