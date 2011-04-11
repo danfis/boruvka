@@ -352,6 +352,11 @@ _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
  */
 _fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src);
 
+/**
+ * Compute eigenvectors of a given matrix.
+ * Jacobi Rotation Algorithm is used.
+ */
+int ferMat3Eigen(const fer_mat3_t *m, fer_mat3_t *eigen);
 
 /**
  * Computes dot product of r'th row of matrix m and c'th column of matrix n.
