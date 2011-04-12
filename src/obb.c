@@ -311,25 +311,22 @@ static void __ferOBBMergeMinMax(fer_obb_t *par, fer_obb_t *obb, fer_real_t *min,
 
             for (i = 0; i < 3; i++){
                 m = ferVec3Dot(tri->p0, par->axis + i);
-                if (m < min[i]){
+                if (m < min[i])
                     min[i] = m;
-                }else if (m > max[i]){
+                if (m > max[i])
                     max[i] = m;
-                }
 
                 m = ferVec3Dot(tri->p1, par->axis + i);
-                if (m < min[i]){
+                if (m < min[i])
                     min[i] = m;
-                }else if (m > max[i]){
+                if (m > max[i])
                     max[i] = m;
-                }
 
                 m = ferVec3Dot(tri->p2, par->axis + i);
-                if (m < min[i]){
+                if (m < min[i])
                     min[i] = m;
-                }else if (m > max[i]){
+                if (m > max[i])
                     max[i] = m;
-                }
             }
         }
     }else{
@@ -346,7 +343,7 @@ static void ferOBBMergeMinMax(fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
     fer_obb_t *o;
 
     min[0] = min[1] = min[2] = FER_REAL_MAX;
-    max[0] = max[1] = max[2] = FER_REAL_MIN;
+    max[0] = max[1] = max[2] = -FER_REAL_MAX;
 
     FER_LIST_FOR_EACH(&obb->obbs, item){
         o = FER_LIST_ENTRY(item, fer_obb_t, list);
@@ -470,18 +467,27 @@ fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
 void ferOBBDel(fer_obb_t *obb)
 {
     fer_list_t *item;
+    fer_obb_t *o;
 
     // remove all children from list
     while (!ferListEmpty(&obb->obbs)){
         item = ferListNext(&obb->obbs);
+        o    = FER_LIST_ENTRY(item, fer_obb_t, list);
         ferListDel(item);
+
+        ferOBBDel(o);
     }
 
     // remove itself from parent's list
     ferListDel(&obb->list);
 
-    if (obb->pri)
-        free(obb->pri);
+    if (obb->pri){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            ferOBBTriDel((fer_obb_tri_t *)obb->pri);
+        }else if (obb->pri->type == FER_OBB_PRI_TRIMESH){
+            ferOBBTriMeshDel((fer_obb_trimesh_t *)obb->pri);
+        }
+    }
 
     free(obb);
 }
@@ -667,11 +673,12 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
         fprintf(out, "Name: %s\n", name);
     }
 
-    fprintf(out, "Point color: 0.8 0 0\n");
-    fprintf(out, "Points:\n");
-    ferVec3Print(&obb->center, out);
-    fprintf(out, "\n----\n");
+    //fprintf(out, "Point color: 0.8 0 0\n");
+    //fprintf(out, "Points:\n");
+    //ferVec3Print(&obb->center, out);
+    //fprintf(out, "\n----\n");
 
+    fprintf(out, "Edge color: 0.7 0.5 0.5\n");
     fprintf(out, "Points:\n");
     ferVec3Copy(&v, &obb->center);
     ferVec3Scale2(&w, &obb->axis[0], ferVec3X(&obb->half_extents));
@@ -781,6 +788,8 @@ void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
 
     fprintf(out, "Edges:\n");
     fprintf(out, "0 1 1 2 2 0\n");
+    fprintf(out, "Faces:\n");
+    fprintf(out, "0 1 2\n");
 
     fprintf(out, "----\n");
 }

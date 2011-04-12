@@ -1,6 +1,7 @@
 #include "cu.h"
 #include <fermat/obb.h>
 #include <fermat/dbg.h>
+#include "bunny.h"
 
 static void prv(const char *prefix, const fer_vec3_t *v)
 {
@@ -132,8 +133,10 @@ static void pTree(fer_obb_t *root, int id)
         obb = fer_container_of(item, fer_obb_t, list);
 
         if (ferListEmpty(&obb->obbs)){
-            ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, "Tri");
-            ferOBBDumpSVT(obb, stdout, "OBB");
+            sprintf(name, "Tri - %02d", id);
+            ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, name);
+            sprintf(name, "OBB - %02d", id);
+            ferOBBDumpSVT(obb, stdout, name);
         }else{
             pTree(obb, id + 1);
         }
@@ -158,6 +161,11 @@ TEST(obbTriMesh)
 
     obb = ferOBBNewTriMesh(pts, ids, len);
     pTree(obb, 0);
-
     ferOBBDel(obb);
+
+    /*
+    obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len);
+    pTree(obb, 0);
+    ferOBBDel(obb);
+    */
 }

@@ -99,7 +99,6 @@ int ferMat3Eigen(const fer_mat3_t *_m, fer_mat3_t *eigen,
         ferVec3Set(eigenvals, ferMat3Get(&m, 0, 0),
                               ferMat3Get(&m, 1, 1),
                               ferMat3Get(&m, 2, 2));
-
     }
 
     return 0;

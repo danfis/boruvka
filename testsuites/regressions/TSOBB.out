@@ -14,13 +14,12 @@ Points:
 1 1 0
 Edges:
 0 1 1 2 2 0
+Faces:
+0 1 2
 ----
 ----
 Name: OBB
-Point color: 0.8 0 0
-Points:
-1.25 0.25 0
-----
+Edge color: 0.7 0.5 0.5
 Points:
 0.5 0.5 0
 0.5 0.5 0
@@ -52,13 +51,12 @@ Points:
 1 1 -2.1
 Edges:
 0 1 1 2 2 0
+Faces:
+0 1 2
 ----
 ----
 Name: OBB
-Point color: 0.8 0 0
-Points:
-1.5 1.81803 -0.748361
-----
+Edge color: 0.7 0.5 0.5
 Points:
 1 1 -2.1
 1 1 -2.1
@@ -76,10 +74,7 @@ Edges:
 ----
 ----
 Name: 00
-Point color: 0.8 0 0
-Points:
-0.518794 0.458186 0.538507
-----
+Edge color: 0.7 0.5 0.5
 Points:
 -0.484135 0.741318 0.955388
 0.111314 -0.155102 -0.308641
@@ -96,20 +91,19 @@ Edges:
 4 6 4 5 5 7 6 7
 ----
 ----
-Name: Tri
+Name: Tri - 00
 Points:
 0 0.3 1
 1 1 1
 0 1 1
 Edges:
 0 1 1 2 2 0
+Faces:
+0 1 2
 ----
 ----
-Name: OBB
-Point color: 0.8 0 0
-Points:
-0.33557 0.884899 1
-----
+Name: OBB - 00
+Edge color: 0.7 0.5 0.5
 Points:
 0.671141 1.4698 1
 0.671141 1.4698 1
@@ -127,10 +121,7 @@ Edges:
 ----
 ----
 Name: 01
-Point color: 0.8 0 0
-Points:
-0.598838 0.359334 0.458887
-----
+Edge color: 0.7 0.5 0.5
 Points:
 -0.430079 0.344968 0.72253
 0.223927 -0.179612 -0.376195
@@ -147,20 +138,19 @@ Edges:
 4 6 4 5 5 7 6 7
 ----
 ----
-Name: Tri
+Name: Tri - 01
 Points:
 0 0 0
 1 0 0
 0 0.3 1
 Edges:
 0 1 1 2 2 0
+Faces:
+0 1 2
 ----
 ----
-Name: OBB
-Point color: 0.8 0 0
-Points:
-0.239234 0.0782297 0.260766
-----
+Name: OBB - 01
+Edge color: 0.7 0.5 0.5
 Points:
 -0.521531 0.156459 0.521531
 -0.521531 0.156459 0.521531
@@ -177,20 +167,19 @@ Edges:
 4 6 4 5 5 7 6 7
 ----
 ----
-Name: Tri
+Name: Tri - 01
 Points:
 1 0 0
 0 0.3 1
 1 1 1
 Edges:
 0 1 1 2 2 0
+Faces:
+0 1 2
 ----
 ----
-Name: OBB
-Point color: 0.8 0 0
-Points:
-0.811005 0.556699 0.688995
-----
+Name: OBB - 01
+Edge color: 0.7 0.5 0.5
 Points:
 0.62201 1.1134 1.37799
 0.62201 1.1134 1.37799
