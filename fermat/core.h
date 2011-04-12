@@ -85,6 +85,7 @@ typedef float fer_real_t;
 # define FER_ACOS(x)     (acosf(x))        /*!< arc cosine */
 # define FER_ASIN(x)     (asinf(x))        /*!< arc sine */
 # define FER_ATAN2(y, x) (atan2f(y, x))    /*!< arc tangent of y/x */
+# define FER_ATAN(x)     (atanf(x))        /*!< arc tangent of y/x */
 # define FER_POW(x, y)   (powf((x), (y)))  /*!< power function */
 
 #endif /* FER_SINGLE */
@@ -116,6 +117,7 @@ typedef double fer_real_t;
 # define FER_ACOS(x)     (acos(x))
 # define FER_ASIN(x)     (asin(x))
 # define FER_ATAN2(y, x) (atan2(y, x))
+# define FER_ATAN(x)     (atan(x))
 # define FER_POW(x, y)   (pow((x), (y)))
 
 #endif /* FER_DOUBLE */

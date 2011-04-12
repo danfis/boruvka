@@ -271,6 +271,11 @@ _fer_inline void ferMat3Mul2(fer_mat3_t *d, const fer_mat3_t *a,
 _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b);
 
 /**
+ * a = b^t * a
+ */
+_fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b);
+
+/**
  * Multiplies {a} by matrix defined by three column vectors.
  */
 _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
@@ -354,9 +359,12 @@ _fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src);
 
 /**
  * Compute eigenvectors of a given matrix.
+ * If eigenvals is non-NULL it is filled with eigen values.
+ *
  * Jacobi Rotation Algorithm is used.
  */
-int ferMat3Eigen(const fer_mat3_t *m, fer_mat3_t *eigen);
+int ferMat3Eigen(const fer_mat3_t *_m, fer_mat3_t *eigen,
+                 fer_vec3_t *eigenvals);
 
 /**
  * Computes dot product of r'th row of matrix m and c'th column of matrix n.
@@ -652,6 +660,26 @@ _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b)
     a->f[6]  = ferMat3DotRow(b, 1, &v);
     a->f[10] = ferMat3DotRow(b, 2, &v);
 
+}
+
+_fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b)
+{
+    fer_vec3_t v;
+
+    ferMat3CopyCol(&v, a, 0);
+    a->f[0]  = ferMat3DotCol(b, 0, &v);
+    a->f[4]  = ferMat3DotCol(b, 1, &v);
+    a->f[8]  = ferMat3DotCol(b, 2, &v);
+
+    ferMat3CopyCol(&v, a, 1);
+    a->f[1]  = ferMat3DotCol(b, 0, &v);
+    a->f[5]  = ferMat3DotCol(b, 1, &v);
+    a->f[9]  = ferMat3DotCol(b, 2, &v);
+
+    ferMat3CopyCol(&v, a, 2);
+    a->f[2]  = ferMat3DotCol(b, 0, &v);
+    a->f[6]  = ferMat3DotCol(b, 1, &v);
+    a->f[10] = ferMat3DotCol(b, 2, &v);
 }
 
 _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,

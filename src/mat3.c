@@ -32,25 +32,27 @@ void ferMat3Del(fer_mat3_t *m)
 
 
 #define EIGEN_MAX_STEPS 50
-#define EIGEN_TRESH 0.01
 static const int eigen_row[3] = { 0, 0, 1 };
 static const int eigen_col[3] = { 1, 2, 2 };
 
-int ferMat3Eigen(const fer_mat3_t *m, fer_mat3_t *eigen)
+int ferMat3Eigen(const fer_mat3_t *_m, fer_mat3_t *eigen,
+                 fer_vec3_t *eigenvals)
 {
-    fer_mat3_t rot, rot_t;
+    fer_mat3_t rot, m;
     size_t i;
     int row, col;
     fer_real_t angle, y, x;
+    fer_real_t upper;
 
-    // Copy source matrix to matrix holding eigen vectors
-    ferMat3Copy(eigen, m);
-    // Init rotational matrix
-    ferMat3SetIdentity(&rot);
+    // Copy source matrix
+    ferMat3Copy(&m, _m);
+    // Init eigen vector matrix
+    ferMat3SetIdentity(eigen);
 
     for (i = 0; i < EIGEN_MAX_STEPS; i++){
-        // Choose off-diagonal in upper triangular half, we have prepared
-        // its coordinates in eigen_row[] and eigen_col[] arrays
+        // Choose off-diagonal largest element in upper triangular half
+        // we have prepared its coordinates in eigen_row[] and eigen_col[]
+        // arrays
         row = eigen_row[i % 3];
         col = eigen_col[i % 3];
 
@@ -58,13 +60,16 @@ int ferMat3Eigen(const fer_mat3_t *m, fer_mat3_t *eigen)
         if (ferEq(ferMat3Get(eigen, row, row), ferMat3Get(eigen, col, col))){
             angle = M_PI_2;
         }else{
-            y = FER_REAL(2.) * ferMat3Get(eigen, row, col);
-            x = ferMat3Get(eigen, row, row) - ferMat3Get(eigen, col, col);
+            y = FER_REAL(2.) * ferMat3Get(&m, row, col);
+            x = ferMat3Get(&m, row, row) - ferMat3Get(&m, col, col);
             angle = FER_ATAN(y / x);
             angle *= ferRecp(FER_REAL(2.));
         }
 
-        if (FER_FABS(angle) < EIGEN_TRESH)
+        upper  = ferMat3Get(&m, 0, 1);
+        upper += ferMat3Get(&m, 0, 2);
+        upper += ferMat3Get(&m, 1, 2);
+        if (ferIsZero(upper))
             break;
 
         // set rotation matrix
@@ -82,12 +87,19 @@ int ferMat3Eigen(const fer_mat3_t *m, fer_mat3_t *eigen)
                              FER_ZERO, FER_SIN(angle), FER_COS(angle));
         }
 
-        // set transposition of rot
-        ferMat3Trans2(&rot_t, &rot);
-
         // rotate matrix
-        ferMat3MulLeft(eigen, &rot_t);
+        ferMat3MulLeftTrans(&m, &rot);
+        ferMat3Mul(&m, &rot);
+
+        // update eigen vector matrix
         ferMat3Mul(eigen, &rot);
+    }
+
+    if (eigenvals){
+        ferVec3Set(eigenvals, ferMat3Get(&m, 0, 0),
+                              ferMat3Get(&m, 1, 1),
+                              ferMat3Get(&m, 2, 2));
+
     }
 
     return 0;
