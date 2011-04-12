@@ -1,4 +1,4 @@
-/***
+/**2
  * fermat
  * -------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
@@ -27,20 +27,55 @@ fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
     tri = FER_ALLOC(fer_obb_tri_t);
 
     tri->pri.type = FER_OBB_PRI_TRI;
-
-    tri->p = ferVec3ArrNew(3);
-    ferVec3Copy(tri->p + 0, p1);
-    ferVec3Copy(tri->p + 1, p2);
-    ferVec3Copy(tri->p + 2, p3);
+    tri->p0 = p1;
+    tri->p1 = p2;
+    tri->p2 = p3;
 
     return tri;
 }
 
 void ferOBBTriDel(fer_obb_tri_t *tri)
 {
-    free(tri->p);
     free(tri);
 }
+
+fer_obb_trimesh_t *ferOBBTriMeshNew(const fer_vec3_t *pts,
+                                    const unsigned int *ids, size_t len)
+{
+    fer_obb_trimesh_t *t;
+    size_t i, ptslen;
+
+    t = FER_ALLOC(fer_obb_trimesh_t);
+
+    t->pri.type = FER_OBB_PRI_TRIMESH;
+
+    ptslen = 0;
+    for (i = 0; i < 3 * len; i++){
+        if (ids[i] + 1 > ptslen)
+            ptslen = ids[i] + 1;
+    }
+
+    t->pts = ferVec3ArrNew(ptslen);
+    t->ids = FER_ALLOC_ARR(unsigned int, len * 3);
+    t->len = len;
+
+    for (i = 0; i < ptslen; i++){
+        ferVec3Copy(t->pts + i, pts + i);
+    }
+    for (i = 0; i < 3 * len; i++){
+        t->ids[i] = ids[i];
+    }
+
+    return t;
+}
+
+void ferOBBTriMeshDel(fer_obb_trimesh_t *t)
+{
+    free(t->pts);
+    free(t->ids);
+    free(t);
+}
+
 
 
 fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
@@ -66,15 +101,19 @@ fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
     return obb;
 }
 
+/*
 fer_obb_t *ferOBBNewPri(fer_obb_pri_t *pri)
 {
     if (pri->type == FER_OBB_PRI_TRI)
         return ferOBBNewTri((fer_obb_tri_t *)pri);
     return NULL;
 }
+*/
 
-fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri)
+fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
+                        const fer_vec3_t *p3)
 {
+    fer_obb_tri_t *tri;
     fer_obb_t *obb;
     fer_vec3_t e01, e02, e12; // triangle edges
     fer_vec3_t v;
@@ -82,12 +121,13 @@ fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri)
     fer_real_t min[3], max[3], m;
     int i;
 
+    tri = ferOBBTriNew(p1, p2, p3);
     obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
 
     // 1. compute triangle edges
-    ferVec3Sub2(&e01, tri->p + 1, tri->p + 0);
-    ferVec3Sub2(&e02, tri->p + 2, tri->p + 0);
-    ferVec3Sub2(&e12, tri->p + 2, tri->p + 1);
+    ferVec3Sub2(&e01, tri->p1, tri->p0);
+    ferVec3Sub2(&e02, tri->p2, tri->p0);
+    ferVec3Sub2(&e12, tri->p2, tri->p1);
 
     // 2. find longest edge and compute from that first normalized axis of
     //    bounding box
@@ -120,16 +160,16 @@ fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri)
     // 5. min and max values of projected points of triangle on bounding
     //    boxes' axes.
     for (i = 0; i < 3; i++){
-        min[i] = max[i] = ferVec3Dot(tri->p + 0, &obb->axis[i]);
+        min[i] = max[i] = ferVec3Dot(tri->p0, &obb->axis[i]);
 
-        m = ferVec3Dot(tri->p + 1, &obb->axis[i]);
+        m = ferVec3Dot(tri->p1, &obb->axis[i]);
         if (m < min[i]){
             min[i] = m;
         }else{
             max[i] = m;
         }
 
-        m = ferVec3Dot(tri->p + 2, &obb->axis[i]);
+        m = ferVec3Dot(tri->p2, &obb->axis[i]);
         if (m < min[i]){
             min[i] = m;
         }else if (m > max[i]){
@@ -158,6 +198,275 @@ fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri)
     return obb;
 }
 
+
+
+static void __ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean, fer_real_t *num)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_obb_tri_t *tri;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+            ferVec3Add(mean, tri->p0);
+            ferVec3Add(mean, tri->p1);
+            ferVec3Add(mean, tri->p2);
+            *num += 1;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeMean(o, mean, num);
+        }
+    }
+}
+
+static void ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t num;
+
+    ferVec3Set(mean, FER_ZERO, FER_ZERO, FER_ZERO);
+    num = FER_ZERO;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeMean(o, mean, &num);
+    }
+
+    if (num > 0)
+        ferVec3Scale(mean, ferRecp(num * FER_REAL(3.)));
+}
+
+
+static void __ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                             fer_real_t *num, fer_mat3_t *cov)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_obb_tri_t *tri;
+    size_t i, j;
+    fer_real_t val;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+
+            for (i = 0; i < 3; i++){
+                for (j = 0; j < 3; j++){
+                    val  = ferMat3Get(cov, i, j);
+                    val += (ferVec3Get(tri->p0, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p0, j) - ferVec3Get(mean, j));
+                    val += (ferVec3Get(tri->p1, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p1, j) - ferVec3Get(mean, j));
+                    val += (ferVec3Get(tri->p2, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p2, j) - ferVec3Get(mean, j));
+                    ferMat3Set1(cov, i, j, val);
+                }
+            }
+
+            *num += 1;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeCov(o, mean, num, cov);
+        }
+    }
+}
+
+static void ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                           fer_mat3_t *cov)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t num;
+
+    ferMat3SetZero(cov);
+    num = FER_ZERO;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeCov(o, mean, &num, cov);
+    }
+
+
+    if (num > 0.)
+        ferMat3Scale(cov, ferRecp(num * FER_REAL(3.)));
+}
+
+static void __ferOBBMergeMinMax(fer_obb_t *par, fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
+{
+    fer_obb_tri_t *tri;
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t m;
+    size_t i;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+
+            for (i = 0; i < 3; i++){
+                m = ferVec3Dot(tri->p0, par->axis + i);
+                if (m < min[i]){
+                    min[i] = m;
+                }else if (m > max[i]){
+                    max[i] = m;
+                }
+
+                m = ferVec3Dot(tri->p1, par->axis + i);
+                if (m < min[i]){
+                    min[i] = m;
+                }else if (m > max[i]){
+                    max[i] = m;
+                }
+
+                m = ferVec3Dot(tri->p2, par->axis + i);
+                if (m < min[i]){
+                    min[i] = m;
+                }else if (m > max[i]){
+                    max[i] = m;
+                }
+            }
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeMinMax(par, o, min, max);
+        }
+    }
+}
+
+static void ferOBBMergeMinMax(fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+
+    min[0] = min[1] = min[2] = FER_REAL_MAX;
+    max[0] = max[1] = max[2] = FER_REAL_MIN;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeMinMax(obb, o, min, max);
+    }
+}
+
+static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2)
+{
+    fer_vec3_t mean, v;
+    fer_mat3_t cov, eigen;
+    fer_obb_t *obb;
+    fer_real_t min[3], max[3];
+
+    // create OBB
+    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
+    obb->pri = NULL;
+
+    // initialize lists
+    ferListInit(&obb->obbs);
+    ferListInit(&obb->list);
+
+    // add child OBBs into list
+    ferListAppend(&obb->obbs, &obb1->list);
+    ferListAppend(&obb->obbs, &obb2->list);
+
+    // find out mean and covariance matrix
+    ferOBBMergeMean(obb, &mean);
+    ferOBBMergeCov(obb, &mean, &cov);
+
+    // compute eigen vectors from covariance matrix
+    ferMat3Eigen(&cov, &eigen, NULL);
+
+    // pick up eigen vectors and normalize them
+    ferMat3CopyCol(&obb->axis[0], &eigen, 0);
+    ferMat3CopyCol(&obb->axis[1], &eigen, 1);
+    ferMat3CopyCol(&obb->axis[2], &eigen, 2);
+    ferVec3Normalize(&obb->axis[0]);
+    ferVec3Normalize(&obb->axis[1]);
+    ferVec3Normalize(&obb->axis[2]);
+
+    // find out min and max
+    ferOBBMergeMinMax(obb, min, max);
+
+    // set center
+    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
+    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+
+    // compute extents
+    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
+                                   (max[1] - min[1]) * FER_REAL(0.5),
+                                   (max[2] - min[2]) * FER_REAL(0.5));
+
+    return obb;
+}
+
+
+fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
+                            const unsigned *ids, size_t len)
+{
+    fer_obb_t *root;
+    fer_obb_trimesh_t *trimesh;
+    fer_obb_t **obbs;
+    size_t i, num_obbs;
+    int obb1, obb2;
+    fer_real_t dist, mindist;
+
+    // create trimesh and root obb
+    trimesh = ferOBBTriMeshNew(pts, ids, len);
+
+    // create obb for each triangle
+    obbs = FER_ALLOC_ARR(fer_obb_t *, trimesh->len);
+    for (i = 0; i < trimesh->len; i++){
+        obbs[i] = ferOBBNewTri(&trimesh->pts[trimesh->ids[i * 3]],
+                               &trimesh->pts[trimesh->ids[i * 3 + 1]],
+                               &trimesh->pts[trimesh->ids[i * 3 + 2]]);
+    }
+
+    // merge obbs
+    num_obbs = trimesh->len;
+    root = NULL;
+    mindist = FER_REAL_MAX;
+    obb1 = obb2 = -1;
+    for (i = 0; num_obbs != 1; i = (i + 1) % trimesh->len){
+        if (obbs[i] == NULL)
+            continue;
+
+        if (obb1 < 0){
+            obb1    = i;
+            mindist = FER_REAL_MAX;
+        }else if (obb1 == i){
+            // merge with nearest obb
+            obbs[obb1] = ferOBBMerge(obbs[obb1], obbs[obb2]);
+            obbs[obb2] = NULL;
+            num_obbs--;
+
+            if (num_obbs == 1)
+                root = obbs[obb1];
+
+            obb1 = obb2 = -1;
+        }else{
+            dist = ferVec3Dist2(&obbs[obb1]->center, &obbs[i]->center);
+            if (dist < mindist){
+                obb2    = i;
+                mindist = dist;
+            }
+        }
+    }
+
+    free(obbs);
+
+    root->pri = (fer_obb_pri_t *)trimesh;
+
+    return root;
+}
+
+
 void ferOBBDel(fer_obb_t *obb)
 {
     fer_list_t *item;
@@ -170,6 +479,9 @@ void ferOBBDel(fer_obb_t *obb)
 
     // remove itself from parent's list
     ferListDel(&obb->list);
+
+    if (obb->pri)
+        free(obb->pri);
 
     free(obb);
 }
@@ -460,11 +772,11 @@ void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
     }
 
     fprintf(out, "Points:\n");
-    ferVec3Print(tri->p, out);
+    ferVec3Print(tri->p0, out);
     fprintf(out, "\n");
-    ferVec3Print(tri->p + 1, out);
+    ferVec3Print(tri->p1, out);
     fprintf(out, "\n");
-    ferVec3Print(tri->p + 2, out);
+    ferVec3Print(tri->p2, out);
     fprintf(out, "\n");
 
     fprintf(out, "Edges:\n");

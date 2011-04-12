@@ -14,15 +14,13 @@ static void prOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
                      fer_real_t x2, fer_real_t y2, fer_real_t z2)
 {
     fer_vec3_t v[3];
-    fer_obb_tri_t *tri;
     fer_obb_t *obb;
 
     ferVec3Set(&v[0], x0, y0, z0);
     ferVec3Set(&v[1], x1, y1, z1);
     ferVec3Set(&v[2], x2, y2, z2);
 
-    tri = ferOBBTriNew(&v[0], &v[1], &v[2]);
-    obb = ferOBBNewTri(tri);
+    obb = ferOBBNewTri(&v[0], &v[1], &v[2]);
 
     prv("# tri.p[0]: ", &v[0]);
     prv("# tri.p[1]: ", &v[1]);
@@ -34,11 +32,10 @@ static void prOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
     prv("# obb.axis[2]: ", &obb->axis[2]);
     prv("# obb.half_extents: ", &obb->half_extents);
 
-    ferOBBTriDumpSVT(tri, stdout, "Tri");
+    ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, "Tri");
     ferOBBDumpSVT(obb, stdout, "OBB");
 
     ferOBBDel(obb);
-    ferOBBTriDel(tri);
 }
 
 
@@ -119,4 +116,48 @@ TEST(obbCollide)
 
     ferOBBDel(obb1);
     ferOBBDel(obb2);
+}
+
+
+static void pTree(fer_obb_t *root, int id)
+{
+    char name[10];
+    fer_list_t *item;
+    fer_obb_t *obb;
+
+    sprintf(name, "%02d", id);
+    ferOBBDumpSVT(root, stdout, name);
+
+    FER_LIST_FOR_EACH(&root->obbs, item){
+        obb = fer_container_of(item, fer_obb_t, list);
+
+        if (ferListEmpty(&obb->obbs)){
+            ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, "Tri");
+            ferOBBDumpSVT(obb, stdout, "OBB");
+        }else{
+            pTree(obb, id + 1);
+        }
+    }
+}
+
+
+TEST(obbTriMesh)
+{
+    fer_vec3_t pts[5];
+    unsigned int ids[3 * 3] = { 0, 1, 2,
+                                1, 2, 3,
+                                2, 3, 4 };
+    size_t len = 3;
+    fer_obb_t *obb;
+
+    ferVec3Set(pts + 0, 0., 0., 0.);
+    ferVec3Set(pts + 1, 1., 0., 0.);
+    ferVec3Set(pts + 2, 0., 0.3, 1.);
+    ferVec3Set(pts + 3, 1., 1., 1.);
+    ferVec3Set(pts + 4, 0., 1., 1.);
+
+    obb = ferOBBNewTriMesh(pts, ids, len);
+    pTree(obb, 0);
+
+    ferOBBDel(obb);
 }

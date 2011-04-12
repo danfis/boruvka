@@ -29,6 +29,7 @@ extern "C" {
 
 /** Primitive types */
 #define FER_OBB_PRI_TRI 1
+#define FER_OBB_PRI_TRIMESH 2
 
 /**
  * Geometry primitive base class
@@ -42,10 +43,19 @@ typedef struct _fer_obb_pri_t fer_obb_pri_t;
  * Triangle primitive
  */
 struct _fer_obb_tri_t {
-    fer_obb_pri_t pri; /*!< Base class */
-    fer_vec3_t *p;     /*!< Triangle end points */
+    fer_obb_pri_t pri;        /*!< Base class */
+    const fer_vec3_t *p0, *p1, *p2; /*!< Triangle end points */
 };
 typedef struct _fer_obb_tri_t fer_obb_tri_t;
+
+struct _fer_obb_trimesh_t {
+    fer_obb_pri_t pri;        /*!< Base class */
+    fer_vec3_t *pts;
+    unsigned int *ids;
+    size_t len;
+};
+typedef struct _fer_obb_trimesh_t fer_obb_trimesh_t;
+
 
 /**
  * Creates new triangle
@@ -57,6 +67,18 @@ fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
  * Deletes triangle
  */
 void ferOBBTriDel(fer_obb_tri_t *tri);
+
+
+/**
+ * Creates new trimesh
+ */
+fer_obb_trimesh_t *ferOBBTriMeshNew(const fer_vec3_t *pts,
+                                    const unsigned int *ids, size_t len);
+
+/**
+ * Deletes trimesh
+ */
+void ferOBBTriMeshDel(fer_obb_trimesh_t *t);
 
 
 /**
@@ -88,12 +110,16 @@ fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
 /**
  * Creates new bounding box for given primitive.
  */
-fer_obb_t *ferOBBNewPri(fer_obb_pri_t *pri);
+//fer_obb_t *ferOBBNewPri(fer_obb_pri_t *pri);
 
 /**
  * Creates new bounding box from triangle.
  */
-fer_obb_t *ferOBBNewTri(fer_obb_tri_t *tri);
+fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
+                        const fer_vec3_t *p3);
+
+fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
+                            const unsigned *ids, size_t len);
 
 /**
  * Frees allocated memory.
