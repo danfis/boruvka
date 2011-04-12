@@ -18,6 +18,22 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+/** Finds out mean point */
+static void __ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean, fer_real_t *num);
+static void ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean);
+/** Computes covariance matrix */
+static void __ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                             fer_real_t *num, fer_mat3_t *cov);
+static void ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                           fer_mat3_t *cov);
+/** Finds out min/max values of projected point on par's axes */
+static void __ferOBBMergeMinMax(fer_obb_t *par, fer_obb_t *obb,
+                                fer_real_t *min, fer_real_t *max);
+static void ferOBBMergeMinMax(fer_obb_t *obb,
+                              fer_real_t *min, fer_real_t *max);
+/** Merge two given OBBs */
+static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2);
+
 
 fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
                             const fer_vec3_t *p3)
@@ -198,210 +214,6 @@ fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
     return obb;
 }
 
-
-
-static void __ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean, fer_real_t *num)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_obb_tri_t *tri;
-
-    if (ferListEmpty(&obb->obbs)){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            tri = (fer_obb_tri_t *)obb->pri;
-            ferVec3Add(mean, tri->p0);
-            ferVec3Add(mean, tri->p1);
-            ferVec3Add(mean, tri->p2);
-            *num += 1;
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_obb_t, list);
-            __ferOBBMergeMean(o, mean, num);
-        }
-    }
-}
-
-static void ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_real_t num;
-
-    ferVec3Set(mean, FER_ZERO, FER_ZERO, FER_ZERO);
-    num = FER_ZERO;
-
-    FER_LIST_FOR_EACH(&obb->obbs, item){
-        o = FER_LIST_ENTRY(item, fer_obb_t, list);
-        __ferOBBMergeMean(o, mean, &num);
-    }
-
-    if (num > 0)
-        ferVec3Scale(mean, ferRecp(num * FER_REAL(3.)));
-}
-
-
-static void __ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
-                             fer_real_t *num, fer_mat3_t *cov)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_obb_tri_t *tri;
-    size_t i, j;
-    fer_real_t val;
-
-    if (ferListEmpty(&obb->obbs)){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            tri = (fer_obb_tri_t *)obb->pri;
-
-            for (i = 0; i < 3; i++){
-                for (j = 0; j < 3; j++){
-                    val  = ferMat3Get(cov, i, j);
-                    val += (ferVec3Get(tri->p0, i) - ferVec3Get(mean, i))
-                            * (ferVec3Get(tri->p0, j) - ferVec3Get(mean, j));
-                    val += (ferVec3Get(tri->p1, i) - ferVec3Get(mean, i))
-                            * (ferVec3Get(tri->p1, j) - ferVec3Get(mean, j));
-                    val += (ferVec3Get(tri->p2, i) - ferVec3Get(mean, i))
-                            * (ferVec3Get(tri->p2, j) - ferVec3Get(mean, j));
-                    ferMat3Set1(cov, i, j, val);
-                }
-            }
-
-            *num += 1;
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_obb_t, list);
-            __ferOBBMergeCov(o, mean, num, cov);
-        }
-    }
-}
-
-static void ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
-                           fer_mat3_t *cov)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_real_t num;
-
-    ferMat3SetZero(cov);
-    num = FER_ZERO;
-
-    FER_LIST_FOR_EACH(&obb->obbs, item){
-        o = FER_LIST_ENTRY(item, fer_obb_t, list);
-        __ferOBBMergeCov(o, mean, &num, cov);
-    }
-
-
-    if (num > 0.)
-        ferMat3Scale(cov, ferRecp(num * FER_REAL(3.)));
-}
-
-static void __ferOBBMergeMinMax(fer_obb_t *par, fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
-{
-    fer_obb_tri_t *tri;
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_real_t m;
-    size_t i;
-
-    if (ferListEmpty(&obb->obbs)){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            tri = (fer_obb_tri_t *)obb->pri;
-
-            for (i = 0; i < 3; i++){
-                m = ferVec3Dot(tri->p0, par->axis + i);
-                if (m < min[i])
-                    min[i] = m;
-                if (m > max[i])
-                    max[i] = m;
-
-                m = ferVec3Dot(tri->p1, par->axis + i);
-                if (m < min[i])
-                    min[i] = m;
-                if (m > max[i])
-                    max[i] = m;
-
-                m = ferVec3Dot(tri->p2, par->axis + i);
-                if (m < min[i])
-                    min[i] = m;
-                if (m > max[i])
-                    max[i] = m;
-            }
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_obb_t, list);
-            __ferOBBMergeMinMax(par, o, min, max);
-        }
-    }
-}
-
-static void ferOBBMergeMinMax(fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-
-    min[0] = min[1] = min[2] = FER_REAL_MAX;
-    max[0] = max[1] = max[2] = -FER_REAL_MAX;
-
-    FER_LIST_FOR_EACH(&obb->obbs, item){
-        o = FER_LIST_ENTRY(item, fer_obb_t, list);
-        __ferOBBMergeMinMax(obb, o, min, max);
-    }
-}
-
-static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2)
-{
-    fer_vec3_t mean, v;
-    fer_mat3_t cov, eigen;
-    fer_obb_t *obb;
-    fer_real_t min[3], max[3];
-
-    // create OBB
-    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
-    obb->pri = NULL;
-
-    // initialize lists
-    ferListInit(&obb->obbs);
-    ferListInit(&obb->list);
-
-    // add child OBBs into list
-    ferListAppend(&obb->obbs, &obb1->list);
-    ferListAppend(&obb->obbs, &obb2->list);
-
-    // find out mean and covariance matrix
-    ferOBBMergeMean(obb, &mean);
-    ferOBBMergeCov(obb, &mean, &cov);
-
-    // compute eigen vectors from covariance matrix
-    ferMat3Eigen(&cov, &eigen, NULL);
-
-    // pick up eigen vectors and normalize them
-    ferMat3CopyCol(&obb->axis[0], &eigen, 0);
-    ferMat3CopyCol(&obb->axis[1], &eigen, 1);
-    ferMat3CopyCol(&obb->axis[2], &eigen, 2);
-    ferVec3Normalize(&obb->axis[0]);
-    ferVec3Normalize(&obb->axis[1]);
-    ferVec3Normalize(&obb->axis[2]);
-
-    // find out min and max
-    ferOBBMergeMinMax(obb, min, max);
-
-    // set center
-    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
-    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-
-    // compute extents
-    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
-                                   (max[1] - min[1]) * FER_REAL(0.5),
-                                   (max[2] - min[2]) * FER_REAL(0.5));
-
-    return obb;
-}
 
 
 fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
@@ -661,8 +473,6 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     return 0;
 }
 
-
-
 void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
 {
     fer_vec3_t v, w;
@@ -793,4 +603,211 @@ void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
 
     fprintf(out, "----\n");
 }
+
+
+
+
+static void __ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean, fer_real_t *num)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_obb_tri_t *tri;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+            ferVec3Add(mean, tri->p0);
+            ferVec3Add(mean, tri->p1);
+            ferVec3Add(mean, tri->p2);
+            *num += 1;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeMean(o, mean, num);
+        }
+    }
+}
+
+static void ferOBBMergeMean(fer_obb_t *obb, fer_vec3_t *mean)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t num;
+
+    ferVec3Set(mean, FER_ZERO, FER_ZERO, FER_ZERO);
+    num = FER_ZERO;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeMean(o, mean, &num);
+    }
+
+    if (num > 0)
+        ferVec3Scale(mean, ferRecp(num * FER_REAL(3.)));
+}
+
+
+static void __ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                             fer_real_t *num, fer_mat3_t *cov)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_obb_tri_t *tri;
+    size_t i, j;
+    fer_real_t val;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+
+            for (i = 0; i < 3; i++){
+                for (j = 0; j < 3; j++){
+                    val  = ferMat3Get(cov, i, j);
+                    val += (ferVec3Get(tri->p0, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p0, j) - ferVec3Get(mean, j));
+                    val += (ferVec3Get(tri->p1, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p1, j) - ferVec3Get(mean, j));
+                    val += (ferVec3Get(tri->p2, i) - ferVec3Get(mean, i))
+                            * (ferVec3Get(tri->p2, j) - ferVec3Get(mean, j));
+                    ferMat3Set1(cov, i, j, val);
+                }
+            }
+
+            *num += 1;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeCov(o, mean, num, cov);
+        }
+    }
+}
+
+static void ferOBBMergeCov(fer_obb_t *obb, const fer_vec3_t *mean,
+                           fer_mat3_t *cov)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t num;
+
+    ferMat3SetZero(cov);
+    num = FER_ZERO;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeCov(o, mean, &num, cov);
+    }
+
+
+    if (num > 0.)
+        ferMat3Scale(cov, ferRecp(num * FER_REAL(3.)));
+}
+
+static void __ferOBBMergeMinMax(fer_obb_t *par, fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
+{
+    fer_obb_tri_t *tri;
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_real_t m;
+    size_t i;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+
+            for (i = 0; i < 3; i++){
+                m = ferVec3Dot(tri->p0, par->axis + i);
+                if (m < min[i])
+                    min[i] = m;
+                if (m > max[i])
+                    max[i] = m;
+
+                m = ferVec3Dot(tri->p1, par->axis + i);
+                if (m < min[i])
+                    min[i] = m;
+                if (m > max[i])
+                    max[i] = m;
+
+                m = ferVec3Dot(tri->p2, par->axis + i);
+                if (m < min[i])
+                    min[i] = m;
+                if (m > max[i])
+                    max[i] = m;
+            }
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            __ferOBBMergeMinMax(par, o, min, max);
+        }
+    }
+}
+
+static void ferOBBMergeMinMax(fer_obb_t *obb, fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+
+    min[0] = min[1] = min[2] = FER_REAL_MAX;
+    max[0] = max[1] = max[2] = -FER_REAL_MAX;
+
+    FER_LIST_FOR_EACH(&obb->obbs, item){
+        o = FER_LIST_ENTRY(item, fer_obb_t, list);
+        __ferOBBMergeMinMax(obb, o, min, max);
+    }
+}
+
+static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2)
+{
+    fer_vec3_t mean, v;
+    fer_mat3_t cov, eigen;
+    fer_obb_t *obb;
+    fer_real_t min[3], max[3];
+
+    // create OBB
+    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
+    obb->pri = NULL;
+
+    // initialize lists
+    ferListInit(&obb->obbs);
+    ferListInit(&obb->list);
+
+    // add child OBBs into list
+    ferListAppend(&obb->obbs, &obb1->list);
+    ferListAppend(&obb->obbs, &obb2->list);
+
+    // find out mean and covariance matrix
+    ferOBBMergeMean(obb, &mean);
+    ferOBBMergeCov(obb, &mean, &cov);
+
+    // compute eigen vectors from covariance matrix
+    ferMat3Eigen(&cov, &eigen, NULL);
+
+    // pick up eigen vectors and normalize them
+    ferMat3CopyCol(&obb->axis[0], &eigen, 0);
+    ferMat3CopyCol(&obb->axis[1], &eigen, 1);
+    ferMat3CopyCol(&obb->axis[2], &eigen, 2);
+    ferVec3Normalize(&obb->axis[0]);
+    ferVec3Normalize(&obb->axis[1]);
+    ferVec3Normalize(&obb->axis[2]);
+
+    // find out min and max
+    ferOBBMergeMinMax(obb, min, max);
+
+    // set center
+    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
+    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+
+    // compute extents
+    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
+                                   (max[1] - min[1]) * FER_REAL(0.5),
+                                   (max[2] - min[2]) * FER_REAL(0.5));
+
+    return obb;
+}
+
 
