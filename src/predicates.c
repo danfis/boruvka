@@ -815,10 +815,10 @@ REAL ferPredOrient2d(const fer_vec2_t *pa,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferOrient3dFast(const fer_vec3_t *pa,
-                     const fer_vec3_t *pb,
-                     const fer_vec3_t *pc,
-                     const fer_vec3_t *pd)
+REAL ferPredOrient3dFast(const fer_vec3_t *pa,
+                         const fer_vec3_t *pb,
+                         const fer_vec3_t *pc,
+                         const fer_vec3_t *pd)
 {
   REAL adx, bdx, cdx;
   REAL ady, bdy, cdy;
@@ -1243,10 +1243,10 @@ static REAL orient3dadapt(const fer_vec3_t *pa,
   return finnow[finlength - 1];
 }
 
-REAL ferOrient3d(const fer_vec3_t *pa,
-                 const fer_vec3_t *pb,
-                 const fer_vec3_t *pc,
-                 const fer_vec3_t *pd)
+REAL ferPredOrient3d(const fer_vec3_t *pa,
+                     const fer_vec3_t *pb,
+                     const fer_vec3_t *pc,
+                     const fer_vec3_t *pd)
 {
   REAL adx, bdx, cdx, ady, bdy, cdy, adz, bdz, cdz;
   REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;

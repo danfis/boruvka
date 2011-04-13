@@ -259,6 +259,11 @@ int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
 _fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l);
 
 
+/**
+ * Swaps end vertices of edge.
+ */
+_fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e);
+
 
 /**
  * Face
@@ -572,6 +577,15 @@ _fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
     e = FER_LIST_ENTRY(l, fer_mesh3_edge_t, vlist[m->mark]);
 
     return e;
+}
+
+_fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e)
+{
+    fer_mesh3_vertex_t *tmp;
+
+    tmp = e->v[0];
+    e->v[0] = e->v[1];
+    e->v[1] = tmp;
 }
 
 

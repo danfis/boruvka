@@ -16,6 +16,7 @@
 #include "pairheap.h"
 #include "dij.h"
 #include "obb.h"
+#include "chull3.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -39,6 +40,8 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSDij),
 
     TEST_SUITE_ADD(TSOBB),
+
+    TEST_SUITE_ADD(TSCHull3),
 
     TEST_SUITES_CLOSURE
 };

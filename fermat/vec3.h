@@ -308,6 +308,12 @@ fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
 _fer_inline void ferVec3TriCentroid(const fer_vec3_t *a, const fer_vec3_t *b,
                                     const fer_vec3_t *c, fer_vec3_t *d);
 
+/**
+ * Returns true if three given points are collinear.
+ */
+_fer_inline int ferVec3Collinear(const fer_vec3_t *a, const fer_vec3_t *b,
+                                 const fer_vec3_t *c);
+
 
 /**** INLINES ****/
 _fer_inline fer_vec3_t *ferVec3Align(void *mem)
@@ -733,6 +739,18 @@ _fer_inline void ferVec3TriCentroid(const fer_vec3_t *a, const fer_vec3_t *b,
     for (i = 0; i < 3; i++){
         ferVec3SetCoord(d, i, (ferVec3Get(a, i) + ferVec3Get(b, i) + ferVec3Get(c, i)) / 3.);
     }
+}
+
+_fer_inline int ferVec3Collinear(const fer_vec3_t *a, const fer_vec3_t *b,
+                                 const fer_vec3_t *c)
+{
+    fer_vec3_t ab, ac, cross;
+
+    ferVec3Sub2(&ab, b, a);
+    ferVec3Sub2(&ac, c, a);
+    ferVec3Cross(&cross, &ab, &ac);
+
+    return ferVec3IsZero(&cross);
 }
 
 #ifdef __cplusplus
