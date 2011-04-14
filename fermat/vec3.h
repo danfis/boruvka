@@ -315,6 +315,19 @@ _fer_inline int ferVec3Collinear(const fer_vec3_t *a, const fer_vec3_t *b,
                                  const fer_vec3_t *c);
 
 
+/**
+ * Returns 6-times *signed* volume of tetrahedron formed by points
+ * a, b, c, d. If a, b, c are given in counterclockwise order then sign of
+ * volume is:
+ *     1) positive if d is below a plane formed by a, b, c
+ *     2) negative if d is above
+ *     3) zero if points are coplanar
+ */
+_fer_inline fer_real_t ferVec3Volume6(const fer_vec3_t *a,
+                                      const fer_vec3_t *b,
+                                      const fer_vec3_t *c,
+                                      const fer_vec3_t *d);
+
 /**** INLINES ****/
 _fer_inline fer_vec3_t *ferVec3Align(void *mem)
 {
@@ -751,6 +764,30 @@ _fer_inline int ferVec3Collinear(const fer_vec3_t *a, const fer_vec3_t *b,
     ferVec3Cross(&cross, &ab, &ac);
 
     return ferVec3IsZero(&cross);
+}
+
+_fer_inline fer_real_t ferVec3Volume6(const fer_vec3_t *a,
+                                      const fer_vec3_t *b,
+                                      const fer_vec3_t *c,
+                                      const fer_vec3_t *d)
+{
+    fer_real_t adx, bdx, cdx;
+    fer_real_t ady, bdy, cdy;
+    fer_real_t adz, bdz, cdz;
+
+    adx = ferVec3X(a) - ferVec3X(d);
+    bdx = ferVec3X(b) - ferVec3X(d);
+    cdx = ferVec3X(c) - ferVec3X(d);
+    ady = ferVec3Y(a) - ferVec3Y(d);
+    bdy = ferVec3Y(b) - ferVec3Y(d);
+    cdy = ferVec3Y(c) - ferVec3Y(d);
+    adz = ferVec3Z(a) - ferVec3Z(d);
+    bdz = ferVec3Z(b) - ferVec3Z(d);
+    cdz = ferVec3Z(c) - ferVec3Z(d);
+
+    return adx * (bdy * cdz - bdz * cdy)
+            + bdx * (cdy * adz - cdz * ady)
+            + cdx * (ady * bdz - adz * bdy);
 }
 
 #ifdef __cplusplus

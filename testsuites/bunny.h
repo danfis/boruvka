@@ -9,5 +9,6 @@ unsigned int *bunny_ids;
 size_t bunny_ids_len;
 size_t bunny_tri_len;
 
+void testBunnyDumpSVT(FILE *out, const char *name);
 
 #endif

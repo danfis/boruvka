@@ -1367,3 +1367,26 @@ unsigned int *bunny_ids = _bunny_ids;
 size_t bunny_ids_len = sizeof(_bunny_ids) / sizeof(unsigned int);
 size_t bunny_tri_len = sizeof(_bunny_ids) / (sizeof(unsigned int) * 3);
 
+void testBunnyDumpSVT(FILE *out, const char *name)
+{
+    size_t i;
+
+    fprintf(out, "----\n");
+    if (name)
+        fprintf(out, "Name: %s\n", name);
+
+    fprintf(out, "Points:\n");
+    for (i = 0; i < bunny_coords_len; i++){
+        fprintf(out, "%f %f %f\n", (float)ferVec3X(bunny_coords + i),
+                                   (float)ferVec3Y(bunny_coords + i),
+                                   (float)ferVec3Z(bunny_coords + i));
+    }
+
+    fprintf(out, "Faces:\n");
+    for (i = 0; i < bunny_tri_len; i++){
+        fprintf(out, "%u %u %u\n", bunny_ids[3 * i], bunny_ids[3 * i + 1],
+                                   bunny_ids[3 * i + 2]);
+    }
+
+    fprintf(out, "----\n");
+}

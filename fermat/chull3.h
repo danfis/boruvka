@@ -24,12 +24,22 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef FER_SINGLE
+# define FER_CHULL3_EPS 1E-6
+#else /* FER_SINGLE */
+# define FER_CHULL3_EPS 1E-9
+#endif /* FER_SINGLE */
+
 /**
  * CHull - Convex Hull
  * ====================
  */
 struct _fer_chull3_t {
     fer_mesh3_t *mesh; /*!< Mesh representing convex hull */
+    fer_real_t eps;    /*!< Epsilon, by default FER_CHULL3_EPS.
+                            Note, that this should be higher than FER_EPS
+                            because FER_EPS is too low to correct errors in
+                            computation with floating point numbers */
 };
 typedef struct _fer_chull3_t fer_chull3_t;
 
@@ -44,6 +54,11 @@ fer_chull3_t *ferCHull3New(void);
 void ferCHull3Del(fer_chull3_t *h);
 
 /**
+ * Sets CHull's epsilon parameter.
+ */
+_fer_inline void ferCHull3SetEPS(fer_chull3_t *h, fer_real_t eps);
+
+/**
  * Adds point to convex hull.
  */
 void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point);
@@ -53,6 +68,12 @@ void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point);
  */
 void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name);
 
+
+/**** INLINES ****/
+_fer_inline void ferCHull3SetEPS(fer_chull3_t *h, fer_real_t eps)
+{
+    h->eps = eps;
+}
 
 #ifdef __cplusplus
 } /* extern "C" */

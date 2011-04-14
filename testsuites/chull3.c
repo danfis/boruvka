@@ -1,10 +1,10 @@
 #include <cu/cu.h>
 #include <fermat/chull3.h>
+#include <fermat/dbg.h>
 #include "bunny.h"
 
 TEST(testCHull)
 {
-    /*
     fer_chull3_t *h;
     fer_vec3_t v;
 
@@ -55,7 +55,6 @@ TEST(testCHull)
     ferCHull3DumpSVT(h, stdout, "2");
 
     ferCHull3Del(h);
-    */
 }
 
 TEST(testCHullBunny)
@@ -67,9 +66,9 @@ TEST(testCHullBunny)
 
     for (i = 0; i < bunny_coords_len; i++){
         ferCHull3Add(h, &bunny_coords[i]);
-        //ferCHull3DumpSVT(h, stdout, "bunny");
     }
 
+    testBunnyDumpSVT(stdout, "bunny object");
     ferCHull3DumpSVT(h, stdout, "bunny");
     ferCHull3Del(h);
 }

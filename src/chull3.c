@@ -15,7 +15,6 @@
  */
 
 #include <fermat/chull3.h>
-#include <fermat/predicates.h>
 #include <fermat/rand.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
@@ -31,6 +30,7 @@ typedef struct _fer_chull3_vert_t fer_chull3_vert_t;
 struct _fer_chull3_edge_t {
     fer_mesh3_edge_t m;
     fer_list_t list;
+    int swap;
 };
 typedef struct _fer_chull3_edge_t fer_chull3_edge_t;
 
@@ -88,6 +88,7 @@ fer_chull3_t *ferCHull3New(void)
 
     h = FER_ALLOC(fer_chull3_t);
     h->mesh = ferMesh3New();
+    h->eps = FER_CHULL3_EPS;
     return h;
 }
 
@@ -199,7 +200,9 @@ static fer_chull3_face_t *faceNew(fer_chull3_t *h,
 
     f = FER_ALLOC(fer_chull3_face_t);
     ferMesh3AddFace(h->mesh, &f->m, &e1->m, &e2->m, &e3->m);
+
     f->v[0] = f->v[1] = f->v[2] = NULL;
+
     return f;
 }
 
@@ -310,37 +313,29 @@ static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
     fer_real_t orient;
     size_t overall, coplanar;
 
-    //DBG2("");
-
     overall = coplanar = 0;
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
         mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         f  = fer_container_of(mf, fer_chull3_face_t, m);
-        //DBG("%lx, v[0,1,2] %lx %lx %lx", (long)f, (long)f->v[0], (long)f->v[1], (long)f->v[2]);
 
         f->visible = 0;
 
         // get orientation of vertex v
-        // TODO: Use exact arithmetic?
-        orient = ferPredOrient3dFast(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
+        orient = ferVec3Volume6(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
 
-        //DBG("orient: %f", orient);
-
-        if (ferIsZero(orient)){
-            // points are coplanar
-            coplanar++;
-        }else if (orient > FER_ZERO){
+        if (orient > h->eps){
             f->visible = 1;
             ferListAppend(visible, &f->list);
+        }else if (orient > -h->eps && orient < h->eps){
+            coplanar++;
         }
 
         overall++;
     }
 
     if (overall == coplanar){
-        DBG2("overall == coplanar");
         findVisibleFacesCoplanar(h, v, visible);
     }
 }
@@ -356,8 +351,6 @@ static void createHole(fer_chull3_t *h, fer_list_t *visible,
     fer_mesh3_vertex_t *mv;
     fer_list_t *item;
     int i;
-
-    //DBG2("");
 
     while (!ferListEmpty(visible)){
         item = ferListNext(visible);
@@ -386,18 +379,11 @@ static void createHole(fer_chull3_t *h, fer_list_t *visible,
                     mv = ferMesh3EdgeVertex(&e[i]->m, 1);
                     v1 = fer_container_of(mv, fer_chull3_vert_t, m);
 
-                    if (v0 == f2->v[0]){
-                        if (v1 == f2->v[1]){
-                            ferMesh3EdgeSwapVertices(&e[i]->m);
-                        }
-                    }else if (v0 == f2->v[1]){
-                        if (v1 == f2->v[2]){
-                            ferMesh3EdgeSwapVertices(&e[i]->m);
-                        }
-                    }else if (v0 == f2->v[2]){
-                        if (v1 == f2->v[0]){
-                            ferMesh3EdgeSwapVertices(&e[i]->m);
-                        }
+                    e[i]->swap = 0;
+                    if ((v0 == f2->v[0] && v1 == f2->v[1])
+                            || (v0 == f2->v[1] && v1 == f2->v[2])
+                            || (v0 == f2->v[2] && v1 == f2->v[0])){
+                        e[i]->swap = 1;
                     }
 
                     // append it to list of edges
@@ -437,8 +423,6 @@ static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v)
     fer_mesh3_edge_t *me;
     fer_list_t *item;
 
-    //DBG2("");
-
     v1 = vertNew(h, v);
 
     FER_LIST_FOR_EACH(edges, item){
@@ -467,6 +451,10 @@ static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v)
         f = faceNew(h, e1, e2, e3);
 
         // orient correctly vertices
-        faceSetVertices(h, f, v1, v2, v3);
+        if (e1->swap){
+            faceSetVertices(h, f, v1, v3, v2);
+        }else{
+            faceSetVertices(h, f, v1, v2, v3);
+        }
     }
 }
