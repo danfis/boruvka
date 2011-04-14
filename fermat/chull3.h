@@ -19,6 +19,7 @@
 
 #include <fermat/mesh3.h>
 #include <fermat/list.h>
+#include <fermat/rand.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +41,8 @@ struct _fer_chull3_t {
                             Note, that this should be higher than FER_EPS
                             because FER_EPS is too low to correct errors in
                             computation with floating point numbers */
+
+    fer_rand_t rand;
 };
 typedef struct _fer_chull3_t fer_chull3_t;
 

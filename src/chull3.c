@@ -15,7 +15,6 @@
  */
 
 #include <fermat/chull3.h>
-#include <fermat/rand.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
@@ -89,6 +88,7 @@ fer_chull3_t *ferCHull3New(void)
     h = FER_ALLOC(fer_chull3_t);
     h->mesh = ferMesh3New();
     h->eps = FER_CHULL3_EPS;
+    ferRandInit(&h->rand);
     return h;
 }
 
@@ -293,13 +293,21 @@ static void addInit(fer_chull3_t *h, const fer_vec3_t *v)
 static void findVisibleFacesCoplanar(fer_chull3_t *h, const fer_vec3_t *v,
                                      fer_list_t *visible)
 {
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *mv;
     fer_vec3_t w;
-    fer_rand_t r;
 
-    ferRandInit(&r);
+    list = ferMesh3Vertices(h->mesh);
+    FER_LIST_FOR_EACH(list, item){
+        mv = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+        if (ferVec3Eq(v, mv->v)){
+            ferListInit(visible);
+            return;
+        }
+    }
 
     ferVec3Copy(&w, v);
-    ferVec3AddConst(&w, ferRand(&r, -0.01, 0.01));
+    ferVec3AddConst(&w, ferRand(&h->rand, -0.01, 0.01));
 
     findVisibleFaces(h, &w, visible);
 }
