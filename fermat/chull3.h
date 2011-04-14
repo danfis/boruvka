@@ -59,6 +59,11 @@ void ferCHull3Del(fer_chull3_t *h);
 _fer_inline void ferCHull3SetEPS(fer_chull3_t *h, fer_real_t eps);
 
 /**
+ * Returns Mesh3 with convex hull.
+ */
+_fer_inline fer_mesh3_t *ferCHull3Mesh(fer_chull3_t *h);
+
+/**
  * Adds point to convex hull.
  */
 void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point);
@@ -73,6 +78,11 @@ void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name);
 _fer_inline void ferCHull3SetEPS(fer_chull3_t *h, fer_real_t eps)
 {
     h->eps = eps;
+}
+
+_fer_inline fer_mesh3_t *ferCHull3Mesh(fer_chull3_t *h)
+{
+    return h->mesh;
 }
 
 #ifdef __cplusplus
