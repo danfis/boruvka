@@ -31,6 +31,8 @@ extern "C" {
 #define FER_OBB_PRI_TRI 1
 #define FER_OBB_PRI_TRIMESH 2
 
+#define FER_OBB_NUM_ROTATIONS 50
+
 /**
  * Geometry primitive base class
  */

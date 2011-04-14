@@ -163,9 +163,7 @@ TEST(obbTriMesh)
     pTree(obb, 0);
     ferOBBDel(obb);
 
-    /*
     obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len);
     pTree(obb, 0);
     ferOBBDel(obb);
-    */
 }
