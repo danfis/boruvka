@@ -223,6 +223,12 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i
 _fer_inline fer_mesh3_face_t *ferMesh3EdgeFace(fer_mesh3_edge_t *e, size_t i);
 
 /**
+ * Returns the other face than given.
+ */
+_fer_inline fer_mesh3_face_t *ferMesh3EdgeOtherFace(fer_mesh3_edge_t *e,
+                                                    fer_mesh3_face_t *f);
+
+/**
  * Returns true if edge incidents with given vertex.
  */
 _fer_inline int ferMesh3EdgeHasVertex(const fer_mesh3_edge_t *e,
@@ -533,6 +539,14 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i
 _fer_inline fer_mesh3_face_t *ferMesh3EdgeFace(fer_mesh3_edge_t *e, size_t i)
 {
     return e->f[i];
+}
+
+_fer_inline fer_mesh3_face_t *ferMesh3EdgeOtherFace(fer_mesh3_edge_t *e,
+                                                    fer_mesh3_face_t *f)
+{
+    if (e->f[0] == f)
+        return e->f[1];
+    return e->f[0];
 }
 
 _fer_inline int ferMesh3EdgeHasVertex(const fer_mesh3_edge_t *e,

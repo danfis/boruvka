@@ -87,7 +87,6 @@ fer_chull3_t *ferCHull3New(void)
 
     h = FER_ALLOC(fer_chull3_t);
     h->mesh = ferMesh3New();
-    h->eps = FER_CHULL3_EPS;
     ferRandInit(&h->rand);
     return h;
 }
@@ -199,7 +198,9 @@ static fer_chull3_face_t *faceNew(fer_chull3_t *h,
     fer_chull3_face_t *f;
 
     f = FER_ALLOC(fer_chull3_face_t);
-    ferMesh3AddFace(h->mesh, &f->m, &e1->m, &e2->m, &e3->m);
+    if (ferMesh3AddFace(h->mesh, &f->m, &e1->m, &e2->m, &e3->m) != 0){
+        DBG("Can't add face, %d", (int)ferMesh3VerticesLen(h->mesh));
+    }
 
     f->v[0] = f->v[1] = f->v[2] = NULL;
 
@@ -296,6 +297,8 @@ static void findVisibleFacesCoplanar(fer_chull3_t *h, const fer_vec3_t *v,
     fer_list_t *list, *item;
     fer_mesh3_vertex_t *mv;
     fer_vec3_t w;
+    fer_real_t val;
+    int d;
 
     list = ferMesh3Vertices(h->mesh);
     FER_LIST_FOR_EACH(list, item){
@@ -307,7 +310,9 @@ static void findVisibleFacesCoplanar(fer_chull3_t *h, const fer_vec3_t *v,
     }
 
     ferVec3Copy(&w, v);
-    ferVec3AddConst(&w, ferRand(&h->rand, -0.01, 0.01));
+    d = ferRand(&h->rand, 0, 3);
+    val = ferRand(&h->rand, -.1, .1);
+    ferVec3SetCoord(&w, d, ferVec3Get(&w, d) + val);
 
     findVisibleFaces(h, &w, visible);
 }
@@ -315,13 +320,15 @@ static void findVisibleFacesCoplanar(fer_chull3_t *h, const fer_vec3_t *v,
 static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
                              fer_list_t *visible)
 {
-    fer_list_t *list, *item;
+    fer_list_t *list, *item, coplanar;
     fer_mesh3_face_t *mf;
-    fer_chull3_face_t *f;
+    fer_mesh3_edge_t *me;
+    fer_chull3_face_t *f, *f2;
     fer_real_t orient;
-    size_t overall, coplanar;
+    size_t num_overall, num_coplanar, i;
 
-    overall = coplanar = 0;
+    ferListInit(&coplanar);
+    num_overall = num_coplanar = 0;
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
@@ -333,17 +340,44 @@ static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
         // get orientation of vertex v
         orient = ferVec3Volume6(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
 
-        if (orient > h->eps){
+        if (ferIsZero(orient)){
+            num_coplanar++;
+
+            // save for later check if we can't append this to list of
+            // visible faces
+            ferListAppend(&coplanar, &f->list);
+        }else if (orient > FER_ZERO){
             f->visible = 1;
             ferListAppend(visible, &f->list);
-        }else if (orient > -h->eps && orient < h->eps){
-            coplanar++;
         }
 
-        overall++;
+        num_overall++;
     }
 
-    if (overall == coplanar){
+    if (num_overall != num_coplanar && num_coplanar > 0){
+        // Check all coplanar faces if we can't add them to list of visible
+        // faces. If coplanar face is neighbor of visible face it is safe
+        // to consider it as visible one.
+        while (!ferListEmpty(&coplanar)){
+            item = ferListNext(&coplanar);
+            ferListDel(item);
+            f  = fer_container_of(item, fer_chull3_face_t, list);
+
+            for (i = 0; i < 3; i++){
+                me = ferMesh3FaceEdge(&f->m, i);
+                mf = ferMesh3EdgeOtherFace(me, &f->m);
+                f2 = fer_container_of(mf, fer_chull3_face_t, m);
+
+                if (f2->visible){
+                    ferListAppend(visible, &f->list);
+                    f->visible = 1;
+                    break;
+                }
+            }
+        }
+    }else if (num_overall == num_coplanar){
+        // degenerate case - all faces are coplanar with the point
+        ferListInit(visible);
         findVisibleFacesCoplanar(h, v, visible);
     }
 }
