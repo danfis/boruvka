@@ -25,12 +25,19 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef FER_SINGLE
+# define FER_CHULL3_EPS 1E-6f
+#else /* FER_SINGLE */
+# define FER_CHULL3_EPS 1E-9f
+#endif /* FER_SINGLE */
+
 /**
  * CHull - Convex Hull
  * ====================
  */
 struct _fer_chull3_t {
     fer_mesh3_t *mesh; /*!< Mesh representing convex hull */
+    fer_real_t eps;
 
     fer_rand_t rand;
 };
@@ -57,15 +64,25 @@ _fer_inline fer_mesh3_t *ferCHull3Mesh(fer_chull3_t *h);
 void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point);
 
 /**
+ * Returns number of points on hull.
+ */
+_fer_inline size_t ferCHull3NumPoints(const fer_chull3_t *h);
+
+/**
  * Dump mesh in SVT format
  */
 void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name);
 
-
+extern int __c;
 /**** INLINES ****/
 _fer_inline fer_mesh3_t *ferCHull3Mesh(fer_chull3_t *h)
 {
     return h->mesh;
+}
+
+_fer_inline size_t ferCHull3NumPoints(const fer_chull3_t *h)
+{
+    return ferMesh3VerticesLen(h->mesh);
 }
 
 #ifdef __cplusplus
