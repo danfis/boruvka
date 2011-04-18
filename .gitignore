@@ -12,4 +12,4 @@ src/pc[234].c
 src/cubes[234].c
 src/gng[23].c
 src/*-cl.c
-bin/gng-[23]d-main.h
+bin/gng-[23]d-main.c

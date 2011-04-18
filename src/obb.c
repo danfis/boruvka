@@ -1,4 +1,4 @@
-/**2
+/**
  * fermat
  * -------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
@@ -20,18 +20,28 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+/** Finds min/max values to given axis */
+static void ferOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
+                              fer_real_t *min, fer_real_t *max);
+
+
+/** Slow (but accurate) method for building obb for trimesh */
+static fer_obb_t *ferOBBNewTriMeshSlow(fer_obb_trimesh_t *trimesh,
+                                       fer_obb_t **obbs, size_t obbs_len,
+                                       int num_rot);
+/** Merge two given OBBs */
+static fer_obb_t *ferOBBMergeSlow(fer_obb_t *obb1, fer_obb_t *obb2,
+                                  fer_chull3_t *hull1, fer_chull3_t *hull2,
+                                  fer_chull3_t **hull,
+                                  int num_rot);
+/** Finds out best fitting axis */
+static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
+                                fer_real_t *min_h, fer_real_t *max_h,
+                                int num_rot);
 /** Compute convex hull of whole obb subtree */
 static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull);
-/** Finds min/max values to given axis */
-static void ferOBBMergeBestMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
-                                  fer_real_t *min, fer_real_t *max);
-/** Finds out best fitting axis */
-static void ferOBBMergeBest(fer_obb_t *obb, fer_chull3_t *hull,
-                            fer_real_t *min_h, fer_real_t *max_h);
-/** Merge two given OBBs */
-static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
-                              fer_chull3_t *hull1, fer_chull3_t *hull2,
-                              fer_chull3_t **hull);
+/** Updates hull with points from hull2 */
+static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2);
 
 
 fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
@@ -216,22 +226,24 @@ fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
 
 
 fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
-                            const unsigned *ids, size_t len)
+                            const unsigned *ids, size_t len,
+                            int flags)
 {
-    fer_obb_t *root;
+    int method, num_rot;
+    int i;
     fer_obb_trimesh_t *trimesh;
     fer_obb_t **obbs;
-    fer_chull3_t **hulls;
-    fer_chull3_t *hull;
-    size_t i, num_obbs;
-    int obb1, obb2;
-    fer_real_t dist, mindist;
+    fer_obb_t *root;
+
+    // bottom 8 bits
+    method = flags & 0xff;
+    // the rest is number of rotations for slow method
+    num_rot = flags >> 8;
+    if (num_rot == 0)
+        num_rot = 20;
 
     // create trimesh and root obb
     trimesh = ferOBBTriMeshNew(pts, ids, len);
-
-    // allocate space for convex hulls
-    hulls = FER_ALLOC_ARR(fer_chull3_t *, trimesh->len);
 
     // create obb for each triangle
     obbs = FER_ALLOC_ARR(fer_obb_t *, trimesh->len);
@@ -239,57 +251,14 @@ fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
         obbs[i] = ferOBBNewTri(&trimesh->pts[trimesh->ids[i * 3]],
                                &trimesh->pts[trimesh->ids[i * 3 + 1]],
                                &trimesh->pts[trimesh->ids[i * 3 + 2]]);
-        hulls[i] = NULL;
     }
 
-    // merge obbs
-    num_obbs = trimesh->len;
     root = NULL;
-    mindist = FER_REAL_MAX;
-    obb1 = obb2 = -1;
-    for (i = 0; num_obbs != 1; i = (i + 1) % trimesh->len){
-        if (obbs[i] == NULL)
-            continue;
-
-        if (obb1 < 0){
-            obb1    = i;
-            mindist = FER_REAL_MAX;
-        }else if (obb1 == i){
-            // merge with nearest obb
-            obbs[obb1] = ferOBBMerge(obbs[obb1], obbs[obb2], hulls[obb1], hulls[obb2], &hull);
-            obbs[obb2] = NULL;
-
-            if (hulls[obb1] && hulls[obb1] != hull)
-                ferCHull3Del(hulls[obb1]);
-            if (hulls[obb2] && hulls[obb2] != hull)
-                ferCHull3Del(hulls[obb2]);
-            hulls[obb1] = hull;
-            hulls[obb2] = NULL;
-
-            num_obbs--;
-
-            if (num_obbs == 1)
-                root = obbs[obb1];
-
-            obb1 = obb2 = -1;
-        }else{
-            dist = ferVec3Dist2(&obbs[obb1]->center, &obbs[i]->center);
-            if (dist < mindist){
-                obb2    = i;
-                mindist = dist;
-            }
-        }
+    if (method == 0){
+        root = ferOBBNewTriMeshSlow(trimesh, obbs, trimesh->len, num_rot);
     }
-
-    for (i = 0; i < trimesh->len; i++){
-        if (hulls[i])
-            ferCHull3Del(hulls[i]);
-    }
-    free(hulls);
 
     free(obbs);
-
-    root->pri = (fer_obb_pri_t *)trimesh;
 
     return root;
 }
@@ -626,43 +595,9 @@ void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
 
 
 
-static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull)
-{
-    fer_list_t *item;
-    fer_obb_t *o;
-    fer_obb_tri_t *tri;
 
-    if (ferListEmpty(&obb->obbs)){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            tri = (fer_obb_tri_t *)obb->pri;
-
-            ferCHull3Add(hull, tri->p0);
-            ferCHull3Add(hull, tri->p1);
-            ferCHull3Add(hull, tri->p2);
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_obb_t, list);
-            ferOBBCHull(o, hull);
-        }
-    }
-}
-
-static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
-{
-    fer_list_t *list, *item;
-    fer_mesh3_vertex_t *v;
-
-    list = ferMesh3Vertices(ferCHull3Mesh(hull2));
-    FER_LIST_FOR_EACH(list, item){
-        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-        ferCHull3Add(hull, v->v);
-    }
-
-}
-
-static void ferOBBMergeBestMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
-                                  fer_real_t *min, fer_real_t *max)
+static void ferOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
+                              fer_real_t *min, fer_real_t *max)
 {
     fer_list_t *list, *item;
     fer_mesh3_vertex_t *v;
@@ -686,110 +621,83 @@ static void ferOBBMergeBestMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
     }
 }
 
-static void ferOBBMergeBest(fer_obb_t *obb, fer_chull3_t *hull,
-                            fer_real_t *min_h, fer_real_t *max_h)
+
+
+
+
+static fer_obb_t *ferOBBNewTriMeshSlow(fer_obb_trimesh_t *trimesh,
+                                       fer_obb_t **obbs, size_t obbs_len,
+                                       int num_rot)
 {
-    fer_list_t *list, *item1, *item2;
-    fer_mesh3_edge_t *e1, *e2;
-    fer_mesh3_vertex_t *v1[2], *v2[2];
-    fer_vec3_t axis[3];
-    fer_vec3_t tmp;
-    fer_real_t min[3], max[3];
-    fer_real_t angle_step, area, best_area;
-    fer_quat_t rot;
-    int j, i;
+    fer_obb_t *root;
+    fer_chull3_t **hulls;
+    fer_chull3_t *hull;
+    size_t i, num_obbs;
+    int obb1, obb2;
+    fer_real_t dist, mindist;
 
-    best_area = FER_REAL_MAX;
+    // allocate space for convex hulls
+    hulls = FER_ALLOC_ARR(fer_chull3_t *, obbs_len);
+    for (i = 0; i < obbs_len; i++){
+        hulls[i] = NULL;
+    }
 
-    list = ferMesh3Edges(ferCHull3Mesh(hull));
-    FER_LIST_FOR_EACH(list, item1){
-        for (item2 = ferListNext(item1);
-                item2 != list;
-                item2 = ferListNext(item2)){
+    // merge obbs
+    root = NULL;
+    num_obbs = obbs_len;
+    mindist = FER_REAL_MAX;
+    obb1 = obb2 = -1;
+    for (i = 0; num_obbs != 1; i = (i + 1) % obbs_len){
+        if (obbs[i] == NULL)
+            continue;
 
-            e1 = FER_LIST_ENTRY(item1, fer_mesh3_edge_t, list);
-            e2 = FER_LIST_ENTRY(item2, fer_mesh3_edge_t, list);
-            v1[0] = ferMesh3EdgeVertex(e1, 0);
-            v1[1] = ferMesh3EdgeVertex(e1, 1);
-            v2[0] = ferMesh3EdgeVertex(e2, 0);
-            v2[1] = ferMesh3EdgeVertex(e2, 1);
+        if (obb1 < 0){
+            obb1    = i;
+            mindist = FER_REAL_MAX;
+        }else if (obb1 == i){
+            // merge with nearest obb
+            obbs[obb1] = ferOBBMergeSlow(obbs[obb1], obbs[obb2],
+                                         hulls[obb1], hulls[obb2], &hull,
+                                         num_rot);
+            obbs[obb2] = NULL;
 
-            ferVec3Sub2(&axis[0], v1[0]->v, v1[1]->v);
-            ferVec3Normalize(&axis[0]);
+            if (hulls[obb1] && hulls[obb1] != hull)
+                ferCHull3Del(hulls[obb1]);
+            if (hulls[obb2] && hulls[obb2] != hull)
+                ferCHull3Del(hulls[obb2]);
+            hulls[obb1] = hull;
+            hulls[obb2] = NULL;
 
-            ferVec3Sub2(&tmp, v2[0]->v, v2[1]->v);
-            ferVec3Cross(&axis[2], &tmp, &axis[0]);
-            ferVec3Normalize(&axis[2]);
+            num_obbs--;
 
-            ferVec3Cross(&axis[1], &axis[0], &axis[2]);
-            ferVec3Normalize(&axis[1]);
+            if (num_obbs == 1)
+                root = obbs[obb1];
 
-            angle_step = M_PI / FER_OBB_NUM_ROTATIONS;
-
-            ferQuatSetAngleAxis(&rot, angle_step, &axis[2]);
-            for (i = 0; i < FER_OBB_NUM_ROTATIONS; i++){
-                ferVec3Cross(&axis[0], &axis[1], &axis[2]);
-                ferVec3Normalize(&axis[0]);
-
-                ferOBBMergeBestMinMax(hull, axis, min, max);
-                area  = max[0] - min[0];
-                area *= max[1] - min[1];
-                area *= max[2] - min[2];
-
-                //DBG("area: %f", area);
-
-                if (area < best_area){
-                    best_area = area;
-                    for (j = 0; j < 3; j++){
-                        ferVec3Copy(&obb->axis[j], &axis[j]);
-                        min_h[j] = min[j];
-                        max_h[j] = max[j];
-                    }
-                }
-
-                ferQuatRotVec(&axis[1], &rot);
+            obb1 = obb2 = -1;
+        }else{
+            dist = ferVec3Dist2(&obbs[obb1]->center, &obbs[i]->center);
+            if (dist < mindist){
+                obb2    = i;
+                mindist = dist;
             }
-
-            /*
-            int ax_i;
-            for (ax_i = 0; ax_i < 3; ax_i++){
-                ferQuatSetAngleAxis(&rot, angle_step, &axis[ax_i]);
-                ferVec3Copy(&ax[ax_i], &axis[ax_i]);
-                ferVec3Copy(&ax[(ax_i + 1) % 3], &axis[(ax_i + 1) % 3]);
-                for (i = 0; i < 100; i++){
-                    ferVec3Cross(&ax[(ax_i + 2) % 3], &ax[ax_i], &ax[(ax_i + 1) % 3]);
-                    ferVec3Normalize(&ax[(ax_i + 2) % 3]);
-
-                    ferOBBMergeBestMinMax(hull, ax, min, max);
-                    area  = max[0] - min[0];
-                    area *= max[1] - min[1];
-                    area *= max[2] - min[2];
-
-                    //DBG("area: %f", area);
-
-                    if (area < best_area){
-                        //DBG2("");
-                        best_area = area;
-                        for (j = 0; j < 3; j++){
-                            ferVec3Copy(&obb->axis[j], &ax[j]);
-                            min_h[j] = min[j];
-                            max_h[j] = max[j];
-                        }
-                    }
-
-                    ferQuatRotVec(&ax[(ax_i + 1) % 3], &rot);
-                }
-            }
-            */
         }
     }
 
-    //DBG("best_area: %f", best_area);
+    for (i = 0; i < obbs_len; i++){
+        if (hulls[i])
+            ferCHull3Del(hulls[i]);
+    }
+    free(hulls);
+
+    root->pri = (fer_obb_pri_t *)trimesh;
+
+    return root;
 }
 
-static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
-                              fer_chull3_t *hull1, fer_chull3_t *hull2,
-                              fer_chull3_t **hull_out)
+static fer_obb_t *ferOBBMergeSlow(fer_obb_t *obb1, fer_obb_t *obb2,
+                                  fer_chull3_t *hull1, fer_chull3_t *hull2,
+                                  fer_chull3_t **hull_out,
+                                  int num_rot)
 {
     fer_vec3_t v;
     fer_obb_t *obb;
@@ -830,7 +738,7 @@ static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
 
     // find out best axis and min/max values
     min[0] = min[1] = min[2] = max[0] = max[1] = max[2] = 0;
-    ferOBBMergeBest(obb, hull, min, max);
+    ferOBBMergeSlowBest(obb, hull, min, max, num_rot);
 
     // set center
     ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
@@ -849,4 +757,107 @@ static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
     return obb;
 }
 
+static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
+                                fer_real_t *min_h, fer_real_t *max_h,
+                                int num_rot)
+{
+    fer_list_t *list, *item1, *item2;
+    fer_mesh3_edge_t *e1, *e2;
+    fer_mesh3_vertex_t *v1[2], *v2[2];
+    fer_vec3_t axis[3];
+    fer_vec3_t tmp;
+    fer_real_t min[3], max[3];
+    fer_real_t angle_step, area, best_area;
+    fer_quat_t rot;
+    int j, i;
 
+    best_area = FER_REAL_MAX;
+
+    list = ferMesh3Edges(ferCHull3Mesh(hull));
+    FER_LIST_FOR_EACH(list, item1){
+        for (item2 = ferListNext(item1);
+                item2 != list;
+                item2 = ferListNext(item2)){
+
+            e1 = FER_LIST_ENTRY(item1, fer_mesh3_edge_t, list);
+            e2 = FER_LIST_ENTRY(item2, fer_mesh3_edge_t, list);
+            v1[0] = ferMesh3EdgeVertex(e1, 0);
+            v1[1] = ferMesh3EdgeVertex(e1, 1);
+            v2[0] = ferMesh3EdgeVertex(e2, 0);
+            v2[1] = ferMesh3EdgeVertex(e2, 1);
+
+            ferVec3Sub2(&axis[0], v1[0]->v, v1[1]->v);
+            ferVec3Normalize(&axis[0]);
+
+            ferVec3Sub2(&tmp, v2[0]->v, v2[1]->v);
+            ferVec3Cross(&axis[2], &tmp, &axis[0]);
+            ferVec3Normalize(&axis[2]);
+
+            ferVec3Cross(&axis[1], &axis[0], &axis[2]);
+            ferVec3Normalize(&axis[1]);
+
+            angle_step = M_PI / num_rot;
+
+            ferQuatSetAngleAxis(&rot, angle_step, &axis[2]);
+            for (i = 0; i < num_rot; i++){
+                ferVec3Cross(&axis[0], &axis[1], &axis[2]);
+                ferVec3Normalize(&axis[0]);
+
+                ferOBBCHullMinMax(hull, axis, min, max);
+                area  = max[0] - min[0];
+                area *= max[1] - min[1];
+                area *= max[2] - min[2];
+
+                //DBG("area: %f", area);
+
+                if (area < best_area){
+                    best_area = area;
+                    for (j = 0; j < 3; j++){
+                        ferVec3Copy(&obb->axis[j], &axis[j]);
+                        min_h[j] = min[j];
+                        max_h[j] = max[j];
+                    }
+                }
+
+                ferQuatRotVec(&axis[1], &rot);
+            }
+        }
+    }
+
+    //DBG("best_area: %f", best_area);
+}
+
+static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull)
+{
+    fer_list_t *item;
+    fer_obb_t *o;
+    fer_obb_tri_t *tri;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->pri->type == FER_OBB_PRI_TRI){
+            tri = (fer_obb_tri_t *)obb->pri;
+
+            ferCHull3Add(hull, tri->p0);
+            ferCHull3Add(hull, tri->p1);
+            ferCHull3Add(hull, tri->p2);
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_obb_t, list);
+            ferOBBCHull(o, hull);
+        }
+    }
+}
+
+static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *v;
+
+    list = ferMesh3Vertices(ferCHull3Mesh(hull2));
+    FER_LIST_FOR_EACH(list, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+        ferCHull3Add(hull, v->v);
+    }
+
+}

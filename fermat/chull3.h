@@ -73,7 +73,6 @@ _fer_inline size_t ferCHull3NumPoints(const fer_chull3_t *h);
  */
 void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name);
 
-extern int __c;
 /**** INLINES ****/
 _fer_inline fer_mesh3_t *ferCHull3Mesh(fer_chull3_t *h)
 {

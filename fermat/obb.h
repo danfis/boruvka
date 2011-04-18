@@ -31,8 +31,6 @@ extern "C" {
 #define FER_OBB_PRI_TRI 1
 #define FER_OBB_PRI_TRIMESH 2
 
-#define FER_OBB_NUM_ROTATIONS 20
-
 /**
  * Geometry primitive base class
  */
@@ -50,15 +48,6 @@ struct _fer_obb_tri_t {
 };
 typedef struct _fer_obb_tri_t fer_obb_tri_t;
 
-struct _fer_obb_trimesh_t {
-    fer_obb_pri_t pri;        /*!< Base class */
-    fer_vec3_t *pts;
-    unsigned int *ids;
-    size_t len;
-};
-typedef struct _fer_obb_trimesh_t fer_obb_trimesh_t;
-
-
 /**
  * Creates new triangle
  */
@@ -71,6 +60,19 @@ fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
 void ferOBBTriDel(fer_obb_tri_t *tri);
 
 
+
+/**
+ * Trimesh primitive
+ */
+struct _fer_obb_trimesh_t {
+    fer_obb_pri_t pri; /*!< Base class */
+    fer_vec3_t *pts;
+    unsigned int *ids;
+    size_t len;
+};
+typedef struct _fer_obb_trimesh_t fer_obb_trimesh_t;
+
+
 /**
  * Creates new trimesh
  */
@@ -81,6 +83,7 @@ fer_obb_trimesh_t *ferOBBTriMeshNew(const fer_vec3_t *pts,
  * Deletes trimesh
  */
 void ferOBBTriMeshDel(fer_obb_trimesh_t *t);
+
 
 
 /**
@@ -120,8 +123,35 @@ fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
 fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
                         const fer_vec3_t *p3);
 
+
+/**
+ * Flag for ferOBBNewTriMesh() function.
+ * If used, fast (but less accurate) method is used for building tree of
+ * bounding boxes.
+ */
+#define FER_OBB_TRIMESH_FAST 0x1
+
+/**
+ * Flag for ferOBBNewTriMesh() function.
+ * It specifies accuracy of slow (but accurate) method for fitting bounding
+ * boxes, the higher value is, the more accurate (and slower) method is
+ * used. Reasonable value are 10, 20, ..., 50.
+ * Default value is 20.
+ */
+#define FER_OBB_TRIMESH_ACCURACY(num) (num << 8)
+
+/**
+ * Creates bounding box for triangular mesh. Parameter {num_tri} is number
+ * of triangles and {ids} hence must have {num_tri} * 3 elements.
+ *
+ * Using parameter {flags} can be changed (or altered) method used for
+ * fitting bounding boxes. Currently, FER_OBB_TRIMESH_FAST or
+ * FER_OBB_TRIMESH_ACCURACY() flags can be used. Set it to zero for default
+ * behaviour.
+ */
 fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
-                            const unsigned *ids, size_t len);
+                            const unsigned *ids, size_t num_tri,
+                            int flags);
 
 /**
  * Frees allocated memory.

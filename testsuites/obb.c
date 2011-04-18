@@ -160,11 +160,11 @@ TEST(obbTriMesh)
     ferVec3Set(pts + 3, 1., 1., 1.);
     ferVec3Set(pts + 4, 0., 1., 1.);
 
-    obb = ferOBBNewTriMesh(pts, ids, len);
+    obb = ferOBBNewTriMesh(pts, ids, len, 0);
     pTree(obb, 0);
     ferOBBDel(obb);
 
-    obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len);
+    obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0);
     pTree(obb, 0);
     ferOBBDel(obb);
 }
