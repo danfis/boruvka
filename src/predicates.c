@@ -226,7 +226,7 @@
   Two_Diff_Tail(a, b, x, y)
 
 #define Split(a, ahi, alo) \
-  c = (REAL) (splitter * a); \
+  c = (REAL) (pred->splitter * a); \
   abig = (REAL) (c - a); \
   ahi = c - abig; \
   alo = a - ahi
@@ -387,6 +387,7 @@
   Square(a1, _j, _1); \
   Two_Two_Sum(_j, _1, _l, _2, x5, x4, x3, x2)
 
+#if 0
 static REAL splitter;     /* = 2^ceiling(p / 2) + 1.  Used to split floats in half. */
 static REAL epsilon;                /* = 2^(-p).  Used to estimate roundoff errors. */
 /* A set of coefficients used to calculate maximum roundoff errors.          */
@@ -395,6 +396,7 @@ static REAL ccwerrboundA, ccwerrboundB, ccwerrboundC;
 static REAL o3derrboundA, o3derrboundB, o3derrboundC;
 static REAL iccerrboundA, iccerrboundB, iccerrboundC;
 static REAL isperrboundA, isperrboundB, isperrboundC;
+#endif
 
 
 /*****************************************************************************/
@@ -416,46 +418,46 @@ static REAL isperrboundA, isperrboundB, isperrboundC;
 /*                                                                           */
 /*****************************************************************************/
 
-void ferPredInit(void)
+void ferPredInit(fer_pred_t *pred)
 {
-  REAL half;
-  REAL check, lastcheck;
-  int every_other;
+    REAL half;
+    REAL check, lastcheck;
+    int every_other;
 
-  every_other = 1;
-  half = 0.5;
-  epsilon = 1.0;
-  splitter = 1.0;
-  check = 1.0;
-  /* Repeatedly divide `epsilon' by two until it is too small to add to    */
-  /*   one without causing roundoff.  (Also check if the sum is equal to   */
-  /*   the previous sum, for machines that round up instead of using exact */
-  /*   rounding.  Not that this library will work on such machines anyway. */
-  do {
-    lastcheck = check;
-    epsilon *= half;
-    if (every_other) {
-      splitter *= 2.0;
-    }
-    every_other = !every_other;
-    check = 1.0 + epsilon;
-  } while ((check != 1.0) && (check != lastcheck));
-  splitter += 1.0;
+    every_other = 1;
+    half = 0.5;
+    pred->epsilon = 1.0;
+    pred->splitter = 1.0;
+    check = 1.0;
+    /* Repeatedly divide `epsilon' by two until it is too small to add to    */
+    /*   one without causing roundoff.  (Also check if the sum is equal to   */
+    /*   the previous sum, for machines that round up instead of using exact */
+    /*   rounding.  Not that this library will work on such machines anyway. */
+    do {
+        lastcheck = check;
+        pred->epsilon *= half;
+        if (every_other) {
+            pred->splitter *= 2.0;
+        }
+        every_other = !every_other;
+        check = 1.0 + pred->epsilon;
+    } while ((check != 1.0) && (check != lastcheck));
+    pred->splitter += 1.0;
 
-  /* Error bounds for orientation and incircle tests. */
-  resulterrbound = (3.0 + 8.0 * epsilon) * epsilon;
-  ccwerrboundA = (3.0 + 16.0 * epsilon) * epsilon;
-  ccwerrboundB = (2.0 + 12.0 * epsilon) * epsilon;
-  ccwerrboundC = (9.0 + 64.0 * epsilon) * epsilon * epsilon;
-  o3derrboundA = (7.0 + 56.0 * epsilon) * epsilon;
-  o3derrboundB = (3.0 + 28.0 * epsilon) * epsilon;
-  o3derrboundC = (26.0 + 288.0 * epsilon) * epsilon * epsilon;
-  iccerrboundA = (10.0 + 96.0 * epsilon) * epsilon;
-  iccerrboundB = (4.0 + 48.0 * epsilon) * epsilon;
-  iccerrboundC = (44.0 + 576.0 * epsilon) * epsilon * epsilon;
-  isperrboundA = (16.0 + 224.0 * epsilon) * epsilon;
-  isperrboundB = (5.0 + 72.0 * epsilon) * epsilon;
-  isperrboundC = (71.0 + 1408.0 * epsilon) * epsilon * epsilon;
+    /* Error bounds for orientation and incircle tests. */
+    pred->resulterrbound = (3.0 + 8.0 * pred->epsilon) * pred->epsilon;
+    pred->ccwerrboundA = (3.0 + 16.0 * pred->epsilon) * pred->epsilon;
+    pred->ccwerrboundB = (2.0 + 12.0 * pred->epsilon) * pred->epsilon;
+    pred->ccwerrboundC = (9.0 + 64.0 * pred->epsilon) * pred->epsilon * pred->epsilon;
+    pred->o3derrboundA = (7.0 + 56.0 * pred->epsilon) * pred->epsilon;
+    pred->o3derrboundB = (3.0 + 28.0 * pred->epsilon) * pred->epsilon;
+    pred->o3derrboundC = (26.0 + 288.0 * pred->epsilon) * pred->epsilon * pred->epsilon;
+    pred->iccerrboundA = (10.0 + 96.0 * pred->epsilon) * pred->epsilon;
+    pred->iccerrboundB = (4.0 + 48.0 * pred->epsilon) * pred->epsilon;
+    pred->iccerrboundC = (44.0 + 576.0 * pred->epsilon) * pred->epsilon * pred->epsilon;
+    pred->isperrboundA = (16.0 + 224.0 * pred->epsilon) * pred->epsilon;
+    pred->isperrboundB = (5.0 + 72.0 * pred->epsilon) * pred->epsilon;
+    pred->isperrboundC = (71.0 + 1408.0 * pred->epsilon) * pred->epsilon * pred->epsilon;
 }
 
 
@@ -563,7 +565,8 @@ REAL *h;
 /*                                                                           */
 /*****************************************************************************/
 
-static int scale_expansion_zeroelim(elen, e, b, h)   /* e and h cannot be the same. */
+static int scale_expansion_zeroelim(pred, elen, e, b, h)   /* e and h cannot be the same. */
+fer_pred_t *pred;
 int elen;
 REAL *e;
 REAL b;
@@ -668,7 +671,8 @@ REAL ferPredOrient2dFast(const fer_vec2_t *pa,
   return acx * bcy - acy * bcx;
 }
 
-static REAL orient2dadapt(const fer_vec2_t *pa,
+static REAL orient2dadapt(const fer_pred_t *pred,
+                          const fer_vec2_t *pa,
                           const fer_vec2_t *pb,
                           const fer_vec2_t *pc,
                           REAL detsum)
@@ -708,7 +712,7 @@ static REAL orient2dadapt(const fer_vec2_t *pa,
   B[3] = B3;
 
   det = estimate(4, B);
-  errbound = ccwerrboundB * detsum;
+  errbound = pred->ccwerrboundB * detsum;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
@@ -723,7 +727,7 @@ static REAL orient2dadapt(const fer_vec2_t *pa,
     return det;
   }
 
-  errbound = ccwerrboundC * detsum + resulterrbound * Absolute(det);
+  errbound = pred->ccwerrboundC * detsum + pred->resulterrbound * Absolute(det);
   det += (acx * bcytail + bcy * acxtail)
        - (acy * bcxtail + bcx * acytail);
   if ((det >= errbound) || (-det >= errbound)) {
@@ -751,9 +755,10 @@ static REAL orient2dadapt(const fer_vec2_t *pa,
   return(D[Dlength - 1]);
 }
 
-REAL ferPredOrient2d(const fer_vec2_t *pa,
-                     const fer_vec2_t *pb,
-                     const fer_vec2_t *pc)
+fer_real_t ferPredOrient2d(const fer_pred_t *pred,
+                           const fer_vec2_t *pa,
+                           const fer_vec2_t *pb,
+                           const fer_vec2_t *pc)
 {
   REAL detleft, detright, det;
   REAL detsum, errbound;
@@ -778,12 +783,12 @@ REAL ferPredOrient2d(const fer_vec2_t *pa,
     return det;
   }
 
-  errbound = ccwerrboundA * detsum;
+  errbound = pred->ccwerrboundA * detsum;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
 
-  return orient2dadapt(pa, pb, pc, detsum);
+  return orient2dadapt(pred, pa, pb, pc, detsum);
 }
 
 /*****************************************************************************/
@@ -839,7 +844,8 @@ REAL ferPredOrient3dFast(const fer_vec3_t *pa,
        + cdx * (ady * bdz - adz * bdy);
 }
 
-static REAL orient3dadapt(const fer_vec3_t *pa,
+static REAL orient3dadapt(const fer_pred_t *pred,
+                          const fer_vec3_t *pa,
                           const fer_vec3_t *pb,
                           const fer_vec3_t *pc,
                           const fer_vec3_t *pd,
@@ -928,7 +934,7 @@ static REAL orient3dadapt(const fer_vec3_t *pa,
   finlength = fast_expansion_sum_zeroelim(ablen, abdet, clen, cdet, fin1);
 
   det = estimate(finlength, fin1);
-  errbound = o3derrboundB * permanent;
+  errbound = pred->o3derrboundB * permanent;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
@@ -949,7 +955,7 @@ static REAL orient3dadapt(const fer_vec3_t *pa,
     return det;
   }
 
-  errbound = o3derrboundC * permanent + resulterrbound * Absolute(det);
+  errbound = pred->o3derrboundC * permanent + pred->resulterrbound * Absolute(det);
   det += (adz * ((bdx * cdytail + cdy * bdxtail)
                  - (bdy * cdxtail + cdx * bdytail))
           + adztail * (bdx * cdy - bdy * cdx))
@@ -1243,7 +1249,8 @@ static REAL orient3dadapt(const fer_vec3_t *pa,
   return finnow[finlength - 1];
 }
 
-REAL ferPredOrient3d(const fer_vec3_t *pa,
+REAL ferPredOrient3d(const fer_pred_t *pred,
+                     const fer_vec3_t *pa,
                      const fer_vec3_t *pb,
                      const fer_vec3_t *pc,
                      const fer_vec3_t *pd)
@@ -1279,12 +1286,12 @@ REAL ferPredOrient3d(const fer_vec3_t *pa,
   permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * Absolute(adz)
             + (Absolute(cdxady) + Absolute(adxcdy)) * Absolute(bdz)
             + (Absolute(adxbdy) + Absolute(bdxady)) * Absolute(cdz);
-  errbound = o3derrboundA * permanent;
+  errbound = pred->o3derrboundA * permanent;
   if ((det > errbound) || (-det > errbound)) {
     return det;
   }
 
-  return orient3dadapt(pa, pb, pc, pd, permanent);
+  return orient3dadapt(pred, pa, pb, pc, pd, permanent);
 }
 
 /*****************************************************************************/
@@ -1339,7 +1346,8 @@ REAL ferPredInCircleFast(const fer_vec2_t *pa,
   return alift * bcdet + blift * cadet + clift * abdet;
 }
 
-static REAL incircleadapt(const fer_vec2_t *pa,
+static REAL incircleadapt(const fer_pred_t *pred,
+                          const fer_vec2_t *pa,
                           const fer_vec2_t *pb,
                           const fer_vec2_t *pc,
                           const fer_vec2_t *pd,
@@ -1447,7 +1455,7 @@ static REAL incircleadapt(const fer_vec2_t *pa,
   finlength = fast_expansion_sum_zeroelim(ablen, abdet, clen, cdet, fin1);
 
   det = estimate(finlength, fin1);
-  errbound = iccerrboundB * permanent;
+  errbound = pred->iccerrboundB * permanent;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
@@ -1463,7 +1471,7 @@ static REAL incircleadapt(const fer_vec2_t *pa,
     return det;
   }
 
-  errbound = iccerrboundC * permanent + resulterrbound * Absolute(det);
+  errbound = pred->iccerrboundC * permanent + pred->resulterrbound * Absolute(det);
   det += ((adx * adx + ady * ady) * ((bdx * cdytail + cdy * bdxtail)
                                      - (bdy * cdxtail + cdx * bdytail))
           + 2.0 * (adx * adxtail + ady * adytail) * (bdx * cdy - bdy * cdx))
@@ -1912,7 +1920,8 @@ static REAL incircleadapt(const fer_vec2_t *pa,
   return finnow[finlength - 1];
 }
 
-REAL ferPredInCircle(const fer_vec2_t *pa,
+REAL ferPredInCircle(const fer_pred_t *pred,
+                     const fer_vec2_t *pa,
                      const fer_vec2_t *pb,
                      const fer_vec2_t *pc,
                      const fer_vec2_t *pd)
@@ -1949,12 +1958,12 @@ REAL ferPredInCircle(const fer_vec2_t *pa,
   permanent = (Absolute(bdxcdy) + Absolute(cdxbdy)) * alift
             + (Absolute(cdxady) + Absolute(adxcdy)) * blift
             + (Absolute(adxbdy) + Absolute(bdxady)) * clift;
-  errbound = iccerrboundA * permanent;
+  errbound = pred->iccerrboundA * permanent;
   if ((det > errbound) || (-det > errbound)) {
     return det;
   }
 
-  return incircleadapt(pa, pb, pc, pd, permanent);
+  return incircleadapt(pred, pa, pb, pc, pd, permanent);
 }
 
 /*****************************************************************************/
@@ -2031,7 +2040,8 @@ REAL ferPredInSphereFast(const fer_vec3_t *pa,
   return (dlift * abc - clift * dab) + (blift * cda - alift * bcd);
 }
 
-static REAL insphereexact(const fer_vec3_t *pa,
+static REAL insphereexact(const fer_pred_t *pred,
+                          const fer_vec3_t *pa,
                           const fer_vec3_t *pb,
                           const fer_vec3_t *pc,
                           const fer_vec3_t *pd,
@@ -2287,7 +2297,8 @@ static REAL insphereexact(const fer_vec3_t *pa,
   return deter[deterlen - 1];
 }
 
-static REAL insphereadapt(const fer_vec3_t *pa,
+static REAL insphereadapt(const fer_pred_t *pred,
+                          const fer_vec3_t *pa,
                           const fer_vec3_t *pb,
                           const fer_vec3_t *pc,
                           const fer_vec3_t *pd,
@@ -2442,7 +2453,7 @@ static REAL insphereadapt(const fer_vec3_t *pa,
   finlength = fast_expansion_sum_zeroelim(ablen, abdet, cdlen, cddet, fin1);
 
   det = estimate(finlength, fin1);
-  errbound = isperrboundB * permanent;
+  errbound = pred->isperrboundB * permanent;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
@@ -2466,7 +2477,7 @@ static REAL insphereadapt(const fer_vec3_t *pa,
     return det;
   }
 
-  errbound = isperrboundC * permanent + resulterrbound * Absolute(det);
+  errbound = pred->isperrboundC * permanent + pred->resulterrbound * Absolute(det);
   abeps = (aex * beytail + bey * aextail)
         - (aey * bextail + bex * aeytail);
   bceps = (bex * ceytail + cey * bextail)
@@ -2503,10 +2514,11 @@ static REAL insphereadapt(const fer_vec3_t *pa,
     return det;
   }
 
-  return insphereexact(pa, pb, pc, pd, pe);
+  return insphereexact(pred, pa, pb, pc, pd, pe);
 }
 
-REAL ferPredInSphere(const fer_vec3_t *pa,
+REAL ferPredInSphere(const fer_pred_t *pred,
+                     const fer_vec3_t *pa,
                      const fer_vec3_t *pb,
                      const fer_vec3_t *pc,
                      const fer_vec3_t *pd,
@@ -2604,10 +2616,10 @@ REAL ferPredInSphere(const fer_vec3_t *pa,
                + (cexaeyplus + aexceyplus) * bezplus
                + (aexbeyplus + bexaeyplus) * cezplus)
             * dlift;
-  errbound = isperrboundA * permanent;
+  errbound = pred->isperrboundA * permanent;
   if ((det > errbound) || (-det > errbound)) {
     return det;
   }
 
-  return insphereadapt(pa, pb, pc, pd, pe, permanent);
+  return insphereadapt(pred, pa, pb, pc, pd, pe, permanent);
 }
