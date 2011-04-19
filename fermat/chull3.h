@@ -38,8 +38,7 @@ extern "C" {
 struct _fer_chull3_t {
     fer_mesh3_t *mesh; /*!< Mesh representing convex hull */
     fer_real_t eps;
-
-    fer_rand_t rand;
+    int coplanar;
 };
 typedef struct _fer_chull3_t fer_chull3_t;
 
