@@ -19,17 +19,11 @@
 
 #include <fermat/mesh3.h>
 #include <fermat/list.h>
-#include <fermat/rand.h>
+#include <fermat/predicates.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-#ifdef FER_SINGLE
-# define FER_CHULL3_EPS 1E-6f
-#else /* FER_SINGLE */
-# define FER_CHULL3_EPS 1E-9f
-#endif /* FER_SINGLE */
 
 /**
  * CHull - Convex Hull
@@ -37,8 +31,9 @@ extern "C" {
  */
 struct _fer_chull3_t {
     fer_mesh3_t *mesh; /*!< Mesh representing convex hull */
-    fer_real_t eps;
     int coplanar;
+
+    fer_pred_t pred;
 };
 typedef struct _fer_chull3_t fer_chull3_t;
 

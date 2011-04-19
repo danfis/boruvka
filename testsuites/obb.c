@@ -153,6 +153,7 @@ TEST(obbTriMesh)
                                 2, 3, 4 };
     size_t len = 3;
     fer_obb_t *obb;
+    fer_timer_t t;
 
     ferVec3Set(pts + 0, 0., 0., 0.);
     ferVec3Set(pts + 1, 1., 0., 0.);
@@ -164,7 +165,19 @@ TEST(obbTriMesh)
     pTree(obb, 0);
     ferOBBDel(obb);
 
+
+    ferTimerStart(&t);
     obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0);
-    pTree(obb, 0);
+    //pTree(obb, 0);
     ferOBBDel(obb);
+    ferTimerStop(&t);
+    //fprintf(stderr, "1: %lu\n", ferTimerElapsedInUs(&t));
+
+
+    ferTimerStart(&t);
+    obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, FER_OBB_TRIMESH_FAST);
+    //pTree(obb, 0);
+    ferOBBDel(obb);
+    ferTimerStop(&t);
+    fprintf(stderr, "2: %lu\n", ferTimerElapsedInUs(&t));
 }

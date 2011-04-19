@@ -61,7 +61,7 @@ typedef union _fer_sse_t fer_sse_t;
 
 typedef float fer_real_t;
 
-/*# define FER_EPS 1E-6*/
+/*# define FER_EPS 1E-6 */
 # define FER_EPS FLT_EPSILON  /*!< epsilon */
 # define FER_REAL_MAX FLT_MAX /*!< maximal real value */
 # define FER_REAL_MIN FLT_MIN /*!< minimal real value */
