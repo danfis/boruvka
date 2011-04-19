@@ -658,7 +658,8 @@ REAL *e;
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient2dFast(const fer_vec2_t *pa,
+REAL ferPredOrient2dFast(const fer_pred_t *pred,
+                         const fer_vec2_t *pa,
                          const fer_vec2_t *pb,
                          const fer_vec2_t *pc)
 {
@@ -820,7 +821,8 @@ fer_real_t ferPredOrient2d(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient3dFast(const fer_vec3_t *pa,
+REAL ferPredOrient3dFast(const fer_pred_t *pred,
+                         const fer_vec3_t *pa,
                          const fer_vec3_t *pb,
                          const fer_vec3_t *pc,
                          const fer_vec3_t *pd)
@@ -1320,7 +1322,8 @@ REAL ferPredOrient3d(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInCircleFast(const fer_vec2_t *pa,
+REAL ferPredInCircleFast(const fer_pred_t *pred,
+                         const fer_vec2_t *pa,
                          const fer_vec2_t *pb,
                          const fer_vec2_t *pc,
                          const fer_vec2_t *pd)
@@ -1993,7 +1996,8 @@ REAL ferPredInCircle(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInSphereFast(const fer_vec3_t *pa,
+REAL ferPredInSphereFast(const fer_pred_t *pred,
+                         const fer_vec3_t *pa,
                          const fer_vec3_t *pb,
                          const fer_vec3_t *pc,
                          const fer_vec3_t *pd,

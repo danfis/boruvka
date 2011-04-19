@@ -89,7 +89,8 @@ void ferPredInit(fer_pred_t *pred);
  * result is also a rough approximation of twice the signed
  * area of the triangle defined by the three points.
  */
-fer_real_t ferPredOrient2dFast(const fer_vec2_t *pa,
+fer_real_t ferPredOrient2dFast(const fer_pred_t *pred,
+                               const fer_vec2_t *pa,
                                const fer_vec2_t *pb,
                                const fer_vec2_t *pc);
 
@@ -112,7 +113,8 @@ fer_real_t ferPredOrient2d(const fer_pred_t *pred,
  * times the signed volume of the tetrahedron defined by the
  * four points.
  */
-fer_real_t ferPredOrient3dFast(const fer_vec3_t *pa,
+fer_real_t ferPredOrient3dFast(const fer_pred_t *pred,
+                               const fer_vec3_t *pa,
                                const fer_vec3_t *pb,
                                const fer_vec3_t *pc,
                                const fer_vec3_t *pd);
@@ -134,7 +136,8 @@ fer_real_t ferPredOrient3d(const fer_pred_t *pred,
  * The points pa, pb, and pc must be in counterclockwise
  * order, or the sign of the result will be reversed.
  */
-fer_real_t ferPredInCircleFast(const fer_vec2_t *pa,
+fer_real_t ferPredInCircleFast(const fer_pred_t *pred,
+                               const fer_vec2_t *pa,
                                const fer_vec2_t *pb,
                                const fer_vec2_t *pc,
                                const fer_vec2_t *pd);
@@ -156,7 +159,8 @@ fer_real_t ferPredInCircle(const fer_pred_t *pred,
  * so that they have a positive orientation (as defined by
  * orient3d()), or the sign of the result will be reversed.
  */
-fer_real_t ferPredInSphereFast(const fer_vec3_t *pa,
+fer_real_t ferPredInSphereFast(const fer_pred_t *pred,
+                               const fer_vec3_t *pa,
                                const fer_vec3_t *pb,
                                const fer_vec3_t *pc,
                                const fer_vec3_t *pd,
