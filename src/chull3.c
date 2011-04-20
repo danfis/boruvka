@@ -32,6 +32,7 @@ struct _fer_chull3_edge_t {
     fer_mesh3_edge_t m;
     fer_list_t list;
     int swap;
+    unsigned int onedge;
 };
 typedef struct _fer_chull3_edge_t fer_chull3_edge_t;
 
@@ -68,6 +69,8 @@ static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
 /** Delete edge */
 static void edgeDel(fer_chull3_t *h, fer_chull3_edge_t *e);
 static void edgeDelMesh(fer_mesh3_edge_t *, void *);
+/** TODO */
+static void edgeVertices(fer_chull3_edge_t *e, fer_chull3_vert_t **v);
 
 /** Create new face */
 static fer_chull3_face_t *faceNew(fer_chull3_t *h,
@@ -80,6 +83,7 @@ static void faceDelMesh(fer_mesh3_face_t *, void *);
 static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,
                             fer_chull3_vert_t *v1, fer_chull3_vert_t *v2,
                             fer_chull3_vert_t *v3);
+static void faceEdges(fer_chull3_face_t *f, fer_chull3_edge_t **e);
 
 
 /** Returns true if hull and with given point is still coplanar */
@@ -91,15 +95,11 @@ static int liesOnCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
  *  three vertices but triangles are oriented in opposite direction. */
 /** TODO */
 static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
-/** Fill list with faces visible from v */
-static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
-                             fer_list_t *list);
 /** Adds first non-coplanar point on hull */
 static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
-/** Creates hole in mesh (i.e., visible faces are deleted) and list {edges}
- *  is filled with edges on border of hole */
-static void createHole(fer_chull3_t *h, fer_list_t *visible,
-                       fer_list_t *edges, const fer_vec3_t *point);
+/** TODO */
+static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *v,
+                            fer_list_t *edges);
 /** Makes new cone connecting new point {v} with border edges */
 static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v);
 
@@ -129,9 +129,7 @@ void ferCHull3Del(fer_chull3_t *h)
 
 void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point)
 {
-    fer_list_t visible;
     fer_list_t border_edges;
-
 
     fprintf(stderr, "POINT: ");
     ferVec3Print(point, stderr);
@@ -147,19 +145,15 @@ void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point)
         return;
     }
 
-    ferListInit(&visible);
-    findVisibleFaces(h, point, &visible);
-    if (ferListEmpty(&visible))
-        return;
-
-
     ferListInit(&border_edges);
-    createHole(h, &visible, &border_edges, point);
+    findBorderEdges(h, point, &border_edges);
     if (ferListEmpty(&border_edges))
         return;
 
 
     makeCone(h, &border_edges, point);
+
+    DBG2("============");
 }
 
 void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name)
@@ -183,6 +177,7 @@ _fer_inline int isVisible2(const fer_chull3_t *h,
     fer_real_t orient;
 
     orient = ferPredOrient3d(&h->pred, f1, f2, f3, v);
+    DBG("orient: %.30f", orient);
     return !ferIsZero(orient) && orient > FER_ZERO;
 }
 
@@ -213,6 +208,8 @@ static fer_chull3_vert_t *vertNew(fer_chull3_t *h, const fer_vec3_t *v)
     // add vertex to mesh
     ferMesh3AddVertex(h->mesh, &vert->m);
 
+    vert->border_edges = 0;
+
     return vert;
 }
 
@@ -237,6 +234,8 @@ static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
 
     e = FER_ALLOC(fer_chull3_edge_t);
     ferMesh3AddEdge(h->mesh, &e->m, &v1->m, &v2->m);
+    e->swap = 0;
+    e->onedge = 0;
 
     return e;
 }
@@ -254,6 +253,19 @@ static void edgeDelMesh(fer_mesh3_edge_t *_e, void *_)
     e = fer_container_of(_e, fer_chull3_edge_t, m);
     free(e);
 }
+
+static void edgeVertices(fer_chull3_edge_t *e, fer_chull3_vert_t **v)
+{
+    fer_mesh3_vertex_t *mv;
+    int i;
+
+    for (i = 0; i < 2; i++){
+        mv = ferMesh3EdgeVertex(&e->m, i);
+        v[i] = fer_container_of(mv, fer_chull3_vert_t, m);
+    }
+}
+
+
 
 static fer_chull3_face_t *faceNew(fer_chull3_t *h,
                                   fer_chull3_edge_t *e1, fer_chull3_edge_t *e2,
@@ -306,6 +318,16 @@ static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,
     f->v[2] = v3;
 }
 
+static void faceEdges(fer_chull3_face_t *f, fer_chull3_edge_t **e)
+{
+    fer_mesh3_edge_t *me;
+    int i;
+
+    for (i = 0; i < 3; i++){
+        me = ferMesh3FaceEdge(&f->m, i);
+        e[i] = fer_container_of(me, fer_chull3_edge_t, m);
+    }
+}
 
 
 static int isCoplanarWithHull(fer_chull3_t *h, const fer_vec3_t *v)
@@ -607,8 +629,6 @@ static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
         }
     }
 
-
-    DBG("reorient: %d", reorient);
     if (reorient){
         list = ferMesh3Faces(h->mesh);
         FER_LIST_FOR_EACH(list, item){
@@ -660,15 +680,67 @@ static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
 
 static int __c = 0;
 
-static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
-                             fer_list_t *visible)
+static void updateBorderEdges(fer_chull3_t *h, fer_chull3_face_t *f,
+                              fer_list_t *edges)
 {
-    fer_list_t *list, *item, coplanar, faces;
+    fer_chull3_edge_t *e[3];
+    fer_chull3_vert_t *v[2];
+    int i;
+
+    faceEdges(f, e);
+
+    {
+        printf("---\nFace color: 0.8 0.8 0\nPoints:\n");
+        ferVec3Print(&f->v[0]->v, stdout); printf("\n");
+        ferVec3Print(&f->v[1]->v, stdout); printf("\n");
+        ferVec3Print(&f->v[2]->v, stdout); printf("\n");
+        printf("Faces:\n0 1 2\n---\n");
+    }
+
+
+    // add edges to list of border edges
+    for (i = 0; i < 3; i++){
+        if (!e[i]->onedge){
+            edgeVertices(e[i], v);
+
+            e[i]->onedge = 1;
+            ferListAppend(edges, &e[i]->list);
+
+            // set hint for edge orientation
+            e[i]->swap = 0;
+            if ((v[1] == f->v[0] && v[0] == f->v[1])
+                    || (v[1] == f->v[1] && v[0] == f->v[2])
+                    || (v[1] == f->v[2] && v[0] == f->v[0])){
+                e[i]->swap = 1;
+            }
+        }
+    }
+
+    // delete face
+    faceDel(h, f);
+
+    // delete edges and vertices that were left alone 
+    for (i = 0; i < 3; i++){
+        if (ferMesh3EdgeFacesLen(&e[i]->m) == 0){
+            edgeVertices(e[i], v);
+
+            ferListDel(&e[i]->list);
+            edgeDel(h, e[i]);
+
+            if (ferMesh3VertexEdgesLen(&v[0]->m) == 0)
+                vertDel(h, v[0]);
+            if (ferMesh3VertexEdgesLen(&v[1]->m) == 0)
+                vertDel(h, v[1]);
+        }
+    }
+}
+
+static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
+                            fer_list_t *edges)
+{
+    fer_list_t *list, *item, *itemtmp;
     fer_mesh3_face_t *mf;
-    fer_mesh3_edge_t *me;
-    fer_chull3_face_t *f, *f2, *fstart;
-    fer_real_t orient, orient_start;
-    size_t num_overall, num_coplanar, i;
+    fer_chull3_face_t *f;
 
     __c++;
     DBG("__c: %d", __c);
@@ -679,386 +751,58 @@ static void findVisibleFaces(fer_chull3_t *h, const fer_vec3_t *v,
         sprintf(name, "h - %d - %lx", __c, (long)h);
         ferCHull3DumpSVT(h, stdout, name);
         printf("---\nPoint color: 0.8 0 0\nPoint size: 10\nPoints:\n");
-        ferVec3Print(v, stdout);
+        ferVec3Print(point, stdout);
         printf("\n---\n");
     }
 
 
-    ferListInit(&coplanar);
-    num_overall = num_coplanar = 0;
-
     //DBG_VEC3(v, "v: ");
 
+    DBG2("");
     // find first visible face and mark all other faces if they are visible
     // or coplanar
-    fstart = NULL;
-    orient_start = -1;
     list = ferMesh3Faces(h->mesh);
-    FER_LIST_FOR_EACH(list, item){
+    FER_LIST_FOR_EACH_SAFE(list, item, itemtmp){
         mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         f  = fer_container_of(mf, fer_chull3_face_t, m);
 
-        DBG("1 %lx", (long)f);
         f->visible = 0;
-        DBG("1 %lx %lx %lx %lx", (long)f, f->v[0], f->v[1], f->v[2]);
 
-        // mark all visible (and coplanar) faces as visible
-        /*
-        orient = ferVec3Volume6(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
-        DBG("orient1: %.30f", orient);
-        orient = orient / FER_REAL(6.);
-        DBG("orient2: %.30f", orient);
-        orient = ferPredOrient3d(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
-        DBG("orient3: %.30f", orient);
-        orient = ferPredOrient3dFast(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
-        DBG("orient4: %.30f", orient);
-        */
-        if (isVisible(h, v, f)){
-            DBG2("visible");
-            ferListAppend(visible, &f->list);
-            f->visible = 1;
-            f->v[0]->border_edges = 0;
-            f->v[1]->border_edges = 0;
-            f->v[2]->border_edges = 0;
-            /*
-            f->visible = 2;
-
-            if (orient > orient_start){
-                orient_start = orient;
-                fstart = f;
-            }
-            */
-
-            {
-            printf("---\nFace color: 0.8 0.8 0\nPoints:\n");
-            ferVec3Print(&f->v[0]->v, stdout); printf("\n");
-            ferVec3Print(&f->v[1]->v, stdout); printf("\n");
-            ferVec3Print(&f->v[2]->v, stdout); printf("\n");
-            printf("Faces:\n0 1 2\n---\n");
-            }
-        }
-        /*
-
-        if (ferIsZero(orient)){
-            if (!ferVec3Eq(v, &f->v[0]->v)
-                    || !ferVec3Eq(v, &f->v[1]->v)
-                    || !ferVec3Eq(v, &f->v[2]->v)){
-                num_coplanar++;
-            }
-        }else if (orient > h->eps){
-            f->visible = 2;
-
-            if (orient > orient_start){
-                orient_start = orient;
-                fstart = f;
-            }
-        }else if (orient > -h->eps && orient < h->eps){
-            if (!ferVec3Eq(v, &f->v[0]->v)
-                    || !ferVec3Eq(v, &f->v[1]->v)
-                    || !ferVec3Eq(v, &f->v[2]->v)){
-                num_coplanar++;
-            }
-        }
-
-        num_overall++;
-        */
-    }
-    DBG2("end");
-
-#if 0
-    /*
-    //DBG("num_overall, num_coplanar %d %d", num_overall, num_coplanar);
-    if (num_overall == num_coplanar){
-        // degenerate case - all faces are coplanar with the point
-        ferListInit(visible);
-        findVisibleFacesCoplanar(h, v, visible);
-        return;
-    }
-    */
-
-    if (!fstart)
-        return;
-
-    // grow visible patch from the initial visible face
-    ferListInit(&faces);
-    ferListAppend(&faces, &fstart->list);
-    fstart->visible = 1;
-
-    while (!ferListEmpty(&faces)){
-        item = ferListNext(&faces);
-        ferListDel(item);
-        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
-
-        ferListAppend(visible, &f->list);
-
-        for (i = 0; i < 3; i++){
-            me = ferMesh3FaceEdge(&f->m, i);
-            mf = ferMesh3EdgeOtherFace(me, &f->m);
-
-            // this shouldn't happen...
-            if (!mf)
-                continue;
-
-            f2 = fer_container_of(mf, fer_chull3_face_t, m);
-            if (f2->visible == 2){
-                ferListAppend(&faces, &f2->list);
-                f2->visible = 1;
-            }
-        }
-
-    }
-#endif
-}
-
-static void createHoleReset(fer_chull3_t *h,
-                            fer_chull3_vert_t *v,
-                            fer_list_t *visible,
-                            const fer_vec3_t *point)
-{
-    fer_chull3_face_t *f;
-    fer_chull3_edge_t *e;
-    fer_mesh3_face_t *mf;
-    fer_mesh3_edge_t *me;
-    fer_list_t *list, *item;
-    int i, madechange;
-
-    list = ferMesh3VertexEdges(&v->m);
-    madechange = 0;
-    FER_LIST_FOR_EACH(list, item){
-        DBG2("");
-        me = ferMesh3EdgeFromVertexList(item);
-        e  = fer_container_of(me, fer_chull3_edge_t, m);
-
-        for (i = 0; i < 2; i++){
-            mf = ferMesh3EdgeFace(me, 0);
-            f  = fer_container_of(mf, fer_chull3_face_t, m);
-            if (!f->visible && isCoplanar(h, point, f)){
-                f->visible = 1;
-                ferListAppend(visible, &f->list);
-                madechange = 1;
-            }
-        }
-    }
-
-    if (!madechange){
-        fprintf(stderr, "!!!\n");
-        exit(-1);
-    }
-
-    FER_LIST_FOR_EACH(visible, item){
-        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
-        f->v[0]->border_edges = 0;
-        f->v[1]->border_edges = 0;
-        f->v[2]->border_edges = 0;
-    }
-}
-
-static void createHole(fer_chull3_t *h, fer_list_t *visible,
-                       fer_list_t *edges, const fer_vec3_t *point)
-{
-    fer_chull3_face_t *f, *f2;
-    fer_chull3_edge_t *e[3];
-    fer_mesh3_edge_t *me2[3];
-    fer_chull3_vert_t *v0, *v1;
-    fer_mesh3_edge_t *me;
-    fer_mesh3_face_t *mf;
-    fer_mesh3_vertex_t *mv;
-    fer_list_t *item, *itemtmp;
-    int i, ok;
-
-#if 0
-    fflush(stdout);
-
-    // first obtain border edges
-    ferListInit(edges);
-    do {
-        ok = 1;
-        FER_LIST_FOR_EACH(visible, item){
-            f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
-
-            DBG("%lx", (long)f);
-            for (i = 0; i < 3 && ok; i++){
-                me = ferMesh3FaceEdge(&f->m, i);
-                e  = fer_container_of(me, fer_chull3_edge_t, m);
-
-                if ((mf = ferMesh3EdgeFace(&e->m, 0)) == &f->m)
-                    mf = ferMesh3EdgeFace(&e->m, 1);
-                f2 = fer_container_of(mf, fer_chull3_face_t, m);
-
-                if (!f2->visible){
-                    // orient edge correctly
-                    mv = ferMesh3EdgeVertex(&e->m, 0);
-                    v0 = fer_container_of(mv, fer_chull3_vert_t, m);
-                    mv = ferMesh3EdgeVertex(&e->m, 1);
-                    v1 = fer_container_of(mv, fer_chull3_vert_t, m);
-
-                    v0->border_edges += 1;
-                    v1->border_edges += 1;
-                    /*
-                    {
-                        printf("--\nName: be\nEdge color: 1 0 0\nEdge width: 5\nPoints:\n");
-                        ferVec3Print(&v0->v, stdout); printf("\n");
-                        ferVec3Print(&v1->v, stdout); printf("\n");
-                        printf("Edges:\n0 1\n--\n");
-                    }
-
-                    if (v0->border_edges > 2){
-                        DBG("v0->border_edges: %d", v0->border_edges);
-                        createHoleReset(h, v0, visible, point);
-                        ferListInit(edges);
-                        ok = 0;
-                        break;
-                    }
-                    if (v1->border_edges > 2){
-                        DBG("v1->border_edges: %d", v1->border_edges);
-                        createHoleReset(h, v0, visible, point);
-                        ferListInit(edges);
-                        ok = 0;
-                        break;
-                    }
-                    */
-
-                    e->swap = 0;
-                    if ((v0 == f2->v[0] && v1 == f2->v[1])
-                            || (v0 == f2->v[1] && v1 == f2->v[2])
-                            || (v0 == f2->v[2] && v1 == f2->v[0])){
-                        e->swap = 1;
-                    }
-
-                    // append it to list of edges
-                    ferListAppend(edges, &e->list);
-                }
-            }
-
-            if (!ok)
-                break;
-        }
-    } while (!ok);
-    DBG2("after");
-
-    while (!ferListEmpty(visible)){
-        item = ferListNext(visible);
-        ferListDel(item);
-        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
-
-        me2[0] = ferMesh3FaceEdge(&f->m, 0);
-        me2[1] = ferMesh3FaceEdge(&f->m, 1);
-        me2[2] = ferMesh3FaceEdge(&f->m, 2);
-
-        // delete face
-        faceDel(h, f);
-
-        // delete those edges that were left alone
-        for (i = 0; i < 3; i++){
-            e  = fer_container_of(me2[i], fer_chull3_edge_t, m);
-
-            if (ferMesh3EdgeFacesLen(&e->m) == 0){
-                mv = ferMesh3EdgeVertex(&e->m, 0);
-                v0 = fer_container_of(mv, fer_chull3_vert_t, m);
-                mv = ferMesh3EdgeVertex(&e->m, 1);
-                v1 = fer_container_of(mv, fer_chull3_vert_t, m);
-
-                edgeDel(h, e);
-
-                if (ferMesh3VertexEdgesLen(&v0->m) == 0)
-                    vertDel(h, v0);
-                if (ferMesh3VertexEdgesLen(&v1->m) == 0)
-                    vertDel(h, v1);
-            }
-        }
-    }
-#endif
-    while (!ferListEmpty(visible)){
-        item = ferListNext(visible);
-        ferListDel(item);
-
-        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
-
-        // obtain border edges
-        for (i = 0; i < 3; i++){
-            me   = ferMesh3FaceEdge(&f->m, i);
-            e[i] = fer_container_of(me, fer_chull3_edge_t, m);
-        }
-
-        // append edges that incidents with non-visible face to list of
-        // border faces
-        for (i = 0; i < 3; i++){
-            if (ferMesh3EdgeFacesLen(&e[i]->m) == 2){
-                if ((mf = ferMesh3EdgeFace(&e[i]->m, 0)) == &f->m)
-                    mf = ferMesh3EdgeFace(&e[i]->m, 1);
-                f2 = fer_container_of(mf, fer_chull3_face_t, m);
-
-                if (!f2->visible){
-                    // orient edge correctly
-                    mv = ferMesh3EdgeVertex(&e[i]->m, 0);
-                    v0 = fer_container_of(mv, fer_chull3_vert_t, m);
-                    mv = ferMesh3EdgeVertex(&e[i]->m, 1);
-                    v1 = fer_container_of(mv, fer_chull3_vert_t, m);
-
-                    e[i]->swap = 0;
-                    if ((v0 == f2->v[0] && v1 == f2->v[1])
-                            || (v0 == f2->v[1] && v1 == f2->v[2])
-                            || (v0 == f2->v[2] && v1 == f2->v[0])){
-                        e[i]->swap = 1;
-                    }
-
-                    // append it to list of edges
-                    ferListAppend(edges, &e[i]->list);
-                }
-            }
-        }
-
-        // delete face
-        faceDel(h, f);
-
-        // delete those edges that were left alone
-        for (i = 0; i < 3; i++){
-            if (ferMesh3EdgeFacesLen(&e[i]->m) == 0){
-                mv = ferMesh3EdgeVertex(&e[i]->m, 0);
-                v0 = fer_container_of(mv, fer_chull3_vert_t, m);
-                mv = ferMesh3EdgeVertex(&e[i]->m, 1);
-                v1 = fer_container_of(mv, fer_chull3_vert_t, m);
-
-                edgeDel(h, e[i]);
-
-                if (ferMesh3VertexEdgesLen(&v0->m) == 0)
-                    vertDel(h, v0);
-                if (ferMesh3VertexEdgesLen(&v1->m) == 0)
-                    vertDel(h, v1);
-            }
+        if (isVisible(h, point, f)){
+            DBG2("isVisible");
+            updateBorderEdges(h, f, edges);
         }
     }
 }
 
-static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v)
+
+static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *point)
 {
     fer_chull3_edge_t *e1, *e2, *e3;
-    fer_chull3_vert_t *v1, *v2, *v3;
+    fer_chull3_vert_t *v[3];
     fer_chull3_face_t *f;
-    fer_mesh3_vertex_t *mv;
     fer_mesh3_edge_t *me;
     fer_list_t *item;
 
-    v1 = vertNew(h, v);
+    v[0] = vertNew(h, point);
 
+    DBG2("");
     FER_LIST_FOR_EACH(edges, item){
         e1 = FER_LIST_ENTRY(item, fer_chull3_edge_t, list);
+        e1->onedge = 0;
 
-        mv = ferMesh3EdgeVertex(&e1->m, 0);
-        v2 = fer_container_of(mv, fer_chull3_vert_t, m);
-        mv = ferMesh3EdgeVertex(&e1->m, 1);
-        v3 = fer_container_of(mv, fer_chull3_vert_t, m);
+        edgeVertices(e1, v + 1);
 
-        me = ferMesh3VertexCommonEdge(&v1->m, &v2->m);
+        me = ferMesh3VertexCommonEdge(&v[0]->m, &v[1]->m);
         if (me == NULL){
-            e2 = edgeNew(h, v1, v2);
+            e2 = edgeNew(h, v[0], v[1]);
         }else{
             e2 = fer_container_of(me, fer_chull3_edge_t, m);
         }
 
-        me = ferMesh3VertexCommonEdge(&v1->m, &v3->m);
+        me = ferMesh3VertexCommonEdge(&v[0]->m, &v[2]->m);
         if (me == NULL){
-            e3 = edgeNew(h, v1, v3);
+            e3 = edgeNew(h, v[0], v[2]);
         }else{
             e3 = fer_container_of(me, fer_chull3_edge_t, m);
         }
@@ -1068,9 +812,9 @@ static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v)
 
         // orient correctly vertices
         if (e1->swap){
-            faceSetVertices(h, f, v1, v3, v2);
+            faceSetVertices(h, f, v[0], v[2], v[1]);
         }else{
-            faceSetVertices(h, f, v1, v2, v3);
+            faceSetVertices(h, f, v[0], v[1], v[2]);
         }
     }
 }

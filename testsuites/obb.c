@@ -166,12 +166,14 @@ TEST(obbTriMesh)
     ferOBBDel(obb);
 
 
+    /*
     ferTimerStart(&t);
     obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0);
     //pTree(obb, 0);
     ferOBBDel(obb);
     ferTimerStop(&t);
     //fprintf(stderr, "1: %lu\n", ferTimerElapsedInUs(&t));
+    */
 
 
     ferTimerStart(&t);
