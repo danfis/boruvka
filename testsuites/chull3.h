@@ -11,14 +11,14 @@ TEST(testCHull7);
 TEST(testCHullBunny);
 
 TEST_SUITE(TSCHull3){
-    //TEST_ADD(testCHull),
-    //TEST_ADD(testCHull2),
-    //TEST_ADD(testCHull3),
-    //TEST_ADD(testCHull4),
-    //TEST_ADD(testCHull5),
-    //TEST_ADD(testCHull6),
+    TEST_ADD(testCHull),
+    TEST_ADD(testCHull2),
+    TEST_ADD(testCHull3),
+    TEST_ADD(testCHull4),
+    TEST_ADD(testCHull5),
+    TEST_ADD(testCHull6),
     TEST_ADD(testCHull7),
-    //TEST_ADD(testCHullBunny),
+    TEST_ADD(testCHullBunny),
 
     TEST_SUITE_CLOSURE
 };

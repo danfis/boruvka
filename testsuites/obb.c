@@ -34,8 +34,8 @@ static void prOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
     prv("# obb.axis[2]: ", &obb->axis[2]);
     prv("# obb.half_extents: ", &obb->half_extents);
 
-    ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, "Tri");
-    ferOBBDumpSVT(obb, stdout, "OBB");
+    //ferOBBTriDumpSVT((fer_obb_tri_t *)obb->pri, stdout, "Tri");
+    //ferOBBDumpSVT(obb, stdout, "OBB");
 
     ferOBBDel(obb);
 }
@@ -162,13 +162,13 @@ TEST(obbTriMesh)
     ferVec3Set(pts + 4, 0., 1., 1.);
 
     obb = ferOBBNewTriMesh(pts, ids, len, 0);
-    pTree(obb, 0);
+    //pTree(obb, 0);
     ferOBBDel(obb);
 
 
     ferTimerStart(&t);
     obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0);
-    pTree(obb, 0);
+    //pTree(obb, 0);
     ferOBBDel(obb);
     ferTimerStop(&t);
     //fprintf(stderr, "1: %lu\n", ferTimerElapsedInUs(&t));
@@ -176,7 +176,7 @@ TEST(obbTriMesh)
 
     ferTimerStart(&t);
     obb = ferOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, FER_OBB_TRIMESH_FAST);
-    pTree(obb, 0);
+    //pTree(obb, 0);
     ferOBBDel(obb);
     ferTimerStop(&t);
     //fprintf(stderr, "2: %lu\n", ferTimerElapsedInUs(&t));
