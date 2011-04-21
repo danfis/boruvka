@@ -94,9 +94,9 @@ static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,
 static void faceEdges(fer_chull3_face_t *f, fer_chull3_edge_t **e);
 
 
-/** Returns true if hull and with given point is still coplanar */
+/** Returns true if hull and given point are coplanar */
 static int isCoplanarWithHull(fer_chull3_t *h, const fer_vec3_t *v);
-/** Returns true if given point lies on current coplanar patch */
+/** Returns true if given point lies on current coplanar patch (hull) */
 static int liesOnCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
 /** Adds coplanar point */
 static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
@@ -422,140 +422,155 @@ static void addCoplanarGrow(fer_chull3_t *h, fer_chull3_vert_t *v,
     }
 }
 
-static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
+static void addCoplanar3(fer_chull3_t *h, const fer_vec3_t *v)
 {
-    fer_chull3_vert_t *vert;
-    fer_chull3_vert_t *v1, *v2;
-    fer_chull3_edge_t *e1, *e2, *e3;
-    fer_chull3_face_t *f, *f2;
-    fer_mesh3_vertex_t *mv[4];
-    fer_mesh3_edge_t *me;
-    fer_mesh3_face_t *mf;
     fer_list_t *list, *item;
+    fer_mesh3_vertex_t *mv;
+    fer_chull3_vert_t *v1, *v2, *vert;
+    fer_chull3_edge_t *e1, *e2, *e3;
+    fer_chull3_face_t *f;
     fer_real_t dist1, dist2, dist3;
-    fer_vec3_t cross, p01, p02, topv;
-    int inv;
 
-    if (ferMesh3VerticesLen(h->mesh) < 2){
-        vert = vertNew(h, v);
-    }else if (ferMesh3VerticesLen(h->mesh) < 3){
-        // first check if new vertex isn't collinear with the two already
-        // in mesh
-        list  = ferMesh3Vertices(h->mesh);
-        item  = ferListNext(list);
-        mv[0] = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-        v1    = fer_container_of(mv[0], fer_chull3_vert_t, m);
-        item  = ferListPrev(list);
-        mv[0] = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-        v2    = fer_container_of(mv[0], fer_chull3_vert_t, m);
+    // first check if new vertex isn't collinear with the two already
+    // in mesh
+    list = ferMesh3Vertices(h->mesh);
+    item = ferListNext(list);
+    mv   = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+    v1   = fer_container_of(mv, fer_chull3_vert_t, m);
+    item = ferListPrev(list);
+    mv   = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+    v2   = fer_container_of(mv, fer_chull3_vert_t, m);
 
-        if (ferVec3Collinear(v, &v1->v, &v2->v)){
-            // vertices are collinear, find out pair with longest distance
-            // and keep that pair
-            dist1 = ferVec3Dist2(v, &v1->v);
-            dist2 = ferVec3Dist2(v, &v2->v);
-            dist3 = ferVec3Dist2(&v1->v, &v2->v);
-            if (dist1 > dist2){
-                if (dist1 > dist3){
-                    vertDel(h, v2);
-                    vertNew(h, v);
-                }
-            }else if (dist2 > dist3){
-                vertDel(h, v1);
+    if (ferVec3Collinear(v, &v1->v, &v2->v)){
+        // vertices are collinear, find out pair with longest distance
+        // and keep that pair
+        dist1 = ferVec3Dist2(v, &v1->v);
+        dist2 = ferVec3Dist2(v, &v2->v);
+        dist3 = ferVec3Dist2(&v1->v, &v2->v);
+        if (dist1 > dist2){
+            if (dist1 > dist3){
+                vertDel(h, v2);
                 vertNew(h, v);
             }
-        }else{
-            // vertices aren't collinear, we can create double triangle
-            // 1. create new vertex
-            vert = vertNew(h, v);
-
-            // 2. create edges connecting vertices
-            e1 = edgeNew(h, v1, v2);
-            e2 = edgeNew(h, vert, v1);
-            e3 = edgeNew(h, vert, v2);
-
-            // 3. create face
-            f = faceNew(h, e1, e2, e3);
-            faceSetVertices(h, f, vert, v1, v2);
+        }else if (dist2 > dist3){
+            vertDel(h, v1);
+            vertNew(h, v);
         }
     }else{
-        // we already have at least triangle
-        // find nearest edge and make triangle
-        fer_vec3_t q;
-
-        //DBG2("");
-        // find nearest edge to connect triangle
-        e1 = NULL;
-        list = ferMesh3Edges(h->mesh);
-        dist2 = FER_REAL_MAX;
-        FER_LIST_FOR_EACH(list, item){
-            me = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
-            if (ferMesh3EdgeFacesLen(me) != 1)
-                continue;
-
-            mv[0] = ferMesh3EdgeVertex(me, 0);
-            mv[1] = ferMesh3EdgeVertex(me, 1);
-
-            dist1 = ferVec3PointSegmentDist2(v, mv[0]->v, mv[1]->v, &q);
-            if (ferEq(dist1, dist2)){
-                mv[2] = ferMesh3EdgeVertex(&e1->m, 0);
-                mv[3] = ferMesh3EdgeVertex(&e1->m, 1);
-                if (ferVec3TriArea2(v, mv[0]->v, mv[1]->v)
-                        > ferVec3TriArea2(v, mv[2]->v, mv[3]->v)){
-                    dist2 = dist1;
-                    e1 = fer_container_of(me, fer_chull3_edge_t, m);
-                }
-            }else if (dist1 < dist2){
-                dist2 = dist1;
-                e1 = fer_container_of(me, fer_chull3_edge_t, m);
-            }
-        }
-
-        // 0. check area of created triangle
-        mv[0] = ferMesh3EdgeVertex(&e1->m, 0);
-        mv[1] = ferMesh3EdgeVertex(&e1->m, 1);
-        if (ferIsZero(ferVec3TriArea2(v, mv[0]->v, mv[1]->v))){
-            return;
-        }
-
+        // vertices aren't collinear, we can create double triangle
         // 1. create new vertex
         vert = vertNew(h, v);
 
         // 2. create edges connecting vertices
-        v1 = fer_container_of(mv[0], fer_chull3_vert_t, m);
-        v2 = fer_container_of(mv[1], fer_chull3_vert_t, m);
+        e1 = edgeNew(h, v1, v2);
         e2 = edgeNew(h, vert, v1);
         e3 = edgeNew(h, vert, v2);
 
         // 3. create face
         f = faceNew(h, e1, e2, e3);
-
-        // 4. get other face that newly created one
-        mf = ferMesh3EdgeOtherFace(&e1->m, &f->m);
-        f2 = fer_container_of(mf, fer_chull3_face_t, m);
-
-        // 5. orient vertices in new face
-        ferMesh3FaceVertices(mf, mv);
         faceSetVertices(h, f, vert, v1, v2);
-        inv = 1;
-        if ((f2->v[0] == v1 && f2->v[1] == v2)
-                || (f2->v[1] == v1 && f2->v[2] == v2)
-                || (f2->v[2] == v1 && f2->v[0] == v2)){
-            faceSetVertices(h, f, vert, v2, v1);
-            inv = 0;
+    }
+}
+
+static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
+{
+    fer_list_t *list, *item;
+    fer_chull3_vert_t *v[4];
+    fer_chull3_edge_t *e[3];
+    fer_chull3_face_t *f, *f2;
+    fer_mesh3_face_t *mf;
+    fer_mesh3_edge_t *me;
+    fer_real_t dist1, dist2;
+    fer_vec3_t cross, p01, p02, topv;
+    int inv;
+
+
+    // we already have at least triangle
+    // find nearest edge and make triangle
+
+    // find nearest edge to connect triangle
+    e[0] = NULL;
+    v[0] = v[1] = NULL;
+    dist2 = FER_REAL_MAX;
+    list = ferMesh3Edges(h->mesh);
+    FER_LIST_FOR_EACH(list, item){
+        me = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
+        if (ferMesh3EdgeFacesLen(me) != 1)
+            continue;
+
+        e[1] = fer_container_of(me, fer_chull3_edge_t, m);
+        edgeVertices(e[1], v + 2);
+
+        dist1 = ferVec3PointSegmentDist2(point, &v[2]->v, &v[3]->v, NULL);
+        if (ferEq(dist1, dist2)){
+            if (ferVec3TriArea2(point, &v[2]->v, &v[3]->v)
+                    > ferVec3TriArea2(point, &v[0]->v, &v[1]->v)){
+                dist2 = dist1;
+                e[0] = e[1];
+                v[0] = v[2];
+                v[1] = v[3];
+            }
+        }else if (dist1 < dist2){
+            dist2 = dist1;
+            e[0] = e[1];
+            v[0] = v[2];
+            v[1] = v[3];
         }
+    }
 
-        ferVec3Sub2(&p01, &v1->v, &vert->v);
-        ferVec3Sub2(&p02, &v2->v, &vert->v);
-        ferVec3Cross(&cross, &p01, &p02);
-        ferVec3Normalize(&cross);
+    // 1. check area of created triangle
+    if (ferIsZero(ferVec3TriArea2(point, &v[0]->v, &v[1]->v))){
+        return;
+    }
 
-        ferVec3Add2(&topv, &vert->v, &cross);
-        addCoplanarGrow(h, vert, e2, &topv, inv);
+    // 2. create new vertex
+    v[2] = vertNew(h, point);
 
-        ferVec3Scale(&cross, -FER_ONE);
-        ferVec3Add2(&topv, &vert->v, &cross);
-        addCoplanarGrow(h, vert, e3, &topv, !inv);
+    // 3. create edges connecting vertices
+    e[1] = edgeNew(h, v[2], v[0]);
+    e[2] = edgeNew(h, v[2], v[1]);
+
+    // 4. create face
+    f = faceNew(h, e[0], e[1], e[2]);
+
+    // 5. get other face that newly created one
+    mf = ferMesh3EdgeOtherFace(&e[0]->m, &f->m);
+    f2 = fer_container_of(mf, fer_chull3_face_t, m);
+
+    // 6. orient vertices in new face
+    faceSetVertices(h, f, v[2], v[0], v[1]);
+    inv = 1;
+    if ((f2->v[0] == v[0] && f2->v[1] == v[1])
+            || (f2->v[1] == v[0] && f2->v[2] == v[1])
+            || (f2->v[2] == v[0] && f2->v[0] == v[1])){
+        faceSetVertices(h, f, v[2], v[1], v[0]);
+        inv = 0;
+    }
+
+    ferVec3Sub2(&p01, &v[0]->v, &v[2]->v);
+    ferVec3Sub2(&p02, &v[1]->v, &v[2]->v);
+    ferVec3Cross(&cross, &p01, &p02);
+    ferVec3Normalize(&cross);
+
+    ferVec3Add2(&topv, &v[2]->v, &cross);
+    addCoplanarGrow(h, v[2], e[1], &topv, inv);
+
+    ferVec3Scale(&cross, -FER_ONE);
+    ferVec3Add2(&topv, &v[2]->v, &cross);
+    addCoplanarGrow(h, v[2], e[2], &topv, !inv);
+}
+
+
+static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
+{
+    fer_chull3_vert_t *vert;
+
+    if (ferMesh3VerticesLen(h->mesh) < 2){
+        vert = vertNew(h, v);
+    }else if (ferMesh3VerticesLen(h->mesh) < 3){
+        addCoplanar3(h, v);
+    }else{
+        addCoplanar4(h, v);
     }
 }
 
