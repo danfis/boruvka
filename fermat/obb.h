@@ -105,6 +105,18 @@ typedef struct _fer_obb_t fer_obb_t;
 
 
 /**
+ * TODO
+ */
+struct _fer_obb_pair_t {
+    fer_obb_t *obb1;
+    fer_obb_t *obb2;
+
+    fer_list_t list;
+};
+typedef struct _fer_obb_pair_t  fer_obb_pair_t;
+
+
+/**
  * Creates new oriented bounding box.
  */
 fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
@@ -161,15 +173,47 @@ void ferOBBDel(fer_obb_t *obb);
 /**
  * Returns true if given obbs are disjoint, relative rotation and
  * translation are also given.
+ *
+ * Note that no recursion is performed, only OBBs itself are checked for
+ * collision.
  */
 int ferOBBDisjoint(const fer_obb_t *obb1,
                    const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                    const fer_obb_t *obb2,
                    const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
+/**
+ * Recursively test obb1 and obb2 if they overlap. List {pairs} is filled
+ * with fer_obb_pair_t items that contain leaf OBBs that overlap.
+ * Returns number of overlaping pairs found.
+ *
+ * Note that members of list {pairs} are allocated on heap and caller is
+ * responsible to free the memory. Best practice would be to use function
+ * ferOBBFreePairs() for that.
+ * Also note that list {pairs} will be only updated, i.e., list won't be
+ * cleared, only new member could be added.
+ */
+int ferOBBOverlapPairs(const fer_obb_t *obb1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_obb_t *obb2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                       fer_list_t *pairs);
+
+/**
+ * Frees all fer_obb_pair_t members stored in given list.
+ */
+void ferOBBFreePairs(fer_list_t *pairs);
 
 void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name);
+void ferOBBDumpSVT2(const fer_obb_t *obb,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    FILE *out, const char *name);
 void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name);
+void ferOBBTriMeshDumpSVT(const fer_obb_trimesh_t *t, FILE *out,
+                          const char *name, int edges);
+void ferOBBTriMeshDumpSVT2(const fer_obb_trimesh_t *t,
+                           const fer_mat3_t *rot, const fer_vec3_t *tr,
+                           FILE *out, const char *name, int edges);
 
 #ifdef __cplusplus
 }

@@ -144,6 +144,27 @@ static void pTree(fer_obb_t *root, int id)
     }
 }
 
+static void pPairs(fer_list_t *pairs,
+                   const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                   const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    char name[120];
+    int i;
+    fer_list_t *item;
+    fer_obb_pair_t *p;
+
+    i = 0;
+    FER_LIST_FOR_EACH(pairs, item){
+        p = fer_container_of(item, fer_obb_pair_t, list);
+
+        sprintf(name, "pair: %02d - 1", i);
+        ferOBBDumpSVT2(p->obb1, rot1, tr1, stdout, name);
+        sprintf(name, "pair: %02d - 2", i);
+        ferOBBDumpSVT2(p->obb2, rot2, tr2, stdout, name);
+        i++;
+    }
+}
+
 
 TEST(obbTriMesh)
 {
@@ -180,4 +201,82 @@ TEST(obbTriMesh)
     ferOBBDel(obb);
     ferTimerStop(&t);
     //fprintf(stderr, "2: %lu\n", ferTimerElapsedInUs(&t));
+}
+
+TEST(obbPairs1)
+{
+    fer_vec3_t pts1[6] = { FER_VEC3_STATIC(0., 0., 0.),
+                           FER_VEC3_STATIC(0.5, 0., 0.),
+                           FER_VEC3_STATIC(0.4, 0.7, .0),
+                           FER_VEC3_STATIC(0.1, -0.1, 0.5),
+                           FER_VEC3_STATIC(0.5, 0., 0.5),
+                           FER_VEC3_STATIC(0.5, 0.5, 0.5),
+    };
+    unsigned int ids1[8 * 3] = { 0, 1, 2,
+                                 0, 1, 3,
+                                 1, 3, 4,
+                                 1, 2, 4,
+                                 2, 4, 5,
+                                 0, 3, 5,
+                                 0, 5, 2,
+                                 3, 4, 5 };
+    size_t len1 = 8;
+    fer_vec3_t pts2[5] = { FER_VEC3_STATIC(0., 0., 0.),
+                           FER_VEC3_STATIC(0.5, 0.1, 0.),
+                           FER_VEC3_STATIC(0.3, 0.5, .0),
+                           FER_VEC3_STATIC(-0.1, 0.6, 0.),
+                           FER_VEC3_STATIC(0.2, 0.2, 0.5)
+    };
+    unsigned int ids2[6 * 3] = { 0, 1, 4,
+                                 1, 2, 4,
+                                 2, 3, 4,
+                                 3, 0, 4,
+                                 0, 1, 3,
+                                 1, 3, 2 };
+    size_t len2 = 6;
+    fer_obb_t *obb1, *obb2;
+    fer_vec3_t tr1, tr2;
+    fer_mat3_t rot1, rot2;
+    fer_list_t pairs;
+    int ret;
+
+
+    obb1 = ferOBBNewTriMesh(pts1, ids1, len1, 0);
+    obb2 = ferOBBNewTriMesh(pts2, ids2, len2, 0);
+
+    //pTree(obb1, 0);
+    //pTree(obb2, 0);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, .45, 0.1, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferListInit(&pairs);
+    ret = ferOBBOverlapPairs(obb1, &rot1, &tr1, obb2, &rot2, &tr2, &pairs);
+    fprintf(stderr, "# 1. Pairs: %d\n", ret);
+    //ferOBBTriMeshDumpSVT2((fer_obb_trimesh_t *)obb1->pri, &rot1, &tr1, stdout, "obb1", 1);
+    //ferOBBTriMeshDumpSVT2((fer_obb_trimesh_t *)obb2->pri, &rot2, &tr2, stdout, "obb2", 1);
+    if (ret > 0){
+        //pPairs(&pairs, &rot1, &tr1, &rot2, &tr2);
+        ferOBBFreePairs(&pairs);
+    }
+
+
+    ferVec3Set(&tr1, 0., 0.2, 0.4);
+    ferMat3SetRot3D(&rot1, -M_PI_4, 0., M_PI_4);
+    ferVec3Set(&tr2, -.4, 0.1, .5);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferListInit(&pairs);
+    ret = ferOBBOverlapPairs(obb1, &rot1, &tr1, obb2, &rot2, &tr2, &pairs);
+    fprintf(stderr, "# 2. Pairs: %d\n", ret);
+    ferOBBTriMeshDumpSVT2((fer_obb_trimesh_t *)obb1->pri, &rot1, &tr1, stdout, "obb1", 1);
+    ferOBBTriMeshDumpSVT2((fer_obb_trimesh_t *)obb2->pri, &rot2, &tr2, stdout, "obb2", 1);
+    if (ret > 0){
+        //pPairs(&pairs, &rot1, &tr1, &rot2, &tr2);
+        ferOBBFreePairs(&pairs);
+    }
+
+    ferOBBDel(obb1);
+    ferOBBDel(obb2);
 }

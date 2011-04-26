@@ -358,38 +358,29 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
 {
     // See 4.4 of "Orange" book
 
-    fer_vec3_t tr;
-    fer_mat3_t rot, abs_rot, rot1, rot2;
+    fer_vec3_t tr, trtmp;;
+    fer_mat3_t A1t, rot;
+    fer_mat3_t abs_rot;
     fer_real_t tl, ra, rb;
     int i;
 
-    // first compute translation from obb1 to obb2 in global coordinates
-    ferVec3Add2(&tr, &obb2->center, tr2);
-    ferVec3Sub(&tr, &obb1->center);
-    ferVec3Sub(&tr, tr1);
-
-    // and transform it to a's coordinate frame
-    ferVec3Set(&tr, ferVec3Dot(&tr, &obb1->axis[0]),
-                    ferVec3Dot(&tr, &obb1->axis[1]),
-                    ferVec3Dot(&tr, &obb1->axis[2]));
-
-
-    // compute absolute rotation of obb1 and obb2
-    ferMat3MulColVecs2(&rot1, _rot1,
+    // compute rotation in obb1's frame
+    ferMat3MulColVecs2(&A1t, _rot1,
                        &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
-    ferMat3MulColVecs2(&rot2, _rot2,
+    ferMat3MulColVecs2(&rot, _rot2,
                        &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+    ferMat3MulLeftTrans(&rot, &A1t);
 
-    // compute rotation matrix expressing b in a's coordinate frame
-    ferMat3Trans(&rot1);
-    ferMat3Mul2(&rot, &rot1, &rot2);
-    /*
-    {
-        DBG("rot[0,]: %f %f %f", rot.f[0], rot.f[1], rot.f[2]);
-        DBG("rot[1,]: %f %f %f", rot.f[4], rot.f[5], rot.f[6]);
-        DBG("rot[2,]: %f %f %f", rot.f[8], rot.f[9], rot.f[10]);
-    }
-    */
+    // compute translation in obb1's frame
+    ferMat3MulVec(&trtmp, _rot2, &obb2->center);
+    ferMat3MulVec(&tr, _rot1, &obb1->center);
+    ferVec3Add(&trtmp, tr2);
+    ferVec3Sub(&trtmp, &tr);
+    ferVec3Sub(&trtmp, tr1);
+    ferVec3Set(&tr, ferMat3DotCol(&A1t, 0, &trtmp),
+                    ferMat3DotCol(&A1t, 1, &trtmp),
+                    ferMat3DotCol(&A1t, 2, &trtmp));
+
 
     // precompute absolute values of rot
     ferMat3Abs2(&abs_rot, &rot);
@@ -399,7 +390,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
         tl = FER_FABS(ferVec3Get(&tr, i));
         ra = ferVec3Get(&obb1->half_extents, i);
         rb = ferMat3DotRow(&abs_rot, i, &obb2->half_extents);
-        //DBG("tl, ra, rb %f %f %f", tl, ra, rb);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
 
         if (tl > ra + rb)
             return i + 1;
@@ -410,6 +401,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
         tl = FER_FABS(ferMat3DotCol(&rot, i, &tr));
         ra = ferMat3DotCol(&abs_rot, i, &obb1->half_extents);
         rb = ferVec3Get(&obb2->half_extents, i);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
 
         if (tl > ra + rb)
             return i + 4;
@@ -423,6 +415,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 0);
     rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 0, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 0, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 7;
 
@@ -434,6 +427,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 1);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 0, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 0, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 8;
 
@@ -445,6 +439,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 2);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 0, 1);
     rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 0, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 9;
 
@@ -457,6 +452,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 0);
     rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 1, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 1, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 10;
 
@@ -468,6 +464,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 1);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 1, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 1, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 11;
 
@@ -479,6 +476,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 2);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 1, 1);
     rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 1, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 12;
 
@@ -491,6 +489,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 0);
     rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 2, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 2, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 13;
 
@@ -502,6 +501,7 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 1);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 2, 2);
     rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 2, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 14;
 
@@ -513,13 +513,93 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 2);
     rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 2, 1);
     rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 2, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
     if (tl > ra + rb)
         return 15;
 
+    //DBG2("0");
     return 0;
 }
 
+
+int ferOBBOverlapPairs(const fer_obb_t *obb1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_obb_t *obb2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                       fer_list_t *pairs)
+{
+    fer_obb_pair_t *pair;
+    fer_list_t *item1, *item2;
+    fer_obb_t *o1, *o2;
+    int ret;
+
+    // check if bounding boxes are disjoint
+    if (ferOBBDisjoint(obb1, rot1, tr1, obb2, rot2, tr2))
+        return 0;
+
+    ret = 0;
+    if (ferListEmpty(&obb1->obbs) && ferListEmpty(&obb2->obbs)){
+        // we have leaf OBBs - create pair
+        pair = FER_ALLOC(fer_obb_pair_t);
+        pair->obb1 = (fer_obb_t *)obb1;
+        pair->obb2 = (fer_obb_t *)obb2;
+        ferListAppend(pairs, &pair->list);
+        ret = 1;
+    }else if (ferListEmpty(&obb1->obbs)){
+        // obb1 is leaf OBB, obb2 is not
+        FER_LIST_FOR_EACH(&obb2->obbs, item2){
+            o2 = fer_container_of(item2, fer_obb_t, list);
+            ret += ferOBBOverlapPairs(obb1, rot1, tr1, o2, rot2, tr2, pairs);
+        }
+    }else if (ferListEmpty(&obb2->obbs)){
+        // obb2 is leaf OBB, obb1 is not
+        FER_LIST_FOR_EACH(&obb1->obbs, item1){
+            o1 = fer_container_of(item1, fer_obb_t, list);
+            ret += ferOBBOverlapPairs(o1, rot1, tr1, obb2, rot2, tr2, pairs);
+        }
+    }else{
+        // obb1 nor obb2 are leaf OBBs
+        FER_LIST_FOR_EACH(&obb1->obbs, item1){
+            o1 = fer_container_of(item1, fer_obb_t, list);
+
+            FER_LIST_FOR_EACH(&obb2->obbs, item2){
+                o2 = fer_container_of(item2, fer_obb_t, list);
+
+                ret += ferOBBOverlapPairs(o1, rot1, tr1, o2, rot2, tr2, pairs);
+            }
+        }
+    }
+
+    return ret;
+}
+
+void ferOBBFreePairs(fer_list_t *pairs)
+{
+    fer_list_t *item;
+    fer_obb_pair_t *pair;
+
+    while (!ferListEmpty(pairs)){
+        item = ferListNext(pairs);
+        ferListDel(item);
+        pair = FER_LIST_ENTRY(item, fer_obb_pair_t, list);
+        free(pair);
+    }
+}
+
+
 void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
+{
+    fer_mat3_t rot;
+    fer_vec3_t tr;
+
+    ferMat3SetRot3D(&rot, 0., 0., 0.);
+    ferVec3Set(&tr, 0., 0., 0.);
+    ferOBBDumpSVT2(obb, &rot, &tr, out, name);
+}
+
+void ferOBBDumpSVT2(const fer_obb_t *obb,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    FILE *out, const char *name)
 {
     fer_vec3_t v, w;
 
@@ -543,6 +623,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -553,6 +635,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], -ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -563,6 +647,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -573,6 +659,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], -ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -583,6 +671,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -593,6 +683,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], -ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -603,6 +695,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -613,6 +707,8 @@ void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &obb->axis[2], -ferVec3Z(&obb->half_extents));
     ferVec3Add(&v, &w);
+    ferMat3MulVec(&w, rot, &v);
+    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -650,7 +746,89 @@ void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
     fprintf(out, "----\n");
 }
 
+void ferOBBTriMeshDumpSVT(const fer_obb_trimesh_t *t, FILE *out,
+                          const char *name, int edges)
+{
+    size_t i, numpts;
 
+    fprintf(out, "----\n");
+
+    if (name){
+        fprintf(out, "Name: %s\n", name);
+    }
+
+    numpts = 0;
+    for (i = 0; i < 3 * t->len; i++){
+        if (t->ids[i] + 1 > numpts)
+            numpts = t->ids[i] + 1;
+    }
+
+    fprintf(out, "Points:\n");
+    for (i = 0; i < numpts; i++){
+        ferVec3Print(&t->pts[i], out);
+        fprintf(out, "\n");
+    }
+
+    if (edges){
+        fprintf(out, "Edges:\n");
+        for (i = 0; i < t->len; i++){
+            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 1]);
+            fprintf(out, "%u %u\n", t->ids[3 * i + 1], t->ids[3 * i + 2]);
+            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 2]);
+        }
+    }
+
+    fprintf(out, "Faces:\n");
+    for (i = 0; i < t->len; i++){
+        fprintf(out, "%u %u %u\n", t->ids[3 * i], t->ids[3 * i + 1], t->ids[3 * i + 2]);
+    }
+
+    fprintf(out, "----\n");
+}
+
+void ferOBBTriMeshDumpSVT2(const fer_obb_trimesh_t *t,
+                           const fer_mat3_t *rot, const fer_vec3_t *tr,
+                           FILE *out, const char *name, int edges)
+{
+    size_t i, numpts;
+    fer_vec3_t v;
+
+    fprintf(out, "----\n");
+
+    if (name){
+        fprintf(out, "Name: %s\n", name);
+    }
+
+    numpts = 0;
+    for (i = 0; i < 3 * t->len; i++){
+        if (t->ids[i] + 1 > numpts)
+            numpts = t->ids[i] + 1;
+    }
+
+    fprintf(out, "Points:\n");
+    for (i = 0; i < numpts; i++){
+        ferMat3MulVec(&v, rot, &t->pts[i]);
+        ferVec3Add(&v, tr);
+        ferVec3Print(&v, out);
+        fprintf(out, "\n");
+    }
+
+    if (edges){
+        fprintf(out, "Edges:\n");
+        for (i = 0; i < t->len; i++){
+            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 1]);
+            fprintf(out, "%u %u\n", t->ids[3 * i + 1], t->ids[3 * i + 2]);
+            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 2]);
+        }
+    }
+
+    fprintf(out, "Faces:\n");
+    for (i = 0; i < t->len; i++){
+        fprintf(out, "%u %u %u\n", t->ids[3 * i], t->ids[3 * i + 1], t->ids[3 * i + 2]);
+    }
+
+    fprintf(out, "----\n");
+}
 
 
 
