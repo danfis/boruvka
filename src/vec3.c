@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <fermat/alloc.h>
 #include <fermat/vec3.h>
+#include <fermat/vec2.h>
 #include <fermat/dbg.h>
 
 static FER_VEC3(__fer_vec3_origin, FER_ZERO, FER_ZERO, FER_ZERO);
@@ -398,4 +399,210 @@ fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
 
     area = ferVec3Len(&babc);
     return area;
+}
+
+
+
+
+
+#define __overlapMinMax(p1, q1, r1, p2, q2, r2) \
+    ferVec3Sub2(&v1, p2, q1); \
+    ferVec3Sub2(&v2, p1, q1); \
+    ferVec3Cross(&n1, &v1, &v2); \
+    \
+    ferVec3Sub2(&v1, q2, q1); \
+    if (ferVec3Dot(&v1, &n1) > FER_ZERO) \
+        return 0; \
+    \
+    ferVec3Sub2(&v1, p2, p1); \
+    ferVec3Sub2(&v2, r1, p1); \
+    ferVec3Cross(&n1, &v1, &v2); \
+    \
+    ferVec3Sub2(&v1, r2, p1); \
+    if (ferVec3Dot(&v1, &n1) > FER_ZERO) \
+        return 0; \
+    \
+    return 1;
+
+#define __overlapCheck(p1, q1, r1, p2, q2, r2, sp2, sq2, sr2) \
+    if (ferIsZero(sp2)){ \
+        if (ferIsZero(sq2)){ \
+            if (ferIsZero(sr2)){ \
+                return __overlapCoplanar(p1, q1, r1, p2, q2, r2, &n1, &n2); \
+            }else if (sr2 > FER_ZERO){ \
+                __overlapMinMax(p1, q1, r1, r2, p2, q2) \
+            }else{ /* sr2 < FER_ZERO */ \
+                __overlapMinMax(p1, r1, q1, r2, p2, q2) \
+            } \
+        }else if (sq2 < FER_ZERO){ \
+            if (ferIsZero(sr2) || sr2 > FER_ZERO){ \
+                __overlapMinMax(p1, r1, q1, q2, r2, p2) \
+            }else{ \
+                __overlapMinMax(p1, q1, r1, p2, q2, r2) \
+            } \
+        }else{ /* sq2 > FER_ZERO */ \
+            if (sr2 > FER_ZERO){ \
+                __overlapMinMax(p1, r1, q1, p2, q2, r2) \
+            }else{ \
+                __overlapMinMax(p1, q1, r1, q2, r2, p2) \
+            } \
+        } \
+    }else if (sp2 > FER_ZERO){ \
+        if (sq2 > FER_ZERO){ \
+            __overlapMinMax(p1, r1, q1, r2, p2, q2) \
+        }else if (sr2 > FER_ZERO){ \
+            __overlapMinMax(p1, r1, q1, q2, r2, p2) \
+        }else{ \
+            __overlapMinMax(p1, q1, r1, p2, q2, r2) \
+        } \
+    }else{ /* sp2 < FER_ZERO */ \
+        if (sq2 < FER_ZERO){ \
+            __overlapMinMax(p1, q1, r1, r2, p2, q2) \
+        }else if (sr2 < FER_ZERO){ \
+            __overlapMinMax(p1, q1, r1, q2, r2, p2) \
+        }else{ \
+            __overlapMinMax(p1, r1, q1, p2, q2, r2) \
+        } \
+    }
+
+
+_fer_inline int __overlapCoplanar(const fer_vec3_t *_p1,
+                                  const fer_vec3_t *_q1,
+                                  const fer_vec3_t *_r1,
+                                  const fer_vec3_t *_p2,
+                                  const fer_vec3_t *_q2,
+                                  const fer_vec3_t *_r2,
+                                  const fer_vec3_t *n1,
+                                  const fer_vec3_t *n2)
+{
+    fer_vec2_t p1, q1, r1;
+    fer_vec2_t p2, q2, r2;
+    fer_real_t n_x, n_y, n_z;
+
+    n_x = FER_FABS(ferVec3X(n1));
+    n_y = FER_FABS(ferVec3Y(n1));
+    n_z = FER_FABS(ferVec3Z(n1));
+
+    // Projection of the triangles in 3D onto 2D such that the area of
+    // the projection is maximized.
+
+    if (n_x > n_z && n_x >= n_y){
+        // Project onto plane YZ
+        ferVec2Set(&p1, ferVec3Z(_q1), ferVec3Y(_q1));
+        ferVec2Set(&q1, ferVec3Z(_p1), ferVec3Y(_p1));
+        ferVec2Set(&r1, ferVec3Z(_r1), ferVec3Y(_r1));
+
+        ferVec2Set(&p2, ferVec3Z(_q2), ferVec3Y(_q2));
+        ferVec2Set(&q2, ferVec3Z(_p2), ferVec3Y(_p2));
+        ferVec2Set(&r2, ferVec3Z(_r2), ferVec3Y(_r2));
+    }else if (n_y > n_z && n_y >= n_x){
+        // Project onto plane XZ
+        ferVec2Set(&p1, ferVec3X(_q1), ferVec3Z(_q1));
+        ferVec2Set(&q1, ferVec3X(_p1), ferVec3Z(_p1));
+        ferVec2Set(&r1, ferVec3X(_r1), ferVec3Z(_r1));
+
+        ferVec2Set(&p2, ferVec3X(_q2), ferVec3Z(_q2));
+        ferVec2Set(&q2, ferVec3X(_p2), ferVec3Z(_p2));
+        ferVec2Set(&r2, ferVec3X(_r2), ferVec3Z(_r2));
+    }else {
+        // Project onto plane XY
+        ferVec2Set(&p1, ferVec3X(_q1), ferVec3Y(_q1));
+        ferVec2Set(&q1, ferVec3X(_p1), ferVec3Y(_p1));
+        ferVec2Set(&r1, ferVec3X(_r1), ferVec3Y(_r1));
+
+        ferVec2Set(&p2, ferVec3X(_q2), ferVec3Y(_q2));
+        ferVec2Set(&q2, ferVec3X(_p2), ferVec3Y(_p2));
+        ferVec2Set(&r2, ferVec3X(_r2), ferVec3Y(_r2));
+    }
+
+    return ferVec2TriTriOverlap(&p1, &q1, &r1,
+                                &p2, &q2, &r2);
+}
+
+int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
+                         const fer_vec3_t *r1,
+                         const fer_vec3_t *p2, const fer_vec3_t *q2,
+                         const fer_vec3_t *r2)
+{
+    fer_vec3_t n1, n2, v1, v2;
+    fer_real_t sp1, sq1, sr1;
+    fer_real_t sp2, sq2, sr2;
+
+    // compute signs of first triangle to second triangle
+    ferVec3Sub2(&v1, p2, r2);
+    ferVec3Sub2(&v2, q2, r2);
+    ferVec3Cross(&n2, &v1, &v2);
+
+    ferVec3Sub2(&v1, p1, r2);
+    sp1 = ferVec3Dot(&v1, &n2);
+    ferVec3Sub2(&v1, q1, r2);
+    sq1 = ferVec3Dot(&v1, &n2);
+    ferVec3Sub2(&v1, r1, r2);
+    sr1 = ferVec3Dot(&v1, &n2);
+
+    // check if all points from tri1 aren't on same side
+    if (sp1 * sq1 > FER_ZERO
+            && sp1 * sr1 > FER_ZERO)
+        return 0;
+
+
+    // compute signs for second triangle
+    ferVec3Sub2(&v1, q1, p1);
+    ferVec3Sub2(&v2, r1, p1);
+    ferVec3Cross(&n1, &v1, &v2);
+
+    ferVec3Sub2(&v1, p2, r1);
+    sp2 = ferVec3Dot(&v1, &n1);
+    ferVec3Sub2(&v1, q2, r1);
+    sq2 = ferVec3Dot(&v1, &n1);
+    ferVec3Sub2(&v1, r2, r1);
+    sr2 = ferVec3Dot(&v1, &n1);
+
+    // check if all tri2s' points aren't on same side
+    if (sp2 * sq2 > FER_ZERO
+            && sp2 * sr2 > FER_ZERO)
+        return 0;
+
+
+    if (ferIsZero(sp1)){
+        if (ferIsZero(sq1)){
+            if (ferIsZero(sr1)){
+                return __overlapCoplanar(p1, q1, r1, p2, q2, r2, &n1, &n2);
+            }else if (sr1 > FER_ZERO){
+                __overlapCheck(r1,p1,q1,p2,q2,r2,sp2,sq2,sr2)
+            }else if (sr1 < FER_ZERO){
+                __overlapCheck(r1,p1,q1,p2,r2,q2,sp2,sr2,sq2)
+            }
+        }else if (sq1 < FER_ZERO){
+            if (ferIsZero(sr1) || sr1 > FER_ZERO){
+                __overlapCheck(q1,r1,p1,p2,r2,q2,sp2,sr2,sq2)
+            }else{
+                __overlapCheck(p1,q1,r1,p2,q2,r2,sp2,sq2,sr2)
+            }
+        }else{ // sq1 > FER_ZERO
+            if (sr1 > FER_ZERO){
+                __overlapCheck(p1,q1,r1,p2,r2,q2,sp2,sr2,sq2)
+            }else{
+                __overlapCheck(q1,r1,p1,p2,q2,r2,sp2,sq2,sr2)
+            }
+        }
+    }else if (sp1 > FER_ZERO){
+        if (sq1 > FER_ZERO){
+            __overlapCheck(r1, p1, q1, p2, r2, q2, sp2, sr2, sq2)
+        }else if (sr1 > FER_ZERO){
+            __overlapCheck(q1,r1,p1,p2,r2,q2,sp2,sr2,sq2)
+        }else{
+            __overlapCheck(p1,q1,r1,p2,q2,r2,sp2,sq2,sr2)
+        }
+    }else{ // sp1 < FER_ZERO
+        if (sq1 < FER_ZERO){
+            __overlapCheck(r1,p1,q1,p2,q2,r2,sp2,sq2,sr2)
+        }else if (sr1 < FER_ZERO){
+            __overlapCheck(q1,r1,p1,p2,q2,r2,sp2,sq2,sr2)
+        }else{
+            __overlapCheck(p1,q1,r1,p2,r2,q2,sp2,sr2,sq2)
+        }
+    }
+
+    return 0;
 }

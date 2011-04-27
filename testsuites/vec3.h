@@ -30,6 +30,8 @@ TEST(vec3PointInTri);
 TEST(vec3ProjToPlane);
 TEST(vec3Centroid);
 
+TEST(vec3TriTriOverlap);
+
 TEST_SUITE(TSVec3) {
     TEST_ADD(vec3SetUp),
 
@@ -57,6 +59,8 @@ TEST_SUITE(TSVec3) {
     TEST_ADD(vec3PointInTri),
     TEST_ADD(vec3ProjToPlane),
     TEST_ADD(vec3Centroid),
+
+    TEST_ADD(vec3TriTriOverlap),
 
     TEST_ADD(vec3TearDown),
     TEST_SUITE_CLOSURE

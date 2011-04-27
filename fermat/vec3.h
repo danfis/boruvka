@@ -328,6 +328,17 @@ _fer_inline fer_real_t ferVec3Volume6(const fer_vec3_t *a,
                                       const fer_vec3_t *c,
                                       const fer_vec3_t *d);
 
+
+/**
+ * Returns true if two given triangles (p1, q1, r1) and (p2, q2, r2) are
+ * overlapping.
+ */
+int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
+                         const fer_vec3_t *r1,
+                         const fer_vec3_t *p2, const fer_vec3_t *q2,
+                         const fer_vec3_t *r2);
+
+
 /**** INLINES ****/
 _fer_inline fer_vec3_t *ferVec3Align(void *mem)
 {

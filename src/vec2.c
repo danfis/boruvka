@@ -379,3 +379,24 @@ fer_real_t ferVec2AngleSegsSameDir(const fer_vec2_t *A, const fer_vec2_t *B,
 
     return angle;
 }
+
+
+int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
+                         const fer_vec2_t *r1,
+                         const fer_vec2_t *p2, const fer_vec2_t *q2,
+                         const fer_vec2_t *r2)
+{
+    // TODO: this can be done effeciently
+    if (ferVec2Intersect(p1, q1, p2, q2)
+            || ferVec2Intersect(p1, q1, p2, r2)
+            || ferVec2Intersect(p1, q1, q2, r2)
+            || ferVec2Intersect(p1, r1, p2, q2)
+            || ferVec2Intersect(p1, r1, p2, r2)
+            || ferVec2Intersect(p1, r1, q2, r2)
+            || ferVec2Intersect(q1, r1, p2, q2)
+            || ferVec2Intersect(q1, r1, p2, r2)
+            || ferVec2Intersect(q1, r1, q2, r2))
+        return 1;
+
+    return 0;
+}

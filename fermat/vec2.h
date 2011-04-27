@@ -396,6 +396,13 @@ fer_real_t ferVec2AngleSegsSameDir(const fer_vec2_t *A, const fer_vec2_t *B,
                                    const fer_vec2_t *C, const fer_vec2_t *D);
 
 
+/**
+ * Returns true if given triangles (p1, q1, r1) and (p2, q2, r2) overlap.
+ */
+int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
+                         const fer_vec2_t *r1,
+                         const fer_vec2_t *p2, const fer_vec2_t *q2,
+                         const fer_vec2_t *r2);
 
 /***** INLINES *****/
 _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d)

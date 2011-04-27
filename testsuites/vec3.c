@@ -749,3 +749,61 @@ TEST(vec3Centroid)
     ferVec3Set(&v[4], 1./3., 1./3., 0.);
     assertTrue(ferVec3Eq(&v[3], &v[4]));
 }
+
+
+TEST(vec3TriTriOverlap)
+{
+    fer_vec3_t p1, q1, r1, p2, q2, r2;
+    int res;
+    size_t i;
+
+    ferVec3Set(&p1, 0, 0, 0);
+    ferVec3Set(&q1, 1, 0, 0);
+    ferVec3Set(&r1, 1, 1, 0);
+    ferVec3Set(&p2, 0, 0, 1);
+    ferVec3Set(&q2, 1, 0, 1);
+    ferVec3Set(&r2, 1, 1, 1);
+    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    assertFalse(res);
+
+    ferVec3Set(&p1, 0, 0, 0);
+    ferVec3Set(&q1, 1, 0, 0);
+    ferVec3Set(&r1, 1, 1, 0);
+    ferVec3Set(&p2, 0.1, 0, 0);
+    ferVec3Set(&q2, 1.1, 0, 0);
+    ferVec3Set(&r2, 1.1, 1, 0);
+    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    assertTrue(res);
+
+    ferVec3Set(&p1, 0, 0, 0);
+    ferVec3Set(&q1, 1, 0, 0);
+    ferVec3Set(&r1, 1, 1, 0);
+    ferVec3Set(&p2, 0.5, 0.5, 0.5);
+    ferVec3Set(&q2, 0.5, 0.5, -1);
+    ferVec3Set(&r2, -1, 0, 0);
+    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    assertTrue(res);
+
+    printf("# ---- tri tri overlap ----\n");
+    for (i = 0; i < vecs_len / 100; i += 6){
+        res = ferVec3TriTriOverlap(&vecs[i + 0], &vecs[i + 1], &vecs[i + 2],
+                                   &vecs[i + 3], &vecs[i + 4], &vecs[i + 5]);
+        printf("# res[%04u]: %d\n", i, res);
+        /*
+        char name[120];
+        sprintf(name, "v: %d", res);
+        printf("--\nName: [%04u] %s\n", i, name);
+        printf("Points:\n");
+        ferVec3Print(&vecs[i + 0], stdout); printf("\n");
+        ferVec3Print(&vecs[i + 1], stdout); printf("\n");
+        ferVec3Print(&vecs[i + 2], stdout); printf("\n");
+        printf("Edges:\n0 1\n1 2\n2 0\n--\n");
+        printf("---\nPoints:\n");
+        ferVec3Print(&vecs[i + 3], stdout); printf("\n");
+        ferVec3Print(&vecs[i + 4], stdout); printf("\n");
+        ferVec3Print(&vecs[i + 5], stdout); printf("\n");
+        printf("Edges:\n0 1\n1 2\n2 0\n--\n");
+        */
+    }
+    printf("# ---- tri tri overlap end ----\n\n");
+}
