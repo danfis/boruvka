@@ -59,6 +59,11 @@ _fer_inline void ferCDGeomSetTr(fer_cd_geom_t *g, const fer_vec3_t *tr);
  */
 _fer_inline void ferCDGeomSetRot(fer_cd_geom_t *g, const fer_mat3_t *rot);
 
+/**
+ * Returns true if given geoms do collide.
+ */
+int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
+
 
 
 /**
@@ -66,13 +71,6 @@ _fer_inline void ferCDGeomSetRot(fer_cd_geom_t *g, const fer_mat3_t *rot);
  */
 void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
                          const unsigned int *ids, size_t len);
-
-
-
-/**
- * Returns true if given geoms do collide.
- */
-int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 
 
 
