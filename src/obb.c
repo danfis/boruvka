@@ -72,6 +72,34 @@ void ferOBBTriDel(fer_obb_tri_t *tri)
     free(tri);
 }
 
+
+int ferOBBTriTriCollide(const fer_obb_tri_t *tri1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_obb_tri_t *tri2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t p1, q1, r1, p2, q2, r2;
+
+    ferMat3MulVec(&p1, rot1, tri1->p0);
+    ferVec3Add(&p1, tr1);
+    ferMat3MulVec(&q1, rot1, tri1->p1);
+    ferVec3Add(&q1, tr1);
+    ferMat3MulVec(&r1, rot1, tri1->p2);
+    ferVec3Add(&r1, tr1);
+
+    ferMat3MulVec(&p2, rot2, tri2->p0);
+    ferVec3Add(&p2, tr2);
+    ferMat3MulVec(&q2, rot2, tri2->p1);
+    ferVec3Add(&q2, tr2);
+    ferMat3MulVec(&r2, rot2, tri2->p2);
+    ferVec3Add(&r2, tr2);
+
+    return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+}
+
+
+
+
 fer_obb_trimesh_t *ferOBBTriMeshNew(const fer_vec3_t *pts,
                                     const unsigned int *ids, size_t len)
 {

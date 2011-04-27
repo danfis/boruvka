@@ -59,6 +59,14 @@ fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
  */
 void ferOBBTriDel(fer_obb_tri_t *tri);
 
+/**
+ * Returns true if two given triangles collide.
+ */
+int ferOBBTriTriCollide(const fer_obb_tri_t *tri1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_obb_tri_t *tri2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
 
 
 /**
