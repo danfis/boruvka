@@ -1,4 +1,4 @@
-/**
+/***
  * fermat
  * -------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
@@ -14,139 +14,57 @@
  *  See the License for more information.
  */
 
-#include <fermat/obb.h>
+#include <fermat/cd.h>
 #include <fermat/chull3.h>
-#include <fermat/quat.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+/** Creates new bounding box from trimesh's triangle.  */
+static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
+                                           const fer_vec3_t *p2,
+                                           const fer_vec3_t *p3);
+
+
 /** Finds min/max values to given axis */
-static void ferOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
-                              fer_real_t *min, fer_real_t *max);
+static void ferCDOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
+                                fer_real_t *min, fer_real_t *max);
 
 
-/** Merge two given OBBs */
-static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
-                              fer_chull3_t *hull1, fer_chull3_t *hull2,
-                              fer_chull3_t **hull,
-                              int method, int num_rot);
+/** Merge two given CDOBBs */
+static fer_cd_obb_t *ferCDOBBMerge(fer_cd_obb_t *obb1, fer_cd_obb_t *obb2,
+                                   fer_chull3_t *hull1, fer_chull3_t *hull2,
+                                   fer_chull3_t **hull,
+                                   int method, int num_rot);
 
 /** Set up (by "slow" method) properties of obb */
-static void ferOBBMergeSlow(fer_obb_t *obb, fer_chull3_t *hull, int num_rot);
+static void ferCDOBBMergeSlow(fer_cd_obb_t *obb, fer_chull3_t *hull, int num_rot);
 /** Finds out best fitting axis */
-static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
-                                fer_real_t *min_h, fer_real_t *max_h,
-                                int num_rot);
+static void ferCDOBBMergeSlowBest(fer_cd_obb_t *obb, fer_chull3_t *hull,
+                                  fer_real_t *min_h, fer_real_t *max_h,
+                                  int num_rot);
 /** Compute convex hull of whole obb subtree */
-static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull);
+static void ferCDOBBCHull(fer_cd_obb_t *obb, fer_chull3_t *hull);
 /** Updates hull with points from hull2 */
-static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2);
+static void ferCDOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2);
 
-/** Merge two given OBBs */
-static void ferOBBMergeFast(fer_obb_t *obb, fer_chull3_t *hull);
+/** Merge two given CDOBBs */
+static void ferCDOBBMergeFast(fer_cd_obb_t *obb, fer_chull3_t *hull);
 /** Find out mean value */
-static void ferOBBMergeFastMean(fer_chull3_t *hull, fer_vec3_t *mean);
+static void ferCDOBBMergeFastMean(fer_chull3_t *hull, fer_vec3_t *mean);
 /** Fills covariance matrix */
-static void ferOBBMergeFastCov(fer_chull3_t *hull, const fer_vec3_t *mean,
-                               fer_mat3_t *cov);
+static void ferCDOBBMergeFastCov(fer_chull3_t *hull, const fer_vec3_t *mean,
+                                 fer_mat3_t *cov);
 
 
 
-fer_obb_tri_t *ferOBBTriNew(const fer_vec3_t *p1, const fer_vec3_t *p2,
-                            const fer_vec3_t *p3)
+fer_cd_obb_t *ferCDOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
+                          const fer_vec3_t *a2, const fer_vec3_t *a3,
+                          const fer_vec3_t *half_extents,
+                          fer_cd_shape_t *shape)
 {
-    fer_obb_tri_t *tri;
+    fer_cd_obb_t *obb;
 
-    tri = FER_ALLOC(fer_obb_tri_t);
-
-    tri->pri.type = FER_OBB_PRI_TRI;
-    tri->p0 = p1;
-    tri->p1 = p2;
-    tri->p2 = p3;
-
-    return tri;
-}
-
-void ferOBBTriDel(fer_obb_tri_t *tri)
-{
-    free(tri);
-}
-
-
-int ferOBBTriTriCollide(const fer_obb_tri_t *tri1,
-                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                        const fer_obb_tri_t *tri2,
-                        const fer_mat3_t *rot2, const fer_vec3_t *tr2)
-{
-    fer_vec3_t p1, q1, r1, p2, q2, r2;
-
-    ferMat3MulVec(&p1, rot1, tri1->p0);
-    ferVec3Add(&p1, tr1);
-    ferMat3MulVec(&q1, rot1, tri1->p1);
-    ferVec3Add(&q1, tr1);
-    ferMat3MulVec(&r1, rot1, tri1->p2);
-    ferVec3Add(&r1, tr1);
-
-    ferMat3MulVec(&p2, rot2, tri2->p0);
-    ferVec3Add(&p2, tr2);
-    ferMat3MulVec(&q2, rot2, tri2->p1);
-    ferVec3Add(&q2, tr2);
-    ferMat3MulVec(&r2, rot2, tri2->p2);
-    ferVec3Add(&r2, tr2);
-
-    return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
-}
-
-
-
-
-fer_obb_trimesh_t *ferOBBTriMeshNew(const fer_vec3_t *pts,
-                                    const unsigned int *ids, size_t len)
-{
-    fer_obb_trimesh_t *t;
-    size_t i, ptslen;
-
-    t = FER_ALLOC(fer_obb_trimesh_t);
-
-    t->pri.type = FER_OBB_PRI_TRIMESH;
-
-    ptslen = 0;
-    for (i = 0; i < 3 * len; i++){
-        if (ids[i] + 1 > ptslen)
-            ptslen = ids[i] + 1;
-    }
-
-    t->pts = ferVec3ArrNew(ptslen);
-    t->ids = FER_ALLOC_ARR(unsigned int, len * 3);
-    t->len = len;
-
-    for (i = 0; i < ptslen; i++){
-        ferVec3Copy(t->pts + i, pts + i);
-    }
-    for (i = 0; i < 3 * len; i++){
-        t->ids[i] = ids[i];
-    }
-
-    return t;
-}
-
-void ferOBBTriMeshDel(fer_obb_trimesh_t *t)
-{
-    free(t->pts);
-    free(t->ids);
-    free(t);
-}
-
-
-
-fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
-                     const fer_vec3_t *a2, const fer_vec3_t *a3,
-                     const fer_vec3_t *half_extents,
-                     fer_obb_pri_t *pri)
-{
-    fer_obb_t *obb;
-
-    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
+    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
 
     ferVec3Copy(&obb->center, c);
     ferVec3Copy(&obb->axis[0], a1);
@@ -154,7 +72,7 @@ fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
     ferVec3Copy(&obb->axis[2], a3);
     ferVec3Copy(&obb->half_extents, half_extents);
 
-    obb->pri = pri;
+    obb->shape = shape;
 
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
@@ -162,28 +80,20 @@ fer_obb_t *ferOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
     return obb;
 }
 
-/*
-fer_obb_t *ferOBBNewPri(fer_obb_pri_t *pri)
+static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
+                                           const fer_vec3_t *p2,
+                                           const fer_vec3_t *p3)
 {
-    if (pri->type == FER_OBB_PRI_TRI)
-        return ferOBBNewTri((fer_obb_tri_t *)pri);
-    return NULL;
-}
-*/
-
-fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
-                        const fer_vec3_t *p3)
-{
-    fer_obb_tri_t *tri;
-    fer_obb_t *obb;
+    fer_cd_trimesh_tri_t *tri;
+    fer_cd_obb_t *obb;
     fer_vec3_t e01, e02, e12; // triangle edges
     fer_vec3_t v;
     fer_real_t d01, d02, d12;
     fer_real_t min[3], max[3], m;
     int i;
 
-    tri = ferOBBTriNew(p1, p2, p3);
-    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
+    tri = ferCDTriMeshTriNew(p1, p2, p3);
+    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
 
     // 1. compute triangle edges
     ferVec3Sub2(&e01, tri->p1, tri->p0);
@@ -251,7 +161,7 @@ fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
                                    (max[2] - min[2]) * FER_REAL(0.5));
 
 
-    obb->pri = (fer_obb_pri_t *)tri;
+    obb->shape = (fer_cd_shape_t *)tri;
 
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
@@ -261,14 +171,14 @@ fer_obb_t *ferOBBNewTri(const fer_vec3_t *p1, const fer_vec3_t *p2,
 
 
 
-fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
-                            const unsigned *ids, size_t len,
-                            int flags)
+fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
+                                 const unsigned *ids, size_t len,
+                                 int flags)
 {
     int method, num_rot;
-    fer_obb_trimesh_t *trimesh;
-    fer_obb_t **obbs;
-    fer_obb_t *root;
+    fer_cd_trimesh_t *trimesh;
+    fer_cd_obb_t **obbs;
+    fer_cd_obb_t *root;
     fer_chull3_t **hulls;
     fer_chull3_t *hull;
     size_t i, num_obbs;
@@ -283,15 +193,15 @@ fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
         num_rot = 20;
 
     // create trimesh and root obb
-    trimesh = ferOBBTriMeshNew(pts, ids, len);
+    trimesh = ferCDTriMeshNew(pts, ids, len);
 
     // create obb for each triangle
-    obbs = FER_ALLOC_ARR(fer_obb_t *, trimesh->len);
+    obbs = FER_ALLOC_ARR(fer_cd_obb_t *, trimesh->len);
     hulls = FER_ALLOC_ARR(fer_chull3_t *, trimesh->len);
     for (i = 0; i < trimesh->len; i++){
-        obbs[i] = ferOBBNewTri(&trimesh->pts[trimesh->ids[i * 3]],
-                               &trimesh->pts[trimesh->ids[i * 3 + 1]],
-                               &trimesh->pts[trimesh->ids[i * 3 + 2]]);
+        obbs[i] = ferCDOBBNewTriMeshTri(&trimesh->pts[trimesh->ids[i * 3]],
+                                        &trimesh->pts[trimesh->ids[i * 3 + 1]],
+                                        &trimesh->pts[trimesh->ids[i * 3 + 2]]);
         hulls[i] = NULL;
     }
 
@@ -309,7 +219,7 @@ fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
             mindist = FER_REAL_MAX;
         }else if (obb1 == i){
             // merge with nearest obb
-            obbs[obb1] = ferOBBMerge(obbs[obb1], obbs[obb2],
+            obbs[obb1] = ferCDOBBMerge(obbs[obb1], obbs[obb2],
                                      hulls[obb1], hulls[obb2], &hull,
                                      method, num_rot);
             obbs[obb2] = NULL;
@@ -344,34 +254,34 @@ fer_obb_t *ferOBBNewTriMesh(const fer_vec3_t *pts,
     free(hulls);
     free(obbs);
 
-    root->pri = (fer_obb_pri_t *)trimesh;
+    root->shape = (fer_cd_shape_t *)trimesh;
 
     return root;
 }
 
 
-void ferOBBDel(fer_obb_t *obb)
+void ferCDOBBDel(fer_cd_obb_t *obb)
 {
     fer_list_t *item;
-    fer_obb_t *o;
+    fer_cd_obb_t *o;
 
     // remove all children from list
     while (!ferListEmpty(&obb->obbs)){
         item = ferListNext(&obb->obbs);
-        o    = FER_LIST_ENTRY(item, fer_obb_t, list);
+        o    = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
         ferListDel(item);
 
-        ferOBBDel(o);
+        ferCDOBBDel(o);
     }
 
     // remove itself from parent's list
     ferListDel(&obb->list);
 
-    if (obb->pri){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            ferOBBTriDel((fer_obb_tri_t *)obb->pri);
-        }else if (obb->pri->type == FER_OBB_PRI_TRIMESH){
-            ferOBBTriMeshDel((fer_obb_trimesh_t *)obb->pri);
+    if (obb->shape){
+        if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
+            ferCDTriMeshTriDel((fer_cd_trimesh_tri_t *)obb->shape);
+        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH){
+            ferCDTriMeshDel((fer_cd_trimesh_t *)obb->shape);
         }
     }
 
@@ -379,10 +289,10 @@ void ferOBBDel(fer_obb_t *obb)
 }
 
 
-int ferOBBDisjoint(const fer_obb_t *obb1,
-                   const fer_mat3_t *_rot1, const fer_vec3_t *tr1,
-                   const fer_obb_t *obb2,
-                   const fer_mat3_t *_rot2, const fer_vec3_t *tr2)
+int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
+                     const fer_mat3_t *_rot1, const fer_vec3_t *tr1,
+                     const fer_cd_obb_t *obb2,
+                     const fer_mat3_t *_rot2, const fer_vec3_t *tr2)
 {
     // See 4.4 of "Orange" book
 
@@ -550,50 +460,50 @@ int ferOBBDisjoint(const fer_obb_t *obb1,
 }
 
 
-int ferOBBOverlapPairs(const fer_obb_t *obb1,
-                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                       const fer_obb_t *obb2,
-                       const fer_mat3_t *rot2, const fer_vec3_t *tr2,
-                       fer_list_t *pairs)
+int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_obb_t *obb2,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                         fer_list_t *pairs)
 {
     fer_obb_pair_t *pair;
     fer_list_t *item1, *item2;
-    fer_obb_t *o1, *o2;
+    fer_cd_obb_t *o1, *o2;
     int ret;
 
     // check if bounding boxes are disjoint
-    if (ferOBBDisjoint(obb1, rot1, tr1, obb2, rot2, tr2))
+    if (ferCDOBBDisjoint(obb1, rot1, tr1, obb2, rot2, tr2))
         return 0;
 
     ret = 0;
     if (ferListEmpty(&obb1->obbs) && ferListEmpty(&obb2->obbs)){
-        // we have leaf OBBs - create pair
+        // we have leaf CDOBBs - create pair
         pair = FER_ALLOC(fer_obb_pair_t);
-        pair->obb1 = (fer_obb_t *)obb1;
-        pair->obb2 = (fer_obb_t *)obb2;
+        pair->obb1 = (fer_cd_obb_t *)obb1;
+        pair->obb2 = (fer_cd_obb_t *)obb2;
         ferListAppend(pairs, &pair->list);
         ret = 1;
     }else if (ferListEmpty(&obb1->obbs)){
-        // obb1 is leaf OBB, obb2 is not
+        // obb1 is leaf CDOBB, obb2 is not
         FER_LIST_FOR_EACH(&obb2->obbs, item2){
-            o2 = fer_container_of(item2, fer_obb_t, list);
-            ret += ferOBBOverlapPairs(obb1, rot1, tr1, o2, rot2, tr2, pairs);
+            o2 = fer_container_of(item2, fer_cd_obb_t, list);
+            ret += ferCDOBBOverlapPairs(obb1, rot1, tr1, o2, rot2, tr2, pairs);
         }
     }else if (ferListEmpty(&obb2->obbs)){
-        // obb2 is leaf OBB, obb1 is not
+        // obb2 is leaf CDOBB, obb1 is not
         FER_LIST_FOR_EACH(&obb1->obbs, item1){
-            o1 = fer_container_of(item1, fer_obb_t, list);
-            ret += ferOBBOverlapPairs(o1, rot1, tr1, obb2, rot2, tr2, pairs);
+            o1 = fer_container_of(item1, fer_cd_obb_t, list);
+            ret += ferCDOBBOverlapPairs(o1, rot1, tr1, obb2, rot2, tr2, pairs);
         }
     }else{
-        // obb1 nor obb2 are leaf OBBs
+        // obb1 nor obb2 are leaf CDOBBs
         FER_LIST_FOR_EACH(&obb1->obbs, item1){
-            o1 = fer_container_of(item1, fer_obb_t, list);
+            o1 = fer_container_of(item1, fer_cd_obb_t, list);
 
             FER_LIST_FOR_EACH(&obb2->obbs, item2){
-                o2 = fer_container_of(item2, fer_obb_t, list);
+                o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                ret += ferOBBOverlapPairs(o1, rot1, tr1, o2, rot2, tr2, pairs);
+                ret += ferCDOBBOverlapPairs(o1, rot1, tr1, o2, rot2, tr2, pairs);
             }
         }
     }
@@ -601,7 +511,7 @@ int ferOBBOverlapPairs(const fer_obb_t *obb1,
     return ret;
 }
 
-void ferOBBFreePairs(fer_list_t *pairs)
+void ferCDOBBFreePairs(fer_list_t *pairs)
 {
     fer_list_t *item;
     fer_obb_pair_t *pair;
@@ -615,19 +525,19 @@ void ferOBBFreePairs(fer_list_t *pairs)
 }
 
 
-void ferOBBDumpSVT(const fer_obb_t *obb, FILE *out, const char *name)
+void ferCDOBBDumpSVT(const fer_cd_obb_t *obb, FILE *out, const char *name)
 {
     fer_mat3_t rot;
     fer_vec3_t tr;
 
     ferMat3SetRot3D(&rot, 0., 0., 0.);
     ferVec3Set(&tr, 0., 0., 0.);
-    ferOBBDumpSVT2(obb, &rot, &tr, out, name);
+    ferCDOBBDumpSVT2(obb, &rot, &tr, out, name);
 }
 
-void ferOBBDumpSVT2(const fer_obb_t *obb,
-                    const fer_mat3_t *rot, const fer_vec3_t *tr,
-                    FILE *out, const char *name)
+void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr,
+                      FILE *out, const char *name)
 {
     fer_vec3_t v, w;
 
@@ -750,118 +660,10 @@ void ferOBBDumpSVT2(const fer_obb_t *obb,
     fprintf(out, "----\n");
 }
 
-void ferOBBTriDumpSVT(const fer_obb_tri_t *tri, FILE *out, const char *name)
-{
-    fprintf(out, "----\n");
-
-    if (name){
-        fprintf(out, "Name: %s\n", name);
-    }
-
-    fprintf(out, "Points:\n");
-    ferVec3Print(tri->p0, out);
-    fprintf(out, "\n");
-    ferVec3Print(tri->p1, out);
-    fprintf(out, "\n");
-    ferVec3Print(tri->p2, out);
-    fprintf(out, "\n");
-
-    fprintf(out, "Edges:\n");
-    fprintf(out, "0 1 1 2 2 0\n");
-    fprintf(out, "Faces:\n");
-    fprintf(out, "0 1 2\n");
-
-    fprintf(out, "----\n");
-}
-
-void ferOBBTriMeshDumpSVT(const fer_obb_trimesh_t *t, FILE *out,
-                          const char *name, int edges)
-{
-    size_t i, numpts;
-
-    fprintf(out, "----\n");
-
-    if (name){
-        fprintf(out, "Name: %s\n", name);
-    }
-
-    numpts = 0;
-    for (i = 0; i < 3 * t->len; i++){
-        if (t->ids[i] + 1 > numpts)
-            numpts = t->ids[i] + 1;
-    }
-
-    fprintf(out, "Points:\n");
-    for (i = 0; i < numpts; i++){
-        ferVec3Print(&t->pts[i], out);
-        fprintf(out, "\n");
-    }
-
-    if (edges){
-        fprintf(out, "Edges:\n");
-        for (i = 0; i < t->len; i++){
-            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 1]);
-            fprintf(out, "%u %u\n", t->ids[3 * i + 1], t->ids[3 * i + 2]);
-            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 2]);
-        }
-    }
-
-    fprintf(out, "Faces:\n");
-    for (i = 0; i < t->len; i++){
-        fprintf(out, "%u %u %u\n", t->ids[3 * i], t->ids[3 * i + 1], t->ids[3 * i + 2]);
-    }
-
-    fprintf(out, "----\n");
-}
-
-void ferOBBTriMeshDumpSVT2(const fer_obb_trimesh_t *t,
-                           const fer_mat3_t *rot, const fer_vec3_t *tr,
-                           FILE *out, const char *name, int edges)
-{
-    size_t i, numpts;
-    fer_vec3_t v;
-
-    fprintf(out, "----\n");
-
-    if (name){
-        fprintf(out, "Name: %s\n", name);
-    }
-
-    numpts = 0;
-    for (i = 0; i < 3 * t->len; i++){
-        if (t->ids[i] + 1 > numpts)
-            numpts = t->ids[i] + 1;
-    }
-
-    fprintf(out, "Points:\n");
-    for (i = 0; i < numpts; i++){
-        ferMat3MulVec(&v, rot, &t->pts[i]);
-        ferVec3Add(&v, tr);
-        ferVec3Print(&v, out);
-        fprintf(out, "\n");
-    }
-
-    if (edges){
-        fprintf(out, "Edges:\n");
-        for (i = 0; i < t->len; i++){
-            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 1]);
-            fprintf(out, "%u %u\n", t->ids[3 * i + 1], t->ids[3 * i + 2]);
-            fprintf(out, "%u %u\n", t->ids[3 * i], t->ids[3 * i + 2]);
-        }
-    }
-
-    fprintf(out, "Faces:\n");
-    for (i = 0; i < t->len; i++){
-        fprintf(out, "%u %u %u\n", t->ids[3 * i], t->ids[3 * i + 1], t->ids[3 * i + 2]);
-    }
-
-    fprintf(out, "----\n");
-}
 
 
-
-static void ferOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
-                              fer_real_t *min, fer_real_t *max)
+static void ferCDOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
+                                fer_real_t *min, fer_real_t *max)
 {
     fer_list_t *list, *item;
     fer_mesh3_vertex_t *v;
@@ -888,23 +690,23 @@ static void ferOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
 
 
 
-static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
-                              fer_chull3_t *hull1, fer_chull3_t *hull2,
-                              fer_chull3_t **hull_out,
-                              int method, int num_rot)
+static fer_cd_obb_t *ferCDOBBMerge(fer_cd_obb_t *obb1, fer_cd_obb_t *obb2,
+                                   fer_chull3_t *hull1, fer_chull3_t *hull2,
+                                   fer_chull3_t **hull_out,
+                                   int method, int num_rot)
 {
-    fer_obb_t *obb;
+    fer_cd_obb_t *obb;
     fer_chull3_t *hull;
 
-    // create OBB
-    obb = FER_ALLOC_ALIGN(fer_obb_t, 16);
-    obb->pri = NULL;
+    // create CDOBB
+    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
+    obb->shape = NULL;
 
     // initialize lists
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
 
-    // add child OBBs into list
+    // add child CDOBBs into list
     ferListAppend(&obb->obbs, &obb1->list);
     ferListAppend(&obb->obbs, &obb2->list);
 
@@ -912,26 +714,26 @@ static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
     if (hull1 && hull2){
         if (ferCHull3NumPoints(hull1) > ferCHull3NumPoints(hull2)){
             hull = hull1;
-            ferOBBCHull2(hull, hull2);
+            ferCDOBBCHull2(hull, hull2);
         }else{
             hull = hull2;
-            ferOBBCHull2(hull, hull1);
+            ferCDOBBCHull2(hull, hull1);
         }
     }else if (hull1){
         hull = hull1;
-        ferOBBCHull(obb2, hull);
+        ferCDOBBCHull(obb2, hull);
     }else if (hull2){
         hull = hull2;
-        ferOBBCHull(obb1, hull);
+        ferCDOBBCHull(obb1, hull);
     }else{
         hull = ferCHull3New();
-        ferOBBCHull(obb, hull);
+        ferCDOBBCHull(obb, hull);
     }
 
     if (method == 0){
-        ferOBBMergeSlow(obb, hull, num_rot);
+        ferCDOBBMergeSlow(obb, hull, num_rot);
     }else if (method == 1){
-        ferOBBMergeFast(obb, hull);
+        ferCDOBBMergeFast(obb, hull);
     }
 
     *hull_out = hull;
@@ -939,14 +741,14 @@ static fer_obb_t *ferOBBMerge(fer_obb_t *obb1, fer_obb_t *obb2,
     return obb;
 }
 
-static void ferOBBMergeSlow(fer_obb_t *obb, fer_chull3_t *hull, int num_rot)
+static void ferCDOBBMergeSlow(fer_cd_obb_t *obb, fer_chull3_t *hull, int num_rot)
 {
     fer_vec3_t v;
     fer_real_t min[3], max[3];
 
     // find out best axis and min/max values
     min[0] = min[1] = min[2] = max[0] = max[1] = max[2] = 0;
-    ferOBBMergeSlowBest(obb, hull, min, max, num_rot);
+    ferCDOBBMergeSlowBest(obb, hull, min, max, num_rot);
 
     // set center
     ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
@@ -961,9 +763,9 @@ static void ferOBBMergeSlow(fer_obb_t *obb, fer_chull3_t *hull, int num_rot)
                                    (max[2] - min[2]) * FER_REAL(0.5));
 }
 
-static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
-                                fer_real_t *min_h, fer_real_t *max_h,
-                                int num_rot)
+static void ferCDOBBMergeSlowBest(fer_cd_obb_t *obb, fer_chull3_t *hull,
+                                  fer_real_t *min_h, fer_real_t *max_h,
+                                  int num_rot)
 {
     fer_list_t *list, *item1, *item2;
     fer_mesh3_edge_t *e1, *e2;
@@ -1007,7 +809,7 @@ static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
                 ferVec3Cross(&axis[0], &axis[1], &axis[2]);
                 ferVec3Normalize(&axis[0]);
 
-                ferOBBCHullMinMax(hull, axis, min, max);
+                ferCDOBBCHullMinMax(hull, axis, min, max);
                 area  = max[0] - min[0];
                 area *= max[1] - min[1];
                 area *= max[2] - min[2];
@@ -1031,15 +833,15 @@ static void ferOBBMergeSlowBest(fer_obb_t *obb, fer_chull3_t *hull,
     //DBG("best_area: %f", best_area);
 }
 
-static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull)
+static void ferCDOBBCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
 {
     fer_list_t *item;
-    fer_obb_t *o;
-    fer_obb_tri_t *tri;
+    fer_cd_obb_t *o;
+    fer_cd_trimesh_tri_t *tri;
 
     if (ferListEmpty(&obb->obbs)){
-        if (obb->pri->type == FER_OBB_PRI_TRI){
-            tri = (fer_obb_tri_t *)obb->pri;
+        if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
+            tri = (fer_cd_trimesh_tri_t *)obb->shape;
 
             ferCHull3Add(hull, tri->p0);
             ferCHull3Add(hull, tri->p1);
@@ -1047,13 +849,13 @@ static void ferOBBCHull(fer_obb_t *obb, fer_chull3_t *hull)
         }
     }else{
         FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_obb_t, list);
-            ferOBBCHull(o, hull);
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            ferCDOBBCHull(o, hull);
         }
     }
 }
 
-static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
+static void ferCDOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
 {
     fer_list_t *list, *item;
     fer_mesh3_vertex_t *v;
@@ -1068,15 +870,15 @@ static void ferOBBCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
 
 
 
-static void ferOBBMergeFast(fer_obb_t *obb, fer_chull3_t *hull)
+static void ferCDOBBMergeFast(fer_cd_obb_t *obb, fer_chull3_t *hull)
 {
     fer_vec3_t mean, v;
     fer_mat3_t cov, eigen;
     fer_real_t min[3], max[3];
 
     // find out mean and covariance matrix
-    ferOBBMergeFastMean(hull, &mean);
-    ferOBBMergeFastCov(hull, &mean, &cov);
+    ferCDOBBMergeFastMean(hull, &mean);
+    ferCDOBBMergeFastCov(hull, &mean, &cov);
 
     // compute eigen vectors from covariance matrix
     ferMat3Eigen(&cov, &eigen, NULL);
@@ -1090,7 +892,7 @@ static void ferOBBMergeFast(fer_obb_t *obb, fer_chull3_t *hull)
     ferVec3Normalize(&obb->axis[2]);
 
     // find out min and max
-    ferOBBCHullMinMax(hull, obb->axis, min, max);
+    ferCDOBBCHullMinMax(hull, obb->axis, min, max);
 
     // set center
     ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
@@ -1106,7 +908,7 @@ static void ferOBBMergeFast(fer_obb_t *obb, fer_chull3_t *hull)
 }
 
 
-static void ferOBBMergeFastMean(fer_chull3_t *hull, fer_vec3_t *mean)
+static void ferCDOBBMergeFastMean(fer_chull3_t *hull, fer_vec3_t *mean)
 {
     fer_list_t *list, *item;
     fer_mesh3_vertex_t *v;
@@ -1125,8 +927,8 @@ static void ferOBBMergeFastMean(fer_chull3_t *hull, fer_vec3_t *mean)
     ferVec3Scale(mean, ferRecp(num));
 }
 
-static void ferOBBMergeFastCov(fer_chull3_t *hull, const fer_vec3_t *mean,
-                               fer_mat3_t *cov)
+static void ferCDOBBMergeFastCov(fer_chull3_t *hull, const fer_vec3_t *mean,
+                                 fer_mat3_t *cov)
 {
     fer_list_t *list, *item;
     fer_mesh3_face_t *f;
