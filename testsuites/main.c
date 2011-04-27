@@ -17,6 +17,7 @@
 #include "dij.h"
 #include "obb.h"
 #include "chull3.h"
+#include "geom.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -40,6 +41,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSDij),
 
     TEST_SUITE_ADD(TSOBB),
+    TEST_SUITE_ADD(TSGeom),
 
     TEST_SUITE_ADD(TSCHull3),
 

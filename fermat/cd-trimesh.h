@@ -49,8 +49,8 @@ typedef struct _fer_cd_trimesh_t fer_cd_trimesh_t;
  * Creates new triangle
  */
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
-                                          const fer_vec3_t *p2,
-                                          const fer_vec3_t *p3);
+                                         const fer_vec3_t *p2,
+                                         const fer_vec3_t *p3);
 
 /**
  * Deletes triangle

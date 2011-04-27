@@ -43,15 +43,15 @@ typedef struct _fer_cd_obb_t fer_cd_obb_t;
 
 
 /**
- * TODO
+ * Keeps pair of OBBs
  */
-struct _fer_obb_pair_t {
+struct _fer_cd_obb_pair_t {
     fer_cd_obb_t *obb1;
     fer_cd_obb_t *obb2;
 
     fer_list_t list;
 };
-typedef struct _fer_obb_pair_t  fer_obb_pair_t;
+typedef struct _fer_cd_obb_pair_t  fer_cd_obb_pair_t;
 
 
 /**

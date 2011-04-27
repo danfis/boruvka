@@ -466,7 +466,7 @@ int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
                          const fer_mat3_t *rot2, const fer_vec3_t *tr2,
                          fer_list_t *pairs)
 {
-    fer_obb_pair_t *pair;
+    fer_cd_obb_pair_t *pair;
     fer_list_t *item1, *item2;
     fer_cd_obb_t *o1, *o2;
     int ret;
@@ -478,7 +478,7 @@ int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
     ret = 0;
     if (ferListEmpty(&obb1->obbs) && ferListEmpty(&obb2->obbs)){
         // we have leaf CDOBBs - create pair
-        pair = FER_ALLOC(fer_obb_pair_t);
+        pair = FER_ALLOC(fer_cd_obb_pair_t);
         pair->obb1 = (fer_cd_obb_t *)obb1;
         pair->obb2 = (fer_cd_obb_t *)obb2;
         ferListAppend(pairs, &pair->list);
@@ -514,12 +514,12 @@ int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
 void ferCDOBBFreePairs(fer_list_t *pairs)
 {
     fer_list_t *item;
-    fer_obb_pair_t *pair;
+    fer_cd_obb_pair_t *pair;
 
     while (!ferListEmpty(pairs)){
         item = ferListNext(pairs);
         ferListDel(item);
-        pair = FER_LIST_ENTRY(item, fer_obb_pair_t, list);
+        pair = FER_LIST_ENTRY(item, fer_cd_obb_pair_t, list);
         free(pair);
     }
 }

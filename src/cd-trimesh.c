@@ -39,10 +39,10 @@ void ferCDTriMeshTriDel(fer_cd_trimesh_tri_t *tri)
 }
 
 
-int ferCDTriTriCollide(const fer_cd_trimesh_tri_t *tri1,
-                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                       const fer_cd_trimesh_tri_t *tri2,
-                       const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_trimesh_tri_t *tri2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2)
 {
     fer_vec3_t p1, q1, r1, p2, q2, r2;
 

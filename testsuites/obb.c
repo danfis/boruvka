@@ -155,11 +155,11 @@ static void pPairs(fer_list_t *pairs,
     char name[120];
     int i;
     fer_list_t *item;
-    fer_obb_pair_t *p;
+    fer_cd_obb_pair_t *p;
 
     i = 0;
     FER_LIST_FOR_EACH(pairs, item){
-        p = fer_container_of(item, fer_obb_pair_t, list);
+        p = fer_container_of(item, fer_cd_obb_pair_t, list);
 
         sprintf(name, "pair: %02d - 1", i);
         ferCDOBBDumpSVT2(p->obb1, rot1, tr1, stdout, name);

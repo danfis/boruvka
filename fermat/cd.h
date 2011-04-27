@@ -44,5 +44,6 @@ typedef struct _fer_cd_shape_t fer_cd_shape_t;
 
 #include <fermat/cd-trimesh.h>
 #include <fermat/cd-obb.h>
+#include <fermat/cd-geom.h>
 
 #endif /* __FER_CD_H__ */
