@@ -72,6 +72,11 @@ int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
                          const unsigned int *ids, size_t len);
 
+/**
+ * Adds sphere to geom.
+ */
+void ferCDGeomAddSphere(fer_cd_geom_t *g, const fer_vec3_t *center,
+                        fer_real_t radius);
 
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);

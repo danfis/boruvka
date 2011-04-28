@@ -62,6 +62,11 @@ fer_cd_obb_t *ferCDOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
                           const fer_vec3_t *half_extents,
                           fer_cd_shape_t *shape);
 
+/**
+ * Creates new OBB for sphere.
+ */
+fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius);
+
 
 /**
  * Flag for ferCDOBBNewTriMesh() function.

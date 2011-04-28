@@ -82,6 +82,25 @@ fer_cd_obb_t *ferCDOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
     return obb;
 }
 
+fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius)
+{
+    fer_cd_obb_t *obb;
+
+    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
+    ferVec3Copy(&obb->center, center);
+    ferVec3Set(&obb->axis[0], FER_ONE,  FER_ZERO, FER_ZERO);
+    ferVec3Set(&obb->axis[1], FER_ZERO, FER_ONE,  FER_ZERO);
+    ferVec3Set(&obb->axis[2], FER_ZERO, FER_ZERO, FER_ONE);
+    ferVec3Set(&obb->half_extents, radius, radius, radius);
+
+    obb->shape = (fer_cd_shape_t *)ferCDSphereNew(center, radius);
+
+    ferListInit(&obb->obbs);
+
+    return obb;
+}
+
+
 static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
                                            const fer_vec3_t *p2,
                                            const fer_vec3_t *p3)

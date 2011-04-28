@@ -58,6 +58,14 @@ void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
     ferListAppend(&g->obbs, &obb->list);
 }
 
+void ferCDGeomAddSphere(fer_cd_geom_t *g, const fer_vec3_t *center,
+                        fer_real_t radius)
+{
+    fer_cd_obb_t *obb;
+
+    obb = ferCDOBBNewSphere(center, radius);
+    ferListAppend(&g->obbs, &obb->list);
+}
 
 
 struct __collide_t {
