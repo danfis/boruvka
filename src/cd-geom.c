@@ -59,14 +59,37 @@ void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
 }
 
 
+
+struct __collide_t {
+    const fer_cd_geom_t *g1;
+    const fer_cd_geom_t *g2;
+    int ret;
+};
+
+static int __ferCDGeomCollideCB(const fer_cd_obb_t *obb1,
+                                const fer_cd_obb_t *obb2,
+                                void *data)
+{
+    struct __collide_t *c = (struct __collide_t *)data;
+
+    if (ferCDTriMeshTriCollide((fer_cd_trimesh_tri_t *)obb1->shape,
+                               &c->g1->rot, &c->g1->tr,
+                               (fer_cd_trimesh_tri_t *)obb2->shape,
+                               &c->g2->rot, &c->g2->tr)){
+        c->ret = 1;
+        return -1;
+    }
+    return 0;
+}
+
 int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
 {
+    struct __collide_t c;
     fer_list_t *item1, *item2;
     fer_cd_obb_t *obb1, *obb2;
-    fer_cd_obb_pair_t *pair;
-    fer_list_t pairs;
 
-    ferListInit(&pairs);
+    c.g1 = g1;
+    c.g2 = g2;
 
     FER_LIST_FOR_EACH(&g1->obbs, item1){
         obb1 = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
@@ -74,25 +97,14 @@ int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
         FER_LIST_FOR_EACH(&g2->obbs, item2){
             obb2 = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
 
-            ferCDOBBOverlapPairs(obb1, &g1->rot, &g1->tr,
-                                 obb2, &g2->rot, &g2->tr,
-                                 &pairs);
+            c.ret = 0;
+            ferCDOBBOverlapPairsCB(obb1, &g1->rot, &g1->tr,
+                                   obb2, &g2->rot, &g2->tr,
+                                   __ferCDGeomCollideCB, (void *)&c);
+            if (c.ret)
+                return 1;
         }
     }
-
-    FER_LIST_FOR_EACH(&pairs, item1){
-        pair = FER_LIST_ENTRY(item1, fer_cd_obb_pair_t, list);
-
-        if (ferCDTriMeshTriCollide((fer_cd_trimesh_tri_t *)pair->obb1->shape,
-                                   &g1->rot, &g1->tr,
-                                   (fer_cd_trimesh_tri_t *)pair->obb2->shape,
-                                   &g2->rot, &g2->tr)){
-            ferCDOBBFreePairs(&pairs);
-            return 1;
-        }
-    }
-
-    ferCDOBBFreePairs(&pairs);
     return 0;
 }
 

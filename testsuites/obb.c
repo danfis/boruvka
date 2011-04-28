@@ -259,8 +259,8 @@ TEST(obbPairs1)
     ferListInit(&pairs);
     ret = ferCDOBBOverlapPairs(obb1, &rot1, &tr1, obb2, &rot2, &tr2, &pairs);
     printf("# 1. Pairs: %d\n", ret);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb1->pri, &rot1, &tr1, stdout, "obb1", 1);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb2->pri, &rot2, &tr2, stdout, "obb2", 1);
+    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb1->shape, &rot1, &tr1, stdout, "obb1", 1);
+    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb2->shape, &rot2, &tr2, stdout, "obb2", 1);
     if (ret > 0){
         //pPairs(&pairs, &rot1, &tr1, &rot2, &tr2);
         ferCDOBBFreePairs(&pairs);

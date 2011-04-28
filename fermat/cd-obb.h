@@ -127,6 +127,24 @@ int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
                          fer_list_t *pairs);
 
 /**
+ * Callback for ferCDOBBOverlapPairsCB() function.
+ */
+typedef int (*fer_cd_obb_overlap)(const fer_cd_obb_t *obb1,
+                                  const fer_cd_obb_t *obb2,
+                                  void *data);
+
+/**
+ * Recursively test obb1 and obb2 if they overlap. For each overlaping
+ * _leaf_ OBBs is called given callback. If callback returns -1 testing is
+ * terminated.
+ */
+void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
+                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                            const fer_cd_obb_t *obb2,
+                            const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                            fer_cd_obb_overlap cb, void *data);
+
+/**
  * Frees all fer_obb_pair_t members stored in given list.
  */
 void ferCDOBBFreePairs(fer_list_t *pairs);

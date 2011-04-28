@@ -19,9 +19,11 @@ TEST(geomCollideTriMesh)
     ferMat3SetRot3D(&rot, 0, M_PI_4/2, 0);
     ferCDGeomSetTr(g2, &tr);
     ferCDGeomSetRot(g2, &rot);
+    res = ferCDGeomCollide(g1, g2);
+    assertTrue(res);
+
     ferCDGeomDumpSVT(g1, stdout, "g1");
     ferCDGeomDumpSVT(g2, stdout, "g2");
-    res = ferCDGeomCollide(g1, g2);
     DBG("res: %d", res);
 
     ferCDGeomDel(g1);

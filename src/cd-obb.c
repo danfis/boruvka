@@ -24,6 +24,8 @@ static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
                                            const fer_vec3_t *p2,
                                            const fer_vec3_t *p3);
 
+_fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
+                           fer_list_t *list);
 
 /** Finds min/max values to given axis */
 static void ferCDOBBCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
@@ -169,8 +171,6 @@ static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
     return obb;
 }
 
-
-
 fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
                                  const unsigned *ids, size_t len,
                                  int flags)
@@ -308,6 +308,41 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
     ferMat3MulColVecs2(&rot, _rot2,
                        &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
     ferMat3MulLeftTrans(&rot, &A1t);
+
+    DBG("rot: %f %f %f",
+            ferMat3Get(&rot, 0, 0),
+            ferMat3Get(&rot, 0, 1),
+            ferMat3Get(&rot, 0, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 1, 0),
+            ferMat3Get(&rot, 1, 1),
+            ferMat3Get(&rot, 1, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 2, 0),
+            ferMat3Get(&rot, 2, 1),
+            ferMat3Get(&rot, 2, 2));
+
+
+    ferMat3Copy(&A1t, _rot1);
+    ferMat3MulLeftTrans(&A1t, _rot2);
+    ferMat3MulColVecs2(&rot, &A1t,
+                       &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
+    ferMat3Copy(&A1t, &rot);
+    ferMat3MulColVecs2(&rot, &A1t,
+                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+
+    DBG("rot2: %f %f %f",
+            ferMat3Get(&rot, 0, 0),
+            ferMat3Get(&rot, 0, 1),
+            ferMat3Get(&rot, 0, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 1, 0),
+            ferMat3Get(&rot, 1, 1),
+            ferMat3Get(&rot, 1, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 2, 0),
+            ferMat3Get(&rot, 2, 1),
+            ferMat3Get(&rot, 2, 2));
 
     // compute translation in obb1's frame
     ferMat3MulVec(&trtmp, _rot2, &obb2->center);
@@ -460,56 +495,119 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 }
 
 
+
+_fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
+                           fer_list_t *list)
+{
+    fer_cd_obb_pair_t *p;
+
+    p = FER_ALLOC(fer_cd_obb_pair_t);
+    p->obb1 = (fer_cd_obb_t *)o1;
+    p->obb2 = (fer_cd_obb_t *)o2;
+    ferListAppend(list, &p->list);
+}
+
+
+struct __overlap_pairs_t {
+    fer_list_t *list;
+    int len;
+};
+
+static int __ferCBOBBOverlapPairs(const fer_cd_obb_t *obb1,
+                                  const fer_cd_obb_t *obb2,
+                                  void *data)
+{
+    struct __overlap_pairs_t *p = (struct __overlap_pairs_t *)data;
+    __addPair(obb1, obb2, p->list);
+    p->len++;
+    return 0;
+}
+
 int ferCDOBBOverlapPairs(const fer_cd_obb_t *obb1,
                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                          const fer_cd_obb_t *obb2,
                          const fer_mat3_t *rot2, const fer_vec3_t *tr2,
                          fer_list_t *pairs)
 {
+    struct __overlap_pairs_t p;
+
+    p.list = pairs;
+    p.len = 0;
+    ferCDOBBOverlapPairsCB(obb1, rot1, tr1, obb2, rot2, tr2,
+                           __ferCBOBBOverlapPairs, (void *)&p);
+    return p.len;
+}
+
+void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
+                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                            const fer_cd_obb_t *obb2,
+                            const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                            fer_cd_obb_overlap cb, void *data)
+{
+    fer_list_t fifo;
     fer_cd_obb_pair_t *pair;
-    fer_list_t *item1, *item2;
+    fer_list_t *item1, *item2, *item;
     fer_cd_obb_t *o1, *o2;
-    int ret;
 
-    // check if bounding boxes are disjoint
-    if (ferCDOBBDisjoint(obb1, rot1, tr1, obb2, rot2, tr2))
-        return 0;
+    ferListInit(&fifo);
 
-    ret = 0;
-    if (ferListEmpty(&obb1->obbs) && ferListEmpty(&obb2->obbs)){
-        // we have leaf CDOBBs - create pair
-        pair = FER_ALLOC(fer_cd_obb_pair_t);
-        pair->obb1 = (fer_cd_obb_t *)obb1;
-        pair->obb2 = (fer_cd_obb_t *)obb2;
-        ferListAppend(pairs, &pair->list);
-        ret = 1;
-    }else if (ferListEmpty(&obb1->obbs)){
-        // obb1 is leaf CDOBB, obb2 is not
-        FER_LIST_FOR_EACH(&obb2->obbs, item2){
-            o2 = fer_container_of(item2, fer_cd_obb_t, list);
-            ret += ferCDOBBOverlapPairs(obb1, rot1, tr1, o2, rot2, tr2, pairs);
-        }
-    }else if (ferListEmpty(&obb2->obbs)){
-        // obb2 is leaf CDOBB, obb1 is not
-        FER_LIST_FOR_EACH(&obb1->obbs, item1){
-            o1 = fer_container_of(item1, fer_cd_obb_t, list);
-            ret += ferCDOBBOverlapPairs(o1, rot1, tr1, obb2, rot2, tr2, pairs);
-        }
-    }else{
-        // obb1 nor obb2 are leaf CDOBBs
-        FER_LIST_FOR_EACH(&obb1->obbs, item1){
-            o1 = fer_container_of(item1, fer_cd_obb_t, list);
+    __addPair(obb1, obb2, &fifo);
 
-            FER_LIST_FOR_EACH(&obb2->obbs, item2){
+    while (!ferListEmpty(&fifo)){
+        item = ferListNext(&fifo);
+        ferListDel(item);
+        pair = FER_LIST_ENTRY(item, fer_cd_obb_pair_t, list);
+
+        if (ferListEmpty(&pair->obb1->obbs)
+                && ferListEmpty(&pair->obb2->obbs)){
+            // we have both leaf OBBs - call callback
+            if (!ferCDOBBDisjoint(pair->obb1, rot1, tr1,
+                                  pair->obb2, rot2, tr2)){
+                if (cb(pair->obb1, pair->obb2, data) == -1){
+                    free(pair);
+                    break;
+                }
+            }
+        }else if (ferListEmpty(&pair->obb1->obbs)){
+            // obb1 is leaf OBB, obb2 is not
+            FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
                 o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                ret += ferCDOBBOverlapPairs(o1, rot1, tr1, o2, rot2, tr2, pairs);
+                if (!ferCDOBBDisjoint(pair->obb1, rot1, tr1, o2, rot2, tr2)){
+                    __addPair(pair->obb1, o2, &fifo);
+                }
+            }
+        }else if (ferListEmpty(&pair->obb2->obbs)){
+            // obb2 is leaf OBB, obb1 is not
+            FER_LIST_FOR_EACH(&pair->obb1->obbs, item1){
+                o1 = fer_container_of(item1, fer_cd_obb_t, list);
+
+                if (!ferCDOBBDisjoint(o1, rot1, tr1, pair->obb2, rot2, tr2)){
+                    __addPair(o1, pair->obb2, &fifo);
+                }
+            }
+        }else{
+            // obb1 nor obb2 are leaf CDOBBs
+            FER_LIST_FOR_EACH(&pair->obb1->obbs, item1){
+                o1 = fer_container_of(item1, fer_cd_obb_t, list);
+
+                FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
+                    o2 = fer_container_of(item2, fer_cd_obb_t, list);
+
+                    if (!ferCDOBBDisjoint(o1, rot1, tr1, o2, rot2, tr2)){
+                        __addPair(o1, o2, &fifo);
+                    }
+                }
             }
         }
+
+        free(pair);
     }
 
-    return ret;
+    // free fifo
+    ferCDOBBFreePairs(&fifo);
 }
+
 
 void ferCDOBBFreePairs(fer_list_t *pairs)
 {
