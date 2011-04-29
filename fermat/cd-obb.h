@@ -57,10 +57,7 @@ typedef struct _fer_cd_obb_pair_t  fer_cd_obb_pair_t;
 /**
  * Creates new oriented bounding box.
  */
-fer_cd_obb_t *ferCDOBBNew(const fer_vec3_t *c, const fer_vec3_t *a1,
-                          const fer_vec3_t *a2, const fer_vec3_t *a3,
-                          const fer_vec3_t *half_extents,
-                          fer_cd_shape_t *shape);
+fer_cd_obb_t *ferCDOBBNew(void);
 
 /**
  * Creates new OBB for sphere.
@@ -69,33 +66,13 @@ fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius);
 
 
 /**
- * Flag for ferCDOBBNewTriMesh() function.
- * If used, fast (but less accurate) method is used for building tree of
- * bounding boxes.
- */
-#define FER_CDOBB_TRIMESH_FAST 0x1
-
-/**
- * Flag for ferCDOBBNewTriMesh() function.
- * It specifies accuracy of slow (but accurate) method for fitting bounding
- * boxes, the higher value is, the more accurate (and slower) method is
- * used. Reasonable value are 10, 20, ..., 50.
- * Default value is 20.
- */
-#define FER_CDOBB_TRIMESH_ACCURACY(num) (num << 8)
-
-/**
  * Creates bounding box for triangular mesh. Parameter {num_tri} is number
  * of triangles and {ids} hence must have {num_tri} * 3 elements.
- *
- * Using parameter {flags} can be changed (or altered) method used for
- * fitting bounding boxes. Currently, FER_CDOBB_TRIMESH_FAST or
- * FER_CDOBB_TRIMESH_ACCURACY() flags can be used. Set it to zero for default
- * behaviour.
+ * {mergeflags} are same as in ferCDOBBMerge() function.
  */
 fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
                                  const unsigned *ids, size_t num_tri,
-                                 int flags);
+                                 int mergeflags);
 
 /**
  * Frees allocated memory.
@@ -153,6 +130,45 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
  * Frees all fer_obb_pair_t members stored in given list.
  */
 void ferCDOBBFreePairs(fer_list_t *pairs);
+
+
+
+/**
+ * Flag for ferCDOBBMerge() function.
+ *
+ * Use covariance matrix for fitting OBB to its content.
+ * This is default.
+ */
+#define FER_CDOBB_MERGE_FIT_COVARIANCE 0
+
+/**
+ * Flag for ferCDOBBMerge() function.
+ *
+ * Use "rotation calipers" for fitting OBB. This method is slower and more
+ * accurate than FER_CDOBB_MERGE_FIT_COVARIANCE.
+ */
+#define FER_CDOBB_MERGE_FIT_CALIPERS 1
+
+/**
+ * Flag for ferCDOBBMerge() function.
+ *
+ * It specifies number of rotation that will be tried for fitting OBB.
+ * The higher value is, the more accurate (and slower) method is * used.
+ * Reasonable values are 10, 20, ..., 50. This flag is active only if
+ * FER_CDOBB_MERGE_FIT_CALIPERS flag is set.
+ * Default value is 20.
+ */
+#define FER_CDOBB_MERGE_FIT_CALIPERS_NUM_ROT(rot) ((rot & 0xFF) << 8)
+
+/**
+ * Merge all OBBs in list and left one top OBB in list.
+ *
+ * Using parameter {flags} can be changed method used for merging (choosing
+ * and fitting) bounding boxes. See FER_CDOBB_MERGE_* macros.
+ */
+void ferCDOBBMerge(fer_list_t *obbs, int flags);
+
+
 
 void ferCDOBBDumpSVT(const fer_cd_obb_t *obb, FILE *out, const char *name);
 void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,

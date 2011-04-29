@@ -74,8 +74,18 @@ TEST(obbCollide)
     ferVec3Set(&a23, 0., 0., 1.);
     ferVec3Set(&e2, 0.5, 0.5, 0.5);
 
-    obb1 = ferCDOBBNew(&c1, &a11, &a12, &a13, &e1, NULL);
-    obb2 = ferCDOBBNew(&c2, &a21, &a22, &a23, &e2, NULL);
+    obb1 = ferCDOBBNew();
+    ferVec3Copy(&obb1->center, &c1);
+    ferVec3Copy(&obb1->axis[0], &a11);
+    ferVec3Copy(&obb1->axis[1], &a12);
+    ferVec3Copy(&obb1->axis[2], &a13);
+    ferVec3Copy(&obb1->half_extents, &e1);
+    obb2 = ferCDOBBNew();
+    ferVec3Copy(&obb2->center, &c2);
+    ferVec3Copy(&obb2->axis[0], &a21);
+    ferVec3Copy(&obb2->axis[1], &a22);
+    ferVec3Copy(&obb2->axis[2], &a23);
+    ferVec3Copy(&obb2->half_extents, &e2);
 
     ferVec3Set(&tr1, 0., 0., 0.);
     ferMat3SetRot3D(&rot1, 0., 0., 0.);
@@ -200,7 +210,8 @@ TEST(obbTriMesh)
 
 
     ferTimerStart(&t);
-    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, FER_CDOBB_TRIMESH_FAST);
+    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len,
+                             FER_CDOBB_MERGE_FIT_CALIPERS);
     //pTree(obb, 0);
     ferCDOBBDel(obb);
     ferTimerStop(&t);

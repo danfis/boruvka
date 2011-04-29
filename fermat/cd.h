@@ -34,14 +34,14 @@ struct _fer_cd_shape_t {
 typedef struct _fer_cd_shape_t fer_cd_shape_t;
 
 /** Shape types */
-#define FER_CD_SHAPE_SPHERE  0
-#define FER_CD_SHAPE_BOX     1
-#define FER_CD_SHAPE_CYL     2
-#define FER_CD_SHAPE_CAP     3
-#define FER_CD_SHAPE_TRIMESH 4
-#define FER_CD_SHAPE_LEN     5
+#define FER_CD_SHAPE_SPHERE      0
+#define FER_CD_SHAPE_BOX         1
+#define FER_CD_SHAPE_CYL         2
+#define FER_CD_SHAPE_CAP         3
+#define FER_CD_SHAPE_TRIMESH_TRI 4
+#define FER_CD_SHAPE_LEN         5
 
-#define FER_CD_SHAPE_TRIMESH_TRI 20
+#define FER_CD_SHAPE_TRIMESH 20
 
 
 #ifdef __cplusplus

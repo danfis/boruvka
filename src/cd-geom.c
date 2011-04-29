@@ -46,7 +46,8 @@ void ferCDGeomDel(fer_cd_geom_t *g)
 
 void ferCDGeomBuild(fer_cd_geom_t *g)
 {
-    // TODO
+    // TODO: flags
+    ferCDOBBMerge(&g->obbs, 0);
 }
 
 void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
@@ -124,7 +125,22 @@ void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
 
     FER_LIST_FOR_EACH(&g->obbs, item){
         obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        if (obb->shape && obb->shape->type == FER_CD_SHAPE_TRIMESH){
+        if (obb->shape->type == FER_CD_SHAPE_SPHERE){
+            // TODO
+
+        }else if (obb->shape->type == FER_CD_SHAPE_BOX){
+            // TODO
+
+        }else if (obb->shape->type == FER_CD_SHAPE_CYL){
+            // TODO
+
+        }else if (obb->shape->type == FER_CD_SHAPE_CAP){
+            // TODO
+
+        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
+            // TODO
+
+        }else if (obb->shape && obb->shape->type == FER_CD_SHAPE_TRIMESH){
             ferCDTriMeshDumpSVT2((const fer_cd_trimesh_t *)obb->shape,
                                  &g->rot, &g->tr, out, name, 1);
         }
