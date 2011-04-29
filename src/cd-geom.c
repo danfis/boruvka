@@ -68,6 +68,17 @@ void ferCDGeomAddSphere(fer_cd_geom_t *g, const fer_vec3_t *center,
     ferListAppend(&g->obbs, &obb->list);
 }
 
+void ferCDGeomAddBox(fer_cd_geom_t *g,
+                     fer_real_t lx, fer_real_t ly, fer_real_t lz,
+                     const fer_vec3_t *center, const fer_mat3_t *rot)
+{
+    fer_cd_obb_t *obb;
+
+    obb = ferCDOBBNewBox(lx, ly, lz, center, rot);
+    ferListAppend(&g->obbs, &obb->list);
+}
+
+
 
 struct __collide_t {
     const fer_cd_geom_t *g1;

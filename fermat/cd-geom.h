@@ -78,6 +78,14 @@ void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
 void ferCDGeomAddSphere(fer_cd_geom_t *g, const fer_vec3_t *center,
                         fer_real_t radius);
 
+/**
+ * Adds box to geom.
+ */
+void ferCDGeomAddBox(fer_cd_geom_t *g,
+                     fer_real_t lx, fer_real_t ly, fer_real_t lz,
+                     const fer_vec3_t *center, const fer_mat3_t *rot);
+
+
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 

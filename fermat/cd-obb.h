@@ -64,6 +64,11 @@ fer_cd_obb_t *ferCDOBBNew(void);
  */
 fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius);
 
+/**
+ * Creates new OBB for box.
+ */
+fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
+                             const fer_vec3_t *center, const fer_mat3_t *rot);
 
 /**
  * Creates bounding box for triangular mesh. Parameter {num_tri} is number

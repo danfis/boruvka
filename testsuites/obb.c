@@ -263,6 +263,9 @@ TEST(obbSphere)
     ferCDOBBDel(obb);
 }
 
+TEST(obbBox)
+{
+}
 
 
 TEST(obbPairs1)

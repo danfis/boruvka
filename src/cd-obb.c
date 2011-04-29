@@ -51,6 +51,10 @@ static void findOBBMinMax(fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max);
 static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
                             fer_real_t *min, fer_real_t *max);
 
+/** Calls callback for each corner of OBB */
+typedef void (*box_corners)(const fer_vec3_t *v, void *data);
+static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *);
+
 _fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
                            fer_list_t *list);
 
@@ -94,6 +98,26 @@ fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius)
     return obb;
 }
 
+fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
+                             const fer_vec3_t *center, const fer_mat3_t *rot)
+{
+    fer_cd_obb_t *obb;
+
+    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
+    ferVec3Copy(&obb->center, center);
+    ferMat3CopyCol(&obb->axis[0], rot, 0);
+    ferMat3CopyCol(&obb->axis[1], rot, 1);
+    ferMat3CopyCol(&obb->axis[2], rot, 2);
+    ferVec3Set(&obb->half_extents, lx * FER_REAL(0.5),
+                                   ly * FER_REAL(0.5),
+                                   lz * FER_REAL(0.5));
+
+    obb->shape = (fer_cd_shape_t *)ferCDBoxNew();
+
+    ferListInit(&obb->obbs);
+
+    return obb;
+}
 
 static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
                                            const fer_vec3_t *p2,
@@ -233,7 +257,7 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
             ferCDSphereDel((fer_cd_sphere_t *)obb->shape);
 
         }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            // TODO
+            ferCDBoxDel((fer_cd_box_t *)obb->shape);
 
         }else if (obb->shape->type == FER_CD_SHAPE_CYL){
             // TODO
@@ -992,6 +1016,12 @@ static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull)
 }
 
 
+static void __updateCHullBox(const fer_vec3_t *v, void *data)
+{
+    fer_chull3_t *hull = (fer_chull3_t *)data;
+    ferCHull3Add(hull, v);
+}
+
 static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
 {
     fer_list_t *item;
@@ -1008,7 +1038,7 @@ static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
             ret = -1;
 
         }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            // TODO
+            boxCorners(obb, __updateCHullBox, (void *)hull);
 
         }else if (obb->shape->type == FER_CD_SHAPE_CYL){
             ret = -1;
@@ -1051,6 +1081,28 @@ static void updateCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
 }
 */
 
+struct __minmax_box_t {
+    fer_cd_obb_t *frame;
+    fer_real_t *min;
+    fer_real_t *max;
+};
+
+static void __minmaxBox(const fer_vec3_t *v, void *data)
+{
+    struct __minmax_box_t *d = (struct __minmax_box_t *)data;
+    fer_real_t m;
+    size_t i;
+
+    for (i = 0; i < 3; i++){
+        m = ferVec3Dot(v, d->frame->axis + i);
+
+        if (m < d->min[i])
+            d->min[i] = m;
+        if (m > d->max[i])
+            d->max[i] = m;
+    }
+}
+
 static void _findOBBMinMax(fer_cd_obb_t *frame,
                            fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max)
 {
@@ -1083,7 +1135,11 @@ static void _findOBBMinMax(fer_cd_obb_t *frame,
             }
 
         }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            // TODO
+            struct __minmax_box_t d;
+            d.frame = frame;
+            d.min = min;
+            d.max = max;
+            boxCorners(obb, __minmaxBox, (void *)&d);
 
         }else if (obb->shape->type == FER_CD_SHAPE_CYL){
             // TODO
@@ -1166,3 +1222,53 @@ static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
         }
     }
 }
+
+static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *data)
+{
+    fer_vec3_t a[3], v;
+
+    ferVec3Scale2(&a[0], &obb->axis[0], ferVec3X(&obb->half_extents));
+    ferVec3Scale2(&a[1], &obb->axis[1], ferVec3Y(&obb->half_extents));
+    ferVec3Scale2(&a[2], &obb->axis[2], ferVec3Z(&obb->half_extents));
+
+    ferVec3Add2(&v, &obb->center, &a[0]);
+    ferVec3Add(&v, &a[1]);
+    ferVec3Add(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Add2(&v, &obb->center, &a[0]);
+    ferVec3Add(&v, &a[1]);
+    ferVec3Sub(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Add2(&v, &obb->center, &a[0]);
+    ferVec3Sub(&v, &a[1]);
+    ferVec3Add(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Add2(&v, &obb->center, &a[0]);
+    ferVec3Sub(&v, &a[1]);
+    ferVec3Sub(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Sub2(&v, &obb->center, &a[0]);
+    ferVec3Add(&v, &a[1]);
+    ferVec3Add(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Sub2(&v, &obb->center, &a[0]);
+    ferVec3Add(&v, &a[1]);
+    ferVec3Sub(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Sub2(&v, &obb->center, &a[0]);
+    ferVec3Sub(&v, &a[1]);
+    ferVec3Add(&v, &a[2]);
+    cb(&v, data);
+
+    ferVec3Sub2(&v, &obb->center, &a[0]);
+    ferVec3Sub(&v, &a[1]);
+    ferVec3Sub(&v, &a[2]);
+    cb(&v, data);
+}
+

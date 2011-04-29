@@ -45,7 +45,8 @@ OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng2.o gng3.o
 OBJS += gng-plan.o prm.o rrt.o
-OBJS += cd-geom.o cd-trimesh.o cd-sphere.o cd-obb.o
+OBJS += cd-box.o cd-sphere.o cd-trimesh.o
+OBJS += cd-obb.o cd-geom.o
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
