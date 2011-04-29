@@ -67,7 +67,8 @@ int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
 
 
 fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
-                                    const unsigned int *ids, size_t len)
+                                  const unsigned int *ids, size_t len,
+                                  const fer_vec3_t *center, const fer_mat3_t *rot)
 {
     fer_cd_trimesh_t *t;
     size_t i, ptslen;
@@ -88,7 +89,8 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
     t->len = len;
 
     for (i = 0; i < ptslen; i++){
-        ferVec3Copy(t->pts + i, pts + i);
+        ferMat3MulVec(t->pts + i, rot, pts + i);
+        ferVec3Add(t->pts + i, center);
     }
     for (i = 0; i < 3 * len; i++){
         t->ids[i] = ids[i];

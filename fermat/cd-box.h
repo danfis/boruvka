@@ -23,25 +23,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/**
- * Box shape.
- *
- * Box shape is special case because OBB equals to a box and thus we only
- * need to know that the shape is box-shape.
- */
-typedef fer_cd_shape_t fer_cd_box_t;
-
-
-/**
- * Creates sphere shape
- */
-fer_cd_box_t *ferCDBoxNew(void);
-
-/**
- * Deletes sphere.
- */
-void ferCDBoxDel(fer_cd_box_t *b);
-
+extern fer_cd_shape_t *fer_cd_box;
 
 #ifdef __cplusplus
 }

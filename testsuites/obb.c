@@ -201,13 +201,14 @@ TEST(obbTriMesh)
     ferVec3Set(pts + 3, 1., 1., 1.);
     ferVec3Set(pts + 4, 0., 1., 1.);
 
-    obb = ferCDOBBNewTriMesh(pts, ids, len, 0);
+    obb = ferCDOBBNewTriMesh(pts, ids, len, 0, fer_vec3_origin, fer_mat3_identity);
     //pTree(obb, 0);
     ferCDOBBDel(obb);
 
 
     ferTimerStart(&t);
-    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0);
+    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0,
+                             fer_vec3_origin, fer_mat3_identity);
     //pTree(obb, 0);
     ferCDOBBDel(obb);
     ferTimerStop(&t);
@@ -216,7 +217,7 @@ TEST(obbTriMesh)
 
     ferTimerStart(&t);
     obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len,
-                             FER_CDOBB_MERGE_FIT_CALIPERS);
+                             FER_CDOBB_MERGE_FIT_CALIPERS, fer_vec3_origin, fer_mat3_identity);
     //pTree(obb, 0);
     ferCDOBBDel(obb);
     ferTimerStop(&t);
@@ -232,27 +233,27 @@ TEST(obbSphere)
     ferListInit(&obbs);
 
     ferVec3Set(&c, 0, 0, 0);
-    obb = ferCDOBBNewSphere(&c, 0.5);
+    obb = ferCDOBBNewSphere(0.5, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferVec3Set(&c, 1, 0, 0);
-    obb = ferCDOBBNewSphere(&c, 0.3);
+    obb = ferCDOBBNewSphere(0.3, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferVec3Set(&c, 1, 1, 0);
-    obb = ferCDOBBNewSphere(&c, 0.7);
+    obb = ferCDOBBNewSphere(0.7, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferVec3Set(&c, 1, 1, 1);
-    obb = ferCDOBBNewSphere(&c, 0.1);
+    obb = ferCDOBBNewSphere(0.1, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferVec3Set(&c, 1, 0, 1);
-    obb = ferCDOBBNewSphere(&c, 0.1);
+    obb = ferCDOBBNewSphere(0.1, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferVec3Set(&c, -1, 0, 1);
-    obb = ferCDOBBNewSphere(&c, 0.1);
+    obb = ferCDOBBNewSphere(0.1, &c);
     ferListAppend(&obbs, &obb->list);
 
     ferCDOBBMerge(&obbs, FER_CDOBB_MERGE_FIT_COVARIANCE);
@@ -306,8 +307,8 @@ TEST(obbPairs1)
     int ret;
 
 
-    obb1 = ferCDOBBNewTriMesh(pts1, ids1, len1, 0);
-    obb2 = ferCDOBBNewTriMesh(pts2, ids2, len2, 0);
+    obb1 = ferCDOBBNewTriMesh(pts1, ids1, len1, 0, fer_vec3_origin, fer_mat3_identity);
+    obb2 = ferCDOBBNewTriMesh(pts2, ids2, len2, 0,  fer_vec3_origin, fer_mat3_identity);
 
     //pTree(obb1, 0);
     //pTree(obb2, 0);

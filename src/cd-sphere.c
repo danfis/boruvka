@@ -17,7 +17,7 @@
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
 
-fer_cd_sphere_t *ferCDSphereNew(const fer_vec3_t *center, fer_real_t radius)
+fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius, const fer_vec3_t *center)
 {
     fer_cd_sphere_t *s;
 

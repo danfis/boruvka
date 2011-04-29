@@ -38,7 +38,7 @@ typedef struct _fer_cd_sphere_t fer_cd_sphere_t;
 /**
  * Creates sphere shape
  */
-fer_cd_sphere_t *ferCDSphereNew(const fer_vec3_t *center, fer_real_t radius);
+fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius, const fer_vec3_t *center);
 
 /**
  * Deletes sphere.

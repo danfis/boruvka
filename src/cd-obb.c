@@ -80,7 +80,7 @@ fer_cd_obb_t *ferCDOBBNew(void)
     return obb;
 }
 
-fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius)
+fer_cd_obb_t *ferCDOBBNewSphere(fer_real_t radius, const fer_vec3_t *center)
 {
     fer_cd_obb_t *obb;
 
@@ -91,7 +91,7 @@ fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius)
     ferVec3Set(&obb->axis[2], FER_ZERO, FER_ZERO, FER_ONE);
     ferVec3Set(&obb->half_extents, radius, radius, radius);
 
-    obb->shape = (fer_cd_shape_t *)ferCDSphereNew(center, radius);
+    obb->shape = (fer_cd_shape_t *)ferCDSphereNew(radius, center);
 
     ferListInit(&obb->obbs);
 
@@ -112,7 +112,7 @@ fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
                                    ly * FER_REAL(0.5),
                                    lz * FER_REAL(0.5));
 
-    obb->shape = (fer_cd_shape_t *)ferCDBoxNew();
+    obb->shape = fer_cd_box;
 
     ferListInit(&obb->obbs);
 
@@ -210,7 +210,8 @@ static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
 
 fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
                                  const unsigned *ids, size_t len,
-                                 int flags)
+                                 int flags,
+                                 const fer_vec3_t *center, const fer_mat3_t *rot)
 {
     fer_list_t obbs, *item;
     fer_cd_obb_t *obb;
@@ -218,7 +219,7 @@ fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
     size_t i;
 
     // create trimesh and root obb
-    trimesh = ferCDTriMeshNew(pts, ids, len);
+    trimesh = ferCDTriMeshNew(pts, ids, len, center, rot);
 
     // create obb for each triangle
     ferListInit(&obbs);
@@ -257,7 +258,7 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
             ferCDSphereDel((fer_cd_sphere_t *)obb->shape);
 
         }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            ferCDBoxDel((fer_cd_box_t *)obb->shape);
+            // do nothing - shape is static and read only
 
         }else if (obb->shape->type == FER_CD_SHAPE_CYL){
             // TODO

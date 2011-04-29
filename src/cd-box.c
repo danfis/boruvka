@@ -15,17 +15,6 @@
  */
 
 #include <fermat/cd.h>
-#include <fermat/alloc.h>
 
-fer_cd_box_t *ferCDBoxNew(void)
-{
-    fer_cd_box_t *b;
-    b = FER_ALLOC(fer_cd_box_t);
-    b->type = FER_CD_SHAPE_BOX;
-    return b;
-}
-
-void ferCDBoxDel(fer_cd_box_t *b)
-{
-    free(b);
-}
+static fer_cd_shape_t box = { .type = FER_CD_SHAPE_BOX };
+fer_cd_shape_t *fer_cd_box = &box;

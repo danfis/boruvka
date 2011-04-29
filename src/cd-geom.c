@@ -50,21 +50,16 @@ void ferCDGeomBuild(fer_cd_geom_t *g)
     ferCDOBBMerge(&g->obbs, 0);
 }
 
-void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
-                         const unsigned int *ids, size_t len)
+
+void ferCDGeomAddSphere(fer_cd_geom_t *g, fer_real_t radius,
+                        const fer_vec3_t *center)
 {
     fer_cd_obb_t *obb;
 
-    obb = ferCDOBBNewTriMesh(pts, ids, len, 0);
-    ferListAppend(&g->obbs, &obb->list);
-}
+    if (!center)
+        center = fer_vec3_origin;
 
-void ferCDGeomAddSphere(fer_cd_geom_t *g, const fer_vec3_t *center,
-                        fer_real_t radius)
-{
-    fer_cd_obb_t *obb;
-
-    obb = ferCDOBBNewSphere(center, radius);
+    obb = ferCDOBBNewSphere(radius, center);
     ferListAppend(&g->obbs, &obb->list);
 }
 
@@ -74,7 +69,26 @@ void ferCDGeomAddBox(fer_cd_geom_t *g,
 {
     fer_cd_obb_t *obb;
 
+    if (!center)
+        center = fer_vec3_origin;
+    if (!rot)
+        rot = fer_mat3_identity;
+
     obb = ferCDOBBNewBox(lx, ly, lz, center, rot);
+    ferListAppend(&g->obbs, &obb->list);
+}
+void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
+                         const unsigned int *ids, size_t len,
+                         const fer_vec3_t *center, const fer_mat3_t *rot)
+{
+    fer_cd_obb_t *obb;
+
+    if (!center)
+        center = fer_vec3_origin;
+    if (!rot)
+        rot = fer_mat3_identity;
+
+    obb = ferCDOBBNewTriMesh(pts, ids, len, 0, center, rot);
     ferListAppend(&g->obbs, &obb->list);
 }
 

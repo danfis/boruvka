@@ -12,8 +12,8 @@ TEST(geomCollideTriMesh)
 
     g1 = ferCDGeomNew();
     g2 = ferCDGeomNew();
-    ferCDGeomAddTriMesh(g1, bunny_coords, bunny_ids, bunny_tri_len);
-    ferCDGeomAddTriMesh(g2, bunny_coords, bunny_ids, bunny_tri_len);
+    ferCDGeomAddTriMesh(g1, bunny_coords, bunny_ids, bunny_tri_len, NULL, NULL);
+    ferCDGeomAddTriMesh(g2, bunny_coords, bunny_ids, bunny_tri_len, NULL, NULL);
 
     ferVec3Set(&tr, 1, 0, 0);
     ferMat3SetRot3D(&rot, 0, M_PI_4/2, 0);

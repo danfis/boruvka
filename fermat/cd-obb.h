@@ -62,7 +62,7 @@ fer_cd_obb_t *ferCDOBBNew(void);
 /**
  * Creates new OBB for sphere.
  */
-fer_cd_obb_t *ferCDOBBNewSphere(const fer_vec3_t *center, fer_real_t radius);
+fer_cd_obb_t *ferCDOBBNewSphere(fer_real_t radius, const fer_vec3_t *center);
 
 /**
  * Creates new OBB for box.
@@ -77,7 +77,8 @@ fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
  */
 fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
                                  const unsigned *ids, size_t num_tri,
-                                 int mergeflags);
+                                 int mergeflags,
+                                 const fer_vec3_t *center, const fer_mat3_t *rot);
 
 /**
  * Frees allocated memory.
