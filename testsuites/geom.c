@@ -30,3 +30,10 @@ TEST(geomCollideTriMesh)
     ferCDGeomDel(g2);
 }
 
+
+
+TEST(geomSphere)
+{
+}
+
+

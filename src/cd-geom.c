@@ -55,7 +55,7 @@ void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
 {
     fer_cd_obb_t *obb;
 
-    obb = ferCDOBBNewTriMesh(pts, ids, len, FER_CDOBB_TRIMESH_FAST);
+    obb = ferCDOBBNewTriMesh(pts, ids, len, 0);
     ferListAppend(&g->obbs, &obb->list);
 }
 

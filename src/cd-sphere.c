@@ -35,3 +35,24 @@ void ferCDSphereDel(fer_cd_sphere_t *s)
     free(s);
 }
 
+
+void ferCDSphereDumpSVT(const fer_cd_sphere_t *s, FILE *out, const char *name)
+{
+    fer_vec3_t v;
+    size_t i;
+
+    fprintf(out, "-----\n");
+    if (name)
+        fprintf(out, "Name: %s\n", name);
+
+    fprintf(out, "Points:\n");
+    for (i = 0; i < fer_points_on_sphere_len; i++){
+        ferVec3Copy(&v, fer_points_on_sphere + i);
+        ferVec3Scale(&v, s->radius);
+        ferVec3Add(&v, s->center);
+
+        ferVec3Print(&v, out);
+        fprintf(out, "\n");
+    }
+    fprintf(out, "-----\n");
+}

@@ -39,6 +39,7 @@ typedef struct _fer_cd_trimesh_tri_t fer_cd_trimesh_tri_t;
 struct _fer_cd_trimesh_t {
     fer_cd_shape_t shape; /*!< Base class */
     fer_vec3_t *pts;
+    size_t ptslen;
     unsigned int *ids;
     size_t len;
 };

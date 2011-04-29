@@ -46,6 +46,8 @@ fer_cd_sphere_t *ferCDSphereNew(const fer_vec3_t *center, fer_real_t radius);
 void ferCDSphereDel(fer_cd_sphere_t *s);
 
 
+void ferCDSphereDumpSVT(const fer_cd_sphere_t *s, FILE *out, const char *name);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

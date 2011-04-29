@@ -148,8 +148,13 @@ static void pTree(fer_cd_obb_t *root, int id)
         obb = fer_container_of(item, fer_cd_obb_t, list);
 
         if (ferListEmpty(&obb->obbs)){
-            sprintf(name, "Tri - %02d", id);
-            ferCDTriMeshTriDumpSVT((fer_cd_trimesh_tri_t *)obb->shape, stdout, name);
+            if (obb->shape->type == FER_CD_SHAPE_SPHERE){
+                sprintf(name, "Sphere - %02d", id);
+                ferCDSphereDumpSVT((fer_cd_sphere_t *)obb->shape, stdout, name);
+            }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
+                sprintf(name, "Tri - %02d", id);
+                ferCDTriMeshTriDumpSVT((fer_cd_trimesh_tri_t *)obb->shape, stdout, name);
+            }
             sprintf(name, "CDOBB - %02d", id);
             ferCDOBBDumpSVT(obb, stdout, name);
         }else{
@@ -217,6 +222,48 @@ TEST(obbTriMesh)
     ferTimerStop(&t);
     //fprintf(stderr, "2: %lu\n", ferTimerElapsedInUs(&t));
 }
+
+TEST(obbSphere)
+{
+    fer_list_t obbs;
+    fer_cd_obb_t *obb;
+    fer_vec3_t c;
+
+    ferListInit(&obbs);
+
+    ferVec3Set(&c, 0, 0, 0);
+    obb = ferCDOBBNewSphere(&c, 0.5);
+    ferListAppend(&obbs, &obb->list);
+
+    ferVec3Set(&c, 1, 0, 0);
+    obb = ferCDOBBNewSphere(&c, 0.3);
+    ferListAppend(&obbs, &obb->list);
+
+    ferVec3Set(&c, 1, 1, 0);
+    obb = ferCDOBBNewSphere(&c, 0.7);
+    ferListAppend(&obbs, &obb->list);
+
+    ferVec3Set(&c, 1, 1, 1);
+    obb = ferCDOBBNewSphere(&c, 0.1);
+    ferListAppend(&obbs, &obb->list);
+
+    ferVec3Set(&c, 1, 0, 1);
+    obb = ferCDOBBNewSphere(&c, 0.1);
+    ferListAppend(&obbs, &obb->list);
+
+    ferVec3Set(&c, -1, 0, 1);
+    obb = ferCDOBBNewSphere(&c, 0.1);
+    ferListAppend(&obbs, &obb->list);
+
+    ferCDOBBMerge(&obbs, FER_CDOBB_MERGE_FIT_COVARIANCE);
+    obb = FER_LIST_ENTRY(ferListNext(&obbs), fer_cd_obb_t, list);
+
+    pTree(obb, 0);
+
+    ferCDOBBDel(obb);
+}
+
+
 
 TEST(obbPairs1)
 {

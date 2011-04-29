@@ -83,6 +83,7 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
     }
 
     t->pts = ferVec3ArrNew(ptslen);
+    t->ptslen = ptslen;
     t->ids = FER_ALLOC_ARR(unsigned int, len * 3);
     t->len = len;
 
@@ -133,7 +134,7 @@ void ferCDTriMeshTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
 void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t, FILE *out,
                          const char *name, int edges)
 {
-    size_t i, numpts;
+    size_t i;
 
     fprintf(out, "----\n");
 
@@ -141,14 +142,8 @@ void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t, FILE *out,
         fprintf(out, "Name: %s\n", name);
     }
 
-    numpts = 0;
-    for (i = 0; i < 3 * t->len; i++){
-        if (t->ids[i] + 1 > numpts)
-            numpts = t->ids[i] + 1;
-    }
-
     fprintf(out, "Points:\n");
-    for (i = 0; i < numpts; i++){
+    for (i = 0; i < t->ptslen; i++){
         ferVec3Print(&t->pts[i], out);
         fprintf(out, "\n");
     }
