@@ -51,6 +51,7 @@ typedef struct _fer_cd_shape_t fer_cd_shape_t;
 
 #include <fermat/cd-sphere.h>
 #include <fermat/cd-box.h>
+#include <fermat/cd-cyl.h>
 #include <fermat/cd-trimesh.h>
 #include <fermat/cd-obb.h>
 #include <fermat/cd-geom.h>
