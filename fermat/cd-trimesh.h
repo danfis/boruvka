@@ -80,15 +80,37 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
  */
 void ferCDTriMeshDel(fer_cd_trimesh_t *t);
 
+void ferCDTriMeshTriSupport(const fer_cd_trimesh_tri_t *t,
+                            const fer_vec3_t *dir,
+                            fer_vec3_t *p);
+void ferCDTriMeshSupport(const fer_cd_trimesh_t *t,
+                         const fer_vec3_t *dir,
+                         fer_vec3_t *p);
 
+void ferCDTriMeshTriFitOBB(const fer_cd_trimesh_tri_t *tri,
+                           fer_vec3_t *center,
+                           fer_vec3_t *axis0,
+                           fer_vec3_t *axis1,
+                           fer_vec3_t *axis2,
+                           fer_vec3_t *half_extents, int flags);
+void ferCDTriMeshFitOBB(const fer_cd_trimesh_t *s,
+                        fer_vec3_t *center,
+                        fer_vec3_t *axis0,
+                        fer_vec3_t *axis1,
+                        fer_vec3_t *axis2,
+                        fer_vec3_t *half_extents, int flags);
+
+int ferCDTriMeshTriUpdateCHull(const fer_cd_trimesh_tri_t *t, fer_chull3_t *chull,
+                               const fer_mat3_t *rot, const fer_vec3_t *tr);
+int ferCDTriMeshUpdateCHull(const fer_cd_trimesh_t *t, fer_chull3_t *chull,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 void ferCDTriMeshTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
-                            FILE *out, const char *name);
-void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t, FILE *out,
-                         const char *name, int edges);
-void ferCDTriMeshDumpSVT2(const fer_cd_trimesh_t *t,
-                          const fer_mat3_t *rot, const fer_vec3_t *tr,
-                          FILE *out, const char *name, int edges);
+                            FILE *out, const char *name,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr);
+void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t,
+                         FILE *out, const char *name,
+                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 #ifdef __cplusplus
 }

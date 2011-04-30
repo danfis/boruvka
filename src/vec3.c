@@ -23,6 +23,16 @@
 static FER_VEC3(__fer_vec3_origin, FER_ZERO, FER_ZERO, FER_ZERO);
 const fer_vec3_t *fer_vec3_origin = &__fer_vec3_origin;
 
+static FER_VEC3(__fer_vec3_axis_x, FER_ONE,  FER_ZERO, FER_ZERO);
+static FER_VEC3(__fer_vec3_axis_y, FER_ZERO, FER_ONE,  FER_ZERO);
+static FER_VEC3(__fer_vec3_axis_z, FER_ZERO, FER_ZERO, FER_ONE);
+
+const fer_vec3_t *fer_vec3_axis[3] = {
+    &__fer_vec3_axis_x,
+    &__fer_vec3_axis_y,
+    &__fer_vec3_axis_z
+};
+
 static fer_vec3_t points_on_sphere[] = {
 	FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-0.000000), FER_REAL(-1.000000)),
 	FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL(-0.525725), FER_REAL(-0.447219)),

@@ -62,6 +62,11 @@ typedef struct _fer_vec3_t fer_vec3_t;
 extern const fer_vec3_t *fer_vec3_origin;
 
 /**
+ * X, Y and Z axis - read-only.
+ */
+extern const fer_vec3_t *fer_vec3_axis[3];
+
+/**
  * Array of points uniformly distributed on unit sphere.
  */
 extern fer_vec3_t *fer_points_on_sphere;

@@ -19,11 +19,6 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-/** Creates new bounding box from trimesh's triangle.  */
-static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
-                                           const fer_vec3_t *p2,
-                                           const fer_vec3_t *p3);
-
 /** Finds two nearest OBBs in list and returns new OBB that contains those
  *  OBBs, no other properties of OBB is set. Returns NULL if no two nearest
  *  OBBs are available */
@@ -40,7 +35,7 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, int num_rot);
 static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull);
 
 /** Compute convex hull of whole obb subtree.
- *  Returns 0 if convex hull contains all objects from OBBs, i.e., also
+ *  Returns 1 if convex hull contains all objects from OBBs, i.e., also
  *  min/max values can be taken from convex hull. */
 static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull);
 /** Updates hull with points from hull2 */
@@ -51,6 +46,7 @@ static void findOBBMinMax(fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max);
 static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
                             fer_real_t *min, fer_real_t *max);
 
+#if 0
 /** Calls callback for each corner of OBB */
 typedef void (*box_corners)(const fer_vec3_t *v, void *data);
 static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *);
@@ -58,6 +54,7 @@ static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *);
 _fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
                            fer_list_t *list);
 
+#endif
 
 
 fer_cd_obb_t *ferCDOBBNew(void)
@@ -80,127 +77,22 @@ fer_cd_obb_t *ferCDOBBNew(void)
     return obb;
 }
 
-fer_cd_obb_t *ferCDOBBNewSphere(fer_real_t radius, const fer_vec3_t *center)
+
+fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
 {
     fer_cd_obb_t *obb;
 
     obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
-    ferVec3Copy(&obb->center, center);
-    ferVec3Set(&obb->axis[0], FER_ONE,  FER_ZERO, FER_ZERO);
-    ferVec3Set(&obb->axis[1], FER_ZERO, FER_ONE,  FER_ZERO);
-    ferVec3Set(&obb->axis[2], FER_ZERO, FER_ZERO, FER_ONE);
-    ferVec3Set(&obb->half_extents, radius, radius, radius);
 
-    obb->shape = (fer_cd_shape_t *)ferCDSphereNew(radius, center);
-
-    ferListInit(&obb->obbs);
-
-    return obb;
-}
-
-fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
-                             const fer_vec3_t *center, const fer_mat3_t *rot)
-{
-    fer_cd_obb_t *obb;
-
-    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
-    ferVec3Copy(&obb->center, center);
-    ferMat3CopyCol(&obb->axis[0], rot, 0);
-    ferMat3CopyCol(&obb->axis[1], rot, 1);
-    ferMat3CopyCol(&obb->axis[2], rot, 2);
-    ferVec3Set(&obb->half_extents, lx * FER_REAL(0.5),
-                                   ly * FER_REAL(0.5),
-                                   lz * FER_REAL(0.5));
-
-    obb->shape = fer_cd_box;
-
-    ferListInit(&obb->obbs);
-
-    return obb;
-}
-
-static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
-                                           const fer_vec3_t *p2,
-                                           const fer_vec3_t *p3)
-{
-    fer_cd_trimesh_tri_t *tri;
-    fer_cd_obb_t *obb;
-    fer_vec3_t e01, e02, e12; // triangle edges
-    fer_vec3_t v;
-    fer_real_t d01, d02, d12;
-    fer_real_t min[3], max[3], m;
-    int i;
-
-    tri = ferCDTriMeshTriNew(p1, p2, p3);
-    obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
-
-    // 1. compute triangle edges
-    ferVec3Sub2(&e01, tri->p1, tri->p0);
-    ferVec3Sub2(&e02, tri->p2, tri->p0);
-    ferVec3Sub2(&e12, tri->p2, tri->p1);
-
-    // 2. find longest edge and compute from that first normalized axis of
-    //    bounding box
-    d01 = ferVec3Len2(&e01);
-    d02 = ferVec3Len2(&e02);
-    d12 = ferVec3Len2(&e12);
-    if (d01 > d02){
-        if (d01 > d12){
-            ferVec3Scale2(&obb->axis[0], &e01, ferRsqrt(d01));
-        }else{
-            ferVec3Scale2(&obb->axis[0], &e12, ferRsqrt(d12));
-        }
-    }else{
-        if (d02 > d12){
-            ferVec3Scale2(&obb->axis[0], &e02, ferRsqrt(d02));
-        }else{
-            ferVec3Scale2(&obb->axis[0], &e12, ferRsqrt(d12));
-        }
+    obb->shape = shape;
+    if (obb->shape->cl->fit_obb){
+        obb->shape->cl->fit_obb(obb->shape, &obb->center,
+                                            &obb->axis[0],
+                                            &obb->axis[1],
+                                            &obb->axis[2],
+                                            &obb->half_extents,
+                                            flags);
     }
-
-    // 3. compute third axis as vector perpendicular to triangle
-    ferVec3Cross(&obb->axis[2], &e01, &e02);
-    ferVec3Normalize(&obb->axis[2]);
-
-    // 4. compute second axis
-    //    note that normalization is not needed because a0 and a2 are
-    //    already normalized
-    ferVec3Cross(&obb->axis[1], &obb->axis[2], &obb->axis[0]);
-
-    // 5. min and max values of projected points of triangle on bounding
-    //    boxes' axes.
-    for (i = 0; i < 3; i++){
-        min[i] = max[i] = ferVec3Dot(tri->p0, &obb->axis[i]);
-
-        m = ferVec3Dot(tri->p1, &obb->axis[i]);
-        if (m < min[i]){
-            min[i] = m;
-        }else{
-            max[i] = m;
-        }
-
-        m = ferVec3Dot(tri->p2, &obb->axis[i]);
-        if (m < min[i]){
-            min[i] = m;
-        }else if (m > max[i]){
-            max[i] = m;
-        }
-    }
-
-    // 6. compute center from min/max values
-    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
-    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-
-    // 7. compute extents
-    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
-                                   (max[1] - min[1]) * FER_REAL(0.5),
-                                   (max[2] - min[2]) * FER_REAL(0.5));
-
-
-    obb->shape = (fer_cd_shape_t *)tri;
 
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
@@ -208,29 +100,25 @@ static fer_cd_obb_t *ferCDOBBNewTriMeshTri(const fer_vec3_t *p1,
     return obb;
 }
 
-fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
-                                 const unsigned *ids, size_t len,
-                                 int flags,
-                                 const fer_vec3_t *center, const fer_mat3_t *rot)
+
+fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags)
 {
     fer_list_t obbs, *item;
     fer_cd_obb_t *obb;
-    fer_cd_trimesh_t *trimesh;
+    fer_cd_trimesh_tri_t *tri;
     size_t i;
-
-    // create trimesh and root obb
-    trimesh = ferCDTriMeshNew(pts, ids, len, center, rot);
 
     // create obb for each triangle
     ferListInit(&obbs);
     for (i = 0; i < trimesh->len; i++){
-        obb = ferCDOBBNewTriMeshTri(&trimesh->pts[trimesh->ids[i * 3]],
-                                    &trimesh->pts[trimesh->ids[i * 3 + 1]],
-                                    &trimesh->pts[trimesh->ids[i * 3 + 2]]);
+        tri = ferCDTriMeshTriNew(&trimesh->pts[trimesh->ids[i * 3]],
+                                 &trimesh->pts[trimesh->ids[i * 3 + 1]],
+                                 &trimesh->pts[trimesh->ids[i * 3 + 2]]);
+        obb = ferCDOBBNewShape((fer_cd_shape_t *)tri, mergeflags);
         ferListAppend(&obbs, &obb->list);
     }
 
-    ferCDOBBMerge(&obbs, flags);
+    ferCDOBBMerge(&obbs, mergeflags);
 
     item = ferListNext(&obbs);
     obb = fer_container_of(item, fer_cd_obb_t, list);
@@ -251,27 +139,6 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
         ferListDel(item);
 
         ferCDOBBDel(o);
-    }
-
-    if (obb->shape){
-        if (obb->shape->type == FER_CD_SHAPE_SPHERE){
-            ferCDSphereDel((fer_cd_sphere_t *)obb->shape);
-
-        }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            // do nothing - shape is static and read only
-
-        }else if (obb->shape->type == FER_CD_SHAPE_CYL){
-            // TODO
-
-        }else if (obb->shape->type == FER_CD_SHAPE_CAP){
-            // TODO
-
-        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
-            ferCDTriMeshTriDel((fer_cd_trimesh_tri_t *)obb->shape);
-
-        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH){
-            ferCDTriMeshDel((fer_cd_trimesh_t *)obb->shape);
-        }
     }
 
     free(obb);
@@ -733,7 +600,6 @@ void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,
 
 
 
-
 static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
 {
     fer_cd_obb_t *newobb;
@@ -863,7 +729,7 @@ static void mergeFitCovariance(fer_cd_obb_t *obb)
     }
 
     // find out min and max
-    if (obb_in_chull == 0){
+    if (obb_in_chull){
         findCHullMinMax(chull, obb->axis, min, max);
     }else{
         findOBBMinMax(obb, min, max);
@@ -1017,50 +883,30 @@ static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull)
 }
 
 
+/*
 static void __updateCHullBox(const fer_vec3_t *v, void *data)
 {
     fer_chull3_t *hull = (fer_chull3_t *)data;
     ferCHull3Add(hull, v);
 }
+*/
 
 static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
 {
     fer_list_t *item;
     fer_cd_obb_t *o;
-    fer_cd_sphere_t *sphere;
-    fer_cd_trimesh_tri_t *tri;
     int ret = 0;
 
-    if (ferListEmpty(&obb->obbs)){
-        if (obb->shape->type == FER_CD_SHAPE_SPHERE){
-            sphere = (fer_cd_sphere_t *)obb->shape;
-
-            ferCHull3Add(hull, sphere->center);
-            ret = -1;
-
-        }else if (obb->shape->type == FER_CD_SHAPE_BOX){
-            boxCorners(obb, __updateCHullBox, (void *)hull);
-
-        }else if (obb->shape->type == FER_CD_SHAPE_CYL){
-            ret = -1;
-            // TODO
-
-        }else if (obb->shape->type == FER_CD_SHAPE_CAP){
-            ret = -1;
-            // TODO
-
-        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
-            tri = (fer_cd_trimesh_tri_t *)obb->shape;
-
-            ferCHull3Add(hull, tri->p0);
-            ferCHull3Add(hull, tri->p1);
-            ferCHull3Add(hull, tri->p2);
+    if (obb->shape){
+        if (obb->shape->cl->update_chull){
+            if (obb->shape->cl->update_chull(obb->shape, hull, NULL, NULL))
+                ret = 1;
         }
     }else{
         FER_LIST_FOR_EACH(&obb->obbs, item){
             o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            if (updateCHull(o, hull) != 0)
-                ret = -1;
+            if (updateCHull(o, hull))
+                ret = 1;
         }
     }
 
@@ -1082,6 +928,7 @@ static void updateCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
 }
 */
 
+/*
 struct __minmax_box_t {
     fer_cd_obb_t *frame;
     fer_real_t *min;
@@ -1103,20 +950,22 @@ static void __minmaxBox(const fer_vec3_t *v, void *data)
             d->max[i] = m;
     }
 }
+*/
 
 static void _findOBBMinMax(fer_cd_obb_t *frame,
                            fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max)
 {
     fer_list_t *item;
     fer_cd_obb_t *o;
-    fer_cd_sphere_t *sphere;
+    //fer_cd_sphere_t *sphere;
     fer_cd_trimesh_tri_t *trimesh_tri;
     fer_cd_trimesh_t *trimesh;
     fer_real_t m;
     size_t i, j;
 
     if (obb->shape){
-        if (obb->shape->type == FER_CD_SHAPE_SPHERE){
+        if (obb->shape->cl->type == FER_CD_SHAPE_SPHERE){
+            /* TODO
             sphere = (fer_cd_sphere_t *)obb->shape;
 
             for (i = 0; i < 3; i++){
@@ -1134,21 +983,24 @@ static void _findOBBMinMax(fer_cd_obb_t *frame,
                 if (m > max[i])
                     max[i] = m;
             }
+            */
 
-        }else if (obb->shape->type == FER_CD_SHAPE_BOX){
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_BOX){
+            /* TODO
             struct __minmax_box_t d;
             d.frame = frame;
             d.min = min;
             d.max = max;
             boxCorners(obb, __minmaxBox, (void *)&d);
+            */
 
-        }else if (obb->shape->type == FER_CD_SHAPE_CYL){
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_CYL){
             // TODO
 
-        }else if (obb->shape->type == FER_CD_SHAPE_CAP){
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_CAP){
             // TODO
 
-        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI){
             trimesh_tri = (fer_cd_trimesh_tri_t *)obb->shape;
 
             for (i = 0; i < 3; i++){
@@ -1171,7 +1023,7 @@ static void _findOBBMinMax(fer_cd_obb_t *frame,
                     max[i] = m;
             }
 
-        }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH){
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_TRIMESH){
             trimesh = (fer_cd_trimesh_t *)obb->shape;
 
             for (j = 0; j < trimesh->ptslen; j++){
@@ -1224,6 +1076,7 @@ static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
     }
 }
 
+#if 0
 static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *data)
 {
     fer_vec3_t a[3], v;
@@ -1272,4 +1125,5 @@ static void boxCorners(fer_cd_obb_t *obb, box_corners cb, void *data)
     ferVec3Sub(&v, &a[2]);
     cb(&v, data);
 }
+#endif
 

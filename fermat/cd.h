@@ -22,33 +22,10 @@
 #include <fermat/mat3.h>
 #include <fermat/quat.h>
 #include <fermat/list.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-/** Internal structure - base class for shapes */
-struct _fer_cd_shape_t {
-    char type;
-};
-typedef struct _fer_cd_shape_t fer_cd_shape_t;
-
-/** Shape types */
-#define FER_CD_SHAPE_SPHERE      0
-#define FER_CD_SHAPE_BOX         1
-#define FER_CD_SHAPE_CYL         2
-#define FER_CD_SHAPE_CAP         3
-#define FER_CD_SHAPE_TRIMESH_TRI 4
-#define FER_CD_SHAPE_LEN         5
-
-#define FER_CD_SHAPE_TRIMESH 20
+#include <fermat/chull3.h>
 
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
-
+#include <fermat/cd-shape.h>
 #include <fermat/cd-sphere.h>
 #include <fermat/cd-box.h>
 #include <fermat/cd-cyl.h>

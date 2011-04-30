@@ -29,7 +29,6 @@ extern "C" {
  */
 struct _fer_cd_sphere_t {
     fer_cd_shape_t shape; /*!< Base class */
-    fer_vec3_t *center;
     fer_real_t radius;
 };
 typedef struct _fer_cd_sphere_t fer_cd_sphere_t;
@@ -38,7 +37,7 @@ typedef struct _fer_cd_sphere_t fer_cd_sphere_t;
 /**
  * Creates sphere shape
  */
-fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius, const fer_vec3_t *center);
+fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius);
 
 /**
  * Deletes sphere.
@@ -46,7 +45,22 @@ fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius, const fer_vec3_t *center);
 void ferCDSphereDel(fer_cd_sphere_t *s);
 
 
-void ferCDSphereDumpSVT(const fer_cd_sphere_t *s, FILE *out, const char *name);
+void ferCDSphereSupport(const fer_cd_sphere_t *s, const fer_vec3_t *dir,
+                        fer_vec3_t *p);
+
+void ferCDSphereFitOBB(const fer_cd_sphere_t *s,
+                       fer_vec3_t *center,
+                       fer_vec3_t *axis0,
+                       fer_vec3_t *axis1,
+                       fer_vec3_t *axis2,
+                       fer_vec3_t *half_extents, int flags);
+
+int ferCDSphereUpdateCHull(const fer_cd_sphere_t *s, fer_chull3_t *chull,
+                           const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+void ferCDSphereDumpSVT(const fer_cd_sphere_t *s,
+                        FILE *out, const char *name,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 #ifdef __cplusplus
 }

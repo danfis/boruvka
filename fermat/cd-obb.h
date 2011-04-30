@@ -55,30 +55,24 @@ typedef struct _fer_cd_obb_pair_t  fer_cd_obb_pair_t;
 
 
 /**
- * Creates new oriented bounding box.
+ * Creates new empty oriented bounding box.
  */
 fer_cd_obb_t *ferCDOBBNew(void);
 
 /**
- * Creates new OBB for sphere.
+ * Creates new oriented bounding box holding given shape.
+ *
+ * TODO: flags
  */
-fer_cd_obb_t *ferCDOBBNewSphere(fer_real_t radius, const fer_vec3_t *center);
+fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags);
 
-/**
- * Creates new OBB for box.
- */
-fer_cd_obb_t *ferCDOBBNewBox(fer_real_t lx, fer_real_t ly, fer_real_t lz,
-                             const fer_vec3_t *center, const fer_mat3_t *rot);
 
 /**
  * Creates bounding box for triangular mesh. Parameter {num_tri} is number
  * of triangles and {ids} hence must have {num_tri} * 3 elements.
  * {mergeflags} are same as in ferCDOBBMerge() function.
  */
-fer_cd_obb_t *ferCDOBBNewTriMesh(const fer_vec3_t *pts,
-                                 const unsigned *ids, size_t num_tri,
-                                 int mergeflags,
-                                 const fer_vec3_t *center, const fer_mat3_t *rot);
+fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags);
 
 /**
  * Frees allocated memory.
@@ -136,7 +130,6 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
  * Frees all fer_obb_pair_t members stored in given list.
  */
 void ferCDOBBFreePairs(fer_list_t *pairs);
-
 
 
 /**

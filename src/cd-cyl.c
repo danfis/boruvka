@@ -16,25 +16,95 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
+static fer_cd_shape_class_t shape = {
+    .type = FER_CD_SHAPE_CYL,
+    .support = (fer_cd_shape_support)ferCDCylSupport,
+    .fit_obb = (fer_cd_shape_fit_obb)ferCDCylFitOBB,
+    .update_chull = (fer_cd_shape_update_chull)ferCDCylUpdateCHull,
+    .dump_svt = (fer_cd_shape_dump_svt)ferCDCylDumpSVT
+};
 
-fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height,
-                          const fer_vec3_t *center, const fer_mat3_t *rot)
+fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height)
 {
     fer_cd_cyl_t *c;
 
     c = FER_ALLOC(fer_cd_cyl_t);
-    c->shape.type = FER_CD_SHAPE_CYL;
+    c->shape.cl = &shape;
     c->radius = radius;
     c->half_height = height * FER_REAL(0.5);
-    c->center = ferVec3Clone(center);
-    c->axis   = ferMat3Clone(rot);
 
     return c;
 }
 
 void ferCDCylDel(fer_cd_cyl_t *c)
 {
-    ferVec3Del(c->center);
-    ferMat3Del(c->axis);
+    free(c);
+}
+
+void ferCDCylSupport(const fer_cd_cyl_t *c, const fer_vec3_t *dir,
+                     fer_vec3_t *p)
+{
+    fer_real_t d;
+
+    d = ferVec3X(dir) * ferVec3X(dir) + ferVec3Y(dir) * ferVec3Y(dir);
+    d = FER_SQRT(d);
+
+    if (ferIsZero(d)){
+        ferVec3Set(p, FER_ZERO, FER_ZERO,
+                      ferSign(ferVec3Z(dir)) * c->half_height);
+    }else{
+        d = ferRecp(d) * c->radius;
+
+        ferVec3Set(p, d * ferVec3X(dir),
+                      d * ferVec3Y(dir),
+                      ferSign(ferVec3Z(dir)) * c->half_height);
+    }
+}
+
+void ferCDCylFitOBB(const fer_cd_cyl_t *c,
+                    fer_vec3_t *center,
+                    fer_vec3_t *axis0,
+                    fer_vec3_t *axis1,
+                    fer_vec3_t *axis2,
+                    fer_vec3_t *half_extents, int flags)
+{
+    ferVec3Set(center, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec3Set(axis0, FER_ONE,  FER_ZERO, FER_ZERO);
+    ferVec3Set(axis1, FER_ZERO, FER_ONE,  FER_ZERO);
+    ferVec3Set(axis2, FER_ZERO, FER_ZERO, FER_ONE);
+    ferVec3Set(half_extents, c->radius, c->radius, c->half_height);
+}
+
+int ferCDCylUpdateCHull(const fer_cd_cyl_t *c, fer_chull3_t *chull,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_vec3_t a, v;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    // get z axis
+    ferMat3CopyCol(&a, rot, 2);
+    ferVec3Scale(&a, c->half_height); // it is assumend len(&a) == 1
+
+    ferVec3Add2(&v, tr, &a);
+    ferCHull3Add(chull, &v);
+
+    ferVec3Sub2(&v, tr, &a);
+    ferCHull3Add(chull, &v);
+
+    return 0;
+}
+
+
+void ferCDCylDumpSVT(const fer_cd_cyl_t *s,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    // TODO
+    DBG2("Unimplemented yet");
 }

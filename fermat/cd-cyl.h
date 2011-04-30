@@ -25,26 +25,37 @@ extern "C" {
  * Cylinder shape
  */
 struct _fer_cd_cyl_t {
-    fer_cd_shape_t shape; /*!< Base class */
-    fer_vec3_t *center;
-    fer_mat3_t *axis;
+    fer_cd_shape_t shape;
     fer_real_t radius, half_height;
 };
 typedef struct _fer_cd_cyl_t fer_cd_cyl_t;
 
-
 /**
  * Creates sphere shape
  */
-fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height,
-                          const fer_vec3_t *center, const fer_mat3_t *rot);
+fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height);
 
 /**
  * Deletes sphere.
  */
 void ferCDCylDel(fer_cd_cyl_t *c);
 
+void ferCDCylSupport(const fer_cd_cyl_t *c, const fer_vec3_t *dir,
+                     fer_vec3_t *p);
 
+void ferCDCylFitOBB(const fer_cd_cyl_t *c,
+                    fer_vec3_t *center,
+                    fer_vec3_t *axis0,
+                    fer_vec3_t *axis1,
+                    fer_vec3_t *axis2,
+                    fer_vec3_t *half_extents, int flags);
+
+int ferCDCylUpdateCHull(const fer_cd_cyl_t *c, fer_chull3_t *chull,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+void ferCDCylDumpSVT(const fer_cd_cyl_t *s,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

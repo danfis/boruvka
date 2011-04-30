@@ -338,6 +338,14 @@ _fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
                                               const fer_vec3_t *w);
 
 /**
+ * Multiplies 3D vector by transposed matrix (vectors are considered to be
+ * colunmal).
+ * v = m^t * w
+ */
+_fer_inline void ferMat3MulVecTrans(fer_vec3_t *v, const fer_mat3_t *m,
+                                                   const fer_vec3_t *w);
+
+/**
  * Multiplies matrix with 2D vector.
  * Third coordinate is filled with 1 and after multiplication x and y
  * coordinate is divided by resulting third coordinate.
@@ -798,6 +806,14 @@ _fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
     ferVec3SetX(v, ferMat3DotRow(m, 0, w));
     ferVec3SetY(v, ferMat3DotRow(m, 1, w));
     ferVec3SetZ(v, ferMat3DotRow(m, 2, w));
+}
+
+_fer_inline void ferMat3MulVecTrans(fer_vec3_t *v, const fer_mat3_t *m,
+                                                   const fer_vec3_t *w)
+{
+    ferVec3SetX(v, ferMat3DotCol(m, 0, w));
+    ferVec3SetY(v, ferMat3DotCol(m, 1, w));
+    ferVec3SetZ(v, ferMat3DotCol(m, 2, w));
 }
 
 _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,

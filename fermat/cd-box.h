@@ -23,7 +23,42 @@
 extern "C" {
 #endif /* __cplusplus */
 
-extern fer_cd_shape_t *fer_cd_box;
+/**
+ * Box shape
+ */
+struct _fer_cd_box_t {
+    fer_cd_shape_t shape; /*!< Base class */
+    fer_vec3_t *half_extents;
+};
+typedef struct _fer_cd_box_t fer_cd_box_t;
+
+
+/**
+ * Creates box shape
+ */
+fer_cd_box_t *ferCDBoxNew(fer_real_t lx, fer_real_t ly, fer_real_t lz);
+
+/**
+ * Deletes box.
+ */
+void ferCDBoxDel(fer_cd_box_t *s);
+
+void ferCDBoxSupport(const fer_cd_box_t *b, const fer_vec3_t *dir,
+                     fer_vec3_t *p);
+
+void ferCDBoxFitOBB(const fer_cd_box_t *s,
+                    fer_vec3_t *center,
+                    fer_vec3_t *axis0,
+                    fer_vec3_t *axis1,
+                    fer_vec3_t *axis2,
+                    fer_vec3_t *half_extents, int flags);
+
+int ferCDBoxUpdateCHull(const fer_cd_box_t *b, fer_chull3_t *chull,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+void ferCDBoxDumpSVT(const fer_cd_box_t *s,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 #ifdef __cplusplus
 }
