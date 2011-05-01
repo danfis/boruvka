@@ -18,11 +18,12 @@
 #include <fermat/alloc.h>
 
 static fer_cd_shape_class_t shape = {
-    .type = FER_CD_SHAPE_SPHERE,
-    .support = (fer_cd_shape_support)ferCDSphereSupport,
-    .fit_obb = (fer_cd_shape_fit_obb)ferCDSphereFitOBB,
-    .update_chull = (fer_cd_shape_update_chull)ferCDSphereUpdateCHull,
-    .dump_svt = (fer_cd_shape_dump_svt)ferCDSphereDumpSVT
+    .type          = FER_CD_SHAPE_SPHERE,
+    .support       = (fer_cd_shape_support)ferCDSphereSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb)ferCDSphereFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull)ferCDSphereUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax)ferCDSphereUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt)ferCDSphereDumpSVT
 };
 
 fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius)
@@ -70,6 +71,31 @@ int ferCDSphereUpdateCHull(const fer_cd_sphere_t *s, fer_chull3_t *chull,
     ferCHull3Add(chull, tr);
     return 0;
 }
+
+void ferCDSphereUpdateMinMax(const fer_cd_sphere_t *s, const fer_vec3_t *axis,
+                             const fer_mat3_t *rot, const fer_vec3_t *tr,
+                             fer_real_t *min, fer_real_t *max)
+{
+    fer_real_t m;
+
+    m = FER_ZERO;
+    if (tr){
+        m = ferVec3Dot(tr, axis);
+    }
+
+    m += s->radius;
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+
+    m -= FER_REAL(2.) * s->radius;
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+}
+
 
 void ferCDSphereDumpSVT(const fer_cd_sphere_t *s,
                         FILE *out, const char *name,

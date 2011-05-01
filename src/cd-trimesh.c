@@ -18,17 +18,21 @@
 #include <fermat/alloc.h>
 
 static fer_cd_shape_class_t shape_tri = {
-    .type = FER_CD_SHAPE_TRIMESH_TRI,
-    .support = (fer_cd_shape_support)ferCDTriMeshTriSupport,
-    .fit_obb = (fer_cd_shape_fit_obb)ferCDTriMeshTriFitOBB,
-    .dump_svt = (fer_cd_shape_dump_svt)ferCDTriMeshTriDumpSVT
+    .type          = FER_CD_SHAPE_TRIMESH_TRI,
+    .support       = (fer_cd_shape_support)ferCDTriMeshTriSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshTriFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshTriUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax)ferCDTriMeshTriUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt)ferCDTriMeshTriDumpSVT
 };
 
 static fer_cd_shape_class_t shape = {
-    .type = FER_CD_SHAPE_TRIMESH,
-    .support = (fer_cd_shape_support)ferCDTriMeshSupport,
-    .fit_obb = (fer_cd_shape_fit_obb)ferCDTriMeshFitOBB,
-    .dump_svt = (fer_cd_shape_dump_svt)ferCDTriMeshDumpSVT
+    .type          = FER_CD_SHAPE_TRIMESH,
+    .support       = (fer_cd_shape_support)ferCDTriMeshSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax)ferCDTriMeshUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt)ferCDTriMeshDumpSVT
 };
 
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
@@ -300,6 +304,69 @@ int ferCDTriMeshUpdateCHull(const fer_cd_trimesh_t *t, fer_chull3_t *chull,
     }
 
     return 1;
+}
+
+void ferCDTriMeshTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
+                                 const fer_vec3_t *axis,
+                                 const fer_mat3_t *rot, const fer_vec3_t *tr,
+                                 fer_real_t *min, fer_real_t *max)
+{
+    fer_vec3_t p;
+    fer_real_t m;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    ferMat3MulVec(&p, rot, tri->p0);
+    ferVec3Add(&p, tr);
+    m = ferVec3Dot(&p, axis);
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+
+    ferMat3MulVec(&p, rot, tri->p1);
+    ferVec3Add(&p, tr);
+    m = ferVec3Dot(&p, axis);
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+
+    ferMat3MulVec(&p, rot, tri->p2);
+    ferVec3Add(&p, tr);
+    m = ferVec3Dot(&p, axis);
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+}
+
+void ferCDTriMeshUpdateMinMax(const fer_cd_trimesh_t *t,
+                              const fer_vec3_t *axis,
+                              const fer_mat3_t *rot, const fer_vec3_t *tr,
+                              fer_real_t *min, fer_real_t *max)
+{
+    fer_vec3_t p;
+    fer_real_t m;
+    size_t i;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    for (i = 0; i < t->ptslen; i++){
+        ferMat3MulVec(&p, rot, &t->pts[i]);
+        ferVec3Add(&p, tr);
+        m = ferVec3Dot(&p, axis);
+        if (m < *min)
+            *min = m;
+        if (m > *max)
+            *max = m;
+    }
 }
 
 void ferCDTriMeshTriDumpSVT(const fer_cd_trimesh_tri_t *tri,

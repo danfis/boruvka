@@ -53,6 +53,10 @@ void ferCDCylFitOBB(const fer_cd_cyl_t *c,
 int ferCDCylUpdateCHull(const fer_cd_cyl_t *c, fer_chull3_t *chull,
                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
+void ferCDCylUpdateMinMax(const fer_cd_cyl_t *c, const fer_vec3_t *axis,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr,
+                          fer_real_t *min, fer_real_t *max);
+
 void ferCDCylDumpSVT(const fer_cd_cyl_t *s,
                      FILE *out, const char *name,
                      const fer_mat3_t *rot, const fer_vec3_t *tr);

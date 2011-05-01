@@ -58,6 +58,11 @@ void ferCDSphereFitOBB(const fer_cd_sphere_t *s,
 int ferCDSphereUpdateCHull(const fer_cd_sphere_t *s, fer_chull3_t *chull,
                            const fer_mat3_t *rot, const fer_vec3_t *tr);
 
+void ferCDSphereUpdateMinMax(const fer_cd_sphere_t *s, const fer_vec3_t *axis,
+                             const fer_mat3_t *rot, const fer_vec3_t *tr,
+                             fer_real_t *min, fer_real_t *max);
+
+
 void ferCDSphereDumpSVT(const fer_cd_sphere_t *s,
                         FILE *out, const char *name,
                         const fer_mat3_t *rot, const fer_vec3_t *tr);

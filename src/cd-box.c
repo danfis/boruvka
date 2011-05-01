@@ -24,11 +24,12 @@ static void getCorners(const fer_cd_box_t *b,
 
 
 static fer_cd_shape_class_t shape = {
-    .type = FER_CD_SHAPE_BOX,
-    .support = (fer_cd_shape_support)ferCDBoxSupport,
-    .fit_obb = (fer_cd_shape_fit_obb)ferCDBoxFitOBB,
-    .update_chull = (fer_cd_shape_update_chull)ferCDBoxUpdateCHull,
-    .dump_svt = (fer_cd_shape_dump_svt)ferCDBoxDumpSVT
+    .type          = FER_CD_SHAPE_BOX,
+    .support       = (fer_cd_shape_support)ferCDBoxSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb)ferCDBoxFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull)ferCDBoxUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax)ferCDBoxUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt)ferCDBoxDumpSVT
 };
 
 fer_cd_box_t *ferCDBoxNew(fer_real_t lx, fer_real_t ly, fer_real_t lz)
@@ -89,6 +90,31 @@ int ferCDBoxUpdateCHull(const fer_cd_box_t *b, fer_chull3_t *chull,
     }
 
     return 1;
+}
+
+void ferCDBoxUpdateMinMax(const fer_cd_box_t *b, const fer_vec3_t *axis,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr,
+                          fer_real_t *min, fer_real_t *max)
+{
+    fer_vec3_t c[8];
+    fer_real_t m;
+    size_t i;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    getCorners(b, rot, tr, c);
+
+    for (i = 0; i < 8; i++){
+        m = ferVec3Dot(&c[i], axis);
+
+        if (m < *min)
+            *min = m;
+        if (m > *max)
+            *max = m;
+    }
 }
 
 void ferCDBoxDumpSVT(const fer_cd_box_t *b,

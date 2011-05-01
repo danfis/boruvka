@@ -32,6 +32,15 @@ typedef void (*fer_cd_shape_support)(const struct _fer_cd_shape_t *shape,
                                      fer_vec3_t *p);
 
 /**
+ * Updates min/max values along given axis
+ */
+typedef void (*fer_cd_shape_update_minmax)(const struct _fer_cd_shape_t *shape,
+                                           const fer_vec3_t *axis,
+                                           const fer_mat3_t *rot,
+                                           const fer_vec3_t *tr,
+                                           fer_real_t *min, fer_real_t *max);
+
+/**
  * Returns axis and half extents of bounding box that tightly fit to shape.
  */
 typedef void (*fer_cd_shape_fit_obb)(const struct _fer_cd_shape_t *shape,
@@ -68,6 +77,7 @@ struct _fer_cd_shape_class_t {
     fer_cd_shape_support support;
     fer_cd_shape_fit_obb fit_obb;
     fer_cd_shape_update_chull update_chull;
+    fer_cd_shape_update_minmax update_minmax;
     fer_cd_shape_dump_svt dump_svt;
 };
 typedef struct _fer_cd_shape_class_t fer_cd_shape_class_t;
