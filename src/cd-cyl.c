@@ -137,10 +137,37 @@ void ferCDCylUpdateMinMax(const fer_cd_cyl_t *c, const fer_vec3_t *_axis,
 }
 
 
-void ferCDCylDumpSVT(const fer_cd_cyl_t *s,
+void ferCDCylDumpSVT(const fer_cd_cyl_t *c,
                      FILE *out, const char *name,
                      const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    // TODO
-    DBG2("Unimplemented yet");
+    fer_vec3_t v, axis;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    ferVec3Scale2(&v, fer_vec3_axis[2], c->half_height);
+    ferMat3MulVec(&axis, rot, &v);
+
+    fprintf(out, "----\n");
+
+    if (name){
+        fprintf(out, "Name: %s\n", name);
+    }
+
+    fprintf(out, "Points:\n");
+    ferVec3Add2(&v, tr, &axis);
+    ferVec3Print(&v, out);
+    fprintf(out, "\n");
+
+    ferVec3Sub2(&v, tr, &axis);
+    ferVec3Print(&v, out);
+    fprintf(out, "\n");
+
+    fprintf(out, "Edges:\n");
+    fprintf(out, "0 1\n");
+
+    fprintf(out, "----\n");
 }

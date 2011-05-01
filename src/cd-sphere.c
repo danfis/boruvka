@@ -16,6 +16,7 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_SPHERE,

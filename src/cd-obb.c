@@ -75,6 +75,9 @@ fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
 {
     fer_cd_obb_t *obb;
 
+    if (shape->cl->type == FER_CD_SHAPE_TRIMESH)
+        return ferCDOBBNewTriMesh((fer_cd_trimesh_t *)shape, flags);
+
     obb = FER_ALLOC_ALIGN(fer_cd_obb_t, 16);
 
     obb->shape = shape;
@@ -456,21 +459,16 @@ void ferCDOBBMerge(fer_list_t *obbs, int flags)
 }
 
 
-void ferCDOBBDumpSVT(const fer_cd_obb_t *obb, FILE *out, const char *name)
-{
-    fer_mat3_t rot;
-    fer_vec3_t tr;
-
-    ferMat3SetRot3D(&rot, 0., 0., 0.);
-    ferVec3Set(&tr, 0., 0., 0.);
-    ferCDOBBDumpSVT2(obb, &rot, &tr, out, name);
-}
-
-void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,
-                      const fer_mat3_t *rot, const fer_vec3_t *tr,
-                      FILE *out, const char *name)
+void ferCDOBBDumpSVT(const fer_cd_obb_t *obb,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
     fer_vec3_t v, w;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
 
     fprintf(out, "----\n");
 
@@ -591,6 +589,45 @@ void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,
     fprintf(out, "----\n");
 }
 
+static void __ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
+                                  FILE *out, const char *name,
+                                  const fer_mat3_t *rot, const fer_vec3_t *tr,
+                                  int level)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    char name2[300];
+
+    if (name){
+        sprintf(name2, "%s - %02d - OBB", name, level);
+    }else{
+        sprintf(name2, "%02d - OBB", level);
+    }
+    ferCDOBBDumpSVT(obb, out, name2, rot, tr);
+
+    if (obb->shape){
+        if (obb->shape->cl->dump_svt){
+            if (name){
+                sprintf(name2, "%s - %02d - shape", name, level);
+            }else{
+                sprintf(name2, "%02d - shape", level);
+            }
+            obb->shape->cl->dump_svt(obb->shape, out, name2, rot, tr);
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            __ferCDOBBDumpTreeSVT(o, out, name, rot, tr, level + 1);
+        }
+    }
+}
+
+void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
+                         FILE *out, const char *name,
+                         const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    __ferCDOBBDumpTreeSVT(obb, out, name, rot, tr, 0);
+}
 
 
 static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
@@ -863,6 +900,13 @@ static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull)
     item = ferListNext(item);
     mv[1] = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
 
+    if (ferVec3Eq(mv[0]->v, mv[1]->v)){
+        ferVec3Set(&obb->axis[0], FER_ONE,  FER_ZERO, FER_ZERO);
+        ferVec3Set(&obb->axis[1], FER_ZERO, FER_ONE,  FER_ZERO);
+        ferVec3Set(&obb->axis[2], FER_ZERO, FER_ZERO, FER_ONE);
+        return;
+    }
+
     ferVec3Sub2(&obb->axis[0], mv[0]->v, mv[1]->v);
     ferVec3Normalize(&obb->axis[0]);
     ferVec3Set(&obb->axis[2], ferVec3Z(&obb->axis[0]) * -FER_ONE,
@@ -888,18 +932,18 @@ static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
 {
     fer_list_t *item;
     fer_cd_obb_t *o;
-    int ret = 0;
+    int ret = 1;
 
     if (obb->shape){
         if (obb->shape->cl->update_chull){
-            if (obb->shape->cl->update_chull(obb->shape, hull, NULL, NULL))
-                ret = 1;
+            if (!obb->shape->cl->update_chull(obb->shape, hull, NULL, NULL))
+                ret = 0;
         }
     }else{
         FER_LIST_FOR_EACH(&obb->obbs, item){
             o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            if (updateCHull(o, hull))
-                ret = 1;
+            if (!updateCHull(o, hull))
+                ret = 0;
         }
     }
 

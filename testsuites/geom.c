@@ -3,6 +3,7 @@
 #include <fermat/dbg.h>
 #include "bunny.h"
 
+#if 0
 TEST(geomCollideTriMesh)
 {
     fer_cd_geom_t *g1, *g2;
@@ -36,4 +37,4 @@ TEST(geomSphere)
 {
 }
 
-
+#endif

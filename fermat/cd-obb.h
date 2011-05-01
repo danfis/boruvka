@@ -169,10 +169,13 @@ void ferCDOBBMerge(fer_list_t *obbs, int flags);
 
 
 
-void ferCDOBBDumpSVT(const fer_cd_obb_t *obb, FILE *out, const char *name);
-void ferCDOBBDumpSVT2(const fer_cd_obb_t *obb,
-                      const fer_mat3_t *rot, const fer_vec3_t *tr,
-                      FILE *out, const char *name);
+void ferCDOBBDumpSVT(const fer_cd_obb_t *obb,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
+                         FILE *out, const char *name,
+                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 
 #ifdef __cplusplus

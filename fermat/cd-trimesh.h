@@ -73,7 +73,7 @@ int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
  */
 fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
                                   const unsigned int *ids, size_t len,
-                                  const fer_vec3_t *center, const fer_mat3_t *rot);
+                                  const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
  * Deletes trimesh

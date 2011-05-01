@@ -16,6 +16,7 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 /** Fills cs[8] with corners of given box */
 static void getCorners(const fer_cd_box_t *b,
@@ -145,7 +146,7 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     //ferVec3Print(tr, out);
     //fprintf(out, "\n----\n");
 
-    fprintf(out, "Edge color: 0.7 0.5 0.5\n");
+    fprintf(out, "Edge color: 0.7 0.5 1.\n");
     fprintf(out, "Points:\n");
     ferVec3Copy(&v, tr);
     ferVec3Scale2(&w, &axis[0], ferVec3X(b->half_extents));

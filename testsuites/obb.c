@@ -45,14 +45,163 @@ static void prCDOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
 
 TEST(obbNew)
 {
-    /*
-    prCDOBBTri(1, 0, 0,
-             2, 0, 0,
-             1, 1, 0);
-    prCDOBBTri(1, 3, 0.3,
-             2, 2.3, 0.2,
-             1, 1, -2.1);
-    */
+    fer_list_t obbs, *item;
+    fer_cd_obb_t *obb;
+    fer_cd_sphere_t *s[4];
+    fer_cd_box_t *b[2];
+    fer_cd_cyl_t *c[2];
+
+    s[0] = ferCDSphereNew(0.5);
+    s[1] = ferCDSphereNew(0.1);
+    s[2] = ferCDSphereNew(0.3);
+    s[3] = ferCDSphereNew(0.7);
+
+    ferListInit(&obbs);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[2], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[3], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    ferCDOBBMerge(&obbs, 0);
+
+    item = ferListNext(&obbs);
+    obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+    //ferCDOBBDumpTreeSVT(obb, stdout, "spheres", NULL, NULL);
+
+    ferCDOBBDel(obb);
+
+    ferCDSphereDel(s[0]);
+    ferCDSphereDel(s[1]);
+    ferCDSphereDel(s[2]);
+    ferCDSphereDel(s[3]);
+
+    s[0] = ferCDSphereNew(0.5);
+    s[1] = ferCDSphereNew(0.1);
+    b[0] = ferCDBoxNew(0.1, 0.3, 0.2);
+    b[1] = ferCDBoxNew(0.1, 0.2, 0.5);
+    c[0] = ferCDCylNew(0.05, 0.3);
+    c[1] = ferCDCylNew(0.1, 0.2);
+
+    ferListInit(&obbs);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)b[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)b[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    ferCDOBBMerge(&obbs, 0);
+
+    item = ferListNext(&obbs);
+    obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+    //ferCDOBBDumpTreeSVT(obb, stdout, "s-b-c", NULL, NULL);
+
+    ferCDOBBDel(obb);
+
+    ferCDSphereDel(s[0]);
+    ferCDSphereDel(s[1]);
+    ferCDBoxDel(b[0]);
+    ferCDBoxDel(b[1]);
+    ferCDCylDel(c[0]);
+    ferCDCylDel(c[1]);
+}
+
+TEST(obbNew2)
+{
+    fer_vec3_t pts[5] = {
+        FER_VEC3_STATIC(0., 0., 0.),
+        FER_VEC3_STATIC(1., 0., 0.),
+        FER_VEC3_STATIC(0., 0.3, 1.),
+        FER_VEC3_STATIC(1., 1., 1.),
+        FER_VEC3_STATIC(0., 1., 1.)
+    };
+    unsigned int ids[3 * 3] = { 0, 1, 2,
+                                1, 2, 3,
+                                2, 3, 4 };
+    size_t len = 3;
+    fer_list_t obbs, *item;
+    fer_cd_obb_t *obb;
+    fer_cd_sphere_t *s[4];
+    fer_cd_box_t *b[2];
+    fer_cd_cyl_t *c[2];
+    fer_cd_trimesh_t *t[2];
+    fer_mat3_t rot;
+    fer_vec3_t tr;
+
+    s[0] = ferCDSphereNew(0.5);
+    s[1] = ferCDSphereNew(0.1);
+    b[0] = ferCDBoxNew(0.1, 0.3, 0.2);
+    b[1] = ferCDBoxNew(0.1, 0.2, 0.5);
+    c[0] = ferCDCylNew(0.05, 0.3);
+    c[1] = ferCDCylNew(0.1, 0.2);
+    t[0] = ferCDTriMeshNew(pts, ids, len, NULL, fer_vec3_axis[0]);
+
+    ferMat3SetRot3D(&rot, M_PI_4, -M_PI_4, 0);
+    ferVec3Set(&tr, -0.5, 0.2, 0.1);
+    t[1] = ferCDTriMeshNew(bunny_coords, bunny_ids, bunny_tri_len, &rot, &tr);
+
+    ferListInit(&obbs);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)b[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)b[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)t[0], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)t[1], 0);
+    ferListAppend(&obbs, &obb->list);
+
+    ferCDOBBMerge(&obbs, 0);
+
+    item = ferListNext(&obbs);
+    obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+    //ferCDOBBDumpTreeSVT(obb, stdout, "s-b-c-t", NULL, NULL);
+
+    ferCDOBBDel(obb);
+
+    ferCDSphereDel(s[0]);
+    ferCDSphereDel(s[1]);
+    ferCDBoxDel(b[0]);
+    ferCDBoxDel(b[1]);
+    ferCDCylDel(c[0]);
+    ferCDCylDel(c[1]);
+    ferCDTriMeshDel(t[0]);
+    ferCDTriMeshDel(t[1]);
 }
 
 TEST(obbCollide)
@@ -135,6 +284,7 @@ TEST(obbCollide)
 }
 
 
+#if 0
 static void pTree(fer_cd_obb_t *root, int id)
 {
     char name[10];
@@ -346,3 +496,4 @@ TEST(obbPairs1)
     ferCDOBBDel(obb1);
     ferCDOBBDel(obb2);
 }
+#endif
