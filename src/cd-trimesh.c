@@ -19,6 +19,7 @@
 
 static fer_cd_shape_class_t shape_tri = {
     .type          = FER_CD_SHAPE_TRIMESH_TRI,
+    .del           = (fer_cd_shape_del)ferCDTriMeshTriDel,
     .support       = (fer_cd_shape_support)ferCDTriMeshTriSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshTriFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshTriUpdateCHull,
@@ -28,6 +29,7 @@ static fer_cd_shape_class_t shape_tri = {
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_TRIMESH,
+    .del           = (fer_cd_shape_del)ferCDTriMeshDel,
     .support       = (fer_cd_shape_support)ferCDTriMeshSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshUpdateCHull,

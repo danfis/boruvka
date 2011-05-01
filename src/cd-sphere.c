@@ -19,6 +19,7 @@
 
 static fer_cd_shape_class_t shape = {
     .type = FER_CD_SHAPE_SPHERE,
+    .del           = (fer_cd_shape_del)ferCDSphereDel,
     .support       = (fer_cd_shape_support)ferCDSphereSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDSphereFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDSphereUpdateCHull,

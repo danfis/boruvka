@@ -69,22 +69,50 @@ int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 /**
  * Adds sphere to geom.
  */
-void ferCDGeomAddSphere(fer_cd_geom_t *g, fer_real_t radius,
-                        const fer_vec3_t *center);
+void ferCDGeomAddSphere(fer_cd_geom_t *g, fer_real_t radius);
+
+/**
+ * Adds sphere to geom with specified offset.
+ */
+void ferCDGeomAddSphere2(fer_cd_geom_t *g, fer_real_t radius,
+                         const fer_vec3_t *tr);
 
 /**
  * Adds box to geom.
  */
 void ferCDGeomAddBox(fer_cd_geom_t *g,
-                     fer_real_t lx, fer_real_t ly, fer_real_t lz,
-                     const fer_vec3_t *center, const fer_mat3_t *rot);
+                     fer_real_t lx, fer_real_t ly, fer_real_t lz);
+
+/**
+ * Adds box with offset
+ */
+void ferCDGeomAddBox2(fer_cd_geom_t *g,
+                      fer_real_t lx, fer_real_t ly, fer_real_t lz,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+/**
+ * Adds cylinder to geom.
+ */
+void ferCDGeomAddCyl(fer_cd_geom_t *g, fer_real_t radius, fer_real_t height);
+
+/**
+ * Adds cylinder with offset
+ */
+void ferCDGeomAddCyl2(fer_cd_geom_t *g, fer_real_t radius, fer_real_t height,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
  * Adds triangular mesh to geom.
  */
 void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
-                         const unsigned int *ids, size_t len,
-                         const fer_vec3_t *center, const fer_mat3_t *rot);
+                         const unsigned int *ids, size_t num_tris);
+
+/**
+ * Adds triangular mesh with offset.
+ */
+void ferCDGeomAddTriMesh2(fer_cd_geom_t *g, const fer_vec3_t *pts,
+                          const unsigned int *ids, size_t num_tris,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 
 

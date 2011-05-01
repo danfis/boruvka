@@ -24,6 +24,11 @@ extern "C" {
 struct _fer_cd_shape_t;
 
 /**
+ * Destructor.
+ */
+typedef void (*fer_cd_shape_del)(struct _fer_cd_shape_t *shape);
+
+/**
  * Support function. Returns furthest point on shape in given direction.
  * It is assumed dir is unit vector.
  */
@@ -74,6 +79,7 @@ typedef void (*fer_cd_shape_dump_svt)(const struct _fer_cd_shape_t *shape,
  */
 struct _fer_cd_shape_class_t {
     int type;
+    fer_cd_shape_del del;
     fer_cd_shape_support support;
     fer_cd_shape_fit_obb fit_obb;
     fer_cd_shape_update_chull update_chull;

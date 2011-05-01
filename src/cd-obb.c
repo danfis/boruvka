@@ -137,6 +137,10 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
         ferCDOBBDel(o);
     }
 
+    // delete shape
+    if (obb->shape && obb->shape->cl->del)
+        obb->shape->cl->del(obb->shape);
+
     free(obb);
 }
 

@@ -49,7 +49,8 @@ fer_cd_shape_off_t *ferCDShapeOffNew(fer_cd_shape_t *shape,
 
 void ferCDShapeOffDel(fer_cd_shape_off_t *s)
 {
-    // TODO s->shape->cl->del(s->shape)
+    if (s->shape->cl->del)
+        s->shape->cl->del(s->shape);
     ferMat3Del(s->rot);
     ferVec3Del(s->tr);
     free(s);

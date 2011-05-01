@@ -26,6 +26,7 @@ static void getCorners(const fer_cd_box_t *b,
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_BOX,
+    .del           = (fer_cd_shape_del)ferCDBoxDel,
     .support       = (fer_cd_shape_support)ferCDBoxSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDBoxFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDBoxUpdateCHull,

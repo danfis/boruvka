@@ -20,6 +20,7 @@
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_CYL,
+    .del           = (fer_cd_shape_del)ferCDCylDel,
     .support       = (fer_cd_shape_support)ferCDCylSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDCylFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDCylUpdateCHull,
