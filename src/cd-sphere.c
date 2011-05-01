@@ -16,10 +16,9 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
-#include <fermat/dbg.h>
 
 static fer_cd_shape_class_t shape = {
-    .type          = FER_CD_SHAPE_SPHERE,
+    .type = FER_CD_SHAPE_SPHERE,
     .support       = (fer_cd_shape_support)ferCDSphereSupport,
     .fit_obb       = (fer_cd_shape_fit_obb)ferCDSphereFitOBB,
     .update_chull  = (fer_cd_shape_update_chull)ferCDSphereUpdateCHull,

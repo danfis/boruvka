@@ -204,6 +204,76 @@ TEST(obbNew2)
     ferCDTriMeshDel(t[1]);
 }
 
+TEST(obbNew3)
+{
+    fer_list_t obbs, *item;
+    fer_cd_obb_t *obb;
+    fer_cd_sphere_t *s[2];
+    fer_cd_box_t *b[2];
+    fer_cd_cyl_t *c[2];
+    fer_cd_shape_off_t *off[6];
+    fer_mat3_t rot;
+    fer_vec3_t tr;
+    size_t i;
+
+    s[0] = ferCDSphereNew(0.2);
+    s[1] = ferCDSphereNew(0.1);
+    b[0] = ferCDBoxNew(0.1, 0.3, 0.2);
+    b[1] = ferCDBoxNew(0.1, 0.2, 0.5);
+    c[0] = ferCDCylNew(0.05, 0.3);
+    c[1] = ferCDCylNew(0.1, 0.2);
+
+    ferMat3SetRot3D(&rot, 0, 0, 0);
+    ferVec3Set(&tr, 0, 0, 0);
+    off[0] = ferCDShapeOffNew((fer_cd_shape_t *)s[0], &rot, &tr); 
+
+    ferMat3SetRot3D(&rot, 0, 1, 0);
+    ferVec3Set(&tr, 0, 0.5, 0);
+    off[1] = ferCDShapeOffNew((fer_cd_shape_t *)s[1], &rot, &tr); 
+
+    ferMat3SetRot3D(&rot, 0, M_PI_4, 0);
+    ferVec3Set(&tr, 0.1, 0.1, 0.1);
+    off[2] = ferCDShapeOffNew((fer_cd_shape_t *)b[0], &rot, &tr); 
+
+    ferMat3SetRot3D(&rot, -M_PI_4, M_PI_4, 0);
+    ferVec3Set(&tr, -0.1, 0.2, -0.1);
+    off[3] = ferCDShapeOffNew((fer_cd_shape_t *)b[1], &rot, &tr); 
+
+    ferMat3SetRot3D(&rot, 0, -M_PI_4, M_PI_4);
+    ferVec3Set(&tr, -0.1, -0.1, -0.1);
+    off[4] = ferCDShapeOffNew((fer_cd_shape_t *)c[0], &rot, &tr); 
+
+    ferMat3SetRot3D(&rot, M_PI_4, 0, 0);
+    ferVec3Set(&tr, -0.2, 0.2, 0.2);
+    off[5] = ferCDShapeOffNew((fer_cd_shape_t *)c[1], &rot, &tr); 
+
+    ferListInit(&obbs);
+    for (i = 0; i < 6; i++){
+        obb = ferCDOBBNewShape((fer_cd_shape_t *)off[i], 0);
+        ferListAppend(&obbs, &obb->list);
+    }
+
+    ferCDOBBMerge(&obbs, 0);
+
+    item = ferListNext(&obbs);
+    obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+    //ferCDOBBDumpTreeSVT(obb, stdout, "new3", NULL, NULL);
+
+    ferCDOBBDel(obb);
+
+    for (i = 0; i < 6; i++){
+        ferCDShapeOffDel(off[i]);
+    }
+    ferCDSphereDel(s[0]);
+    ferCDSphereDel(s[1]);
+    ferCDBoxDel(b[0]);
+    ferCDBoxDel(b[1]);
+    ferCDCylDel(c[0]);
+    ferCDCylDel(c[1]);
+}
+
+
 TEST(obbCollide)
 {
     fer_vec3_t c1, c2, a11, a12, a13, a21, a22, a23, e1, e2;

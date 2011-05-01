@@ -135,7 +135,7 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
         ferMat3MulVec(&axis[i], rot, fer_vec3_axis[i]);
     }
 
-    fprintf(out, "----\n");
+    fprintf(out, "----==\n");
 
     if (name){
         fprintf(out, "Name: %s\n", name);
@@ -155,8 +155,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -167,8 +165,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], -ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -179,8 +175,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -191,8 +185,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], -ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -203,8 +195,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -215,8 +205,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], -ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -227,8 +215,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 
@@ -239,8 +225,6 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
     ferVec3Add(&v, &w);
     ferVec3Scale2(&w, &axis[2], -ferVec3Z(b->half_extents));
     ferVec3Add(&v, &w);
-    ferMat3MulVec(&w, rot, &v);
-    ferVec3Add2(&v, &w, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
 

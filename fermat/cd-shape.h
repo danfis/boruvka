@@ -91,6 +91,52 @@ struct _fer_cd_shape_t {
 };
 typedef struct _fer_cd_shape_t fer_cd_shape_t;
 
+/**
+ * Shape with set offset
+ */
+struct _fer_cd_shape_off_t {
+    fer_cd_shape_class_t *cl;
+    fer_cd_shape_t *shape;
+    fer_mat3_t *rot;
+    fer_vec3_t *tr;
+};
+typedef struct _fer_cd_shape_off_t fer_cd_shape_off_t;
+
+/**
+ * New shape with offset.
+ */
+fer_cd_shape_off_t *ferCDShapeOffNew(fer_cd_shape_t *s,
+                                     const fer_mat3_t *rot,
+                                     const fer_vec3_t *tr);
+
+/**
+ * Deletes offset.
+ */
+void ferCDShapeOffDel(fer_cd_shape_off_t *s);
+
+void ferCDShapeOffSupport(const fer_cd_shape_off_t *s, const fer_vec3_t *dir,
+                          fer_vec3_t *p);
+
+void ferCDShapeOffFitOBB(const fer_cd_shape_off_t *s,
+                         fer_vec3_t *center,
+                         fer_vec3_t *axis0,
+                         fer_vec3_t *axis1,
+                         fer_vec3_t *axis2,
+                         fer_vec3_t *half_extents, int flags);
+
+int ferCDShapeOffUpdateCHull(const fer_cd_shape_off_t *s, fer_chull3_t *chull,
+                             const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+void ferCDShapeOffUpdateMinMax(const fer_cd_shape_off_t *s, const fer_vec3_t *axis,
+                               const fer_mat3_t *rot, const fer_vec3_t *tr,
+                               fer_real_t *min, fer_real_t *max);
+
+
+void ferCDShapeOffDumpSVT(const fer_cd_shape_off_t *s,
+                          FILE *out, const char *name,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+
 /** Shape types */
 #define FER_CD_SHAPE_SPHERE      0
 #define FER_CD_SHAPE_BOX         1
@@ -100,6 +146,7 @@ typedef struct _fer_cd_shape_t fer_cd_shape_t;
 #define FER_CD_SHAPE_LEN         5
 
 #define FER_CD_SHAPE_TRIMESH 20
+#define FER_CD_SHAPE_OFF     21
 
 #ifdef __cplusplus
 }
