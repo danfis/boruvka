@@ -323,6 +323,192 @@ TEST(cdOBBCollide)
 }
 
 
+TEST(cdCollideTriMesh)
+{
+    fer_vec3_t pts1[6] = { FER_VEC3_STATIC(0., 0., 0.),
+                           FER_VEC3_STATIC(0.5, 0., 0.),
+                           FER_VEC3_STATIC(0.4, 0.7, .0),
+                           FER_VEC3_STATIC(0.1, -0.1, 0.5),
+                           FER_VEC3_STATIC(0.5, 0., 0.5),
+                           FER_VEC3_STATIC(0.5, 0.5, 0.5),
+    };
+    unsigned int ids1[8 * 3] = { 0, 1, 2,
+                                 0, 1, 3,
+                                 1, 3, 4,
+                                 1, 2, 4,
+                                 2, 4, 5,
+                                 0, 3, 5,
+                                 0, 5, 2,
+                                 3, 4, 5 };
+    size_t len1 = 8;
+    fer_vec3_t pts2[5] = { FER_VEC3_STATIC(0., 0., 0.),
+                           FER_VEC3_STATIC(0.5, 0.1, 0.),
+                           FER_VEC3_STATIC(0.3, 0.5, .0),
+                           FER_VEC3_STATIC(-0.1, 0.6, 0.),
+                           FER_VEC3_STATIC(0.2, 0.2, 0.5)
+    };
+    unsigned int ids2[6 * 3] = { 0, 1, 4,
+                                 1, 2, 4,
+                                 2, 3, 4,
+                                 3, 0, 4,
+                                 0, 1, 3,
+                                 1, 3, 2 };
+    size_t len2 = 6;
+
+    fer_cd_t *cd;
+    fer_cd_geom_t *g1, *g2;
+    fer_vec3_t tr1, tr2;
+    fer_mat3_t rot1, rot2;
+    int ret;
+
+
+    cd = ferCDNew();
+
+    g1 = ferCDGeomNew(cd);
+    ferCDGeomAddTriMesh(cd, g1, pts1, ids1, len1);
+    g2 = ferCDGeomNew(cd);
+    ferCDGeomAddTriMesh(cd, g2, pts2, ids2, len2);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, .45, 0.1, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertTrue(ret);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, 0.6, 0.1, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertFalse(ret);
+
+
+    ferVec3Set(&tr1, 0., M_PI_4, -M_PI_4);
+    ferMat3SetRot3D(&rot1, 0., 0., -1.);
+    ferVec3Set(&tr2, 0.6, 0.1, -0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertFalse(ret);
+
+
+    ferVec3Set(&tr1, 0., M_PI_4, -M_PI_4);
+    ferMat3SetRot3D(&rot1, 0., 0., -1.);
+    ferVec3Set(&tr2, 0., 0.1, -0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertTrue(ret);
+
+    /*
+    //ferCDGeomDumpSVT(g1, stdout, "g1");
+    //ferCDGeomDumpSVT(g2, stdout, "g2");
+    ferCDGeomDumpOBBSVT(g1, stdout, "g1");
+    ferCDGeomDumpOBBSVT(g2, stdout, "g2");
+    DBG("ret: %d", ret);
+    */
+
+
+    ferCDGeomDel(cd, g1);
+    ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
+}
+
+TEST(cdCollideTriMesh2)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g1, *g2;
+    fer_vec3_t tr1, tr2;
+    fer_mat3_t rot1, rot2;
+    int ret;
+
+
+    cd = ferCDNew();
+
+    g1 = ferCDGeomNew(cd);
+    ferCDGeomAddTriMesh(cd, g1, bunny_coords, bunny_ids, bunny_tri_len);
+    g2 = ferCDGeomNew(cd);
+    ferCDGeomAddTriMesh(cd, g2, bunny_coords, bunny_ids, bunny_tri_len);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, .45, 0.1, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertTrue(ret);
+
+
+    ferVec3Set(&tr1, 0., 0., 0.);
+    ferMat3SetRot3D(&rot1, 0., 0., 0.);
+    ferVec3Set(&tr2, 1.6, 0.1, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertFalse(ret);
+
+
+    ferVec3Set(&tr1, 0., M_PI_4, -M_PI_4);
+    ferMat3SetRot3D(&rot1, 0., 0., -1.);
+    ferVec3Set(&tr2, 0.6, 1.8, 0.2);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertFalse(ret);
+
+
+    ferVec3Set(&tr1, 0., M_PI_4, -M_PI_4);
+    ferMat3SetRot3D(&rot1, 0., 0., -1.);
+    ferVec3Set(&tr2, 0.6, 1.8, 0.1);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertTrue(ret);
+
+    /*
+    //ferCDGeomDumpSVT(g1, stdout, "g1");
+    //ferCDGeomDumpSVT(g2, stdout, "g2");
+    ferCDGeomDumpOBBSVT(g1, stdout, "g1");
+    ferCDGeomDumpOBBSVT(g2, stdout, "g2");
+    DBG("ret: %d", ret);
+    */
+
+    ferCDGeomDel(cd, g1);
+    ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
+}
+
+
 #if 0
 static void pTree(fer_cd_obb_t *root, int id)
 {

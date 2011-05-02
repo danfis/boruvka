@@ -124,6 +124,7 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
 
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
+void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 
 
 /**** INLINES ****/

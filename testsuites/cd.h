@@ -7,9 +7,8 @@ TEST(cdOBBNew2);
 TEST(cdOBBNew3);
 TEST(cdOBBCollide);
 
-TEST(cdTriMesh);
-TEST(cdSphere);
-TEST(cdPairs1);
+TEST(cdCollideTriMesh);
+TEST(cdCollideTriMesh2);
 
 TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
@@ -17,13 +16,11 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew3),
     TEST_ADD(cdOBBCollide),
 
-    //TEST_ADD(cdTriMesh),
-    //TEST_ADD(cdSphere),
-    //TEST_ADD(cdPairs1),
+    TEST_ADD(cdCollideTriMesh),
+    TEST_ADD(cdCollideTriMesh2),
 
     TEST_SUITE_CLOSURE
 };
 
 #endif
-
 

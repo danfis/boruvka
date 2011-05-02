@@ -215,6 +215,24 @@ int ferCDGeomCollide(fer_cd_t *cd,
 }
 
 
+static void dumpSVT(const fer_cd_geom_t *g,
+                    fer_cd_obb_t *obb, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+
+    if (obb->shape){
+        if (obb->shape->cl->dump_svt){
+            obb->shape->cl->dump_svt(obb->shape, out, name, &g->rot, &g->tr);
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            dumpSVT(g, o, out, name);
+        }
+    }
+}
+
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
 {
     fer_list_t *item;
@@ -222,6 +240,17 @@ void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
 
     FER_LIST_FOR_EACH(&g->obbs, item){
         obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        ferCDOBBDumpSVT(obb, out, name, &g->rot, &g->tr);
+        dumpSVT(g, obb, out, name);
+    }
+}
+
+void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *obb;
+
+    FER_LIST_FOR_EACH(&g->obbs, item){
+        obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        ferCDOBBDumpTreeSVT(obb, out, name, &g->rot, &g->tr);
     }
 }
