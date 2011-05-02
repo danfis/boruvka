@@ -17,7 +17,7 @@
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
 
-fer_cd_geom_t *ferCDGeomNew(void)
+fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
 {
     fer_cd_geom_t *g;
 
@@ -29,7 +29,7 @@ fer_cd_geom_t *ferCDGeomNew(void)
     return g;
 }
 
-void ferCDGeomDel(fer_cd_geom_t *g)
+void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     fer_list_t *item;
     fer_cd_obb_t *obb;
@@ -44,24 +44,23 @@ void ferCDGeomDel(fer_cd_geom_t *g)
     free(g);
 }
 
-void ferCDGeomBuild(fer_cd_geom_t *g)
+void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g)
 {
-    // TODO: flags
-    ferCDOBBMerge(&g->obbs, 0);
+    ferCDOBBMerge(&g->obbs, cd->build_flags);
 }
 
 
-void ferCDGeomAddSphere(fer_cd_geom_t *g, fer_real_t radius)
+void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
 {
     fer_cd_sphere_t *s;
     fer_cd_obb_t *obb;
 
     s = ferCDSphereNew(radius);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)s, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)s, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
-void ferCDGeomAddSphere2(fer_cd_geom_t *g, fer_real_t radius,
+void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
                          const fer_vec3_t *tr)
 {
     fer_cd_sphere_t *s;
@@ -70,23 +69,23 @@ void ferCDGeomAddSphere2(fer_cd_geom_t *g, fer_real_t radius,
 
     s   = ferCDSphereNew(radius);
     off = ferCDShapeOffNew((fer_cd_shape_t *)s, fer_mat3_identity, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
 
-void ferCDGeomAddBox(fer_cd_geom_t *g,
+void ferCDGeomAddBox(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t lx, fer_real_t ly, fer_real_t lz)
 {
     fer_cd_box_t *b;
     fer_cd_obb_t *obb;
 
     b   = ferCDBoxNew(lx, ly, lz);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)b, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)b, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
-void ferCDGeomAddBox2(fer_cd_geom_t *g,
+void ferCDGeomAddBox2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t lx, fer_real_t ly, fer_real_t lz,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
@@ -96,22 +95,24 @@ void ferCDGeomAddBox2(fer_cd_geom_t *g,
 
     b   = ferCDBoxNew(lx, ly, lz);
     off = ferCDShapeOffNew((fer_cd_shape_t *)b, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
 
-void ferCDGeomAddCyl(fer_cd_geom_t *g, fer_real_t radius, fer_real_t height)
+void ferCDGeomAddCyl(fer_cd_t *cd, fer_cd_geom_t *g,
+                     fer_real_t radius, fer_real_t height)
 {
     fer_cd_cyl_t *c;
     fer_cd_obb_t *obb;
 
     c   = ferCDCylNew(radius, height);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
-void ferCDGeomAddCyl2(fer_cd_geom_t *g, fer_real_t radius, fer_real_t height,
+void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
+                      fer_real_t radius, fer_real_t height,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
     fer_cd_cyl_t *c;
@@ -120,23 +121,20 @@ void ferCDGeomAddCyl2(fer_cd_geom_t *g, fer_real_t radius, fer_real_t height,
 
     c   = ferCDCylNew(radius, height);
     off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, 0);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
 
-void ferCDGeomAddTriMesh(fer_cd_geom_t *g, const fer_vec3_t *pts,
+void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
+                         const fer_vec3_t *pts,
                          const unsigned int *ids, size_t len)
 {
-    fer_cd_trimesh_t *t;
-    fer_cd_obb_t *obb;
-
-    t   = ferCDTriMeshNew(pts, ids, len, fer_mat3_identity, fer_vec3_origin);
-    obb = ferCDOBBNewTriMesh(t, 0); // TODO
-    ferListAppend(&g->obbs, &obb->list);
+    ferCDGeomAddTriMesh2(cd, g, pts, ids, len, fer_mat3_identity, fer_vec3_origin);
 }
 
-void ferCDGeomAddTriMesh2(fer_cd_geom_t *g, const fer_vec3_t *pts,
+void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
+                          const fer_vec3_t *pts,
                           const unsigned int *ids, size_t len,
                           const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
@@ -144,13 +142,14 @@ void ferCDGeomAddTriMesh2(fer_cd_geom_t *g, const fer_vec3_t *pts,
     fer_cd_obb_t *obb;
 
     t   = ferCDTriMeshNew(pts, ids, len, rot, tr);
-    obb = ferCDOBBNewTriMesh(t, 0); // TODO
+    obb = ferCDOBBNewTriMesh(t, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 }
 
 
 
 struct __collide_t {
+    fer_cd_t *cd;
     const fer_cd_geom_t *g1;
     const fer_cd_geom_t *g2;
     int ret;
@@ -161,23 +160,40 @@ static int __ferCDGeomCollideCB(const fer_cd_obb_t *obb1,
                                 void *data)
 {
     struct __collide_t *c = (struct __collide_t *)data;
+    int type1, type2;
 
-    if (ferCDTriMeshTriCollide((fer_cd_trimesh_tri_t *)obb1->shape,
-                               &c->g1->rot, &c->g1->tr,
-                               (fer_cd_trimesh_tri_t *)obb2->shape,
-                               &c->g2->rot, &c->g2->tr)){
-        c->ret = 1;
-        return -1;
+    type1 = obb1->shape->cl->type;
+    type2 = obb2->shape->cl->type;
+
+    if (c->cd->collide[type1][type2]){
+        c->ret = c->cd->collide[type1][type2](c->cd,
+                                              obb1->shape,
+                                              &c->g1->rot, &c->g1->tr,
+                                              obb2->shape,
+                                              &c->g2->rot, &c->g2->tr);
+    }else if (c->cd->collide[type2][type1]){
+        c->ret = c->cd->collide[type1][type2](c->cd,
+                                              obb2->shape,
+                                              &c->g2->rot, &c->g2->tr,
+                                              obb1->shape,
+                                              &c->g1->rot, &c->g1->tr);
+    }else{
+        fprintf(stderr, "Error: No collider for %d-%d\n", type1, type2);
     }
+
+    if (c->ret)
+        return -1;
     return 0;
 }
 
-int ferCDGeomCollide(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
+int ferCDGeomCollide(fer_cd_t *cd,
+                     const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
 {
     struct __collide_t c;
     fer_list_t *item1, *item2;
     fer_cd_obb_t *obb1, *obb2;
 
+    c.cd = cd;
     c.g1 = g1;
     c.g2 = g2;
 

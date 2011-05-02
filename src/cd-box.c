@@ -26,12 +26,12 @@ static void getCorners(const fer_cd_box_t *b,
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_BOX,
-    .del           = (fer_cd_shape_del)ferCDBoxDel,
-    .support       = (fer_cd_shape_support)ferCDBoxSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDBoxFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDBoxUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDBoxUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDBoxDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDBoxDel,
+    .support       = (fer_cd_shape_support_fn)ferCDBoxSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDBoxFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDBoxUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDBoxUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDBoxDumpSVT
 };
 
 fer_cd_box_t *ferCDBoxNew(fer_real_t lx, fer_real_t ly, fer_real_t lz)

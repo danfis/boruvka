@@ -19,22 +19,22 @@
 
 static fer_cd_shape_class_t shape_tri = {
     .type          = FER_CD_SHAPE_TRIMESH_TRI,
-    .del           = (fer_cd_shape_del)ferCDTriMeshTriDel,
-    .support       = (fer_cd_shape_support)ferCDTriMeshTriSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshTriFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshTriUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDTriMeshTriUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDTriMeshTriDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDTriMeshTriDel,
+    .support       = (fer_cd_shape_support_fn)ferCDTriMeshTriSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriMeshTriFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriMeshTriUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriMeshTriUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriMeshTriDumpSVT
 };
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_TRIMESH,
-    .del           = (fer_cd_shape_del)ferCDTriMeshDel,
-    .support       = (fer_cd_shape_support)ferCDTriMeshSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDTriMeshFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDTriMeshUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDTriMeshUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDTriMeshDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDTriMeshDel,
+    .support       = (fer_cd_shape_support_fn)ferCDTriMeshSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriMeshFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriMeshUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriMeshUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriMeshDumpSVT
 };
 
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,

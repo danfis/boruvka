@@ -19,12 +19,12 @@
 
 static fer_cd_shape_class_t shape = {
     .type = FER_CD_SHAPE_SPHERE,
-    .del           = (fer_cd_shape_del)ferCDSphereDel,
-    .support       = (fer_cd_shape_support)ferCDSphereSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDSphereFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDSphereUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDSphereUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDSphereDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDSphereDel,
+    .support       = (fer_cd_shape_support_fn)ferCDSphereSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDSphereFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDSphereUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDSphereUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDSphereDumpSVT
 };
 
 fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius)

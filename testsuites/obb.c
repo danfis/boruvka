@@ -78,11 +78,6 @@ TEST(obbNew)
 
     ferCDOBBDel(obb);
 
-    ferCDSphereDel(s[0]);
-    ferCDSphereDel(s[1]);
-    ferCDSphereDel(s[2]);
-    ferCDSphereDel(s[3]);
-
     s[0] = ferCDSphereNew(0.5);
     s[1] = ferCDSphereNew(0.1);
     b[0] = ferCDBoxNew(0.1, 0.3, 0.2);
@@ -117,13 +112,6 @@ TEST(obbNew)
     //ferCDOBBDumpTreeSVT(obb, stdout, "s-b-c", NULL, NULL);
 
     ferCDOBBDel(obb);
-
-    ferCDSphereDel(s[0]);
-    ferCDSphereDel(s[1]);
-    ferCDBoxDel(b[0]);
-    ferCDBoxDel(b[1]);
-    ferCDCylDel(c[0]);
-    ferCDCylDel(c[1]);
 }
 
 TEST(obbNew2)
@@ -193,15 +181,6 @@ TEST(obbNew2)
     //ferCDOBBDumpTreeSVT(obb, stdout, "s-b-c-t", NULL, NULL);
 
     ferCDOBBDel(obb);
-
-    ferCDSphereDel(s[0]);
-    ferCDSphereDel(s[1]);
-    ferCDBoxDel(b[0]);
-    ferCDBoxDel(b[1]);
-    ferCDCylDel(c[0]);
-    ferCDCylDel(c[1]);
-    ferCDTriMeshDel(t[0]);
-    ferCDTriMeshDel(t[1]);
 }
 
 TEST(obbNew3)
@@ -261,16 +240,6 @@ TEST(obbNew3)
     //ferCDOBBDumpTreeSVT(obb, stdout, "new3", NULL, NULL);
 
     ferCDOBBDel(obb);
-
-    for (i = 0; i < 6; i++){
-        ferCDShapeOffDel(off[i]);
-    }
-    ferCDSphereDel(s[0]);
-    ferCDSphereDel(s[1]);
-    ferCDBoxDel(b[0]);
-    ferCDBoxDel(b[1]);
-    ferCDCylDel(c[0]);
-    ferCDCylDel(c[1]);
 }
 
 

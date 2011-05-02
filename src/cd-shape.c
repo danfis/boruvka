@@ -25,11 +25,12 @@ _fer_inline void setRotTr(const fer_cd_shape_off_t *s,
 
 static fer_cd_shape_class_t shape_off = {
     .type          = FER_CD_SHAPE_OFF,
-    .support       = (fer_cd_shape_support)ferCDShapeOffSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDShapeOffFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDShapeOffUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDShapeOffUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDShapeOffDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDShapeOffDel,
+    .support       = (fer_cd_shape_support_fn)ferCDShapeOffSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDShapeOffFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDShapeOffUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDShapeOffUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDShapeOffDumpSVT
 };
 
 fer_cd_shape_off_t *ferCDShapeOffNew(fer_cd_shape_t *shape,

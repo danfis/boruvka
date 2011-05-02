@@ -20,12 +20,12 @@
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_CYL,
-    .del           = (fer_cd_shape_del)ferCDCylDel,
-    .support       = (fer_cd_shape_support)ferCDCylSupport,
-    .fit_obb       = (fer_cd_shape_fit_obb)ferCDCylFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull)ferCDCylUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax)ferCDCylUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt)ferCDCylDumpSVT
+    .del           = (fer_cd_shape_del_fn)ferCDCylDel,
+    .support       = (fer_cd_shape_support_fn)ferCDCylSupport,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDCylFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDCylUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDCylUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDCylDumpSVT
 };
 
 fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height)

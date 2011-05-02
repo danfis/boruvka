@@ -26,35 +26,35 @@ struct _fer_cd_shape_t;
 /**
  * Destructor.
  */
-typedef void (*fer_cd_shape_del)(struct _fer_cd_shape_t *shape);
+typedef void (*fer_cd_shape_del_fn)(struct _fer_cd_shape_t *shape);
 
 /**
  * Support function. Returns furthest point on shape in given direction.
  * It is assumed dir is unit vector.
  */
-typedef void (*fer_cd_shape_support)(const struct _fer_cd_shape_t *shape,
-                                     const fer_vec3_t *dir,
-                                     fer_vec3_t *p);
+typedef void (*fer_cd_shape_support_fn)(const struct _fer_cd_shape_t *shape,
+                                        const fer_vec3_t *dir,
+                                        fer_vec3_t *p);
 
 /**
  * Updates min/max values along given axis
  */
-typedef void (*fer_cd_shape_update_minmax)(const struct _fer_cd_shape_t *shape,
-                                           const fer_vec3_t *axis,
-                                           const fer_mat3_t *rot,
-                                           const fer_vec3_t *tr,
-                                           fer_real_t *min, fer_real_t *max);
+typedef void (*fer_cd_shape_update_minmax_fn)(const struct _fer_cd_shape_t *shape,
+                                              const fer_vec3_t *axis,
+                                              const fer_mat3_t *rot,
+                                              const fer_vec3_t *tr,
+                                              fer_real_t *min, fer_real_t *max);
 
 /**
  * Returns axis and half extents of bounding box that tightly fit to shape.
  */
-typedef void (*fer_cd_shape_fit_obb)(const struct _fer_cd_shape_t *shape,
-                                     fer_vec3_t *center,
-                                     fer_vec3_t *axis0,
-                                     fer_vec3_t *axis1,
-                                     fer_vec3_t *axis2,
-                                     fer_vec3_t *half_extents,
-                                     int flags);
+typedef void (*fer_cd_shape_fit_obb_fn)(const struct _fer_cd_shape_t *shape,
+                                        fer_vec3_t *center,
+                                        fer_vec3_t *axis0,
+                                        fer_vec3_t *axis1,
+                                        fer_vec3_t *axis2,
+                                        fer_vec3_t *half_extents,
+                                        int flags);
 
 /**
  * Updates given convex hull to cover the shape.
@@ -62,29 +62,29 @@ typedef void (*fer_cd_shape_fit_obb)(const struct _fer_cd_shape_t *shape,
  * Returns 0 if shape is not contained in convex hull but at least skelet
  * is conatined (and thus orientation can be obtained from convex hull).
  */
-typedef int (*fer_cd_shape_update_chull)(const struct _fer_cd_shape_t *shape,
-                                         fer_chull3_t *chull,
-                                         const fer_mat3_t *rot,
-                                         const fer_vec3_t *tr);
+typedef int (*fer_cd_shape_update_chull_fn)(const struct _fer_cd_shape_t *shape,
+                                            fer_chull3_t *chull,
+                                            const fer_mat3_t *rot,
+                                            const fer_vec3_t *tr);
 
 /**
  * Dump shape in SVT format
  */
-typedef void (*fer_cd_shape_dump_svt)(const struct _fer_cd_shape_t *shape,
-                                      FILE *out, const char *name,
-                                      const fer_mat3_t *rot,
-                                      const fer_vec3_t *tr);
+typedef void (*fer_cd_shape_dump_svt_fn)(const struct _fer_cd_shape_t *shape,
+                                         FILE *out, const char *name,
+                                         const fer_mat3_t *rot,
+                                         const fer_vec3_t *tr);
 /**
  * Shape type class.
  */
 struct _fer_cd_shape_class_t {
     int type;
-    fer_cd_shape_del del;
-    fer_cd_shape_support support;
-    fer_cd_shape_fit_obb fit_obb;
-    fer_cd_shape_update_chull update_chull;
-    fer_cd_shape_update_minmax update_minmax;
-    fer_cd_shape_dump_svt dump_svt;
+    fer_cd_shape_del_fn del;
+    fer_cd_shape_support_fn support;
+    fer_cd_shape_fit_obb_fn fit_obb;
+    fer_cd_shape_update_chull_fn update_chull;
+    fer_cd_shape_update_minmax_fn update_minmax;
+    fer_cd_shape_dump_svt_fn dump_svt;
 };
 typedef struct _fer_cd_shape_class_t fer_cd_shape_class_t;
 
@@ -149,10 +149,10 @@ void ferCDShapeOffDumpSVT(const fer_cd_shape_off_t *s,
 #define FER_CD_SHAPE_CYL         2
 #define FER_CD_SHAPE_CAP         3
 #define FER_CD_SHAPE_TRIMESH_TRI 4
-#define FER_CD_SHAPE_LEN         5
+#define FER_CD_SHAPE_OFF         5
+#define FER_CD_SHAPE_LEN         6
 
 #define FER_CD_SHAPE_TRIMESH 20
-#define FER_CD_SHAPE_OFF     21
 
 #ifdef __cplusplus
 }

@@ -131,39 +131,14 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
  */
 void ferCDOBBFreePairs(fer_list_t *pairs);
 
-
-/**
- * Flag for ferCDOBBMerge() function.
- *
- * Use covariance matrix for fitting OBB to its content.
- * This is default.
- */
-#define FER_CDOBB_MERGE_FIT_COVARIANCE 0
-
-/**
- * Flag for ferCDOBBMerge() function.
- *
- * Use "rotation calipers" for fitting OBB. This method is slower and more
- * accurate than FER_CDOBB_MERGE_FIT_COVARIANCE.
- */
-#define FER_CDOBB_MERGE_FIT_CALIPERS 1
-
-/**
- * Flag for ferCDOBBMerge() function.
- *
- * It specifies number of rotation that will be tried for fitting OBB.
- * The higher value is, the more accurate (and slower) method is * used.
- * Reasonable values are 10, 20, ..., 50. This flag is active only if
- * FER_CDOBB_MERGE_FIT_CALIPERS flag is set.
- * Default value is 20.
- */
-#define FER_CDOBB_MERGE_FIT_CALIPERS_NUM_ROT(rot) ((rot & 0xFF) << 8)
-
 /**
  * Merge all OBBs in list and left one top OBB in list.
  *
  * Using parameter {flags} can be changed method used for merging (choosing
- * and fitting) bounding boxes. See FER_CDOBB_MERGE_* macros.
+ * and fitting) bounding boxes.
+ * See macros: FER_CD_FIT_COVARIANCE,
+ *             FER_CD_FIT_CALIPERS
+ *             FER_CD_FIT_CALIPERS_NUM_ROT()
  */
 void ferCDOBBMerge(fer_list_t *obbs, int flags);
 

@@ -454,9 +454,9 @@ void ferCDOBBMerge(fer_list_t *obbs, int flags)
         num_rot = 20;
 
     while ((obb = mergeChooseNearest(obbs)) != NULL){
-        if (fit == FER_CDOBB_MERGE_FIT_COVARIANCE){
+        if (fit == FER_CD_FIT_COVARIANCE){
             mergeFitCovariance(obb);
-        }else{ // FER_CDOBB_MERGE_FIT_CALIPERS
+        }else{ // FER_CD_FIT_CALIPERS
             mergeFitCalipers(obb, num_rot);
         }
     }
