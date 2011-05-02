@@ -1,10 +1,10 @@
 /***
- * libccd
- * ---------------------------------
- * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
+ * fermat
+ * -------
+ * Copyright (c)2010,2011 Daniel Fiser <danfis@danfis.cz>
  *
  *
- *  This file is part of libccd.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -17,9 +17,9 @@
 
 #include <fermat/ccd-support.h>
 
-void __ferSupport(const void *obj1, const void *obj2,
-                  const fer_vec3_t *_dir, const fer_t *ccd,
-                  fer_support_t *supp)
+void __ferCCDSupport(const void *obj1, const void *obj2,
+                     const fer_vec3_t *_dir, const fer_ccd_t *ccd,
+                     fer_ccd_support_t *supp)
 {
     fer_vec3_t dir;
 

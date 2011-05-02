@@ -1,10 +1,10 @@
 /***
- * libccd
- * ---------------------------------
+ * fermat
+ * -------
  * Copyright (c)2010,2011 Daniel Fiser <danfis@danfis.cz>
  *
  *
- *  This file is part of libccd.
+ *  This file is part of fermat.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,8 +15,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_H__
-#define __FER_H__
+#ifndef __FER_CCD_H__
+#define __FER_CCD_H__
 
 #include <fermat/vec3.h>
 
@@ -29,53 +29,54 @@ extern "C" {
  * and returns (via vec argument) furthest point from object in specified
  * direction.
  */
-typedef void (*fer_support_fn)(const void *obj, const fer_vec3_t *dir,
-                               fer_vec3_t *vec);
+typedef void (*fer_ccd_support_fn)(const void *obj, const fer_vec3_t *dir,
+                                   fer_vec3_t *vec);
 
 /**
  * Returns (via dir argument) first direction vector that will be used in
  * initialization of algorithm.
  */
-typedef void (*fer_first_dir_fn)(const void *obj1, const void *obj2,
-                                 fer_vec3_t *dir);
+typedef void (*fer_ccd_first_dir_fn)(const void *obj1, const void *obj2,
+                                     fer_vec3_t *dir);
 
 
 /**
  * Returns (via center argument) geometric center (some point near center)
  * of given object.
  */
-typedef void (*fer_center_fn)(const void *obj1, fer_vec3_t *center);
+typedef void (*fer_ccd_center_fn)(const void *obj1, fer_vec3_t *center);
 
 /**
  * Main structure of CCD algorithm.
  */
-struct _fer_t {
-    fer_first_dir_fn first_dir; //!< Returns initial direction where first
-                                //!< support point will be searched
-    fer_support_fn support1; //!< Function that returns support point of
-                             //!< first object
-    fer_support_fn support2; //!< Function that returns support point of
-                             //!< second object
+struct _fer_ccd_t {
+    fer_ccd_first_dir_fn first_dir; /*!< Returns initial direction where
+                                         first support point will be
+                                         searched */
+    fer_ccd_support_fn support1; /*!< Function that returns support point
+                                      of first object */
+    fer_ccd_support_fn support2; /*!< Function that returns support point
+                                      of second object */
 
-    fer_center_fn center1; //!< Function that returns geometric center of
-                           //!< first object
-    fer_center_fn center2; //!< Function that returns geometric center of
-                           //!< second object
+    fer_ccd_center_fn center1; /*!< Function that returns geometric center
+                                    of first object */
+    fer_ccd_center_fn center2; /*!< Function that returns geometric center
+                                    of second object */
 
-    unsigned long max_iterations; //!< Maximal number of iterations
+    unsigned long max_iterations; /*!< Maximal number of iterations */
     fer_real_t epa_tolerance;
-    fer_real_t mpr_tolerance; //!< Boundary tolerance for MPR algorithm
+    fer_real_t mpr_tolerance; /*!< Boundary tolerance for MPR algorithm */
 };
-typedef struct _fer_t fer_t;
+typedef struct _fer_ccd_t fer_ccd_t;
 
 /**
  * Default first direction.
  */
-void ferFirstDirDefault(const void *o1, const void *o2, fer_vec3_t *dir);
+void ferCCDFirstDirDefault(const void *o1, const void *o2, fer_vec3_t *dir);
 
-#define FER_INIT(ccd) \
+#define FER_CCD_INIT(ccd) \
     do { \
-        (ccd)->first_dir = ferFirstDirDefault; \
+        (ccd)->first_dir = ferCCDFirstDirDefault; \
         (ccd)->support1 = NULL; \
         (ccd)->support2 = NULL; \
         (ccd)->center1  = NULL; \
@@ -90,7 +91,7 @@ void ferFirstDirDefault(const void *o1, const void *o2, fer_vec3_t *dir);
 /**
  * Returns true if two given objects interest.
  */
-int ferGJKIntersect(const void *obj1, const void *obj2, const fer_t *ccd);
+int ferCCDGJKIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd);
 
 /**
  * This function computes separation vector of two objects. Separation
@@ -99,8 +100,8 @@ int ferGJKIntersect(const void *obj1, const void *obj2, const fer_t *ccd);
  * Returns 0 if obj1 and obj2 intersect and sep is filled with translation
  * vector. If obj1 and obj2 don't intersect -1 is returned.
  */
-int ferGJKSeparate(const void *obj1, const void *obj2, const fer_t *ccd,
-                   fer_vec3_t *sep);
+int ferCCDGJKSeparate(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+                      fer_vec3_t *sep);
 
 /**
  * Computes penetration of obj2 into obj1.
@@ -109,20 +110,20 @@ int ferGJKSeparate(const void *obj1, const void *obj2, const fer_t *ccd,
  * have touching contact, pos should be position in global coordinates
  * where force should take a place.
  *
- * CCD+EPA algorithm is used.
+ * GJK+EPA algorithm is used.
  *
  * Returns 0 if obj1 and obj2 intersect and depth, dir and pos are filled
  * if given non-NULL pointers.
  * If obj1 and obj2 don't intersect -1 is returned.
  */
-int ferGJKPenetration(const void *obj1, const void *obj2, const fer_t *ccd,
-                      fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
+int ferCCDGJKPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+                         fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
 
 
 /**
  * Returns true if two given objects intersect - MPR algorithm is used.
  */
-int ferMPRIntersect(const void *obj1, const void *obj2, const fer_t *ccd);
+int ferCCDMPRIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd);
 
 /**
  * Computes penetration of obj2 into obj1.
@@ -136,11 +137,11 @@ int ferMPRIntersect(const void *obj1, const void *obj2, const fer_t *ccd);
  *
  * Returns 0 if obj1 and obj2 intersect, otherwise -1 is returned.
  */
-int ferMPRPenetration(const void *obj1, const void *obj2, const fer_t *ccd,
-                      fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
+int ferCCDMPRPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+                         fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_H__ */
+#endif /* __FER_CCD_H__ */
