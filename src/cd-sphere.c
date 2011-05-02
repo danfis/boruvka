@@ -102,9 +102,6 @@ void ferCDSphereDumpSVT(const fer_cd_sphere_t *s,
                         FILE *out, const char *name,
                         const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_vec3_t v;
-    size_t i;
-
     if (!tr)
         tr = fer_vec3_origin;
 
@@ -112,13 +109,9 @@ void ferCDSphereDumpSVT(const fer_cd_sphere_t *s,
     if (name)
         fprintf(out, "Name: %s\n", name);
 
-    fprintf(out, "Points:\n");
-    for (i = 0; i < fer_points_on_sphere_len; i++){
-        ferVec3Scale2(&v, fer_points_on_sphere + i, s->radius);
-        ferVec3Add(&v, tr);
-
-        ferVec3Print(&v, out);
-        fprintf(out, "\n");
-    }
+    fprintf(out, "Spheres:\n");
+    fprintf(out, "%f ", s->radius);
+    ferVec3Print(tr, out);
+    fprintf(out, "\n");
     fprintf(out, "-----\n");
 }

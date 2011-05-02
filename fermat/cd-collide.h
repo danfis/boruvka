@@ -52,6 +52,25 @@ int ferCDCollideTriMeshTriTriMeshTri(struct _fer_cd_t *cd,
                                      const fer_cd_trimesh_tri_t *t2,
                                      const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
+
+/**
+ * ShapeOffset-ShapeOffset collider
+ */
+int ferCDCollideOffOff(struct _fer_cd_t *cd,
+                       const fer_cd_shape_off_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_shape_off_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
+ * ShapeOffset-AnyShape collider
+ */
+int ferCDCollideOffAny(struct _fer_cd_t *cd,
+                       const fer_cd_shape_off_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_shape_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

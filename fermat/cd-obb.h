@@ -38,6 +38,8 @@ struct _fer_cd_obb_t {
     fer_cd_shape_t *shape; /*!< Reference to primitive that is holded by bounding box */
     fer_list_t obbs;       /*!< List of children obbs */
     fer_list_t list;       /*!< Reference to parent's list of obbs */
+
+    struct _fer_cd_obb_t *nearest;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_obb_t fer_cd_obb_t;
 

@@ -62,6 +62,14 @@ void ferCDSetBuildFlags(fer_cd_t *cd, int flags);
 void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
                        fer_cd_collide_fn collider);
 
+
+/** Returns true if two given shapes do collide */
+int __ferCDShapeCollide(fer_cd_t *cd,
+                        const fer_cd_shape_t *s1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_cd_shape_t *s2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

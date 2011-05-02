@@ -38,6 +38,14 @@ fer_cd_t *ferCDNew(void)
     ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
                       (fer_cd_collide_fn)ferCDCollideTriMeshTriTriMeshTri);
 
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
+                      (fer_cd_collide_fn)ferCDCollideOffOff);
+    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
+        if (i != FER_CD_SHAPE_OFF)
+            ferCDSetCollideFn(cd, FER_CD_SHAPE_OFF, i,
+                              (fer_cd_collide_fn)ferCDCollideOffAny);
+    }
+
     return cd;
 }
 
@@ -50,4 +58,27 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
                        fer_cd_collide_fn collider)
 {
     cd->collide[shape1][shape2] = collider;
+}
+
+int __ferCDShapeCollide(fer_cd_t *cd,
+                        const fer_cd_shape_t *s1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_cd_shape_t *s2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    int type1, type2, ret;
+
+    type1 = s1->cl->type;
+    type2 = s2->cl->type;
+
+    ret = 0;
+    if (cd->collide[type1][type2]){
+        ret = cd->collide[type1][type2](cd, s1, rot1, tr1, s2, rot2, tr2);
+    }else if (cd->collide[type2][type1]){
+        ret = cd->collide[type1][type2](cd, s2, rot2, tr2, s1, rot1, tr1);
+    }else{
+        fprintf(stderr, "Error: No collider for %d-%d\n", type1, type2);
+    }
+
+    return ret;
 }

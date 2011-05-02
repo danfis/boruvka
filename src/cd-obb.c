@@ -67,6 +67,8 @@ fer_cd_obb_t *ferCDOBBNew(void)
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
 
+    obb->nearest = NULL;
+
     return obb;
 }
 
@@ -92,6 +94,8 @@ fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
 
     ferListInit(&obb->obbs);
     ferListInit(&obb->list);
+
+    obb->nearest = NULL;
 
     return obb;
 }
@@ -119,6 +123,9 @@ fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags)
     item = ferListNext(&obbs);
     obb = fer_container_of(item, fer_cd_obb_t, list);
     obb->shape = (fer_cd_shape_t *)trimesh;
+
+    obb->nearest = NULL;
+
     return obb;
 }
 
@@ -639,38 +646,55 @@ static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
     fer_cd_obb_t *newobb;
     fer_list_t *item1, *item2;
     fer_cd_obb_t *obb[2];
-    fer_cd_obb_t *obb_nearest[2];
     fer_real_t dist, dist_nearest;
 
     // only one OBB in list (or list is empty)
     if (ferListNext(obbs) == ferListPrev(obbs))
         return NULL;
 
-    obb_nearest[0] = obb_nearest[1] = NULL;
-    dist_nearest = FER_REAL_MAX;
+    item1 = ferListNext(obbs);
+    obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+    if (!obb[0]->nearest){
+        FER_LIST_FOR_EACH(obbs, item1){
+            obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
 
-    FER_LIST_FOR_EACH(obbs, item1){
-        obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
-        for (item2 = ferListNext(item1);
-                item2 != obbs;
-                item2 = ferListNext(item2)){
-            obb[1] = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+            if (obb[0]->nearest)
+                continue;
 
-            dist = ferVec3Dist2(&obb[0]->center, &obb[1]->center);
-            if (dist < dist_nearest){
-                dist_nearest = dist;
-                obb_nearest[0] = obb[0];
-                obb_nearest[1] = obb[1];
+            dist_nearest = FER_REAL_MAX;
+            for (item2 = ferListNext(item1);
+                    item2 != obbs;
+                    item2 = ferListNext(item2)){
+                obb[1] = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+
+                if (obb[1]->nearest)
+                    continue;
+
+                dist = ferVec3Dist2(&obb[0]->center, &obb[1]->center);
+                if (dist < dist_nearest){
+                    if (obb[0]->nearest)
+                        obb[0]->nearest->nearest = NULL;
+
+                    dist_nearest = dist;
+                    obb[0]->nearest = obb[1];
+                    obb[1]->nearest = obb[0];
+                }
             }
         }
-    }
 
-    ferListDel(&obb_nearest[0]->list);
-    ferListDel(&obb_nearest[1]->list);
+        item1 = ferListNext(obbs);
+        obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+    }
+    obb[1] = obb[0]->nearest;
+
+    ferListDel(&obb[0]->list);
+    ferListDel(&obb[1]->list);
+    obb[0]->nearest = NULL;
+    obb[1]->nearest = NULL;
 
     newobb = ferCDOBBNew();
-    ferListAppend(&newobb->obbs, &obb_nearest[0]->list);
-    ferListAppend(&newobb->obbs, &obb_nearest[1]->list);
+    ferListAppend(&newobb->obbs, &obb[0]->list);
+    ferListAppend(&newobb->obbs, &obb[1]->list);
     ferListAppend(obbs, &newobb->list);
     return newobb;
 }

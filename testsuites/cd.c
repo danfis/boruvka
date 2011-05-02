@@ -3,6 +3,7 @@
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
 #include "bunny.h"
+#include "data.h"
 
 static void prv(const char *prefix, const fer_vec3_t *v)
 {
@@ -508,217 +509,79 @@ TEST(cdCollideTriMesh2)
     ferCDDel(cd);
 }
 
-
-#if 0
-static void pTree(fer_cd_obb_t *root, int id)
+TEST(cdCollideSphere)
 {
-    char name[10];
-    fer_list_t *item;
-    fer_cd_obb_t *obb;
-
-    sprintf(name, "%02d", id);
-    ferCDOBBDumpSVT(root, stdout, name);
-
-    FER_LIST_FOR_EACH(&root->obbs, item){
-        obb = fer_container_of(item, fer_cd_obb_t, list);
-
-        if (ferListEmpty(&obb->obbs)){
-            if (obb->shape->type == FER_CD_SHAPE_SPHERE){
-                sprintf(name, "Sphere - %02d", id);
-                ferCDSphereDumpSVT((fer_cd_sphere_t *)obb->shape, stdout, name);
-            }else if (obb->shape->type == FER_CD_SHAPE_TRIMESH_TRI){
-                sprintf(name, "Tri - %02d", id);
-                ferCDTriMeshTriDumpSVT((fer_cd_trimesh_tri_t *)obb->shape, stdout, name);
-            }
-            sprintf(name, "CDOBB - %02d", id);
-            ferCDOBBDumpSVT(obb, stdout, name);
-        }else{
-            pTree(obb, id + 1);
-        }
-    }
-}
-
-static void pPairs(fer_list_t *pairs,
-                   const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                   const fer_mat3_t *rot2, const fer_vec3_t *tr2)
-{
-    char name[120];
-    int i;
-    fer_list_t *item;
-    fer_cd_obb_pair_t *p;
-
-    i = 0;
-    FER_LIST_FOR_EACH(pairs, item){
-        p = fer_container_of(item, fer_cd_obb_pair_t, list);
-
-        sprintf(name, "pair: %02d - 1", i);
-        ferCDOBBDumpSVT2(p->obb1, rot1, tr1, stdout, name);
-        sprintf(name, "pair: %02d - 2", i);
-        ferCDOBBDumpSVT2(p->obb2, rot2, tr2, stdout, name);
-        i++;
-    }
-}
-
-
-TEST(obbTriMesh)
-{
-    fer_vec3_t pts[5];
-    unsigned int ids[3 * 3] = { 0, 1, 2,
-                                1, 2, 3,
-                                2, 3, 4 };
-    size_t len = 3;
-    fer_cd_obb_t *obb;
-    fer_timer_t t;
-
-    ferVec3Set(pts + 0, 0., 0., 0.);
-    ferVec3Set(pts + 1, 1., 0., 0.);
-    ferVec3Set(pts + 2, 0., 0.3, 1.);
-    ferVec3Set(pts + 3, 1., 1., 1.);
-    ferVec3Set(pts + 4, 0., 1., 1.);
-
-    obb = ferCDOBBNewTriMesh(pts, ids, len, 0, fer_vec3_origin, fer_mat3_identity);
-    //pTree(obb, 0);
-    ferCDOBBDel(obb);
-
-
-    ferTimerStart(&t);
-    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len, 0,
-                             fer_vec3_origin, fer_mat3_identity);
-    //pTree(obb, 0);
-    ferCDOBBDel(obb);
-    ferTimerStop(&t);
-    //fprintf(stderr, "1: %lu\n", ferTimerElapsedInUs(&t));
-
-
-    ferTimerStart(&t);
-    obb = ferCDOBBNewTriMesh(bunny_coords, bunny_ids, bunny_tri_len,
-                             FER_CDOBB_MERGE_FIT_CALIPERS, fer_vec3_origin, fer_mat3_identity);
-    //pTree(obb, 0);
-    ferCDOBBDel(obb);
-    ferTimerStop(&t);
-    //fprintf(stderr, "2: %lu\n", ferTimerElapsedInUs(&t));
-}
-
-TEST(obbSphere)
-{
-    fer_list_t obbs;
-    fer_cd_obb_t *obb;
-    fer_vec3_t c;
-
-    ferListInit(&obbs);
-
-    ferVec3Set(&c, 0, 0, 0);
-    obb = ferCDOBBNewSphere(0.5, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferVec3Set(&c, 1, 0, 0);
-    obb = ferCDOBBNewSphere(0.3, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferVec3Set(&c, 1, 1, 0);
-    obb = ferCDOBBNewSphere(0.7, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferVec3Set(&c, 1, 1, 1);
-    obb = ferCDOBBNewSphere(0.1, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferVec3Set(&c, 1, 0, 1);
-    obb = ferCDOBBNewSphere(0.1, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferVec3Set(&c, -1, 0, 1);
-    obb = ferCDOBBNewSphere(0.1, &c);
-    ferListAppend(&obbs, &obb->list);
-
-    ferCDOBBMerge(&obbs, FER_CDOBB_MERGE_FIT_COVARIANCE);
-    obb = FER_LIST_ENTRY(ferListNext(&obbs), fer_cd_obb_t, list);
-
-    pTree(obb, 0);
-
-    ferCDOBBDel(obb);
-}
-
-TEST(obbBox)
-{
-}
-
-
-TEST(obbPairs1)
-{
-    fer_vec3_t pts1[6] = { FER_VEC3_STATIC(0., 0., 0.),
-                           FER_VEC3_STATIC(0.5, 0., 0.),
-                           FER_VEC3_STATIC(0.4, 0.7, .0),
-                           FER_VEC3_STATIC(0.1, -0.1, 0.5),
-                           FER_VEC3_STATIC(0.5, 0., 0.5),
-                           FER_VEC3_STATIC(0.5, 0.5, 0.5),
-    };
-    unsigned int ids1[8 * 3] = { 0, 1, 2,
-                                 0, 1, 3,
-                                 1, 3, 4,
-                                 1, 2, 4,
-                                 2, 4, 5,
-                                 0, 3, 5,
-                                 0, 5, 2,
-                                 3, 4, 5 };
-    size_t len1 = 8;
-    fer_vec3_t pts2[5] = { FER_VEC3_STATIC(0., 0., 0.),
-                           FER_VEC3_STATIC(0.5, 0.1, 0.),
-                           FER_VEC3_STATIC(0.3, 0.5, .0),
-                           FER_VEC3_STATIC(-0.1, 0.6, 0.),
-                           FER_VEC3_STATIC(0.2, 0.2, 0.5)
-    };
-    unsigned int ids2[6 * 3] = { 0, 1, 4,
-                                 1, 2, 4,
-                                 2, 3, 4,
-                                 3, 0, 4,
-                                 0, 1, 3,
-                                 1, 3, 2 };
-    size_t len2 = 6;
-    fer_cd_obb_t *obb1, *obb2;
+    fer_cd_t *cd;
+    fer_cd_geom_t *g1, *g2;
     fer_vec3_t tr1, tr2;
     fer_mat3_t rot1, rot2;
-    fer_list_t pairs;
     int ret;
+    size_t i;
+    fer_timer_t timer;
 
 
-    obb1 = ferCDOBBNewTriMesh(pts1, ids1, len1, 0, fer_vec3_origin, fer_mat3_identity);
-    obb2 = ferCDOBBNewTriMesh(pts2, ids2, len2, 0,  fer_vec3_origin, fer_mat3_identity);
+    cd = ferCDNew();
 
-    //pTree(obb1, 0);
-    //pTree(obb2, 0);
+    g1 = ferCDGeomNew(cd);
 
+    ferTimerStart(&timer);
+    for (i = 0; i < protein_big_len; i++){
+        ferCDGeomAddSphere2(cd, g1, protein_big_radius[i],
+                                    &protein_big_center[i]);
+    }
+    ferTimerStop(&timer);
+    DBG("addSphere1: %lu", ferTimerElapsedInUs(&timer));
 
-    ferVec3Set(&tr1, 0., 0., 0.);
+    ferTimerStart(&timer);
+    ferCDGeomBuild(cd, g1);
+    ferTimerStop(&timer);
+    DBG("build1: %lu", ferTimerElapsedInUs(&timer));
+
+    g2 = ferCDGeomNew(cd);
+    for (i = 0; i < protein_small_len; i++){
+        ferCDGeomAddSphere2(cd, g2, protein_small_radius[i],
+                                    &protein_small_center[i]);
+    }
+    ferCDGeomBuild(cd, g2);
+
+    //ferCDGeomDumpOBBSVT(g1, stdout, "g1");
+    //ferCDGeomDumpOBBSVT(g2, stdout, "g2");
+
+    ferVec3Set(&tr1, 0., M_PI_4, -M_PI_4);
+    ferMat3SetRot3D(&rot1, 0., 0., -1.);
+    ferVec3Set(&tr2, 35.6, 1.8, 0.1);
+    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ferTimerStart(&timer);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    ferTimerStop(&timer);
+    DBG("collide1: %lu", ferTimerElapsedInUs(&timer));
+    assertFalse(ret);
+
+    ferVec3Set(&tr1, M_PI_4, 0, 0);
     ferMat3SetRot3D(&rot1, 0., 0., 0.);
-    ferVec3Set(&tr2, .45, 0.1, 0.2);
+    ferVec3Set(&tr2, 0.6, 11.2, 0.1);
     ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
-    ferListInit(&pairs);
-    ret = ferCDOBBOverlapPairs(obb1, &rot1, &tr1, obb2, &rot2, &tr2, &pairs);
-    printf("# 1. Pairs: %d\n", ret);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb1->shape, &rot1, &tr1, stdout, "obb1", 1);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb2->shape, &rot2, &tr2, stdout, "obb2", 1);
-    if (ret > 0){
-        //pPairs(&pairs, &rot1, &tr1, &rot2, &tr2);
-        ferCDOBBFreePairs(&pairs);
-    }
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ferTimerStart(&timer);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    ferTimerStop(&timer);
+    DBG("collide2: %lu", ferTimerElapsedInUs(&timer));
+    assertTrue(ret);
 
+    //ferCDGeomDumpSVT(g1, stdout, "g1");
+    //ferCDGeomDumpSVT(g2, stdout, "g2");
+    ferCDGeomDumpSVT(g1, stdout, "g1");
+    ferCDGeomDumpSVT(g2, stdout, "g2");
+    DBG("ret: %d", ret);
 
-    ferVec3Set(&tr1, 0., 0.2, 0.4);
-    ferMat3SetRot3D(&rot1, -M_PI_4, 0., M_PI_4);
-    ferVec3Set(&tr2, -.4, 0.1, .5);
-    ferMat3SetRot3D(&rot2, M_PI_2, M_PI_4, M_PI_4);
-    ferListInit(&pairs);
-    ret = ferCDOBBOverlapPairs(obb1, &rot1, &tr1, obb2, &rot2, &tr2, &pairs);
-    printf("# 2. Pairs: %d\n", ret);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb1->shape, &rot1, &tr1, stdout, "obb1", 1);
-    //ferCDTriMeshDumpSVT2((fer_cd_trimesh_t *)obb2->shape, &rot2, &tr2, stdout, "obb2", 1);
-    if (ret > 0){
-        //pPairs(&pairs, &rot1, &tr1, &rot2, &tr2);
-        ferCDOBBFreePairs(&pairs);
-    }
-
-    ferCDOBBDel(obb1);
-    ferCDOBBDel(obb2);
+    ferCDGeomDel(cd, g1);
+    ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
 }
-#endif

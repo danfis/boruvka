@@ -54,3 +54,40 @@ int ferCDCollideTriMeshTriTriMeshTri(struct _fer_cd_t *cd,
     return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
 }
 
+int ferCDCollideOffOff(struct _fer_cd_t *cd,
+                       const fer_cd_shape_off_t *s1,
+                       const fer_mat3_t *_rot1, const fer_vec3_t *_tr1,
+                       const fer_cd_shape_off_t *s2,
+                       const fer_mat3_t *_rot2, const fer_vec3_t *_tr2)
+{
+    fer_mat3_t rot1, rot2;
+    fer_vec3_t tr1, tr2;
+
+    ferMat3Mul2(&rot1, _rot1, s1->rot);
+    ferMat3MulVec(&tr1, _rot1, s1->tr);
+    ferVec3Add(&tr1, _tr1);
+
+    ferMat3Mul2(&rot2, _rot2, s2->rot);
+    ferMat3MulVec(&tr2, _rot2, s2->tr);
+    ferVec3Add(&tr2, _tr2);
+
+    return __ferCDShapeCollide(cd, s1->shape, &rot1, &tr1,
+                                   s2->shape, &rot2, &tr2);
+}
+
+int ferCDCollideOffAny(struct _fer_cd_t *cd,
+                       const fer_cd_shape_off_t *s1,
+                       const fer_mat3_t *_rot1, const fer_vec3_t *_tr1,
+                       const fer_cd_shape_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_mat3_t rot1;
+    fer_vec3_t tr1;
+
+    ferMat3Mul2(&rot1, _rot1, s1->rot);
+    ferMat3MulVec(&tr1, _rot1, s1->tr);
+    ferVec3Add(&tr1, _tr1);
+
+    return __ferCDShapeCollide(cd, s1->shape, &rot1, &tr1,
+                                   s2, rot2, tr2);
+}

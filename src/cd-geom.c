@@ -160,26 +160,10 @@ static int __ferCDGeomCollideCB(const fer_cd_obb_t *obb1,
                                 void *data)
 {
     struct __collide_t *c = (struct __collide_t *)data;
-    int type1, type2;
 
-    type1 = obb1->shape->cl->type;
-    type2 = obb2->shape->cl->type;
-
-    if (c->cd->collide[type1][type2]){
-        c->ret = c->cd->collide[type1][type2](c->cd,
-                                              obb1->shape,
-                                              &c->g1->rot, &c->g1->tr,
-                                              obb2->shape,
-                                              &c->g2->rot, &c->g2->tr);
-    }else if (c->cd->collide[type2][type1]){
-        c->ret = c->cd->collide[type1][type2](c->cd,
-                                              obb2->shape,
-                                              &c->g2->rot, &c->g2->tr,
-                                              obb1->shape,
-                                              &c->g1->rot, &c->g1->tr);
-    }else{
-        fprintf(stderr, "Error: No collider for %d-%d\n", type1, type2);
-    }
+    c->ret = __ferCDShapeCollide(c->cd,
+                                 obb1->shape, &c->g1->rot, &c->g1->tr,
+                                 obb2->shape, &c->g2->rot, &c->g2->tr);
 
     if (c->ret)
         return -1;
