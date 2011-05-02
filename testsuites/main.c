@@ -15,9 +15,8 @@
 #include "fibo.h"
 #include "pairheap.h"
 #include "dij.h"
-#include "obb.h"
+#include "cd.h"
 #include "chull3.h"
-#include "geom.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -40,8 +39,7 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSDij),
 
-    TEST_SUITE_ADD(TSOBB),
-    TEST_SUITE_ADD(TSGeom),
+    TEST_SUITE_ADD(TSCD),
 
     TEST_SUITE_ADD(TSCHull3),
 

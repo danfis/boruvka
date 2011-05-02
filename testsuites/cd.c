@@ -1,5 +1,5 @@
 #include "cu.h"
-#include <fermat/cd-obb.h>
+#include <fermat/cd.h>
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
 #include "bunny.h"
@@ -43,7 +43,7 @@ static void prCDOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
 */
 
 
-TEST(obbNew)
+TEST(cdOBBNew)
 {
     fer_list_t obbs, *item;
     fer_cd_obb_t *obb;
@@ -114,7 +114,7 @@ TEST(obbNew)
     ferCDOBBDel(obb);
 }
 
-TEST(obbNew2)
+TEST(cdOBBNew2)
 {
     fer_vec3_t pts[5] = {
         FER_VEC3_STATIC(0., 0., 0.),
@@ -183,7 +183,7 @@ TEST(obbNew2)
     ferCDOBBDel(obb);
 }
 
-TEST(obbNew3)
+TEST(cdOBBNew3)
 {
     fer_list_t obbs, *item;
     fer_cd_obb_t *obb;
@@ -243,7 +243,7 @@ TEST(obbNew3)
 }
 
 
-TEST(obbCollide)
+TEST(cdOBBCollide)
 {
     fer_vec3_t c1, c2, a11, a12, a13, a21, a22, a23, e1, e2;
     fer_vec3_t tr1, tr2;
