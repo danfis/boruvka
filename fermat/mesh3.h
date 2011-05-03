@@ -519,7 +519,7 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
 
     FER_LIST_FOR_EACH(&v->edges, item){
         mitem = ferListMFromList(item);
-        edge = FER_LIST_ENTRY(item, fer_mesh3_edge_t, vlist[mitem->mark]);
+        edge = FER_LIST_M_ENTRY(item, fer_mesh3_edge_t, vlist, mitem->mark);
         if (edge == e)
             return 1;
     }
@@ -588,7 +588,7 @@ _fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
     fer_mesh3_edge_t *e;
 
     m = ferListMFromList(l);
-    e = FER_LIST_ENTRY(l, fer_mesh3_edge_t, vlist[m->mark]);
+    e = FER_LIST_M_ENTRY(l, fer_mesh3_edge_t, vlist, m->mark);
 
     return e;
 }

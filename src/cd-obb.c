@@ -332,7 +332,7 @@ _fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
     p = FER_ALLOC(fer_cd_obb_pair_t);
     p->obb1 = (fer_cd_obb_t *)o1;
     p->obb2 = (fer_cd_obb_t *)o2;
-    ferListAppend(list, &p->list);
+    ferListPrepend(list, &p->list);
 }
 
 
@@ -458,7 +458,7 @@ void ferCDOBBMerge(fer_list_t *obbs, int flags)
     fit = flags & 0x1;
     num_rot = (flags >> 8) & 0xFF;
     if (num_rot == 0)
-        num_rot = 20;
+        num_rot = 5;
 
     while ((obb = mergeChooseNearest(obbs)) != NULL){
         if (fit == FER_CD_FIT_COVARIANCE){
@@ -900,6 +900,10 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, int num_rot)
     }else{
         min[0] = min[1] = min[2] = max[0] = max[1] = max[2] = FER_ZERO;
         __mergeFitCalipersBestAxis(obb, chull, min, max, num_rot);
+
+        if (!obb_in_chull){
+            findOBBMinMax(obb, min, max);
+        }
     }
 
     // set center

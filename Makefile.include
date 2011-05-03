@@ -94,6 +94,7 @@ endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE
   CFLAGS += -msse3
+  CXXFLAGS += -msse3
 endif
 
 
@@ -125,6 +126,13 @@ RAPID_LDFLAGS  ?= -lRAPID
 ifeq '$(USE_RAPID)' 'yes'
   CONFIG_FLAGS += -DUSE_RAPID
 endif
+
+
+
+# for testing
+USE_OZCOLLIDE ?= no
+OZCOLLIDE_CFLAGS ?=
+OZCOLLIDE_LDFLAGS ?= -lozcollide
 
 
 ifneq '$(CC_NOT_GCC)' 'yes'

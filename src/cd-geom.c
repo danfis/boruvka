@@ -16,6 +16,7 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
 {

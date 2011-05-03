@@ -6,6 +6,7 @@ endif
 -include ../Makefile.include
 
 CFLAGS += -I./ -I../ -Icu/
+CXXFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -Lcu/ -lcu -lrt -lm -L../ -lfermat
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
@@ -16,6 +17,16 @@ TARGETS = test bench-heap test-rand-mt test-nn
 ifeq '$(USE_OPENCL)' 'yes'
   TARGETS += test-surf-match
 endif
+
+USE_OZCOLLIDE = yes
+OZCOLLIDE_CFLAGS = -I/home/danfis/tmp/ozcollide
+OZCOLLIDE_LDFLAGS = -L/home/danfis/tmp/ozcollide/ozcollide -lozcollide
+
+TARGETS += test-cd-spheres
+ifeq '$(USE_OZCOLLIDE)' 'yes'
+  TARGETS += test-cd-spheres-ozcollide
+endif
+
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o \
@@ -43,6 +54,12 @@ test-nn: test-nn.c
 
 test-surf-match: test-surf-match.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
+
+test-cd-spheres: test-cd-spheres.c data-protein-big.o data-protein-small.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+test-cd-spheres-ozcollide: test-cd-spheres-ozcollide.cpp data-protein-big.o data-protein-small.o
+	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $^ $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c

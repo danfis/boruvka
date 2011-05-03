@@ -112,6 +112,9 @@ typedef struct _fer_list_m_t fer_list_m_t;
 #define FER_LIST_ENTRY(ptr, type, member) \
     fer_container_of(ptr, type, member)
 
+#define FER_LIST_M_ENTRY(ptr, type, member, offset) \
+    (type *)((char *)fer_container_of(ptr, type, member) - (sizeof(fer_list_m_t) * offset))
+
 /**
  * Iterates over list.
  */

@@ -79,18 +79,6 @@ void ferTimerStopAndPrintElapsed(fer_timer_t *t, FILE *out,
 _fer_inline void ferTimerPrintElapsed2(const fer_timer_t *t, FILE *out,
                                        const char *format, va_list ap);
 
-
-/**
- * Macro version of ferTimerPrintElapsed().
- */
-#define FER_TIMER_PRINT_ELAPSED(timer, fout, format, ...) \
-    fprintf(out, "[%02ld:%02ld.%03ld]", \
-            ferTimerElapsedM(timer), \
-            ferTimerElapsedS(timer), \
-            ferTimerElapsedMs(timer)); \
-    \
-    fprintf(fout, format, ## __VA_ARGS__)
-
 /**
  * Returns nanosecond part of elapsed time.
  */

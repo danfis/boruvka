@@ -23,7 +23,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /**
  * OBB - Oriented Bounding Box
  * ============================

@@ -39,7 +39,7 @@
  * The higher value is, the more accurate (and slower) method is used.
  * Reasonable values are 10, 20, ..., 50. This flag is active only if
  * FER_CD_FIT_CALIPERS flag is set.
- * Default value is 20.
+ * Default value is 5.
  */
 #define FER_CD_FIT_CALIPERS_NUM_ROT(rot) ((rot & 0xFF) << 8)
 

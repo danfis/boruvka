@@ -54,7 +54,7 @@ void ferCDDel(fer_cd_t *cd);
  *
  * Default is FER_CD_COVARIANCE.
  */
-void ferCDSetBuildFlags(fer_cd_t *cd, int flags);
+_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, int flags);
 
 /**
  * Sets collider between shape1 and shape2 (in this order).
@@ -69,6 +69,12 @@ int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                         const fer_cd_shape_t *s2,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**** INLINES ****/
+_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, int flags)
+{
+    cd->build_flags = flags;
+}
 
 #ifdef __cplusplus
 }
