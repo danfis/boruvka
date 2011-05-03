@@ -16,6 +16,7 @@
 #include "pairheap.h"
 #include "dij.h"
 #include "cd.h"
+#include "cd-sphere-grid.h"
 #include "chull3.h"
 
 TEST_SUITES {
@@ -40,6 +41,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSDij),
 
     TEST_SUITE_ADD(TSCD),
+    TEST_SUITE_ADD(TSCDSphereGrid),
 
     TEST_SUITE_ADD(TSCHull3),
 
