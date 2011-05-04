@@ -19,7 +19,7 @@
 
 #include <fermat/mesh3.h>
 #include <fermat/list.h>
-#include <fermat/predicates.h>
+/* #include <fermat/predicates.h> */
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +33,7 @@ struct _fer_chull3_t {
     fer_mesh3_t *mesh; /*!< Mesh representing convex hull */
     int coplanar;
 
-    fer_pred_t pred;
+    /* fer_pred_t pred; */
 };
 typedef struct _fer_chull3_t fer_chull3_t;
 

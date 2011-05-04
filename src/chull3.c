@@ -114,7 +114,7 @@ fer_chull3_t *ferCHull3New(void)
     h->mesh = ferMesh3New();
     h->coplanar = 1;
 
-    ferPredInit(&h->pred);
+    //ferPredInit(&h->pred);
 
     return h;
 }
@@ -183,7 +183,8 @@ _fer_inline fer_real_t orient3d(const fer_chull3_t *h,
                                 const fer_vec3_t *v,
                                 const fer_chull3_face_t *f)
 {
-    return ferPredOrient3d(&h->pred, &f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
+    return ferVec3Volume6(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
+    //return ferPredOrient3d(&h->pred, &f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
 }
 
 _fer_inline fer_real_t orient3d2(const fer_chull3_t *h,
@@ -191,7 +192,8 @@ _fer_inline fer_real_t orient3d2(const fer_chull3_t *h,
                                  const fer_vec3_t *f1, const fer_vec3_t *f2,
                                  const fer_vec3_t *f3)
 {
-    return ferPredOrient3d(&h->pred, f1, f2, f3, v);
+    return ferVec3Volume6(f1, f2, f3, v);
+    //return ferPredOrient3d(&h->pred, f1, f2, f3, v);
 }
 
 _fer_inline int isCoplanar(const fer_chull3_t *h,
