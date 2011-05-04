@@ -18,14 +18,20 @@ ifeq '$(USE_OPENCL)' 'yes'
   TARGETS += test-surf-match
 endif
 
+TARGETS += test-cd-spheres
+
+
 USE_OZCOLLIDE = yes
 OZCOLLIDE_CFLAGS = -I/home/danfis/tmp/ozcollide
 OZCOLLIDE_LDFLAGS = -L/home/danfis/tmp/ozcollide/ozcollide -lozcollide
 
-TARGETS += test-cd-spheres
 ifeq '$(USE_OZCOLLIDE)' 'yes'
-  TARGETS += test-cd-spheres-ozcollide
+  OZCOLLIDE_CFLAGS += -DHAVE_OZCOLLIDE
+else
+  OZCOLLIDE_CFLAGS  :=
+  OZCOLLIDE_LDFLAGS :=
 endif
+
 
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
@@ -55,10 +61,7 @@ test-nn: test-nn.c
 test-surf-match: test-surf-match.c
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
 
-test-cd-spheres: test-cd-spheres.c data-protein-big.o data-protein-small.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-test-cd-spheres-ozcollide: test-cd-spheres-ozcollide.cpp data-protein-big.o data-protein-small.o
+test-cd-spheres: test-cd-spheres.cpp data-protein-big.o data-protein-small.o
 	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $^ $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
 
 bench-heap: $(BENCH_HEAP)
