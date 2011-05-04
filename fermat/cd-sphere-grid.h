@@ -24,6 +24,37 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * CD-Sphere-Grid
+ * ===============
+ *
+ * See fer_cd_sphere_grid_t.
+ *
+ * Example:
+ * ~~~~~
+ * fer_vec3_t center;
+ * fer_cd_sphere_grid_t *g;
+ *
+ * // Create empty sphere grid
+ * g = ferCDSphereGridNew();
+ *
+ * // Add new sphere with center at (0, 1, 2) and radius 0.1
+ * ferVec3Set(&center, 0, 1, 2);
+ * ferCDSphereGridAdd(g, 0.1, &center);
+ *
+ * // Add another sphere
+ * ferVec3Set(&center, 0, 1, 0);
+ * ferCDSphereGridAdd(g, 0.3, &center);
+ *
+ * // Build grid - cell size will be determined automatically
+ * ferCDSphereGridBuild(g, -1.);
+ *
+ * // Test sphere with center at (0.5, 0.5, 0.5) and radius 0.3 on
+ * // collision.
+ * ferVec3Set(&c, 0.5, 0.5, 0.5);
+ * ret = ferCDSphereGridCollide(g, 0.3, &c);
+ */
+
 struct _fer_cd_sphere_grid_cell_t {
     fer_list_t spheres;
 };
