@@ -1,4 +1,4 @@
-#include "bunny.h"
+#include <fermat/vec3.h>
 
 static fer_vec3_t _bunny_coords[] = {
     FER_VEC3_STATIC(-0.334392f, 0.133007f, 0.062259f),

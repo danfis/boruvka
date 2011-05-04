@@ -16,6 +16,7 @@
 
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
 
 static fer_cd_shape_class_t shape_tri = {
     .type          = FER_CD_SHAPE_TRIMESH_TRI,
@@ -79,6 +80,15 @@ int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
     ferVec3Add(&q2, tr2);
     ferMat3MulVec(&r2, rot2, tri2->p2);
     ferVec3Add(&r2, tr2);
+
+    printf("----\nPoints:\n");
+    ferVec3Print(&p1, stdout); printf("\n");
+    ferVec3Print(&q1, stdout); printf("\n");
+    ferVec3Print(&r1, stdout); printf("\n");
+    ferVec3Print(&p2, stdout); printf("\n");
+    ferVec3Print(&q2, stdout); printf("\n");
+    ferVec3Print(&r2, stdout); printf("\n");
+    printf("Faces:\n0 1 2\n3 4 5\n--\n");
 
     return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
 }
@@ -282,7 +292,7 @@ int ferCDTriMeshTriUpdateCHull(const fer_cd_trimesh_tri_t *tri, fer_chull3_t *ch
     ferVec3Add(&v, tr);
     ferCHull3Add(chull, &v);
 
-    ferMat3MulVec(&v, rot, tri->p0);
+    ferMat3MulVec(&v, rot, tri->p1);
     ferVec3Add(&v, tr);
     ferCHull3Add(chull, &v);
 
@@ -326,6 +336,11 @@ void ferCDTriMeshTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
     if (!tr)
         tr = fer_vec3_origin;
 
+    /*
+    DBG_VEC3(tri->p0, "tri->p0: ");
+    DBG_VEC3(tri->p1, "tri->p1: ");
+    DBG_VEC3(tri->p2, "tri->p2: ");
+    */
     ferMat3MulVec(&p, rot, tri->p0);
     ferVec3Add(&p, tr);
     m = ferVec3Dot(&p, axis);

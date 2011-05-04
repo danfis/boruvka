@@ -13,5 +13,5 @@ test-rand-mt
 test-nn
 test-surf-match
 test-cd-spheres
-test-cd-spheres-ozcollide
+test-cd-trimesh
 

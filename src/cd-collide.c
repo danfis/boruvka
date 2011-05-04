@@ -51,6 +51,17 @@ int ferCDCollideTriMeshTriTriMeshTri(struct _fer_cd_t *cd,
     ferMat3MulVec(&r2, rot2, tri2->p2);
     ferVec3Add(&r2, tr2);
 
+    /*
+    printf("----\nPoints:\n");
+    ferVec3Print(&p1, stdout); printf("\n");
+    ferVec3Print(&q1, stdout); printf("\n");
+    ferVec3Print(&r1, stdout); printf("\n");
+    ferVec3Print(&p2, stdout); printf("\n");
+    ferVec3Print(&q2, stdout); printf("\n");
+    ferVec3Print(&r2, stdout); printf("\n");
+    printf("Faces:\n0 1 2\n3 4 5\n--\n");
+    */
+
     return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
 }
 

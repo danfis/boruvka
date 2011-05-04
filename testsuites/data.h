@@ -34,4 +34,13 @@ extern fer_vec3_t protein_small_center[];
 extern fer_real_t protein_small_radius[];
 extern size_t protein_small_len;
 
+
+extern fer_vec3_t *bunny_coords;
+extern size_t bunny_coords_len;
+extern unsigned int *bunny_ids;
+extern size_t bunny_ids_len;
+extern size_t bunny_tri_len;
+
+void testBunnyDumpSVT(FILE *out, const char *name);
+
 #endif

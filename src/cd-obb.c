@@ -789,6 +789,7 @@ static void mergeFitCovariance(fer_cd_obb_t *obb)
     // find out min and max
     if (obb_in_chull){
         findCHullMinMax(chull, obb->axis, min, max);
+        //findOBBMinMax(obb, min, max);
     }else{
         findOBBMinMax(obb, min, max);
     }
@@ -1043,8 +1044,10 @@ static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
     FER_LIST_FOR_EACH(list, item){
         v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
 
+        //DBG_VEC3(v->v, "v->v: ");
         for (i = 0; i < 3; i++){
             m = ferVec3Dot(v->v, axis + i);
+            //DBG("    m: %f", m);
             if (m < min[i])
                 min[i] = m;
             if (m > max[i])

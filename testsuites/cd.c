@@ -2,7 +2,6 @@
 #include <fermat/cd.h>
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
-#include "bunny.h"
 #include "data.h"
 
 static void prv(const char *prefix, const fer_vec3_t *v)

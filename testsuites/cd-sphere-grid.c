@@ -3,7 +3,6 @@
 #include <fermat/dbg.h>
 #include <fermat/timer.h>
 #include <fermat/rand-mt.h>
-#include "bunny.h"
 #include "data.h"
 
 TEST(cdspheregridSimple)

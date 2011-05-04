@@ -56,6 +56,10 @@ ifeq '$(DEBUG)' 'yes'
   CFLAGS = -g -Wno-unused-function
   CXXFLAGS = -g -Wno-unused-function
   CONFIG_FLAGS += -DDEBUG
+else
+  # force to use optimizations
+  CFLAGS += -O3
+  CXXFLAGS += -O3
 endif
 ifeq '$(PROFIL)' 'yes'
   CFLAGS += -pg
@@ -125,6 +129,10 @@ RAPID_CFLAGS   ?=
 RAPID_LDFLAGS  ?= -lRAPID
 ifeq '$(USE_RAPID)' 'yes'
   CONFIG_FLAGS += -DUSE_RAPID
+  RAPID_CFLAGS += -DHAVE_RAPID
+else
+  RAPID_CFLAGS  :=
+  RAPID_LDFLAGS :=
 endif
 
 
