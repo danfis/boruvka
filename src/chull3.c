@@ -19,7 +19,6 @@
 #include <fermat/dbg.h>
 #include <fermat/predicates.h>
 
-
 struct _fer_chull3_vert_t {
     fer_vec3_t v;
     fer_mesh3_vertex_t m;
@@ -38,7 +37,6 @@ typedef struct _fer_chull3_edge_t fer_chull3_edge_t;
 
 struct _fer_chull3_face_t {
     fer_mesh3_face_t m;
-    int visible;
     fer_chull3_vert_t *v[3];
     fer_list_t list;
 };
@@ -563,10 +561,8 @@ static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
 
 static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
 {
-    fer_chull3_vert_t *vert;
-
     if (ferMesh3VerticesLen(h->mesh) < 2){
-        vert = vertNew(h, v);
+        vertNew(h, v);
     }else if (ferMesh3VerticesLen(h->mesh) < 3){
         addCoplanar3(h, v);
     }else{
@@ -741,23 +737,38 @@ static void correctBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
 static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
                             fer_list_t *edges)
 {
-    fer_list_t *list, *item, *itemtmp, wrong_vertices;
+    fer_list_t *list, *item, *itemtmp, wrong_vertices, faces;
     fer_mesh3_face_t *mf;
     fer_chull3_face_t *f;
     fer_chull3_vert_t *v;
 
     ferListInit(&wrong_vertices);
+    ferListInit(&faces);
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH_SAFE(list, item, itemtmp){
         mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
         f  = fer_container_of(mf, fer_chull3_face_t, m);
 
-        f->visible = 0;
-
         if (isVisible(h, point, f)){
-            updateBorderEdges(h, f, edges, &wrong_vertices);
+            ferListAppend(&faces, &f->list);
+        }else{
+            // skip this point if it is duplicate with any vertex
+            if (ferVec3Eq(point, &f->v[0]->v)
+                    || ferVec3Eq(point, &f->v[1]->v)
+                    || ferVec3Eq(point, &f->v[2]->v)){
+                ferListInit(&faces);
+                break;
+            }
         }
+    }
+
+    while (!ferListEmpty(&faces)){
+        item = ferListNext(&faces);
+        ferListDel(item);
+        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
+
+        updateBorderEdges(h, f, edges, &wrong_vertices);
     }
 
     while (!ferListEmpty(&wrong_vertices)){

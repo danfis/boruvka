@@ -8,6 +8,7 @@ TEST(testCHull4);
 TEST(testCHull5);
 TEST(testCHull6);
 TEST(testCHull7);
+TEST(testCHull8);
 TEST(testCHullBunny);
 
 TEST_SUITE(TSCHull3){
@@ -18,6 +19,7 @@ TEST_SUITE(TSCHull3){
     TEST_ADD(testCHull5),
     TEST_ADD(testCHull6),
     TEST_ADD(testCHull7),
+    TEST_ADD(testCHull8),
     TEST_ADD(testCHullBunny),
 
     TEST_SUITE_CLOSURE
