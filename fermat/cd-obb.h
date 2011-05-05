@@ -34,6 +34,8 @@ struct _fer_cd_obb_t {
     fer_vec3_t axis[3];      /*!< Axis - local coordinate system */
     fer_vec3_t half_extents; /*!< Half extents along box's axis */
 
+    fer_real_t sphere_radius;
+
     fer_cd_shape_t *shape; /*!< Reference to primitive that is holded by bounding box */
     fer_list_t obbs;       /*!< List of children obbs */
     fer_list_t list;       /*!< Reference to parent's list of obbs */

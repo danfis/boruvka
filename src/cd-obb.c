@@ -76,6 +76,8 @@ fer_cd_obb_t *ferCDOBBNew(void)
 
     obb->nearest = NULL;
 
+    obb->sphere_radius = -1;
+
     return obb;
 }
 
@@ -103,6 +105,8 @@ fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
     ferListInit(&obb->list);
 
     obb->nearest = NULL;
+
+    obb->sphere_radius = ferVec3Len(&obb->half_extents);
 
     return obb;
 }
@@ -132,6 +136,8 @@ fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags)
     obb->shape = (fer_cd_shape_t *)trimesh;
 
     obb->nearest = NULL;
+
+    obb->sphere_radius = ferVec3Len(&obb->half_extents);
 
     return obb;
 }
@@ -367,22 +373,33 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
     fer_vec3_t tr, trtmp;;
     fer_mat3_t A1t, rot;
 
-    // compute rotation in obb1's frame
-    ferMat3MulColVecs2(&A1t, rot1,
-                       &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
-    ferMat3MulColVecs2(&rot, rot2,
-                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
-    ferMat3MulLeftTrans(&rot, &A1t);
-
     // compute translation in obb1's frame
     ferMat3MulVec(&trtmp, rot2, &obb2->center);
     ferMat3MulVec(&tr, rot1, &obb1->center);
     ferVec3Add(&trtmp, tr2);
     ferVec3Sub(&trtmp, &tr);
     ferVec3Sub(&trtmp, tr1);
+
+    if (obb1->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb1)->sphere_radius = ferVec3Len(&obb1->half_extents);
+    if (obb2->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb2)->sphere_radius = ferVec3Len(&obb2->half_extents);
+
+    // perform bounding sphere test - for early quit
+    if (ferVec3Len2(&trtmp) > FER_CUBE(obb1->sphere_radius + obb2->sphere_radius))
+        return 100;
+
+    // compute rotation in obb1's frame
+    ferMat3MulColVecs2(&A1t, rot1,
+                       &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
     ferVec3Set(&tr, ferMat3DotCol(&A1t, 0, &trtmp),
                     ferMat3DotCol(&A1t, 1, &trtmp),
                     ferMat3DotCol(&A1t, 2, &trtmp));
+    ferMat3MulColVecs2(&rot, rot2,
+                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+
+    // finish translation computation
+    ferMat3MulLeftTrans(&rot, &A1t);
 
     return __ferCDOBBDisjoint(obb1, obb2, &rot, &tr);
 }
