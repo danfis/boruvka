@@ -25,7 +25,8 @@ fer_cd_t *ferCDNew(void)
     size_t i, j;
 
     cd = FER_ALLOC(fer_cd_t);
-    cd->build_flags = FER_CD_FIT_COVARIANCE;
+    cd->build_flags = FER_CD_TOP_DOWN
+                        | FER_CD_FIT_COVARIANCE;
 
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = 0; j < FER_CD_SHAPE_LEN; j++){

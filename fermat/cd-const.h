@@ -23,16 +23,26 @@
  */
 
 /**
+ * TODO
+ */
+#define FER_CD_TOP_DOWN 0
+
+/**
+ * TODO
+ */
+#define FER_CD_BOTTOM_UP 1
+
+/**
  * Use covariance matrix for fitting OBB to its content.
  * This is default.
  */
-#define FER_CD_FIT_COVARIANCE 0
+#define FER_CD_FIT_COVARIANCE (0 << 1)
 
 /**
  * Use "rotation calipers" for fitting OBB. This method is slower and more
  * accurate than FER_CD_FIT_COVARIANCE.
  */
-#define FER_CD_FIT_CALIPERS 1
+#define FER_CD_FIT_CALIPERS (1 << 1)
 
 /**
  * It specifies number of rotation that will be tried for fitting OBB.

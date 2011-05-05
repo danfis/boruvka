@@ -37,6 +37,14 @@ typedef void (*fer_cd_shape_support_fn)(const struct _fer_cd_shape_t *shape,
                                         fer_vec3_t *p);
 
 /**
+ * Returns center of shape.
+ */
+typedef void (*fer_cd_shape_center_fn)(const struct _fer_cd_shape_t *shape,
+                                       const fer_mat3_t *rot,
+                                       const fer_vec3_t *tr,
+                                       fer_vec3_t *center);
+
+/**
  * Updates min/max values along given axis
  */
 typedef void (*fer_cd_shape_update_minmax_fn)(const struct _fer_cd_shape_t *shape,
@@ -81,6 +89,7 @@ struct _fer_cd_shape_class_t {
     int type;
     fer_cd_shape_del_fn del;
     fer_cd_shape_support_fn support;
+    fer_cd_shape_center_fn center;
     fer_cd_shape_fit_obb_fn fit_obb;
     fer_cd_shape_update_chull_fn update_chull;
     fer_cd_shape_update_minmax_fn update_minmax;
@@ -122,6 +131,10 @@ void ferCDShapeOffDel(fer_cd_shape_off_t *s);
 
 void ferCDShapeOffSupport(const fer_cd_shape_off_t *s, const fer_vec3_t *dir,
                           fer_vec3_t *p);
+
+void ferCDShapeOffCenter(const fer_cd_shape_off_t *s,
+                         const fer_mat3_t *rot, const fer_vec3_t *tr,
+                         fer_vec3_t *center);
 
 void ferCDShapeOffFitOBB(const fer_cd_shape_off_t *s,
                          fer_vec3_t *center,

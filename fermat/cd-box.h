@@ -46,6 +46,10 @@ void ferCDBoxDel(fer_cd_box_t *s);
 void ferCDBoxSupport(const fer_cd_box_t *b, const fer_vec3_t *dir,
                      fer_vec3_t *p);
 
+void ferCDBoxCenter(const fer_cd_box_t *s,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    fer_vec3_t *center);
+
 void ferCDBoxFitOBB(const fer_cd_box_t *s,
                     fer_vec3_t *center,
                     fer_vec3_t *axis0,

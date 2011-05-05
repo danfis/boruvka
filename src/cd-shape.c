@@ -27,6 +27,7 @@ static fer_cd_shape_class_t shape_off = {
     .type          = FER_CD_SHAPE_OFF,
     .del           = (fer_cd_shape_del_fn)ferCDShapeOffDel,
     .support       = (fer_cd_shape_support_fn)ferCDShapeOffSupport,
+    .center        = (fer_cd_shape_center_fn)ferCDShapeOffCenter,
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDShapeOffFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDShapeOffUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDShapeOffUpdateMinMax,
@@ -69,6 +70,23 @@ void ferCDShapeOffSupport(const fer_cd_shape_off_t *s, const fer_vec3_t *_dir,
     s->shape->cl->support(s->shape, &dir, p);
     ferMat3MulVec(&q, s->rot, p);
     ferVec3Add2(p, &q, s->tr);
+}
+
+void ferCDShapeOffCenter(const fer_cd_shape_off_t *s,
+                         const fer_mat3_t *_rot, const fer_vec3_t *_tr,
+                         fer_vec3_t *center)
+{
+    fer_mat3_t *rot, rot2;
+    fer_vec3_t *tr, tr2;
+
+    if (!s->shape->cl->center){
+        ferVec3Set(center, FER_ZERO, FER_ZERO, FER_ZERO);
+        return;
+    }
+
+    setRotTr(s, _rot, _tr, &rot2, &tr2, &rot, &tr);
+
+    s->shape->cl->center(s->shape, rot, tr, center);
 }
 
 void ferCDShapeOffFitOBB(const fer_cd_shape_off_t *s,

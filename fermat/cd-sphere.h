@@ -48,6 +48,10 @@ void ferCDSphereDel(fer_cd_sphere_t *s);
 void ferCDSphereSupport(const fer_cd_sphere_t *s, const fer_vec3_t *dir,
                         fer_vec3_t *p);
 
+void ferCDSphereCenter(const fer_cd_sphere_t *s,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *center);
+
 void ferCDSphereFitOBB(const fer_cd_sphere_t *s,
                        fer_vec3_t *center,
                        fer_vec3_t *axis0,

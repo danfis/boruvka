@@ -22,6 +22,7 @@ static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_CYL,
     .del           = (fer_cd_shape_del_fn)ferCDCylDel,
     .support       = (fer_cd_shape_support_fn)ferCDCylSupport,
+    .center        = (fer_cd_shape_center_fn)ferCDCylCenter,
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDCylFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDCylUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDCylUpdateMinMax,
@@ -63,6 +64,15 @@ void ferCDCylSupport(const fer_cd_cyl_t *c, const fer_vec3_t *dir,
                       d * ferVec3Y(dir),
                       ferSign(ferVec3Z(dir)) * c->half_height);
     }
+}
+
+void ferCDCylCenter(const fer_cd_cyl_t *s,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    fer_vec3_t *center)
+{
+    if (!tr)
+        tr = fer_vec3_origin;
+    ferVec3Copy(center, tr);
 }
 
 void ferCDCylFitOBB(const fer_cd_cyl_t *c,

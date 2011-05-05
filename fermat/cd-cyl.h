@@ -43,6 +43,10 @@ void ferCDCylDel(fer_cd_cyl_t *c);
 void ferCDCylSupport(const fer_cd_cyl_t *c, const fer_vec3_t *dir,
                      fer_vec3_t *p);
 
+void ferCDCylCenter(const fer_cd_cyl_t *s,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    fer_vec3_t *center);
+
 void ferCDCylFitOBB(const fer_cd_cyl_t *c,
                     fer_vec3_t *center,
                     fer_vec3_t *axis0,
