@@ -152,43 +152,21 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
 }
 
 
-int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
-                     const fer_mat3_t *_rot1, const fer_vec3_t *tr1,
-                     const fer_cd_obb_t *obb2,
-                     const fer_mat3_t *_rot2, const fer_vec3_t *tr2)
+_fer_inline int __ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
+                                   const fer_cd_obb_t *obb2,
+                                   const fer_mat3_t *rot,
+                                   const fer_vec3_t *tr)
 {
-    // See 4.4 of "Orange" book
-
-    fer_vec3_t tr, trtmp;;
-    fer_mat3_t A1t, rot;
     fer_mat3_t abs_rot;
     fer_real_t tl, ra, rb;
     int i;
 
-    // compute rotation in obb1's frame
-    ferMat3MulColVecs2(&A1t, _rot1,
-                       &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
-    ferMat3MulColVecs2(&rot, _rot2,
-                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
-    ferMat3MulLeftTrans(&rot, &A1t);
-
-    // compute translation in obb1's frame
-    ferMat3MulVec(&trtmp, _rot2, &obb2->center);
-    ferMat3MulVec(&tr, _rot1, &obb1->center);
-    ferVec3Add(&trtmp, tr2);
-    ferVec3Sub(&trtmp, &tr);
-    ferVec3Sub(&trtmp, tr1);
-    ferVec3Set(&tr, ferMat3DotCol(&A1t, 0, &trtmp),
-                    ferMat3DotCol(&A1t, 1, &trtmp),
-                    ferMat3DotCol(&A1t, 2, &trtmp));
-
-
     // precompute absolute values of rot
-    ferMat3Abs2(&abs_rot, &rot);
+    ferMat3Abs2(&abs_rot, rot);
 
     // L = obb1->axis[0, 1, 2]
     for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferVec3Get(&tr, i));
+        tl = FER_FABS(ferVec3Get(tr, i));
         ra = ferVec3Get(&obb1->half_extents, i);
         rb = ferMat3DotRow(&abs_rot, i, &obb2->half_extents);
         //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
@@ -199,7 +177,7 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 
     // L = obb2->axis[0, 1, 2]
     for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferMat3DotCol(&rot, i, &tr));
+        tl = FER_FABS(ferMat3DotCol(rot, i, tr));
         ra = ferMat3DotCol(&abs_rot, i, &obb1->half_extents);
         rb = ferVec3Get(&obb2->half_extents, i);
         //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
@@ -209,8 +187,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
     }
 
     // L = obb1->axis[0] x obb2->axis[0]
-    tl  = ferVec3Get(&tr, 2) * ferMat3Get(&rot, 1, 0);
-    tl -= ferVec3Get(&tr, 1) * ferMat3Get(&rot, 2, 0);
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 0);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 0);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 0);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 0);
@@ -221,8 +199,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 7;
 
     // L = obb1->axis[0] x obb2->axis[1]
-    tl  = ferVec3Get(&tr, 2) * ferMat3Get(&rot, 1, 1);
-    tl -= ferVec3Get(&tr, 1) * ferMat3Get(&rot, 2, 1);
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 1);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 1);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 1);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 1);
@@ -233,8 +211,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 8;
 
     // L = obb1->axis[0] x obb2->axis[2]
-    tl  = ferVec3Get(&tr, 2) * ferMat3Get(&rot, 1, 2);
-    tl -= ferVec3Get(&tr, 1) * ferMat3Get(&rot, 2, 2);
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 2);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 2);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 2);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 2);
@@ -246,8 +224,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 
 
     // L = obb1->axis[1] x obb2->axis[0]
-    tl  = ferVec3Get(&tr, 0) * ferMat3Get(&rot, 2, 0);
-    tl -= ferVec3Get(&tr, 2) * ferMat3Get(&rot, 0, 0);
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 0);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 0);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 0);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 0);
@@ -258,8 +236,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 10;
 
     // L = obb1->axis[1] x obb2->axis[1]
-    tl  = ferVec3Get(&tr, 0) * ferMat3Get(&rot, 2, 1);
-    tl -= ferVec3Get(&tr, 2) * ferMat3Get(&rot, 0, 1);
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 1);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 1);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 1);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 1);
@@ -270,8 +248,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 11;
 
     // L = obb1->axis[1] x obb2->axis[2]
-    tl  = ferVec3Get(&tr, 0) * ferMat3Get(&rot, 2, 2);
-    tl -= ferVec3Get(&tr, 2) * ferMat3Get(&rot, 0, 2);
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 2);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 2);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 2);
     ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 2);
@@ -283,8 +261,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 
 
     // L = obb1->axis[2] x obb2->axis[0]
-    tl  = ferVec3Get(&tr, 1) * ferMat3Get(&rot, 0, 0);
-    tl -= ferVec3Get(&tr, 0) * ferMat3Get(&rot, 1, 0);
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 0);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 0);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 0);
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 0);
@@ -295,8 +273,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 13;
 
     // L = obb1->axis[2] x obb2->axis[1]
-    tl  = ferVec3Get(&tr, 1) * ferMat3Get(&rot, 0, 1);
-    tl -= ferVec3Get(&tr, 0) * ferMat3Get(&rot, 1, 1);
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 1);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 1);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 1);
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 1);
@@ -307,8 +285,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         return 14;
 
     // L = obb1->axis[2] x obb2->axis[2]
-    tl  = ferVec3Get(&tr, 1) * ferMat3Get(&rot, 0, 2);
-    tl -= ferVec3Get(&tr, 0) * ferMat3Get(&rot, 1, 2);
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 2);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 2);
     tl  = FER_FABS(tl);
     ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 2);
     ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 2);
@@ -320,6 +298,86 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 
     //DBG2("0");
     return 0;
+}
+
+int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1, const fer_cd_obb_t *obb2,
+                        const fer_mat3_t *R, const fer_vec3_t *T)
+{
+    fer_mat3_t rot, A1t, A1tR;
+    fer_vec3_t tr, trtmp;
+
+    // rot = A1^t . R . A2
+    //    where A is matrix of columns corresponding to each axis
+    ferMat3SetRows(&A1t, &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
+    ferMat3Mul2(&A1tR, &A1t, R);
+    ferMat3MulColVecs2(&rot, &A1tR,
+                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+
+    // tr = A1^t (R . c2 - c1 + T)
+    ferMat3MulVec(&trtmp, R, &obb2->center);
+    ferVec3Sub(&trtmp, &obb1->center);
+    ferVec3Add(&trtmp, T);
+    ferMat3MulVec(&tr, &A1t, &trtmp);
+    /*
+
+    DBG("rot: %f %f %f",
+            ferMat3Get(&rot, 0, 0),
+            ferMat3Get(&rot, 0, 1),
+            ferMat3Get(&rot, 0, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 1, 0),
+            ferMat3Get(&rot, 1, 1),
+            ferMat3Get(&rot, 1, 2));
+    DBG("     %f %f %f",
+            ferMat3Get(&rot, 2, 0),
+            ferMat3Get(&rot, 2, 1),
+            ferMat3Get(&rot, 2, 2));
+    DBG_VEC3(&tr, "tr: ");
+    */
+
+    return __ferCDOBBDisjoint(obb1, obb2, &rot, &tr);
+}
+
+int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
+                     const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                     const fer_cd_obb_t *obb2,
+                     const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+#if 0
+    fer_mat3_t rot, Rt;
+    fer_vec3_t tr, trtmp;
+
+    ferMat3Trans2(&Rt, rot1);
+    ferMat3Mul2(&rot, &Rt, rot2);
+    ferVec3Sub2(&trtmp, tr2, tr1);
+    ferMat3MulVec(&tr, &Rt, &trtmp);
+
+    return ferCDOBBDisjointRel(obb1, obb2, &rot, &tr);
+#endif
+
+    // See 4.4 of "Orange" book
+
+    fer_vec3_t tr, trtmp;;
+    fer_mat3_t A1t, rot;
+
+    // compute rotation in obb1's frame
+    ferMat3MulColVecs2(&A1t, rot1,
+                       &obb1->axis[0], &obb1->axis[1], &obb1->axis[2]);
+    ferMat3MulColVecs2(&rot, rot2,
+                       &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+    ferMat3MulLeftTrans(&rot, &A1t);
+
+    // compute translation in obb1's frame
+    ferMat3MulVec(&trtmp, rot2, &obb2->center);
+    ferMat3MulVec(&tr, rot1, &obb1->center);
+    ferVec3Add(&trtmp, tr2);
+    ferVec3Sub(&trtmp, &tr);
+    ferVec3Sub(&trtmp, tr1);
+    ferVec3Set(&tr, ferMat3DotCol(&A1t, 0, &trtmp),
+                    ferMat3DotCol(&A1t, 1, &trtmp),
+                    ferMat3DotCol(&A1t, 2, &trtmp));
+
+    return __ferCDOBBDisjoint(obb1, obb2, &rot, &tr);
 }
 
 

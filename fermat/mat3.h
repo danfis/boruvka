@@ -110,6 +110,14 @@ _fer_inline void ferMat3Set(fer_mat3_t *m,
                             fer_real_t f31, fer_real_t f32, fer_real_t f33);
 
 /**
+ * Sets rows of matrix
+ */
+_fer_inline void ferMat3SetRows(fer_mat3_t *m,
+                                const fer_vec3_t *row1,
+                                const fer_vec3_t *row2,
+                                const fer_vec3_t *row3);
+
+/**
  * Set identity matrix.
  * ~~~~
  *     | 1 0 0 |
@@ -283,6 +291,18 @@ _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
                                     const fer_vec3_t *col2,
                                     const fer_vec3_t *col3);
 
+/**
+ * Multiplies {a} from left by matrix defined by three row vectors.
+ * ~~~~~
+ *     |row1|
+ * d = |row2| . a
+ *     |row3|
+ */
+_fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
+                                        const fer_vec3_t *row1,
+                                        const fer_vec3_t *row2,
+                                        const fer_vec3_t *row3);
+
 
 /**
  * Multiplies two matrices by components.
@@ -445,6 +465,16 @@ _fer_inline void ferMat3Set(fer_mat3_t *m,
     m->f[8] = f31;
     m->f[9] = f32;
     m->f[10] = f33;
+}
+
+_fer_inline void ferMat3SetRows(fer_mat3_t *m,
+                                const fer_vec3_t *row1,
+                                const fer_vec3_t *row2,
+                                const fer_vec3_t *row3)
+{
+    ferVec3Copy(&m->v[0], row1);
+    ferVec3Copy(&m->v[1], row2);
+    ferVec3Copy(&m->v[2], row3);
 }
 
 _fer_inline void ferMat3SetIdentity(fer_mat3_t *m)
@@ -706,6 +736,24 @@ _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
     d->f[8]  = ferMat3DotRow(a, 2, col1);
     d->f[9]  = ferMat3DotRow(a, 2, col2);
     d->f[10] = ferMat3DotRow(a, 2, col3);
+}
+
+_fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
+                                        const fer_vec3_t *row1,
+                                        const fer_vec3_t *row2,
+                                        const fer_vec3_t *row3)
+{
+    d->f[0]  = ferMat3DotCol(a, 0, row1);
+    d->f[1]  = ferMat3DotCol(a, 1, row2);
+    d->f[2]  = ferMat3DotCol(a, 2, row3);
+
+    d->f[4]  = ferMat3DotCol(a, 0, row1);
+    d->f[5]  = ferMat3DotCol(a, 1, row2);
+    d->f[6]  = ferMat3DotCol(a, 2, row3);
+
+    d->f[8]  = ferMat3DotCol(a, 0, row1);
+    d->f[9]  = ferMat3DotCol(a, 1, row2);
+    d->f[10] = ferMat3DotCol(a, 2, row3);
 }
 
 _fer_inline void ferMat3MulComp(fer_mat3_t *a, const fer_mat3_t *b)
