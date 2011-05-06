@@ -53,6 +53,14 @@
  */
 #define FER_CD_FIT_CALIPERS_NUM_ROT(rot) ((rot & 0xFF) << 8)
 
+/**
+ * Uses "Polyhedral Mass Properties" method for fittin OBB.
+ * See Eberly, David. "Polyhedral Mass Properties (Revisited)", Technical
+ *     Report Magic Software, January 25, 2003
+ *     http://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
+ */
+#define FER_CD_FIT_POLYHEDRAL_MASS (2 << 1)
+
 
 #endif /* __FER_CD_CONST_H__ */
 

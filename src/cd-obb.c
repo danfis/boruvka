@@ -39,6 +39,11 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot);
 /** Finds out axis to fit OBB along single edge - it is assumed given
  *  convex hull has only */
 static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull);
+/** Use "Polyhedral Mass Properties method" for fitting */
+static void mergeFitPolyhedralMass(fer_cd_obb_t *obb, fer_list_t *obbs);
+
+/** Sets center and half_extents according to axis[] */
+static void mergeFitSetCenterExtents(fer_cd_obb_t *obb, fer_list_t *obbs);
 
 /** Compute convex hull of whole obb subtree.
  *  Returns 1 if convex hull contains all objects from OBBs, i.e., also
@@ -721,178 +726,8 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
 }
 
 
-static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
-{
-    fer_cd_obb_t *newobb;
-    fer_list_t *item1, *item2;
-    fer_cd_obb_t *obb[2];
-    fer_real_t dist, dist_nearest;
-
-    // only one OBB in list (or list is empty)
-    if (ferListNext(obbs) == ferListPrev(obbs))
-        return NULL;
-
-    item1 = ferListNext(obbs);
-    obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
-    if (!obb[0]->nearest){
-        FER_LIST_FOR_EACH(obbs, item1){
-            obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
-
-            if (obb[0]->nearest)
-                continue;
-
-            dist_nearest = FER_REAL_MAX;
-            for (item2 = ferListNext(item1);
-                    item2 != obbs;
-                    item2 = ferListNext(item2)){
-                obb[1] = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
-
-                if (obb[1]->nearest)
-                    continue;
-
-                dist = ferVec3Dist2(&obb[0]->center, &obb[1]->center);
-                if (dist < dist_nearest){
-                    if (obb[0]->nearest)
-                        obb[0]->nearest->nearest = NULL;
-
-                    dist_nearest = dist;
-                    obb[0]->nearest = obb[1];
-                    obb[1]->nearest = obb[0];
-                }
-            }
-        }
-
-        item1 = ferListNext(obbs);
-        obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
-    }
-    obb[1] = obb[0]->nearest;
-
-    ferListDel(&obb[0]->list);
-    ferListDel(&obb[1]->list);
-    obb[0]->nearest = NULL;
-    obb[1]->nearest = NULL;
-
-    newobb = ferCDOBBNew();
-    ferListAppend(&newobb->obbs, &obb[0]->list);
-    ferListAppend(&newobb->obbs, &obb[1]->list);
-    ferListAppend(obbs, &newobb->list);
-    return newobb;
-}
 
 
-
-
-
-
-/*
-static void __updateCHullBox(const fer_vec3_t *v, void *data)
-{
-    fer_chull3_t *hull = (fer_chull3_t *)data;
-    ferCHull3Add(hull, v);
-}
-*/
-
-static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
-{
-    fer_list_t *item;
-    fer_cd_obb_t *o;
-    int ret = 1;
-
-    if (obb->shape){
-        if (obb->shape->cl->update_chull){
-            if (!obb->shape->cl->update_chull(obb->shape, hull, NULL, NULL))
-                ret = 0;
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            if (!updateCHull(o, hull))
-                ret = 0;
-        }
-    }
-
-    return ret;
-}
-
-/*
-static void updateCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
-{
-    fer_list_t *list, *item;
-    fer_mesh3_vertex_t *v;
-
-    list = ferMesh3Vertices(ferCHull3Mesh(hull2));
-    FER_LIST_FOR_EACH(list, item){
-        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-        ferCHull3Add(hull, v->v);
-    }
-
-}
-*/
-
-
-static void _findOBBMinMax(fer_cd_obb_t *frame,
-                           fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max)
-{
-    fer_list_t *item;
-    fer_cd_obb_t *o;
-    size_t i;
-
-    if (obb->shape){
-        if (obb->shape->cl->update_minmax){
-            for (i = 0; i < 3; i++){
-                obb->shape->cl->update_minmax(obb->shape, frame->axis + i,
-                                              NULL, NULL,
-                                              min + i, max + i);
-            }
-        }
-    }else{
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            _findOBBMinMax(frame, o, min, max);
-        }
-    }
-}
-static void findOBBMinMax(fer_cd_obb_t *obb, fer_list_t *obbs,
-                          fer_real_t *min, fer_real_t *max)
-{
-    fer_list_t *item;
-    fer_cd_obb_t *o;
-
-    min[0] = min[1] = min[2] = FER_REAL_MAX;
-    max[0] = max[1] = max[2] = -FER_REAL_MAX;
-
-    FER_LIST_FOR_EACH(obbs, item){
-        o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        _findOBBMinMax(obb, o, min, max);
-    }
-}
-
-static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
-                            fer_real_t *min, fer_real_t *max)
-{
-    fer_list_t *list, *item;
-    fer_mesh3_vertex_t *v;
-    fer_real_t m;
-    int i;
-
-    min[0] = min[1] = min[2] = FER_REAL_MAX;
-    max[0] = max[1] = max[2] = -FER_REAL_MAX;
-
-    list = ferMesh3Vertices(ferCHull3Mesh(hull));
-    FER_LIST_FOR_EACH(list, item){
-        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-
-        //DBG_VEC3(v->v, "v->v: ");
-        for (i = 0; i < 3; i++){
-            m = ferVec3Dot(v->v, axis + i);
-            //DBG("    m: %f", m);
-            if (m < min[i])
-                min[i] = m;
-            if (m > max[i])
-                max[i] = m;
-        }
-    }
-}
 
 
 
@@ -1002,6 +837,64 @@ static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, int flags)
 }
 
 
+static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
+{
+    fer_cd_obb_t *newobb;
+    fer_list_t *item1, *item2;
+    fer_cd_obb_t *obb[2];
+    fer_real_t dist, dist_nearest;
+
+    // only one OBB in list (or list is empty)
+    if (ferListNext(obbs) == ferListPrev(obbs))
+        return NULL;
+
+    item1 = ferListNext(obbs);
+    obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+    if (!obb[0]->nearest){
+        FER_LIST_FOR_EACH(obbs, item1){
+            obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+
+            if (obb[0]->nearest)
+                continue;
+
+            dist_nearest = FER_REAL_MAX;
+            for (item2 = ferListNext(item1);
+                    item2 != obbs;
+                    item2 = ferListNext(item2)){
+                obb[1] = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+
+                if (obb[1]->nearest)
+                    continue;
+
+                dist = ferVec3Dist2(&obb[0]->center, &obb[1]->center);
+                if (dist < dist_nearest){
+                    if (obb[0]->nearest)
+                        obb[0]->nearest->nearest = NULL;
+
+                    dist_nearest = dist;
+                    obb[0]->nearest = obb[1];
+                    obb[1]->nearest = obb[0];
+                }
+            }
+        }
+
+        item1 = ferListNext(obbs);
+        obb[0] = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+    }
+    obb[1] = obb[0]->nearest;
+
+    ferListDel(&obb[0]->list);
+    ferListDel(&obb[1]->list);
+    obb[0]->nearest = NULL;
+    obb[1]->nearest = NULL;
+
+    newobb = ferCDOBBNew();
+    ferListAppend(&newobb->obbs, &obb[0]->list);
+    ferListAppend(&newobb->obbs, &obb[1]->list);
+    ferListAppend(obbs, &newobb->list);
+    return newobb;
+}
+
 static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags)
 {
     fer_cd_obb_t *obb;
@@ -1016,6 +909,7 @@ static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags)
     return obb;
 }
 
+
 static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags)
 {
     int method, num_rot;
@@ -1027,6 +921,8 @@ static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags)
     }else if (method == FER_CD_FIT_CALIPERS){
         num_rot = (flags >> 8) & 0xFF;
         mergeFitCalipers(obb, obbs, num_rot);
+    }else if (method == FER_CD_FIT_POLYHEDRAL_MASS){
+        mergeFitPolyhedralMass(obb, obbs);
     }else{
         fprintf(stderr, "CD Error: Unkown fitting method: %d\n", method);
     }
@@ -1094,9 +990,8 @@ static void mergeFitCovariance(fer_cd_obb_t *obb, fer_list_t *obbs)
     fer_chull3_t *chull;
     fer_list_t *item;
     fer_cd_obb_t *o;
-    fer_vec3_t mean, v;
+    fer_vec3_t mean;
     fer_mat3_t cov, eigen;
-    fer_real_t min[3], max[3];
 
     chull = ferCHull3New();
 
@@ -1125,20 +1020,7 @@ static void mergeFitCovariance(fer_cd_obb_t *obb, fer_list_t *obbs)
         ferVec3Normalize(&obb->axis[2]);
     }
 
-    // find out min and max
-    findOBBMinMax(obb, obbs, min, max);
-
-    // set center
-    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
-    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-
-    // compute extents
-    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
-                                   (max[1] - min[1]) * FER_REAL(0.5),
-                                   (max[2] - min[2]) * FER_REAL(0.5));
+    mergeFitSetCenterExtents(obb, obbs);
 
     ferCHull3Del(chull);
 }
@@ -1220,7 +1102,6 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot)
     fer_list_t *item;
     fer_cd_obb_t *o;
     fer_chull3_t *chull;
-    fer_vec3_t v;
     fer_real_t min[3], max[3];
 
     chull = ferCHull3New();
@@ -1237,20 +1118,7 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot)
         __mergeFitCalipersBestAxis(obb, chull, min, max, num_rot);
     }
 
-    // find min max values
-    findOBBMinMax(obb, obbs, min, max);
-
-    // set center
-    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
-    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
-    ferVec3Add(&obb->center, &v);
-
-    // compute extents
-    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
-                                   (max[1] - min[1]) * FER_REAL(0.5),
-                                   (max[2] - min[2]) * FER_REAL(0.5));
+    mergeFitSetCenterExtents(obb, obbs);
 
     ferCHull3Del(chull);
 }
@@ -1290,4 +1158,279 @@ static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull)
     ferVec3Normalize(&obb->axis[1]);
     ferVec3Cross(&obb->axis[2], &obb->axis[0], &obb->axis[1]);
     ferVec3Normalize(&obb->axis[2]);
+}
+
+
+
+_fer_inline void __polyhedralMassSubexpression(fer_real_t w0,
+                                               fer_real_t w1,
+                                               fer_real_t w2,
+                                               fer_real_t *f1,
+                                               fer_real_t *f2,
+                                               fer_real_t *f3,
+                                               fer_real_t *g0,
+                                               fer_real_t *g1,
+                                               fer_real_t *g2)
+{
+    fer_real_t temp0, temp1, temp2;
+
+    temp0 = w0 + w1;
+    temp1 = w0 * w0;
+    temp2 = temp1 + (w1 * temp0);
+    *f1 = temp0 + w2;
+    *f2 = temp2 + (w2 * *f1);
+    *f3 = (w0 * temp1) + (w1 * temp2) + (w2 * *f2);
+    *g0 = *f2 + (w0 * (*f1 + w0));
+    *g1 = *f2 + (w1 * (*f1 + w1));
+    *g2 = *f2 + (w2 * (*f1 + w2));
+}
+
+static void mergeFitPolyhedralMass(fer_cd_obb_t *obb, fer_list_t *obbs)
+{
+
+    static const fer_real_t mult[10] = {FER_ONE / FER_REAL(6.),
+                                        FER_ONE / FER_REAL(24.),
+                                        FER_ONE / FER_REAL(24.),
+                                        FER_ONE / FER_REAL(24.),
+                                        FER_ONE / FER_REAL(60.),
+                                        FER_ONE / FER_REAL(60.),
+                                        FER_ONE / FER_REAL(60.),
+                                        FER_ONE / FER_REAL(120.),
+                                        FER_ONE / FER_REAL(120.),
+                                        FER_ONE / FER_REAL(120.) };
+    fer_real_t intg[10]; // order: 1, x, y, z, x^2, y^2, z^2, xy, yz, zx
+    fer_real_t mass;
+    fer_chull3_t *chull;
+    fer_list_t *list, *item;
+    fer_mesh3_face_t *face;
+    fer_mesh3_vertex_t *v[3];
+    fer_cd_obb_t *o;
+    fer_vec3_t v01, v02, cross;
+    fer_real_t f1x, f2x, f3x, g0x, g1x, g2x;
+    fer_real_t f1y, f2y, f3y, g0y, g1y, g2y;
+    fer_real_t f1z, f2z, f3z, g0z, g1z, g2z;
+    fer_real_t xx, yy, zz, xy, yz, xz;
+    fer_vec3_t center;
+    fer_mat3_t inertia, eigen;
+    int i;
+
+    for (i = 0; i < 10; i++)
+        intg[i] = FER_ZERO;
+
+    chull = ferCHull3New();
+    FER_LIST_FOR_EACH(obbs, item){
+        o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        updateCHull(o, chull);
+    }
+
+    list = ferMesh3Faces(ferCHull3Mesh(chull));
+    FER_LIST_FOR_EACH(list, item){
+        face = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
+
+        ferMesh3FaceVertices(face, v);
+
+        // compute normal of triangle
+        ferVec3Sub2(&v01, v[1]->v, v[0]->v);
+        ferVec3Sub2(&v02, v[2]->v, v[0]->v);
+        ferVec3Cross(&cross, &v01, &v02);
+
+        // compute integral terms
+        __polyhedralMassSubexpression(ferVec3X(v[0]->v), ferVec3X(v[1]->v),
+                                      ferVec3X(v[2]->v),
+                                      &f1x, &f2x, &f3x, &g0x, &g1x, &g2x);
+        __polyhedralMassSubexpression(ferVec3Y(v[0]->v), ferVec3Y(v[1]->v),
+                                      ferVec3Y(v[2]->v),
+                                      &f1y, &f2y, &f3y, &g0y, &g1y, &g2y);
+        __polyhedralMassSubexpression(ferVec3Z(v[0]->v), ferVec3Z(v[1]->v),
+                                      ferVec3Z(v[2]->v),
+                                      &f1z, &f2z, &f3z, &g0z, &g1z, &g2z);
+
+        // update integrals
+        intg[0] += ferVec3X(&cross) * f1x;
+        intg[1] += ferVec3X(&cross) * f2x;
+        intg[2] += ferVec3Y(&cross) * f2y;
+        intg[3] += ferVec3Z(&cross) * f2z;
+        intg[4] += ferVec3X(&cross) * f3x;
+        intg[5] += ferVec3Y(&cross) * f3y;
+        intg[6] += ferVec3Z(&cross) * f3z;
+        intg[7] += ferVec3X(&cross) * ((ferVec3Y(v[0]->v) * g0x) +
+                                       (ferVec3Y(v[1]->v) * g1x) +
+                                       (ferVec3Y(v[2]->v) * g2x));
+        intg[8] += ferVec3Y(&cross) * ((ferVec3Z(v[0]->v) * g0y) +
+                                       (ferVec3Z(v[1]->v) * g1y) +
+                                       (ferVec3Z(v[2]->v) * g2y));
+        intg[9] += ferVec3Z(&cross) * ((ferVec3X(v[0]->v) * g0z) +
+                                       (ferVec3X(v[1]->v) * g1z) +
+                                       (ferVec3X(v[2]->v) * g2z));
+    }
+
+    for (i = 0; i < 10; i++)
+        intg[i] *= mult[i];
+    mass = intg[0];
+
+    // center of mass
+    ferVec3Set(&center, intg[1] * ferRecp(mass),
+                        intg[2] * ferRecp(mass),
+                        intg[3] * ferRecp(mass));
+
+    // inertia tensor relative to center of mass
+    xx = FER_CUBE(ferVec3Y(&center)) + FER_CUBE(ferVec3Z(&center));
+    xx = xx * mass;
+    xx = intg[5] + intg[6] - xx;
+    yy = FER_CUBE(ferVec3Z(&center)) + FER_CUBE(ferVec3X(&center));
+    yy = yy * mass;
+    yy = intg[4] + intg[6] - yy;
+    zz = FER_CUBE(ferVec3X(&center)) + FER_CUBE(ferVec3Y(&center));
+    zz = zz * mass;
+    zz = intg[4] + intg[5] - zz;
+
+    xy = -(intg[7] - (mass * ferVec3X(&center) * ferVec3Y(&center)));
+    yz = -(intg[8] - (mass * ferVec3Y(&center) * ferVec3Z(&center)));
+    xz = -(intg[9] - (mass * ferVec3Z(&center) * ferVec3X(&center)));
+
+    // set axis[0,1,2]
+    ferMat3Set(&inertia, xx, xy, xz,
+                         xy, yy, yz,
+                         xz, yz, zz);
+
+    // compute eigen vectors from inertia matrix
+    ferMat3Eigen(&inertia, &eigen, NULL);
+
+    // pick up eigen vectors and normalize them
+    ferMat3CopyCol(&obb->axis[0], &eigen, 0);
+    ferMat3CopyCol(&obb->axis[1], &eigen, 1);
+    ferMat3CopyCol(&obb->axis[2], &eigen, 2);
+    ferVec3Normalize(&obb->axis[0]);
+    ferVec3Normalize(&obb->axis[1]);
+    ferVec3Normalize(&obb->axis[2]);
+
+    mergeFitSetCenterExtents(obb, obbs);
+
+    ferCHull3Del(chull);
+}
+
+
+
+
+static void mergeFitSetCenterExtents(fer_cd_obb_t *obb, fer_list_t *obbs)
+{
+    fer_vec3_t v;
+    fer_real_t min[3], max[3];
+
+    // find out min and max
+    findOBBMinMax(obb, obbs, min, max);
+
+    // set center
+    ferVec3Scale2(&obb->center, &obb->axis[0], (min[0] + max[0]) * FER_REAL(0.5));
+    ferVec3Scale2(&v, &obb->axis[1], (min[1] + max[1]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+    ferVec3Scale2(&v, &obb->axis[2], (min[2] + max[2]) * FER_REAL(0.5));
+    ferVec3Add(&obb->center, &v);
+
+    // compute extents
+    ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
+                                   (max[1] - min[1]) * FER_REAL(0.5),
+                                   (max[2] - min[2]) * FER_REAL(0.5));
+}
+
+static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    int ret = 1;
+
+    if (obb->shape){
+        if (obb->shape->cl->update_chull){
+            if (!obb->shape->cl->update_chull(obb->shape, hull, NULL, NULL))
+                ret = 0;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            if (!updateCHull(o, hull))
+                ret = 0;
+        }
+    }
+
+    return ret;
+}
+
+/*
+static void updateCHull2(fer_chull3_t *hull, fer_chull3_t *hull2)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *v;
+
+    list = ferMesh3Vertices(ferCHull3Mesh(hull2));
+    FER_LIST_FOR_EACH(list, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+        ferCHull3Add(hull, v->v);
+    }
+
+}
+*/
+
+
+static void _findOBBMinMax(fer_cd_obb_t *frame,
+                           fer_cd_obb_t *obb, fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    size_t i;
+
+    if (obb->shape){
+        if (obb->shape->cl->update_minmax){
+            for (i = 0; i < 3; i++){
+                obb->shape->cl->update_minmax(obb->shape, frame->axis + i,
+                                              NULL, NULL,
+                                              min + i, max + i);
+            }
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            _findOBBMinMax(frame, o, min, max);
+        }
+    }
+}
+static void findOBBMinMax(fer_cd_obb_t *obb, fer_list_t *obbs,
+                          fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+
+    min[0] = min[1] = min[2] = FER_REAL_MAX;
+    max[0] = max[1] = max[2] = -FER_REAL_MAX;
+
+    FER_LIST_FOR_EACH(obbs, item){
+        o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        _findOBBMinMax(obb, o, min, max);
+    }
+}
+
+static void findCHullMinMax(fer_chull3_t *hull, const fer_vec3_t *axis,
+                            fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *v;
+    fer_real_t m;
+    int i;
+
+    min[0] = min[1] = min[2] = FER_REAL_MAX;
+    max[0] = max[1] = max[2] = -FER_REAL_MAX;
+
+    list = ferMesh3Vertices(ferCHull3Mesh(hull));
+    FER_LIST_FOR_EACH(list, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+
+        //DBG_VEC3(v->v, "v->v: ");
+        for (i = 0; i < 3; i++){
+            m = ferVec3Dot(v->v, axis + i);
+            //DBG("    m: %f", m);
+            if (m < min[i])
+                min[i] = m;
+            if (m > max[i])
+                max[i] = m;
+        }
+    }
 }
