@@ -128,6 +128,18 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename);
 
 
+/**
+ * Saves geom in Lisp-like format.
+ * See ferCDGeomLoad().
+ */
+int ferCDGeomSave(fer_cd_t *cd, const fer_cd_geom_t *g,
+                  const char *filename);
+
+/**
+ * Loads geom from given file.
+ * See ferCDGeomSave().
+ */
+fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename);
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
