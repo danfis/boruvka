@@ -26,14 +26,25 @@
 #include <fermat/dbg.h>
 
 static fer_cd_shape_class_t shape_tri = {
+    .type          = FER_CD_SHAPE_TRI,
+    .del           = (fer_cd_shape_del_fn)ferCDTriDel,
+    .support       = (fer_cd_shape_support_fn)ferCDTriSupport,
+    .center        = (fer_cd_shape_center_fn)ferCDTriCenter,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriDumpSVT
+};
+
+static fer_cd_shape_class_t shape_trimesh_tri = {
     .type          = FER_CD_SHAPE_TRIMESH_TRI,
     .del           = (fer_cd_shape_del_fn)ferCDTriMeshTriDel,
-    .support       = (fer_cd_shape_support_fn)ferCDTriMeshTriSupport,
-    .center        = (fer_cd_shape_center_fn)ferCDTriMeshTriCenter,
-    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriMeshTriFitOBB,
-    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriMeshTriUpdateCHull,
-    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriMeshTriUpdateMinMax,
-    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriMeshTriDumpSVT
+    .support       = (fer_cd_shape_support_fn)ferCDTriSupport,
+    .center        = (fer_cd_shape_center_fn)ferCDTriCenter,
+    .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriFitOBB,
+    .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriUpdateCHull,
+    .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriUpdateMinMax,
+    .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriDumpSVT
 };
 
 static fer_cd_shape_class_t shape = {
@@ -47,6 +58,29 @@ static fer_cd_shape_class_t shape = {
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriMeshDumpSVT
 };
 
+fer_cd_trimesh_tri_t *ferCDTriNew(const fer_vec3_t *p1,
+                                  const fer_vec3_t *p2,
+                                  const fer_vec3_t *p3)
+{
+    fer_cd_tri_t *t;
+
+    t = FER_ALLOC(fer_cd_tri_t);
+    t->shape.cl = &shape_tri;
+    t->p0 = ferVec3Clone(p1);
+    t->p1 = ferVec3Clone(p2);
+    t->p2 = ferVec3Clone(p3);
+
+    return t;
+}
+
+void ferCDTriDel(fer_cd_trimesh_tri_t *t)
+{
+    ferVec3Del(t->p0);
+    ferVec3Del(t->p1);
+    ferVec3Del(t->p2);
+    free(t);
+}
+
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
                                          const fer_vec3_t *p2,
                                          const fer_vec3_t *p3)
@@ -55,10 +89,10 @@ fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
 
     tri = FER_ALLOC(fer_cd_trimesh_tri_t);
 
-    tri->shape.cl = &shape_tri;
-    tri->p0 = p1;
-    tri->p1 = p2;
-    tri->p2 = p3;
+    tri->shape.cl = &shape_trimesh_tri;
+    tri->p0 = (fer_vec3_t *)p1;
+    tri->p1 = (fer_vec3_t *)p2;
+    tri->p2 = (fer_vec3_t *)p3;
 
     return tri;
 }
@@ -66,40 +100,6 @@ fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
 void ferCDTriMeshTriDel(fer_cd_trimesh_tri_t *tri)
 {
     free(tri);
-}
-
-
-int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
-                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                           const fer_cd_trimesh_tri_t *tri2,
-                           const fer_mat3_t *rot2, const fer_vec3_t *tr2)
-{
-    fer_vec3_t p1, q1, r1, p2, q2, r2;
-
-    ferMat3MulVec(&p1, rot1, tri1->p0);
-    ferVec3Add(&p1, tr1);
-    ferMat3MulVec(&q1, rot1, tri1->p1);
-    ferVec3Add(&q1, tr1);
-    ferMat3MulVec(&r1, rot1, tri1->p2);
-    ferVec3Add(&r1, tr1);
-
-    ferMat3MulVec(&p2, rot2, tri2->p0);
-    ferVec3Add(&p2, tr2);
-    ferMat3MulVec(&q2, rot2, tri2->p1);
-    ferVec3Add(&q2, tr2);
-    ferMat3MulVec(&r2, rot2, tri2->p2);
-    ferVec3Add(&r2, tr2);
-
-    printf("----\nPoints:\n");
-    ferVec3Print(&p1, stdout); printf("\n");
-    ferVec3Print(&q1, stdout); printf("\n");
-    ferVec3Print(&r1, stdout); printf("\n");
-    ferVec3Print(&p2, stdout); printf("\n");
-    ferVec3Print(&q2, stdout); printf("\n");
-    ferVec3Print(&r2, stdout); printf("\n");
-    printf("Faces:\n0 1 2\n3 4 5\n--\n");
-
-    return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
 }
 
 
@@ -143,112 +143,6 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
     return t;
 }
 
-static void ferCDTriMeshFromRawAdd(fer_cd_trimesh_t *t,
-                                   size_t *ptsalloced,
-                                   size_t *idsalloced,
-                                   fer_real_t *r)
-{
-    if (!t->pts){
-        *ptsalloced = 3 * 100;
-        t->pts = ferVec3ArrNew(*ptsalloced);
-    }
-    if (!t->ids){
-        *idsalloced = 3 * 100;
-        t->ids = FER_ALLOC_ARR(unsigned int, *idsalloced);
-    }
-
-    if (t->ptslen + 3 > *ptsalloced){
-        *ptsalloced *= 2;
-        t->pts = FER_REALLOC_ARR(t->pts, fer_vec3_t, *ptsalloced);
-    }
-    if (3 * (t->len + 1) > *idsalloced){
-        *idsalloced *= 2;
-        t->ids = FER_REALLOC_ARR(t->ids, unsigned int, *idsalloced);
-    }
-
-    ferVec3Set(t->pts + t->ptslen, r[0], r[1], r[2]);
-    ferVec3Set(t->pts + t->ptslen + 1, r[3], r[4], r[5]);
-    ferVec3Set(t->pts + t->ptslen + 2, r[6], r[7], r[8]);
-
-    t->ids[3 * t->len] = t->ptslen;
-    t->ids[3 * t->len + 1] = t->ptslen + 1;
-    t->ids[3 * t->len + 2] = t->ptslen + 2;
-
-    t->ptslen += 3;
-    t->len++;
-}
-
-fer_cd_trimesh_t *ferCDTriMeshFromRaw(const char *filename)
-{
-    int fd;
-    size_t size;
-    struct stat st;
-    void *file;
-    char *fstr, *fend, *fnext;
-    fer_real_t r[9];
-    int ri;
-    size_t ptsalloced, idsalloced;
-    fer_cd_trimesh_t *t;
-
-    // open file
-    if ((fd = open(filename, O_RDONLY)) == -1){
-        fprintf(stderr, "CD Error: Can't open file `%s'\n", filename);
-        return NULL;
-    }
-
-    // get stats (mainly size of file)
-    if (fstat(fd, &st) == -1){
-        close(fd);
-        fprintf(stderr, "CD Error: Can't get file info of `%s'\n", filename);
-        return NULL;
-    }
-
-    // pick up size of file
-    size = st.st_size;
-
-    // mmap whole file into memory, we need only read from it and don't need
-    // to share anything
-    file = mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (file == MAP_FAILED){
-        close(fd);
-        fprintf(stderr, "CD Error: Can't map file `%s' into memory: %s\n", filename, strerror(errno));
-
-        // Fall to stdio method if it's not possible to map whole file into
-        // memory TODO
-        return NULL;
-    }
-
-    t = FER_ALLOC(fer_cd_trimesh_t);
-    t->shape.cl = &shape;
-    t->pts = NULL;
-    t->ptslen = 0;
-    ptsalloced = 0;
-    t->ids = NULL;
-    t->len = 0;
-    idsalloced = 0;
-
-    fstr = (char *)file;
-    fend = (char *)file + size;
-    while (1){
-        for (ri = 0; ri < 9; ri++){
-            if (ferParseReal(fstr, fend, r + ri, &fnext) != 0)
-                break;
-            fstr = fnext;
-        }
-        if (ri != 9)
-            break;
-
-        ferCDTriMeshFromRawAdd(t, &ptsalloced, &idsalloced, r);
-    }
-
-    // unmap mapped memory
-    munmap(file, size);
-
-    // close file
-    close(fd);
-
-    return t;
-}
 
 void ferCDTriMeshDel(fer_cd_trimesh_t *t)
 {
@@ -257,9 +151,8 @@ void ferCDTriMeshDel(fer_cd_trimesh_t *t)
     free(t);
 }
 
-void ferCDTriMeshTriSupport(const fer_cd_trimesh_tri_t *t,
-                            const fer_vec3_t *dir,
-                            fer_vec3_t *p)
+void ferCDTriSupport(const fer_cd_trimesh_tri_t *t, const fer_vec3_t *dir,
+                     fer_vec3_t *p)
 {
     fer_real_t d1, d2, d3;
 
@@ -299,10 +192,9 @@ void ferCDTriMeshSupport(const fer_cd_trimesh_t *t,
     }
 }
 
-void ferCDTriMeshTriCenter(const fer_cd_trimesh_tri_t *t,
-                           const fer_mat3_t *rot,
-                           const fer_vec3_t *tr,
-                           fer_vec3_t *center)
+void ferCDTriCenter(const fer_cd_trimesh_tri_t *t,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    fer_vec3_t *center)
 {
     fer_vec3_t v;
 
@@ -340,12 +232,12 @@ void ferCDTriMeshCenter(const fer_cd_trimesh_t *t,
         ferVec3Add(center, tr);
 }
 
-void ferCDTriMeshTriFitOBB(const fer_cd_trimesh_tri_t *tri,
-                           fer_vec3_t *center,
-                           fer_vec3_t *_axis0,
-                           fer_vec3_t *_axis1,
-                           fer_vec3_t *_axis2,
-                           fer_vec3_t *half_extents, int flags)
+void ferCDTriFitOBB(const fer_cd_trimesh_tri_t *tri,
+                    fer_vec3_t *center,
+                    fer_vec3_t *_axis0,
+                    fer_vec3_t *_axis1,
+                    fer_vec3_t *_axis2,
+                    fer_vec3_t *half_extents, int flags)
 {
     fer_vec3_t e01, e02, e12; // triangle edges
     fer_vec3_t *axis[3];
@@ -435,8 +327,8 @@ void ferCDTriMeshFitOBB(const fer_cd_trimesh_t *t,
     fprintf(stderr, "ferCDTriMeshFitOBB: Not working\n");
 }
 
-int ferCDTriMeshTriUpdateCHull(const fer_cd_trimesh_tri_t *tri, fer_chull3_t *chull,
-                               const fer_mat3_t *rot, const fer_vec3_t *tr)
+int ferCDTriUpdateCHull(const fer_cd_trimesh_tri_t *tri, fer_chull3_t *chull,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
     fer_vec3_t v;
 
@@ -480,10 +372,10 @@ int ferCDTriMeshUpdateCHull(const fer_cd_trimesh_t *t, fer_chull3_t *chull,
     return 1;
 }
 
-void ferCDTriMeshTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
-                                 const fer_vec3_t *axis,
-                                 const fer_mat3_t *rot, const fer_vec3_t *tr,
-                                 fer_real_t *min, fer_real_t *max)
+void ferCDTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
+                          const fer_vec3_t *axis,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr,
+                          fer_real_t *min, fer_real_t *max)
 {
     fer_vec3_t p;
     fer_real_t m;
@@ -548,9 +440,9 @@ void ferCDTriMeshUpdateMinMax(const fer_cd_trimesh_t *t,
     }
 }
 
-void ferCDTriMeshTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
-                            FILE *out, const char *name,
-                            const fer_mat3_t *rot, const fer_vec3_t *tr)
+void ferCDTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
     fer_vec3_t v;
 

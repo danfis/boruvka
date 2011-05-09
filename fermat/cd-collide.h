@@ -46,11 +46,11 @@ int ferCDCollideSphereSphere(struct _fer_cd_t *cd,
 /**
  * TriMeshTri-TriMeshTri collider.
  */
-int ferCDCollideTriMeshTriTriMeshTri(struct _fer_cd_t *cd,
-                                     const fer_cd_trimesh_tri_t *t1,
-                                     const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                                     const fer_cd_trimesh_tri_t *t2,
-                                     const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+int ferCDCollideTriTri(struct _fer_cd_t *cd,
+                       const fer_cd_tri_t *t1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_tri_t *t2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 
 /**

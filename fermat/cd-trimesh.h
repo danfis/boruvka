@@ -24,13 +24,18 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * Triangle shape.
+ */
+struct _fer_cd_tri_t {
+    fer_cd_shape_t shape;     /*!< Base class */
+    fer_vec3_t *p0, *p1, *p2; /*!< Triangle end points */
+};
+typedef struct _fer_cd_tri_t fer_cd_tri_t;
+
+/**
  * Triangle shape as reference to trimesh.
  */
-struct _fer_cd_trimesh_tri_t {
-    fer_cd_shape_t shape;        /*!< Base class */
-    const fer_vec3_t *p0, *p1, *p2; /*!< Triangle end points */
-};
-typedef struct _fer_cd_trimesh_tri_t fer_cd_trimesh_tri_t;
+typedef fer_cd_tri_t fer_cd_trimesh_tri_t;
 
 
 /**
@@ -49,22 +54,26 @@ typedef struct _fer_cd_trimesh_t fer_cd_trimesh_t;
 /**
  * Creates new triangle
  */
+fer_cd_trimesh_tri_t *ferCDTriNew(const fer_vec3_t *p1,
+                                  const fer_vec3_t *p2,
+                                  const fer_vec3_t *p3);
+
+/**
+ * Deletes trimesh triangle
+ */
+void ferCDTriDel(fer_cd_trimesh_tri_t *tri);
+
+/**
+ * Creates new triangle as reference to trimesh.
+ */
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
                                          const fer_vec3_t *p2,
                                          const fer_vec3_t *p3);
 
 /**
- * Deletes triangle
+ * Deletes trimesh triangle
  */
 void ferCDTriMeshTriDel(fer_cd_trimesh_tri_t *tri);
-
-/**
- * Returns true if two given triangles collide.
- */
-int ferCDTriMeshTriCollide(const fer_cd_trimesh_tri_t *tri1,
-                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                           const fer_cd_trimesh_tri_t *tri2,
-                           const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 
 
@@ -76,37 +85,30 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
                                   const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
- * Creates new trimesh file in "raw" format (3 triangles per line).
- */
-fer_cd_trimesh_t *ferCDTriMeshFromRaw(const char *filename);
-
-/**
  * Deletes trimesh
  */
 void ferCDTriMeshDel(fer_cd_trimesh_t *t);
 
-void ferCDTriMeshTriSupport(const fer_cd_trimesh_tri_t *t,
-                            const fer_vec3_t *dir,
-                            fer_vec3_t *p);
+void ferCDTriSupport(const fer_cd_trimesh_tri_t *t,
+                     const fer_vec3_t *dir, fer_vec3_t *p);
 void ferCDTriMeshSupport(const fer_cd_trimesh_t *t,
                          const fer_vec3_t *dir,
                          fer_vec3_t *p);
 
-void ferCDTriMeshTriCenter(const fer_cd_trimesh_tri_t *t,
-                           const fer_mat3_t *rot,
-                           const fer_vec3_t *tr,
-                           fer_vec3_t *center);
+void ferCDTriCenter(const fer_cd_trimesh_tri_t *t,
+                    const fer_mat3_t *rot, const fer_vec3_t *tr,
+                    fer_vec3_t *center);
 void ferCDTriMeshCenter(const fer_cd_trimesh_t *t,
                         const fer_mat3_t *rot,
                         const fer_vec3_t *tr,
                         fer_vec3_t *center);
 
-void ferCDTriMeshTriFitOBB(const fer_cd_trimesh_tri_t *tri,
-                           fer_vec3_t *center,
-                           fer_vec3_t *axis0,
-                           fer_vec3_t *axis1,
-                           fer_vec3_t *axis2,
-                           fer_vec3_t *half_extents, int flags);
+void ferCDTriFitOBB(const fer_cd_trimesh_tri_t *tri,
+                    fer_vec3_t *center,
+                    fer_vec3_t *axis0,
+                    fer_vec3_t *axis1,
+                    fer_vec3_t *axis2,
+                    fer_vec3_t *half_extents, int flags);
 void ferCDTriMeshFitOBB(const fer_cd_trimesh_t *s,
                         fer_vec3_t *center,
                         fer_vec3_t *axis0,
@@ -114,23 +116,23 @@ void ferCDTriMeshFitOBB(const fer_cd_trimesh_t *s,
                         fer_vec3_t *axis2,
                         fer_vec3_t *half_extents, int flags);
 
-int ferCDTriMeshTriUpdateCHull(const fer_cd_trimesh_tri_t *t, fer_chull3_t *chull,
+int ferCDTriUpdateCHull(const fer_cd_trimesh_tri_t *t, fer_chull3_t *chull,
                                const fer_mat3_t *rot, const fer_vec3_t *tr);
 int ferCDTriMeshUpdateCHull(const fer_cd_trimesh_t *t, fer_chull3_t *chull,
                             const fer_mat3_t *rot, const fer_vec3_t *tr);
 
-void ferCDTriMeshTriUpdateMinMax(const fer_cd_trimesh_tri_t *t,
-                                 const fer_vec3_t *axis,
-                                 const fer_mat3_t *rot, const fer_vec3_t *tr,
-                                 fer_real_t *min, fer_real_t *max);
+void ferCDTriUpdateMinMax(const fer_cd_trimesh_tri_t *t,
+                          const fer_vec3_t *axis,
+                          const fer_mat3_t *rot, const fer_vec3_t *tr,
+                          fer_real_t *min, fer_real_t *max);
 void ferCDTriMeshUpdateMinMax(const fer_cd_trimesh_t *t,
                               const fer_vec3_t *axis,
                               const fer_mat3_t *rot, const fer_vec3_t *tr,
                               fer_real_t *min, fer_real_t *max);
 
-void ferCDTriMeshTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
-                            FILE *out, const char *name,
-                            const fer_mat3_t *rot, const fer_vec3_t *tr);
+void ferCDTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
+                     FILE *out, const char *name,
+                     const fer_mat3_t *rot, const fer_vec3_t *tr);
 void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t,
                          FILE *out, const char *name,
                          const fer_mat3_t *rot, const fer_vec3_t *tr);

@@ -36,8 +36,10 @@ fer_cd_t *ferCDNew(void)
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                       (fer_cd_collide_fn)ferCDCollideSphereSphere);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideTriTri);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
-                      (fer_cd_collide_fn)ferCDCollideTriMeshTriTriMeshTri);
+                      (fer_cd_collide_fn)ferCDCollideTriTri);
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
                       (fer_cd_collide_fn)ferCDCollideOffOff);

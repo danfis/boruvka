@@ -29,11 +29,11 @@ int ferCDCollideSphereSphere(fer_cd_t *cd,
     return dist < (s1->radius + s2->radius);
 }
 
-int ferCDCollideTriMeshTriTriMeshTri(struct _fer_cd_t *cd,
-                                     const fer_cd_trimesh_tri_t *tri1,
-                                     const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                                     const fer_cd_trimesh_tri_t *tri2,
-                                     const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+int ferCDCollideTriTri(struct _fer_cd_t *cd,
+                       const fer_cd_tri_t *tri1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_tri_t *tri2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2)
 {
     fer_vec3_t p1, q1, r1, p2, q2, r2;
 

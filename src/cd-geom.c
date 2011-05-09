@@ -147,15 +147,33 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
     ferListAppend(&g->obbs, &obb->list);
 }
 
-void ferCDGeomAddTriMeshFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
-                                const char *filename)
+void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
+                             const char *filename)
 {
-    fer_cd_trimesh_t *t;
+    FILE *fin;
+    float ax, ay, az, bx, by, bz, cx, cy, cz;
+    fer_vec3_t p0, p1, p2;
+    fer_cd_tri_t *tri;
     fer_cd_obb_t *obb;
 
-    t   = ferCDTriMeshFromRaw(filename);
-    obb = ferCDOBBNewTriMesh(t, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    fin = fopen(filename, "r");
+    if (!fin){
+        fprintf(stderr, "CD Error: Can't open file `%s'\n", filename);
+        return;
+    }
+
+    while (fscanf(fin, "%f %f %f %f %f %f %f %f %f",
+                  &ax, &ay, &az, &bx, &by, &bz, &cx, &cy, &cz) == 9){
+        ferVec3Set(&p0, ax, ay, az);
+        ferVec3Set(&p1, bx, by, bz);
+        ferVec3Set(&p2, cx, cy, cz);
+
+        tri = ferCDTriNew(&p0, &p1, &p2);
+        obb = ferCDOBBNewShape((fer_cd_shape_t *)tri, cd->build_flags);
+        ferListAppend(&g->obbs, &obb->list);
+    }
+
+    fclose(fin);
 }
 
 
