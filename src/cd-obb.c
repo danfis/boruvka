@@ -732,28 +732,6 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
 
 
 
-static void _mergeTopDownSplitUpdateAvg(fer_cd_obb_t *obb,
-                                        const fer_vec3_t *axis,
-                                        fer_real_t *avg,
-                                        int *num)
-{
-    fer_list_t *item;
-    fer_cd_obb_t *o;
-    fer_vec3_t center;
-
-    if (obb->shape){
-        obb->shape->cl->center(obb->shape, NULL, NULL, &center);
-        *avg += ferVec3Dot(axis, &center);
-        *num += 1;
-    }else{
-        DBG2("!");
-        FER_LIST_FOR_EACH(&obb->obbs, item){
-            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            _mergeTopDownSplitUpdateAvg(o, axis, avg, num);
-        }
-    }
-}
-
 static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
                                fer_list_t *obb_list1, fer_list_t *obb_list2)
 {

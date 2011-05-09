@@ -139,9 +139,14 @@ void ferCDOBBFreePairs(fer_list_t *pairs);
  *
  * Using parameter {flags} can be changed method used for merging (choosing
  * and fitting) bounding boxes.
- * See macros: FER_CD_FIT_COVARIANCE,
+ * See macros: FER_CD_TOP_DOWN,
+ *             FER_CD_BOTTOM_UP,
+ *             FER_CD_FIT_COVARIANCE,
  *             FER_CD_FIT_CALIPERS
- *             FER_CD_FIT_CALIPERS_NUM_ROT()
+ *             FER_CD_FIT_CALIPERS_NUM_ROT(),
+ *             FER_CD_FIT_POLYHEDRA_MASS,
+ *             FER_CD_FIT_NAIVE,
+ *             FER_CD_FIT_NAIVE_NUM_ROT()
  */
 void ferCDOBBMerge(fer_list_t *obbs, int flags);
 
