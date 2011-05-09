@@ -76,6 +76,11 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
                                   const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
+ * Creates new trimesh file in "raw" format (3 triangles per line).
+ */
+fer_cd_trimesh_t *ferCDTriMeshFromRaw(const char *filename);
+
+/**
  * Deletes trimesh
  */
 void ferCDTriMeshDel(fer_cd_trimesh_t *t);
@@ -86,6 +91,15 @@ void ferCDTriMeshTriSupport(const fer_cd_trimesh_tri_t *t,
 void ferCDTriMeshSupport(const fer_cd_trimesh_t *t,
                          const fer_vec3_t *dir,
                          fer_vec3_t *p);
+
+void ferCDTriMeshTriCenter(const fer_cd_trimesh_tri_t *t,
+                           const fer_mat3_t *rot,
+                           const fer_vec3_t *tr,
+                           fer_vec3_t *center);
+void ferCDTriMeshCenter(const fer_cd_trimesh_t *t,
+                        const fer_mat3_t *rot,
+                        const fer_vec3_t *tr,
+                        fer_vec3_t *center);
 
 void ferCDTriMeshTriFitOBB(const fer_cd_trimesh_tri_t *tri,
                            fer_vec3_t *center,

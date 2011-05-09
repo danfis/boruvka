@@ -121,6 +121,12 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
                           const unsigned int *ids, size_t num_tris,
                           const fer_mat3_t *rot, const fer_vec3_t *tr);
 
+/**
+ * Adds triangular mesh from file in "raw" format to geom.
+ */
+void ferCDGeomAddTriMeshFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
+                                const char *filename);
+
 
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);

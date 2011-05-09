@@ -147,6 +147,16 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
     ferListAppend(&g->obbs, &obb->list);
 }
 
+void ferCDGeomAddTriMeshFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
+                                const char *filename)
+{
+    fer_cd_trimesh_t *t;
+    fer_cd_obb_t *obb;
+
+    t   = ferCDTriMeshFromRaw(filename);
+    obb = ferCDOBBNewTriMesh(t, cd->build_flags);
+    ferListAppend(&g->obbs, &obb->list);
+}
 
 
 struct __collide_t {

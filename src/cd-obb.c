@@ -41,6 +41,8 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot);
 static void mergeFitSingleEdgeAxis(fer_cd_obb_t *obb, fer_chull3_t *hull);
 /** Use "Polyhedral Mass Properties method" for fitting */
 static void mergeFitPolyhedralMass(fer_cd_obb_t *obb, fer_list_t *obbs);
+/** Use "naive" approach */
+static void mergeFitNaive(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot);
 
 /** Sets center and half_extents according to axis[] */
 static void mergeFitSetCenterExtents(fer_cd_obb_t *obb, fer_list_t *obbs);
@@ -730,15 +732,37 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
 
 
 
+static void _mergeTopDownSplitUpdateAvg(fer_cd_obb_t *obb,
+                                        const fer_vec3_t *axis,
+                                        fer_real_t *avg,
+                                        int *num)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    fer_vec3_t center;
+
+    if (obb->shape){
+        obb->shape->cl->center(obb->shape, NULL, NULL, &center);
+        *avg += ferVec3Dot(axis, &center);
+        *num += 1;
+    }else{
+        DBG2("!");
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            _mergeTopDownSplitUpdateAvg(o, axis, avg, num);
+        }
+    }
+}
 
 static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
                                fer_list_t *obb_list1, fer_list_t *obb_list2)
 {
     const fer_vec3_t *axis;
+    fer_vec3_t center;
     fer_list_t *item;
     fer_cd_obb_t *o;
     fer_real_t avg, m;
-    size_t num;
+    int num;
 
     ferListInit(obb_list1);
     ferListInit(obb_list2);
@@ -761,10 +785,15 @@ static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
     num = 0;
     FER_LIST_FOR_EACH(obbs, item){
         o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        m = ferVec3Dot(axis, &o->center);
-        //DBG("%lx: m: %f", (long)o, m);
+        if (o->shape){
+            o->shape->cl->center(o->shape, NULL, NULL, &center);
+            m = ferVec3Dot(axis, &center);
+        }else{
+            m = ferVec3Dot(axis, &o->center);
+        }
+
         avg += m;
-        num++;
+        num += 1;
     }
 
     avg = avg / (fer_real_t)num;
@@ -775,7 +804,14 @@ static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
         ferListDel(item);
         o    = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
 
-        if (ferVec3Dot(axis, &o->center) < avg){
+        if (o->shape){
+            o->shape->cl->center(o->shape, NULL, NULL, &center);
+            m = ferVec3Dot(axis, &center);
+        }else{
+            m = ferVec3Dot(axis, &o->center);
+        }
+
+        if (m < avg){
             ferListAppend(obb_list1, &o->list);
         }else{
             ferListAppend(obb_list2, &o->list);
@@ -807,8 +843,14 @@ static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, int flags)
 
     _mergeTopDownSplit(obb, obbs, obb_list + 0, obb_list + 1);
     if (ferListEmpty(obb_list + 0) || ferListEmpty(obb_list + 1)){
-        while (!ferListEmpty(obbs)){
-            item = ferListNext(obbs);
+        while (!ferListEmpty(obb_list + 0)){
+            item = ferListNext(obb_list + 0);
+            ferListDel(item);
+            obb2 = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            ferListAppend(&obb->obbs, &obb2->list);
+        }
+        while (!ferListEmpty(obb_list + 1)){
+            item = ferListNext(obb_list + 1);
             ferListDel(item);
             obb2 = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
             ferListAppend(&obb->obbs, &obb2->list);
@@ -912,21 +954,23 @@ static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags)
 
 static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags)
 {
-    int method, num_rot;
+    int num_rot;
 
-    method = flags & 0x6;
+    num_rot = __FER_CD_NUM_ROT(flags);
 
-    if (method == FER_CD_FIT_COVARIANCE){
+    if (__FER_CD_FIT_COVARIANCE(flags)){
         mergeFitCovariance(obb, obbs);
-    }else if (method == FER_CD_FIT_CALIPERS){
-        num_rot = (flags >> 8) & 0xFF;
+    }else if (__FER_CD_FIT_CALIPERS(flags)){
         mergeFitCalipers(obb, obbs, num_rot);
-    }else if (method == FER_CD_FIT_POLYHEDRAL_MASS){
+    }else if (__FER_CD_FIT_POLYHEDRAL_MASS(flags)){
         mergeFitPolyhedralMass(obb, obbs);
+    }else if (__FER_CD_FIT_NAIVE(flags)){
+        mergeFitNaive(obb, obbs, num_rot);
     }else{
-        fprintf(stderr, "CD Error: Unkown fitting method: %d\n", method);
+        fprintf(stderr, "CD Error: Unkown fitting method (flags: %x)\n", flags);
     }
 }
+
 
 
 
@@ -1103,6 +1147,9 @@ static void mergeFitCalipers(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot)
     fer_cd_obb_t *o;
     fer_chull3_t *chull;
     fer_real_t min[3], max[3];
+
+    if (num_rot == 0)
+        num_rot = 5;
 
     chull = ferCHull3New();
 
@@ -1309,6 +1356,76 @@ static void mergeFitPolyhedralMass(fer_cd_obb_t *obb, fer_list_t *obbs)
     ferCHull3Del(chull);
 }
 
+
+static void mergeFitNaive(fer_cd_obb_t *obb, fer_list_t *obbs, int num_rot)
+{
+    fer_real_t volume, best_volume;
+    fer_vec3_t axis[3], best_axis[3];
+    fer_mat3_t rot;
+    fer_real_t angle_x, angle_y, angle_z, angle_step;
+    fer_real_t min[3], max[3];
+    int i, j, k;
+
+    if (num_rot == 0)
+        num_rot = 3;
+
+    ferVec3Set(&obb->axis[0], FER_ONE,  FER_ZERO, FER_ZERO);
+    ferVec3Set(&obb->axis[1], FER_ZERO, FER_ONE,  FER_ZERO);
+    ferVec3Set(&obb->axis[2], FER_ZERO, FER_ZERO, FER_ONE);
+    mergeFitSetCenterExtents(obb, obbs);
+    //mergeFitCovariance(obb, obbs);
+
+    ferVec3Copy(&axis[0], &obb->axis[0]);
+    ferVec3Copy(&axis[1], &obb->axis[1]);
+    ferVec3Copy(&axis[2], &obb->axis[2]);
+
+    ferVec3Copy(&best_axis[0], &obb->axis[0]);
+    ferVec3Copy(&best_axis[1], &obb->axis[1]);
+    ferVec3Copy(&best_axis[2], &obb->axis[2]);
+    best_volume  = ferVec3X(&obb->half_extents) * FER_REAL(2.);
+    best_volume *= ferVec3Y(&obb->half_extents) * FER_REAL(2.);
+    best_volume *= ferVec3Z(&obb->half_extents) * FER_REAL(2.);
+
+    angle_step = M_PI_2 / num_rot;
+
+    angle_x = -M_PI_2;
+    for (i = 0; i < 2 * num_rot + 1; i++){
+        angle_y = -M_PI_2;
+        for (j = 0; j < 2 * num_rot + 1; j++){
+            angle_z = -M_PI_2;
+            for (k = 0; k < 2 * num_rot + 1; k++){
+                ferMat3SetRot3D(&rot, angle_x, angle_y, angle_z);
+
+                ferMat3MulVec(&obb->axis[0], &rot, &axis[0]);
+                ferMat3MulVec(&obb->axis[1], &rot, &axis[1]);
+                ferMat3MulVec(&obb->axis[2], &rot, &axis[2]);
+
+                findOBBMinMax(obb, obbs, min, max);
+                volume  = max[0] - min[0];
+                volume *= max[1] - min[1];
+                volume *= max[2] - min[2];
+                if (volume < best_volume){
+                    best_volume = volume;
+                    ferVec3Copy(&best_axis[0], &obb->axis[0]);
+                    ferVec3Copy(&best_axis[1], &obb->axis[1]);
+                    ferVec3Copy(&best_axis[2], &obb->axis[2]);
+                }
+
+                angle_z += angle_step;
+            }
+
+            angle_y += angle_step;
+        }
+
+        angle_x += angle_step;
+    }
+
+    ferVec3Copy(&obb->axis[0], &best_axis[0]);
+    ferVec3Copy(&obb->axis[1], &best_axis[1]);
+    ferVec3Copy(&obb->axis[2], &best_axis[2]);
+
+    mergeFitSetCenterExtents(obb, obbs);
+}
 
 
 
