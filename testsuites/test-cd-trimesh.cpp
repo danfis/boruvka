@@ -6,7 +6,9 @@
 #include "data.h"
 
 void testCD1(void);
+void testCD2(void);
 void testRapid1(void);
+void testRapid2(void);
 
 
 int rapidCollide(RAPID_model *g1, RAPID_model *g2,
@@ -16,7 +18,9 @@ static int nextTrans(fer_mat3_t *rot, fer_vec3_t *tr, int *ret);
 int main(int argc, char *argv[])
 {
     testCD1();
+    testCD2();
     testRapid1();
+    testRapid2();
 
     return 0;
 }
@@ -34,8 +38,9 @@ void testCD1(void)
 
     cd = ferCDNew();
 
-    ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
-            FER_CD_FIT_CALIPERS_NUM_ROT(5));
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
+    //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
 
     ferTimerStart(&timer);
     g1 = ferCDGeomNew(cd);
@@ -70,6 +75,64 @@ void testCD1(void)
     ferCDDel(cd);
 
     fprintf(stdout, "# testCD1 :: overall_time: %lu\n", overall_time);
+}
+
+void testCD2(void)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g1, *g2;
+    fer_timer_t timer;
+    fer_mat3_t rot2;
+    fer_vec3_t tr2;
+    size_t i;
+    int ret, ret2;
+    unsigned long overall_time = 0L;
+
+    cd = ferCDNew();
+
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_COVARIANCE);
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
+    //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(5));
+
+    ferTimerStart(&timer);
+    g1 = ferCDGeomNew(cd);
+    ferCDGeomAddTrisFromRaw(cd, g1, "dragon.tri");
+    ferCDGeomBuild(cd, g1);
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testCD2 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
+    fflush(stdout);
+
+    //ferCDGeomDumpSVT(g1, stdout, "g1");
+
+    ferTimerStart(&timer);
+    g2 = ferCDGeomNew(cd);
+    ferCDGeomAddTrisFromRaw(cd, g2, "dragon.tri");
+    ferCDGeomBuild(cd, g2);
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testCD2 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
+
+    for (i = 0; nextTrans(&rot2, &tr2, &ret2) == 0; i++){
+        ferVec3Scale(&tr2, 0.01);
+        ferCDGeomSetRot(cd, g2, &rot2);
+        ferCDGeomSetTr(cd, g2, &tr2);
+        ferTimerStart(&timer);
+
+        ret = ferCDGeomCollide(cd, g1, g2);
+        if (ret != ret2){
+            //fprintf(stdout, "# testCD2 :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+        }
+        ferTimerStop(&timer);
+        //fprintf(stdout, "# testCD2 :: Coll[%02d] %04lu - %d (%d)\n", i, ferTimerElapsedInUs(&timer), ret, ret2);
+        overall_time += ferTimerElapsedInUs(&timer);
+    }
+
+    ferCDGeomDel(cd, g1);
+    ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
+
+    fprintf(stdout, "# testCD2 :: overall_time: %lu\n", overall_time);
 }
 
 void testRapid1(void)
@@ -135,6 +198,76 @@ void testRapid1(void)
     fprintf(stdout, "# testRapid1 :: overall_time: %lu\n", overall_time);
 #else /* HAVE_RAPID */
     fprintf(stdout, "# testRapid1 :: No RAPID\n");
+#endif /* HAVE_RAPID */
+}
+
+static RAPID_model *rapidFromRaw(const char *fn)
+{
+    FILE *fin;
+    double a[3], b[3], c[3];
+    RAPID_model *g;
+
+    fin = fopen(fn, "r");
+    if (!fin)
+        return NULL;
+
+    g = new RAPID_model;
+    g->BeginModel();
+    while (fscanf(fin, "%lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                  a, a + 1, a + 2, b, b + 1, b + 2, c, c + 1, c + 2) == 9){
+        g->AddTri(a, b, c, 0);
+    }
+    g->EndModel();
+
+    fclose(fin);
+
+    return g;
+}
+
+void testRapid2(void)
+{
+#ifdef HAVE_RAPID
+    RAPID_model *g1, *g2;
+    size_t i;
+    fer_timer_t timer;
+    unsigned long overall_time = 0L;
+    fer_mat3_t rot2;
+    fer_vec3_t tr2;
+    int ret, ret2;
+
+    ferTimerStart(&timer);
+    g1 = rapidFromRaw("dragon.tri");
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testRapid2 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
+
+    g2 = new RAPID_model;
+    g2 = rapidFromRaw("dragon.tri");
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testRapid2 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
+
+
+    for (i = 0; nextTrans(&rot2, &tr2, &ret2) == 0; i++){
+        ferVec3Scale(&tr2, 0.01);
+        ferTimerStart(&timer);
+
+        ret = rapidCollide(g1, g2, &rot2, &tr2);
+        //ferCDGeomDumpSVT(g1, stdout, "g1");
+        //ferCDGeomDumpSVT(g2, stdout, "g2");
+        if (ret != ret2){
+            //fprintf(stdout, "# testRapid2 :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+        }
+        ferTimerStop(&timer);
+        //fprintf(stdout, "# testRapid2 :: Coll[%02d] %04lu - %d (%d)\n", i, ferTimerElapsedInUs(&timer), ret, ret2);
+        overall_time += ferTimerElapsedInUs(&timer);
+    }
+
+
+    delete g1;
+    delete g2;
+
+    fprintf(stdout, "# testRapid2 :: overall_time: %lu\n", overall_time);
+#else /* HAVE_RAPID */
+    fprintf(stdout, "# testRapid2 :: No RAPID\n");
 #endif /* HAVE_RAPID */
 }
 

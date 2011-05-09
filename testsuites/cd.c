@@ -232,7 +232,8 @@ TEST(cdOBBNew3)
         ferListAppend(&obbs, &obb->list);
     }
 
-    ferCDOBBMerge(&obbs, 0);
+    ferCDOBBMerge(&obbs, FER_CD_FIT_POLYHEDRAL_MASS);
+    //ferCDOBBMerge(&obbs, 0);
 
     item = ferListNext(&obbs);
     obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
@@ -529,12 +530,12 @@ TEST(cdCollideSphere)
                                     &protein_big_center[i]);
     }
     ferTimerStop(&timer);
-    DBG("addSphere1: %lu", ferTimerElapsedInUs(&timer));
+    //DBG("addSphere1: %lu", ferTimerElapsedInUs(&timer));
 
     ferTimerStart(&timer);
     ferCDGeomBuild(cd, g1);
     ferTimerStop(&timer);
-    DBG("build1: %lu", ferTimerElapsedInUs(&timer));
+    //DBG("build1: %lu", ferTimerElapsedInUs(&timer));
 
     g2 = ferCDGeomNew(cd);
     for (i = 0; i < protein_small_len; i++){
@@ -557,7 +558,7 @@ TEST(cdCollideSphere)
     ferTimerStart(&timer);
     ret = ferCDGeomCollide(cd, g1, g2);
     ferTimerStop(&timer);
-    DBG("collide1: %lu", ferTimerElapsedInUs(&timer));
+    //DBG("collide1: %lu", ferTimerElapsedInUs(&timer));
     assertFalse(ret);
 
     ferVec3Set(&tr1, M_PI_4, 0, 0);
@@ -571,14 +572,12 @@ TEST(cdCollideSphere)
     ferTimerStart(&timer);
     ret = ferCDGeomCollide(cd, g1, g2);
     ferTimerStop(&timer);
-    DBG("collide2: %lu", ferTimerElapsedInUs(&timer));
+    //DBG("collide2: %lu", ferTimerElapsedInUs(&timer));
     assertTrue(ret);
 
     //ferCDGeomDumpSVT(g1, stdout, "g1");
     //ferCDGeomDumpSVT(g2, stdout, "g2");
-    ferCDGeomDumpSVT(g1, stdout, "g1");
-    ferCDGeomDumpSVT(g2, stdout, "g2");
-    DBG("ret: %d", ret);
+    //DBG("ret: %d", ret);
 
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);
