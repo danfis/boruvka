@@ -206,6 +206,8 @@ _fer_inline int __ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
             return i + 4;
     }
 
+    return 0;
+
     // L = obb1->axis[0] x obb2->axis[0]
     tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 0);
     tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 0);
@@ -325,6 +327,25 @@ int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1, const fer_cd_obb_t *obb2,
 {
     fer_mat3_t rot, A1t, A1tR;
     fer_vec3_t tr, trtmp;
+    fer_real_t len, len2;
+
+    // tr = A1^t (R . c2 - c1 + T)
+    ferMat3MulVec(&trtmp, R, &obb2->center);
+    ferVec3Sub(&trtmp, &obb1->center);
+    ferVec3Add(&trtmp, T);
+
+    if (obb1->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb1)->sphere_radius = ferVec3Len(&obb1->half_extents);
+    if (obb2->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb2)->sphere_radius = ferVec3Len(&obb2->half_extents);
+
+    // perform bounding sphere test - for early quit
+    len   = ferVec3Len2(&trtmp);
+    len2  = obb1->sphere_radius + obb2->sphere_radius;
+    len2 *= len2;
+    if (len > len2)
+        return 100;
+
 
     // rot = A1^t . R . A2
     //    where A is matrix of columns corresponding to each axis
@@ -333,11 +354,10 @@ int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1, const fer_cd_obb_t *obb2,
     ferMat3MulColVecs2(&rot, &A1tR,
                        &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
 
-    // tr = A1^t (R . c2 - c1 + T)
-    ferMat3MulVec(&trtmp, R, &obb2->center);
-    ferVec3Sub(&trtmp, &obb1->center);
-    ferVec3Add(&trtmp, T);
+
+    // finish computing translation
     ferMat3MulVec(&tr, &A1t, &trtmp);
+
     /*
 
     DBG("rot: %f %f %f",
@@ -393,7 +413,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
         ((fer_cd_obb_t *)obb2)->sphere_radius = ferVec3Len(&obb2->half_extents);
 
     // perform bounding sphere test - for early quit
-    if (ferVec3Len2(&trtmp) > FER_CUBE(obb1->sphere_radius + obb2->sphere_radius))
+    fer_real_t len = ferVec3Len2(&trtmp);
+    if (len > FER_CUBE(obb1->sphere_radius + obb2->sphere_radius))
         return 100;
 
     // compute rotation in obb1's frame
@@ -465,6 +486,13 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
     fer_cd_obb_pair_t *pair;
     fer_list_t *item1, *item2, *item;
     fer_cd_obb_t *o1, *o2;
+    fer_mat3_t rot, Rt;
+    fer_vec3_t tr, trtmp;
+
+    ferMat3Trans2(&Rt, rot1);
+    ferMat3Mul2(&rot, &Rt, rot2);
+    ferVec3Sub2(&trtmp, tr2, tr1);
+    ferMat3MulVec(&tr, &Rt, &trtmp);
 
     ferListInit(&fifo);
 
@@ -478,19 +506,16 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
         if (ferListEmpty(&pair->obb1->obbs)
                 && ferListEmpty(&pair->obb2->obbs)){
             // we have both leaf OBBs - call callback
-            if (!ferCDOBBDisjoint(pair->obb1, rot1, tr1,
-                                  pair->obb2, rot2, tr2)){
-                if (cb(pair->obb1, pair->obb2, data) == -1){
-                    free(pair);
-                    break;
-                }
+            if (cb(pair->obb1, pair->obb2, data) == -1){
+                free(pair);
+                break;
             }
         }else if (ferListEmpty(&pair->obb1->obbs)){
             // obb1 is leaf OBB, obb2 is not
             FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
                 o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                if (!ferCDOBBDisjoint(pair->obb1, rot1, tr1, o2, rot2, tr2)){
+                if (!ferCDOBBDisjointRel(pair->obb1, o2, &rot, &tr)){
                     __addPair(pair->obb1, o2, &fifo);
                 }
             }
@@ -499,7 +524,7 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
             FER_LIST_FOR_EACH(&pair->obb1->obbs, item1){
                 o1 = fer_container_of(item1, fer_cd_obb_t, list);
 
-                if (!ferCDOBBDisjoint(o1, rot1, tr1, pair->obb2, rot2, tr2)){
+                if (!ferCDOBBDisjointRel(o1, pair->obb2, &rot, &tr)){
                     __addPair(o1, pair->obb2, &fifo);
                 }
             }
@@ -511,7 +536,7 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
                 FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
                     o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                    if (!ferCDOBBDisjoint(o1, rot1, tr1, o2, rot2, tr2)){
+                    if (!ferCDOBBDisjointRel(o1, o2, &rot, &tr)){
                         __addPair(o1, o2, &fifo);
                     }
                 }
@@ -1426,6 +1451,7 @@ static void mergeFitSetCenterExtents(fer_cd_obb_t *obb, fer_list_t *obbs)
     ferVec3Set(&obb->half_extents, (max[0] - min[0]) * FER_REAL(0.5),
                                    (max[1] - min[1]) * FER_REAL(0.5),
                                    (max[2] - min[2]) * FER_REAL(0.5));
+    obb->sphere_radius = ferVec3Len(&obb->half_extents);
 }
 
 static int updateCHull(fer_cd_obb_t *obb, fer_chull3_t *hull)

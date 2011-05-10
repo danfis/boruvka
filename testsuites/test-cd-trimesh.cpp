@@ -7,20 +7,40 @@
 
 void testCD1(void);
 void testCD2(void);
+void testCD3(void);
 void testRapid1(void);
 void testRapid2(void);
+void testRapid3(void);
 
 
 int rapidCollide(RAPID_model *g1, RAPID_model *g2,
                  const fer_mat3_t *rot, const fer_vec3_t *tr);
 static int nextTrans(fer_mat3_t *rot, fer_vec3_t *tr, int *ret);
+static int nextTransBox(fer_mat3_t *rot, fer_vec3_t *tr, int *ret);
 
 int main(int argc, char *argv[])
 {
-    testCD1();
-    testCD2();
-    testRapid1();
-    testRapid2();
+    if (argc == 2){
+        if (strcmp(argv[1], "1") == 0){
+            testCD1();
+            testRapid1();
+        }else if (strcmp(argv[1], "2") == 0){
+            testCD2();
+            testRapid2();
+        }else if (strcmp(argv[1], "3") == 0){
+            testCD3();
+            testRapid3();
+        }
+    }else{
+        testCD1();
+        testRapid1();
+
+        testCD2();
+        testRapid2();
+
+        testCD3();
+        testRapid3();
+    }
 
     return 0;
 }
@@ -94,22 +114,25 @@ void testCD2(void)
     //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
     //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
     //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
-    //ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(5));
+    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(7));
 
     ferTimerStart(&timer);
-    g1 = ferCDGeomNew(cd);
-    ferCDGeomAddTrisFromRaw(cd, g1, "dragon.tri");
-    ferCDGeomBuild(cd, g1);
+    //g1 = ferCDGeomNew(cd);
+    //ferCDGeomAddTrisFromRaw(cd, g1, "dragon.tri");
+    //ferCDGeomBuild(cd, g1);
+    g1 = ferCDGeomLoad(cd, "dragon.geom");
     ferTimerStop(&timer);
     fprintf(stdout, "# testCD2 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
     fflush(stdout);
 
+    //ferCDGeomSave(cd, g1, "dragon.geom");
     //ferCDGeomDumpSVT(g1, stdout, "g1");
 
     ferTimerStart(&timer);
-    g2 = ferCDGeomNew(cd);
-    ferCDGeomAddTrisFromRaw(cd, g2, "dragon.tri");
-    ferCDGeomBuild(cd, g2);
+    //g2 = ferCDGeomNew(cd);
+    //ferCDGeomAddTrisFromRaw(cd, g2, "dragon.tri");
+    //ferCDGeomBuild(cd, g2);
+    g2 = ferCDGeomLoad(cd, "dragon.geom");
     ferTimerStop(&timer);
     fprintf(stdout, "# testCD2 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
 
@@ -133,6 +156,59 @@ void testCD2(void)
     ferCDDel(cd);
 
     fprintf(stdout, "# testCD2 :: overall_time: %lu\n", overall_time);
+}
+
+void testCD3(void)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g1, *g2;
+    fer_timer_t timer;
+    fer_mat3_t rot2;
+    fer_vec3_t tr2;
+    size_t i;
+    int ret, ret2;
+    unsigned long overall_time = 0L;
+
+    cd = ferCDNew();
+
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
+    //       FER_CD_FIT_CALIPERS_NUM_ROT(5));
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
+    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(7));
+
+    ferTimerStart(&timer);
+    g1 = ferCDGeomNew(cd);
+    ferCDGeomAddTrisFromRaw(cd, g1, "data-box1.tri");
+    ferCDGeomBuild(cd, g1);
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testCD3 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
+
+    ferTimerStart(&timer);
+    g2 = ferCDGeomNew(cd);
+    ferCDGeomAddTrisFromRaw(cd, g2, "data-box2.tri");
+    ferCDGeomBuild(cd, g2);
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testCD3 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
+
+    for (i = 0; nextTransBox(&rot2, &tr2, &ret2) == 0; i++){
+        ferCDGeomSetRot(cd, g2, &rot2);
+        ferCDGeomSetTr(cd, g2, &tr2);
+        ferTimerStart(&timer);
+
+        ret = ferCDGeomCollide(cd, g1, g2);
+        if (ret != ret2){
+            //fprintf(stdout, "# testCD3 :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+        }
+        ferTimerStop(&timer);
+        //fprintf(stdout, "# testCD3 :: Coll[%02d] %04lu - %d (%d)\n", i, ferTimerElapsedInUs(&timer), ret, ret2);
+        overall_time += ferTimerElapsedInUs(&timer);
+    }
+
+    ferCDGeomDel(cd, g1);
+    ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
+
+    fprintf(stdout, "# testCD3 :: overall_time: %lu\n", overall_time);
 }
 
 void testRapid1(void)
@@ -240,7 +316,7 @@ void testRapid2(void)
     ferTimerStop(&timer);
     fprintf(stdout, "# testRapid2 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
 
-    g2 = new RAPID_model;
+    ferTimerStart(&timer);
     g2 = rapidFromRaw("dragon.tri");
     ferTimerStop(&timer);
     fprintf(stdout, "# testRapid2 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
@@ -268,6 +344,52 @@ void testRapid2(void)
     fprintf(stdout, "# testRapid2 :: overall_time: %lu\n", overall_time);
 #else /* HAVE_RAPID */
     fprintf(stdout, "# testRapid2 :: No RAPID\n");
+#endif /* HAVE_RAPID */
+}
+
+void testRapid3(void)
+{
+#ifdef HAVE_RAPID
+    RAPID_model *g1, *g2;
+    size_t i;
+    fer_timer_t timer;
+    unsigned long overall_time = 0L;
+    fer_mat3_t rot2;
+    fer_vec3_t tr2;
+    int ret, ret2;
+
+    ferTimerStart(&timer);
+    g1 = rapidFromRaw("data-box1.tri");
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testRapid3 :: build g1: %lu\n", ferTimerElapsedInUs(&timer));
+
+    ferTimerStart(&timer);
+    g2 = rapidFromRaw("data-box2.tri");
+    ferTimerStop(&timer);
+    fprintf(stdout, "# testRapid3 :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
+
+
+    for (i = 0; nextTransBox(&rot2, &tr2, &ret2) == 0; i++){
+        ferTimerStart(&timer);
+
+        ret = rapidCollide(g1, g2, &rot2, &tr2);
+        //ferCDGeomDumpSVT(g1, stdout, "g1");
+        //ferCDGeomDumpSVT(g2, stdout, "g2");
+        if (ret != ret2){
+            //fprintf(stdout, "# testRapid3 :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+        }
+        ferTimerStop(&timer);
+        //fprintf(stdout, "# testRapid3 :: Coll[%02d] %04lu - %d (%d)\n", i, ferTimerElapsedInUs(&timer), ret, ret2);
+        overall_time += ferTimerElapsedInUs(&timer);
+    }
+
+
+    delete g1;
+    delete g2;
+
+    fprintf(stdout, "# testRapid3 :: overall_time: %lu\n", overall_time);
+#else /* HAVE_RAPID */
+    fprintf(stdout, "# testRapid3 :: No RAPID\n");
 #endif /* HAVE_RAPID */
 }
 
@@ -331,6 +453,28 @@ static int nextTrans(fer_mat3_t *rot, fer_vec3_t *tr, int *ret)
         c = 0;
         fclose(transin);
         transin = NULL;
+        return -1;
+    }
+}
+
+static FILE *transin_box = NULL;
+static int nextTransBox(fer_mat3_t *rot, fer_vec3_t *tr, int *ret)
+{
+    float x, y, z, w, p, r;
+    static int c = 0;
+
+    c++;
+    if (!transin_box)
+        transin_box = fopen("data-test-cd-trimesh-box.trans.txt", "r");
+
+    if (fscanf(transin_box, "%f %f %f %f %f %f %d", &x, &y, &z, &w, &p, &r, ret) == 7){
+        ferMat3SetRot3D(rot, w, p, r);
+        ferVec3Set(tr, x, y, z);
+        return 0;
+    }else{
+        c = 0;
+        fclose(transin_box);
+        transin_box = NULL;
         return -1;
     }
 }
