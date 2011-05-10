@@ -744,15 +744,15 @@ _fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
                                         const fer_vec3_t *row3)
 {
     d->f[0]  = ferMat3DotCol(a, 0, row1);
-    d->f[1]  = ferMat3DotCol(a, 1, row2);
-    d->f[2]  = ferMat3DotCol(a, 2, row3);
+    d->f[1]  = ferMat3DotCol(a, 1, row1);
+    d->f[2]  = ferMat3DotCol(a, 2, row1);
 
-    d->f[4]  = ferMat3DotCol(a, 0, row1);
+    d->f[4]  = ferMat3DotCol(a, 0, row2);
     d->f[5]  = ferMat3DotCol(a, 1, row2);
-    d->f[6]  = ferMat3DotCol(a, 2, row3);
+    d->f[6]  = ferMat3DotCol(a, 2, row2);
 
-    d->f[8]  = ferMat3DotCol(a, 0, row1);
-    d->f[9]  = ferMat3DotCol(a, 1, row2);
+    d->f[8]  = ferMat3DotCol(a, 0, row3);
+    d->f[9]  = ferMat3DotCol(a, 1, row3);
     d->f[10] = ferMat3DotCol(a, 2, row3);
 }
 

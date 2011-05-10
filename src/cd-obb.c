@@ -378,6 +378,92 @@ int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1, const fer_cd_obb_t *obb2,
     return __ferCDOBBDisjoint(obb1, obb2, &rot, &tr);
 }
 
+_fer_inline int ferCDOBBDisjointRelOBB1(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
+                                        const fer_mat3_t *rot, const fer_vec3_t *tr,
+                                        const fer_mat3_t *R, const fer_vec3_t *T)
+{
+    /*
+      It is expected that T and R are:
+        ferVec3Sub2(&T, &tr, &o1->center);
+        ferMat3MulLeftRowVecs2(&R, &rot, &o1->axis[0],
+                                         &o1->axis[1],
+                                         &o1->axis[2]);
+    */
+
+    fer_vec3_t trtmp, T2;
+    fer_mat3_t R2;
+    fer_real_t len, len2;
+
+    ferMat3MulVec(&trtmp, rot, &o2->center);
+    ferVec3Add(&trtmp, T);
+
+    if (o1->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)o1)->sphere_radius = ferVec3Len(&o1->half_extents);
+    if (o2->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)o2)->sphere_radius = ferVec3Len(&o2->half_extents);
+
+    // perform bounding sphere test - for early quit
+    len   = ferVec3Len2(&trtmp);
+    len2  = o1->sphere_radius + o2->sphere_radius;
+    len2 *= len2;
+    if (len > len2){
+        return 100;
+    }
+
+    ferMat3MulColVecs2(&R2, R, &o2->axis[0], &o2->axis[1], &o2->axis[2]);
+
+    ferVec3Set(&T2, ferVec3Dot(&o1->axis[0], &trtmp),
+                    ferVec3Dot(&o1->axis[1], &trtmp),
+                    ferVec3Dot(&o1->axis[2], &trtmp));
+
+    return __ferCDOBBDisjoint(o1, o2, &R2, &T2);
+}
+
+_fer_inline int ferCDOBBDisjointRelOBB2(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
+                                        const fer_mat3_t *rot, const fer_vec3_t *tr,
+                                        const fer_mat3_t *R, const fer_vec3_t *T)
+{
+    /*
+      It is expected that T and R are:
+        ferMat3MulVec(&T, rot, &o2->center);
+        ferVec3Add(&T, tr);
+
+        ferMat3MulColVecs2(&R, rot, &o2->axis[0], &o2->axis[1], &o2->axis[2]);
+
+    */
+    fer_mat3_t R2;
+    fer_vec3_t T2, trtmp;
+    fer_real_t len, len2;
+
+    // tr = A1^t (R . c2 - c1 + T)
+    ferVec3Sub2(&trtmp, T, &o1->center);
+
+    if (o1->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)o1)->sphere_radius = ferVec3Len(&o1->half_extents);
+    if (o2->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)o2)->sphere_radius = ferVec3Len(&o2->half_extents);
+
+    // perform bounding sphere test - for early quit
+    len   = ferVec3Len2(&trtmp);
+    len2  = o1->sphere_radius + o2->sphere_radius;
+    len2 *= len2;
+    if (len > len2)
+        return 100;
+
+
+    // rot = A1^t . R . A2
+    //    where A is matrix of columns corresponding to each axis
+    ferMat3MulLeftRowVecs2(&R2, R, &o1->axis[0], &o1->axis[1], &o1->axis[2]);
+
+
+    // finish computing translation
+    ferVec3Set(&T2, ferVec3Dot(&o1->axis[0], &trtmp),
+                    ferVec3Dot(&o1->axis[1], &trtmp),
+                    ferVec3Dot(&o1->axis[2], &trtmp));
+
+    return __ferCDOBBDisjoint(o1, o2, &R2, &T2);
+}
+
 int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
                      const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                      const fer_cd_obb_t *obb2,
@@ -486,8 +572,8 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
     fer_cd_obb_pair_t *pair;
     fer_list_t *item1, *item2, *item;
     fer_cd_obb_t *o1, *o2;
-    fer_mat3_t rot, Rt;
-    fer_vec3_t tr, trtmp;
+    fer_mat3_t rot, Rt, R;
+    fer_vec3_t tr, trtmp, T;
 
     ferMat3Trans2(&Rt, rot1);
     ferMat3Mul2(&rot, &Rt, rot2);
@@ -512,19 +598,33 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
             }
         }else if (ferListEmpty(&pair->obb1->obbs)){
             // obb1 is leaf OBB, obb2 is not
+
+            ferVec3Sub2(&T, &tr, &pair->obb1->center);
+            ferMat3MulLeftRowVecs2(&R, &rot, &pair->obb1->axis[0],
+                                             &pair->obb1->axis[1],
+                                             &pair->obb1->axis[2]);
+
             FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
                 o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                if (!ferCDOBBDisjointRel(pair->obb1, o2, &rot, &tr)){
+                if (!ferCDOBBDisjointRelOBB1(pair->obb1, o2, &rot, &tr, &R, &T)){
                     __addPair(pair->obb1, o2, &fifo);
                 }
             }
         }else if (ferListEmpty(&pair->obb2->obbs)){
             // obb2 is leaf OBB, obb1 is not
+
+            ferMat3MulVec(&T, &rot, &pair->obb2->center);
+            ferVec3Add(&T, &tr);
+
+            ferMat3MulColVecs2(&R, &rot, &pair->obb2->axis[0],
+                                         &pair->obb2->axis[1],
+                                         &pair->obb2->axis[2]);
+
             FER_LIST_FOR_EACH(&pair->obb1->obbs, item1){
                 o1 = fer_container_of(item1, fer_cd_obb_t, list);
 
-                if (!ferCDOBBDisjointRel(o1, pair->obb2, &rot, &tr)){
+                if (!ferCDOBBDisjointRelOBB2(o1, pair->obb2, &rot, &tr, &R, &T)){
                     __addPair(o1, pair->obb2, &fifo);
                 }
             }
@@ -533,10 +633,13 @@ void ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
             FER_LIST_FOR_EACH(&pair->obb1->obbs, item1){
                 o1 = fer_container_of(item1, fer_cd_obb_t, list);
 
+                ferVec3Sub2(&T, &tr, &o1->center);
+                ferMat3MulLeftRowVecs2(&R, &rot, &o1->axis[0], &o1->axis[1], &o1->axis[2]);
+
                 FER_LIST_FOR_EACH(&pair->obb2->obbs, item2){
                     o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-                    if (!ferCDOBBDisjointRel(o1, o2, &rot, &tr)){
+                    if (!ferCDOBBDisjointRelOBB1(o1, o2, &rot, &tr, &R, &T)){
                         __addPair(o1, o2, &fifo);
                     }
                 }
