@@ -5,6 +5,7 @@
 TEST(cdOBBNew);
 TEST(cdOBBNew2);
 TEST(cdOBBNew3);
+TEST(cdGeomNew);
 TEST(cdOBBCollide);
 
 TEST(cdCollideTriMesh);
@@ -15,6 +16,7 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
     TEST_ADD(cdOBBNew2),
     TEST_ADD(cdOBBNew3),
+    TEST_ADD(cdGeomNew),
     TEST_ADD(cdOBBCollide),
 
     TEST_ADD(cdCollideTriMesh),

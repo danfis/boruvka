@@ -11,6 +11,26 @@ static void prv(const char *prefix, const fer_vec3_t *v)
     fprintf(stdout, "\n");
 }
 
+static int checkSaveLoad(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    fer_cd_geom_t *g2;
+    static int call = 0;
+    char name[120];
+
+    call++;
+
+    sprintf(name, "regressions/tmp.TSCD.geom.%03d.out", call);
+    ferCDGeomSave(cd, g, name);
+    g2 = ferCDGeomLoad(cd, name);
+    if (!g2)
+        return -1;
+    sprintf(name, "regressions/TSCD.geom.%03d.out", call);
+    ferCDGeomSave(cd, g2, name);
+    ferCDGeomDel(cd, g2);
+
+    return 0;
+}
+
 /*
 static void prCDOBBTri(fer_real_t x0, fer_real_t y0, fer_real_t z0,
                        fer_real_t x1, fer_real_t y1, fer_real_t z1,
@@ -243,6 +263,46 @@ TEST(cdOBBNew3)
     ferCDOBBDel(obb);
 }
 
+TEST(cdGeomNew)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g;
+    fer_mat3_t rot;
+    fer_vec3_t tr;
+
+    cd = ferCDNew();
+    g = ferCDGeomNew(cd);
+
+
+    ferCDGeomAddSphere(cd, g, 0.2);
+
+    ferVec3Set(&tr, 0, 0.5, 0);
+    ferCDGeomAddSphere2(cd, g, 0.2, &tr);
+
+    ferMat3SetRot3D(&rot, 0, M_PI_4, 0);
+    ferVec3Set(&tr, 0.1, 0.1, 0.1);
+    ferCDGeomAddBox2(cd, g, 0.1, 0.3, 0.2, &rot, &tr);
+
+    ferMat3SetRot3D(&rot, -M_PI_4, M_PI_4, 0);
+    ferVec3Set(&tr, -0.1, 0.2, -0.1);
+    ferCDGeomAddBox2(cd, g, 0.1, 0.2, 0.5, &rot, &tr);
+
+    ferMat3SetRot3D(&rot, 0, -M_PI_4, M_PI_4);
+    ferVec3Set(&tr, -0.1, -0.1, -0.1);
+    ferCDGeomAddCyl2(cd, g, 0.05, 0.3, &rot, &tr);
+
+    ferMat3SetRot3D(&rot, M_PI_4, 0, 0);
+    ferVec3Set(&tr, -0.2, 0.2, 0.2);
+    ferCDGeomAddCyl2(cd, g, 0.1, 0.2, &rot, &tr);
+
+    ferCDGeomBuild(cd, g);
+
+    assertEquals(checkSaveLoad(cd, g), 0);
+
+    ferCDGeomDel(cd, g);
+    ferCDDel(cd);
+}
+
 
 TEST(cdOBBCollide)
 {
@@ -426,6 +486,9 @@ TEST(cdCollideTriMesh)
     DBG("ret: %d", ret);
     */
 
+    assertEquals(checkSaveLoad(cd, g1), 0);
+    assertEquals(checkSaveLoad(cd, g2), 0);
+
 
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);
@@ -504,6 +567,9 @@ TEST(cdCollideTriMesh2)
     DBG("ret: %d", ret);
     */
 
+    assertEquals(checkSaveLoad(cd, g1), 0);
+    assertEquals(checkSaveLoad(cd, g2), 0);
+
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);
     ferCDDel(cd);
@@ -578,6 +644,9 @@ TEST(cdCollideSphere)
     //ferCDGeomDumpSVT(g1, stdout, "g1");
     //ferCDGeomDumpSVT(g2, stdout, "g2");
     //DBG("ret: %d", ret);
+
+    assertEquals(checkSaveLoad(cd, g1), 0);
+    assertEquals(checkSaveLoad(cd, g2), 0);
 
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);

@@ -395,7 +395,7 @@ static fer_cd_shape_t *_parseShape(char **fstr, char *fend)
 
         shape = (fer_cd_shape_t *)ferCDCylNew(f[0], f[1]);
     }else if (*fstr + 6 < fend && strncmp(*fstr, "sphere", 6) == 0){
-        *fstr += 3;
+        *fstr += 6;
         if (ferParseReal(*fstr, fend, &f[0], &fnext) != 0)
             return NULL;
         *fstr = fnext;
