@@ -143,6 +143,7 @@ fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename);
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
+void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 
 
 /**** INLINES ****/

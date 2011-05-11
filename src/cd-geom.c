@@ -267,3 +267,70 @@ void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
         ferCDOBBDumpTreeSVT(obb, out, name, &g->rot, &g->tr);
     }
 }
+
+static size_t _ferCDGeomDumpTriSVT(const fer_cd_obb_t *obb, FILE *out,
+                                   const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    fer_cd_tri_t *t;
+    fer_vec3_t v, T;
+    fer_mat3_t R;
+    size_t s = 0;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->shape && (obb->shape->cl->type == FER_CD_SHAPE_TRI
+                            || obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI)){
+            t = (fer_cd_tri_t *)obb->shape;
+
+            ferMat3MulVec(&v, rot, t->p0);
+            ferVec3Add(&v, tr);
+            ferVec3Print(&v, out);
+            fprintf(out, "\n");
+
+            ferMat3MulVec(&v, rot, t->p1);
+            ferVec3Add(&v, tr);
+            ferVec3Print(&v, out);
+            fprintf(out, "\n");
+
+            ferMat3MulVec(&v, rot, t->p2);
+            ferVec3Add(&v, tr);
+            ferVec3Print(&v, out);
+            fprintf(out, "\n");
+            s += 3;
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            s += _ferCDGeomDumpTriSVT(o, out, rot, tr);
+        }
+    }
+
+    return s;
+}
+
+void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *obb;
+    size_t numpts, i;
+
+    fprintf(out, "-----\n");
+
+    if (name)
+        fprintf(out, "Name: %s\n", name);
+
+    numpts = 0;
+    fprintf(out, "Points:\n");
+    FER_LIST_FOR_EACH(&g->obbs, item){
+        obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        numpts = _ferCDGeomDumpTriSVT(obb, out, &g->rot, &g->tr);
+    }
+
+    fprintf(out, "Faces:\n");
+    for (i = 0; i < numpts; i += 3){
+        fprintf(out, "%u %u %u\n", i, i + 1, i + 2);
+    }
+
+    fprintf(out, "-----\n");
+}
