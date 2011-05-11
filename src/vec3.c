@@ -542,6 +542,7 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
     ferVec3Sub2(&v1, p2, r2);
     ferVec3Sub2(&v2, q2, r2);
     ferVec3Cross(&n2, &v1, &v2);
+    ferVec3Normalize(&n2);
 
     ferVec3Sub2(&v1, p1, r2);
     sp1 = ferVec3Dot(&v1, &n2);
@@ -560,6 +561,7 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
     ferVec3Sub2(&v1, q1, p1);
     ferVec3Sub2(&v2, r1, p1);
     ferVec3Cross(&n1, &v1, &v2);
+    ferVec3Normalize(&n1);
 
     ferVec3Sub2(&v1, p2, r1);
     sp2 = ferVec3Dot(&v1, &n1);
