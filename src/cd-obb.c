@@ -588,6 +588,11 @@ static int _ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
     fer_mat3_t R;
     int ret;
 
+    if (obb1->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb1)->sphere_radius = ferVec3Len(&obb1->half_extents);
+    if (obb2->sphere_radius < FER_ZERO)
+        ((fer_cd_obb_t *)obb2)->sphere_radius = ferVec3Len(&obb2->half_extents);
+
     if (rot1 != NULL){
         if (ferCDOBBDisjointRelOBB1(obb1, obb2, rot, tr, rot1, tr1)){
             return 0;
@@ -607,51 +612,49 @@ static int _ferCDOBBOverlapPairsCB(const fer_cd_obb_t *obb1,
         if (cb(obb1, obb2, data) == -1){
             return -1;
         }
-    }else if (ferListEmpty(&obb1->obbs)){
-        // obb1 is leaf OBB, obb2 is not
+    }else if (ferListEmpty(&obb1->obbs)
+                || (!ferListEmpty(&obb2->obbs)
+                        && (obb2->sphere_radius > obb1->sphere_radius))){
+        // obb1 is leaf or neither obb1 nor obb2 are leafs and obb2 is
+        // bigger
+        // step down to obb2's children
 
-        ferVec3Sub2(&T, tr, &obb1->center);
-        ferMat3MulLeftRowVecs2(&R, rot, &obb1->axis[0],
-                                        &obb1->axis[1],
-                                        &obb1->axis[2]);
+        if (rot1 == NULL){
+            ferVec3Sub2(&T, tr, &obb1->center);
+            ferMat3MulLeftRowVecs2(&R, rot, &obb1->axis[0],
+                                            &obb1->axis[1],
+                                            &obb1->axis[2]);
+            rot1 = &R;
+            tr1  = &T;
+        }
 
         FER_LIST_FOR_EACH(&obb2->obbs, item2){
             o2 = fer_container_of(item2, fer_cd_obb_t, list);
 
-            ret = _ferCDOBBOverlapPairsCB(obb1, o2, rot, tr, cb, data, &R, &T, NULL, NULL);
-            if (ret == -1)
-                return -1;
-        }
-    }else if (ferListEmpty(&obb2->obbs)){
-        // obb2 is leaf OBB, obb1 is not
-
-        ferMat3MulVec(&T, rot, &obb2->center);
-        ferVec3Add(&T, tr);
-
-        ferMat3MulColVecs2(&R, rot, &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
-
-        FER_LIST_FOR_EACH(&obb1->obbs, item1){
-            o1 = fer_container_of(item1, fer_cd_obb_t, list);
-
-            ret = _ferCDOBBOverlapPairsCB(o1, obb2, rot, tr, cb, data, NULL, NULL, &R, &T);
+            ret = _ferCDOBBOverlapPairsCB(obb1, o2, rot, tr, cb, data, rot1, tr1, NULL, NULL);
             if (ret == -1)
                 return -1;
         }
     }else{
-        // obb1 nor obb2 are leaf CDOBBs
+        // obb2 is leaf OBB or neither obb1 nor obb2 are leafs and obb1 is
+        // bigger
+        // step down to obb1
+
+        if (rot2 == NULL){
+            ferMat3MulVec(&T, rot, &obb2->center);
+            ferVec3Add(&T, tr);
+
+            ferMat3MulColVecs2(&R, rot, &obb2->axis[0], &obb2->axis[1], &obb2->axis[2]);
+            rot2 = &R;
+            tr2  = &T;
+        }
+
         FER_LIST_FOR_EACH(&obb1->obbs, item1){
             o1 = fer_container_of(item1, fer_cd_obb_t, list);
 
-            ferVec3Sub2(&T, tr, &o1->center);
-            ferMat3MulLeftRowVecs2(&R, rot, &o1->axis[0], &o1->axis[1], &o1->axis[2]);
-
-            FER_LIST_FOR_EACH(&obb2->obbs, item2){
-                o2 = fer_container_of(item2, fer_cd_obb_t, list);
-
-                ret = _ferCDOBBOverlapPairsCB(o1, o2, rot, tr, cb, data, &R, &T, NULL, NULL);
-                if (ret == -1)
-                    return -1;
-            }
+            ret = _ferCDOBBOverlapPairsCB(o1, obb2, rot, tr, cb, data, NULL, NULL, rot2, tr2);
+            if (ret == -1)
+                return -1;
         }
     }
 
