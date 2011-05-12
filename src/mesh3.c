@@ -46,7 +46,7 @@ fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
 
     FER_LIST_FOR_EACH(&v1->edges, item){
         mitem = ferListMFromList(item);
-        e = FER_LIST_ENTRY(item, fer_mesh3_edge_t, vlist[mitem->mark]);
+        e = FER_LIST_M_ENTRY(item, fer_mesh3_edge_t, vlist, mitem->mark);
         if (v2 == ferMesh3EdgeVertex(e, 0)
                 || v2 == ferMesh3EdgeVertex(e, 1)){
             return e;

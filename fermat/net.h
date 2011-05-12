@@ -305,7 +305,7 @@ _fer_inline fer_net_edge_t *ferNetEdgeFromNodeList(fer_list_t *l)
     fer_net_edge_t *e;
 
     m = ferListMFromList(l);
-    e = FER_LIST_ENTRY(l, fer_net_edge_t, nlist[m->mark]);
+    e = FER_LIST_M_ENTRY(l, fer_net_edge_t, nlist, m->mark);
 
     return e;
 }

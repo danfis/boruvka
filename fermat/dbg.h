@@ -37,7 +37,7 @@
 #endif
 
 # define DBG(format, ...) do { \
-    fprintf(stderr, DBG_PROLOGUE "%s :: " format "\n", __func__, ## __VA_ARGS__); \
+    fprintf(stderr, DBG_PROLOGUE "%s :: " format "\n", __func__, __VA_ARGS__); \
     fflush(stderr); \
     } while (0)
 
@@ -55,7 +55,7 @@
     } while (0)
 
 # define ERR(format, ...) do { \
-    fprintf(stderr, ERR_PROLOGUE format "\n", ## __VA_ARGS__); \
+    fprintf(stderr, ERR_PROLOGUE format "\n", __VA_ARGS__); \
     fflush(stderr); \
     } while (0)
 
