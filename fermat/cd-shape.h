@@ -76,6 +76,18 @@ typedef int (*fer_cd_shape_update_chull_fn)(const struct _fer_cd_shape_t *shape,
                                             const fer_vec3_t *tr);
 
 /**
+ * Updates covariance matrix {cov}, weighted center {wcenter}, {area} of
+ * element and number of elements {num}.
+ */
+typedef void (*fer_cd_shape_update_cov_fn)(const struct _fer_cd_shape_t *shape,
+                                           const fer_mat3_t *rot,
+                                           const fer_vec3_t *tr,
+                                           fer_vec3_t *wcenter,
+                                           fer_mat3_t *cov,
+                                           fer_real_t *area,
+                                           int *num);
+                                                 
+/**
  * Dump shape in SVT format
  */
 typedef void (*fer_cd_shape_dump_svt_fn)(const struct _fer_cd_shape_t *shape,
@@ -93,6 +105,7 @@ struct _fer_cd_shape_class_t {
     fer_cd_shape_fit_obb_fn fit_obb;
     fer_cd_shape_update_chull_fn update_chull;
     fer_cd_shape_update_minmax_fn update_minmax;
+    fer_cd_shape_update_cov_fn update_cov;
     fer_cd_shape_dump_svt_fn dump_svt;
 };
 typedef struct _fer_cd_shape_class_t fer_cd_shape_class_t;
@@ -105,6 +118,13 @@ struct _fer_cd_shape_t {
     fer_cd_shape_class_t *cl;
 };
 typedef struct _fer_cd_shape_t fer_cd_shape_t;
+
+
+void ferCDShapeUpdateCovTri(const fer_vec3_t *_p, const fer_vec3_t *_q,
+                            const fer_vec3_t *_r,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            fer_vec3_t *wcenter, fer_mat3_t *cov,
+                            fer_real_t *area, int *num);
 
 /**
  * Shape with set offset
@@ -150,6 +170,10 @@ void ferCDShapeOffUpdateMinMax(const fer_cd_shape_off_t *s, const fer_vec3_t *ax
                                const fer_mat3_t *rot, const fer_vec3_t *tr,
                                fer_real_t *min, fer_real_t *max);
 
+void ferCDShapeOffUpdateCov(const fer_cd_shape_off_t *s,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            fer_vec3_t *wcenter, fer_mat3_t *cov,
+                            fer_real_t *area, int *num);
 
 void ferCDShapeOffDumpSVT(const fer_cd_shape_off_t *s,
                           FILE *out, const char *name,

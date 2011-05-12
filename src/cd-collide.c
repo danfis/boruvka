@@ -63,6 +63,20 @@ int ferCDCollideTriTri(struct _fer_cd_t *cd,
     */
 
     return ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    /*
+    if (ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2)){
+        printf("----\nFace color: 1 0 0\nPoints:\n");
+        ferVec3Print(&p1, stdout); printf("\n");
+        ferVec3Print(&q1, stdout); printf("\n");
+        ferVec3Print(&r1, stdout); printf("\n");
+        ferVec3Print(&p2, stdout); printf("\n");
+        ferVec3Print(&q2, stdout); printf("\n");
+        ferVec3Print(&r2, stdout); printf("\n");
+        printf("Faces:\n0 1 2\n3 4 5\n--\n");
+        return 1;
+    }
+    return 0;
+    */
 }
 
 int ferCDCollideOffOff(struct _fer_cd_t *cd,

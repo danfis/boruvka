@@ -33,6 +33,7 @@ static fer_cd_shape_class_t shape_tri = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDTriUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriDumpSVT
 };
 
@@ -44,6 +45,7 @@ static fer_cd_shape_class_t shape_trimesh_tri = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDTriUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriDumpSVT
 };
 
@@ -55,6 +57,7 @@ static fer_cd_shape_class_t shape = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDTriMeshFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDTriMeshUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDTriMeshUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDTriMeshUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDTriMeshDumpSVT
 };
 
@@ -437,6 +440,30 @@ void ferCDTriMeshUpdateMinMax(const fer_cd_trimesh_t *t,
             *min = m;
         if (m > *max)
             *max = m;
+    }
+}
+
+
+void ferCDTriUpdateCov(const fer_cd_tri_t *t,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num)
+{
+    ferCDShapeUpdateCovTri(t->p0, t->p1, t->p2, rot, tr, wcenter, cov, area, num);
+}
+
+void ferCDTriMeshUpdateCov(const fer_cd_trimesh_t *t,
+                           const fer_mat3_t *rot, const fer_vec3_t *tr,
+                           fer_vec3_t *wcenter, fer_mat3_t *cov,
+                           fer_real_t *area, int *num)
+{
+    size_t i;
+
+    for (i = 0; i < t->len; i++){
+        ferCDShapeUpdateCovTri(&t->pts[t->ids[3 * i + 0]],
+                               &t->pts[t->ids[3 * i + 1]],
+                               &t->pts[t->ids[3 * i + 2]],
+                               rot, tr, wcenter, cov, area, num);
     }
 }
 

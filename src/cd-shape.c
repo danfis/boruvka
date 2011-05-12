@@ -31,8 +31,70 @@ static fer_cd_shape_class_t shape_off = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDShapeOffFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDShapeOffUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDShapeOffUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDShapeOffUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDShapeOffDumpSVT
 };
+
+
+void ferCDShapeUpdateCovTri(const fer_vec3_t *_p, const fer_vec3_t *_q,
+                            const fer_vec3_t *_r,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            fer_vec3_t *wcenter, fer_mat3_t *cov,
+                            fer_real_t *area, int *num)
+{
+    fer_vec3_t p, q, r, pq, qr, cross, center;
+    fer_real_t A, val, val2;
+    int i, j;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    ferMat3MulVec(&p, rot, _p);
+    ferVec3Add(&p, tr);
+    ferMat3MulVec(&q, rot, _q);
+    ferVec3Add(&q, tr);
+    ferMat3MulVec(&r, rot, _r);
+    ferVec3Add(&r, tr);
+
+    ferVec3Sub2(&pq, &p, &q);
+    ferVec3Sub2(&qr, &q, &r);
+    ferVec3Cross(&cross, &pq, &qr);
+
+    // compute area
+    A = FER_REAL(0.5) * ferVec3Len(&cross);
+
+    // compute center
+    ferVec3Add2(&center, &p, &q);
+    ferVec3Add(&center, &r);
+    ferVec3Scale(&center, ferRecp(FER_REAL(3.)));
+
+    // update covariance matrix
+    for (i = 0; i < 3; i++){
+        for (j = 0; j < 3; j++){
+            val  = FER_REAL(9.) * ferVec3Get(&center, i) * ferVec3Get(&center, j);
+            val += ferVec3Get(&p, i) * ferVec3Get(&p, j);
+            val += ferVec3Get(&q, i) * ferVec3Get(&q, j);
+            val += ferVec3Get(&r, i) * ferVec3Get(&r, j);
+            val *= ferRecp(FER_REAL(12.)) * A;
+
+            val2 = ferMat3Get(cov, i, j);
+            ferMat3Set1(cov, i, j, val + val2);
+        }
+    }
+
+    // update weighted center
+    ferVec3Scale(&center, A);
+    ferVec3Add(wcenter, &center);
+
+    // update area
+    *area += A;
+
+    // update num
+    *num += 1;
+}
+
 
 fer_cd_shape_off_t *ferCDShapeOffNew(fer_cd_shape_t *shape,
                                      const fer_mat3_t *rot,
@@ -136,6 +198,22 @@ void ferCDShapeOffUpdateMinMax(const fer_cd_shape_off_t *s, const fer_vec3_t *ax
     setRotTr(s, _rot, _tr, &rot2, &tr2, &rot, &tr);
 
     s->shape->cl->update_minmax(s->shape, axis, rot, tr, min, max);
+}
+
+void ferCDShapeOffUpdateCov(const fer_cd_shape_off_t *s,
+                            const fer_mat3_t *_rot, const fer_vec3_t *_tr,
+                            fer_vec3_t *wcenter, fer_mat3_t *cov,
+                            fer_real_t *area, int *num)
+{
+    fer_mat3_t *rot, rot2;
+    fer_vec3_t *tr, tr2;
+
+    if (!s->shape->cl->update_cov)
+        return;
+
+    setRotTr(s, _rot, _tr, &rot2, &tr2, &rot, &tr);
+
+    s->shape->cl->update_cov(s->shape, rot, tr, wcenter, cov, area, num);
 }
 
 

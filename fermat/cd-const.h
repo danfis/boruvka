@@ -77,6 +77,8 @@
 #define FER_CD_FIT_NAIVE_NUM_ROT(num_rot) ((num_rot & 0xFF) << 8)
 
 
+#define FER_CD_FIT_COVARIANCE_FAST (4 << 1)
+
 
 
 /**** INTERNAL ****/
@@ -84,11 +86,13 @@
 #define __FER_CD_TOP_DOWN(flags)  ((flags & 0x1) == FER_CD_TOP_DOWN)
 #define __FER_CD_BOTTOM_UP(flags) ((flags & 0x1) == FER_CD_BOTTOM_UP)
 
-#define __FER_CD_FIT_COVARIANCE(flags) ((flags & 0x6) == FER_CD_FIT_COVARIANCE)
-#define __FER_CD_FIT_CALIPERS(flags) ((flags & 0x6) == FER_CD_FIT_CALIPERS)
+#define __FER_CD_FIT_COVARIANCE(flags) ((flags & 0xE) == FER_CD_FIT_COVARIANCE)
+#define __FER_CD_FIT_CALIPERS(flags) ((flags & 0xE) == FER_CD_FIT_CALIPERS)
 #define __FER_CD_FIT_POLYHEDRAL_MASS(flags) \
-    ((flags & 0x6) == FER_CD_FIT_POLYHEDRAL_MASS)
-#define __FER_CD_FIT_NAIVE(flags) ((flags & 0x6) == FER_CD_FIT_NAIVE)
+    ((flags & 0xE) == FER_CD_FIT_POLYHEDRAL_MASS)
+#define __FER_CD_FIT_NAIVE(flags) ((flags & 0xE) == FER_CD_FIT_NAIVE)
+#define __FER_CD_FIT_COVARIANCE_FAST(flags) \
+    ((flags & 0xE) == FER_CD_FIT_COVARIANCE_FAST)
 
 
 /*** Expands to number of rotations ***/

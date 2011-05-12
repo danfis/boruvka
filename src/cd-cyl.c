@@ -26,6 +26,7 @@ static fer_cd_shape_class_t shape = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDCylFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDCylUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDCylUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDCylUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDCylDumpSVT
 };
 
@@ -147,6 +148,35 @@ void ferCDCylUpdateMinMax(const fer_cd_cyl_t *c, const fer_vec3_t *_axis,
         *max = m;
 }
 
+void ferCDCylUpdateCov(const fer_cd_cyl_t *s,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num)
+{
+    fer_real_t A, val, val2;
+    fer_vec3_t center;
+    int i, j;
+
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    A = s->radius * s->radius * M_PI * FER_REAL(2.) * s->half_height;
+
+    ferVec3Scale2(&center, tr, A);
+
+    // update covariance matrix
+    for (i = 0; i < 3; i++){
+        for (j = 0; j < 3; j++){
+            val  = A * ferVec3Get(&center, i) * ferVec3Get(&center, j);
+            val2 = ferMat3Get(cov, i, j);
+            ferMat3Set1(cov, i, j, val + val2);
+        }
+    }
+
+    ferVec3Add(wcenter, &center);
+    *area += A;
+    *num += 1;
+}
 
 void ferCDCylDumpSVT(const fer_cd_cyl_t *c,
                      FILE *out, const char *name,

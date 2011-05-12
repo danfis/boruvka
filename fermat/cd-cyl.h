@@ -57,6 +57,11 @@ void ferCDCylFitOBB(const fer_cd_cyl_t *c,
 int ferCDCylUpdateCHull(const fer_cd_cyl_t *c, fer_chull3_t *chull,
                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
+void ferCDCylUpdateCov(const fer_cd_cyl_t *s,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num);
+
 void ferCDCylUpdateMinMax(const fer_cd_cyl_t *c, const fer_vec3_t *axis,
                           const fer_mat3_t *rot, const fer_vec3_t *tr,
                           fer_real_t *min, fer_real_t *max);

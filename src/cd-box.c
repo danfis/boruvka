@@ -32,6 +32,7 @@ static fer_cd_shape_class_t shape = {
     .fit_obb       = (fer_cd_shape_fit_obb_fn)ferCDBoxFitOBB,
     .update_chull  = (fer_cd_shape_update_chull_fn)ferCDBoxUpdateCHull,
     .update_minmax = (fer_cd_shape_update_minmax_fn)ferCDBoxUpdateMinMax,
+    .update_cov    = (fer_cd_shape_update_cov_fn)ferCDBoxUpdateCov,
     .dump_svt      = (fer_cd_shape_dump_svt_fn)ferCDBoxDumpSVT
 };
 
@@ -127,6 +128,34 @@ void ferCDBoxUpdateMinMax(const fer_cd_box_t *b, const fer_vec3_t *axis,
         if (m > *max)
             *max = m;
     }
+}
+
+void ferCDBoxUpdateCov(const fer_cd_box_t *s,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num)
+{
+    fer_vec3_t c[8];
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
+    getCorners(s, rot, tr, c);
+
+    ferCDShapeUpdateCovTri(&c[0], &c[1], &c[2], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[1], &c[2], &c[3], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[0], &c[1], &c[4], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[1], &c[4], &c[4], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[0], &c[2], &c[6], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[0], &c[6], &c[4], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[4], &c[5], &c[6], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[5], &c[6], &c[7], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[1], &c[3], &c[7], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[1], &c[7], &c[5], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[2], &c[3], &c[7], rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(&c[2], &c[7], &c[6], rot, tr, wcenter, cov, area, num);
 }
 
 void ferCDBoxDumpSVT(const fer_cd_box_t *b,

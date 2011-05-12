@@ -130,6 +130,15 @@ void ferCDTriMeshUpdateMinMax(const fer_cd_trimesh_t *t,
                               const fer_mat3_t *rot, const fer_vec3_t *tr,
                               fer_real_t *min, fer_real_t *max);
 
+void ferCDTriUpdateCov(const fer_cd_tri_t *t,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num);
+void ferCDTriMeshUpdateCov(const fer_cd_trimesh_t *t,
+                           const fer_mat3_t *rot, const fer_vec3_t *tr,
+                           fer_vec3_t *wcenter, fer_mat3_t *cov,
+                           fer_real_t *area, int *num);
+
 void ferCDTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
                      FILE *out, const char *name,
                      const fer_mat3_t *rot, const fer_vec3_t *tr);

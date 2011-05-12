@@ -64,6 +64,11 @@ void ferCDBoxUpdateMinMax(const fer_cd_box_t *b, const fer_vec3_t *axis,
                           const fer_mat3_t *rot, const fer_vec3_t *tr,
                           fer_real_t *min, fer_real_t *max);
 
+void ferCDBoxUpdateCov(const fer_cd_box_t *s,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr,
+                       fer_vec3_t *wcenter, fer_mat3_t *cov,
+                       fer_real_t *area, int *num);
+
 void ferCDBoxDumpSVT(const fer_cd_box_t *s,
                      FILE *out, const char *name,
                      const fer_mat3_t *rot, const fer_vec3_t *tr);
