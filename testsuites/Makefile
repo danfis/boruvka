@@ -37,7 +37,8 @@ endif
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o \
        mat3.o mat4.o cubes3.o cubes2.o nncells.o mesh3.o nearest.o \
-       fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o
+       fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o \
+       tasks.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o \
 			data-protein-big.o data-protein-small.o
