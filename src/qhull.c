@@ -186,7 +186,7 @@ static int writePC33(fer_pc3_t *pc, int fd)
     fprintf(fout, "3\n");
 
     // then write number of points
-    fprintf(fout, "%d\n", ferPC3Len(pc));
+    fprintf(fout, "%d\n", (int)ferPC3Len(pc));
 
     // and write all points
     ferPC3ItInit(&pcit, (fer_pc3_t *)pc);

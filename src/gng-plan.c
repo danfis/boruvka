@@ -236,7 +236,7 @@ static void dumpSet(fer_gngp_t *gng, int set, FILE *out, const char *name,
         if (n->set != set)
             continue;
 
-        fprintf(out, "%d %d\n", id1, id2);
+        fprintf(out, "%d %d\n", (int)id1, (int)id2);
     }
 
     fprintf(out, "--------\n");
@@ -384,7 +384,7 @@ static void newNode(fer_gngp_t *gng)
     n2 = nodeNeighborWithMaxErr(gng, n1);
     if (!n1 || !n2){
         // TODO: put assert here - this shouldn't happen
-        DBG("%d", ferNetNodeEdgesLen(&n1->node));
+        DBG("%d", (int)ferNetNodeEdgesLen(&n1->node));
         DBG("%lx %lx", (long)n1, (long)n2);
     }
 

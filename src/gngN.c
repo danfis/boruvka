@@ -329,7 +329,7 @@ void ferGNG`N`DumpSVT(fer_gng`N`_t *gng, FILE *out, const char *name)
         nn = ferNetEdgeNode(e, 1);
         n  = ferGNG`N`NodeFromNet(nn);
         id2 = n->_id;
-        fprintf(out, "%d %d\n", id1, id2);
+        fprintf(out, "%d %d\n", (int)id1, (int)id2);
     }
 
     fprintf(out, "--------\n");

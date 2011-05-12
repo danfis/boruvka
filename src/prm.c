@@ -205,7 +205,7 @@ void ferPRMDumpSVT(fer_prm_t *prm, FILE *out, const char *name)
         n  = fer_container_of(nn, fer_prm_node_t, node);
         id2 = n->_id;
 
-        fprintf(out, "%d %d\n", id1, id2);
+        fprintf(out, "%d %d\n", (int)id1, (int)id2);
     }
 
     fprintf(out, "--------\n");

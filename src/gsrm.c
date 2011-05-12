@@ -793,7 +793,6 @@ static void faceDel2(fer_mesh3_face_t *face, void *data)
 static void meshInit(fer_gsrm_t *g)
 {
     fer_vec3_t *v;
-    node_t *n;
     size_t i;
 
     for (i = 0; i < 3; i++){
@@ -801,7 +800,7 @@ static void meshInit(fer_gsrm_t *g)
         v = ferPC3ItGet(&g->isit);
 
         // create new node
-        n = nodeNew(g, v);
+        nodeNew(g, v);
 
         // move to next point
         ferPC3ItNext(&g->isit);
@@ -1085,6 +1084,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
     node_t *n, *max_n;
 
     max_err = FER_REAL_MIN;
+    max_n   = NULL;
     list = ferMesh3VertexEdges(&sq->vert);
     FER_LIST_FOR_EACH(list, item){
         edge = ferMesh3EdgeFromVertexList(item);
@@ -1099,7 +1099,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
         }
     }
 
-    return n;
+    return max_n;
 }
 
 static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf)

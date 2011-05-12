@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
     pc = ferPC3New();
     len = ferPC3AddFromFile(pc, argv[1]);
-    fprintf(stderr, "Read %d points from %s\n", len, argv[1]);
+    fprintf(stderr, "Read %d points from %s\n", (int)len, argv[1]);
 
     q = ferQDelaunayNew();
 

@@ -112,7 +112,7 @@ static void _ferGNGRun(fer_gng_t *gng)
 static void _ferGNGInit(fer_gng_t *gng)
 {
     const void *is;
-    fer_gng_node_t *n1, *n2;
+    fer_gng_node_t *n1 = NULL, *n2 = NULL;
     size_t i;
     fer_real_t maxbeta;
 

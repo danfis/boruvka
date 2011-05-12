@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     gng = ferGNG`N`New(&ops, &params);
     p.gng = gng;
     size = ferGNG`N`AddInputSignalsFromFile(gng, argv[1]);
-    fprintf(stderr, "Added %d points from %s\n", size, argv[1]);
+    fprintf(stderr, "Added %d points from %s\n", (int)size, argv[1]);
 
 
     ferTimerStart(&p.timer);

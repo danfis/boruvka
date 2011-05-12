@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
     plan.pc  = ferPC2New();
     size = ferPC2AddFromFile(plan.pc, argv[1]);
-    fprintf(stderr, "Added %u points.\n", size);
+    fprintf(stderr, "Added %u points.\n", (unsigned int)size);
 
     plan.max_nodes = atoi(argv[2]);
 
@@ -322,7 +322,7 @@ static void netDumpSVT(fer_gng_t *gng, FILE *out, const char *name)
         gn = ferGNGNodeFromNet(nn);
         n  = fer_container_of(gn, node_t, gng);
         id2 = n->_id;
-        fprintf(out, "%d %d\n", id1, id2);
+        fprintf(out, "%d %d\n", (int)id1, (int)id2);
     }
 
     fprintf(out, "--------\n");
@@ -400,7 +400,7 @@ static void dijDumpPath(plan_t *p)
     }
     fprintf(stdout, "Edges:\n");
     for (i = 0; i < size - 1; i++){
-        fprintf(stdout, "%d %d\n", i, i + 1);
+        fprintf(stdout, "%d %d\n", (int)i, (int)i + 1);
     }
 
     fprintf(stdout, "----\n");

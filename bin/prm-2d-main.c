@@ -240,7 +240,7 @@ static void printPath(fer_list_t *path, FILE *out)
             break;
 
         n = FER_LIST_ENTRY(item, fer_prm_node_t, path);
-        fprintf(out, "%d %d\n", id, id + 1);
+        fprintf(out, "%d %d\n", (int)id, (int)id + 1);
         id++;
     }
 

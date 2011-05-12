@@ -274,8 +274,7 @@ static size_t _ferCDGeomDumpTriSVT(const fer_cd_obb_t *obb, FILE *out,
     fer_list_t *item;
     fer_cd_obb_t *o;
     fer_cd_tri_t *t;
-    fer_vec3_t v, T;
-    fer_mat3_t R;
+    fer_vec3_t v;
     size_t s = 0;
 
     if (ferListEmpty(&obb->obbs)){
@@ -329,7 +328,7 @@ void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
 
     fprintf(out, "Faces:\n");
     for (i = 0; i < numpts; i += 3){
-        fprintf(out, "%u %u %u\n", i, i + 1, i + 2);
+        fprintf(out, "%d %d %d\n", (int)i, (int)i + 1, (int)i + 2);
     }
 
     fprintf(out, "-----\n");
