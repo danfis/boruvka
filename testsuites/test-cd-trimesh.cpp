@@ -35,6 +35,7 @@ const char *data1_tri[] = {
     "data-bugtrap-1.tri",
     "data-puzzle-1.tri",
     "data-car-small.tri"
+    //"car.raw"
 };
 
 const char *data2_tri[] = {
@@ -43,6 +44,7 @@ const char *data2_tri[] = {
     "data-bugtrap-2.tri",
     "data-puzzle-2.tri",
     "data-seat-small.tri"
+    //"sedadlo.raw"
 };
 
 const char *data_trans[] = {
@@ -51,6 +53,7 @@ const char *data_trans[] = {
     "data-test-cd-trimesh-bugtrap.trans.txt",
     "data-test-cd-trimesh-puzzle.trans.txt",
     "data-test-cd-trimesh-car-small.trans.txt"
+    //"stavy.cooper"
 };
 
 const int check_ret[] = {
@@ -294,7 +297,8 @@ void testCD(int task)
     //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
     //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
     //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
-    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(30));
+    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(5));
+    //ferCDSetBuildFlags(cd, FER_CD_FIT_COVARIANCE_FAST);
 
     ferTimerStart(&timer);
     if (data1_geom[task]){
@@ -364,13 +368,21 @@ void testCD(int task)
             overall_0 += ferTimerElapsedInUs(&timer);
             overall_0_num += 1;
         }
+
+        if ((overall_0_num + overall_1_num) % 100 == 0){
+            fprintf(stderr, "# overall: %lu (0: %f) (1: %f) [%u]             \r",
+                    overall_time, 
+                    (float)overall_0/(float)overall_0_num,
+                    (float)overall_1/(float)overall_1_num,
+                    overall_0_num + overall_1_num);
+        }
     }
 
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);
     ferCDDel(cd);
 
-    fprintf(stdout, "# testCD[%02d] :: overall_time: %lu\n", task, overall_time);
+    fprintf(stdout, "# testCD[%02d] :: overall_time: %lu                        \n", task, overall_time);
     fprintf(stdout, "# testCD[%02d] :: overall_1: %lu / %u = %f\n", task,
             overall_1, overall_1_num, (float)overall_1/(float)overall_1_num);
     fprintf(stdout, "# testCD[%02d] :: overall_0: %lu / %u = %f\n", task,
@@ -425,13 +437,21 @@ void testRapid(int task)
             overall_0 += ferTimerElapsedInUs(&timer);
             overall_0_num += 1;
         }
+
+        if ((overall_0_num + overall_1_num) % 100 == 0){
+            fprintf(stderr, "# overall: %lu (0: %f) (1: %f) [%u]             \r",
+                    overall_time, 
+                    (float)overall_0/(float)overall_0_num,
+                    (float)overall_1/(float)overall_1_num,
+                    overall_0_num + overall_1_num);
+        }
     }
 
 
     delete g1;
     delete g2;
 
-    fprintf(stdout, "# testRapid[%02d] :: overall_time: %lu\n", task, overall_time);
+    fprintf(stdout, "# testRapid[%02d] :: overall_time: %lu                         \n", task, overall_time);
     fprintf(stdout, "# testRapid[%02d] :: overall_1: %lu / %u = %f\n", task,
             overall_1, overall_1_num, (float)overall_1/(float)overall_1_num);
     fprintf(stdout, "# testRapid[%02d] :: overall_0: %lu / %u = %f\n", task,
