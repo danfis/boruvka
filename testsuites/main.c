@@ -15,6 +15,7 @@
 #include "fibo.h"
 #include "pairheap.h"
 #include "dij.h"
+#include "tasks.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -36,6 +37,8 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPairHeap),
 
     TEST_SUITE_ADD(TSDij),
+
+    TEST_SUITE_ADD(TSTasks),
 
     TEST_SUITES_CLOSURE
 };
