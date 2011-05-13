@@ -109,6 +109,11 @@ int ferTasksPending(fer_tasks_t *t);
  */
 void ferTasksRunBlock(fer_tasks_t *t);
 
+/**
+ * Blocks until all tasks in queue aren't finished
+ */
+void ferTasksBarrier(fer_tasks_t *t);
+
 // TODO: AddThreads()/RemoveThreads()
 
 #ifdef __cplusplus

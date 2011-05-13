@@ -185,6 +185,16 @@ void ferTasksRunBlock(fer_tasks_t *t)
     pthread_mutex_unlock(&t->lock);
 }
 
+void ferTasksBarrier(fer_tasks_t *t)
+{
+    pthread_mutex_lock(&t->lock);
+    pthread_cond_wait(&t->pending_cond, &t->lock);
+    pthread_mutex_unlock(&t->lock);
+}
+
+
+
+
 static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
 {
     fer_tasks_thread_t *th;

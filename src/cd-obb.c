@@ -877,6 +877,7 @@ static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, uint32_t flags)
     }
 }
 
+
 static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
 {
     fer_cd_obb_t *newobb;
@@ -935,7 +936,7 @@ static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
     return newobb;
 }
 
-static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, uint32_t flags)
+static fer_cd_obb_t *mergeBottomUpSimple(fer_list_t *obbs, uint32_t flags)
 {
     fer_cd_obb_t *obb;
     fer_list_t *item;
@@ -947,6 +948,139 @@ static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, uint32_t flags)
     item = ferListNext(obbs);
     obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
     return obb;
+}
+
+
+struct _bottom_up_task_t {
+    fer_list_t *obbs;
+    fer_cd_obb_t *obb1, *obb2, *obb3;
+    pthread_mutex_t *lock;
+    uint32_t flags;
+};
+typedef struct _bottom_up_task_t bottom_up_task_t;
+bottom_up_task_t *bottomUpTaskNew(fer_list_t *obbs,
+                                  fer_cd_obb_t *obb1, fer_cd_obb_t *obb2,
+                                  fer_cd_obb_t *obb3,
+                                  pthread_mutex_t *lock, uint32_t flags)
+{
+    bottom_up_task_t *task;
+
+    task = FER_ALLOC(bottom_up_task_t);
+    task->obbs = obbs;
+    task->obb1 = obb1;
+    task->obb2 = obb2;
+    task->obb3 = obb3;
+    task->lock = lock;
+    task->flags = flags;
+    return task;
+}
+
+static void mergeBottomUpTask(int id, void *data, const fer_tasks_thinfo_t *info)
+{
+    bottom_up_task_t *task = (bottom_up_task_t *)data;
+    fer_cd_obb_t *obb;
+
+    obb = ferCDOBBNew();
+    ferListAppend(&obb->obbs, &task->obb1->list);
+    ferListAppend(&obb->obbs, &task->obb2->list);
+    if (task->obb3)
+        ferListAppend(&obb->obbs, &task->obb3->list);
+
+    mergeFit(obb, &obb->obbs, task->flags);
+
+    pthread_mutex_lock(task->lock);
+    ferListAppend(task->obbs, &obb->list);
+    pthread_mutex_unlock(task->lock);
+
+    free(task);
+}
+
+static fer_cd_obb_t *mergeBottomUpTasks(fer_list_t *_obbs, uint32_t flags)
+{
+    fer_tasks_t *tasks;
+    bottom_up_task_t *task;
+    fer_list_t obbs[2], *item;
+    fer_cd_obb_t *obb1, *obb2, *obb3, *o;
+    pthread_mutex_t lock;
+    fer_real_t dist, dist_nearest;
+    int num_threads, N;
+
+    pthread_mutex_init(&lock, NULL);
+
+    ferListInit(&obbs[0]);
+    ferListInit(&obbs[1]);
+    ferListMove(_obbs, &obbs[0]);
+
+    N = 0;
+
+    // create and start task queue
+    num_threads = __FER_CD_BUILD_PARALLEL(flags);
+    tasks = ferTasksNew(num_threads);
+    ferTasksRun(tasks);
+
+    do {
+        // find for each OBB in list other nearest OBB, both remove from
+        // the list and create new OBB containing both OBBs
+        while (!ferListEmpty(&obbs[N])){
+            item = ferListNext(&obbs[N]);
+            ferListDel(item);
+            obb1 = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+            // find nearest OBB
+            dist_nearest = FER_REAL_MAX;
+            obb2 = NULL;
+            FER_LIST_FOR_EACH(&obbs[N], item){
+                o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+                dist = ferVec3Dist2(&obb1->center, &o->center);
+
+                if (dist < dist_nearest){
+                    dist_nearest = dist;
+                    obb2 = o;
+                }
+            }
+            if (obb2){
+                ferListDel(&obb2->list);
+            }
+
+            // set obb3 if there is only one OBB left
+            obb3 = NULL;
+            if (!ferListEmpty(&obbs[N])
+                    && ferListNext(&obbs[N]) == ferListPrev(&obbs[N])){
+                item = ferListNext(&obbs[N]);
+                ferListDel(item);
+                obb3 = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            }
+
+            // plan task
+            task = bottomUpTaskNew(&obbs[(N + 1) % 2], obb1, obb2, obb3, &lock, flags);
+            ferTasksAdd(tasks, mergeBottomUpTask, 0, (void *)task);
+        }
+
+        // wait for all OBBs to be built because we need to have
+        // obbs[(N + 1) % 2] filled!
+        ferTasksBarrier(tasks);
+        N = (N + 1) % 2;
+    } while (ferListNext(&obbs[N]) != ferListPrev(&obbs[N]));
+
+    item = ferListNext(&obbs[N]);
+    obb1 = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+
+    ferTasksDel(tasks);
+    pthread_mutex_destroy(&lock);
+
+    return obb1;
+}
+
+static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, uint32_t flags)
+{
+    int num_threads;
+
+    num_threads = __FER_CD_BUILD_PARALLEL(flags);
+    if (num_threads > 0){
+        return mergeBottomUpTasks(obbs, flags);
+    }else{
+        return mergeBottomUpSimple(obbs, flags);
+    }
 }
 
 
