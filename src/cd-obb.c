@@ -16,19 +16,20 @@
 
 #include <fermat/cd.h>
 #include <fermat/chull3.h>
+#include <fermat/tasks.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
 /** Build OBB tree by top-down method */
-static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, int flags);
+static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, uint32_t flags);
 /** Build OBB tree by bottom-up method */
-static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags);
+static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, uint32_t flags);
 /** Finds two nearest OBBs in list and returns new OBB that contains those
  *  OBBs, no other properties of OBB is set. Returns NULL if no two nearest
  *  OBBs are available */
 static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs);
 /** Fit givev {obb} to shapes in {obbs} */
-static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags);
+static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, uint32_t flags);
 /** Fit OBB to its content using covariance matrix */
 static void mergeFitCovariance(fer_cd_obb_t *obb, fer_list_t *obbs);
 /** Fit OBB using "rotation calipers" algorithm.
@@ -123,7 +124,7 @@ fer_cd_obb_t *ferCDOBBNew(void)
 }
 
 
-fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
+fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, uint32_t flags)
 {
     fer_cd_obb_t *obb;
 
@@ -153,7 +154,7 @@ fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags)
 }
 
 
-fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags)
+fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, uint32_t mergeflags)
 {
     fer_list_t obbs, *item;
     fer_cd_obb_t *obb;
@@ -408,16 +409,13 @@ void ferCDOBBFreePairs(fer_list_t *pairs)
     }
 }
 
-void ferCDOBBMerge(fer_list_t *obbs, int flags)
+void ferCDOBBMerge(fer_list_t *obbs, uint32_t flags)
 {
-    int method;
-    fer_cd_obb_t *obb;
+    fer_cd_obb_t *obb = NULL;
 
-    method = flags & 0x1;
-
-    if (method == FER_CD_TOP_DOWN){
+    if (__FER_CD_TOP_DOWN(flags)){
         obb = mergeTopDown(obbs, flags);
-    }else if (method == FER_CD_BOTTOM_UP){
+    }else if (__FER_CD_BOTTOM_UP(flags)){
         obb = mergeBottomUp(obbs, flags);
     }
 
@@ -601,7 +599,7 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
 
 
 
-static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
+static void _mergeTopDownSplit(const fer_cd_obb_t *obb, fer_list_t *obbs,
                                fer_list_t *obb_list1, fer_list_t *obb_list2)
 {
     const fer_vec3_t *axis;
@@ -666,7 +664,149 @@ static void _mergeTopDownSplit(fer_cd_obb_t *obb, fer_list_t *obbs,
     }
 }
 
-static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, int flags)
+struct _top_down_task_t {
+    fer_cd_obb_t *parent;
+    fer_list_t obbs;
+    uint32_t flags;
+    pthread_mutex_t *lock;
+    fer_tasks_t *tasks;
+};
+typedef struct _top_down_task_t top_down_task_t;
+
+static top_down_task_t *topDownTaskNew(fer_cd_obb_t *par, uint32_t flags,
+                                       pthread_mutex_t *lock,
+                                       fer_tasks_t *tasks)
+{
+    top_down_task_t *task;
+
+    task = FER_ALLOC(top_down_task_t);
+    task->parent = par;
+    ferListInit(&task->obbs);
+    task->flags = flags;
+    task->lock  = lock;
+    task->tasks = tasks;
+
+    return task;
+}
+
+static int isListSmall(fer_list_t *list, int maxlen)
+{
+    fer_list_t *item;
+    int i;
+
+    i = 0;
+    FER_LIST_FOR_EACH(list, item){
+        i++;
+        if (i > maxlen)
+            return 0;
+    }
+    return 1;
+}
+
+static void _mergeTopDownTask(int id, void *data, const fer_tasks_thinfo_t *info)
+{
+    top_down_task_t *task = (top_down_task_t *)data;
+    top_down_task_t *task1, *task2;
+    fer_cd_obb_t *obb;
+
+    // create new OBB
+    obb = ferCDOBBNew();
+
+    // fit OBB to underlying OBBs
+    mergeFit(obb, &task->obbs, task->flags);
+
+    // if there are 1 or 2 or 3 OBBs in list just add them as children of
+    // current OBB
+    if (isListSmall(&task->obbs, 3)){
+        ferListMove(&task->obbs, &obb->obbs);
+    }else{
+        task1 = topDownTaskNew(obb, task->flags, task->lock, task->tasks);
+        task2 = topDownTaskNew(obb, task->flags, task->lock, task->tasks);
+        _mergeTopDownSplit(obb, &task->obbs, &task1->obbs, &task2->obbs);
+        if (ferListEmpty(&task1->obbs) || ferListEmpty(&task2->obbs)){
+            // all OBBs are on one side - simply add them to the obb
+            ferListMove(&task1->obbs, &obb->obbs);
+            ferListMove(&task2->obbs, &obb->obbs);
+            free(task1);
+            free(task2);
+        }else{
+            if (ferListNext(&task1->obbs) == ferListPrev(&task1->obbs)){
+                // task1 contains only one OBB
+                ferListMove(&task1->obbs, &obb->obbs);
+                free(task1);
+            }else{
+                // perform task1
+                ferTasksAdd(task->tasks, _mergeTopDownTask, 0, (void *)task1);
+            }
+
+            // similarly for task2
+            if (ferListNext(&task2->obbs) == ferListPrev(&task2->obbs)){
+                ferListMove(&task2->obbs, &obb->obbs);
+                free(task2);
+            }else{
+                ferTasksAdd(task->tasks, _mergeTopDownTask, 0, (void *)task2);
+            }
+        }
+    }
+
+    if (task->parent){
+        // add this OBB to parent
+        pthread_mutex_lock(task->lock);
+        ferListAppend(&task->parent->obbs, &obb->list);
+        pthread_mutex_unlock(task->lock);
+
+        // free task struct
+        free(task);
+    }else{
+        task->parent = obb;
+    }
+}
+
+static fer_cd_obb_t *mergeTopDownTasks(fer_list_t *obbs, uint32_t flags)
+{
+    fer_tasks_t *tasks;
+    top_down_task_t *task;
+    pthread_mutex_t lock;
+    fer_cd_obb_t *obb;
+    fer_list_t *item;
+    int num_threads;
+
+
+    // list have only one OBB, so return it
+    if (ferListNext(obbs) == ferListPrev(obbs)){
+        item = ferListNext(obbs);
+        obb  = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        return obb;
+    }
+
+    // init global lock
+    pthread_mutex_init(&lock, NULL);
+
+    // creates tasks
+    num_threads = __FER_CD_BUILD_PARALLEL(flags);
+    tasks = ferTasksNew(num_threads);
+
+    // create task
+    task = topDownTaskNew(NULL, flags, &lock, tasks);
+    ferListMove(obbs, &task->obbs);
+
+    // run building in threads
+    ferTasksAdd(tasks, _mergeTopDownTask, 0, task);
+
+    // wait until job is done
+    ferTasksRunBlock(tasks);
+
+    // obtain top OBB
+    obb = task->parent;
+
+    free(task);
+    ferTasksDel(tasks);
+    pthread_mutex_destroy(&lock);
+
+    return obb;
+}
+
+static fer_cd_obb_t *mergeTopDownSimple(fer_list_t *obbs, uint32_t flags)
 {
     fer_cd_obb_t *obb, *obb2;
     fer_list_t *item, obb_list[2];
@@ -725,6 +865,17 @@ static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, int flags)
     return obb;
 }
 
+static fer_cd_obb_t *mergeTopDown(fer_list_t *obbs, uint32_t flags)
+{
+    int num_threads;
+
+    num_threads = __FER_CD_BUILD_PARALLEL(flags);
+    if (num_threads > 0){
+        return mergeTopDownTasks(obbs, flags);
+    }else{
+        return mergeTopDownSimple(obbs, flags);
+    }
+}
 
 static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
 {
@@ -784,7 +935,7 @@ static fer_cd_obb_t *mergeChooseNearest(fer_list_t *obbs)
     return newobb;
 }
 
-static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags)
+static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, uint32_t flags)
 {
     fer_cd_obb_t *obb;
     fer_list_t *item;
@@ -799,7 +950,7 @@ static fer_cd_obb_t *mergeBottomUp(fer_list_t *obbs, int flags)
 }
 
 
-static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags)
+static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, uint32_t flags)
 {
     int num_rot;
 
@@ -816,7 +967,7 @@ static void mergeFit(fer_cd_obb_t *obb, fer_list_t *obbs, int flags)
     }else if (__FER_CD_FIT_COVARIANCE_FAST(flags)){
         mergeFitCovarianceFast(obb, obbs);
     }else{
-        fprintf(stderr, "CD Error: Unkown fitting method (flags: %x)\n", flags);
+        fprintf(stderr, "CD Error: Unkown fitting method (flags: %x)\n", (int)flags);
     }
 }
 

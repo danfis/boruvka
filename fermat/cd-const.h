@@ -76,8 +76,17 @@
  */
 #define FER_CD_FIT_NAIVE_NUM_ROT(num_rot) ((num_rot & 0xFF) << 8)
 
-
+/**
+ * Fast fitting algorithm using covariance matrix
+ */
 #define FER_CD_FIT_COVARIANCE_FAST (4 << 1)
+
+
+/**
+ * Use this flag for building OBB trees in parallel using threads.
+ * Default 0.
+ */
+#define FER_CD_BUILD_PARALLEL(num_threads) ((num_threads & 0xFF) << 16)
 
 
 
@@ -98,6 +107,9 @@
 /*** Expands to number of rotations ***/
 #define __FER_CD_NUM_ROT(flags) ((flags >> 8) & 0xFF)
 
+
+/** Expands to number of threads that ought to be used */
+#define __FER_CD_BUILD_PARALLEL(flags) ((flags >> 16) & 0xFF)
 
 #endif /* __FER_CD_CONST_H__ */
 

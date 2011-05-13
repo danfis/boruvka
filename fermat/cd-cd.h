@@ -28,7 +28,7 @@ extern "C" {
  * ====================
  */
 struct _fer_cd_t {
-    int build_flags;
+    uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
 };
 typedef struct _fer_cd_t fer_cd_t;
@@ -54,7 +54,7 @@ void ferCDDel(fer_cd_t *cd);
  *
  * Default is FER_CD_COVARIANCE.
  */
-_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, int flags);
+_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags);
 
 /**
  * Sets collider between shape1 and shape2 (in this order).
@@ -71,7 +71,7 @@ int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**** INLINES ****/
-_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, int flags)
+_fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags)
 {
     cd->build_flags = flags;
 }

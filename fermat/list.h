@@ -200,6 +200,11 @@ _fer_inline void ferListDel(fer_list_t *item);
 _fer_inline size_t ferListSize(const fer_list_t *head);
 
 
+/**
+ * Move all items from {src} to {dst}. Items will be appended to dst.
+ */
+_fer_inline void ferListMove(fer_list_t *src, fer_list_t *dst);
+
 
 /**
  * Retypes given "M" list struct to regular list struct.
@@ -270,6 +275,17 @@ _fer_inline size_t ferListSize(const fer_list_t *head)
     }
 
     return size;
+}
+
+_fer_inline void ferListMove(fer_list_t *src, fer_list_t *dst)
+{
+    fer_list_t *item;
+
+    while (!ferListEmpty(src)){
+        item = ferListNext(src);
+        ferListDel(item);
+        ferListAppend(dst, item);
+    }
 }
 
 _fer_inline fer_list_t *ferListMAsList(fer_list_m_t *l)

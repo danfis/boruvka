@@ -67,7 +67,7 @@ fer_cd_obb_t *ferCDOBBNew(void);
  *
  * TODO: flags
  */
-fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags);
+fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, uint32_t flags);
 
 
 /**
@@ -75,7 +75,7 @@ fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, int flags);
  * of triangles and {ids} hence must have {num_tri} * 3 elements.
  * {mergeflags} are same as in ferCDOBBMerge() function.
  */
-fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, int mergeflags);
+fer_cd_obb_t *ferCDOBBNewTriMesh(fer_cd_trimesh_t *trimesh, uint32_t mergeflags);
 
 /**
  * Frees allocated memory.
@@ -148,7 +148,7 @@ void ferCDOBBFreePairs(fer_list_t *pairs);
  *             FER_CD_FIT_NAIVE,
  *             FER_CD_FIT_NAIVE_NUM_ROT()
  */
-void ferCDOBBMerge(fer_list_t *obbs, int flags);
+void ferCDOBBMerge(fer_list_t *obbs, uint32_t flags);
 
 
 

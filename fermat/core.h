@@ -20,6 +20,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <fermat/config.h>
 #include <fermat/compiler.h>
 
