@@ -40,6 +40,11 @@ struct _fer_tasks_t {
 
     pthread_mutex_t lock; /*!< Global lock for thread synchronization */
     sem_t full, empty;    /*!< Full/Empty semaphores for tasks queue */
+
+    int pending;                  /*!< Number of pending tasks */
+    pthread_cond_t pending_cond;  /*!< Conditional variable to allow user
+                                       code to wait until all tasks are
+                                       finished */
 };
 typedef struct _fer_tasks_t fer_tasks_t;
 
@@ -92,6 +97,17 @@ void ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, int id, void *data);
  * Run tasks
  */
 void ferTasksRun(fer_tasks_t *t);
+
+/**
+ * Returns number of pending tasks
+ */
+int ferTasksPending(fer_tasks_t *t);
+
+
+/**
+ * Runs all tasks and blocks until all are finished
+ */
+void ferTasksRunBlock(fer_tasks_t *t);
 
 // TODO: AddThreads()/RemoveThreads()
 

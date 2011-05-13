@@ -80,6 +80,9 @@ fer_tasks_t *ferTasksNew(size_t num_threads)
         t->threads_len++;
     }
 
+    pthread_cond_init(&t->pending_cond, NULL);
+    t->pending = 0;
+
     return t;
 }
 
@@ -121,6 +124,8 @@ void ferTasksDel(fer_tasks_t *t)
     sem_destroy(&t->full);
     sem_destroy(&t->empty);
 
+    pthread_cond_destroy(&t->pending_cond);
+
     free(t);
 }
 
@@ -140,6 +145,7 @@ void ferTasksCancelDel(fer_tasks_t *t)
     pthread_mutex_unlock(&t->lock);
 
     // reset semaphores - do we need this ?
+    // TODO: may be problem in .pending* staff!
 
     ferTasksDel(t);
 }
@@ -160,6 +166,24 @@ void ferTasksRun(fer_tasks_t *t)
     }
 }
 
+int ferTasksPending(fer_tasks_t *t)
+{
+    int p;
+
+    pthread_mutex_lock(&t->lock);
+    p = t->pending;
+    pthread_mutex_unlock(&t->lock);
+
+    return p;
+}
+
+void ferTasksRunBlock(fer_tasks_t *t)
+{
+    pthread_mutex_lock(&t->lock);
+    ferTasksRun(t);
+    pthread_cond_wait(&t->pending_cond, &t->lock);
+    pthread_mutex_unlock(&t->lock);
+}
 
 static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
 {
@@ -231,6 +255,13 @@ static void *threadMain(void *_th)
 
         // delete task
         taskDel(task);
+
+        // another task finished...
+        pthread_mutex_lock(&th->tasks->lock);
+        --th->tasks->pending;
+        if (th->tasks->pending == 0)
+            pthread_cond_broadcast(&th->tasks->pending_cond);
+        pthread_mutex_unlock(&th->tasks->lock);
     }
 
     return NULL;
@@ -274,6 +305,7 @@ static void _ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id,
     // add to queue
     pthread_mutex_lock(&t->lock);
     ferListAppend(&t->tasks, &task->list);
+    ++t->pending;
     pthread_mutex_unlock(&t->lock);
 
     // unblock waiting thread
