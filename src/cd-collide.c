@@ -30,6 +30,29 @@ int ferCDCollideSphereSphere(fer_cd_t *cd,
     return dist < (s1->radius + s2->radius);
 }
 
+int ferCDCollideBoxBox(struct _fer_cd_t *cd,
+                       const fer_cd_box_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_box_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t tr, trtmp;;
+    fer_mat3_t rot;
+    int ret;
+
+    ferMat3Trans2(&rot, rot1);
+
+    // compute translation in obb1's frame
+    ferVec3Sub2(&trtmp, tr2, tr1);
+    ferMat3MulVec(&tr, &rot, &trtmp);
+
+    // compute rotation in obb1's frame
+    ferMat3Mul(&rot, rot2);
+
+    ret = __ferCDBoxDisjoint(s1->half_extents, s2->half_extents, &rot, &tr);
+    return !ret;
+}
+
 int ferCDCollideTriTri(struct _fer_cd_t *cd,
                        const fer_cd_tri_t *tri1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,

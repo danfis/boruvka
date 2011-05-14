@@ -34,6 +34,8 @@ fer_cd_t *ferCDNew(void)
         }
     }
 
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_BOX,
+                      (fer_cd_collide_fn)ferCDCollideBoxBox);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                       (fer_cd_collide_fn)ferCDCollideSphereSphere);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
@@ -52,8 +54,7 @@ fer_cd_t *ferCDNew(void)
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = i; j < FER_CD_SHAPE_LEN; j++){
             if (!cd->collide[i][j]){
-                ferCDSetCollideFn(cd, i, j,
-                                  (fer_cd_collide_fn)ferCDCollideCCD);
+                ferCDSetCollideFn(cd, i, j, (fer_cd_collide_fn)ferCDCollideCCD);
             }
         }
     }

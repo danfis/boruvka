@@ -73,6 +73,13 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *s,
                      FILE *out, const char *name,
                      const fer_mat3_t *rot, const fer_vec3_t *tr);
 
+
+int __ferCDBoxDisjoint(const fer_vec3_t *he1, const fer_vec3_t *he2,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+int __ferCDBoxDisjointEarly(const fer_vec3_t *he1, const fer_vec3_t *he2,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr);
+            
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
