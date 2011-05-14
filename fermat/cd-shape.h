@@ -179,19 +179,6 @@ void ferCDShapeOffDumpSVT(const fer_cd_shape_off_t *s,
                           FILE *out, const char *name,
                           const fer_mat3_t *rot, const fer_vec3_t *tr);
 
-
-/** Shape types */
-#define FER_CD_SHAPE_SPHERE      0
-#define FER_CD_SHAPE_BOX         1
-#define FER_CD_SHAPE_CYL         2
-#define FER_CD_SHAPE_CAP         3
-#define FER_CD_SHAPE_TRI         5
-#define FER_CD_SHAPE_TRIMESH_TRI 6
-#define FER_CD_SHAPE_OFF         7
-#define FER_CD_SHAPE_LEN         8
-
-#define FER_CD_SHAPE_TRIMESH 20
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

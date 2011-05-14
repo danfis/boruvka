@@ -111,5 +111,19 @@
 /** Expands to number of threads that ought to be used */
 #define __FER_CD_BUILD_PARALLEL(flags) ((flags >> 16) & 0xFF)
 
+
+
+/** Shape types */
+#define FER_CD_SHAPE_SPHERE      0
+#define FER_CD_SHAPE_BOX         1
+#define FER_CD_SHAPE_CYL         2
+#define FER_CD_SHAPE_CAP         3
+#define FER_CD_SHAPE_TRI         5
+#define FER_CD_SHAPE_TRIMESH_TRI 6
+#define FER_CD_SHAPE_OFF         7
+#define FER_CD_SHAPE_LEN         8
+
+#define FER_CD_SHAPE_TRIMESH 20
+
 #endif /* __FER_CD_CONST_H__ */
 
