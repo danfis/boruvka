@@ -85,13 +85,27 @@ void ferCCDFirstDirDefault(const void *o1, const void *o2, fer_vec3_t *dir)
     ferVec3Set(dir, FER_ONE, FER_ZERO, FER_ZERO);
 }
 
-int ferCCDGJKIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd)
+void ferCCDInit(fer_ccd_t *ccd)
+{
+    ccd->first_dir = ferCCDFirstDirDefault;
+    ccd->support1 = NULL;
+    ccd->support2 = NULL;
+    ccd->center1  = NULL;
+    ccd->center2  = NULL;
+
+    ccd->max_iterations = (unsigned long)-1;
+    ccd->epa_tolerance = FER_REAL(0.0001);
+    ccd->mpr_tolerance = FER_REAL(0.0001);
+}
+
+int ferCCDGJKCollide(const fer_ccd_t *ccd, const void *obj1, const void *obj2)
 {
     fer_ccd_simplex_t simplex;
     return __ferGJK(obj1, obj2, ccd, &simplex) == 0;
 }
 
-int ferCCDGJKSeparate(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDGJKSeparate(const fer_ccd_t *ccd,
+                      const void *obj1, const void *obj2,
                       fer_vec3_t *sep)
 {
     fer_ccd_pt_t polytope;
@@ -164,7 +178,8 @@ static void penEPAPos(const fer_ccd_pt_t *pt, const fer_ccd_pt_el_t *nearest,
     free(vs);
 }
 
-int ferCCDGJKPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDGJKPenetration(const fer_ccd_t *ccd,
+                         const void *obj1, const void *obj2,
                          fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos)
 {
     fer_ccd_pt_t polytope;

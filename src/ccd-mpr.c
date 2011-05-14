@@ -96,7 +96,7 @@ _fer_inline int portalCanEncapsuleOrigin(const fer_ccd_simplex_t *portal,
                                          const fer_vec3_t *dir);
 
 
-int ferCCDMPRIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd)
+int ferCCDMPRCollide(const fer_ccd_t *ccd, const void *obj1, const void *obj2)
 {
     fer_ccd_simplex_t portal;
     int res;
@@ -114,7 +114,8 @@ int ferCCDMPRIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd)
     return (res == 0 ? 1 : 0);
 }
 
-int ferCCDMPRPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDMPRPenetration(const fer_ccd_t *ccd,
+                         const void *obj1, const void *obj2,
                          fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos)
 {
     fer_ccd_simplex_t portal;

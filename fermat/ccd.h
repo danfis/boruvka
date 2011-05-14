@@ -26,14 +26,14 @@ extern "C" {
 
 /**
  * Type of *support* function that takes pointer to 3D object and direction
- * and returns (via vec argument) furthest point from object in specified
+ * and returns (via {vec} argument) furthest point from object in specified
  * direction.
  */
 typedef void (*fer_ccd_support_fn)(const void *obj, const fer_vec3_t *dir,
                                    fer_vec3_t *vec);
 
 /**
- * Returns (via dir argument) first direction vector that will be used in
+ * Returns (via {dir} argument) first direction vector that will be used in
  * initialization of algorithm.
  */
 typedef void (*fer_ccd_first_dir_fn)(const void *obj1, const void *obj2,
@@ -41,7 +41,7 @@ typedef void (*fer_ccd_first_dir_fn)(const void *obj1, const void *obj2,
 
 
 /**
- * Returns (via center argument) geometric center (some point near center)
+ * Returns (via {center} argument) geometric center (or some point near center)
  * of given object.
  */
 typedef void (*fer_ccd_center_fn)(const void *obj1, fer_vec3_t *center);
@@ -74,70 +74,79 @@ typedef struct _fer_ccd_t fer_ccd_t;
  */
 void ferCCDFirstDirDefault(const void *o1, const void *o2, fer_vec3_t *dir);
 
-#define FER_CCD_INIT(ccd) \
-    do { \
-        (ccd)->first_dir = ferCCDFirstDirDefault; \
-        (ccd)->support1 = NULL; \
-        (ccd)->support2 = NULL; \
-        (ccd)->center1  = NULL; \
-        (ccd)->center2  = NULL; \
-        \
-        (ccd)->max_iterations = (unsigned long)-1; \
-        (ccd)->epa_tolerance = FER_REAL(0.0001); \
-        (ccd)->mpr_tolerance = FER_REAL(0.0001); \
-    } while(0)
+/**
+ * Initializes ccd struct.
+ * Only default {.first_dir} member is set to default one.
+ */
+void ferCCDInit(fer_ccd_t *ccd);
+
+/**
+ * Static initializer of {fer_ccd_t} struct.
+ *
+ * Example:
+ * ~~~~~~~~~~
+ * fer_ccd_t ccd = FER_CCD_INITIALIZER;
+ */
+#define FER_CCD_INITIALIZER \
+    { .first_dir = ferCCDFirstDirDefault, \
+      .support1 = NULL, \
+      .support2 = NULL, \
+      .center1  = NULL, \
+      .center2  = NULL, \
+      \
+      .max_iterations = (unsigned long)-1, \
+      .epa_tolerance = FER_REAL(0.0001), \
+      .mpr_tolerance = FER_REAL(0.0001), \
+    }
 
 
 /**
- * Returns true if two given objects interest.
+ * Returns true if two given objects do collide.
+ * *GJK* algorithm is used.
  */
-int ferCCDGJKIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd);
+int ferCCDGJKCollide(const fer_ccd_t *ccd, const void *obj1, const void *obj2);
 
 /**
  * This function computes separation vector of two objects. Separation
- * vector is minimal translation of obj2 to get obj1 and obj2 speparated
- * (without intersection).
- * Returns 0 if obj1 and obj2 intersect and sep is filled with translation
- * vector. If obj1 and obj2 don't intersect -1 is returned.
+ * vector is minimal translation of {obj2} to get {obj1} and {obj2}
+ * separated (without intersection).
+ * Returns 0 if {obj1} and {obj2} intersect and {sep} is filled with
+ * separation vector. If {obj1} and {obj2} don't intersect -1 is returned.
+ * *GJK* algorithm is used.
  */
-int ferCCDGJKSeparate(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDGJKSeparate(const fer_ccd_t *ccd,
+                      const void *obj1, const void *obj2,
                       fer_vec3_t *sep);
 
 /**
- * Computes penetration of obj2 into obj1.
+ * Computes penetration of {obj2} into {obj1}.
  * Depth of penetration, direction and position is returned. It means that
- * if obj2 is translated by distance depth in direction dir objects will
- * have touching contact, pos should be position in global coordinates
- * where force should take a place.
+ * if {obj2} is translated by distance {depth} in direction {dir} objects
+ * will have touching contact, {pos} should be position in global
+ * coordinates where force should take a place.
  *
- * GJK+EPA algorithm is used.
+ * *GJK+EPA* algorithm is used.
  *
- * Returns 0 if obj1 and obj2 intersect and depth, dir and pos are filled
- * if given non-NULL pointers.
- * If obj1 and obj2 don't intersect -1 is returned.
+ * Returns 0 if {obj1} and {obj2} intersect and {depth}, {dir} and {pos}
+ * are filled if given non-NULL pointers.
+ * If {obj1} and {obj2} don't intersect -1 is returned.
  */
-int ferCCDGJKPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDGJKPenetration(const fer_ccd_t *ccd,
+                         const void *obj1, const void *obj2,
                          fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
 
 
 /**
- * Returns true if two given objects intersect - MPR algorithm is used.
+ * Returns true if two given objects collide.
+ * *MPR* algorithm is used.
  */
-int ferCCDMPRIntersect(const void *obj1, const void *obj2, const fer_ccd_t *ccd);
+int ferCCDMPRCollide(const fer_ccd_t *ccd, const void *obj1, const void *obj2);
 
 /**
- * Computes penetration of obj2 into obj1.
- * Depth of penetration, direction and position is returned, i.e. if obj2
- * is translated by computed depth in resulting direction obj1 and obj2
- * would have touching contact. Position is point in global coordinates
- * where force should be take a place.
- *
- * Minkowski Portal Refinement algorithm is used (MPR, a.k.a. XenoCollide,
- * see Game Programming Gem 7).
- *
- * Returns 0 if obj1 and obj2 intersect, otherwise -1 is returned.
+ * Function similar to ferCCDGJKPenetration but *MPR* algorithm is used.
  */
-int ferCCDMPRPenetration(const void *obj1, const void *obj2, const fer_ccd_t *ccd,
+int ferCCDMPRPenetration(const fer_ccd_t *ccd,
+                         const void *obj1, const void *obj2,
                          fer_real_t *depth, fer_vec3_t *dir, fer_vec3_t *pos);
 
 #ifdef __cplusplus
