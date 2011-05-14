@@ -30,6 +30,25 @@ int ferCDCollideSphereSphere(fer_cd_t *cd,
     return dist < (s1->radius + s2->radius);
 }
 
+int ferCDCollideSphereBox(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_box_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t p;
+    fer_real_t l1, l2;
+
+    // get point on OBB closest to sphere center
+    __ferCDBoxClosestPoint(s2->half_extents, rot2, tr2, tr1, &p);
+
+    ferVec3Sub(&p, tr1);
+
+    l1 = ferVec3Len2(&p);
+    l2 = FER_CUBE(s1->radius);
+    return l1 < l2 || ferEq(l1, l2);
+}
+
 int ferCDCollideBoxBox(struct _fer_cd_t *cd,
                        const fer_cd_box_t *s1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,

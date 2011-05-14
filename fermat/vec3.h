@@ -134,6 +134,7 @@ _fer_inline void ferVec3SetY(fer_vec3_t *v, fer_real_t val);
 _fer_inline void ferVec3SetZ(fer_vec3_t *v, fer_real_t val);
 _fer_inline void ferVec3Set(fer_vec3_t *v, fer_real_t x, fer_real_t y, fer_real_t z);
 _fer_inline void ferVec3SetCoord(fer_vec3_t *v, int d, fer_real_t val);
+_fer_inline void ferVec3Set1(fer_vec3_t *v, int d, fer_real_t val);
 
 
 /**
@@ -439,6 +440,11 @@ _fer_inline void ferVec3Set(fer_vec3_t *v, fer_real_t x, fer_real_t y, fer_real_
 _fer_inline void ferVec3SetCoord(fer_vec3_t *v, int d, fer_real_t val)
 {
     v->f[d] = val;
+}
+
+_fer_inline void ferVec3Set1(fer_vec3_t *v, int d, fer_real_t val)
+{
+    ferVec3SetCoord(v, d, val);
 }
 
 _fer_inline void ferVec3SetX(fer_vec3_t *v, fer_real_t val)

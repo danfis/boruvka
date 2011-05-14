@@ -12,6 +12,7 @@ TEST(cdCollideTriMesh);
 TEST(cdCollideTriMesh2);
 TEST(cdCollideSphere);
 TEST(cdCollide1);
+TEST(cdCollide2);
 
 TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
@@ -24,6 +25,7 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdCollideTriMesh2),
     TEST_ADD(cdCollideSphere),
     TEST_ADD(cdCollide1),
+    TEST_ADD(cdCollide2),
 
     TEST_SUITE_CLOSURE
 };

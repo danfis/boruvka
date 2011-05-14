@@ -507,3 +507,25 @@ int __ferCDBoxDisjoint(const fer_vec3_t *he1, const fer_vec3_t *he2,
     //DBG2("0");
     return 0;
 }
+
+void __ferCDBoxClosestPoint(const fer_vec3_t *he,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            const fer_vec3_t *p,
+                            fer_vec3_t *q)
+{
+    fer_vec3_t d, dist;
+    int i;
+
+    ferVec3Sub2(&d, p, tr);
+    ferMat3MulVec(&dist, rot, &d);
+
+    for (i = 0; i < 3; i++){
+        if (ferVec3Get(&dist, i) > ferVec3Get(he, i))
+            ferVec3Set1(&dist, i, ferVec3Get(he, i));
+        if (ferVec3Get(&dist, i) < -ferVec3Get(he, i))
+            ferVec3Set1(&dist, i, -ferVec3Get(he, i));
+    }
+
+    ferMat3MulVecTrans(q, rot, &dist);
+    ferVec3Add(q, tr);
+}
