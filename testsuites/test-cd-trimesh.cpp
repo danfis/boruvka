@@ -72,9 +72,11 @@ void testRapidBunny(void);
 void testRapid(int task);
 
 
+#ifdef HAVE_RAPID
 int rapidCollide(RAPID_model *g1, RAPID_model *g2,
                  const fer_mat3_t *rot, const fer_vec3_t *tr);
 static RAPID_model *rapidFromRaw(const char *fn);
+#endif /* HAVE_RAPID */
 static int nextTrans(fer_mat3_t *rot, fer_vec3_t *tr, int *ret,
                      const char *filename);
 
@@ -463,6 +465,7 @@ void testRapid(int task)
 
 
 
+#ifdef HAVE_RAPID
 int rapidCollide(RAPID_model *g1, RAPID_model *g2,
                  const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
@@ -527,6 +530,7 @@ static RAPID_model *rapidFromRaw(const char *fn)
 
     return g;
 }
+#endif /* HAVE_RAPID */
 
 
 static FILE *transin = NULL;

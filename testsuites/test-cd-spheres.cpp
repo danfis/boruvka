@@ -1,15 +1,20 @@
 #include <fermat/cd.h>
 #include <fermat/cd-sphere-grid.h>
 #include <fermat/timer.h>
+#ifdef HAVE_OZCOLLIDE
 #include "ozcollide/ozcollide.h"
+#endif /* HAVE_OZCOLLIDE */
 #include "data.h"
 
 static void testCD1(void);
 static void testCDSphereGrid1(void);
 static void testOZCollide1(void);
 
+#ifdef HAVE_OZCOLLIDE
 static int OZCollide(ozcollide::AABBTreeSphere *big, ozcollide::Sphere *small,
                      const fer_mat3_t *rot, const fer_vec3_t *tr, int num);
+#endif /* HAVE_OZCOLLIDE */
+
 static int nextTrans(fer_mat3_t *rot, fer_vec3_t *tr, int *ret);
 
 int main(int argc, char *argv[])
@@ -179,6 +184,7 @@ static void testOZCollide1(void)
 
 
 
+#ifdef HAVE_OZCOLLIDE
 static int OZCollide(ozcollide::AABBTreeSphere *big, ozcollide::Sphere *small,
                      const fer_mat3_t *rot, const fer_vec3_t *tr, int num)
 {
@@ -202,6 +208,7 @@ static int OZCollide(ozcollide::AABBTreeSphere *big, ozcollide::Sphere *small,
 
     return ret;
 }
+#endif /* HAVE_OZCOLLIDE */
 
 
 static FILE *transin = NULL;
