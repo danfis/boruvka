@@ -812,6 +812,7 @@ static void expandPolytope(fer_ccd_pt_t *pt, fer_ccd_pt_el_t *el,
         ferCCDPtEdgeFaces((fer_ccd_pt_edge_t *)el, &f[0], &f[1]);
 
         if (f[0]){
+            e[3] = NULL;
             ferCCDPtFaceEdges(f[0], &e[0], &e[1], &e[2]);
             if (e[0] == (fer_ccd_pt_edge_t *)el){
                 e[0] = e[2];
