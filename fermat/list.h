@@ -149,7 +149,7 @@ typedef struct _fer_list_m_t fer_list_m_t;
  * {head}:	the head for your list.
  * {member}:the name of the list_struct within the struct.
  */
-#define FER_LIST_FOR_EACH_ENTRY_SAFE(head, postype, pos, n, ntype, member)         \
+#define FER_LIST_FOR_EACH_ENTRY_SAFE(head, postype, pos, ntype, n, member)         \
     for (pos = FER_LIST_ENTRY((head)->next, postype, member),             \
 		 n = FER_LIST_ENTRY(pos->member.next, postype, member);	\
 	     &pos->member != (head); 					\

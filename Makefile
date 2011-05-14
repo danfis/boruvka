@@ -49,6 +49,7 @@ OBJS += tasks.o
 OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
 OBJS += cd-sphere-grid.o
+OBJS += ccd.o ccd-polytope.o ccd-mpr.o ccd-support.o
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
