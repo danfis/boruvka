@@ -517,7 +517,7 @@ void __ferCDBoxClosestPoint(const fer_vec3_t *he,
     int i;
 
     ferVec3Sub2(&d, p, tr);
-    ferMat3MulVec(&dist, rot, &d);
+    ferMat3MulVecTrans(&dist, rot, &d);
 
     for (i = 0; i < 3; i++){
         if (ferVec3Get(&dist, i) > ferVec3Get(he, i))
@@ -526,6 +526,6 @@ void __ferCDBoxClosestPoint(const fer_vec3_t *he,
             ferVec3Set1(&dist, i, -ferVec3Get(he, i));
     }
 
-    ferMat3MulVecTrans(q, rot, &dist);
+    ferMat3MulVec(q, rot, &dist);
     ferVec3Add(q, tr);
 }

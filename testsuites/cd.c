@@ -806,11 +806,20 @@ TEST(cdCollide2)
     ret = ferCDGeomCollide(cd, g1, g2);
     assertTrue(ret);
 
-    /*
+    ferMat3SetRot3D(&rot1, 0, M_PI_4, -M_PI_4);
+    ferVec3Set(&tr1, -0.2, -0.1, 0.);
+    ferMat3SetRot3D(&rot2, 0, -M_PI_4 / 2., -M_PI_4);
+    ferVec3Set(&tr2, -0.3, 0.1, 0.15);
+    ferCDGeomSetRot(cd, g1, &rot1);
+    ferCDGeomSetTr(cd, g1, &tr1);
+    ferCDGeomSetRot(cd, g2, &rot2);
+    ferCDGeomSetTr(cd, g2, &tr2);
+    ret = ferCDGeomCollide(cd, g1, g2);
+    assertTrue(ret);
+
     DBG("ret: %d", ret);
     ferCDGeomDumpSVT(g1, stdout, "g1");
     ferCDGeomDumpSVT(g2, stdout, "g2");
-    */
 
     ferCDGeomDel(cd, g1);
     ferCDGeomDel(cd, g2);
