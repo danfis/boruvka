@@ -19,6 +19,7 @@ const char *data1_geom[] = {
     "data-bugtrap-1.geom",
     "data-puzzle-1.geom",
     "data-car-small.geom"
+    //"data-car-big.geom"
 };
 
 const char *data2_geom[] = {
@@ -27,6 +28,7 @@ const char *data2_geom[] = {
     "data-bugtrap-2.geom",
     "data-puzzle-2.geom",
     "data-seat-small.geom"
+    //"data-seat-big.geom"
 };
 
 const char *data1_tri[] = {
@@ -63,6 +65,10 @@ const int check_ret[] = {
     0,
     0
 };
+
+int loading_enabled = 1;
+int progress = 1;
+int run = 1;
 
 
 void testCDBunny(void);
@@ -162,7 +168,7 @@ void testCDBunny(void)
     ferTimerStop(&timer);
     fprintf(stdout, "# testCDBunny :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
 
-    for (i = 0; nextTrans(&rot2, &tr2, &ret2, "data-test-cd-trimesh.trans.txt") == 0; i++){
+    for (i = 0; run && nextTrans(&rot2, &tr2, &ret2, "data-test-cd-trimesh.trans.txt") == 0; i++){
         ferCDGeomSetRot(cd, g2, &rot2);
         ferCDGeomSetTr(cd, g2, &tr2);
         ferTimerStart(&timer);
@@ -238,7 +244,7 @@ void testRapidBunny(void)
     fprintf(stdout, "# testRapidBunny :: build g2: %lu\n", ferTimerElapsedInUs(&timer));
 
 
-    for (i = 0; nextTrans(&rot2, &tr2, &ret2, "data-test-cd-trimesh.trans.txt") == 0; i++){
+    for (i = 0; run && nextTrans(&rot2, &tr2, &ret2, "data-test-cd-trimesh.trans.txt") == 0; i++){
         ferTimerStart(&timer);
 
         ret = rapidCollide(g1, g2, &rot2, &tr2);
@@ -297,11 +303,15 @@ void testCD(int task)
     //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
     //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
     //ferCDSetBuildFlags(cd, FER_CD_FIT_POLYHEDRAL_MASS);
-    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE | FER_CD_FIT_NAIVE_NUM_ROT(5));
+    ferCDSetBuildFlags(cd, FER_CD_TOP_DOWN
+                            | FER_CD_BUILD_PARALLEL(8)
+                            | FER_CD_FIT_NAIVE
+                            | FER_CD_FIT_NAIVE_NUM_ROT(5));
     //ferCDSetBuildFlags(cd, FER_CD_FIT_COVARIANCE_FAST);
+    //ferCDSetBuildFlags(cd, FER_CD_BUILD_PARALLEL(8) | FER_CD_FIT_COVARIANCE_FAST);
 
     ferTimerStart(&timer);
-    if (data1_geom[task]){
+    if (loading_enabled && data1_geom[task]){
         g1 = ferCDGeomLoad(cd, data1_geom[task]);
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: load `%s' g1: %lu\n", task,
@@ -313,7 +323,7 @@ void testCD(int task)
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: build `%s' g1: %lu\n", task,
                 data1_tri[task], ferTimerElapsedInUs(&timer));
-        //ferCDGeomSave(cd, g1, "g1");
+        ferCDGeomSave(cd, g1, "g1");
     }
 
     //ferCDGeomDumpOBBSVT(g1, stdout, "g1");
@@ -322,7 +332,7 @@ void testCD(int task)
     //ferCDGeomDumpSVT(g1, stdout, "g1");
 
     ferTimerStart(&timer);
-    if (data2_geom[task]){
+    if (loading_enabled && data2_geom[task]){
         g2 = ferCDGeomLoad(cd, data2_geom[task]);
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: load `%s' g2: %lu\n", task,
@@ -334,11 +344,11 @@ void testCD(int task)
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: build `%s' g2: %lu\n", task,
                 data2_tri[task], ferTimerElapsedInUs(&timer));
-        //ferCDGeomSave(cd, g2, "g2");
+        ferCDGeomSave(cd, g2, "g2");
     }
     fflush(stdout);
 
-    for (i = 0; nextTrans(&rot2, &tr2, &ret2, data_trans[task]) == 0; i++){
+    for (i = 0; run && nextTrans(&rot2, &tr2, &ret2, data_trans[task]) == 0; i++){
         //ferVec3Scale(&tr2, 0.01);
         ferCDGeomSetRot(cd, g2, &rot2);
         ferCDGeomSetTr(cd, g2, &tr2);
@@ -369,7 +379,7 @@ void testCD(int task)
             overall_0_num += 1;
         }
 
-        if ((overall_0_num + overall_1_num) % 100 == 0){
+        if (progress && (overall_0_num + overall_1_num) % 100 == 0){
             fprintf(stderr, "# overall: %lu (0: %f) (1: %f) [%u]             \r",
                     overall_time, 
                     (float)overall_0/(float)overall_0_num,
@@ -417,7 +427,7 @@ void testRapid(int task)
             data2_tri[task], ferTimerElapsedInUs(&timer));
 
 
-    for (i = 0; nextTrans(&rot2, &tr2, &ret2, data_trans[task]) == 0; i++){
+    for (i = 0; run && nextTrans(&rot2, &tr2, &ret2, data_trans[task]) == 0; i++){
         //ferVec3Scale(&tr2, 0.01);
         ferTimerStart(&timer);
 
@@ -438,7 +448,7 @@ void testRapid(int task)
             overall_0_num += 1;
         }
 
-        if ((overall_0_num + overall_1_num) % 100 == 0){
+        if (progress && (overall_0_num + overall_1_num) % 100 == 0){
             fprintf(stderr, "# overall: %lu (0: %f) (1: %f) [%u]             \r",
                     overall_time, 
                     (float)overall_0/(float)overall_0_num,
