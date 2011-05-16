@@ -155,6 +155,7 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
     fer_vec3_t p0, p1, p2;
     fer_cd_tri_t *tri;
     fer_cd_obb_t *obb;
+    size_t zero_tris;
 
     fin = fopen(filename, "r");
     if (!fin){
@@ -162,15 +163,26 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
         return;
     }
 
+    zero_tris = 0;
     while (fscanf(fin, "%f %f %f %f %f %f %f %f %f",
                   &ax, &ay, &az, &bx, &by, &bz, &cx, &cy, &cz) == 9){
         ferVec3Set(&p0, ax, ay, az);
         ferVec3Set(&p1, bx, by, bz);
         ferVec3Set(&p2, cx, cy, cz);
 
+        if (ferIsZero(FER_REAL(0.5) * ferVec3TriArea2(&p0, &p1, &p2))){
+            zero_tris++;
+            continue;
+        }
+
         tri = ferCDTriNew(&p0, &p1, &p2);
         obb = ferCDOBBNewShape((fer_cd_shape_t *)tri, cd->build_flags);
         ferListAppend(&g->obbs, &obb->list);
+    }
+
+    if (zero_tris > 0){
+        fprintf(stderr, "CD Warning: ferCDGeomAddTrisFromRaw(): %d triangles"
+                        " with zero area ignored.\n", zero_tris);
     }
 
     fclose(fin);
@@ -323,7 +335,7 @@ void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     FER_LIST_FOR_EACH(&g->obbs, item){
         obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        numpts = _ferCDGeomDumpTriSVT(obb, out, &g->rot, &g->tr);
+        numpts += _ferCDGeomDumpTriSVT(obb, out, &g->rot, &g->tr);
     }
 
     fprintf(out, "Faces:\n");
