@@ -106,8 +106,12 @@ void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
         // get nearest node from net
         if (rrt->ops.nearest){
             cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
-        }else{
+        }else if (rrt->params.use_cells){
             cnear = ferRRTNearest(rrt, rand);
+        }else{
+            fprintf(stderr, "RRT: No 'nearest' callback is set!\n");
+            fflush(stderr);
+            return;
         }
 
         // get new configuration
@@ -148,7 +152,7 @@ const fer_rrt_node_t *ferRRTNearest(const fer_rrt_t *rrt, const fer_vec_t *c)
     fer_nncells_el_t *el;
     const fer_rrt_node_t *near = NULL;
 
-    if (ferNNCellsNearest(rrt->cells, c, 1, &el) == 1){
+    if (rrt->cells && ferNNCellsNearest(rrt->cells, c, 1, &el) == 1){
         near = fer_container_of(el, fer_rrt_node_t, cells);
     }
 
@@ -319,7 +323,8 @@ static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
     ferNetAddNode(rrt->net, &n->node);
 
     ferNNCellsElInit(&n->cells, n->conf);
-    ferNNCellsAdd(rrt->cells, &n->cells);
+    if (rrt->cells)
+        ferNNCellsAdd(rrt->cells, &n->cells);
 
     return n;
 }
