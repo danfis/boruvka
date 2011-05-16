@@ -51,6 +51,7 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
 
     rrt->params = *params;
     rrt->params.cells.d = rrt->params.d;
+
     rrt->ops    = *ops;
     if (rrt->ops.random_data == NULL)
         rrt->ops.random_data = rrt->ops.data;
@@ -60,6 +61,8 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
         rrt->ops.expand_data = rrt->ops.data;
     if (rrt->ops.terminate_data == NULL)
         rrt->ops.terminate_data = rrt->ops.data;
+    if (rrt->ops.terminate_expand_data == NULL)
+        rrt->ops.terminate_expand_data = rrt->ops.data;
     if (rrt->ops.callback_data == NULL)
         rrt->ops.callback_data = rrt->ops.data;
 
@@ -87,10 +90,11 @@ void ferRRTDel(fer_rrt_t *rrt)
     free(rrt);
 }
 
-void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
+static void ferRRTRunBasicConnect(fer_rrt_t *rrt, const fer_vec_t *init,
+                                  int connect)
 {
     fer_rrt_node_t *n, *new;
-    const fer_rrt_node_t *cnear;
+    const fer_rrt_node_t *cnear, *start;
     const fer_vec_t *rand, *new_conf;
     unsigned long counter;
 
@@ -114,17 +118,26 @@ void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
             return;
         }
 
-        // get new configuration
-        new_conf = rrt->ops.expand(rrt, cnear, rand, rrt->ops.expand_data);
+        start = cnear;
 
-        if (new_conf){
-            // add node to net
-            new = nodeNew(rrt, new_conf);
-            rrt->node_last = new;
+        do {
+            // get new configuration
+            new_conf = rrt->ops.expand(rrt, cnear, rand, rrt->ops.expand_data);
 
-            // and connect in with nearest node
-            edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
-        }
+            new = NULL;
+            if (new_conf){
+                // add node to net
+                new = nodeNew(rrt, new_conf);
+                rrt->node_last = new;
+
+                // and connect in with nearest node
+                edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
+            }
+
+            cnear = new;
+        } while (cnear && connect
+                    && !rrt->ops.terminate_expand(rrt, start, cnear, rand,
+                                                  rrt->ops.terminate_expand_data));
 
 
         if (rrt->ops.callback && counter == rrt->ops.callback_period){
@@ -133,6 +146,16 @@ void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
         }
         counter += 1L;
     }
+}
+
+void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
+{
+    ferRRTRunBasicConnect(rrt, init, 0);
+}
+
+void ferRRTRunConnect(fer_rrt_t *rrt, const fer_vec_t *init)
+{
+    ferRRTRunBasicConnect(rrt, init, 1);
 }
 
 const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,

@@ -38,6 +38,10 @@ typedef struct _alg_t alg_t;
 
 
 static int terminate(const fer_rrt_t *rrt, void *data);
+static int terminate_expand(const fer_rrt_t *rrt,
+                            const fer_rrt_node_t *start,
+                            const fer_rrt_node_t *last,
+                            const fer_vec_t *rand, void *data);
 static void callback(const fer_rrt_t *rrt, void *data);
 static const fer_vec_t *rand_conf(const fer_rrt_t *rrt, void *data);
 static const fer_vec_t *expand(const fer_rrt_t *rrt,
@@ -72,6 +76,7 @@ int main(int argc, char *argv[])
     ops.random    = rand_conf;
     ops.expand    = expand;
     ops.terminate = terminate;
+    ops.terminate_expand = terminate_expand;
     ops.callback  = callback;
     ops.callback_period = 500;
 
@@ -87,7 +92,8 @@ int main(int argc, char *argv[])
     alg.rrt = ferRRTNew(&ops, &params);
 
     ferTimerStart(&alg.timer);
-    ferRRTRunBasic(alg.rrt, (fer_vec_t *)&alg.start);
+    //ferRRTRunBasic(alg.rrt, (fer_vec_t *)&alg.start);
+    ferRRTRunConnect(alg.rrt, (fer_vec_t *)&alg.start);
     callback(alg.rrt, &alg);
     fprintf(stderr, "\n");
 
@@ -123,6 +129,21 @@ static int terminate(const fer_rrt_t *rrt, void *data)
         return 1;
 
     return 0;
+}
+
+static int terminate_expand(const fer_rrt_t *rrt,
+                            const fer_rrt_node_t *start,
+                            const fer_rrt_node_t *last,
+                            const fer_vec_t *rand, void *data)
+{
+    alg_t *alg = (alg_t *)data;
+    const fer_vec2_t *n;
+    fer_real_t dist;
+
+    n = (const fer_vec2_t *)ferRRTNodeConf(last);
+    dist = ferVec2Dist(n, (const fer_vec2_t *)rand);
+
+    return dist <= alg->step;
 }
 
 static void callback(const fer_rrt_t *rrt, void *data)

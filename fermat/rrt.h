@@ -75,6 +75,18 @@ typedef const fer_vec_t *(*fer_rrt_expand)(const struct _fer_rrt_t *rrt,
 typedef int (*fer_rrt_terminate)(const struct _fer_rrt_t *rrt, void *);
 
 /**
+ * Return true if expansion chain should be terminated. Start node (where
+ * starts expansion), last created node and random configuration are
+ * provided.
+ * See *RunConnect() for more info.
+ */
+typedef int (*fer_rrt_terminate_expand)(const struct _fer_rrt_t *rrt,
+                                        const struct _fer_rrt_node_t *start,
+                                        const struct _fer_rrt_node_t *last,
+                                        const fer_vec_t *rand_conf,
+                                        void *);
+
+/**
  * Callback that is periodically called from RRT.
  *
  * It is called every .callback_period'th added node.
@@ -88,6 +100,7 @@ struct _fer_rrt_ops_t {
     fer_rrt_nearest nearest;
     fer_rrt_expand expand;
     fer_rrt_terminate terminate;
+    fer_rrt_terminate_expand terminate_expand;
 
     fer_rrt_callback callback;
     unsigned long callback_period;
@@ -99,6 +112,7 @@ struct _fer_rrt_ops_t {
     void *nearest_data;
     void *expand_data;
     void *terminate_data;
+    void *terminate_expand_data;
     void *callback_data;
 };
 typedef struct _fer_rrt_ops_t fer_rrt_ops_t;
@@ -180,6 +194,21 @@ void ferRRTDel(fer_rrt_t *rrt);
  *         create edge between n and e
  */
 void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init);
+
+/**
+ * Runs RRT-Connect:
+ * ~~~~~~
+ * while !ops.terminate():
+ *     r = ops.random()
+ *     n = ops.nearest(r)
+ *     repeat:
+ *         e = ops.expand(n, r)
+ *         if e != NULL:
+ *             create edge between n and e
+ *         n = e
+ *     until n != NULL && !ops.terminate_expand(n, r)
+ */
+void ferRRTRunConnect(fer_rrt_t *rrt, const fer_vec_t *init);
 
 /**
  * Returns number of nodes in roadmap.
