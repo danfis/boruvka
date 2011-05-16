@@ -70,6 +70,18 @@ typedef const fer_vec_t *(*fer_rrt_expand)(const struct _fer_rrt_t *rrt,
                                            void *);
 
 /**
+ * Expands node {n} towards configuration {conf} - fills list {list_out}
+ * with all possible configurations.
+ * Use ferRRTExpandAdd() function for adding configurations into
+ * {list_out}.
+ */
+typedef void (*fer_rrt_expand_all)(const struct _fer_rrt_t *rrt,
+                                   const struct _fer_rrt_node_t *n,
+                                   const fer_vec_t *conf,
+                                   void * data,
+                                   fer_list_t *list_out);
+
+/**
  * Returns true if algorithm should terminate.
  */
 typedef int (*fer_rrt_terminate)(const struct _fer_rrt_t *rrt, void *);
@@ -87,6 +99,16 @@ typedef int (*fer_rrt_terminate_expand)(const struct _fer_rrt_t *rrt,
                                         void *);
 
 /**
+ * Return true if {candidate} should be used for expansion.
+ * {src} is node frome which were expansion performed, {nearest} is node
+ * nearest to {candidate}.
+ */
+typedef int (*fer_rrt_filter_blossom)(const struct _fer_rrt_t *rrt,
+                                      const fer_vec_t *candidate,
+                                      const struct _fer_rrt_node_t *src,
+                                      const struct _fer_rrt_node_t *nearest,
+                                      void *);
+/**
  * Callback that is periodically called from RRT.
  *
  * It is called every .callback_period'th added node.
@@ -99,8 +121,10 @@ struct _fer_rrt_ops_t {
     fer_rrt_random random;
     fer_rrt_nearest nearest;
     fer_rrt_expand expand;
+    fer_rrt_expand_all expand_all;
     fer_rrt_terminate terminate;
     fer_rrt_terminate_expand terminate_expand;
+    fer_rrt_filter_blossom filter_blossom;
 
     fer_rrt_callback callback;
     unsigned long callback_period;
@@ -111,8 +135,10 @@ struct _fer_rrt_ops_t {
     void *random_data;
     void *nearest_data;
     void *expand_data;
+    void *expand_all_data;
     void *terminate_data;
     void *terminate_expand_data;
+    void *filter_blossom_data;
     void *callback_data;
 };
 typedef struct _fer_rrt_ops_t fer_rrt_ops_t;
@@ -122,6 +148,10 @@ typedef struct _fer_rrt_ops_t fer_rrt_ops_t;
  */
 void ferRRTOpsInit(fer_rrt_ops_t *ops);
 
+/**
+ * Adds given configuration into list
+ */
+void ferRRTExpandAdd(int dim, const fer_vec_t *conf, fer_list_t *list);
 
 /**
  * RRT Parameters
@@ -209,6 +239,20 @@ void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init);
  *     until n != NULL && !ops.terminate_expand(n, r)
  */
 void ferRRTRunConnect(fer_rrt_t *rrt, const fer_vec_t *init);
+
+/**
+ * Runs RRT-Blossom:
+ * ~~~~~
+ * while !ops.terminate():
+ *     r = ops.random()
+ *     n = ops.nearest(r)
+ *     E = ops.expand_all(n, r)
+ *     for e in E:
+ *         m = ops.nearest(e)
+ *         if ops.filter_blossom(e, n, m):
+ *             create edge between n and e
+ */
+void ferRRTRunBlossom(fer_rrt_t *rrt, const fer_vec_t *init);
 
 /**
  * Returns number of nodes in roadmap.

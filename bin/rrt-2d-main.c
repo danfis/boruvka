@@ -47,6 +47,15 @@ static const fer_vec_t *rand_conf(const fer_rrt_t *rrt, void *data);
 static const fer_vec_t *expand(const fer_rrt_t *rrt,
                                const fer_rrt_node_t *n,
                                const fer_vec_t *rand, void *data);
+static void expand_all(const fer_rrt_t *rrt,
+                       const fer_rrt_node_t *n,
+                       const fer_vec_t *rand, void *data,
+                       fer_list_t *list);
+static int filter_blossom(const fer_rrt_t *rrt,
+                          const fer_vec_t *c,
+                          const fer_rrt_node_t *src,
+                          const fer_rrt_node_t *near,
+                          void *data);
 static int eval(const fer_vec2_t *conf, alg_t *alg);
 static void printPath(alg_t *alg, FILE *out);
 
@@ -75,6 +84,8 @@ int main(int argc, char *argv[])
     ops.data      = &alg;
     ops.random    = rand_conf;
     ops.expand    = expand;
+    ops.expand_all = expand_all;
+    ops.filter_blossom = filter_blossom;
     ops.terminate = terminate;
     ops.terminate_expand = terminate_expand;
     ops.callback  = callback;
@@ -93,7 +104,8 @@ int main(int argc, char *argv[])
 
     ferTimerStart(&alg.timer);
     //ferRRTRunBasic(alg.rrt, (fer_vec_t *)&alg.start);
-    ferRRTRunConnect(alg.rrt, (fer_vec_t *)&alg.start);
+    //ferRRTRunConnect(alg.rrt, (fer_vec_t *)&alg.start);
+    ferRRTRunBlossom(alg.rrt, (fer_vec_t *)&alg.start);
     callback(alg.rrt, &alg);
     fprintf(stderr, "\n");
 
@@ -190,6 +202,47 @@ static const fer_vec_t *expand(const fer_rrt_t *rrt,
         return NULL;
     //DBG("expand: %f %f", ferVec2X(&alg->new_conf), ferVec2Y(&alg->new_conf));
     return (const fer_vec_t *)&alg->new_conf;
+}
+
+static void expand_all(const fer_rrt_t *rrt,
+                       const fer_rrt_node_t *node_near,
+                       const fer_vec_t *rand, void *data,
+                       fer_list_t *list)
+{
+    alg_t *alg = (alg_t *)data;
+    const fer_vec_t *conf;
+    fer_vec2_t c, add;
+
+    ferVec2Copy(&c, (const fer_vec2_t *)rand);
+
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+
+    ferVec2Set(&add, alg->step, alg->step);
+    ferVec2Add(&c, &add);
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+
+    ferVec2Sub(&c, &add);
+    ferVec2Sub(&c, &add);
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+}
+
+static int filter_blossom(const fer_rrt_t *rrt,
+                          const fer_vec_t *c,
+                          const fer_rrt_node_t *src,
+                          const fer_rrt_node_t *near,
+                          void *data)
+{
+    const fer_vec_t *s, *n;
+    s = ferRRTNodeConf(src);
+    n = ferRRTNodeConf(near);
+
+    return s == n || ferVecDist(2, c, n) > ferVecDist(2, c, s);
 }
 
 static int eval(const fer_vec2_t *conf, alg_t *alg)
