@@ -284,6 +284,12 @@ _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b);
 _fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b);
 
 /**
+ * d = a^t * b
+ */
+_fer_inline void ferMat3MulTrans2(fer_mat3_t *d,
+                                  const fer_mat3_t *a, const fer_mat3_t *b);
+
+/**
  * Multiplies {a} by matrix defined by three column vectors.
  */
 _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
@@ -718,6 +724,27 @@ _fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b)
     a->f[2]  = ferMat3DotCol(b, 0, &v);
     a->f[6]  = ferMat3DotCol(b, 1, &v);
     a->f[10] = ferMat3DotCol(b, 2, &v);
+}
+
+_fer_inline void ferMat3MulTrans2(fer_mat3_t *d,
+                                  const fer_mat3_t *a, const fer_mat3_t *b)
+{
+    fer_vec3_t v;
+
+    ferMat3CopyCol(&v, b, 0);
+    d->f[0]  = ferMat3DotCol(a, 0, &v);
+    d->f[4]  = ferMat3DotCol(a, 1, &v);
+    d->f[8]  = ferMat3DotCol(a, 2, &v);
+
+    ferMat3CopyCol(&v, b, 1);
+    d->f[1]  = ferMat3DotCol(a, 0, &v);
+    d->f[5]  = ferMat3DotCol(a, 1, &v);
+    d->f[9]  = ferMat3DotCol(a, 2, &v);
+
+    ferMat3CopyCol(&v, b, 2);
+    d->f[2]  = ferMat3DotCol(a, 0, &v);
+    d->f[6]  = ferMat3DotCol(a, 1, &v);
+    d->f[10] = ferMat3DotCol(a, 2, &v);
 }
 
 _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,

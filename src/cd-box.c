@@ -323,3 +323,209 @@ static void getCorners(const fer_cd_box_t *b,
         ferVec3Add(&cs[i], tr);
     }
 }
+
+
+
+int __ferCDBoxDisjointEarly(const fer_vec3_t *he1, const fer_vec3_t *he2,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_mat3_t abs_rot;
+    fer_real_t tl, ra, rb;
+    int i;
+
+    // precompute absolute values of rot
+    ferMat3Abs2(&abs_rot, rot);
+
+    // L = obb1->axis[0, 1, 2]
+    for (i = 0; i < 3; i++){
+        tl = FER_FABS(ferVec3Get(tr, i));
+        ra = ferVec3Get(he1, i);
+        rb = ferMat3DotRow(&abs_rot, i, he2);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+
+        if (tl > ra + rb)
+            return i + 1;
+    }
+
+    // L = obb2->axis[0, 1, 2]
+    for (i = 0; i < 3; i++){
+        tl = FER_FABS(ferMat3DotCol(rot, i, tr));
+        ra = ferMat3DotCol(&abs_rot, i, he1);
+        rb = ferVec3Get(he2, i);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+
+        if (tl > ra + rb)
+            return i + 4;
+    }
+
+    return 0;
+}
+
+int __ferCDBoxDisjoint(const fer_vec3_t *he1, const fer_vec3_t *he2,
+                       const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_mat3_t abs_rot;
+    fer_real_t tl, ra, rb;
+    int i;
+
+    // precompute absolute values of rot
+    ferMat3Abs2(&abs_rot, rot);
+
+    // L = obb1->axis[0, 1, 2]
+    for (i = 0; i < 3; i++){
+        tl = FER_FABS(ferVec3Get(tr, i));
+        ra = ferVec3Get(he1, i);
+        rb = ferMat3DotRow(&abs_rot, i, he2);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+
+        if (tl > ra + rb)
+            return i + 1;
+    }
+
+    // L = obb2->axis[0, 1, 2]
+    for (i = 0; i < 3; i++){
+        tl = FER_FABS(ferMat3DotCol(rot, i, tr));
+        ra = ferMat3DotCol(&abs_rot, i, he1);
+        rb = ferVec3Get(he2, i);
+        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+
+        if (tl > ra + rb)
+            return i + 4;
+    }
+
+
+    // L = obb1->axis[0] x obb2->axis[0]
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 0);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 0);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 2, 0);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 1, 0);
+    rb  = ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 0, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 0, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 7;
+
+    // L = obb1->axis[0] x obb2->axis[1]
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 1);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 1);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 2, 1);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 1, 1);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 0, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 0, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 8;
+
+    // L = obb1->axis[0] x obb2->axis[2]
+    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 2);
+    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 2);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 2, 2);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 1, 2);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 0, 1);
+    rb += ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 0, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 9;
+
+
+    // L = obb1->axis[1] x obb2->axis[0]
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 0);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 0);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 2, 0);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 0, 0);
+    rb  = ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 1, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 1, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 10;
+
+    // L = obb1->axis[1] x obb2->axis[1]
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 1);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 1);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 2, 1);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 0, 1);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 1, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 1, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 11;
+
+    // L = obb1->axis[1] x obb2->axis[2]
+    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 2);
+    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 2);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 2, 2);
+    ra += ferVec3Get(he1, 2) * ferMat3Get(&abs_rot, 0, 2);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 1, 1);
+    rb += ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 1, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 12;
+
+
+    // L = obb1->axis[2] x obb2->axis[0]
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 0);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 0);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 1, 0);
+    ra += ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 0, 0);
+    rb  = ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 2, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 2, 1);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 13;
+
+    // L = obb1->axis[2] x obb2->axis[1]
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 1);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 1);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 1, 1);
+    ra += ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 0, 1);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 2, 2);
+    rb += ferVec3Get(he2, 2) * ferMat3Get(&abs_rot, 2, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 14;
+
+    // L = obb1->axis[2] x obb2->axis[2]
+    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 2);
+    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 2);
+    tl  = FER_FABS(tl);
+    ra  = ferVec3Get(he1, 0) * ferMat3Get(&abs_rot, 1, 2);
+    ra += ferVec3Get(he1, 1) * ferMat3Get(&abs_rot, 0, 2);
+    rb  = ferVec3Get(he2, 0) * ferMat3Get(&abs_rot, 2, 1);
+    rb += ferVec3Get(he2, 1) * ferMat3Get(&abs_rot, 2, 0);
+    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
+    if (tl > ra + rb)
+        return 15;
+
+    //DBG2("0");
+    return 0;
+}
+
+void __ferCDBoxClosestPoint(const fer_vec3_t *he,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            const fer_vec3_t *p,
+                            fer_vec3_t *q)
+{
+    fer_vec3_t d, dist;
+    int i;
+
+    ferVec3Sub2(&d, p, tr);
+    ferMat3MulVecTrans(&dist, rot, &d);
+
+    for (i = 0; i < 3; i++){
+        if (ferVec3Get(&dist, i) > ferVec3Get(he, i))
+            ferVec3Set1(&dist, i, ferVec3Get(he, i));
+        if (ferVec3Get(&dist, i) < -ferVec3Get(he, i))
+            ferVec3Set1(&dist, i, -ferVec3Get(he, i));
+    }
+
+    ferMat3MulVec(q, rot, &dist);
+    ferVec3Add(q, tr);
+}

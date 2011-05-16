@@ -67,14 +67,6 @@ _fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
                            fer_list_t *list);
 
 /** Disjoint predicate - {rot} and {tr} are relative rotation/translation */
-_fer_inline int __ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
-                                   const fer_cd_obb_t *obb2,
-                                   const fer_mat3_t *rot,
-                                   const fer_vec3_t *tr);
-_fer_inline int __ferCDOBBDisjointEarly(const fer_cd_obb_t *obb1,
-                                        const fer_cd_obb_t *obb2,
-                                        const fer_mat3_t *rot,
-                                        const fer_vec3_t *tr);
 _fer_inline int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1,
                                     const fer_cd_obb_t *obb2,
                                     const fer_mat3_t *R, const fer_vec3_t *T);
@@ -259,7 +251,8 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
     // finish translation computation
     ferMat3MulLeftTrans(&rot, &A1t);
 
-    return __ferCDOBBDisjoint(obb1, obb2, &rot, &tr);
+    return __ferCDBoxDisjoint(&obb1->half_extents, &obb2->half_extents,
+                              &rot, &tr);
 }
 
 
@@ -1812,7 +1805,8 @@ _fer_inline int ferCDOBBDisjointRel(const fer_cd_obb_t *obb1,
     DBG_VEC3(&tr, "tr: ");
     */
 
-    return __ferCDOBBDisjointEarly(obb1, obb2, &rot, &tr);
+    return __ferCDBoxDisjointEarly(&obb1->half_extents, &obb2->half_extents,
+                                   &rot, &tr);
 }
 
 _fer_inline int ferCDOBBDisjointRelOBB1(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
@@ -1853,7 +1847,8 @@ _fer_inline int ferCDOBBDisjointRelOBB1(const fer_cd_obb_t *o1, const fer_cd_obb
                     ferVec3Dot(&o1->axis[1], &trtmp),
                     ferVec3Dot(&o1->axis[2], &trtmp));
 
-    return __ferCDOBBDisjointEarly(o1, o2, &R2, &T2);
+    return __ferCDBoxDisjointEarly(&o1->half_extents, &o2->half_extents,
+                                   &R2, &T2);
 }
 
 _fer_inline int ferCDOBBDisjointRelOBB2(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,
@@ -1898,196 +1893,9 @@ _fer_inline int ferCDOBBDisjointRelOBB2(const fer_cd_obb_t *o1, const fer_cd_obb
                     ferVec3Dot(&o1->axis[1], &trtmp),
                     ferVec3Dot(&o1->axis[2], &trtmp));
 
-    return __ferCDOBBDisjointEarly(o1, o2, &R2, &T2);
+    return __ferCDBoxDisjointEarly(&o1->half_extents, &o2->half_extents,
+                                   &R2, &T2);
 }
-
-
-_fer_inline int __ferCDOBBDisjointEarly(const fer_cd_obb_t *obb1,
-                                        const fer_cd_obb_t *obb2,
-                                        const fer_mat3_t *rot,
-                                        const fer_vec3_t *tr)
-{
-    fer_mat3_t abs_rot;
-    fer_real_t tl, ra, rb;
-    int i;
-
-    // precompute absolute values of rot
-    ferMat3Abs2(&abs_rot, rot);
-
-    // L = obb1->axis[0, 1, 2]
-    for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferVec3Get(tr, i));
-        ra = ferVec3Get(&obb1->half_extents, i);
-        rb = ferMat3DotRow(&abs_rot, i, &obb2->half_extents);
-        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-
-        if (tl > ra + rb)
-            return i + 1;
-    }
-
-    // L = obb2->axis[0, 1, 2]
-    for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferMat3DotCol(rot, i, tr));
-        ra = ferMat3DotCol(&abs_rot, i, &obb1->half_extents);
-        rb = ferVec3Get(&obb2->half_extents, i);
-        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-
-        if (tl > ra + rb)
-            return i + 4;
-    }
-
-    return 0;
-}
-
-_fer_inline int __ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
-                                   const fer_cd_obb_t *obb2,
-                                   const fer_mat3_t *rot,
-                                   const fer_vec3_t *tr)
-{
-    fer_mat3_t abs_rot;
-    fer_real_t tl, ra, rb;
-    int i;
-
-    // precompute absolute values of rot
-    ferMat3Abs2(&abs_rot, rot);
-
-    // L = obb1->axis[0, 1, 2]
-    for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferVec3Get(tr, i));
-        ra = ferVec3Get(&obb1->half_extents, i);
-        rb = ferMat3DotRow(&abs_rot, i, &obb2->half_extents);
-        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-
-        if (tl > ra + rb)
-            return i + 1;
-    }
-
-    // L = obb2->axis[0, 1, 2]
-    for (i = 0; i < 3; i++){
-        tl = FER_FABS(ferMat3DotCol(rot, i, tr));
-        ra = ferMat3DotCol(&abs_rot, i, &obb1->half_extents);
-        rb = ferVec3Get(&obb2->half_extents, i);
-        //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-
-        if (tl > ra + rb)
-            return i + 4;
-    }
-
-
-    // L = obb1->axis[0] x obb2->axis[0]
-    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 0);
-    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 0);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 0);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 0);
-    rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 0, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 0, 1);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 7;
-
-    // L = obb1->axis[0] x obb2->axis[1]
-    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 1);
-    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 1);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 1);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 1);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 0, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 0, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 8;
-
-    // L = obb1->axis[0] x obb2->axis[2]
-    tl  = ferVec3Get(tr, 2) * ferMat3Get(rot, 1, 2);
-    tl -= ferVec3Get(tr, 1) * ferMat3Get(rot, 2, 2);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 2, 2);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 1, 2);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 0, 1);
-    rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 0, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 9;
-
-
-    // L = obb1->axis[1] x obb2->axis[0]
-    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 0);
-    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 0);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 0);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 0);
-    rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 1, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 1, 1);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 10;
-
-    // L = obb1->axis[1] x obb2->axis[1]
-    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 1);
-    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 1);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 1);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 1);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 1, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 1, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 11;
-
-    // L = obb1->axis[1] x obb2->axis[2]
-    tl  = ferVec3Get(tr, 0) * ferMat3Get(rot, 2, 2);
-    tl -= ferVec3Get(tr, 2) * ferMat3Get(rot, 0, 2);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 2, 2);
-    ra += ferVec3Get(&obb1->half_extents, 2) * ferMat3Get(&abs_rot, 0, 2);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 1, 1);
-    rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 1, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 12;
-
-
-    // L = obb1->axis[2] x obb2->axis[0]
-    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 0);
-    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 0);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 0);
-    ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 0);
-    rb  = ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 2, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 2, 1);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 13;
-
-    // L = obb1->axis[2] x obb2->axis[1]
-    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 1);
-    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 1);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 1);
-    ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 1);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 2, 2);
-    rb += ferVec3Get(&obb2->half_extents, 2) * ferMat3Get(&abs_rot, 2, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 14;
-
-    // L = obb1->axis[2] x obb2->axis[2]
-    tl  = ferVec3Get(tr, 1) * ferMat3Get(rot, 0, 2);
-    tl -= ferVec3Get(tr, 0) * ferMat3Get(rot, 1, 2);
-    tl  = FER_FABS(tl);
-    ra  = ferVec3Get(&obb1->half_extents, 0) * ferMat3Get(&abs_rot, 1, 2);
-    ra += ferVec3Get(&obb1->half_extents, 1) * ferMat3Get(&abs_rot, 0, 2);
-    rb  = ferVec3Get(&obb2->half_extents, 0) * ferMat3Get(&abs_rot, 2, 1);
-    rb += ferVec3Get(&obb2->half_extents, 1) * ferMat3Get(&abs_rot, 2, 0);
-    //DBG("tl > ra + rb, %f > %f + %f (%f)", tl, ra, rb, ra + rb);
-    if (tl > ra + rb)
-        return 15;
-
-    //DBG2("0");
-    return 0;
-}
-
 
 
 _fer_inline void __addPair(const fer_cd_obb_t *o1, const fer_cd_obb_t *o2,

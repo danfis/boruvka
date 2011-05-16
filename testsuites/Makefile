@@ -21,7 +21,7 @@ endif
 TARGETS += test-cd-spheres test-cd-trimesh
 
 
-USE_OZCOLLIDE = yes
+USE_OZCOLLIDE = no
 OZCOLLIDE_CFLAGS = -I/home/danfis/tmp/ozcollide
 OZCOLLIDE_LDFLAGS = -L/home/danfis/tmp/ozcollide/ozcollide -lozcollide
 
@@ -88,7 +88,7 @@ check: all
 	./test $(CHECK_TS)
 	@echo "----------------------------------------";
 	@echo "Checking regressions:";
-	$(PYTHON) $(CHECK_REG) regressions
+	$(PYTHON2) $(CHECK_REG) regressions
 	@echo ""
 
 check-valgrind: all

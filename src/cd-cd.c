@@ -34,8 +34,12 @@ fer_cd_t *ferCDNew(void)
         }
     }
 
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_BOX,
+                      (fer_cd_collide_fn)ferCDCollideBoxBox);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                       (fer_cd_collide_fn)ferCDCollideSphereSphere);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_BOX,
+                      (fer_cd_collide_fn)ferCDCollideSphereBox);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
                       (fer_cd_collide_fn)ferCDCollideTriTri);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
@@ -47,6 +51,14 @@ fer_cd_t *ferCDNew(void)
         if (i != FER_CD_SHAPE_OFF)
             ferCDSetCollideFn(cd, FER_CD_SHAPE_OFF, i,
                               (fer_cd_collide_fn)ferCDCollideOffAny);
+    }
+
+    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
+        for (j = i; j < FER_CD_SHAPE_LEN; j++){
+            if (!cd->collide[i][j]){
+                ferCDSetCollideFn(cd, i, j, (fer_cd_collide_fn)ferCDCollideCCD);
+            }
+        }
     }
 
     return cd;
@@ -78,7 +90,7 @@ int __ferCDShapeCollide(fer_cd_t *cd,
     if (cd->collide[type1][type2]){
         ret = cd->collide[type1][type2](cd, s1, rot1, tr1, s2, rot2, tr2);
     }else if (cd->collide[type2][type1]){
-        ret = cd->collide[type1][type2](cd, s2, rot2, tr2, s1, rot1, tr1);
+        ret = cd->collide[type2][type1](cd, s2, rot2, tr2, s1, rot1, tr1);
     }else{
         fprintf(stderr, "Error: No collider for %d-%d\n", type1, type2);
     }

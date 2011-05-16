@@ -44,6 +44,24 @@ int ferCDCollideSphereSphere(struct _fer_cd_t *cd,
                              const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Sphere-Box collider
+ */
+int ferCDCollideSphereBox(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_box_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
+ * Box-Box collider
+ */
+int ferCDCollideBoxBox(struct _fer_cd_t *cd,
+                       const fer_cd_box_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_box_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * TriMeshTri-TriMeshTri collider.
  */
 int ferCDCollideTriTri(struct _fer_cd_t *cd,
@@ -70,6 +88,15 @@ int ferCDCollideOffAny(struct _fer_cd_t *cd,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                        const fer_cd_shape_t *s2,
                        const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
+ * CCD collider - can be used to any pair of shapes
+ */
+int ferCDCollideCCD(struct _fer_cd_t *cd,
+                    const fer_cd_shape_t *s1,
+                    const fer_mat3_t *_rot1, const fer_vec3_t *_tr1,
+                    const fer_cd_shape_t *s2,
+                    const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 #ifdef __cplusplus
 }
