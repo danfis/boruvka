@@ -29,7 +29,10 @@ extern "C" {
 #define FER_RRT_FREE 1
 #define FER_RRT_OBST 2
 
+struct _fer_rrt_ops_t;
+struct _fer_rrt_params_t;
 struct _fer_rrt_node_t;
+struct _fer_rrt_t;
 
 /**
  * RRT - Rapidly-Exploring Random Trees
@@ -48,36 +51,43 @@ struct _fer_rrt_node_t;
 /**
  * Returns random configuration.
  */
-typedef const fer_vec_t *(*fer_rrt_conf)(void *);
+typedef const fer_vec_t *(*fer_rrt_random)(const struct _fer_rrt_t *rrt, void *);
+
+/**
+ * Returns nearest node to given configuration.
+ * Note that returned node must be somehow obtained from {rrt}.
+ */
+typedef const struct _fer_rrt_node_t *(*fer_rrt_nearest)(const struct _fer_rrt_t *rrt,
+                                                         const fer_vec_t *conf,
+                                                         void *);
+
+/**
+ * Expands node {n} towards configuration {conf}.
+ */
+typedef const fer_vec_t *(*fer_rrt_expand)(const struct _fer_rrt_t *rrt,
+                                           const struct _fer_rrt_node_t *n,
+                                           const fer_vec_t *conf,
+                                           void *);
 
 /**
  * Returns true if algorithm should terminate.
  */
-typedef int (*fer_rrt_terminate)(void *);
+typedef int (*fer_rrt_terminate)(const struct _fer_rrt_t *rrt, void *);
 
 /**
- * Returns next configuration where should tree grow from xnear.
- *
- * xrand is randomly generated configuration from ops.conf() and xnear is
- * nearest configuration from tree.
- */
-typedef const fer_vec_t *(*fer_rrt_new_conf)(const fer_vec_t *xnear,
-                                             const fer_vec_t *xrand, void *);
-
-
-/**
- * Callback that is peridically called from PRM.
+ * Callback that is periodically called from RRT.
  *
  * It is called every .callback_period'th added node.
  */
-typedef void (*fer_rrt_callback)(void *);
+typedef void (*fer_rrt_callback)(const struct _fer_rrt_t *rrt, void *);
 
 /** ^^^^ */
 
 struct _fer_rrt_ops_t {
-    fer_rrt_conf      conf;
+    fer_rrt_random random;
+    fer_rrt_nearest nearest;
+    fer_rrt_expand expand;
     fer_rrt_terminate terminate;
-    fer_rrt_new_conf new_conf;
 
     fer_rrt_callback callback;
     unsigned long callback_period;
@@ -85,9 +95,10 @@ struct _fer_rrt_ops_t {
     void *data; /*!< Data pointer that will be provided to all callbacks if
                      not specified otherwise. */
 
-    void *conf_data;
+    void *random_data;
+    void *nearest_data;
+    void *expand_data;
     void *terminate_data;
-    void *new_conf_data;
     void *callback_data;
 };
 typedef struct _fer_rrt_ops_t fer_rrt_ops_t;
@@ -105,6 +116,7 @@ void ferRRTOpsInit(fer_rrt_ops_t *ops);
 struct _fer_rrt_params_t {
     int d; /*!< Dimension of problem */
 
+    int use_cells;
     fer_nncells_params_t cells;
 };
 typedef struct _fer_rrt_params_t fer_rrt_params_t;
@@ -158,14 +170,16 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
 void ferRRTDel(fer_rrt_t *rrt);
 
 /**
- * Runs algorithm.
+ * Runs basic algorithm:
+ * ~~~~~~
+ * while !ops.terminate():
+ *     r = ops.random()
+ *     n = ops.nearest(r)
+ *     e = ops.expand(n, r)
+ *     if e != NULL:
+ *         create edge between n and e
  */
-void ferRRTRun(fer_rrt_t *rrt, const fer_vec_t *init);
-
-/**
- * Dumps net in SVT format.
- */
-void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name);
+void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init);
 
 /**
  * Returns number of nodes in roadmap.
@@ -175,7 +189,7 @@ _fer_inline size_t ferRRTNodesLen(const fer_rrt_t *rrt);
 /**
  * Returns initial node.
  *
- * The one with configuration passed to *Run() function.
+ * The one with configuration passed to *Run*() function.
  */
 _fer_inline const fer_rrt_node_t *ferRRTNodeInitial(const fer_rrt_t *rrt);
 
@@ -191,6 +205,14 @@ _fer_inline const fer_rrt_node_t *ferRRTNodeLast(const fer_rrt_t *rrt);
 const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,
                                     const fer_rrt_node_t *n);
 
+/**
+ * Returns nearest node to given configuration {c}. Nearest node is
+ * meassured in euclidean distance metric.
+ * This function is used if ops.nearest is set to NULL.
+ *
+ * Use this functin _only_ if you set param.use_cells to true.
+ */
+const fer_rrt_node_t *ferRRTNearest(const fer_rrt_t *rrt, const fer_vec_t *c);
 
 /**
  * Tries to find path in net from init to goal.
@@ -201,6 +223,11 @@ const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,
 int ferRRTFindPath(fer_rrt_t *rrt,
                    const fer_rrt_node_t *init, const fer_rrt_node_t *goal,
                    fer_list_t *list);
+
+/**
+ * Dumps net in SVT format.
+ */
+void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name);
 
 /**
  * Node Functions
