@@ -31,11 +31,14 @@ class Element(object):
             s = pat_monotype.sub(r'``\1``', s)
 
             if CONTEXT == 'vec':
-                if line.find('=') > 0 \
-                    and (line.find('+') >= 0 \
+                if (line.find('=') > 0 \
+                        and (line.find('+') >= 0 \
                             or line.find('-') >= 0 \
                             or line.find('*') >= 0 \
-                            or line.find('/') >= 0):
+                            or line.find('/') >= 0)) \
+                    or (line.startswith('a.x = ') \
+                            or line.startswith('a.y = ') \
+                            or line.startswith('a.z = ')):
                     
                     if line.find('.x') >= 0 or line.find('.y') >= 0 or line.find('.z') >= 0 or line.find('.w') >= 0:
                         line = line.replace('.x', '_x')
@@ -52,6 +55,7 @@ class Element(object):
                     s += line_prefix + ':math:`'
                     s += line
                     s += '`\n'
+
         return s
 
     def _formatCommentCodeBlock(self, line, itline, line_prefix):

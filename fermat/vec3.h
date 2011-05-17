@@ -124,26 +124,80 @@ _fer_inline fer_vec3_t *ferVec3Clone(const fer_vec3_t *v);
 _fer_inline void ferVec3Copy(fer_vec3_t *v, const fer_vec3_t *w);
 
 
+/**
+ * Returns x coordinate
+ */
 _fer_inline fer_real_t ferVec3X(const fer_vec3_t *v);
+
+/**
+ * Returns y coordinate
+ */
 _fer_inline fer_real_t ferVec3Y(const fer_vec3_t *v);
+
+/**
+ * Returns z coordinate
+ */
 _fer_inline fer_real_t ferVec3Z(const fer_vec3_t *v);
+
+/**
+ * Returns d'th coordinate
+ */
 _fer_inline fer_real_t ferVec3Get(const fer_vec3_t *v, int d);
 
-_fer_inline void ferVec3SetX(fer_vec3_t *v, fer_real_t val);
-_fer_inline void ferVec3SetY(fer_vec3_t *v, fer_real_t val);
-_fer_inline void ferVec3SetZ(fer_vec3_t *v, fer_real_t val);
+/**
+ * a.x = v
+ */
+_fer_inline void ferVec3SetX(fer_vec3_t *a, fer_real_t v);
+
+/**
+ * a.y = v
+ */
+_fer_inline void ferVec3SetY(fer_vec3_t *a, fer_real_t v);
+
+/**
+ * a.z = v
+ */
+_fer_inline void ferVec3SetZ(fer_vec3_t *a, fer_real_t v);
+
+/**
+ * a = (x, y, z)
+ */
 _fer_inline void ferVec3Set(fer_vec3_t *v, fer_real_t x, fer_real_t y, fer_real_t z);
+
+/**
+ * Sets {d}'th coordinate to {val}.
+ */
 _fer_inline void ferVec3SetCoord(fer_vec3_t *v, int d, fer_real_t val);
+
+/**
+ * Sets {d}'th coordinate to {val}.
+ */
 _fer_inline void ferVec3Set1(fer_vec3_t *v, int d, fer_real_t val);
 
 
 /**
- * Returns true if a and b equal.
+ * Returns true if {a} and {b} equal.
  */
 _fer_inline int ferVec3Eq(const fer_vec3_t *a, const fer_vec3_t *b);
+
+/**
+ * Returns true if {a} and {b} are not equal
+ */
 _fer_inline int ferVec3NEq(const fer_vec3_t *a, const fer_vec3_t *b);
+
+/**
+ * Returns true if {a} equals to ({x}, {y}, {z})
+ */
 _fer_inline int ferVec3Eq2(const fer_vec3_t *a, fer_real_t x, fer_real_t y, fer_real_t z);
+
+/**
+ * Returns true if {a} doesn't equal to ({x}, {y}, {z})
+ */
 _fer_inline int ferVec3NEq2(const fer_vec3_t *a, fer_real_t x, fer_real_t y, fer_real_t z);
+
+/**
+ * Returns true if {a} is zero vector.
+ */
 _fer_inline int ferVec3IsZero(const fer_vec3_t *a);
 
 
@@ -151,12 +205,20 @@ _fer_inline int ferVec3IsZero(const fer_vec3_t *a);
  * Returns squared length of vector.
  */
 _fer_inline fer_real_t ferVec3Len2(const fer_vec3_t *v);
+
+/**
+ * Returns length of vector
+ */
 _fer_inline fer_real_t ferVec3Len(const fer_vec3_t *v);
 
 /**
  * Returns squared distance between a and b.
  */
 _fer_inline fer_real_t ferVec3Dist2(const fer_vec3_t *a, const fer_vec3_t *b);
+
+/**
+ * Returns distance between {a} and {b}
+ */
 _fer_inline fer_real_t ferVec3Dist(const fer_vec3_t *a, const fer_vec3_t *b);
 
 
@@ -183,9 +245,24 @@ _fer_inline void ferVec3Sub(fer_vec3_t *v, const fer_vec3_t *w);
  */
 _fer_inline void ferVec3Sub2(fer_vec3_t *d, const fer_vec3_t *v, const fer_vec3_t *w);
 
+/**
+ * v = v + (f, f, f)
+ */
 _fer_inline void ferVec3AddConst(fer_vec3_t *v, fer_real_t f);
+
+/**
+ * d = v + (f, f, f)
+ */
 _fer_inline void ferVec3AddConst2(fer_vec3_t *d, const fer_vec3_t *v, fer_real_t f);
+
+/**
+ * v = v - (f, f, f)
+ */
 _fer_inline void ferVec3SubConst(fer_vec3_t *v, fer_real_t f);
+
+/**
+ * d = v - (f, f, f)
+ */
 _fer_inline void ferVec3SubConst2(fer_vec3_t *d, const fer_vec3_t *v, fer_real_t f);
 
 
