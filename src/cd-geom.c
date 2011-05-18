@@ -153,6 +153,12 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
 void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename)
 {
+    ferCDGeomAddTrisFromRawScale(cd, g, filename, FER_ONE);
+}
+
+void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
+                                  const char *filename, fer_real_t scale)
+{
     FILE *fin;
     float ax, ay, az, bx, by, bz, cx, cy, cz;
     fer_vec3_t p0, p1, p2;
@@ -172,6 +178,9 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
         ferVec3Set(&p0, ax, ay, az);
         ferVec3Set(&p1, bx, by, bz);
         ferVec3Set(&p2, cx, cy, cz);
+        ferVec3Scale(&p0, scale);
+        ferVec3Scale(&p1, scale);
+        ferVec3Scale(&p2, scale);
 
         if (ferIsZero(FER_REAL(0.5) * ferVec3TriArea2(&p0, &p1, &p2))){
             zero_tris++;
