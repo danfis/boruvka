@@ -817,11 +817,13 @@ TEST(cdCollide2)
     ret = ferCDGeomCollide(cd, g1, g2);
     assertTrue(ret);
 
+    /*
     DBG("ret: %d", ret);
     ferCDGeomDumpSVT(g1, stdout, "g1");
     ferCDGeomDumpSVT(g2, stdout, "g2");
+    */
 
-    ferCDGeomDel(cd, g1);
-    ferCDGeomDel(cd, g2);
+    //ferCDGeomDel(cd, g1);
+    //ferCDGeomDel(cd, g2);
     ferCDDel(cd);
 }
