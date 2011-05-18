@@ -26,6 +26,7 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
     ferVec3Set(&g->tr, FER_ZERO, FER_ZERO, FER_ZERO);
     ferMat3SetIdentity(&g->rot);
     ferListInit(&g->obbs);
+    ferListAppend(&cd->geoms, &g->list);
 
     return g;
 }
@@ -41,6 +42,8 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
         obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
         ferCDOBBDel(obb);
     }
+
+    ferListDel(&g->list);
 
     free(g);
 }

@@ -61,11 +61,23 @@ fer_cd_t *ferCDNew(void)
         }
     }
 
+
+    ferListInit(&cd->geoms);
+
     return cd;
 }
 
 void ferCDDel(fer_cd_t *cd)
 {
+    fer_list_t *item;
+    fer_cd_geom_t *g;
+
+    while (!ferListEmpty(&cd->geoms)){
+        item = ferListNext(&cd->geoms);
+        g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list);
+        ferCDGeomDel(cd, g);
+    }
+
     free(cd);
 }
 

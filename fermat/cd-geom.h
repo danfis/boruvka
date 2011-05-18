@@ -31,6 +31,7 @@ struct _fer_cd_geom_t {
     fer_vec3_t tr;   /*!< Translation */
     fer_mat3_t rot;  /*!< Rotation */
     fer_list_t obbs; /*!< List of OBBs */
+    fer_list_t list; /*!< Reference to list of all geoms */
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
 

@@ -30,6 +30,7 @@ extern "C" {
 struct _fer_cd_t {
     uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
+    fer_list_t geoms; /*!< List of all geoms */
 };
 typedef struct _fer_cd_t fer_cd_t;
 
