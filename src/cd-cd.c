@@ -87,6 +87,45 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
     cd->collide[shape1][shape2] = collider;
 }
 
+
+int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
+{
+    fer_list_t *item1, *item2;
+    fer_cd_geom_t *g1, *g2;
+    int ret = 0;
+
+    FER_LIST_FOR_EACH(&cd->geoms, item1){
+        g1 = FER_LIST_ENTRY(item1, fer_cd_geom_t, list);
+
+        for (item2 = ferListNext(item1);
+                item2 != &cd->geoms;
+                item2 = ferListNext(item2)){
+            g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
+
+            if (ferCDGeomCollide(cd, g1, g2)){
+                if (cb)
+                    cb(cd, g1, g2, data);
+                ret = 1;
+            }
+        }
+    }
+
+    return ret;
+}
+
+
+
+void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_cd_geom_t *g;
+
+    FER_LIST_FOR_EACH(&cd->geoms, item){
+        g = FER_LIST_ENTRY(item, fer_cd_geom_t, list);
+        ferCDGeomDumpSVT(g, out, name);
+    }
+}
+
 int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_cd_shape_t *s1,
                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,

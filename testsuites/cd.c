@@ -827,3 +827,72 @@ TEST(cdCollide2)
     //ferCDGeomDel(cd, g2);
     ferCDDel(cd);
 }
+
+
+
+TEST(cdCollide3)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[5];
+    int i, ret;
+
+    cd = ferCDNew();
+
+    for (i = 0; i < 5; i++)
+        g[i] = ferCDGeomNew(cd);
+
+    ferCDGeomAddSphere(cd, g[0], 0.05);
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomAddCyl(cd, g[2], 0.05, 0.2);
+    ferCDGeomAddBox(cd, g[3], 0.1, 0.1, 0.1);
+    ferCDGeomAddTrisFromRawScale(cd, g[4], "data-puzzle-2.tri", 1/200.);
+
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0., -0.2);
+    ferCDGeomSetRotEuler(cd, g[1], M_PI_4 / 2., 0, 0);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, 0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    DBG("ret: %d", ret);
+    ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}

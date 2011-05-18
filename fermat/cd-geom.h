@@ -57,10 +57,23 @@ _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
                                 const fer_vec3_t *tr);
 
 /**
+ * Sets translation using x, y, z coordinates.
+ */
+_fer_inline void ferCDGeomSetTr3(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 fer_real_t x, fer_real_t y, fer_real_t z);
+
+/**
  * Sets rotation.
  */
 _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
                                  const fer_mat3_t *rot);
+
+/**
+ * Sets rotation using euler angles (x, y, z).
+ */
+_fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
+                                      fer_real_t xrot, fer_real_t yrot,
+                                      fer_real_t zrot);
 
 /**
  * Returns true if given geoms do collide.
@@ -161,10 +174,23 @@ _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
     ferVec3Copy(&g->tr, tr);
 }
 
+_fer_inline void ferCDGeomSetTr3(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 fer_real_t x, fer_real_t y, fer_real_t z)
+{
+    ferVec3Set(&g->tr, x, y, z);
+}
+
 _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
                                  const fer_mat3_t *rot)
 {
     ferMat3Copy(&g->rot, rot);
+}
+
+_fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
+                                      fer_real_t xrot, fer_real_t yrot,
+                                      fer_real_t zrot)
+{
+    ferMat3SetRot3D(&g->rot, xrot, yrot, zrot);
 }
 
 #ifdef __cplusplus
