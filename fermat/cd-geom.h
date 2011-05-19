@@ -31,7 +31,9 @@ struct _fer_cd_geom_t {
     fer_vec3_t tr;   /*!< Translation */
     fer_mat3_t rot;  /*!< Rotation */
     fer_list_t obbs; /*!< List of OBBs */
-    fer_list_t list; /*!< Reference to list of all geoms */
+
+    fer_list_t list;       /*!< Reference to list of all geoms */
+    fer_list_t list_dirty; /*!< Reference to list of dirty geoms */
 
     void *sap;
 } fer_aligned(16) fer_packed;
@@ -164,6 +166,16 @@ int ferCDGeomSave(fer_cd_t *cd, const fer_cd_geom_t *g,
  */
 fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename);
 
+/**
+ * Set geom as dirty
+ */
+void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
+ * Returns true if geom is dirty
+ */
+_fer_inline int ferCDGeomDirty(const fer_cd_t *cd, const fer_cd_geom_t *g);
+
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
@@ -174,23 +186,29 @@ void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
                           const fer_vec3_t *axis,
                           fer_real_t *min, fer_real_t *max);
 
+/** Reset geom as non-dirty */
+void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
+
 /**** INLINES ****/
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
                                 const fer_vec3_t *tr)
 {
     ferVec3Copy(&g->tr, tr);
+    ferCDGeomSetDirty(cd, g);
 }
 
 _fer_inline void ferCDGeomSetTr3(fer_cd_t *cd, fer_cd_geom_t *g,
                                  fer_real_t x, fer_real_t y, fer_real_t z)
 {
     ferVec3Set(&g->tr, x, y, z);
+    ferCDGeomSetDirty(cd, g);
 }
 
 _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
                                  const fer_mat3_t *rot)
 {
     ferMat3Copy(&g->rot, rot);
+    ferCDGeomSetDirty(cd, g);
 }
 
 _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -198,6 +216,12 @@ _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
                                       fer_real_t zrot)
 {
     ferMat3SetRot3D(&g->rot, xrot, yrot, zrot);
+    ferCDGeomSetDirty(cd, g);
+}
+
+_fer_inline int ferCDGeomDirty(const fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return !ferListEmpty(&g->list_dirty);
 }
 
 #ifdef __cplusplus

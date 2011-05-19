@@ -849,67 +849,43 @@ TEST(cdCollide3)
     ferCDGeomAddBox(cd, g[3], 0.1, 0.1, 0.1);
     ferCDGeomAddTrisFromRawScale(cd, g[4], "data-puzzle-2.tri", 1/200.);
     ferCDGeomBuild(cd, g[4]);
-    DBG("g[0]: %lx sphere", (long)g[0]);
-    DBG("g[1]: %lx box 0.1, 0.2, 0.3", (long)g[1]);
-    DBG("g[2]: %lx cyl 0.05, 0.2", (long)g[2]);
-    DBG("g[3]: %lx box 0.1", (long)g[3]);
-    DBG("g[4]: %lx trimesh", (long)g[4]);
+    //DBG("g[0]: %lx sphere", (long)g[0]);
+    //DBG("g[1]: %lx box 0.1, 0.2, 0.3", (long)g[1]);
+    //DBG("g[2]: %lx cyl 0.05, 0.2", (long)g[2]);
+    //DBG("g[3]: %lx box 0.1", (long)g[3]);
+    //DBG("g[4]: %lx trimesh", (long)g[4]);
 
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertTrue(ret);
 
     ferCDGeomSetTr3(cd, g[1], 0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertFalse(ret);
 
-    {
-        ferCDSAPUpdate(sap, g[0]);
-        ferCDSAPUpdate(sap, g[1]);
-        ferCDSAPUpdate(sap, g[2]);
-        ferCDSAPUpdate(sap, g[3]);
-        ferCDSAPUpdate(sap, g[4]);
-
-        ferCDSAPDumpPairs(sap, stderr);
-    }
+    //ferCDSAPDumpPairs(cd->sap, stderr);
 
     ferCDGeomSetTr3(cd, g[1], 0., 0., -0.2);
     ferCDGeomSetRotEuler(cd, g[1], M_PI_4 / 2., 0, 0);
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, 0.1);
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertTrue(ret);
 
-    {
-        ferCDSAPUpdate(sap, g[0]);
-        ferCDSAPUpdate(sap, g[1]);
-        ferCDSAPUpdate(sap, g[2]);
-        ferCDSAPUpdate(sap, g[3]);
-        ferCDSAPUpdate(sap, g[4]);
-
-        ferCDSAPDumpPairs(sap, stderr);
-    }
+    //ferCDSAPDumpPairs(cd->sap, stderr);
 
     ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
     ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertTrue(ret);
 
-    {
-        ferCDSAPUpdate(sap, g[0]);
-        ferCDSAPUpdate(sap, g[1]);
-        ferCDSAPUpdate(sap, g[2]);
-        ferCDSAPUpdate(sap, g[3]);
-        ferCDSAPUpdate(sap, g[4]);
-
-        ferCDSAPDumpPairs(sap, stderr);
-    }
+    //ferCDSAPDumpPairs(cd->sap, stderr);
 
     ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
     ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
@@ -917,18 +893,10 @@ TEST(cdCollide3)
     ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
     ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.1);
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertTrue(ret);
 
-    {
-        ferCDSAPUpdate(sap, g[0]);
-        ferCDSAPUpdate(sap, g[1]);
-        ferCDSAPUpdate(sap, g[2]);
-        ferCDSAPUpdate(sap, g[3]);
-        ferCDSAPUpdate(sap, g[4]);
-
-        ferCDSAPDumpPairs(sap, stderr);
-    }
+    //ferCDSAPDumpPairs(cd->sap, stderr);
 
     ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
     ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
@@ -936,21 +904,13 @@ TEST(cdCollide3)
     ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
     ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
-    ret = ferCDCollide(cd, NULL, NULL);
+    ret = ferCDCollide(cd);
     assertTrue(ret);
 
-    {
-        ferCDSAPUpdate(sap, g[0]);
-        ferCDSAPUpdate(sap, g[1]);
-        ferCDSAPUpdate(sap, g[2]);
-        ferCDSAPUpdate(sap, g[3]);
-        ferCDSAPUpdate(sap, g[4]);
+    //ferCDSAPDumpPairs(cd->sap, stderr);
 
-        ferCDSAPDumpPairs(sap, stderr);
-    }
-
-    DBG("ret: %d", ret);
-    ferCDDumpSVT(cd, stdout, "cd");
+    //DBG("ret: %d", ret);
+    //ferCDDumpSVT(cd, stdout, "cd");
 
     ferCDDel(cd);
     ferCDSAPDel(sap);

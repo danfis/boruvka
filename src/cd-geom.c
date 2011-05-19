@@ -26,7 +26,10 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
     ferVec3Set(&g->tr, FER_ZERO, FER_ZERO, FER_ZERO);
     ferMat3SetIdentity(&g->rot);
     ferListInit(&g->obbs);
+
+    // add to list of all gemos
     ferListAppend(&cd->geoms, &g->list);
+    ferListAppend(&cd->geoms_dirty, &g->list_dirty);
 
     g->sap = NULL;
 
@@ -46,11 +49,10 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
     }
 
     ferListDel(&g->list);
+    ferListDel(&g->list_dirty);
 
-    /* TODO
     if (cd->sap && g->sap)
         ferCDSAPRemove(cd->sap, g);
-    */
 
     free(g);
 }
@@ -58,6 +60,7 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     ferCDOBBMerge(&g->obbs, cd->build_flags);
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -69,6 +72,8 @@ void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
     s = ferCDSphereNew(radius);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)s, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
@@ -82,6 +87,8 @@ void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
     off = ferCDShapeOffNew((fer_cd_shape_t *)s, fer_mat3_identity, tr);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -94,6 +101,8 @@ void ferCDGeomAddBox(fer_cd_t *cd, fer_cd_geom_t *g,
     b   = ferCDBoxNew(lx, ly, lz);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)b, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddBox2(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -108,6 +117,8 @@ void ferCDGeomAddBox2(fer_cd_t *cd, fer_cd_geom_t *g,
     off = ferCDShapeOffNew((fer_cd_shape_t *)b, rot, tr);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -120,6 +131,8 @@ void ferCDGeomAddCyl(fer_cd_t *cd, fer_cd_geom_t *g,
     c   = ferCDCylNew(radius, height);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -134,6 +147,8 @@ void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
     off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -142,6 +157,7 @@ void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
                          const unsigned int *ids, size_t len)
 {
     ferCDGeomAddTriMesh2(cd, g, pts, ids, len, fer_mat3_identity, fer_vec3_origin);
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -155,12 +171,15 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
     t   = ferCDTriMeshNew(pts, ids, len, rot, tr);
     obb = ferCDOBBNewTriMesh(t, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename)
 {
     ferCDGeomAddTrisFromRawScale(cd, g, filename, FER_ONE);
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -205,6 +224,8 @@ void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
     }
 
     fclose(fin);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -258,6 +279,17 @@ int ferCDGeomCollide(fer_cd_t *cd,
     return 0;
 }
 
+void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    if (!ferCDGeomDirty(cd, g)){
+        ferListAppend(&cd->geoms_dirty, &g->list_dirty);
+    }
+}
+
+void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    ferListDel(&g->list_dirty);
+}
 
 static void dumpSVT(const fer_cd_geom_t *g,
                     fer_cd_obb_t *obb, FILE *out, const char *name)

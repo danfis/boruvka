@@ -24,6 +24,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _fer_cd_geom_t;
+struct _fer_cd_sap_t;
 
 /**
  * Collision Detection
@@ -32,7 +33,10 @@ struct _fer_cd_geom_t;
 struct _fer_cd_t {
     uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
-    fer_list_t geoms; /*!< List of all geoms */
+
+    fer_list_t geoms;          /*!< List of all geoms */
+    fer_list_t geoms_dirty;    /*!< List of dirty geoms */
+    struct _fer_cd_sap_t *sap; /*!< SAP solver */
 };
 typedef struct _fer_cd_t fer_cd_t;
 
@@ -65,20 +69,10 @@ _fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags);
 void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
                        fer_cd_collide_fn collider);
 
-
 /**
- * Callback function for ferCDCollide().
- */
-typedef void (*fer_cd_collide_cb)(const fer_cd_t *cd,
-                                  const struct _fer_cd_geom_t *g1,
-                                  const struct _fer_cd_geom_t *g2,
-                                  void *data);
-
-/**
- * For each colliding pair of geoms callback {cb} is called (if non-NULL).
  * Function returns true if any colliding pair was found, false otherwise.
  */
-int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data);
+int ferCDCollide(fer_cd_t *cd);
 
 
 void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name);

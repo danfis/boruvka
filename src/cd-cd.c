@@ -63,6 +63,9 @@ fer_cd_t *ferCDNew(void)
 
 
     ferListInit(&cd->geoms);
+    ferListInit(&cd->geoms_dirty);
+
+    cd->sap = ferCDSAPNew(1023);
 
     return cd;
 }
@@ -78,6 +81,9 @@ void ferCDDel(fer_cd_t *cd)
         ferCDGeomDel(cd, g);
     }
 
+    if (cd->sap)
+        ferCDSAPDel(cd->sap);
+
     free(cd);
 }
 
@@ -88,11 +94,10 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
 }
 
 
-int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
+static int ferCDCollideBruteForce(fer_cd_t *cd)
 {
     fer_list_t *item1, *item2;
     fer_cd_geom_t *g1, *g2;
-    int ret = 0;
 
     FER_LIST_FOR_EACH(&cd->geoms, item1){
         g1 = FER_LIST_ENTRY(item1, fer_cd_geom_t, list);
@@ -103,14 +108,43 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
             g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
 
             if (ferCDGeomCollide(cd, g1, g2)){
-                if (cb)
-                    cb(cd, g1, g2, data);
-                ret = 1;
+                return 1;
             }
         }
     }
 
-    return ret;
+    return 0;
+}
+
+int ferCDCollide(fer_cd_t *cd)
+{
+    const fer_list_t *pairs, *item;
+    fer_cd_sap_pair_t *pair;
+    fer_cd_geom_t *g;
+
+    // if not using SAP fallback to brute force method
+    if (!cd->sap)
+        return ferCDCollideBruteForce(cd);
+
+    // first of all update all dirty geoms
+    while (!ferListEmpty(&cd->geoms_dirty)){
+        item = ferListNext(&cd->geoms_dirty);
+        g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
+        ferCDSAPUpdate(cd->sap, g);
+        __ferCDGeomResetDirty(cd, g);
+    }
+
+    // try all pairs
+    pairs = ferCDSAPCollidePairs(cd->sap);
+    FER_LIST_FOR_EACH(pairs, item){
+        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+
+        if (ferCDGeomCollide(cd, pair->g[0], pair->g[1])){
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 
