@@ -81,7 +81,7 @@ fer_hmap_t *ferHMapNew(size_t size,
 /**
  * Deletes table - content of table is not touched.
  */
-void ferHMapDel(fer_hmap_t *t);
+void ferHMapDel(fer_hmap_t *h);
 
 /**
  * Returns size of hash map
@@ -107,6 +107,13 @@ fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1);
  * Return 0 if such a key was stored in hash map and -1 otherwise.
  */
 int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1);
+
+/**
+ * Fill given {list} with all elements from hash map.
+ * After calling this, hash map will be empty.
+ */
+void ferHMapGather(fer_hmap_t *m, fer_list_t *list);
+
 
 /**** INLINES ****/
 _fer_inline size_t ferHMapSize(const fer_hmap_t *t)

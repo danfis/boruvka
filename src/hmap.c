@@ -52,6 +52,23 @@ fer_hmap_t *ferHMapNew(size_t size,
     return hmap;
 }
 
+void ferHMapDel(fer_hmap_t *h)
+{
+    size_t i;
+    fer_list_t *list, *item;
+
+    for (i = 0; i < h->size; i++){
+        list = &h->table[i];
+        while (!ferListEmpty(list)){
+            item = ferListNext(list);
+            ferListDel(item);
+        }
+    }
+
+    free(h->table);
+    free(h);
+}
+
 void ferHMapPut(fer_hmap_t *m, fer_list_t *key1)
 {
     uint32_t id;
@@ -91,6 +108,20 @@ int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1)
         return 0;
     }
     return -1;
+}
+
+void ferHMapGather(fer_hmap_t *m, fer_list_t *list)
+{
+    size_t i;
+    fer_list_t *item;
+
+    for (i = 0; i < m->size; i++){
+        while (!ferListEmpty(&m->table[i])){
+            item = ferListNext(&m->table[i]);
+            ferListDel(item);
+            ferListAppend(list, item);
+        }
+    }
 }
 
 
