@@ -23,6 +23,7 @@
 #include <fermat/quat.h>
 #include <fermat/list.h>
 #include <fermat/chull3.h>
+#include <fermat/hmap.h>
 
 #include <fermat/cd-const.h>
 
@@ -36,5 +37,6 @@
 #include <fermat/cd-collide.h>
 #include <fermat/cd-cd.h>
 #include <fermat/cd-geom.h>
+#include <fermat/cd-sap.h>
 
 #endif /* __FER_CD_H__ */

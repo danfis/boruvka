@@ -32,6 +32,8 @@ struct _fer_cd_geom_t {
     fer_mat3_t rot;  /*!< Rotation */
     fer_list_t obbs; /*!< List of OBBs */
     fer_list_t list; /*!< Reference to list of all geoms */
+
+    void *sap;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
 
@@ -166,6 +168,11 @@ void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 
+
+/** Sets min/max values along given axis */
+void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
+                          const fer_vec3_t *axis,
+                          fer_real_t *min, fer_real_t *max);
 
 /**** INLINES ****/
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,

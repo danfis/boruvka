@@ -28,6 +28,8 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
     ferListInit(&g->obbs);
     ferListAppend(&cd->geoms, &g->list);
 
+    g->sap = NULL;
+
     return g;
 }
 
@@ -44,6 +46,11 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
     }
 
     ferListDel(&g->list);
+
+    /* TODO
+    if (cd->sap && g->sap)
+        ferCDSAPRemove(cd->sap, g);
+    */
 
     free(g);
 }
@@ -356,4 +363,20 @@ void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
     }
 
     fprintf(out, "-----\n");
+}
+
+
+void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
+                          const fer_vec3_t *axis,
+                          fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *obb;
+
+    *min = FER_REAL_MAX;
+    *max = -FER_REAL_MAX;
+    FER_LIST_FOR_EACH(&g->obbs, item){
+        obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        __ferCDOBBUpdateMinMax(obb, axis, &g->rot, &g->tr, min, max);
+    }
 }

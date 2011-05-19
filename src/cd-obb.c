@@ -587,6 +587,41 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
     __ferCDOBBDumpTreeSVT(obb, out, name, rot, tr, 0);
 }
 
+_fer_inline void __updateMinMax(fer_real_t m,
+                                fer_real_t *min, fer_real_t *max)
+{
+    if (m < *min)
+        *min = m;
+    if (m > *max)
+        *max = m;
+}
+
+void __ferCDOBBUpdateMinMax(const fer_cd_obb_t *obb, const fer_vec3_t *_axis,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            fer_real_t *min, fer_real_t *max)
+{
+    fer_vec3_t axis[3], center;
+    fer_real_t a, b, c, d;
+
+    ferMat3MulVec(&axis[0], rot, &obb->axis[0]);
+    ferMat3MulVec(&axis[1], rot, &obb->axis[1]);
+    ferMat3MulVec(&axis[2], rot, &obb->axis[2]);
+    ferMat3MulVec(&center, rot, &obb->center);
+    a = ferVec3Dot(&axis[0], _axis) * ferVec3X(&obb->half_extents);
+    b = ferVec3Dot(&axis[1], _axis) * ferVec3Y(&obb->half_extents);
+    c = ferVec3Dot(&axis[2], _axis) * ferVec3Z(&obb->half_extents);
+    d  = ferVec3Dot(&center, _axis);
+    d += ferVec3Dot(tr, _axis);
+
+    __updateMinMax( a + b + c + d, min, max);
+    __updateMinMax( a + b - c + d, min, max);
+    __updateMinMax( a - b + c + d, min, max);
+    __updateMinMax( a - b - c + d, min, max);
+    __updateMinMax(-a + b + c + d, min, max);
+    __updateMinMax(-a + b - c + d, min, max);
+    __updateMinMax(-a - b + c + d, min, max);
+    __updateMinMax(-a - b - c + d, min, max);
+}
 
 
 
