@@ -552,3 +552,97 @@ void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t,
 
     fprintf(out, "----\n");
 }
+
+
+void __ferCDTriClosestPoint(const fer_cd_tri_t *t, const fer_vec3_t *p,
+                            fer_vec3_t *q)
+{
+    // See "orange" book 5.1.5
+    fer_vec3_t p01, p02, c;
+    fer_real_t d1, d2, d3, d4, d5, d6, va, vb, vc, tmp, denom;
+
+    ferVec3Sub2(&p01, t->p1, t->p0);
+    ferVec3Sub2(&p02, t->p2, t->p0);
+    ferVec3Sub2(&c, p, t->p0);
+    d1 = ferVec3Dot(&p01, &c);
+    d2 = ferVec3Dot(&p02, &c);
+    if ((d1 < FER_ZERO || ferIsZero(d1))
+            && (d2 < FER_ZERO || ferIsZero(d2))){
+        // barycentric coordinates (1, 0, 0)
+        ferVec3Copy(q, t->p0);
+        return;
+    }
+
+    ferVec3Sub2(&c, p, t->p1);
+    d3 = ferVec3Dot(&p01, &c);
+    d4 = ferVec3Dot(&p02, &c);
+    if ((d3 > FER_ZERO || ferIsZero(d3))
+            && (d4 < d3 || ferEq(d4, d3))){
+        // barycentric coordinates (0, 1, 0)
+        ferVec3Copy(q, t->p1);
+        return;
+    }
+
+    vc = d1 * d4 - d3 * d2;
+    if ((vc < FER_ZERO || ferIsZero(vc))
+            && (d1 > FER_ZERO || ferIsZero(d1))
+            && (d3 < FER_ZERO || ferIsZero(d3))){
+        // barycentric coordinates (1-v, v, 0)
+        if (ferIsZero(d1 - d3)){
+            ferVec3Copy(q, t->p0);
+        }else{
+            ferVec3Copy(q, &p01);
+            ferVec3Scale(q, d1 / (d1 - d3));
+            ferVec3Add(q, t->p0);
+        }
+        return;
+    }
+
+    ferVec3Sub2(&c, p, t->p2);
+    d5 = ferVec3Dot(&p01, &c);
+    d6 = ferVec3Dot(&p02, &c);
+    if ((d6 > FER_ZERO || ferIsZero(d6))
+            && (d5 < d6 || ferEq(d5, d6))){
+        // barycentric coordinates (0, 0, 1)
+        ferVec3Copy(q, t->p2);
+        return;
+    }
+
+    vb = d5 * d2 - d1 * d6;
+    if ((vb < FER_ZERO || ferIsZero(vb))
+            && (d2 > FER_ZERO || ferIsZero(d2))
+            && (d6 < FER_ZERO || ferIsZero(d6))){
+        // barycentric coordinates (1-w, 0, w)
+        if (ferIsZero(d2 - d6)){
+            ferVec3Copy(q, t->p0);
+        }else{
+            ferVec3Copy(q, &p02);
+            ferVec3Scale(q, d2 / (d2 - d6));
+            ferVec3Add(q, t->p0);
+        }
+        return;
+    }
+
+    va = d3 * d6 - d5 * d4;
+    if ((va < FER_ZERO || ferIsZero(va))
+            && ((d4 - d3) > FER_ZERO || ferIsZero(d4 - d3))
+            && ((d5 - d6) < FER_ZERO || ferIsZero(d5 - d6))){
+        // barycentric coordinates (0, 1-w, w)
+        tmp = (d4 - d3) + (d5 - d6);
+        if (ferIsZero(tmp)){
+            ferVec3Copy(q, t->p1);
+        }else{
+            ferVec3Copy(q, t->p2);
+            ferVec3Sub(q, t->p1);
+            ferVec3Scale(q, (d4 - d3) / tmp);
+            ferVec3Add(q, t->p1);
+        }
+        return;
+    }
+
+    denom = ferRecp(va + vb + vc);
+    ferVec3Scale2(&c, &p02, vc * denom);
+    ferVec3Scale2(q, &p01, vb * denom);
+    ferVec3Add(q, &c);
+    ferVec3Add(q, t->p0);
+}

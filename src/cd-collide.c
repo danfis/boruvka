@@ -49,6 +49,23 @@ int ferCDCollideSphereBox(struct _fer_cd_t *cd,
     return l1 < l2 || ferEq(l1, l2);
 }
 
+int ferCDCollideSphereTri(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_tri_t *t,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t p;
+    fer_real_t l1, l2;
+
+    __ferCDTriClosestPoint(t, tr1, &p);
+    ferVec3Sub(&p, tr1);
+
+    l1 = ferVec3Len2(&p);
+    l2 = FER_CUBE(s->radius);
+    return l1 < l2 || ferEq(l1, l2);
+}
+
 int ferCDCollideBoxBox(struct _fer_cd_t *cd,
                        const fer_cd_box_t *s1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,

@@ -53,6 +53,15 @@ int ferCDCollideSphereBox(struct _fer_cd_t *cd,
                           const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Sphere-Tri collider.
+ */
+int ferCDCollideSphereTri(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_tri_t *t,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * Box-Box collider
  */
 int ferCDCollideBoxBox(struct _fer_cd_t *cd,
@@ -69,7 +78,6 @@ int ferCDCollideTriTri(struct _fer_cd_t *cd,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                        const fer_cd_tri_t *t2,
                        const fer_mat3_t *rot2, const fer_vec3_t *tr2);
-
 
 /**
  * ShapeOffset-ShapeOffset collider
