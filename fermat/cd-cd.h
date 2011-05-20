@@ -70,9 +70,19 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
                        fer_cd_collide_fn collider);
 
 /**
- * Function returns true if any colliding pair was found, false otherwise.
+ * Callback function for ferCDCollide().
  */
-int ferCDCollide(fer_cd_t *cd);
+typedef int (*fer_cd_collide_cb)(const fer_cd_t *cd,
+                                 const struct _fer_cd_geom_t *g1,
+                                 const struct _fer_cd_geom_t *g2,
+                                 void *data);
+
+/**
+ * Function returns true if any colliding pair was found, false otherwise.
+ * Also for each colliding pair is called callback {cb} is non-NULL. If
+ * this callback returns -1 ferCDCollide() is terminated prematurely.
+ */
+int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data);
 
 
 void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name);

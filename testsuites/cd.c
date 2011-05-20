@@ -855,14 +855,14 @@ TEST(cdCollide3)
     //DBG("g[3]: %lx box 0.1", (long)g[3]);
     //DBG("g[4]: %lx trimesh", (long)g[4]);
 
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     ferCDGeomSetTr3(cd, g[1], 0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertFalse(ret);
 
     //ferCDSAPDumpPairs(cd->sap, stderr);
@@ -872,7 +872,7 @@ TEST(cdCollide3)
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, 0.1);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     //ferCDSAPDumpPairs(cd->sap, stderr);
@@ -882,7 +882,7 @@ TEST(cdCollide3)
     ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
     ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     //ferCDSAPDumpPairs(cd->sap, stderr);
@@ -893,7 +893,7 @@ TEST(cdCollide3)
     ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
     ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.1);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     //ferCDSAPDumpPairs(cd->sap, stderr);
@@ -904,7 +904,7 @@ TEST(cdCollide3)
     ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
     ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
@@ -913,7 +913,7 @@ TEST(cdCollide3)
     ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
     ferCDGeomSetTr3(cd, g[3], 0.39, 0.2, 0.2);
     ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
-    ret = ferCDCollide(cd);
+    ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
     //ferCDSAPDumpPairs(cd->sap, stderr);
