@@ -146,10 +146,6 @@ void ferCDTriMeshDumpSVT(const fer_cd_trimesh_t *t,
                          FILE *out, const char *name,
                          const fer_mat3_t *rot, const fer_vec3_t *tr);
 
-/** Returns (via {q}) closest point to point p */
-void __ferCDTriClosestPoint(const fer_cd_tri_t *t, const fer_vec3_t *p,
-                            fer_vec3_t *q);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

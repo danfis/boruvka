@@ -907,6 +907,15 @@ TEST(cdCollide3)
     ret = ferCDCollide(cd);
     assertTrue(ret);
 
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], 0.4, 0.4, 0.4);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.39, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
+    ret = ferCDCollide(cd);
+    assertTrue(ret);
+
     //ferCDSAPDumpPairs(cd->sap, stderr);
 
     //DBG("ret: %d", ret);

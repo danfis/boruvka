@@ -55,14 +55,19 @@ int ferCDCollideSphereTri(struct _fer_cd_t *cd,
                           const fer_cd_tri_t *t,
                           const fer_mat3_t *rot2, const fer_vec3_t *tr2)
 {
-    fer_vec3_t p;
     fer_real_t l1, l2;
+    fer_vec3_t a, b, c;
 
-    __ferCDTriClosestPoint(t, tr1, &p);
-    ferVec3Sub(&p, tr1);
+    ferMat3MulVec(&a, rot2, t->p0);
+    ferMat3MulVec(&b, rot2, t->p1);
+    ferMat3MulVec(&c, rot2, t->p2);
+    ferVec3Add(&a, tr2);
+    ferVec3Add(&b, tr2);
+    ferVec3Add(&c, tr2);
 
-    l1 = ferVec3Len2(&p);
+    l1 = ferVec3PointTriDist2(tr1, &a, &b, &c, NULL);
     l2 = FER_CUBE(s->radius);
+
     return l1 < l2 || ferEq(l1, l2);
 }
 
