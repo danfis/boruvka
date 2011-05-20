@@ -150,7 +150,7 @@ void testCDBunny(void)
     unsigned long overall_0 = 0L, overall_1 = 0L;
     unsigned int overall_0_num = 0, overall_1_num = 0;
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
     //        FER_CD_FIT_CALIPERS_NUM_ROT(5));
@@ -299,7 +299,7 @@ void testCD(int task)
 
     fprintf(stdout, "# Task[%02d]: %s\n", task, task_name[task]);
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     //ferCDSetBuildFlags(cd, FER_CD_FIT_COVARIANCE);
     //ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |

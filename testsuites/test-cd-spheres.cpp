@@ -37,7 +37,7 @@ static void testCD1(void)
     int ret, ret2;
     unsigned long overall_time = 0L;
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     ferCDSetBuildFlags(cd, FER_CD_FIT_CALIPERS |
             FER_CD_FIT_CALIPERS_NUM_ROT(10));

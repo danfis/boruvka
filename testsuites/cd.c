@@ -270,7 +270,7 @@ TEST(cdGeomNew)
     fer_mat3_t rot;
     fer_vec3_t tr;
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
     g = ferCDGeomNew(cd);
 
 
@@ -423,7 +423,7 @@ TEST(cdCollideTriMesh)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddTriMesh(cd, g1, pts1, ids1, len1);
@@ -504,7 +504,7 @@ TEST(cdCollideTriMesh2)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddTriMesh(cd, g1, bunny_coords, bunny_ids, bunny_tri_len);
@@ -586,7 +586,7 @@ TEST(cdCollideSphere)
     fer_timer_t timer;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
 
@@ -662,7 +662,7 @@ TEST(cdCollide1)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddSphere(cd, g1, 0.2);
@@ -764,7 +764,7 @@ TEST(cdCollide2)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddSphere(cd, g1, 0.2);
@@ -835,10 +835,8 @@ TEST(cdCollide3)
     fer_cd_t *cd;
     fer_cd_geom_t *g[5];
     int i, ret;
-    fer_cd_sap_t *sap;
 
-    cd = ferCDNew();
-    sap = ferCDSAPNew(1023);
+    cd = ferCDNew(NULL);
 
     for (i = 0; i < 5; i++)
         g[i] = ferCDGeomNew(cd);
@@ -922,5 +920,4 @@ TEST(cdCollide3)
     //ferCDDumpSVT(cd, stdout, "cd");
 
     ferCDDel(cd);
-    ferCDSAPDel(sap);
 }

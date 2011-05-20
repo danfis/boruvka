@@ -29,7 +29,32 @@ struct _fer_cd_sap_t;
 /**
  * Collision Detection
  * ====================
+ *
+ * See fer_cd_t.
  */
+
+struct _fer_cd_params_t {
+    uint32_t build_flags; /*!< Flags that alter building methods.
+                               Available flags are:
+                                 - FER_CD_TOP_DOWN, FER_CD_BOTTOM_UP
+                                 - FER_CD_FIT_COVARIANCE,
+                                   FER_CD_FIT_CALIPERS,
+                                   FER_CD_FIT_CALIPERS_NUM_ROT(),
+                                   FER_CD_FIT_POLYHEDRAL_MASS,
+                                   FER_CD_FIT_NAIVE,
+                                   FER_CD_FIT_NAIVE_NUM_ROT(),
+                                   FER_CD_FIT_COVARIANCE_FAST
+                                 - FER_CD_BUILD_PARALLEL()
+                               Default: FER_CD_TOP_DOWN
+                                            | FER_CD_FIT_COVARIANCE */
+
+    int use_sap;     /*!< True if SAP should be used. Default: true */
+    size_t sap_size; /*!< Size of SAP's hash table.
+                          Set it to reasonable high number (consider prime
+                          number). Default: 1023 */
+};
+typedef struct _fer_cd_params_t fer_cd_params_t;
+
 struct _fer_cd_t {
     uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
@@ -41,9 +66,15 @@ struct _fer_cd_t {
 typedef struct _fer_cd_t fer_cd_t;
 
 /**
- * New instance of collision detection library.
+ * Initializes parameters to default values.
  */
-fer_cd_t *ferCDNew(void);
+void ferCDParamsInit(fer_cd_params_t *params);
+
+/**
+ * New instance of collision detection library.
+ * If {params} is set to NULL, default parameters are used.
+ */
+fer_cd_t *ferCDNew(const fer_cd_params_t *params);
 
 /**
  * Destructor.

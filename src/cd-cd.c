@@ -19,14 +19,28 @@
 #include <fermat/dbg.h>
 
 
-fer_cd_t *ferCDNew(void)
+void ferCDParamsInit(fer_cd_params_t *params)
+{
+    params->build_flags = FER_CD_TOP_DOWN
+                            | FER_CD_FIT_COVARIANCE;
+
+    params->use_sap = 1;
+    params->sap_size = 1023;
+}
+
+fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 {
     fer_cd_t *cd;
     size_t i, j;
+    fer_cd_params_t __params;
+
+    if (!params){
+        ferCDParamsInit(&__params);
+        params = &__params;
+    }
 
     cd = FER_ALLOC(fer_cd_t);
-    cd->build_flags = FER_CD_TOP_DOWN
-                        | FER_CD_FIT_COVARIANCE;
+    cd->build_flags = params->build_flags;
 
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = 0; j < FER_CD_SHAPE_LEN; j++){
@@ -69,7 +83,10 @@ fer_cd_t *ferCDNew(void)
     ferListInit(&cd->geoms);
     ferListInit(&cd->geoms_dirty);
 
-    cd->sap = ferCDSAPNew(1023);
+    cd->sap = NULL;
+    if (params->use_sap && params->sap_size > 0){
+        cd->sap = ferCDSAPNew(params->sap_size);
+    }
 
     return cd;
 }
