@@ -980,8 +980,8 @@ TEST(cdCollide4)
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
-    DBG("ret: %d", ret);
-    ferCDDumpSVT(cd, stdout, "cd");
+    //DBG("ret: %d", ret);
+    //ferCDDumpSVT(cd, stdout, "cd");
 
     ferCDDel(cd);
 }

@@ -53,6 +53,15 @@ int ferCDCollideSphereBox(struct _fer_cd_t *cd,
                           const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Sphere-Capsule collider
+ */
+int ferCDCollideSphereCap(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_cap_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * Sphere-Tri collider.
  */
 int ferCDCollideSphereTri(struct _fer_cd_t *cd,
