@@ -32,6 +32,7 @@
 #include <fermat/cd-box.h>
 #include <fermat/cd-cyl.h>
 #include <fermat/cd-cap.h>
+#include <fermat/cd-plane.h>
 #include <fermat/cd-trimesh.h>
 #include <fermat/cd-obb.h>
 
