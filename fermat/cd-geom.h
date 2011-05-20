@@ -125,6 +125,19 @@ void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
                       const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
+ * Adds capsule to geom.
+ */
+void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
+                     fer_real_t radius, fer_real_t height);
+
+/**
+ * Adds capsule with offset
+ */
+void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
+                      fer_real_t radius, fer_real_t height,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+/**
  * Adds triangular mesh to geom.
  */
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,

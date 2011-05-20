@@ -151,6 +151,35 @@ void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
     ferCDGeomSetDirty(cd, g);
 }
 
+void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
+                     fer_real_t radius, fer_real_t height)
+{
+    fer_cd_cap_t *c;
+    fer_cd_obb_t *obb;
+
+    c   = ferCDCapNew(radius, height);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
+    ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
+}
+
+void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
+                      fer_real_t radius, fer_real_t height,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_cd_cap_t *c;
+    fer_cd_shape_off_t *off;
+    fer_cd_obb_t *obb;
+
+    c   = ferCDCapNew(radius, height);
+    off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
+    ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
+}
+
 
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
                          const fer_vec3_t *pts,
