@@ -136,6 +136,16 @@ void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
 void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t radius, fer_real_t height,
                       const fer_mat3_t *rot, const fer_vec3_t *tr);
+/**
+ * Adds plane to geom.
+ */
+void ferCDGeomAddPlane(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
+ * Adds transformed plane
+ */
+void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
  * Adds triangular mesh to geom.

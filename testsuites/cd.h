@@ -15,6 +15,7 @@ TEST(cdCollide1);
 TEST(cdCollide2);
 TEST(cdCollide3);
 TEST(cdCollide4);
+TEST(cdCollide5);
 
 TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
@@ -30,6 +31,7 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdCollide2),
     TEST_ADD(cdCollide3),
     TEST_ADD(cdCollide4),
+    TEST_ADD(cdCollide5),
 
     TEST_SUITE_CLOSURE
 };

@@ -64,120 +64,97 @@ void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g)
 }
 
 
-void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
+static void _ferCDGeomAddShape(fer_cd_t *cd, fer_cd_geom_t *g,
+                               fer_cd_shape_t *shape)
 {
-    fer_cd_sphere_t *s;
     fer_cd_obb_t *obb;
 
-    s = ferCDSphereNew(radius);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)s, cd->build_flags);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)shape, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 
     ferCDGeomSetDirty(cd, g);
 }
 
-void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
-                         const fer_vec3_t *tr)
+static void _ferCDGeomAddShape2(fer_cd_t *cd, fer_cd_geom_t *g,
+                                fer_cd_shape_t *shape,
+                                const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_sphere_t *s;
     fer_cd_shape_off_t *off;
     fer_cd_obb_t *obb;
 
-    s   = ferCDSphereNew(radius);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)s, fer_mat3_identity, tr);
+    off = ferCDShapeOffNew((fer_cd_shape_t *)shape, rot, tr);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
 
     ferCDGeomSetDirty(cd, g);
+}
+
+void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDSphereNew(radius));
+}
+
+void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
+                         const fer_vec3_t *tr)
+{
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDSphereNew(radius),
+                        fer_mat3_identity, tr);
 }
 
 
 void ferCDGeomAddBox(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t lx, fer_real_t ly, fer_real_t lz)
 {
-    fer_cd_box_t *b;
-    fer_cd_obb_t *obb;
-
-    b   = ferCDBoxNew(lx, ly, lz);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)b, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
-
-    ferCDGeomSetDirty(cd, g);
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDBoxNew(lx, ly, lz));
 }
 
 void ferCDGeomAddBox2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t lx, fer_real_t ly, fer_real_t lz,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_box_t *b;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
-
-    b   = ferCDBoxNew(lx, ly, lz);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)b, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
-
-    ferCDGeomSetDirty(cd, g);
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDBoxNew(lx, ly, lz),
+                        rot, tr);
 }
 
 
 void ferCDGeomAddCyl(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t radius, fer_real_t height)
 {
-    fer_cd_cyl_t *c;
-    fer_cd_obb_t *obb;
-
-    c   = ferCDCylNew(radius, height);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
-
-    ferCDGeomSetDirty(cd, g);
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDCylNew(radius, height));
 }
 
 void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t radius, fer_real_t height,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_cyl_t *c;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
-
-    c   = ferCDCylNew(radius, height);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
-
-    ferCDGeomSetDirty(cd, g);
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDCylNew(radius, height),
+                        rot, tr);
 }
 
 void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t radius, fer_real_t height)
 {
-    fer_cd_cap_t *c;
-    fer_cd_obb_t *obb;
-
-    c   = ferCDCapNew(radius, height);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
-
-    ferCDGeomSetDirty(cd, g);
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDCapNew(radius, height));
 }
 
 void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t radius, fer_real_t height,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_cap_t *c;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDCapNew(radius, height),
+                        rot, tr);
+}
 
-    c   = ferCDCapNew(radius, height);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+void ferCDGeomAddPlane(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDPlaneNew());
+}
 
-    ferCDGeomSetDirty(cd, g);
+void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDPlaneNew(),
+                        rot, tr);
 }
 
 

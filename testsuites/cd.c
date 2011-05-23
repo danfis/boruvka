@@ -985,3 +985,47 @@ TEST(cdCollide4)
 
     ferCDDel(cd);
 }
+
+TEST(cdCollide5)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g[5];
+    int i, ret;
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 5; i++)
+        g[i] = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddSphere(cd, g[0], 0.05);
+    /*
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomAddCyl(cd, g[2], 0.05, 0.2);
+    ferCDGeomAddCap(cd, g[3], 0.01, 0.2);
+    ferCDGeomAddTrisFromRawScale(cd, g[4], "data-puzzle-2.tri", 1/200.);
+    ferCDGeomBuild(cd, g[4]);
+    */
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g[0], 1, 0, 1);
+    /*
+    ferCDGeomSetTr3(cd, g[1], 0, 1, 1);
+    ferCDGeomSetTr3(cd, g[2], 1, 1, 1);
+    ferCDGeomSetTr3(cd, g[3], -1, 0, 1);
+    ferCDGeomSetTr3(cd, g[4], 0, -1, 1);
+    */
+
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g[0], 3, -12, 0.04);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    DBG("ret: %d", ret);
+    ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}

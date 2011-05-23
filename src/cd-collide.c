@@ -116,6 +116,23 @@ int ferCDCollideBoxBox(struct _fer_cd_t *cd,
     return !ret;
 }
 
+int ferCDCollidePlaneSphere(struct _fer_cd_t *cd,
+                            const fer_cd_plane_t *p,
+                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                            const fer_cd_sphere_t *s,
+                            const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t ps, axis;
+    fer_real_t d1;
+
+    ferVec3Sub2(&ps, tr2, tr1);
+    ferMat3CopyCol(&axis, rot1, 2);
+
+    d1 = ferVec3Dot(&ps, &axis);
+
+    return d1 < s->radius || ferEq(d1, s->radius) || d1 < FER_ZERO;
+}
+
 int ferCDCollideTriTri(struct _fer_cd_t *cd,
                        const fer_cd_tri_t *tri1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
