@@ -1083,7 +1083,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
     fer_real_t max_err;
     node_t *n, *max_n;
 
-    max_err = FER_REAL_MIN;
+    max_err = -FER_REAL_MAX;
     max_n   = NULL;
     list = ferMesh3VertexEdges(&sq->vert);
     FER_LIST_FOR_EACH(list, item){
@@ -1126,6 +1126,7 @@ static void createNewNode(fer_gsrm_t *g)
     sq = nodeWithHighestErrCounter(g);
     sf = nodesNeighborWithHighestErrCounter(g, sq);
     if (!sq || !sf){
+        DBG("%lx %lx", (long)sq, (long)sf);
         DBG2("Can't create new node, because sq has no neighbors");
         return;
     }
