@@ -98,6 +98,15 @@ int ferCDCollidePlaneBox(struct _fer_cd_t *cd,
                          const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Plane-Tri collider
+ */
+int ferCDCollidePlaneTri(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_tri_t *t,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * TriMeshTri-TriMeshTri collider.
  */
 int ferCDCollideTriTri(struct _fer_cd_t *cd,

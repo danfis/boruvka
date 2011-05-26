@@ -158,6 +158,13 @@ void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
 }
 
 
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p0, const fer_vec3_t *p1,
+                     const fer_vec3_t *p2)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDTriNew(p0, p1, p2));
+}
+
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
                          const fer_vec3_t *pts,
                          const unsigned int *ids, size_t len)

@@ -148,6 +148,13 @@ void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
+ * Adds triangle ti geom.
+ */
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p0, const fer_vec3_t *p1,
+                     const fer_vec3_t *p2);
+
+/**
  * Adds triangular mesh to geom.
  */
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,

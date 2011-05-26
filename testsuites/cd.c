@@ -991,12 +991,11 @@ TEST(cdCollide5)
     fer_cd_t *cd;
     fer_cd_geom_t *plane;
     fer_cd_geom_t *g;
-    int i, ret;
+    int ret;
 
     cd = ferCDNew(NULL);
 
-    for (i = 0; i < 5; i++)
-        g = ferCDGeomNew(cd);
+    g = ferCDGeomNew(cd);
     plane = ferCDGeomNew(cd);
 
     ferCDGeomAddSphere(cd, g, 0.05);
@@ -1039,12 +1038,11 @@ TEST(cdCollide6)
     fer_cd_t *cd;
     fer_cd_geom_t *plane;
     fer_cd_geom_t *g;
-    int i, ret;
+    int ret;
 
     cd = ferCDNew(NULL);
 
-    for (i = 0; i < 5; i++)
-        g = ferCDGeomNew(cd);
+    g = ferCDGeomNew(cd);
     plane = ferCDGeomNew(cd);
 
     ferCDGeomAddBox(cd, g, 0.1, 0.2, 0.3);
@@ -1071,6 +1069,57 @@ TEST(cdCollide6)
     ferCDGeomSetTr3(cd, plane, 0, 0, 1);
     ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
     ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDDel(cd);
+}
+
+
+TEST(cdCollide7)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *tri;
+    fer_vec3_t p0, p1, p2;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    tri = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferVec3Set(&p0, 0, 1, 0);
+    ferVec3Set(&p1, 1, 1, 1);
+    ferVec3Set(&p2, 1, 0, 0);
+    ferCDGeomAddTri(cd, tri, &p0, &p1, &p2);
+    ferCDGeomAddPlane(cd, plane);
+
+
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetTr3(cd, tri, 1, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, tri, 3, -12, -0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1. - 0.13);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1.06);
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
