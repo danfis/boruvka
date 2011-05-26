@@ -1193,3 +1193,76 @@ TEST(cdCollide8)
 
     ferCDDel(cd);
 }
+
+TEST(cdCollide9)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    g = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddCyl(cd, g, 0.1, 0.3);
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g, 1, 0, 0.24);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, -1.);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, -0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.16);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.15);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    DBG2("");
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.09);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    DBG2("");
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_4, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.12);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDDel(cd);
+}

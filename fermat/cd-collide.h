@@ -107,6 +107,15 @@ int ferCDCollidePlaneCap(struct _fer_cd_t *cd,
                          const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Plane-Cylinder collider
+ */
+int ferCDCollidePlaneCyl(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_cyl_t *c,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * Plane-Tri collider
  */
 int ferCDCollidePlaneTri(struct _fer_cd_t *cd,

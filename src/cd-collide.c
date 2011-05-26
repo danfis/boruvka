@@ -187,6 +187,57 @@ int ferCDCollidePlaneCap(struct _fer_cd_t *cd,
     }
 }
 
+int ferCDCollidePlaneCyl(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_cyl_t *c,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_real_t s, s2;
+    fer_vec3_t cyldir, planenorm, v, v2;
+    fer_vec3_t ca, cb;
+    fer_real_t ma, mb;
+
+    ferMat3CopyCol(&cyldir, rot2, 2);
+    ferMat3CopyCol(&planenorm, rot1, 2);
+
+    s = ferVec3Dot(&cyldir, &planenorm);
+    if (ferEq(s, FER_ONE)){
+        // plane and cylinder's discs are parallel
+        ferVec3Sub2(&v, tr2, tr1);
+        s = ferVec3Dot(&v, &planenorm);
+        return s < c->half_height;
+    }else{
+        ferMat3CopyCol(&ca, rot2, 2);
+        ferVec3Scale(&ca, c->half_height);
+        ferVec3Scale2(&cb, &ca, -FER_ONE);
+        ferVec3Add(&ca, tr2);
+        ferVec3Add(&cb, tr2);
+
+        ferVec3Sub(&ca, tr1);
+        ferVec3Sub(&cb, tr1);
+
+        ma = ferMat3DotCol(rot1, 2, &ca);
+        mb = ferMat3DotCol(rot1, 2, &cb);
+
+        if (ferSign(ma) != ferSign(mb))
+            return 1;
+
+        if (ma > mb){
+            ma = mb;
+        }
+
+
+        ferVec3Cross(&v2, &planenorm, &cyldir);
+        ferVec3Cross(&v, &v2, &cyldir);
+        ferVec3Scale(&v, c->radius);
+        s2 = ferVec3Dot(&v, &planenorm);
+        s2 = FER_FABS(s2);
+
+        return s2 > ma  || ferEq(s2, ma);
+    }
+}
+
 int ferCDCollidePlaneTri(struct _fer_cd_t *cd,
                          const fer_cd_plane_t *p,
                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
