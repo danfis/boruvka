@@ -85,6 +85,12 @@ void __ferCDBoxClosestPoint(const fer_vec3_t *he,
                             const fer_mat3_t *rot, const fer_vec3_t *tr,
                             const fer_vec3_t *p,
                             fer_vec3_t *q);
+
+/** Returns 8 corner points of box */
+void __ferCDBoxGetCorners(const fer_cd_box_t *b,
+                          const fer_mat3_t *rot,
+                          const fer_vec3_t *tr,
+                          fer_vec3_t *cs);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -1010,6 +1010,22 @@ TEST(cdCollide5)
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.04);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
     /*
     DBG("ret: %d", ret);
     ferCDDumpSVT(cd, stdout, "cd");
@@ -1038,7 +1054,23 @@ TEST(cdCollide6)
     ret = ferCDCollide(cd, NULL, NULL);
     assertFalse(ret);
 
-    ferCDGeomSetTr3(cd, g, 3, -12, 0.04);
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.13);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
