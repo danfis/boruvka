@@ -156,6 +156,37 @@ int ferCDCollidePlaneBox(struct _fer_cd_t *cd,
     return 0;
 }
 
+int ferCDCollidePlaneCap(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_cap_t *c,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t ca, cb;
+    fer_real_t ma, mb;
+
+    ferMat3CopyCol(&ca, rot2, 2);
+    ferVec3Scale(&ca, c->half_height);
+    ferVec3Scale2(&cb, &ca, -FER_ONE);
+    ferVec3Add(&ca, tr2);
+    ferVec3Add(&cb, tr2);
+
+    ferVec3Sub(&ca, tr1);
+    ferVec3Sub(&cb, tr1);
+
+    ma = ferMat3DotCol(rot1, 2, &ca);
+    mb = ferMat3DotCol(rot1, 2, &cb);
+
+    if (ferSign(ma) != ferSign(mb))
+        return 1;
+
+    if (ma < mb){
+        return ma < c->radius;
+    }else{
+        return mb < c->radius;
+    }
+}
+
 int ferCDCollidePlaneTri(struct _fer_cd_t *cd,
                          const fer_cd_plane_t *p,
                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,

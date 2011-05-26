@@ -67,6 +67,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                       (fer_cd_collide_fn)ferCDCollidePlaneSphere);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_BOX,
                       (fer_cd_collide_fn)ferCDCollidePlaneBox);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_CAP,
+                      (fer_cd_collide_fn)ferCDCollidePlaneCap);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_TRI,
                       (fer_cd_collide_fn)ferCDCollidePlaneTri);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_TRIMESH_TRI,
