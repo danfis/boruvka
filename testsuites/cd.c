@@ -1217,10 +1217,6 @@ TEST(cdCollide9)
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
-    ferCDGeomSetTr3(cd, g, 3, -12, -1.);
-    ret = ferCDCollide(cd, NULL, NULL);
-    assertTrue(ret);
-
     ferCDGeomSetTr3(cd, g, 3, -12, -0.14);
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
@@ -1248,7 +1244,6 @@ TEST(cdCollide9)
     ret = ferCDCollide(cd, NULL, NULL);
     assertFalse(ret);
 
-    DBG2("");
     ferCDGeomSetTr3(cd, plane, 0, 0, 0);
     ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
     ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
@@ -1256,7 +1251,6 @@ TEST(cdCollide9)
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
-    DBG2("");
     ferCDGeomSetTr3(cd, plane, 0, 0, 0);
     ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
     ferCDGeomSetRotEuler(cd, g, 0, M_PI_4, 0);

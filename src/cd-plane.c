@@ -71,7 +71,8 @@ void ferCDPlaneFitOBB(const fer_cd_plane_t *c,
     ferVec3Set(axis0, FER_ONE,  FER_ZERO, FER_ZERO);
     ferVec3Set(axis1, FER_ZERO, FER_ONE,  FER_ZERO);
     ferVec3Set(axis2, FER_ZERO, FER_ZERO, FER_ONE);
-    ferVec3Set(half_extents, FER_REAL_MAX, FER_REAL_MAX, FER_REAL_MAX);
+    //ferVec3Set(half_extents, FER_REAL_MAX, FER_REAL_MAX, FER_REAL_MAX);
+    ferVec3Set(half_extents, FER_REAL_MAX, FER_REAL_MAX, 0.1);
 }
 
 int ferCDPlaneUpdateCHull(const fer_cd_plane_t *c, fer_chull3_t *chull,
