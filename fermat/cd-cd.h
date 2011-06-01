@@ -52,12 +52,18 @@ struct _fer_cd_params_t {
     size_t sap_size; /*!< Size of SAP's hash table.
                           Set it to reasonable high number (consider prime
                           number). Default: 1023 */
+
+    size_t max_contacts; /*!< Maximal number of contacts.
+                              Default: 20 */
 };
 typedef struct _fer_cd_params_t fer_cd_params_t;
 
 struct _fer_cd_t {
     uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
+
+    size_t max_contacts;
+    fer_cd_separate_fn separate[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
 
     fer_list_t geoms;          /*!< List of all geoms */
     fer_list_t geoms_dirty;    /*!< List of dirty geoms */
@@ -101,6 +107,12 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
                        fer_cd_collide_fn collider);
 
 /**
+ * Sets separater between shape1 and shape2 (in this order).
+ */
+void ferCDSetSeparateFn(fer_cd_t *cd, int shape1, int shape2,
+                        fer_cd_separate_fn sep);
+
+/**
  * Callback function for ferCDCollide().
  */
 typedef int (*fer_cd_collide_cb)(const fer_cd_t *cd,
@@ -115,6 +127,21 @@ typedef int (*fer_cd_collide_cb)(const fer_cd_t *cd,
  */
 int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data);
 
+/**
+ * Callback function for ferCDSeparate()
+ */
+typedef int (*fer_cd_separate_cb)(const fer_cd_t *cd,
+                                  const struct _fer_cd_geom_t *g1,
+                                  const struct _fer_cd_geom_t *g2,
+                                  const fer_cd_contacts_t *contacts,
+                                  void *data);
+
+/**
+ * For each colliding pair is called callback {cb}.
+ * If this callback returns -1 ferCDSeparate() is terminated prematurely.
+ */
+void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data);
+
 
 void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name);
 
@@ -124,6 +151,15 @@ int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
                         const fer_cd_shape_t *s2,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/** TODO */
+fer_cd_contacts_t *__ferCDShapeSeparate(struct _fer_cd_t *cd,
+                                        const fer_cd_shape_t *s1,
+                                        const fer_mat3_t *rot1,
+                                        const fer_vec3_t *tr1,
+                                        const fer_cd_shape_t *s2,
+                                        const fer_mat3_t *rot2,
+                                        const fer_vec3_t *tr2);
 
 /**** INLINES ****/
 _fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags)

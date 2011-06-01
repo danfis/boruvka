@@ -1260,3 +1260,112 @@ TEST(cdCollide9)
 
     ferCDDel(cd);
 }
+
+
+struct _geom_t {
+    int id;
+};
+typedef struct _geom_t geom_t;
+
+int sepCB(const fer_cd_t *cd,
+          const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+          const fer_cd_contacts_t *con,
+          void *data)
+{
+    size_t i;
+    const geom_t *gd1, *gd2;
+
+    gd1 = (const geom_t *)ferCDGeomData((fer_cd_geom_t *)g1);
+    gd2 = (const geom_t *)ferCDGeomData((fer_cd_geom_t *)g2);
+    for (i = 0; i < con->num; i++){
+        fprintf(stdout, "# [%02d] %02d-%02d dir: <%f %f %f>, pos: <%f %f %f>, depth: %f\n",
+                (int)i, gd1->id, gd2->id,
+                ferVec3X(&con->dir[i]), ferVec3Y(&con->dir[i]), ferVec3Z(&con->dir[i]),
+                ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
+                con->depth[i]);
+    }
+
+    return 0;
+}
+
+TEST(cdSeparate1)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[2];
+
+    fprintf(stdout, "# === cdSeparate1 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    g[0] = ferCDGeomNew(cd);
+    gd[0].id = 0;
+    ferCDGeomSetData(g[0], &gd[0]);
+    g[1] = ferCDGeomNew(cd);
+    gd[1].id = 1;
+    ferCDGeomSetData(g[1], &gd[1]);
+
+    ferCDGeomAddSphere(cd, g[0], 0.1);
+    ferCDGeomAddSphere(cd, g[1], 0.15);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0.15, 0, 0);
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0., 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 0.15, 0, 0);
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], -0.05, -0.05, -0.05);
+    ferCDGeomSetTr3(cd, g[1], 0.05, 0.05, 0.05);
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDDel(cd);
+}
+
+TEST(cdSeparate2)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[2];
+
+    fprintf(stdout, "# === cdSeparate2 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    g[0] = ferCDGeomNew(cd);
+    gd[0].id = 0;
+    ferCDGeomSetData(g[0], &gd[0]);
+    g[1] = ferCDGeomNew(cd);
+    gd[1].id = 1;
+    ferCDGeomSetData(g[1], &gd[1]);
+
+    ferCDGeomAddSphere(cd, g[0], 0.1);
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0.14, 0, 0);
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0., 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 0.14, 0, 0);
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], -0.05, -0.05, -0.05);
+    ferCDGeomSetTr3(cd, g[1], 0.05, 0.05, 0.05);
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}

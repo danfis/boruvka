@@ -18,6 +18,7 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+static void updateDirtyGeoms(fer_cd_t *cd);
 
 void ferCDParamsInit(fer_cd_params_t *params)
 {
@@ -26,6 +27,8 @@ void ferCDParamsInit(fer_cd_params_t *params)
 
     params->use_sap = 1;
     params->sap_size = 1023;
+
+    params->max_contacts = 20;
 }
 
 fer_cd_t *ferCDNew(const fer_cd_params_t *params)
@@ -42,12 +45,12 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     cd = FER_ALLOC(fer_cd_t);
     cd->build_flags = params->build_flags;
 
+    // Set up collide callbacks
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = 0; j < FER_CD_SHAPE_LEN; j++){
             cd->collide[i][j] = NULL;
         }
     }
-
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                       (fer_cd_collide_fn)ferCDCollideSphereSphere);
@@ -89,10 +92,42 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                               (fer_cd_collide_fn)ferCDCollideOffAny);
     }
 
+    // for the rest set CCD collider
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = i; j < FER_CD_SHAPE_LEN; j++){
             if (!cd->collide[i][j]){
                 ferCDSetCollideFn(cd, i, j, (fer_cd_collide_fn)ferCDCollideCCD);
+            }
+        }
+    }
+
+
+    cd->max_contacts = params->max_contacts;
+
+    // Set up separate callbacks
+    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
+        for (j = 0; j < FER_CD_SHAPE_LEN; j++){
+            cd->separate[i][j] = NULL;
+        }
+    }
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
+                       (fer_cd_separate_fn)ferCDSeparateSphereSphere);
+
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
+                       (fer_cd_separate_fn)ferCDSeparateOffOff);
+    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
+        if (i != FER_CD_SHAPE_OFF)
+            ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, i,
+                               (fer_cd_separate_fn)ferCDSeparateOffAny);
+    }
+
+    // for the rest set CCD separator
+    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
+        for (j = i; j < FER_CD_SHAPE_LEN; j++){
+            if (!cd->separate[i][j]){
+                ferCDSetSeparateFn(cd, i, j, ferCDSeparateCCD);
             }
         }
     }
@@ -132,6 +167,12 @@ void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,
     cd->collide[shape1][shape2] = collider;
 }
 
+void ferCDSetSeparateFn(fer_cd_t *cd, int shape1, int shape2,
+                        fer_cd_separate_fn sep)
+{
+    cd->separate[shape1][shape2] = sep;
+}
+
 
 static int ferCDCollideBruteForce(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
 {
@@ -167,7 +208,6 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
 {
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
-    fer_cd_geom_t *g;
     int ret = 0;
 
     // if not using SAP fallback to brute force method
@@ -175,12 +215,7 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
         return ferCDCollideBruteForce(cd, cb, data);
 
     // first of all update all dirty geoms
-    while (!ferListEmpty(&cd->geoms_dirty)){
-        item = ferListNext(&cd->geoms_dirty);
-        g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
-        ferCDSAPUpdate(cd->sap, g);
-        __ferCDGeomResetDirty(cd, g);
-    }
+    updateDirtyGeoms(cd);
 
     // try all pairs
     pairs = ferCDSAPCollidePairs(cd->sap);
@@ -200,6 +235,44 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
     }
 
     return ret;
+}
+
+static void ferCDSeparateBruteForce(fer_cd_t *cd,
+                                   fer_cd_separate_cb cb, void *data)
+{
+    fer_list_t *item1, *item2;
+    fer_cd_geom_t *g1, *g2;
+
+    FER_LIST_FOR_EACH(&cd->geoms, item1){
+        g1 = FER_LIST_ENTRY(item1, fer_cd_geom_t, list);
+
+        for (item2 = ferListNext(item1);
+                item2 != &cd->geoms;
+                item2 = ferListNext(item2)){
+            g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
+
+            ferCDGeomSeparate(cd, g1, g2, cb, data);
+        }
+    }
+}
+
+void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
+{
+    const fer_list_t *pairs, *item;
+    fer_cd_sap_pair_t *pair;
+
+    if (!cd->sap)
+        ferCDSeparateBruteForce(cd, cb, data);
+
+    // first of all update all dirty geoms
+    updateDirtyGeoms(cd);
+
+    // try all pairs
+    pairs = ferCDSAPCollidePairs(cd->sap);
+    FER_LIST_FOR_EACH(pairs, item){
+        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+        ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cb, data);
+    }
 }
 
 
@@ -236,4 +309,49 @@ int __ferCDShapeCollide(fer_cd_t *cd,
     }
 
     return ret;
+}
+
+fer_cd_contacts_t *__ferCDShapeSeparate(struct _fer_cd_t *cd,
+                                        const fer_cd_shape_t *s1,
+                                        const fer_mat3_t *rot1,
+                                        const fer_vec3_t *tr1,
+                                        const fer_cd_shape_t *s2,
+                                        const fer_mat3_t *rot2,
+                                        const fer_vec3_t *tr2)
+{
+    int type1, type2;
+    fer_cd_contacts_t *con;
+    size_t i;
+
+    type1 = s1->cl->type;
+    type2 = s2->cl->type;
+
+    con = NULL;
+    if (cd->separate[type1][type2]){
+        con = cd->separate[type1][type2](cd, s1, rot1, tr1, s2, rot2, tr2);
+    }else if (cd->separate[type2][type1]){
+        con = cd->separate[type2][type1](cd, s2, rot2, tr2, s1, rot1, tr1);
+        if (con){
+            for (i = 0; i < con->num; i++){
+                ferVec3Scale(&con->dir[i], -FER_ONE);
+            }
+        }
+    }else{
+        fprintf(stderr, "Error: No separator for %d-%d\n", type1, type2);
+    }
+
+    return con;
+}
+
+static void updateDirtyGeoms(fer_cd_t *cd)
+{
+    fer_list_t *item;
+    fer_cd_geom_t *g;
+
+    while (!ferListEmpty(&cd->geoms_dirty)){
+        item = ferListNext(&cd->geoms_dirty);
+        g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
+        ferCDSAPUpdate(cd->sap, g);
+        __ferCDGeomResetDirty(cd, g);
+    }
 }

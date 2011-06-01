@@ -35,6 +35,8 @@ struct _fer_cd_geom_t {
     fer_list_t list;       /*!< Reference to list of all geoms */
     fer_list_t list_dirty; /*!< Reference to list of dirty geoms */
 
+    void *data;
+
     void *sap;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
@@ -53,6 +55,16 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g);
  * Builds OBB hierarchy.
  */
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
+ * Sets user data pointer
+ */
+_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
+
+/**
+ * Returns user data pointer
+ */
+_fer_inline void *ferCDGeomData(fer_cd_geom_t *g);
 
 /**
  * Sets translation.
@@ -85,6 +97,13 @@ _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
 int ferCDGeomCollide(fer_cd_t *cd,
                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 
+
+/**
+ * TODO
+ */
+int ferCDGeomSeparate(fer_cd_t *cd,
+                     const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                     fer_cd_separate_cb cb, void *data);
 
 
 /**
@@ -220,6 +239,16 @@ void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
 void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
 
 /**** INLINES ****/
+_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data)
+{
+    g->data = data;
+}
+
+_fer_inline void *ferCDGeomData(fer_cd_geom_t *g)
+{
+    return g->data;
+}
+
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
                                 const fer_vec3_t *tr)
 {
