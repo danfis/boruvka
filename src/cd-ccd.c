@@ -30,17 +30,8 @@ static void ccdSupport(const void *obj, const fer_vec3_t *_dir,
                        fer_vec3_t *p)
 {
     const ccd_t *s = (const ccd_t *)obj;
-    fer_vec3_t dir, q;
 
-    if (!s->s->cl->support){
-        ferVec3Set(p, FER_ZERO, FER_ZERO, FER_ZERO);
-        return;
-    }
-
-    ferMat3MulVecTrans(&dir, s->rot, _dir);
-    s->s->cl->support(s->s, &dir, p);
-    ferMat3MulVec(&q, s->rot, p);
-    ferVec3Add2(p, &q, s->tr);
+    __ferCDSupport(s->s, s->rot, s->tr, _dir, p);
 }
 
 static void ccdCenter(const void *obj, fer_vec3_t *c)

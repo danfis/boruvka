@@ -1453,7 +1453,9 @@ TEST(cdSeparate4)
 
     ferCDGeomAddPlane(cd, g[0]);
     ferCDGeomAddCap(cd, g[1], 0.1, 0.2);
-    //ferCDGeomAddBox(cd, g[2], 0.1, 0.2, 0.12);
+    ferCDGeomAddCyl(cd, g[2], 0.1, 0.2);
+
+    ferCDGeomSetTr3(cd, g[2], 0, 0, 100);
 
     fprintf(stdout, "# == 01 ==\n");
     ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
@@ -1466,6 +1468,20 @@ TEST(cdSeparate4)
     fprintf(stdout, "# == 03 ==\n");
     ferCDGeomSetTr3(cd, g[1], 0., 0, 0.05);
     ferCDGeomSetRotEuler(cd, g[1], 0, M_PI_2, 0);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 100);
+    ferCDGeomSetTr3(cd, g[2], 0., 0, 0.05);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 05 ==\n");
+    ferCDGeomSetTr3(cd, g[2], 1.1, 0.3, 0.05);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 06 ==\n");
+    ferCDGeomSetTr3(cd, g[2], 1.1, 0.3, 0.07);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_2, 0);
     ferCDSeparate(cd, sepCB, NULL);
 
     /*

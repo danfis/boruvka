@@ -352,6 +352,43 @@ fer_cd_contacts_t *ferCDSeparatePlaneCap(struct _fer_cd_t *cd,
     return con;
 }
 
+
+fer_cd_contacts_t *ferCDSeparatePlaneConvex(struct _fer_cd_t *cd,
+                                            const fer_cd_plane_t *s1,
+                                            const fer_mat3_t *rot1,
+                                            const fer_vec3_t *tr1,
+                                            const fer_cd_shape_t *s2,
+                                            const fer_mat3_t *rot2,
+                                            const fer_vec3_t *tr2)
+{
+    fer_cd_contacts_t *con = NULL;
+    fer_vec3_t pn, p, p2;
+    fer_real_t depth;
+
+    // get reverse normal of plane
+    ferMat3CopyCol(&pn, rot1, 2);
+    ferVec3Scale(&pn, -FER_ONE);
+
+    // get support vector in {pn}'s direction
+    if (__ferCDSupport(s2, rot2, tr2, &pn, &p) != 0){
+        fprintf(stderr, "CD Error: Shape (%d) doesn't have support function\n", s2->cl->type);
+        return NULL;
+    }
+
+    // compute depth
+    ferVec3Sub2(&p2, &p, tr1);
+    depth = ferVec3Dot(&pn, &p2);
+
+    if (depth > FER_ZERO){
+        con = ferCDContactsNew(1);
+        con->depth[0] = depth;
+        ferVec3Scale2(&con->dir[0], &pn, -FER_ONE);
+        ferVec3Copy(&con->pos[0], &p);
+    }
+
+    return con;
+}
+
 fer_cd_contacts_t *ferCDSeparateOffOff(struct _fer_cd_t *cd,
                                        const fer_cd_shape_off_t *s1,
                                        const fer_mat3_t *_rot1,
