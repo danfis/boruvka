@@ -117,6 +117,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                        (fer_cd_separate_fn)ferCDSeparatePlaneSphere);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_BOX,
                        (fer_cd_separate_fn)ferCDSeparatePlaneBox);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_CAP,
+                       (fer_cd_separate_fn)ferCDSeparatePlaneCap);
 
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,

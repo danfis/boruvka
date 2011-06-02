@@ -1432,3 +1432,77 @@ TEST(cdSeparate3)
 
     ferCDDel(cd);
 }
+
+TEST(cdSeparate4)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[3];
+    geom_t gd[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate4 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 3; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferCDGeomAddPlane(cd, g[0]);
+    ferCDGeomAddCap(cd, g[1], 0.1, 0.2);
+    //ferCDGeomAddBox(cd, g[2], 0.1, 0.2, 0.12);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.2);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.05);
+    ferCDGeomSetRotEuler(cd, g[1], 0, M_PI_2, 0);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    /*
+    ferCDGeomSetTr3(cd, g[2], 0, 0, 100);
+
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.09);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0.11, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.10, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.11, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.10, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 05 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.08, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //DBG2("");
+    fprintf(stdout, "# == 06 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.20, 0.04);
+    ferCDGeomSetRotEuler(cd, g[2], M_PI_4, M_PI_4, M_PI_4);
+    ferCDSeparate(cd, sepCB, NULL);
+    */
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}

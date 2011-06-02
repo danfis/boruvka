@@ -289,6 +289,68 @@ fer_cd_contacts_t *ferCDSeparatePlaneBox(struct _fer_cd_t *cd,
 }
 
 
+fer_cd_contacts_t *ferCDSeparatePlaneCap(struct _fer_cd_t *cd,
+                                         const fer_cd_plane_t *s1,
+                                         const fer_mat3_t *rot1,
+                                         const fer_vec3_t *tr1,
+                                         const fer_cd_cap_t *s2,
+                                         const fer_mat3_t *rot2,
+                                         const fer_vec3_t *tr2)
+{
+    fer_cd_contacts_t *con = NULL;
+    fer_vec3_t pn, cn, cp, cp2;
+    fer_real_t sign, depth, depth2;
+
+    ferMat3CopyCol(&pn, rot1, 2);
+    ferMat3CopyCol(&cn, rot2, 2);
+
+    if (ferVec3Dot(&pn, &cn) > 0){
+        sign = -FER_ONE;
+    }else{
+        sign = FER_ONE;
+    }
+
+    ferVec3Scale2(&cp, &cn, s2->half_height * sign);
+    ferVec3Add(&cp, tr2);
+
+    depth  = -ferVec3Dot(&pn, tr1);
+    depth -= ferVec3Dot(&pn, &cp);
+    depth += s2->radius;
+    if (depth > FER_ZERO){
+        depth2 = -FER_ONE;
+        ferVec3Set(&cp2, FER_ZERO, FER_ZERO, FER_ZERO);
+
+        if (cd->max_contacts > 1){
+            ferVec3Scale2(&cp2, &cn, -FER_ONE * s2->half_height * sign);
+            ferVec3Add(&cp2, tr2);
+
+            depth2  = -ferVec3Dot(&pn, tr1);
+            depth2 -= ferVec3Dot(&pn, &cp2);
+            depth2 += s2->radius;
+            con = ferCDContactsNew(2);
+        }
+
+        if (depth2 > FER_ZERO){
+            con = ferCDContactsNew(2);
+        }else{
+            con = ferCDContactsNew(1);
+        }
+
+        con->depth[0] = depth;
+        ferVec3Copy(&con->dir[0], &pn);
+        ferVec3Scale2(&con->pos[0], &pn, -s2->radius);
+        ferVec3Add(&con->pos[0], &cp);
+
+        if (depth2 > FER_ZERO){
+            con->depth[1] = depth2;
+            ferVec3Copy(&con->dir[1], &pn);
+            ferVec3Scale2(&con->pos[1], &pn, -s2->radius);
+            ferVec3Add(&con->pos[1], &cp2);
+        }
+    }
+
+    return con;
+}
 
 fer_cd_contacts_t *ferCDSeparateOffOff(struct _fer_cd_t *cd,
                                        const fer_cd_shape_off_t *s1,
