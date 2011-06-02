@@ -95,7 +95,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     // for the rest set CCD collider
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = i; j < FER_CD_SHAPE_LEN; j++){
-            if (!cd->collide[i][j]){
+            if (!cd->collide[i][j] && !cd->collide[j][i]){
                 ferCDSetCollideFn(cd, i, j, (fer_cd_collide_fn)ferCDCollideCCD);
             }
         }
@@ -113,6 +113,10 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                        (fer_cd_separate_fn)ferCDSeparateSphereSphere);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_SPHERE,
+                       (fer_cd_separate_fn)ferCDSeparatePlaneSphere);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_BOX,
+                       (fer_cd_separate_fn)ferCDSeparatePlaneBox);
 
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
@@ -126,7 +130,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     // for the rest set CCD separator
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
         for (j = i; j < FER_CD_SHAPE_LEN; j++){
-            if (!cd->separate[i][j]){
+            if (!cd->separate[i][j] && !cd->separate[j][i]){
                 ferCDSetSeparateFn(cd, i, j, ferCDSeparateCCD);
             }
         }
