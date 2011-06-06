@@ -389,6 +389,52 @@ fer_cd_contacts_t *ferCDSeparatePlaneConvex(struct _fer_cd_t *cd,
     return con;
 }
 
+fer_cd_contacts_t *ferCDSeparatePlaneTri(struct _fer_cd_t *cd,
+                                         const fer_cd_plane_t *s,
+                                         const fer_mat3_t *rot1,
+                                         const fer_vec3_t *tr1,
+                                         const fer_cd_tri_t *t,
+                                         const fer_mat3_t *rot2,
+                                         const fer_vec3_t *tr2)
+{
+    fer_cd_contacts_t *con = NULL;
+    fer_vec3_t pn, p, pos;
+    fer_real_t depth, d;
+    int i, under;
+
+    depth = -FER_ONE;
+    ferMat3CopyCol(&pn, rot1, 2);
+
+    under = 0;
+    depth = -FER_ONE;
+    ferVec3Set(&pos, FER_ZERO, FER_ZERO, FER_ZERO);
+    for (i = 0; i < 3; i++){
+        ferMat3MulVec(&p, rot2, t->p[i]);
+        ferVec3Add(&p, tr2);
+        ferVec3Sub(&p, tr1);
+
+        d = ferVec3Dot(&p, &pn);
+        if (d < FER_ZERO){
+            d = -d;
+            if (d > depth)
+                depth = d;
+            ferVec3Add(&pos, &p);
+            ferVec3Sub(&pos, tr1);
+            under++;
+        }
+    }
+
+    if (under > 0 && under < 3){
+        ferVec3Scale(&pos, ferRecp(under));
+        con = ferCDContactsNew(1);
+        con->depth[0] = depth;
+        ferVec3Copy(&con->pos[0], &pos);
+        ferVec3Copy(&con->dir[0], &pn);
+    }
+
+    return con;
+}
+
 fer_cd_contacts_t *ferCDSeparateOffOff(struct _fer_cd_t *cd,
                                        const fer_cd_shape_off_t *s1,
                                        const fer_mat3_t *_rot1,

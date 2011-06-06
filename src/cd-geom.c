@@ -429,17 +429,17 @@ static size_t _ferCDGeomDumpTriSVT(const fer_cd_obb_t *obb, FILE *out,
                             || obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI)){
             t = (fer_cd_tri_t *)obb->shape;
 
-            ferMat3MulVec(&v, rot, t->p0);
+            ferMat3MulVec(&v, rot, t->p[0]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");
 
-            ferMat3MulVec(&v, rot, t->p1);
+            ferMat3MulVec(&v, rot, t->p[1]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");
 
-            ferMat3MulVec(&v, rot, t->p2);
+            ferMat3MulVec(&v, rot, t->p[2]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");

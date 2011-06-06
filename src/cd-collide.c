@@ -80,9 +80,9 @@ int ferCDCollideSphereTri(struct _fer_cd_t *cd,
     fer_real_t l1, l2;
     fer_vec3_t a, b, c;
 
-    ferMat3MulVec(&a, rot2, t->p0);
-    ferMat3MulVec(&b, rot2, t->p1);
-    ferMat3MulVec(&c, rot2, t->p2);
+    ferMat3MulVec(&a, rot2, t->p[0]);
+    ferMat3MulVec(&b, rot2, t->p[1]);
+    ferMat3MulVec(&c, rot2, t->p[2]);
     ferVec3Add(&a, tr2);
     ferVec3Add(&b, tr2);
     ferVec3Add(&c, tr2);
@@ -246,9 +246,9 @@ int ferCDCollidePlaneTri(struct _fer_cd_t *cd,
 {
     fer_vec3_t a, b, c, axis;
 
-    ferMat3MulVec(&a, rot2, t->p0);
-    ferMat3MulVec(&b, rot2, t->p1);
-    ferMat3MulVec(&c, rot2, t->p2);
+    ferMat3MulVec(&a, rot2, t->p[0]);
+    ferMat3MulVec(&b, rot2, t->p[1]);
+    ferMat3MulVec(&c, rot2, t->p[2]);
     ferVec3Add(&a, tr2);
     ferVec3Add(&b, tr2);
     ferVec3Add(&c, tr2);
@@ -275,18 +275,18 @@ int ferCDCollideTriTri(struct _fer_cd_t *cd,
 {
     fer_vec3_t p1, q1, r1, p2, q2, r2;
 
-    ferMat3MulVec(&p1, rot1, tri1->p0);
+    ferMat3MulVec(&p1, rot1, tri1->p[0]);
     ferVec3Add(&p1, tr1);
-    ferMat3MulVec(&q1, rot1, tri1->p1);
+    ferMat3MulVec(&q1, rot1, tri1->p[1]);
     ferVec3Add(&q1, tr1);
-    ferMat3MulVec(&r1, rot1, tri1->p2);
+    ferMat3MulVec(&r1, rot1, tri1->p[2]);
     ferVec3Add(&r1, tr1);
 
-    ferMat3MulVec(&p2, rot2, tri2->p0);
+    ferMat3MulVec(&p2, rot2, tri2->p[0]);
     ferVec3Add(&p2, tr2);
-    ferMat3MulVec(&q2, rot2, tri2->p1);
+    ferMat3MulVec(&q2, rot2, tri2->p[1]);
     ferVec3Add(&q2, tr2);
-    ferMat3MulVec(&r2, rot2, tri2->p2);
+    ferMat3MulVec(&r2, rot2, tri2->p[2]);
     ferVec3Add(&r2, tr2);
 
     /*
