@@ -1529,3 +1529,51 @@ TEST(cdSeparate5)
 
     ferCDDel(cd);
 }
+
+TEST(cdSeparate6)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[3];
+    fer_vec3_t v[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate6 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 2; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferVec3Set(&v[0], 0., 0., 0.);
+    ferVec3Set(&v[1], 1., 1., 0.);
+    ferVec3Set(&v[2], 0., 0., 1.);
+    ferCDGeomAddTri(cd, g[0], &v[0], &v[1], &v[2]);
+    ferVec3Set(&v[0], -0.5, 0., 0.);
+    ferVec3Set(&v[1], 0.5, 0., 1.);
+    ferVec3Set(&v[2], 0.5, 0.5, 1.);
+    ferCDGeomAddTri(cd, g[1], &v[0], &v[1], &v[2]);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, -0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetRotEuler(cd, g[1], 0, M_PI, 0);
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetRotEuler(cd, g[1], M_PI_4, M_PI_4, 0);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}

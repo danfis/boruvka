@@ -435,6 +435,53 @@ fer_cd_contacts_t *ferCDSeparatePlaneTri(struct _fer_cd_t *cd,
     return con;
 }
 
+
+fer_cd_contacts_t *ferCDSeparateTriTri(struct _fer_cd_t *cd,
+                                       const fer_cd_tri_t *t1,
+                                       const fer_mat3_t *rot1,
+                                       const fer_vec3_t *tr1,
+                                       const fer_cd_tri_t *t2,
+                                       const fer_mat3_t *rot2,
+                                       const fer_vec3_t *tr2)
+{
+    fer_cd_contacts_t *con = NULL;
+    fer_vec3_t p1[3], p2[3], s, t;
+    int i, ret;
+
+    for (i = 0; i < 3; i++){
+        ferMat3MulVec(&p1[i], rot1, t1->p[i]);
+        ferVec3Add(&p1[i], tr1);
+        ferMat3MulVec(&p2[i], rot2, t2->p[i]);
+        ferVec3Add(&p2[i], tr2);
+    }
+
+    ret = ferVec3TriTriIntersect(p1 + 0, p1 + 1, p1 + 2,
+                                 p2 + 0, p2 + 1, p2 + 2,
+                                 &s, &t);
+    if (ret == 1){
+        if (cd->max_contacts >= 2){
+            con = ferCDContactsNew(2);
+            con->depth[0] = con->depth[1] = -1;
+            ferVec3Set(&con->dir[0], FER_ZERO, FER_ZERO, FER_ZERO);
+            ferVec3Set(&con->dir[1], FER_ZERO, FER_ZERO, FER_ZERO);
+            ferVec3Copy(&con->pos[0], &s);
+            ferVec3Copy(&con->pos[1], &t);
+        }else{
+            con = ferCDContactsNew(1);
+            con->depth[0] = -1;
+            ferVec3Add2(&con->pos[0], &s, &t);
+            ferVec3Scale(&con->pos[0], FER_REAL(0.5));
+            ferVec3Set(&con->dir[0], FER_ZERO, FER_ZERO, FER_ZERO);
+        }
+    }else if (ret == 2){
+        con = NULL;
+    }
+
+    return con;
+}
+
+
+
 fer_cd_contacts_t *ferCDSeparateOffOff(struct _fer_cd_t *cd,
                                        const fer_cd_shape_off_t *s1,
                                        const fer_mat3_t *_rot1,
@@ -476,3 +523,4 @@ fer_cd_contacts_t *ferCDSeparateOffAny(struct _fer_cd_t *cd,
     return __ferCDShapeSeparate(cd, s1->shape, &rot1, &tr1,
                                     s2, rot2, tr2);
 }
+

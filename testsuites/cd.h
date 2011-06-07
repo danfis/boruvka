@@ -26,6 +26,7 @@ TEST(cdSeparate2);
 TEST(cdSeparate3);
 TEST(cdSeparate4);
 TEST(cdSeparate5);
+TEST(cdSeparate6);
 
 TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
@@ -52,6 +53,7 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdSeparate3),
     TEST_ADD(cdSeparate4),
     TEST_ADD(cdSeparate5),
+    TEST_ADD(cdSeparate6),
 
     TEST_SUITE_CLOSURE
 };

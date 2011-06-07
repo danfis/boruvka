@@ -618,3 +618,192 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
 
     return 0;
 }
+
+
+#define __intersect_construct(p1, q1, r1, p2, q2, r2) { \
+    ferVec3Sub2(&v1, q1, p1); \
+    ferVec3Sub2(&v2, r2, p1); \
+    ferVec3Cross(&N, &v1, &v2); \
+    ferVec3Sub2(&v, p2, p1); \
+    if (ferVec3Dot(&v, &N) > FER_ZERO){ \
+        ferVec3Sub2(&v1, r1, p1); \
+        ferVec3Cross(&N, &v1, &v2); \
+        if (ferVec3Dot(&v, &N) <= FER_ZERO){ \
+            ferVec3Sub2(&v2, q2, p1); \
+            ferVec3Cross(&N, &v1, &v2); \
+            if (ferVec3Dot(&v, &N) > FER_ZERO){ \
+                ferVec3Sub2(&v1, p1, p2); \
+                ferVec3Sub2(&v2, p1, r1); \
+                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(s, p1, &v1); \
+                ferVec3Sub2(&v1, p2, p1); \
+                ferVec3Sub2(&v2, p2, r2); \
+                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(t, p2, &v1); \
+                return 1; \
+            }else{ \
+                ferVec3Sub2(&v1, p2, p1); \
+                ferVec3Sub2(&v2, p2, q2); \
+                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(s, p2, &v1); \
+                ferVec3Sub2(&v1, p2, p1); \
+                ferVec3Sub2(&v2, p2, r2); \
+                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(t, p2, &v1); \
+                return 1; \
+            } \
+        }else{ \
+            return 0; \
+        } \
+    }else{ \
+        ferVec3Sub2(&v2, q2, p1); \
+        ferVec3Cross(&N, &v1, &v2); \
+        if (ferVec3Dot(&v, &N) < FER_ZERO) { \
+            return 0; \
+        }else{ \
+            ferVec3Sub2(&v1, r1, p1); \
+            ferVec3Cross(&N, &v1, &v2); \
+            if (ferVec3Dot(&v, &N) >= FER_ZERO){ \
+                ferVec3Sub2(&v1, p1, p2); \
+                ferVec3Sub2(&v2, p1, r1); \
+                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(s, p1, &v1); \
+                ferVec3Sub2(&v1, p1, p2); \
+                ferVec3Sub2(&v2, p1, q1); \
+                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(t, p1, &v1); \
+                return 1; \
+            }else{ \
+                ferVec3Sub2(&v1, p2, p1); \
+                ferVec3Sub2(&v2, p2, q2); \
+                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(s, p2, &v1); \
+                ferVec3Sub2(&v1, p1, p2); \
+                ferVec3Sub2(&v2, p1, q1); \
+                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
+                ferVec3Scale2(&v1, &v2, alpha); \
+                ferVec3Sub2(t, p1, &v1); \
+                return 1; \
+            } \
+        } \
+    } \
+} 
+
+#define __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2) { \
+  if (dp2 > FER_ZERO){ \
+     if (dq2 > FER_ZERO) __intersect_construct(p1, r1, q1, r2, p2, q2) \
+     else if (dr2 > FER_ZERO) __intersect_construct(p1, r1, q1, q2, r2, p2) \
+     else __intersect_construct(p1, q1, r1, p2, q2, r2) \
+  }else if (dp2 < FER_ZERO) { \
+    if (dq2 < FER_ZERO) __intersect_construct(p1, q1, r1, r2, p2, q2) \
+    else if (dr2 < FER_ZERO) __intersect_construct(p1, q1, r1, q2, r2, p2) \
+    else __intersect_construct(p1, r1, q1, p2, q2, r2) \
+  }else{ \
+    if (dq2 < FER_ZERO) { \
+      if (dr2 >= FER_ZERO)  __intersect_construct(p1, r1, q1, q2, r2, p2)\
+      else __intersect_construct(p1, q1, r1, p2, q2, r2)\
+    }else if (dq2 > FER_ZERO) { \
+      if (dr2 > FER_ZERO) __intersect_construct(p1, r1, q1, p2, q2, r2)\
+      else  __intersect_construct(p1, q1, r1, q2, r2, p2)\
+    }else{ \
+      if (dr2 > FER_ZERO) __intersect_construct(p1, q1, r1, r2, p2, q2)\
+      else if (dr2 < FER_ZERO) __intersect_construct(p1, r1, q1, r2, p2, q2)\
+      else { \
+          if (__overlapCoplanar(p1, q1, r1, p2, q2, r2, &N1, &N2)) \
+            return 2; \
+      } \
+    } \
+  } \
+}
+
+int ferVec3TriTriIntersect(const fer_vec3_t *p1, const fer_vec3_t *q1,
+                           const fer_vec3_t *r1,
+                           const fer_vec3_t *p2, const fer_vec3_t *q2,
+                           const fer_vec3_t *r2,
+                           fer_vec3_t *s, fer_vec3_t *t)
+{
+    fer_real_t dp1, dq1, dr1, dp2, dq2, dr2;
+    fer_vec3_t v1, v2, v;
+    fer_vec3_t N1, N2, N;
+    fer_real_t alpha;
+
+    // Compute distance signs  of p1, q1 and r1 
+    // to the plane of triangle(p2,q2,r2)
+
+
+    ferVec3Sub2(&v1, p2, r2);
+    ferVec3Sub2(&v2, q2, r2);
+    ferVec3Cross(&N2, &v1, &v2);
+
+    ferVec3Sub2(&v1, p1, r2);
+    dp1 = ferVec3Dot(&v1, &N2);
+    ferVec3Sub2(&v1, q1, r2);
+    dq1 = ferVec3Dot(&v1, &N2);
+    ferVec3Sub2(&v1, r1, r2);
+    dr1 = ferVec3Dot(&v1, &N2);
+
+    if ((dp1 * dq1) > FER_ZERO
+            && (dp1 * dr1) > FER_ZERO){
+        return 0;
+    }
+
+    // Compute distance signs  of p2, q2 and r2 
+    // to the plane of triangle(p1,q1,r1)
+
+
+    ferVec3Sub2(&v1, q1, p1);
+    ferVec3Sub2(&v2, r1, p1);
+    ferVec3Cross(&N1, &v1, &v2);
+
+    ferVec3Sub2(&v1, p2, r1);
+    dp2 = ferVec3Dot(&v1, &N1);
+    ferVec3Sub2(&v1, q2, r1);
+    dq2 = ferVec3Dot(&v1, &N1);
+    ferVec3Sub2(&v1, r2, r1);
+    dr2 = ferVec3Dot(&v1, &N1);
+
+    if ((dp2 * dq2) > FER_ZERO
+            && (dp2 * dr2) > FER_ZERO){
+        return 0;
+    }
+
+    // Permutation in a canonical form of T1's vertices
+
+
+    if (dp1 > FER_ZERO) {
+        if (dq1 > FER_ZERO) __intersect(r1, p1, q1, p2, r2, q2, dp2, dr2, dq2)
+        else if (dr1 > FER_ZERO) __intersect(q1, r1, p1, p2, r2, q2, dp2, dr2, dq2)
+        else __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2)
+    } else if (dp1 < FER_ZERO) {
+        if (dq1 < FER_ZERO) __intersect(r1, p1, q1, p2, q2, r2, dp2, dq2, dr2)
+        else if (dr1 < FER_ZERO) __intersect(q1, r1, p1, p2, q2, r2, dp2, dq2, dr2)
+        else __intersect(p1, q1, r1, p2, r2, q2, dp2, dr2, dq2)
+    } else {
+        if (dq1 < FER_ZERO) {
+            if (dr1 >= FER_ZERO) __intersect(q1, r1, p1, p2, r2, q2, dp2, dr2, dq2)
+            else __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2)
+        }
+        else if (dq1 > FER_ZERO) {
+            if (dr1 > FER_ZERO) __intersect(p1, q1, r1, p2, r2, q2, dp2, dr2, dq2)
+            else __intersect(q1, r1, p1, p2, q2, r2, dp2, dq2, dr2)
+        }
+        else  {
+            if (dr1 > FER_ZERO) __intersect(r1, p1, q1, p2, q2, r2, dp2, dq2, dr2)
+            else if (dr1 < FER_ZERO) __intersect(r1, p1, q1, p2, r2, q2, dp2, dr2, dq2)
+            else{
+                // triangles are co-planar
+                if (__overlapCoplanar(p1, q1, r1, p2, q2, r2, &N1, &N2))
+                    return 2;
+            }
+        }
+    }
+
+    return 0;
+}

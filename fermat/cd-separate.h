@@ -144,15 +144,17 @@ fer_cd_contacts_t *ferCDSeparateOffAny(struct _fer_cd_t *cd,
                                        const fer_mat3_t *rot2,
                                        const fer_vec3_t *tr2);
 
-
 /**
- * TriMeshTri-TriMeshTri separater.
+ * Tri-Tri separator
  */
-int ferCDSeparateTriTri(struct _fer_cd_t *cd,
-                       const fer_cd_tri_t *t1,
-                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                       const fer_cd_tri_t *t2,
-                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+fer_cd_contacts_t *ferCDSeparateTriTri(struct _fer_cd_t *cd,
+                                       const fer_cd_tri_t *t1,
+                                       const fer_mat3_t *rot1,
+                                       const fer_vec3_t *tr1,
+                                       const fer_cd_tri_t *t2,
+                                       const fer_mat3_t *rot2,
+                                       const fer_vec3_t *tr2);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
