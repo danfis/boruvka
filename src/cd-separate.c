@@ -21,7 +21,7 @@
 
 void ferCDContactsDel(fer_cd_contacts_t *contacts)
 {
-    if (contacts->num > 0){
+    if (contacts->size > 0){
         free(contacts->pos);
         free(contacts->dir);
         free(contacts->depth);
