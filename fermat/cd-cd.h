@@ -65,6 +65,8 @@ struct _fer_cd_t {
     size_t max_contacts;
     fer_cd_separate_fn separate[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
 
+    fer_cd_contacts_t *contacts;
+
     fer_list_t geoms;          /*!< List of all geoms */
     fer_list_t geoms_dirty;    /*!< List of dirty geoms */
     struct _fer_cd_sap_t *sap; /*!< SAP solver */
@@ -153,13 +155,12 @@ int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /** TODO */
-fer_cd_contacts_t *__ferCDShapeSeparate(struct _fer_cd_t *cd,
-                                        const fer_cd_shape_t *s1,
-                                        const fer_mat3_t *rot1,
-                                        const fer_vec3_t *tr1,
-                                        const fer_cd_shape_t *s2,
-                                        const fer_mat3_t *rot2,
-                                        const fer_vec3_t *tr2);
+int __ferCDShapeSeparate(struct _fer_cd_t *cd,
+                         const fer_cd_shape_t *s1,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_shape_t *s2,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                         fer_cd_contacts_t *con);
 
 /**** INLINES ****/
 _fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags)

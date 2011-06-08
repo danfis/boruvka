@@ -31,13 +31,15 @@ struct _fer_cd_contacts_t {
     fer_vec3_t *pos;   /*!< Positions where force should take place */
     fer_vec3_t *dir;   /*!< Direction of separation vector (unit vector) */
     fer_real_t *depth; /*!< Depth of penetration (length of separation vector) */
+
+    size_t size;
 };
 typedef struct _fer_cd_contacts_t fer_cd_contacts_t;
 
 /**
  * Returns new contacts struct
  */
-fer_cd_contacts_t *ferCDContactsNew(size_t num);
+fer_cd_contacts_t *ferCDContactsNew(size_t size);
 
 /**
  * Deletes fer_cd_contacts_t struct.
@@ -45,115 +47,106 @@ fer_cd_contacts_t *ferCDContactsNew(size_t num);
 void ferCDContactsDel(fer_cd_contacts_t *contacts);
 
 /**
- * Function that should return new fer_cd_contacts_t struct containing
- * contact info between shapes or NULL if the two shapes don't collide.
+ * Returns number of contact points found.
  */
-typedef fer_cd_contacts_t *(*fer_cd_separate_fn)(struct _fer_cd_t *cd,
-                                                 const fer_cd_shape_t *s1,
-                                                 const fer_mat3_t *rot1,
-                                                 const fer_vec3_t *tr1,
-                                                 const fer_cd_shape_t *s2,
-                                                 const fer_mat3_t *rot2,
-                                                 const fer_vec3_t *tr2);
+typedef int (*fer_cd_separate_fn)(struct _fer_cd_t *cd,
+                                  const fer_cd_shape_t *s1,
+                                  const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                                  const fer_cd_shape_t *s2,
+                                  const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                                  fer_cd_contacts_t *con);
+
 
 /**
  * Sphere-Sphere separator
  */
-fer_cd_contacts_t *ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
-                                             const fer_cd_sphere_t *s1,
-                                             const fer_mat3_t *rot1,
-                                             const fer_vec3_t *tr1,
-                                             const fer_cd_sphere_t *s2,
-                                             const fer_mat3_t *rot2,
-                                             const fer_vec3_t *tr2);
+int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
+                              const fer_cd_sphere_t *s1,
+                              const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                              const fer_cd_sphere_t *s2,
+                              const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                              fer_cd_contacts_t *con);
 
 /**
  * Plane-Sphere separator
  */
-fer_cd_contacts_t *ferCDSeparatePlaneSphere(struct _fer_cd_t *cd,
-                                            const fer_cd_plane_t *s1,
-                                            const fer_mat3_t *rot1,
-                                            const fer_vec3_t *tr1,
-                                            const fer_cd_sphere_t *s2,
-                                            const fer_mat3_t *rot2,
-                                            const fer_vec3_t *tr2);
+int ferCDSeparatePlaneSphere(struct _fer_cd_t *cd,
+                             const fer_cd_plane_t *s1,
+                             const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                             const fer_cd_sphere_t *s2,
+                             const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                             fer_cd_contacts_t *con);
 
 /**
  * Plane-Box separator
  */
-fer_cd_contacts_t *ferCDSeparatePlaneBox(struct _fer_cd_t *cd,
-                                         const fer_cd_plane_t *s1,
-                                         const fer_mat3_t *rot1,
-                                         const fer_vec3_t *tr1,
-                                         const fer_cd_box_t *s2,
-                                         const fer_mat3_t *rot2,
-                                         const fer_vec3_t *tr2);
+int ferCDSeparatePlaneBox(struct _fer_cd_t *cd,
+                          const fer_cd_plane_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_box_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                          fer_cd_contacts_t *con);
 
 /**
  * Plane-Cap separator
  */
-fer_cd_contacts_t *ferCDSeparatePlaneCap(struct _fer_cd_t *cd,
-                                         const fer_cd_plane_t *s1,
-                                         const fer_mat3_t *rot1,
-                                         const fer_vec3_t *tr1,
-                                         const fer_cd_cap_t *s2,
-                                         const fer_mat3_t *rot2,
-                                         const fer_vec3_t *tr2);
+int ferCDSeparatePlaneCap(struct _fer_cd_t *cd,
+                          const fer_cd_plane_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_cap_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                          fer_cd_contacts_t *con);
 
 /**
  * Plane-any convex shape separator
  */
-fer_cd_contacts_t *ferCDSeparatePlaneConvex(struct _fer_cd_t *cd,
-                                            const fer_cd_plane_t *s1,
-                                            const fer_mat3_t *rot1,
-                                            const fer_vec3_t *tr1,
-                                            const fer_cd_shape_t *s2,
-                                            const fer_mat3_t *rot2,
-                                            const fer_vec3_t *tr2);
+int ferCDSeparatePlaneConvex(struct _fer_cd_t *cd,
+                             const fer_cd_plane_t *s1,
+                             const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                             const fer_cd_shape_t *s2,
+                             const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                             fer_cd_contacts_t *con);
 
 /**
  * Plane-Tri separator
  */
-fer_cd_contacts_t *ferCDSeparatePlaneTri(struct _fer_cd_t *cd,
-                                         const fer_cd_plane_t *p,
-                                         const fer_mat3_t *rot1,
-                                         const fer_vec3_t *tr1,
-                                         const fer_cd_tri_t *t,
-                                         const fer_mat3_t *rot2,
-                                         const fer_vec3_t *tr2);
+int ferCDSeparatePlaneTri(struct _fer_cd_t *cd,
+                          const fer_cd_plane_t *p,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_tri_t *t,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                          fer_cd_contacts_t *con);
 
 
 /**
  * ShapeOffset-ShapeOffset separator
  */
-fer_cd_contacts_t *ferCDSeparateOffOff(struct _fer_cd_t *cd,
-                                       const fer_cd_shape_off_t *s1,
-                                       const fer_mat3_t *rot1,
-                                       const fer_vec3_t *tr1,
-                                       const fer_cd_shape_off_t *s2,
-                                       const fer_mat3_t *rot2,
-                                       const fer_vec3_t *tr2);
+int ferCDSeparateOffOff(struct _fer_cd_t *cd,
+                        const fer_cd_shape_off_t *s1,
+                        const fer_mat3_t *_rot1, const fer_vec3_t *_tr1,
+                        const fer_cd_shape_off_t *s2,
+                        const fer_mat3_t *_rot2, const fer_vec3_t *_tr2,
+                        fer_cd_contacts_t *con);
+
 /**
  * ShapeOffset-AnyShape separator.
  */
-fer_cd_contacts_t *ferCDSeparateOffAny(struct _fer_cd_t *cd,
-                                       const fer_cd_shape_off_t *s1,
-                                       const fer_mat3_t *rot1,
-                                       const fer_vec3_t *tr1,
-                                       const fer_cd_shape_t *s2,
-                                       const fer_mat3_t *rot2,
-                                       const fer_vec3_t *tr2);
+int ferCDSeparateOffAny(struct _fer_cd_t *cd,
+                        const fer_cd_shape_off_t *s1,
+                        const fer_mat3_t *_rot1, const fer_vec3_t *_tr1,
+                        const fer_cd_shape_t *s2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                        fer_cd_contacts_t *con);
 
 /**
  * Tri-Tri separator
  */
-fer_cd_contacts_t *ferCDSeparateTriTri(struct _fer_cd_t *cd,
-                                       const fer_cd_tri_t *t1,
-                                       const fer_mat3_t *rot1,
-                                       const fer_vec3_t *tr1,
-                                       const fer_cd_tri_t *t2,
-                                       const fer_mat3_t *rot2,
-                                       const fer_vec3_t *tr2);
+int ferCDSeparateTriTri(struct _fer_cd_t *cd,
+                        const fer_cd_tri_t *t1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_cd_tri_t *t2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                        fer_cd_contacts_t *con);
 
 #ifdef __cplusplus
 }

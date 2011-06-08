@@ -298,33 +298,17 @@ struct __separate_t {
     fer_cd_t *cd;
     const fer_cd_geom_t *g1;
     const fer_cd_geom_t *g2;
-    fer_cd_separate_cb cb;
-    void *data;
-    int collide;
-    int terminate;
 };
 static int __ferCDGeomSeparateCB(const fer_cd_obb_t *obb1,
                                  const fer_cd_obb_t *obb2,
                                  void *data)
 {
     struct __separate_t *sep = (struct __separate_t *)data;
-    fer_cd_contacts_t *con;
-    int ret;
 
-    con = __ferCDShapeSeparate(sep->cd,
-                               obb1->shape, &sep->g1->rot, &sep->g1->tr,
-                               obb2->shape, &sep->g2->rot, &sep->g2->tr);
-    if (con){
-        ret = sep->cb(sep->cd, sep->g1, sep->g2, con, sep->data);
-        if (ret == -1)
-            sep->terminate = 1;
-        sep->collide = 1;
-
-        ferCDContactsDel(con);
-    }
-
-    if (sep->terminate)
-        return -1;
+    __ferCDShapeSeparate(sep->cd,
+                         obb1->shape, &sep->g1->rot, &sep->g1->tr,
+                         obb2->shape, &sep->g2->rot, &sep->g2->tr,
+                         sep->cd->contacts);
     return 0;
 }
 
@@ -335,14 +319,12 @@ int ferCDGeomSeparate(fer_cd_t *cd,
     struct __separate_t sep;
     fer_list_t *item1, *item2;
     fer_cd_obb_t *obb1, *obb2;
-    int collisions = 0;
 
     sep.cd = cd;
     sep.g1 = g1;
     sep.g2 = g2;
-    sep.cb = cb;
-    sep.data = data;
-    sep.terminate = 0;
+
+    cd->contacts->num = 0;
 
     FER_LIST_FOR_EACH(&g1->obbs, item1){
         obb1 = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
@@ -350,17 +332,17 @@ int ferCDGeomSeparate(fer_cd_t *cd,
         FER_LIST_FOR_EACH(&g2->obbs, item2){
             obb2 = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
 
-            sep.collide = 0;
             ferCDOBBOverlapPairsCB(obb1, &g1->rot, &g1->tr,
                                    obb2, &g2->rot, &g2->tr,
                                    __ferCDGeomSeparateCB, (void *)&sep);
-
-            collisions += sep.collide;
-            if (sep.terminate)
-                return collisions;
         }
     }
-    return collisions;
+
+    if (cd->contacts->num > 0){
+        cb(cd, g1, g2, cd->contacts, data);
+    }
+
+    return cd->contacts->num;
 }
 
 void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)

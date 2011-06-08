@@ -32,13 +32,12 @@ int ferCDCollideCCD(struct _fer_cd_t *cd,
                     const fer_cd_shape_t *_s2,
                     const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
-fer_cd_contacts_t *ferCDSeparateCCD(struct _fer_cd_t *cd,
-                                    const fer_cd_shape_t *s1,
-                                    const fer_mat3_t *rot1,
-                                    const fer_vec3_t *tr1,
-                                    const fer_cd_shape_t *s2,
-                                    const fer_mat3_t *rot2,
-                                    const fer_vec3_t *tr2);
+int ferCDSeparateCCD(struct _fer_cd_t *cd,
+                     const fer_cd_shape_t *s1,
+                     const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                     const fer_cd_shape_t *s2,
+                     const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                     fer_cd_contacts_t *con);
 
 #ifdef __cplusplus
 }

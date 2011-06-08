@@ -105,6 +105,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
 
     cd->max_contacts = params->max_contacts;
+    cd->contacts = ferCDContactsNew(cd->max_contacts);
 
     // Set up separate callbacks
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
@@ -174,6 +175,9 @@ void ferCDDel(fer_cd_t *cd)
         g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list);
         ferCDGeomDel(cd, g);
     }
+
+    if (cd->contacts)
+        ferCDContactsDel(cd->contacts);
 
     if (cd->sap)
         ferCDSAPDel(cd->sap);
@@ -331,36 +335,33 @@ int __ferCDShapeCollide(fer_cd_t *cd,
     return ret;
 }
 
-fer_cd_contacts_t *__ferCDShapeSeparate(struct _fer_cd_t *cd,
-                                        const fer_cd_shape_t *s1,
-                                        const fer_mat3_t *rot1,
-                                        const fer_vec3_t *tr1,
-                                        const fer_cd_shape_t *s2,
-                                        const fer_mat3_t *rot2,
-                                        const fer_vec3_t *tr2)
+int __ferCDShapeSeparate(struct _fer_cd_t *cd,
+                         const fer_cd_shape_t *s1,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_shape_t *s2,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                         fer_cd_contacts_t *con)
 {
-    int type1, type2;
-    fer_cd_contacts_t *con;
+    int type1, type2, num = 0;
     size_t i;
 
     type1 = s1->cl->type;
     type2 = s2->cl->type;
 
-    con = NULL;
     if (cd->separate[type1][type2]){
-        con = cd->separate[type1][type2](cd, s1, rot1, tr1, s2, rot2, tr2);
+        num = cd->separate[type1][type2](cd, s1, rot1, tr1, s2, rot2, tr2, con);
     }else if (cd->separate[type2][type1]){
-        con = cd->separate[type2][type1](cd, s2, rot2, tr2, s1, rot1, tr1);
-        if (con){
-            for (i = 0; i < con->num; i++){
-                ferVec3Scale(&con->dir[i], -FER_ONE);
+        num = cd->separate[type2][type1](cd, s2, rot2, tr2, s1, rot1, tr1, con);
+        if (num > 0){
+            for (i = 0; i < num; i++){
+                ferVec3Scale(&con->dir[con->num - i - 1], -FER_ONE);
             }
         }
     }else{
         fprintf(stderr, "Error: No separator for %d-%d\n", type1, type2);
     }
 
-    return con;
+    return num;
 }
 
 static void updateDirtyGeoms(fer_cd_t *cd)

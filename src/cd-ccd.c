@@ -92,18 +92,16 @@ int ferCDCollideCCD(struct _fer_cd_t *cd,
     return ret;
 }
 
-fer_cd_contacts_t *ferCDSeparateCCD(struct _fer_cd_t *cd,
-                                    const fer_cd_shape_t *_s1,
-                                    const fer_mat3_t *rot1,
-                                    const fer_vec3_t *tr1,
-                                    const fer_cd_shape_t *_s2,
-                                    const fer_mat3_t *rot2,
-                                    const fer_vec3_t *tr2)
+int ferCDSeparateCCD(struct _fer_cd_t *cd,
+                     const fer_cd_shape_t *_s1,
+                     const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                     const fer_cd_shape_t *_s2,
+                     const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                     fer_cd_contacts_t *con)
 {
     ccd_t s1, s2;
     fer_ccd_t ccd;
-    fer_cd_contacts_t *con = NULL;
-    int ret;
+    int ret, num = 0;
     fer_vec3_t dir, pos;
     fer_real_t depth;
 
@@ -117,11 +115,12 @@ fer_cd_contacts_t *ferCDSeparateCCD(struct _fer_cd_t *cd,
 
     ret = ferCCDMPRPenetration(&ccd, &s1, &s2, &depth, &dir, &pos);
     if (ret == 0){
-        con = ferCDContactsNew(1);
-        con->depth[0] = depth;
-        ferVec3Copy(&con->dir[0], &dir);
-        ferVec3Copy(&con->pos[0], &pos);
+        con->depth[con->num] = depth;
+        ferVec3Copy(&con->dir[con->num], &dir);
+        ferVec3Copy(&con->pos[con->num], &pos);
+        con->num++;
+        num = 1;
     }
 
-    return con;
+    return num;
 }
