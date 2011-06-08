@@ -58,13 +58,16 @@
 struct MyObject {
   dBodyID body;			// the body
   dGeomID geom[GPB];		// geometries representing this body
+  fer_cd_geom_t *g[GPB];
 };
 
+static fer_cd_t *cd;
 static int num=0;		// number of objects in simulation
 static int nextobj=0;		// next object to recycle if num==NUM
 static dWorldID world;
 static dSpaceID space;
 static struct MyObject obj[NUM];
+static struct MyObject plane;
 static dJointGroupID contactgroup;
 static int selected = -1;	// selected object
 static int show_aabb = 0;	// show geom AABBs?
@@ -72,42 +75,79 @@ static int show_contacts = 0;	// show contact points?
 static int random_pos = 1;	// drop objects from random position?
 static int show_body = 0;
 
-// this is called by dSpaceCollide when two objects in space are
-// potentially colliding.
 
-static void nearCallback (void *data, dGeomID o1, dGeomID o2)
+static int sepCB(const fer_cd_t *cd,
+                 const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                 const fer_cd_contacts_t *con,
+                 void *data)
 {
-  int i;
-  int numc;
+    struct MyObject *obj1, *obj2;
+    size_t i;
+    dContact contact;
+    dBodyID b1, b2;
+   
+    obj1 = (struct MyObject *)ferCDGeomData((fer_cd_geom_t *)g1);
+    obj2 = (struct MyObject *)ferCDGeomData((fer_cd_geom_t *)g2);
+    b1 = (obj1 ? obj1->body : 0);
+    b2 = (obj2 ? obj2->body : 0);
 
-  // if (o1->body && o2->body) return;
+    for (i = 0; i < con->num; i++){
+        fprintf(stdout, "# [%02d] %lx-%lx dir: <%f %f %f>, pos: <%f %f %f>, depth: %f\n",
+                (int)i, (long)b1, (long)b2,
+                ferVec3X(&con->dir[i]), ferVec3Y(&con->dir[i]), ferVec3Z(&con->dir[i]),
+                ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
+                con->depth[i]);
 
-  // exit without doing anything if the two bodies are connected by a joint
-  dBodyID b1 = dGeomGetBody(o1);
-  dBodyID b2 = dGeomGetBody(o2);
-  if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
+        contact.geom.pos[0] = ferVec3X(&con->pos[i]);
+        contact.geom.pos[1] = ferVec3Y(&con->pos[i]);
+        contact.geom.pos[2] = ferVec3Z(&con->pos[i]);
+        contact.geom.normal[0] = -ferVec3X(&con->dir[i]);
+        contact.geom.normal[1] = -ferVec3Y(&con->dir[i]);
+        contact.geom.normal[2] = -ferVec3Z(&con->dir[i]);
+        contact.geom.g1 = 0;
+        contact.geom.g2 = 0;
+        contact.surface.mode = dContactBounce | dContactSoftCFM;
+        contact.surface.mu = dInfinity;
+        contact.surface.mu2 = 0;
+        contact.surface.bounce = 0.1;
+        contact.surface.bounce_vel = 0.1;
+        contact.surface.soft_cfm = 0.01;
 
-  dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
-  for (i=0; i<MAX_CONTACTS; i++) {
-    contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-    contact[i].surface.mu = dInfinity;
-    contact[i].surface.mu2 = 0;
-    contact[i].surface.bounce = 0.1;
-    contact[i].surface.bounce_vel = 0.1;
-    contact[i].surface.soft_cfm = 0.01;
-  }
-  numc = dCollide (o1,o2,MAX_CONTACTS,&contact[0].geom, sizeof(dContact));
-  if (numc){
-    dMatrix3 RI;
-    dRSetIdentity (RI);
-    const dReal ss[3] = {0.02,0.02,0.02};
-    for (i=0; i<numc; i++) {
-      dJointID c = dJointCreateContact (world,contactgroup,contact+i);
-      dJointAttach (c,b1,b2);
-      if (show_contacts) dsDrawBox (contact[i].geom.pos,RI,ss);
+        dJointID c = dJointCreateContact(world, contactgroup, &contact);
+        dJointAttach(c, b1, b2);
 
+        if (show_contacts){
+            dMatrix3 RI;
+            dRSetIdentity (RI);
+            const dReal ss[3] = {0.02,0.02,0.02};
+
+            dsDrawBox(contact.geom.pos, RI, ss);
+        }
     }
-  }
+
+    return 0;
+}
+
+static void bodyMoved(dBodyID body)
+{
+    struct MyObject *obj = (struct MyObject *)dBodyGetData(body);
+    size_t i;
+    const dReal *pos, *q;
+    fer_mat3_t rot;
+    fer_quat_t quat;
+
+    pos = dBodyGetPosition(body);
+    q = dBodyGetQuaternion(body);
+
+    ferQuatSet(&quat, q[1], q[2], q[3], q[0]);
+    ferQuatToMat3(&quat, &rot);
+
+    for (i = 0; i < GPB; i++){
+        if (obj->g[i]){
+            ferCDGeomSetTr3(cd, obj->g[i], pos[0], pos[1], pos[2]);
+            ferCDGeomSetRot(cd, obj->g[i], &rot);
+        }
+    }
 }
 
 
@@ -169,13 +209,17 @@ static void command (int cmd)
             // destroy the body and geoms for slot i
             dBodyDestroy (obj[i].body);
             for (k=0; k < GPB; k++) {
-                if (obj[i].geom[k]) dGeomDestroy (obj[i].geom[k]);
+                if (obj[i].geom[k])
+                    dGeomDestroy (obj[i].geom[k]);
+                if (obj[i].g[k])
+                    ferCDGeomDel(cd, obj[i].g[k]);
             }
             memset (&obj[i],0,sizeof(obj[i]));
         }
 
         obj[i].body = dBodyCreate (world);
-        for (k=0; k<3; k++) sides[k] = dRandReal()*0.5+0.1;
+        for (k=0; k<3; k++)
+            sides[k] = dRandReal()*0.5+0.1;
 
         dMatrix3 R;
         if (random_pos){
@@ -185,8 +229,7 @@ static void command (int cmd)
                                dRandReal()*2.0-1.0,dRandReal()*10.0-5.0);
         }else{
             dReal maxheight = 0;
-            for (k=0; k<num; k++) 
-            {
+            for (k=0; k<num; k++){
                 const dReal *pos = dBodyGetPosition (obj[k].body);
                 if (pos[2] > maxheight) maxheight = pos[2];
             }
@@ -195,25 +238,38 @@ static void command (int cmd)
             //dRFromAxisAndAngle (R,0,0,1,/*dRandReal()*10.0-5.0*/0);
         }
         dBodySetRotation (obj[i].body,R);
-        dBodySetData (obj[i].body,(void*) i);
+        dBodySetData (obj[i].body, (void*)&obj[i]);
+        dBodySetMovedCallback(obj[i].body, bodyMoved);
 
         if (cmd == 'b') {
             dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
             obj[i].geom[0] = dCreateBox (space,sides[0],sides[1],sides[2]);
+            obj[i].g[0] = ferCDGeomNew(cd);
+            ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
+            ferCDGeomAddBox(cd, obj[i].g[0], sides[0], sides[1], sides[2]);
 
         }else if (cmd == 'c') {
             sides[0] *= 0.5;
             dMassSetCapsule (&m,DENSITY,3,sides[0],sides[1]);
             obj[i].geom[0] = dCreateCapsule (space,sides[0],sides[1]);
+            obj[i].g[0] = ferCDGeomNew(cd);
+            ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
+            ferCDGeomAddCap(cd, obj[i].g[0], sides[0], sides[1]);
 
         }else if (cmd == 'y') {
             dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
             obj[i].geom[0] = dCreateCylinder (space,sides[0],sides[1]);
+            obj[i].g[0] = ferCDGeomNew(cd);
+            ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
+            ferCDGeomAddCyl(cd, obj[i].g[0], sides[0], sides[1]);
 
         }else if (cmd == 's') {
             sides[0] *= 0.5;
             dMassSetSphere (&m,DENSITY,sides[0]);
             obj[i].geom[0] = dCreateSphere (space,sides[0]);
+            obj[i].g[0] = ferCDGeomNew(cd);
+            ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
+            ferCDGeomAddSphere(cd, obj[i].g[0], sides[0]);
 
         }else if (cmd == 'x' && USE_GEOM_OFFSET) {
             setBody = 1;
@@ -226,7 +282,8 @@ static void command (int cmd)
 
             // set random delta positions
             for (j=0; j<GPB; j++) {
-                for (k=0; k<3; k++) dpos[j][k] = dRandReal()*0.3-0.15;
+                for (k=0; k<3; k++)
+                    dpos[j][k] = dRandReal()*0.3-0.15;
             }
 
             for (k=0; k<GPB; k++) {
@@ -234,12 +291,11 @@ static void command (int cmd)
                     dReal radius = dRandReal()*0.25+0.05;
                     obj[i].geom[k] = dCreateSphere (space,radius);
                     dMassSetSphere (&m2,DENSITY,radius);
-                }
-                else if (k==1) {
+
+                }else if (k==1) {
                     obj[i].geom[k] = dCreateBox (space,sides[0],sides[1],sides[2]);
                     dMassSetBox (&m2,DENSITY,sides[0],sides[1],sides[2]);
-                }
-                else {
+                }else{
                     dReal radius = dRandReal()*0.1+0.05;
                     dReal length = dRandReal()*1.0+0.1;
                     obj[i].geom[k] = dCreateCapsule (space,radius,length);
@@ -275,6 +331,8 @@ static void command (int cmd)
                     dGeomSetBody (obj[i].geom[k],obj[i].body);
             }
         }
+
+        bodyMoved(obj[i].body);
 
         dBodySetMass(obj[i].body, &m);
     }
@@ -395,12 +453,15 @@ static void simLoop (int pause)
 {
     usleep(10000);
     dsSetColor (0,0,2);
-    dSpaceCollide (space,0,&nearCallback);
-    if (!pause)
-        dWorldQuickStep (world,0.02);
 
     // remove all contact joints
     dJointGroupEmpty (contactgroup);
+
+    ferCDSeparate(cd, sepCB, NULL);
+
+    if (!pause)
+        dWorldQuickStep (world,0.02);
+
 
     dsSetColor (1,1,0);
     dsSetTexture (DS_WOOD);
@@ -421,6 +482,8 @@ static void simLoop (int pause)
 
 int main (int argc, char **argv)
 {
+    fer_cd_params_t params;
+
     // setup pointers to drawstuff callback functions
     dsFunctions fn;
     fn.version = DS_VERSION;
@@ -429,6 +492,12 @@ int main (int argc, char **argv)
     fn.command = &command;
     fn.stop = 0;
     fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+
+    ferCDParamsInit(&params);
+    cd = ferCDNew(&params);
+    plane.g[0] = ferCDGeomNew(cd);
+    ferCDGeomAddPlane(cd, plane.g[0]);
+    ferCDGeomSetData(plane.g[0], (void *)&plane);
 
     // create world
     dInitODE2(0);
@@ -451,7 +520,7 @@ int main (int argc, char **argv)
 
     dWorldSetContactMaxCorrectingVel (world,0.1);
     dWorldSetContactSurfaceLayer (world,0.001);
-    dCreatePlane (space,0,0,1,0);
+    plane.geom[0] = dCreatePlane (space,0,0,1,0);
     memset (obj,0,sizeof(obj));
 
     // run simulation
@@ -461,5 +530,8 @@ int main (int argc, char **argv)
     dSpaceDestroy (space);
     dWorldDestroy (world);
     dCloseODE();
+
+    ferCDDel(cd);
+
     return 0;
 }
