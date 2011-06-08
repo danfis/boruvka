@@ -20,6 +20,11 @@ endif
 
 TARGETS += test-cd-spheres test-cd-trimesh
 
+TARGETS += test-cd-ode
+ODE_CFLAGS = $(shell ode-config --cflags)
+ODE_LDFLAGS = $(shell ode-config --libs)
+ODE_DRAWSTUFF = -ldrawstuff -lX11 -lGL -lGLU
+
 
 USE_OZCOLLIDE = no
 OZCOLLIDE_CFLAGS = -I/home/danfis/tmp/ozcollide
@@ -31,6 +36,7 @@ else
   OZCOLLIDE_CFLAGS  :=
   OZCOLLIDE_LDFLAGS :=
 endif
+
 
 
 
@@ -70,6 +76,8 @@ test-cd-spheres: test-cd-spheres.cpp libdata.a
 	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
 test-cd-trimesh: test-cd-trimesh.cpp libdata.a
 	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
+test-cd-ode: test-cd-ode.c
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(ODE_LDFLAGS) $(ODE_DRAWSTUFF)
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c
