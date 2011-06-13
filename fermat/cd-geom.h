@@ -57,6 +57,17 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g);
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g);
 
 /**
+ * Returns translation vector.
+ */
+_fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g);
+
+/**
+ * Returns rotation matrix
+ */
+_fer_inline const fer_mat3_t *ferCDGeomRot(fer_cd_t *cd, const fer_cd_geom_t *g);
+
+
+/**
  * Sets user data pointer
  */
 _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
@@ -239,6 +250,16 @@ void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
 void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
 
 /**** INLINES ****/
+_fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return &g->tr;
+}
+
+_fer_inline const fer_mat3_t *ferCDGeomRot(fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return &g->rot;
+}
+
 _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data)
 {
     g->data = data;

@@ -1,5 +1,5 @@
 /*************************************************************************
- *                                                                       *
+100*                                                                       *
  * Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.       *
  * All rights reserved.  Email: russ@q12.org   Web: www.q12.org          *
  *                                                                       *
@@ -25,6 +25,7 @@
 #include <ode/odemath.h>
 #include <drawstuff/drawstuff.h>
 #include <fermat/cd.h>
+#include <fermat/timer.h>
 #include <fermat/dbg.h>
 #include "data.h"
 
@@ -47,13 +48,17 @@
 
 // some constants
 
-#define NUM 100			// max number of objects
+#define NUM 10000			// max number of objects
 #define DENSITY (5.0)		// density of all objects
 #define GPB 3			// maximum number of geometries per body
 #define MAX_CONTACTS 8          // maximum number of contact points per body
 #define MAX_FEEDBACKNUM 20
 #define GRAVITY         REAL(0.5)
 #define USE_GEOM_OFFSET 1
+
+int num_boxes[2] = {0, 0};
+int num_spheres[2] = {0, 0};
+
 
 // dynamics and collision objects
 
@@ -73,9 +78,11 @@ static struct MyObject plane;
 static dJointGroupID contactgroup;
 static int selected = -1;	// selected object
 static int show_aabb = 0;	// show geom AABBs?
-static int show_contacts = 0;	// show contact points?
+static int show_contacts = 1;	// show contact points?
 static int random_pos = 1;	// drop objects from random position?
 static int show_body = 0;
+static int use_sleep = 1;
+static int use_gl = 1;
 
 #if 0
 static void nearCallback (void *data, dGeomID o1, dGeomID o2)
@@ -130,11 +137,13 @@ static int sepCB(const fer_cd_t *cd,
     b2 = (obj2 ? obj2->body : 0);
 
     for (i = 0; i < con->num; i++){
+        /*
         fprintf(stdout, "# [%02d] %lx-%lx dir: <%f %f %f>, pos: <%f %f %f>, depth: %f\n",
                 (int)i, (long)b1, (long)b2,
                 ferVec3X(&con->dir[i]), ferVec3Y(&con->dir[i]), ferVec3Z(&con->dir[i]),
                 ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
                 con->depth[i]);
+        */
 
         if (con->depth[i] < FER_ZERO)
             continue;
@@ -158,7 +167,7 @@ static int sepCB(const fer_cd_t *cd,
         dJointID c = dJointCreateContact(world, contactgroup, &contact);
         dJointAttach(c, b1, b2);
 
-        if (show_contacts){
+        if (use_gl && show_contacts){
             dMatrix3 RI;
             dRSetIdentity (RI);
             const dReal ss[3] = {0.02,0.02,0.02};
@@ -194,6 +203,74 @@ static void bodyMoved(dBodyID body)
 
 
 // start simulation - set viewpoint
+
+static void initBoxes(void)
+{
+    size_t i;
+    dReal sides[3];
+    dMatrix3 R;
+    dMass m;
+
+    for (i = 0; i < num_boxes[0] * num_boxes[1]; i++){
+        obj[num].body = dBodyCreate(world);
+        sides[0] = 0.1;
+        sides[1] = 0.2;
+        sides[2] = 0.3;
+
+        dBodySetPosition(obj[num].body, 0.4 * (i / num_boxes[0]),
+                                      0.4 * (i % num_boxes[0]), 1.);
+        dRFromAxisAndAngle(R, dRandReal()*2.0-1.0,dRandReal()*2.0-1.0,
+                              dRandReal()*2.0-1.0,dRandReal()*10.0-5.0);
+        dBodySetRotation(obj[num].body,R);
+
+        dBodySetData(obj[num].body, (void*)&obj[num]);
+        dBodySetMovedCallback(obj[num].body, bodyMoved);
+
+        obj[num].geom[0] = dCreateBox (space,sides[0],sides[1],sides[2]);
+        dGeomSetBody(obj[num].geom[0], obj[num].body);
+
+        obj[num].g[0] = ferCDGeomNew(cd);
+        ferCDGeomSetData(obj[num].g[0], (void *)&obj[num]);
+        ferCDGeomAddBox(cd, obj[num].g[0], sides[0], sides[1], sides[2]);
+
+        bodyMoved(obj[num].body);
+
+        dMassSetBox(&m,DENSITY,sides[0],sides[1],sides[2]);
+        dBodySetMass(obj[num].body, &m);
+
+        num++;
+    }
+}
+
+static void initSpheres(void)
+{
+    size_t i;
+    dMass m;
+
+    for (i = 0; i < num_spheres[0] * num_spheres[1]; i++){
+        obj[num].body = dBodyCreate(world);
+
+        dBodySetPosition(obj[num].body, 0.4 * (i / num_spheres[0]),
+                                      0.4 * (i % num_spheres[0]), 1.5);
+
+        dBodySetData(obj[num].body, (void*)&obj[num]);
+        dBodySetMovedCallback(obj[num].body, bodyMoved);
+
+        obj[num].geom[0] = dCreateSphere(space, 0.1);
+        dGeomSetBody(obj[num].geom[0], obj[num].body);
+
+        obj[num].g[0] = ferCDGeomNew(cd);
+        ferCDGeomSetData(obj[num].g[0], (void *)&obj[num]);
+        ferCDGeomAddSphere(cd, obj[num].g[0], 0.1);
+
+        bodyMoved(obj[num].body);
+
+        dMassSetSphere(&m,DENSITY, 0.1);
+        dBodySetMass(obj[num].body, &m);
+
+        num++;
+    }
+}
 
 static void start()
 {
@@ -316,7 +393,7 @@ static void command (int cmd)
         }else if (cmd == 'm') {
             dMassSetCylinder(&m,DENSITY,3,sides[0],sides[1]);
             obj[i].geom[0] = 0;
-            obj[i].geom[1] = dCreateCylinder (space,sides[0],sides[1]);
+            //obj[i].geom[1] = dCreateCylinder (space,sides[0],sides[1]);
             obj[i].g[0] = ferCDGeomNew(cd);
             ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
 
@@ -544,8 +621,14 @@ static void drawTriMesh(fer_cd_geom_t *g, const dReal *pos, const dReal *rot)
 
 static void simLoop (int pause)
 {
-    usleep(10000);
-    dsSetColor (0,0,2);
+    //static int c = 1;
+    //fprintf(stderr, "c: %d\n", c++);
+
+    if (use_sleep)
+        usleep(10000);
+
+    if (use_gl)
+        dsSetColor (0,0,2);
 
     // remove all contact joints
     dJointGroupEmpty (contactgroup);
@@ -557,22 +640,24 @@ static void simLoop (int pause)
         dWorldQuickStep (world,0.02);
 
 
-    dsSetColor (1,1,0);
-    dsSetTexture (DS_WOOD);
-    for (int i=0; i<num; i++) {
-        for (int j=0; j < GPB; j++) {
-            if (i==selected) {
-                dsSetColor (0,0.7,1);
-            }else if (!dBodyIsEnabled (obj[i].body)) {
-                dsSetColor (1,0.8,0);
-            }else{
-                dsSetColor (1,1,0);
-            }
-            if (obj[i].geom[j]){
-                drawGeom (obj[i].geom[j],0,0,show_aabb);
-            }else if (obj[i].g[j]){
-                drawTriMesh(obj[i].g[j], dBodyGetPosition(obj[i].body),
-                                         dBodyGetRotation(obj[i].body));
+    if (use_gl){
+        dsSetColor (1,1,0);
+        dsSetTexture (DS_WOOD);
+        for (int i=0; i<num; i++) {
+            for (int j=0; j < GPB; j++) {
+                if (i==selected) {
+                    dsSetColor (0,0.7,1);
+                }else if (!dBodyIsEnabled (obj[i].body)) {
+                    dsSetColor (1,0.8,0);
+                }else{
+                    dsSetColor (1,1,0);
+                }
+                if (obj[i].geom[j]){
+                    drawGeom (obj[i].geom[j],0,0,show_aabb);
+                }else if (obj[i].g[j]){
+                    drawTriMesh(obj[i].g[j], dBodyGetPosition(obj[i].body),
+                                             dBodyGetRotation(obj[i].body));
+                }
             }
         }
     }
@@ -582,6 +667,8 @@ static void simLoop (int pause)
 int main (int argc, char **argv)
 {
     fer_cd_params_t params;
+    fer_timer_t timer;
+    int i;
 
     // setup pointers to drawstuff callback functions
     dsFunctions fn;
@@ -594,9 +681,6 @@ int main (int argc, char **argv)
 
     ferCDParamsInit(&params);
     cd = ferCDNew(&params);
-    plane.g[0] = ferCDGeomNew(cd);
-    ferCDGeomAddPlane(cd, plane.g[0]);
-    ferCDGeomSetData(plane.g[0], (void *)&plane);
 
     // create world
     dInitODE2(0);
@@ -619,11 +703,44 @@ int main (int argc, char **argv)
 
     dWorldSetContactMaxCorrectingVel (world,0.1);
     dWorldSetContactSurfaceLayer (world,0.001);
+
+    plane.g[0] = ferCDGeomNew(cd);
+    ferCDGeomAddPlane(cd, plane.g[0]);
+    ferCDGeomSetData(plane.g[0], (void *)&plane);
     plane.geom[0] = dCreatePlane (space,0,0,1,0);
+
     memset (obj,0,sizeof(obj));
 
+    if (argc > 3 && strcmp(argv[1], "test") == 0){
+        use_sleep = 0;
+        use_gl = 0;
+        num_boxes[0] = num_spheres[0] = atoi(argv[2]);
+        num_boxes[1] = num_spheres[1] = atoi(argv[3]);
+        initBoxes();
+        initSpheres();
+    }else if (argc > 3 && strcmp(argv[1], "testgl") == 0){
+        use_sleep = 0;
+        use_gl = 1;
+        num_boxes[0] = num_spheres[0] = atoi(argv[2]);
+        num_boxes[1] = num_spheres[1] = atoi(argv[3]);
+        initBoxes();
+        initSpheres();
+    }
+
     // run simulation
-    dsSimulationLoop (argc,argv,800,600,&fn);
+    if (use_gl){
+        dsSimulationLoop (argc,argv,800,600,&fn);
+    }else{
+        ferTimerStart(&timer);
+
+        for (i = 0; i < 400; i++){
+            simLoop(0);
+        }
+
+        ferTimerStop(&timer);
+        fprintf(stderr, "Elapsed time: %lu us\n",
+                ferTimerElapsedInUs(&timer));
+    }
 
     dJointGroupDestroy (contactgroup);
     dSpaceDestroy (space);
