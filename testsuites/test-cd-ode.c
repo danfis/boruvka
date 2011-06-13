@@ -78,13 +78,13 @@ static struct MyObject plane;
 static dJointGroupID contactgroup;
 static int selected = -1;	// selected object
 static int show_aabb = 0;	// show geom AABBs?
-static int show_contacts = 1;	// show contact points?
+static int show_contacts = 0;	// show contact points?
 static int random_pos = 1;	// drop objects from random position?
 static int show_body = 0;
 static int use_sleep = 1;
 static int use_gl = 1;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-#if 0
 static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 {
   int i;
@@ -118,7 +118,6 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
     }
   }
 }
-#endif
 
 
 static int sepCB(const fer_cd_t *cd,
@@ -164,6 +163,7 @@ static int sepCB(const fer_cd_t *cd,
         contact.surface.bounce_vel = 0.1;
         contact.surface.soft_cfm = 0.01;
 
+        pthread_mutex_lock(&lock);
         dJointID c = dJointCreateContact(world, contactgroup, &contact);
         dJointAttach(c, b1, b2);
 
@@ -174,6 +174,7 @@ static int sepCB(const fer_cd_t *cd,
 
             dsDrawBox(contact.geom.pos, RI, ss);
         }
+        pthread_mutex_unlock(&lock);
     }
 
     return 0;
@@ -680,6 +681,7 @@ int main (int argc, char **argv)
     fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
 
     ferCDParamsInit(&params);
+    //params.separate_threads = 8;
     cd = ferCDNew(&params);
 
     // create world

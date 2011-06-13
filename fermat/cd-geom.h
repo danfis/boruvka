@@ -112,10 +112,9 @@ int ferCDGeomCollide(fer_cd_t *cd,
 /**
  * Returns reference to {fer_cd_contacts_t} struct containing contact info.
  */
-const fer_cd_contacts_t *ferCDGeomSeparate(fer_cd_t *cd,
-                                           const fer_cd_geom_t *g1,
-                                           const fer_cd_geom_t *g2);
-
+int ferCDGeomSeparate(fer_cd_t *cd,
+                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                      fer_cd_contacts_t *con);
 
 /**
  * Adds sphere to geom.

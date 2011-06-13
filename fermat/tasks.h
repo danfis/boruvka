@@ -80,6 +80,11 @@ fer_tasks_t *ferTasksNew(size_t num_threads);
 void ferTasksDel(fer_tasks_t *t);
 
 /**
+ * Returns number of threads.
+ */
+_fer_inline size_t ferTasksNumThreads(const fer_tasks_t *t);
+
+/**
  * Waits for current tasks to be processed, empty task queue and then
  * deletes the queue.
  *
@@ -115,6 +120,12 @@ void ferTasksRunBlock(fer_tasks_t *t);
 void ferTasksBarrier(fer_tasks_t *t);
 
 // TODO: AddThreads()/RemoveThreads()
+
+/**** INLINES ****/
+_fer_inline size_t ferTasksNumThreads(const fer_tasks_t *t)
+{
+    return t->threads_len;
+}
 
 #ifdef __cplusplus
 }

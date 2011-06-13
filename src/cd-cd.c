@@ -29,6 +29,7 @@ void ferCDParamsInit(fer_cd_params_t *params)
     params->sap_size = 1023;
 
     params->max_contacts = 20;
+    params->separate_threads = 1;
 }
 
 fer_cd_t *ferCDNew(const fer_cd_params_t *params)
@@ -105,7 +106,10 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
 
     cd->max_contacts = params->max_contacts;
-    cd->contacts = ferCDContactsNew(cd->max_contacts);
+    cd->separate_threads = params->separate_threads;
+
+    cd->contacts = NULL;
+    cd->contacts_len = 0;
 
     // Set up separate callbacks
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){
@@ -153,6 +157,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
         }
     }
 
+    cd->separate_tasks = NULL;
+
 
     ferListInit(&cd->geoms);
     ferListInit(&cd->geoms_dirty);
@@ -169,6 +175,7 @@ void ferCDDel(fer_cd_t *cd)
 {
     fer_list_t *item;
     fer_cd_geom_t *g;
+    size_t i;
 
     while (!ferListEmpty(&cd->geoms)){
         item = ferListNext(&cd->geoms);
@@ -176,8 +183,15 @@ void ferCDDel(fer_cd_t *cd)
         ferCDGeomDel(cd, g);
     }
 
-    if (cd->contacts)
-        ferCDContactsDel(cd->contacts);
+    if (cd->contacts){
+        for (i = 0; i < cd->contacts_len; i++){
+            ferCDContactsDel(cd->contacts[i]);
+        }
+        free(cd->contacts);
+    }
+
+    if (cd->separate_tasks)
+        ferTasksDel(cd->separate_tasks);
 
     if (cd->sap)
         ferCDSAPDel(cd->sap);
@@ -261,8 +275,44 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
     return ret;
 }
 
+struct _sep_task_t {
+    fer_cd_t *cd;
+    fer_cd_sap_pair_t *pair;
+    fer_cd_separate_cb cb;
+    void *data;
+};
+typedef struct _sep_task_t sep_task_t;
+static sep_task_t *sepTaskNew(fer_cd_t *cd, fer_cd_sap_pair_t *pair,
+                              fer_cd_separate_cb cb, void *data)
+{
+    sep_task_t *sep;
+
+    sep = FER_ALLOC(sep_task_t);
+    sep->cd = cd;
+    sep->pair = pair;
+    sep->cb = cb;
+    sep->data = data;
+    return sep;
+}
+
+static void __sepTask(int id, void *data,
+                      const fer_tasks_thinfo_t *thinfo)
+{
+    sep_task_t *sep = (sep_task_t *)data;
+    fer_cd_contacts_t *con = sep->cd->contacts[thinfo->id - 1];
+
+    //DBG("thnum: %d", thinfo->id);
+    con->num = 0;
+    ferCDGeomSeparate(sep->cd, sep->pair->g[0], sep->pair->g[1], con);
+    if (con->num > 0){
+        sep->cb(sep->cd, sep->pair->g[0], sep->pair->g[1], con, data);
+    }
+
+    free(sep);
+}
+
 static void ferCDSeparateBruteForce(fer_cd_t *cd,
-                                   fer_cd_separate_cb cb, void *data)
+                                    fer_cd_separate_cb cb, void *data)
 {
     fer_list_t *item1, *item2;
     fer_cd_geom_t *g1, *g2;
@@ -275,21 +325,21 @@ static void ferCDSeparateBruteForce(fer_cd_t *cd,
                 item2 = ferListNext(item2)){
             g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
 
-            ferCDGeomSeparate(cd, g1, g2);
-            if (cd->contacts->num > 0){
-                cb(cd, g1, g2, cd->contacts, data);
+            cd->contacts[0]->num = 0;
+            ferCDGeomSeparate(cd, g1, g2, cd->contacts[0]);
+            if (cd->contacts[0]->num > 0){
+                cb(cd, g1, g2, cd->contacts[0], data);
             }
         }
     }
 }
 
-void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
+static void ferCDSeparateSAP(fer_cd_t *cd,
+                             fer_cd_separate_cb cb, void *data)
 {
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
-
-    if (!cd->sap)
-        ferCDSeparateBruteForce(cd, cb, data);
+    sep_task_t *sep;
 
     // first of all update all dirty geoms
     updateDirtyGeoms(cd);
@@ -298,10 +348,63 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
     pairs = ferCDSAPCollidePairs(cd->sap);
     FER_LIST_FOR_EACH(pairs, item){
         pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
-        ferCDGeomSeparate(cd, pair->g[0], pair->g[1]);
-        if (cd->contacts->num > 0){
-            cb(cd, pair->g[0], pair->g[1], cd->contacts, data);
+
+        if (cd->separate_threads > 1){
+            sep = sepTaskNew(cd, pair, cb, data);
+            ferTasksAdd(cd->separate_tasks, __sepTask, 0, sep);
+        }else{
+            cd->contacts[0]->num = 0;
+            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
+            if (cd->contacts[0]->num > 0){
+                cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
+            }
         }
+    }
+
+    if (cd->separate_threads > 1){
+        ferTasksBarrier(cd->separate_tasks);
+    }
+}
+
+void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
+{
+    size_t i;
+
+    // delete tasks pool if not enough threads ready
+    if (cd->separate_tasks
+            && ferTasksNumThreads(cd->separate_tasks) != cd->separate_threads){
+        ferTasksDel(cd->separate_tasks);
+        cd->separate_tasks = NULL;
+    }
+
+    // delete contacts if not enough
+    if (cd->contacts && cd->contacts_len != cd->separate_threads){
+        for (i = 0; i < cd->contacts_len; i++){
+            ferCDContactsDel(cd->contacts[i]);
+        }
+        free(cd->contacts);
+        cd->contacts = NULL;
+    }
+
+    // create contacts
+    if (!cd->contacts){
+        cd->contacts = FER_ALLOC_ARR(fer_cd_contacts_t *, cd->separate_threads);
+        for (i = 0; i < cd->separate_threads; i++){
+            cd->contacts[i] = ferCDContactsNew(cd->max_contacts);
+        }
+        cd->contacts_len = cd->separate_threads;
+    }
+
+    // create tasks pool
+    if (cd->separate_threads > 1 && !cd->separate_tasks){
+        cd->separate_tasks = ferTasksNew(cd->separate_threads);
+        ferTasksRun(cd->separate_tasks);
+    }
+
+    if (!cd->sap){
+        ferCDSeparateBruteForce(cd, cb, data);
+    }else{
+        ferCDSeparateSAP(cd, cb, data);
     }
 }
 
