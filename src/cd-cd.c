@@ -275,7 +275,10 @@ static void ferCDSeparateBruteForce(fer_cd_t *cd,
                 item2 = ferListNext(item2)){
             g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
 
-            ferCDGeomSeparate(cd, g1, g2, cb, data);
+            ferCDGeomSeparate(cd, g1, g2);
+            if (cd->contacts->num > 0){
+                cb(cd, g1, g2, cd->contacts, data);
+            }
         }
     }
 }
@@ -295,7 +298,10 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
     pairs = ferCDSAPCollidePairs(cd->sap);
     FER_LIST_FOR_EACH(pairs, item){
         pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
-        ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cb, data);
+        ferCDGeomSeparate(cd, pair->g[0], pair->g[1]);
+        if (cd->contacts->num > 0){
+            cb(cd, pair->g[0], pair->g[1], cd->contacts, data);
+        }
     }
 }
 

@@ -309,12 +309,13 @@ static int __ferCDGeomSeparateCB(const fer_cd_obb_t *obb1,
                          obb1->shape, &sep->g1->rot, &sep->g1->tr,
                          obb2->shape, &sep->g2->rot, &sep->g2->tr,
                          sep->cd->contacts);
+
     return 0;
 }
 
-int ferCDGeomSeparate(fer_cd_t *cd,
-                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
-                      fer_cd_separate_cb cb, void *data)
+const fer_cd_contacts_t *ferCDGeomSeparate(fer_cd_t *cd,
+                                           const fer_cd_geom_t *g1,
+                                           const fer_cd_geom_t *g2)
 {
     struct __separate_t sep;
     fer_list_t *item1, *item2;
@@ -338,11 +339,7 @@ int ferCDGeomSeparate(fer_cd_t *cd,
         }
     }
 
-    if (cd->contacts->num > 0){
-        cb(cd, g1, g2, cd->contacts, data);
-    }
-
-    return cd->contacts->num;
+    return cd->contacts;
 }
 
 void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)

@@ -99,11 +99,11 @@ int ferCDGeomCollide(fer_cd_t *cd,
 
 
 /**
- * TODO
+ * Returns reference to {fer_cd_contacts_t} struct containing contact info.
  */
-int ferCDGeomSeparate(fer_cd_t *cd,
-                     const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
-                     fer_cd_separate_cb cb, void *data);
+const fer_cd_contacts_t *ferCDGeomSeparate(fer_cd_t *cd,
+                                           const fer_cd_geom_t *g1,
+                                           const fer_cd_geom_t *g2);
 
 
 /**

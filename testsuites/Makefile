@@ -76,7 +76,7 @@ test-cd-spheres: test-cd-spheres.cpp libdata.a
 	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
 test-cd-trimesh: test-cd-trimesh.cpp libdata.a
 	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
-test-cd-ode: test-cd-ode.c
+test-cd-ode: test-cd-ode.c libdata.a
 	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF)
 
 bench-heap: $(BENCH_HEAP)

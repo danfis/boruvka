@@ -25,6 +25,8 @@
 #include <ode/odemath.h>
 #include <drawstuff/drawstuff.h>
 #include <fermat/cd.h>
+#include <fermat/dbg.h>
+#include "data.h"
 
 #define DRAWSTUFF_TEXTURE_PATH "textures"
 #ifdef _MSC_VER
@@ -134,6 +136,9 @@ static int sepCB(const fer_cd_t *cd,
                 ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
                 con->depth[i]);
 
+        if (con->depth[i] < FER_ZERO)
+            continue;
+
         contact.geom.pos[0] = ferVec3X(&con->pos[i]);
         contact.geom.pos[1] = ferVec3Y(&con->pos[i]);
         contact.geom.pos[2] = ferVec3Z(&con->pos[i]);
@@ -232,7 +237,7 @@ static void command (int cmd)
     int setBody;
 
     cmd = locase (cmd);
-    if (cmd == 'b' || cmd == 's' || cmd == 'c' || cmd == 'x' || cmd == 'y'){
+    if (cmd == 'b' || cmd == 's' || cmd == 'c' || cmd == 'x' || cmd == 'y' || cmd == 'm'){
         setBody = 0;
         if (num < NUM) {
             i = num;
@@ -307,6 +312,15 @@ static void command (int cmd)
             obj[i].g[0] = ferCDGeomNew(cd);
             ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
             ferCDGeomAddSphere(cd, obj[i].g[0], sides[0]);
+
+        }else if (cmd == 'm') {
+            dMassSetCylinder(&m,DENSITY,3,sides[0],sides[1]);
+            obj[i].geom[0] = 0;
+            obj[i].geom[1] = dCreateCylinder (space,sides[0],sides[1]);
+            obj[i].g[0] = ferCDGeomNew(cd);
+            ferCDGeomSetData(obj[i].g[0], (void *)&obj[i]);
+
+            ferCDGeomAddTriMesh(cd, obj[i].g[0], bunny_coords, bunny_ids, bunny_tri_len);
 
         }else if (cmd == 'x' && USE_GEOM_OFFSET) {
             setBody = 1;
@@ -483,6 +497,48 @@ void drawGeom (dGeomID g, const dReal *pos, const dReal *R, int show_aabb)
     }
 }
 
+static void _drawG(fer_cd_obb_t *obb, const dReal *pos, const dReal *rot)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    dReal v[9];
+    fer_cd_tri_t *t;
+
+    if (ferListEmpty(&obb->obbs)){
+        if (obb->shape->cl->type == FER_CD_SHAPE_TRI
+                || obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI){
+            t = (fer_cd_tri_t *)obb->shape;
+            v[0] = ferVec3X(t->p[0]);
+            v[1] = ferVec3Y(t->p[0]);
+            v[2] = ferVec3Z(t->p[0]);
+            v[3] = ferVec3X(t->p[1]);
+            v[4] = ferVec3Y(t->p[1]);
+            v[5] = ferVec3Z(t->p[1]);
+            v[6] = ferVec3X(t->p[2]);
+            v[7] = ferVec3Y(t->p[2]);
+            v[8] = ferVec3Z(t->p[2]);
+
+            dsDrawTriangle(pos, rot, v, v + 3, v + 6, 0);
+        }
+    }else{
+        FER_LIST_FOR_EACH(&obb->obbs, item){
+            o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+            _drawG(o, pos, rot);
+        }
+    }
+}
+
+static void drawTriMesh(fer_cd_geom_t *g, const dReal *pos, const dReal *rot)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *obb;
+
+    FER_LIST_FOR_EACH(&g->obbs, item){
+        obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        _drawG(obb, pos, rot);
+    }
+}
+
 
 // simulation loop
 
@@ -512,7 +568,12 @@ static void simLoop (int pause)
             }else{
                 dsSetColor (1,1,0);
             }
-            drawGeom (obj[i].geom[j],0,0,show_aabb);
+            if (obj[i].geom[j]){
+                drawGeom (obj[i].geom[j],0,0,show_aabb);
+            }else if (obj[i].g[j]){
+                drawTriMesh(obj[i].g[j], dBodyGetPosition(obj[i].body),
+                                         dBodyGetRotation(obj[i].body));
+            }
         }
     }
 }

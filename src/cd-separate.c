@@ -315,17 +315,49 @@ int ferCDSeparatePlaneTri(struct _fer_cd_t *cd,
     }
 
     if (under > 0 && under < 3 && con->size > con->num){
-        ferVec3Scale(&pos, ferRecp(under));
-        con->depth[con->num] = depth;
-        ferVec3Copy(&con->pos[con->num], &pos);
-        ferVec3Copy(&con->dir[con->num], &pn);
-        con->num++;
-        num = 1;
+        if (con->num == 0
+                || ferNEq(depth, con->depth[con->num - 1])
+                || ferVec3NEq(&con->pos[con->num - 1], &pos)){
+            ferVec3Scale(&pos, ferRecp(under));
+            con->depth[con->num] = depth;
+            ferVec3Copy(&con->pos[con->num], &pos);
+            ferVec3Copy(&con->dir[con->num], &pn);
+            con->num++;
+            num = 1;
+        }
     }
 
     return num;
 }
 
+
+static void __tritriCon(const fer_vec3_t *p, const fer_vec3_t *s,
+                        const fer_vec3_t *c,
+                        fer_cd_contacts_t *con)
+{
+    size_t i;
+    fer_real_t depth;
+    fer_vec3_t v;
+
+    ferVec3Copy(&con->pos[con->num], s);
+
+    ferVec3Sub2(&con->dir[con->num], c, s);
+    ferVec3Normalize(&con->dir[con->num]);
+
+    con->depth[con->num] = FER_REAL_MAX;
+    for (i = 0; i < 3; i++){
+        ferVec3Sub2(&v, p + i, s);
+        depth = ferVec3Dot(&v, &con->dir[con->num]);
+        if (depth < con->depth[con->num])
+            con->depth[con->num] = depth;
+    }
+
+    con->depth[con->num] *= -FER_ONE;
+    if (con->depth[con->num] < FER_ZERO)
+        con->depth[con->num] = FER_ZERO;
+
+    con->num++;
+}
 
 int ferCDSeparateTriTri(struct _fer_cd_t *cd,
                         const fer_cd_tri_t *t1,
@@ -334,7 +366,7 @@ int ferCDSeparateTriTri(struct _fer_cd_t *cd,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2,
                         fer_cd_contacts_t *con)
 {
-    fer_vec3_t p1[3], p2[3], s, t;
+    fer_vec3_t p1[3], p2[3], s, t, c;
     int i, ret, num = 0;
 
     for (i = 0; i < 3; i++){
@@ -348,20 +380,18 @@ int ferCDSeparateTriTri(struct _fer_cd_t *cd,
                                  p2 + 0, p2 + 1, p2 + 2,
                                  &s, &t);
     if (ret == 1 && con->size > con->num){
+        ferVec3Add2(&c, &p2[0], &p2[1]);
+        ferVec3Add(&c, &p2[2]);
+        ferVec3Scale(&c, ferRecp(3.));
+
         if (con->size - con->num >= 2){
-            con->depth[con->num] = con->depth[con->num + 1] = -1;
-            ferVec3Set(&con->dir[con->num], FER_ZERO, FER_ZERO, FER_ZERO);
-            ferVec3Set(&con->dir[con->num + 1], FER_ZERO, FER_ZERO, FER_ZERO);
-            ferVec3Copy(&con->pos[con->num], &s);
-            ferVec3Copy(&con->pos[con->num + 1], &t);
-            con->num += 2;
+            __tritriCon(p2, &s, &c, con);
+            __tritriCon(p2, &t, &c, con);
             num = 2;
         }else{
-            con->depth[con->num] = -1;
-            ferVec3Add2(&con->pos[con->num], &s, &t);
-            ferVec3Scale(&con->pos[con->num], FER_REAL(0.5));
-            ferVec3Set(&con->dir[con->num], FER_ZERO, FER_ZERO, FER_ZERO);
-            con->num++;
+            ferVec3Add(&s, &t);
+            ferVec3Scale(&s, FER_REAL(0.5));
+            __tritriCon(p2, &s, &c, con);
             num = 1;
         }
     }else if (ret == 2){
