@@ -75,6 +75,42 @@ static int show_contacts = 0;	// show contact points?
 static int random_pos = 1;	// drop objects from random position?
 static int show_body = 0;
 
+#if 0
+static void nearCallback (void *data, dGeomID o1, dGeomID o2)
+{
+  int i;
+  // if (o1->body && o2->body) return;
+
+  // exit without doing anything if the two bodies are connected by a joint
+  dBodyID b1 = dGeomGetBody(o1);
+  dBodyID b2 = dGeomGetBody(o2);
+  if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
+
+  dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
+  for (i=0; i<MAX_CONTACTS; i++) {
+    contact[i].surface.mode = dContactBounce | dContactSoftCFM;
+    contact[i].surface.mu = dInfinity;
+    contact[i].surface.mu2 = 0;
+    contact[i].surface.bounce = 0.1;
+    contact[i].surface.bounce_vel = 0.1;
+    contact[i].surface.soft_cfm = 0.01;
+  }
+  int numc = dCollide (o1,o2,MAX_CONTACTS,&contact[0].geom,
+			   sizeof(dContact));
+  if (numc){
+    dMatrix3 RI;
+    dRSetIdentity (RI);
+    const dReal ss[3] = {0.02,0.02,0.02};
+    for (i=0; i<numc; i++) {
+      dJointID c = dJointCreateContact (world,contactgroup,contact+i);
+      dJointAttach (c,b1,b2);
+      if (show_contacts) dsDrawBox (contact[i].geom.pos,RI,ss);
+
+    }
+  }
+}
+#endif
+
 
 static int sepCB(const fer_cd_t *cd,
                  const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
@@ -104,6 +140,7 @@ static int sepCB(const fer_cd_t *cd,
         contact.geom.normal[0] = -ferVec3X(&con->dir[i]);
         contact.geom.normal[1] = -ferVec3Y(&con->dir[i]);
         contact.geom.normal[2] = -ferVec3Z(&con->dir[i]);
+        contact.geom.depth = con->depth[i];
         contact.geom.g1 = 0;
         contact.geom.g2 = 0;
         contact.surface.mode = dContactBounce | dContactSoftCFM;
@@ -458,6 +495,7 @@ static void simLoop (int pause)
     dJointGroupEmpty (contactgroup);
 
     ferCDSeparate(cd, sepCB, NULL);
+    //dSpaceCollide (space,0,&nearCallback);
 
     if (!pause)
         dWorldQuickStep (world,0.02);
@@ -524,7 +562,7 @@ int main (int argc, char **argv)
     memset (obj,0,sizeof(obj));
 
     // run simulation
-    dsSimulationLoop (argc,argv,352,288,&fn);
+    dsSimulationLoop (argc,argv,800,600,&fn);
 
     dJointGroupDestroy (contactgroup);
     dSpaceDestroy (space);
