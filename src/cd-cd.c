@@ -161,7 +161,9 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
 
     ferListInit(&cd->geoms);
+    cd->geoms_len = 0;
     ferListInit(&cd->geoms_dirty);
+    cd->geoms_dirty_len = 0;
 
     cd->sap = NULL;
     if (params->use_sap && params->sap_size > 0){
@@ -191,7 +193,7 @@ void ferCDDel(fer_cd_t *cd)
     }
 
     if (cd->separate_tasks)
-        ferTasksDel(cd->separate_tasks);
+        ferTaskPoolDel(cd->separate_tasks);
 
     if (cd->sap)
         ferCDSAPDel(cd->sap);
@@ -277,38 +279,82 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
 
 struct _sep_task_t {
     fer_cd_t *cd;
-    fer_cd_sap_pair_t *pair;
     fer_cd_separate_cb cb;
     void *data;
 };
 typedef struct _sep_task_t sep_task_t;
-static sep_task_t *sepTaskNew(fer_cd_t *cd, fer_cd_sap_pair_t *pair,
-                              fer_cd_separate_cb cb, void *data)
-{
-    sep_task_t *sep;
-
-    sep = FER_ALLOC(sep_task_t);
-    sep->cd = cd;
-    sep->pair = pair;
-    sep->cb = cb;
-    sep->data = data;
-    return sep;
-}
 
 static void __sepTask(int id, void *data,
-                      const fer_tasks_thinfo_t *thinfo)
+                      const fer_task_pool_thinfo_t *thinfo)
 {
     sep_task_t *sep = (sep_task_t *)data;
-    fer_cd_contacts_t *con = sep->cd->contacts[thinfo->id - 1];
+    fer_cd_t *cd = sep->cd;
+    fer_cd_contacts_t *con = cd->contacts[id];
+    const fer_list_t *pairs, *item;
+    fer_cd_sap_pair_t *pair;
+    size_t i;
 
-    //DBG("thnum: %d", thinfo->id);
-    con->num = 0;
-    ferCDGeomSeparate(sep->cd, sep->pair->g[0], sep->pair->g[1], con);
-    if (con->num > 0){
-        sep->cb(sep->cd, sep->pair->g[0], sep->pair->g[1], con, data);
+    pairs = ferCDSAPCollidePairs(cd->sap);
+    i = 0;
+    FER_LIST_FOR_EACH(pairs, item){
+        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+
+        if (i % cd->separate_threads == id){
+            con->num = 0;
+            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], con);
+            if (con->num > 0){
+                sep->cb(cd, pair->g[0], pair->g[1], con, sep->data);
+            }
+        }
+
+        i++;
+    }
+}
+
+static void __sepTaskBruteForce(int id, void *data,
+                                const fer_task_pool_thinfo_t *thinfo)
+{
+    sep_task_t *sep = (sep_task_t *)data;
+    fer_cd_t *cd = sep->cd;
+    fer_cd_contacts_t *con = cd->contacts[id];
+    fer_list_t *item1, *item2;
+    fer_cd_geom_t *g1, *g2;
+    size_t i;
+
+    i = 0;
+    FER_LIST_FOR_EACH(&cd->geoms, item1){
+        g1 = FER_LIST_ENTRY(item1, fer_cd_geom_t, list);
+
+        for (item2 = ferListNext(item1);
+                i % cd->separate_threads == id && item2 != &cd->geoms;
+                item2 = ferListNext(item2)){
+            g2 = FER_LIST_ENTRY(item2, fer_cd_geom_t, list);
+
+            con->num = 0;
+            ferCDGeomSeparate(cd, g1, g2, con);
+            if (con->num > 0){
+                sep->cb(cd, g1, g2, con, sep->data);
+            }
+        }
+
+        i++;
+    }
+}
+
+static void initSeparateThreads(fer_cd_t *cd)
+{
+    // delete tasks pool if not enough threads ready
+    if (cd->separate_tasks
+            && ferTaskPoolSize(cd->separate_tasks) != cd->separate_threads){
+        ferTaskPoolDel(cd->separate_tasks);
+        cd->separate_tasks = NULL;
     }
 
-    free(sep);
+    // create tasks pool
+    if (cd->separate_threads > 1 && !cd->separate_tasks){
+        cd->separate_tasks = ferTaskPoolNew(cd->separate_threads);
+        ferTaskPoolRun(cd->separate_tasks);
+    }
 }
 
 static void ferCDSeparateBruteForce(fer_cd_t *cd,
@@ -334,12 +380,31 @@ static void ferCDSeparateBruteForce(fer_cd_t *cd,
     }
 }
 
+static void ferCDSeparateBruteForceThreads(fer_cd_t *cd,
+                                           fer_cd_separate_cb cb, void *data)
+{
+    size_t i;
+    sep_task_t s;
+
+    initSeparateThreads(cd);
+
+    s.cd = cd;
+    s.cb = cb;
+    s.data = data;
+
+    for (i = 0; i < cd->separate_threads; i++){
+        ferTaskPoolAdd(cd->separate_tasks, i, __sepTaskBruteForce, (int)i, &s);
+    }
+    for (i = 0; i < cd->separate_threads; i++){
+        ferTaskPoolBarrier(cd->separate_tasks, i);
+    }
+}
+
 static void ferCDSeparateSAP(fer_cd_t *cd,
                              fer_cd_separate_cb cb, void *data)
 {
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
-    sep_task_t *sep;
 
     // first of all update all dirty geoms
     updateDirtyGeoms(cd);
@@ -349,33 +414,40 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
     FER_LIST_FOR_EACH(pairs, item){
         pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
-        if (cd->separate_threads > 1){
-            sep = sepTaskNew(cd, pair, cb, data);
-            ferTasksAdd(cd->separate_tasks, __sepTask, 0, sep);
-        }else{
-            cd->contacts[0]->num = 0;
-            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
-            if (cd->contacts[0]->num > 0){
-                cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
-            }
+        cd->contacts[0]->num = 0;
+        ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
+        if (cd->contacts[0]->num > 0){
+            cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
         }
     }
+}
 
-    if (cd->separate_threads > 1){
-        ferTasksBarrier(cd->separate_tasks);
+static void ferCDSeparateSAPThreads(fer_cd_t *cd,
+                                    fer_cd_separate_cb cb, void *data)
+{
+    size_t i;
+    sep_task_t s;
+
+    initSeparateThreads(cd);
+
+    // first of all update all dirty geoms
+    updateDirtyGeoms(cd);
+
+    s.cd = cd;
+    s.cb = cb;
+    s.data = data;
+
+    for (i = 0; i < cd->separate_threads; i++){
+        ferTaskPoolAdd(cd->separate_tasks, i, __sepTask, (int)i, &s);
+    }
+    for (i = 0; i < cd->separate_threads; i++){
+        ferTaskPoolBarrier(cd->separate_tasks, i);
     }
 }
 
 void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
 {
     size_t i;
-
-    // delete tasks pool if not enough threads ready
-    if (cd->separate_tasks
-            && ferTasksNumThreads(cd->separate_tasks) != cd->separate_threads){
-        ferTasksDel(cd->separate_tasks);
-        cd->separate_tasks = NULL;
-    }
 
     // delete contacts if not enough
     if (cd->contacts && cd->contacts_len != cd->separate_threads){
@@ -395,16 +467,19 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
         cd->contacts_len = cd->separate_threads;
     }
 
-    // create tasks pool
-    if (cd->separate_threads > 1 && !cd->separate_tasks){
-        cd->separate_tasks = ferTasksNew(cd->separate_threads);
-        ferTasksRun(cd->separate_tasks);
-    }
 
     if (!cd->sap){
-        ferCDSeparateBruteForce(cd, cb, data);
+        if (cd->separate_threads > 1){
+            ferCDSeparateBruteForceThreads(cd, cb, data);
+        }else{
+            ferCDSeparateBruteForce(cd, cb, data);
+        }
     }else{
-        ferCDSeparateSAP(cd, cb, data);
+        if (cd->separate_threads > 1){
+            ferCDSeparateSAPThreads(cd, cb, data);
+        }else{
+            ferCDSeparateSAP(cd, cb, data);
+        }
     }
 }
 

@@ -71,13 +71,15 @@ struct _fer_cd_t {
     size_t separate_threads;
 
     fer_cd_separate_fn separate[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
-    fer_tasks_t *separate_tasks;
+    fer_task_pool_t *separate_tasks;
 
     fer_cd_contacts_t **contacts;
     size_t contacts_len;
 
     fer_list_t geoms;          /*!< List of all geoms */
+    size_t geoms_len;          /*!< Size of .geoms list */
     fer_list_t geoms_dirty;    /*!< List of dirty geoms */
+    size_t geoms_dirty_len;    /*!< Size of .geoms_dirty list */
     struct _fer_cd_sap_t *sap; /*!< SAP solver */
 };
 typedef struct _fer_cd_t fer_cd_t;

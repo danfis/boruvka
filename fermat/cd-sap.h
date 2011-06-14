@@ -39,6 +39,7 @@ struct _fer_cd_sap_t {
                                                  values along each axis */
     fer_list_t collide_pairs; /*!< List of possible collide pairs
                                   (fer_cd_sap_pair_t's connected by .list) */
+    size_t collide_pairs_len;
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 

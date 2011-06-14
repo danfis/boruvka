@@ -48,7 +48,7 @@
 
 // some constants
 
-#define NUM 10000			// max number of objects
+#define NUM 100000			// max number of objects
 #define DENSITY (5.0)		// density of all objects
 #define GPB 3			// maximum number of geometries per body
 #define MAX_CONTACTS 8          // maximum number of contact points per body
@@ -166,6 +166,7 @@ static int sepCB(const fer_cd_t *cd,
         pthread_mutex_lock(&lock);
         dJointID c = dJointCreateContact(world, contactgroup, &contact);
         dJointAttach(c, b1, b2);
+        pthread_mutex_unlock(&lock);
 
         if (use_gl && show_contacts){
             dMatrix3 RI;
@@ -174,7 +175,6 @@ static int sepCB(const fer_cd_t *cd,
 
             dsDrawBox(contact.geom.pos, RI, ss);
         }
-        pthread_mutex_unlock(&lock);
     }
 
     return 0;
@@ -670,6 +670,7 @@ int main (int argc, char **argv)
     fer_cd_params_t params;
     fer_timer_t timer;
     int i;
+    int num_threads = 1;
 
     // setup pointers to drawstuff callback functions
     dsFunctions fn;
@@ -680,8 +681,15 @@ int main (int argc, char **argv)
     fn.stop = 0;
     fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
 
+    if (argc > 4 && (strcmp(argv[1], "test") == 0
+                        || strcmp(argv[1], "testgl") == 0)){
+        num_threads = atoi(argv[4]);
+    }
+
     ferCDParamsInit(&params);
-    //params.separate_threads = 8;
+    params.use_sap = 1;
+    params.sap_size = 1023 * 1023 * 10 + 1;
+    params.separate_threads = num_threads;
     cd = ferCDNew(&params);
 
     // create world

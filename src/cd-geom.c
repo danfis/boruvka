@@ -29,7 +29,9 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
 
     // add to list of all gemos
     ferListAppend(&cd->geoms, &g->list);
+    cd->geoms_len++;
     ferListAppend(&cd->geoms_dirty, &g->list_dirty);
+    cd->geoms_dirty_len++;
 
     g->data = NULL;
 
@@ -51,7 +53,9 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
     }
 
     ferListDel(&g->list);
+    cd->geoms_len--;
     ferListDel(&g->list_dirty);
+    cd->geoms_dirty_len--;
 
     if (cd->sap && g->sap)
         ferCDSAPRemove(cd->sap, g);
@@ -347,12 +351,14 @@ void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     if (!ferCDGeomDirty(cd, g)){
         ferListAppend(&cd->geoms_dirty, &g->list_dirty);
+        cd->geoms_dirty_len++;
     }
 }
 
 void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     ferListDel(&g->list_dirty);
+    cd->geoms_dirty_len--;
 }
 
 static void dumpSVT(const fer_cd_geom_t *g,
