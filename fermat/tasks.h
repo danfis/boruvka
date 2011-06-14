@@ -35,8 +35,6 @@ struct _fer_tasks_t {
     fer_list_t threads;   /*!< List of all threads */
     size_t threads_len;   /*!< Number of threads in list */
     int next_id;          /*!< Next unique ID for threads */
-    int finished;         /*!< Set to 1 if queue is finished and no task
-                               can be added */
 
     pthread_mutex_t lock; /*!< Global lock for thread synchronization */
     sem_t full, empty;    /*!< Full/Empty semaphores for tasks queue */
@@ -53,12 +51,9 @@ typedef struct _fer_tasks_t fer_tasks_t;
  */
 struct _fer_tasks_thinfo_t {
     int id; /*!< Unique ID of thread */
-    int state; /*!< Can be FER_TASKS_BLOCK, FER_TASKS_RUN */
 };
 typedef struct _fer_tasks_thinfo_t fer_tasks_thinfo_t;
 
-#define FER_TASKS_BLOCK 0
-#define FER_TASKS_RUN   1
 
 /**
  * Callback used as task
