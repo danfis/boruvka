@@ -61,8 +61,14 @@ struct _fer_cd_sap_geom_t {
     fer_cd_geom_t *geom; /*!< Reference to geom */
     fer_cd_sap_geom_minmax_t min[FER_CD_SAP_NUM_AXIS]; /*!< Min values */
     fer_cd_sap_geom_minmax_t max[FER_CD_SAP_NUM_AXIS]; /*!< Max values */
-};
+    uint8_t skip; /*!< Bit array (must have FER_CD_SAP_NUM_AXIS length).
+                       If set to 1 this geom should be skipped */
+} fer_packed;
 typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
+#define SET_SKIP(geom, i) (geom)->skip |= (1u << i)
+#define RESET_SKIP(geom, i) (geom)->skip &= ~(1u << i)
+#define SKIP(geom, i) ((geom)->skip & (1u << i))
+
 
 /** Creates and deletes sap_geom struct */
 static fer_cd_sap_geom_t *sapGeomNew(fer_cd_geom_t *g);
@@ -147,7 +153,11 @@ static int updateBubbleUpMin(fer_cd_sap_t *sap, int i,
 
         ret = 1;
         if (MINMAX_IS_MAX(m2)){
-            pairRemove(sap, g1->geom, g2->geom);
+            if (SKIP(g2, i)){
+                RESET_SKIP(g2, i);
+            }else{
+                pairRemove(sap, g1->geom, g2->geom);
+            }
         }
     }
 
@@ -161,8 +171,13 @@ static int updateBubbleDownMin(fer_cd_sap_t *sap, int i,
     fer_cd_sap_geom_minmax_t *m2;
     fer_cd_sap_geom_t *g1, *g2;
     int ret = 0;
+    fer_real_t min, max;
 
     g1 = SAP_GEOM_FROM_MINMAX(m1);
+
+    min = g1->min[i].val;
+    max = g1->max[i].val;
+
     updateBubbleDown(i, m1, item, m2){
         ferListDel(&m1->list);
         ferListAppend(&m2->list, &m1->list);
@@ -173,7 +188,11 @@ static int updateBubbleDownMin(fer_cd_sap_t *sap, int i,
             continue;
 
         if (MINMAX_IS_MAX(m2)){
-            pairAdd(sap, g1->geom, g2->geom);
+            if (min > g2->min[i].val && max < g2->min[i].val){
+                SET_SKIP(g2, i);
+            }else{
+                pairAdd(sap, g1->geom, g2->geom);
+            }
         }
     }
 
@@ -187,8 +206,12 @@ static int updateBubbleUpMax(fer_cd_sap_t *sap, int i,
     fer_cd_sap_geom_minmax_t *m2;
     fer_cd_sap_geom_t *g1, *g2;
     int ret = 0;
+    fer_real_t min, max;
 
     g1 = SAP_GEOM_FROM_MINMAX(m1);
+    min = g1->min[i].val;
+    max = g1->max[i].val;
+
     updateBubbleUp(i, m1, item, m2){
         ferListDel(&m1->list);
         ferListPrepend(&m2->list, &m1->list);
@@ -199,7 +222,11 @@ static int updateBubbleUpMax(fer_cd_sap_t *sap, int i,
             continue;
 
         if (MINMAX_IS_MIN(m2)){
-            pairAdd(sap, g1->geom, g2->geom);
+            if (min > g2->max[i].val && max > g2->max[i].val){
+                SET_SKIP(g2, i);
+            }else{
+                pairAdd(sap, g1->geom, g2->geom);
+            }
         }
     }
 
@@ -215,6 +242,7 @@ static int updateBubbleDownMax(fer_cd_sap_t *sap, int i,
     int ret = 0;
 
     g1 = SAP_GEOM_FROM_MINMAX(m1);
+
     updateBubbleDown(i, m1, item, m2){
         ferListDel(&m1->list);
         ferListAppend(&m2->list, &m1->list);
@@ -226,7 +254,11 @@ static int updateBubbleDownMax(fer_cd_sap_t *sap, int i,
 
         ret = 1;
         if (MINMAX_IS_MIN(m2)){
-            pairRemove(sap, g1->geom, g2->geom);
+            if (SKIP(g2, i)){
+                RESET_SKIP(g2, i);
+            }else{
+                pairRemove(sap, g1->geom, g2->geom);
+            }
         }
     }
 
@@ -262,6 +294,17 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
         updateBubbleUpMax(sap, i, &g->max[i]);
         updateBubbleUpMin(sap, i, &g->min[i]);
         updateBubbleDownMax(sap, i, &g->max[i]);
+    }
+}
+
+void ferCDSAPUpdateDirty(fer_cd_sap_t *sap, fer_list_t *geoms)
+{
+    fer_list_t *item;
+    fer_cd_geom_t *g;
+
+    FER_LIST_FOR_EACH(geoms, item){
+        g = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
+        ferCDSAPUpdate(sap, g);
     }
 }
 
@@ -445,6 +488,8 @@ static fer_cd_sap_geom_t *sapGeomNew(fer_cd_geom_t *geom)
         offset += sizeof(fer_cd_sap_geom_minmax_t) * i;
         g->max[i].flags |= (offset << 1);
     }
+
+    g->skip = 0;
 
     return g;
 }

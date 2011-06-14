@@ -73,6 +73,11 @@ void ferCDSAPDel(fer_cd_sap_t *sap);
 void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 
 /**
+ * Updates all geoms connected by .list_dirty in {geoms} list
+ */
+void ferCDSAPUpdateDirty(fer_cd_sap_t *sap, fer_list_t *geoms);
+
+/**
  * Returns list of possible collide pairs.
  * fer_cd_sap_pair_t structure is connected into this list by member .list.
  * Please don't change a list, but you can read it for example this way:
@@ -92,7 +97,7 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 _fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap);
 
 /**
- * Remove given grom from SAP
+ * Remove given geom from SAP
  */
 void ferCDSAPRemove(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 

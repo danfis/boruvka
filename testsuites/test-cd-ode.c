@@ -277,8 +277,12 @@ static void start()
 {
     dAllocateODEDataForThread(dAllocateMaskAll);
 
+    /*
     static float xyz[3] = {2.1640f,-1.3079f,1.7600f};
     static float hpr[3] = {125.5000f,-17.0000f,0.0000f};
+    */
+    static float xyz[3] = {1.2192,0.8433,0.4700};
+    static float hpr[3] = {125.5000,-17.0000,0.0000};
     dsSetViewpoint (xyz,hpr);
     printf ("To drop another object, press:\n");
     printf ("   b for box.\n");

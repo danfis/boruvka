@@ -553,10 +553,11 @@ static void updateDirtyGeoms(fer_cd_t *cd)
     fer_list_t *item;
     fer_cd_geom_t *g;
 
+    ferCDSAPUpdateDirty(cd->sap, &cd->geoms_dirty);
+
     while (!ferListEmpty(&cd->geoms_dirty)){
         item = ferListNext(&cd->geoms_dirty);
         g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
-        ferCDSAPUpdate(cd->sap, g);
         __ferCDGeomResetDirty(cd, g);
     }
 }
