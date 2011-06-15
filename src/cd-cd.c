@@ -178,7 +178,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     cd->sap = NULL;
     if (params->use_sap && params->sap_size > 0){
-        cd->sap = ferCDSAPNew(params->sap_size);
+        cd->sap = ferCDSAPNew(num_threads, params->sap_size);
     }
 
     return cd;
@@ -261,6 +261,7 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
     int ret = 0;
+    size_t i, len;
 
     // if not using SAP fallback to brute force method
     if (!cd->sap)
@@ -270,18 +271,21 @@ int ferCDCollide(fer_cd_t *cd, fer_cd_collide_cb cb, void *data)
     updateDirtyGeoms(cd);
 
     // try all pairs
-    pairs = ferCDSAPCollidePairs(cd->sap);
-    FER_LIST_FOR_EACH(pairs, item){
-        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+    len = ferCDSAPCollidePairsBuckets(cd->sap);
+    for (i = 0; i < len; i++){
+        pairs = ferCDSAPCollidePairs(cd->sap, i);
+        FER_LIST_FOR_EACH(pairs, item){
+            pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
-        if (ferCDGeomCollide(cd, pair->g[0], pair->g[1])){
-            ret = 1;
+            if (ferCDGeomCollide(cd, pair->g[0], pair->g[1])){
+                ret = 1;
 
-            if (cb){
-                if (cb(cd, pair->g[0], pair->g[1], data) == -1)
-                    return ret;
-            }else{
-                return 1;
+                if (cb){
+                    if (cb(cd, pair->g[0], pair->g[1], data) == -1)
+                        return ret;
+                }else{
+                    return 1;
+                }
             }
         }
     }
@@ -305,22 +309,16 @@ static void __sepTask(int id, void *data,
     fer_cd_contacts_t *con = cd->contacts[thinfo->id - 1];
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
-    size_t i;
 
-    pairs = ferCDSAPCollidePairs(cd->sap);
-    i = 0;
+    pairs = ferCDSAPCollidePairs(cd->sap, id);
     FER_LIST_FOR_EACH(pairs, item){
         pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
-        if (i % sep->size == id){
-            con->num = 0;
-            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], con);
-            if (con->num > 0){
-                sep->cb(cd, pair->g[0], pair->g[1], con, sep->data);
-            }
+        con->num = 0;
+        ferCDGeomSeparate(cd, pair->g[0], pair->g[1], con);
+        if (con->num > 0){
+            sep->cb(cd, pair->g[0], pair->g[1], con, sep->data);
         }
-
-        i++;
     }
 }
 
@@ -400,19 +398,23 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
 {
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
+    size_t i, len;
 
     // first of all update all dirty geoms
     updateDirtyGeoms(cd);
 
     // try all pairs
-    pairs = ferCDSAPCollidePairs(cd->sap);
-    FER_LIST_FOR_EACH(pairs, item){
-        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+    len = ferCDSAPCollidePairsBuckets(cd->sap);
+    for (i = 0; i < len; i++){
+        pairs = ferCDSAPCollidePairs(cd->sap, i);
+        FER_LIST_FOR_EACH(pairs, item){
+            pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
-        cd->contacts[0]->num = 0;
-        ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
-        if (cd->contacts[0]->num > 0){
-            cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
+            cd->contacts[0]->num = 0;
+            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
+            if (cd->contacts[0]->num > 0){
+                cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
+            }
         }
     }
 }
@@ -429,7 +431,8 @@ static void ferCDSeparateSAPThreads(fer_cd_t *cd,
     s.cd = cd;
     s.cb = cb;
     s.data = data;
-    s.size = ferTasksSize(cd->tasks);
+    //s.size = ferTasksSize(cd->tasks);
+    s.size = ferCDSAPCollidePairsBuckets(cd->sap);
 
     for (i = 0; i < s.size; i++){
         ferTasksAdd(cd->tasks, __sepTask, (int)i, &s);

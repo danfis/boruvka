@@ -75,9 +75,10 @@ static fer_cd_sap_geom_t *sapGeomNew(fer_cd_geom_t *g);
 static void sapGeomDel(fer_cd_sap_geom_t *);
 
 
-fer_cd_sap_t *ferCDSAPNew(size_t hash_table_size)
+fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size)
 {
     fer_cd_sap_t *sap;
+    size_t i;
 
     sap = FER_ALLOC_ALIGN(fer_cd_sap_t, 16);
     sap->pairs = ferHMapNew(hash_table_size, pairHash, pairEq, (void *)sap);
@@ -93,8 +94,13 @@ fer_cd_sap_t *ferCDSAPNew(size_t hash_table_size)
     ferListInit(&sap->minmax[2]);
 
     // initialize list of possible collide pairs
-    ferListInit(&sap->collide_pairs);
+    sap->collide_pairs = FER_ALLOC_ARR(fer_list_t, buckets);
+    sap->collide_pairs_buckets = buckets;
     sap->collide_pairs_len = 0;
+    sap->collide_pairs_next = 0;
+    for (i = 0; i < buckets; i++){
+        ferListInit(&sap->collide_pairs[i]);
+    }
 
     return sap;
 }
@@ -306,6 +312,7 @@ void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 
 void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
 {
+#if 0
     fer_list_t *list, *item;
     fer_cd_sap_pair_t *pair;
     size_t i;
@@ -344,6 +351,7 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
                     pair->num_axis);
         }
     }
+#endif
 }
 
 
@@ -413,7 +421,8 @@ static void pairAdd(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)
     p->num_axis += 1;
 
     if (p->num_axis == FER_CD_SAP_NUM_AXIS){
-        ferListAppend(&sap->collide_pairs, &p->list);
+        ferListAppend(&sap->collide_pairs[sap->collide_pairs_next], &p->list);
+        sap->collide_pairs_next = (sap->collide_pairs_next + 1) % sap->collide_pairs_buckets;
         sap->collide_pairs_len++;
     }
 }

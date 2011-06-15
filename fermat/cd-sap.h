@@ -37,9 +37,12 @@ struct _fer_cd_sap_t {
     fer_hmap_t *pairs; /*!< Hash map of collide pairs */
     fer_list_t minmax[FER_CD_SAP_NUM_AXIS]; /*!< Sorted lists for min/max
                                                  values along each axis */
-    fer_list_t collide_pairs; /*!< List of possible collide pairs
-                                  (fer_cd_sap_pair_t's connected by .list) */
-    size_t collide_pairs_len;
+    fer_list_t *collide_pairs;    /*!< Array of lists of possible collide pairs
+                                       (fer_cd_sap_pair_t's connected by .list) */
+    size_t collide_pairs_buckets; /*!< Length of .collide_pairs[] array */
+    size_t collide_pairs_len;     /*!< Overall number of collide pairs in all
+                                       buckets of .collide_pairs */
+    size_t collide_pairs_next;
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 
@@ -60,7 +63,7 @@ typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
  * Creates new SAP instance.
  * Note that for one fer_cd_t instance must be maximally one SAP instance.
  */
-fer_cd_sap_t *ferCDSAPNew(size_t hash_table_size);
+fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size);
 
 /**
  * Deletes SAP
@@ -73,6 +76,11 @@ void ferCDSAPDel(fer_cd_sap_t *sap);
 void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 
 /**
+ * Returns number of buckets of collide pairs lists
+ */
+_fer_inline size_t ferCDSAPCollidePairsBuckets(const fer_cd_sap_t *sap);
+
+/**
  * Returns list of possible collide pairs.
  * fer_cd_sap_pair_t structure is connected into this list by member .list.
  * Please don't change a list, but you can read it for example this way:
@@ -81,7 +89,7 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
  * fer_list_t *item;
  * fer_cd_sap_pair_t *pair;
  *
- * list = ferCDSAPCollidePairs(sap);
+ * list = ferCDSAPCollidePairs(sap, 0);
  * FER_LIST_FOR_EACH(list, item){
  *     pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
  *
@@ -89,7 +97,8 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
  *     // ...
  * }
  */
-_fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap);
+_fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,
+                                                   size_t bucket);
 
 /**
  * Remove given geom from SAP
@@ -101,9 +110,15 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out);
 
 
 /**** INLINES ****/
-_fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap)
+_fer_inline size_t ferCDSAPCollidePairsBuckets(const fer_cd_sap_t *sap)
 {
-    return &sap->collide_pairs;
+    return sap->collide_pairs_buckets;
+}
+
+_fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,
+                                                   size_t bucket)
+{
+    return &sap->collide_pairs[bucket];
 }
 
 #ifdef __cplusplus
