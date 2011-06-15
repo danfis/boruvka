@@ -48,7 +48,7 @@
 
 // some constants
 
-#define NUM 100000			// max number of objects
+#define NUM 1000000			// max number of objects
 #define DENSITY (5.0)		// density of all objects
 #define GPB 3			// maximum number of geometries per body
 #define MAX_CONTACTS 8          // maximum number of contact points per body
@@ -623,6 +623,7 @@ static void drawTriMesh(fer_cd_geom_t *g, const dReal *pos, const dReal *rot)
 
 
 // simulation loop
+static fer_timer_t loop_timer;
 
 static void simLoop (int pause)
 {
@@ -638,8 +639,11 @@ static void simLoop (int pause)
     // remove all contact joints
     dJointGroupEmpty (contactgroup);
 
+    ferTimerStart(&loop_timer);
     ferCDSeparate(cd, sepCB, NULL);
     //dSpaceCollide (space,0,&nearCallback);
+    ferTimerStop(&loop_timer);
+    fprintf(stderr, "%lu us\n", ferTimerElapsedInUs(&loop_timer));
 
     if (!pause)
         dWorldQuickStep (world,0.02);
@@ -693,7 +697,7 @@ int main (int argc, char **argv)
     ferCDParamsInit(&params);
     params.use_sap = 1;
     params.sap_size = 1023 * 1023 * 10 + 1;
-    params.separate_threads = num_threads;
+    params.num_threads = num_threads;
     cd = ferCDNew(&params);
 
     // create world
