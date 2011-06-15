@@ -297,16 +297,6 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
     }
 }
 
-void ferCDSAPUpdateDirty(fer_cd_sap_t *sap, fer_list_t *geoms)
-{
-    fer_list_t *item;
-    fer_cd_geom_t *g;
-
-    FER_LIST_FOR_EACH(geoms, item){
-        g = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
-        ferCDSAPUpdate(sap, g);
-    }
-}
 
 void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 {

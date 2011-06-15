@@ -55,11 +55,11 @@ struct _fer_cd_params_t {
 
     size_t max_contacts; /*!< Maximal number of contacts.
                               Default: 20 */
-    size_t separate_threads; /*!< Number of threads used for ferCDSeparate()
-                                  function. Note that if used >1 the
-                                  callback passed to ferCDSeparate() is not
-                                  thread-safe unless user do so.
-                                  Default: 1 */
+    size_t num_threads; /*!< Number of threads used in parallel versions of
+                             some functions. If set >1 then parallelization
+                             usign threads will be used whenever possible
+                             (if not documented otherwise).
+                             Default: 1 */
 };
 typedef struct _fer_cd_params_t fer_cd_params_t;
 
@@ -67,11 +67,11 @@ struct _fer_cd_t {
     uint32_t build_flags;
     fer_cd_collide_fn collide[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
 
-    size_t max_contacts;
-    size_t separate_threads;
+    fer_tasks_t *tasks;   /*!< Pool of available threads */
+    pthread_mutex_t lock; /*!< Global lock */
 
+    size_t max_contacts;
     fer_cd_separate_fn separate[FER_CD_SHAPE_LEN][FER_CD_SHAPE_LEN];
-    fer_task_pool_t *separate_tasks;
 
     fer_cd_contacts_t **contacts;
     size_t contacts_len;

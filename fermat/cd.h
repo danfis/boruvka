@@ -24,7 +24,7 @@
 #include <fermat/list.h>
 #include <fermat/chull3.h>
 #include <fermat/hmap.h>
-#include <fermat/task-pool.h>
+#include <fermat/tasks.h>
 
 #include <fermat/cd-const.h>
 
