@@ -117,6 +117,12 @@ int ferCDGeomSeparate(fer_cd_t *cd,
                       fer_cd_contacts_t *con);
 
 /**
+ * Returns true if top-OBBs of {g1} and {g2} are overlapping
+ */
+int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
+
+
+/**
  * Adds sphere to geom.
  */
 void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius);

@@ -353,6 +353,29 @@ int ferCDGeomSeparate(fer_cd_t *cd,
     return con->num - num;
 }
 
+int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
+{
+    fer_list_t *item1, *item2;
+    fer_cd_obb_t *obb1, *obb2;
+    int ret = 0;
+
+    FER_LIST_FOR_EACH(&g1->obbs, item1){
+        obb1 = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+
+        FER_LIST_FOR_EACH(&g2->obbs, item2){
+            obb2 = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+
+            if (!ferCDOBBDisjoint(obb1, &g1->rot, &g1->tr,
+                                  obb2, &g2->rot, &g2->tr)){
+                ret = 1;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
 void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     if (!ferCDGeomDirty(cd, g)){

@@ -31,6 +31,8 @@ struct _fer_cd_geom_t;
 struct _fer_cd_sap_geom_t {
     struct _fer_cd_geom_t *g;
     uint32_t min[3], max[3];
+    fer_list_t list;
+    fer_list_t dirty;
 };
 typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
 
@@ -60,11 +62,9 @@ struct _fer_cd_sap_t {
     fer_cd_sap_minmax_t *minmax[FER_CD_SAP_NUM_AXIS];
     size_t minmax_len, minmax_alloc;
 
-    fer_cd_sap_radix_sort_t *radix_sort;
-    int dirty; /*!< Number of dirty geoms */
+    fer_cd_sap_radix_sort_t *radix_sort; /*!< Cached radix sort struct */
 
-    //fer_list_t minmax[FER_CD_SAP_NUM_AXIS]; /*!< Sorted lists for min/max
-    //                                             values along each axis */
+    int added;        /*!< Number of added geoms */
 
     fer_hmap_t *pairs; /*!< Hash map of collide pairs */
     fer_list_t *collide_pairs;    /*!< Array of lists of possible collide pairs
