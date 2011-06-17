@@ -295,9 +295,7 @@ static void ferCDSAPProcessAll(fer_cd_t *cd, fer_cd_sap_t *sap)
 
         minmax = sap->minmax[d];
         for (j = g1->min[d] + 1; j < g1->max[d]; j++){
-            if (!MINMAX_ISMAX(&minmax[j])){
-                pairAdd(sap, g1->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
-            }
+            pairAdd(sap, g1->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
         }
     }
     ferTimerStop(&timer);
