@@ -19,6 +19,16 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+#define MINMAX_ISMAX(minmax) \
+    ((minmax)->geom_ismax & 0x1)
+#define MINMAX_GEOM(minmax) \
+    ((minmax)->geom_ismax >> 0x1)
+
+/** Create and delete radix sort struct */
+static fer_cd_sap_radix_sort_t *radixSortNew(void);
+static void radixSortDel(fer_cd_sap_radix_sort_t *rs);
+/** Sorts min-max values along specified axis */
+static void radixSort(fer_cd_sap_t *sap, int axis);
 
 /** Creates new pair from other fer_cd_sap_pair_t struct */
 static fer_cd_sap_pair_t *pairNew(const fer_cd_sap_pair_t *p);
@@ -34,6 +44,7 @@ static int pairEq(const fer_list_t *key1, const fer_list_t *key2, void *sap);
 static void pairAdd(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2);
 static void pairRemove(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2);
 
+#if 0
 /** Struct representing min or max value of geom along some axis */
 struct _fer_cd_sap_geom_minmax_t {
     fer_real_t val;  /*!< Min/Max value */
@@ -73,6 +84,7 @@ typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
 /** Creates and deletes sap_geom struct */
 static fer_cd_sap_geom_t *sapGeomNew(fer_cd_geom_t *g);
 static void sapGeomDel(fer_cd_sap_geom_t *);
+#endif
 
 
 fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size)
@@ -88,10 +100,18 @@ fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size)
     ferVec3Set(&sap->axis[1], FER_ZERO, FER_ONE,  FER_ONE);
     ferVec3Set(&sap->axis[2], FER_ONE, FER_ZERO, FER_ONE);
 
-    // initialize lists
-    ferListInit(&sap->minmax[0]);
-    ferListInit(&sap->minmax[1]);
-    ferListInit(&sap->minmax[2]);
+    // init geoms and minmax arrays
+    sap->geoms_alloc = 100;
+    sap->geoms_len = 0;
+    sap->geoms = FER_ALLOC_ARR(fer_cd_sap_geom_t, sap->geoms_alloc);
+    for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
+        sap->minmax[i] = FER_ALLOC_ARR(fer_cd_sap_minmax_t,
+                                       sap->geoms_alloc * 2);
+    }
+
+    sap->radix_sort = radixSortNew();
+    sap->dirty = 0;
+
 
     // initialize list of possible collide pairs
     sap->collide_pairs = FER_ALLOC_ARR(fer_list_t, buckets);
@@ -121,10 +141,274 @@ void ferCDSAPDel(fer_cd_sap_t *sap)
     }
 
     ferHMapDel(sap->pairs);
+
+    if (sap->radix_sort)
+        radixSortDel(sap->radix_sort);
+
     free(sap);
 }
 
+void ferCDSAPAdd(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
+{
+    int i;
 
+    if (sap->geoms_len >= sap->geoms_alloc){
+        sap->geoms_alloc *= 2;
+        sap->geoms = FER_REALLOC_ARR(sap->geoms, fer_cd_sap_geom_t, sap->geoms_alloc);
+
+        for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
+            sap->minmax[i] = FER_REALLOC_ARR(sap->minmax[i],
+                                             fer_cd_sap_minmax_t,
+                                             sap->geoms_alloc * 2);
+        }
+    }
+
+    sap->geoms[sap->geoms_len].g = geom;
+    for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
+        sap->minmax[i][sap->geoms_len * 2].geom_ismax = sap->geoms_len << 1;
+        sap->minmax[i][sap->geoms_len * 2 + 1].geom_ismax = sap->geoms_len << 1;
+        sap->minmax[i][sap->geoms_len * 2 + 1].geom_ismax |= 0x1;
+        sap->geoms[sap->geoms_len].min[i] = sap->geoms_len * 2;
+        sap->geoms[sap->geoms_len].max[i] = sap->geoms_len * 2 + 1;
+    }
+
+    geom->sap = sap->geoms_len;
+
+    sap->geoms_len++;
+}
+
+void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
+{
+    int i;
+    fer_cd_sap_geom_t *g;
+    fer_real_t min, max;
+
+    g = &sap->geoms[geom->sap];
+    for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
+        // update min/max values
+        __ferCDGeomSetMinMax(geom, &sap->axis[i], &min, &max);
+        sap->minmax[i][g->min[i]].val = min;
+        sap->minmax[i][g->max[i]].val = max;
+    }
+
+    sap->dirty += 1;
+}
+
+void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
+{
+    // TODO
+}
+
+
+
+void ferCDSAPProcess(fer_cd_t *cd, fer_cd_sap_t *sap)
+{
+    int i;
+
+    for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
+        radixSort(sap, i);
+    }
+}
+
+static fer_cd_sap_radix_sort_t *radixSortNew(void)
+{
+    fer_cd_sap_radix_sort_t *rs;
+
+    rs = FER_ALLOC(fer_cd_sap_radix_sort_t);
+    rs->minmax = NULL;
+    rs->minmax_len = 0;
+
+    return rs;
+}
+
+static void radixSortDel(fer_cd_sap_radix_sort_t *rs)
+{
+    if (rs->minmax)
+        free(rs->minmax);
+    free(rs);
+}
+
+
+_fer_inline void radixSortZeroizeCounter(fer_cd_sap_radix_sort_t *rs)
+{
+    int i;
+    for (i = 0; i < 256; i++)
+        rs->counter[i] = 0;
+}
+
+_fer_inline void radixSortFixCounter(fer_cd_sap_radix_sort_t *rs)
+{
+    int i, s, c;
+
+    for (s = 0, c = 0, i = 0; i < 256; i++){
+        c += rs->counter[i];
+        rs->counter[i] = s;
+        s = c;
+    }
+}
+
+_fer_inline void radixSortCount(fer_cd_sap_radix_sort_t *rs,
+                                fer_cd_sap_minmax_t *minmax,
+                                fer_uint_t mask, fer_uint_t shift)
+{
+    int i;
+    fer_uint_t val;
+
+    radixSortZeroizeCounter(rs);
+    for (i = 0; i < rs->minmax_len; i++){
+        val  = ferRealAsUInt(minmax[i].val);
+        val &= mask;
+        val >>= shift;
+        rs->counter[val] += 1;
+    }
+    radixSortFixCounter(rs);
+}
+
+_fer_inline void radixSortSort(fer_cd_sap_radix_sort_t *rs,
+                               fer_cd_sap_minmax_t *src,
+                               fer_cd_sap_minmax_t *dst,
+                               int radix)
+{
+    fer_uint_t mask, shift, i, val;
+
+    shift = radix * 8;
+    mask = ((fer_uint_t)0xffu) << shift;
+
+    // run counting
+    radixSortCount(rs, src, mask, shift);
+
+    // and sort the values to dst
+    for (i = 0; i < rs->minmax_len; i++){
+        val  = ferRealAsUInt(src[i].val);
+        val &= mask;
+        val >>= shift;
+        dst[rs->counter[val]] = src[i];
+        ++rs->counter[val];
+    }
+}
+
+_fer_inline void radixSortCountFinal(fer_cd_sap_radix_sort_t *rs,
+                                     fer_cd_sap_minmax_t *minmax,
+                                     fer_uint_t mask, fer_uint_t shift)
+{
+    int i;
+    fer_uint_t val;
+
+    radixSortZeroizeCounter(rs);
+    rs->negative = 0;
+    for (i = 0; i < rs->minmax_len; i++){
+        val  = ferRealAsUInt(minmax[i].val);
+        val &= mask;
+        val >>= shift;
+        rs->counter[val] += 1;
+
+        if (minmax[i].val < FER_ZERO)
+            ++rs->negative;
+    }
+    radixSortFixCounter(rs);
+}
+
+_fer_inline void radixSortSortFinal(fer_cd_sap_t *sap,
+                                    fer_cd_sap_radix_sort_t *rs,
+                                    fer_cd_sap_minmax_t *src,
+                                    fer_cd_sap_minmax_t *dst,
+                                    int radix, int axis)
+{
+    fer_uint_t mask, shift, val, pos;
+    int i;
+
+    shift = radix * 8;
+    mask = ((fer_uint_t)0xffu) << shift;
+
+    // run counting
+    radixSortCountFinal(rs, src, mask, shift);
+
+    // and sort the values to dst
+    for (i = 0; i < rs->minmax_len; i++){
+        val  = ferRealAsUInt(src[i].val);
+        val &= mask;
+        val >>= shift;
+
+        pos = rs->counter[val];
+        if (pos >= rs->minmax_len - rs->negative){
+            pos = rs->minmax_len - pos - 1;
+        }else{
+            pos = rs->negative + rs->counter[val];
+        }
+
+        dst[pos] = src[i];
+
+        if (MINMAX_ISMAX(&dst[pos])){
+            sap->geoms[MINMAX_GEOM(&dst[pos])].max[axis] = pos;
+        }else{
+            sap->geoms[MINMAX_GEOM(&dst[pos])].min[axis] = pos;
+        }
+
+        ++rs->counter[val];
+    }
+}
+
+static void radixSort(fer_cd_sap_t *sap, int axis)
+{
+    fer_cd_sap_radix_sort_t *rs = sap->radix_sort;
+
+    // allocate temporary array
+    if (rs->minmax_alloc < 2 * sap->geoms_len){
+        if (rs->minmax)
+            free(rs->minmax);
+        rs->minmax_alloc = 2 * sap->geoms_alloc;
+        rs->minmax_len = 2 * sap->geoms_len;
+        rs->minmax = FER_ALLOC_ARR(fer_cd_sap_minmax_t, rs->minmax_alloc);
+    }
+
+    if (sizeof(fer_real_t) == 4){
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 0);
+        radixSortSort(rs, rs->minmax, sap->minmax[axis], 1);
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 2);
+        radixSortSortFinal(sap, rs, rs->minmax, sap->minmax[axis], 3, axis);
+    }else if (sizeof(fer_real_t) == 8){
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 0);
+        radixSortSort(rs, rs->minmax, sap->minmax[axis], 1);
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 2);
+        radixSortSort(rs, rs->minmax, sap->minmax[axis], 3);
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 4);
+        radixSortSort(rs, rs->minmax, sap->minmax[axis], 5);
+        radixSortSort(rs, sap->minmax[axis], rs->minmax, 6);
+        radixSortSortFinal(sap, rs, rs->minmax, sap->minmax[axis], 7, axis);
+    }
+}
+
+
+
+
+void ferCDSAPDump(fer_cd_sap_t *sap)
+{
+    size_t i;
+
+    fprintf(stderr, "geoms_len: %d, geoms_alloc: %d\n", (int)sap->geoms_len, (int)sap->geoms_alloc);
+    fprintf(stderr, "geoms:\n");
+    for (i = 0; i < sap->geoms_len; i++){
+        fprintf(stderr, "    [%02u]: %02d, %02d, %02d; %02d, %02d, %02d\n",
+                i, sap->geoms[i].min[0], sap->geoms[i].min[1],
+                sap->geoms[i].min[2], sap->geoms[i].max[0],
+                sap->geoms[i].max[1], sap->geoms[i].max[2]);
+    }
+    fprintf(stderr, "\n");
+
+    fprintf(stderr, "minmax:\n");
+    for (i = 0; i < 2 * sap->geoms_len; i++){
+        fprintf(stderr, "    [%02u]: %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)\n",
+                i, MINMAX_GEOM(&sap->minmax[0][i]), MINMAX_ISMAX(&sap->minmax[0][i]),
+                sap->minmax[0][i].val, (int)ferRealAsUInt(sap->minmax[0][i].val),
+                MINMAX_GEOM(&sap->minmax[1][i]), MINMAX_ISMAX(&sap->minmax[1][i]),
+                sap->minmax[1][i].val, (int)ferRealAsUInt(sap->minmax[1][i].val),
+                MINMAX_GEOM(&sap->minmax[2][i]), MINMAX_ISMAX(&sap->minmax[2][i]),
+                sap->minmax[2][i].val, (int)ferRealAsUInt(sap->minmax[2][i].val));
+    }
+    fprintf(stderr, "\n");
+}
+
+#if 0
 #define updateBubbleUp(i, m1, item, m2) \
     for (item = ferListNext(&m1->list), \
          m2   = FER_LIST_ENTRY(item, fer_cd_sap_geom_minmax_t, list); \
@@ -355,6 +639,7 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
 }
 
 
+#endif
 
 static fer_cd_sap_pair_t *pairNew(const fer_cd_sap_pair_t *p)
 {
@@ -456,6 +741,7 @@ static void pairRemove(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)
 }
 
 
+#if 0
 static fer_cd_sap_geom_t *sapGeomNew(fer_cd_geom_t *geom)
 {
     fer_cd_sap_geom_t *g;
@@ -506,3 +792,4 @@ static void sapGeomDel(fer_cd_sap_geom_t *g)
 
     free(g);
 }
+#endif

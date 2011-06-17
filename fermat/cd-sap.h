@@ -28,15 +28,45 @@ struct _fer_cd_geom_t;
 
 #define FER_CD_SAP_NUM_AXIS 3
 
+struct _fer_cd_sap_geom_t {
+    struct _fer_cd_geom_t *g;
+    uint32_t min[3], max[3];
+};
+typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
+
+struct _fer_cd_sap_minmax_t {
+    uint32_t geom_ismax; /*!< 31: geom id, 1: ismax */
+    fer_real_t val;
+};
+typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
+
+struct _fer_cd_sap_radix_sort_t {
+    fer_cd_sap_minmax_t *minmax;
+    size_t minmax_len, minmax_alloc;
+    uint32_t counter[1 << 8];
+    uint32_t negative; /*!< Number of negative values */
+};
+typedef struct _fer_cd_sap_radix_sort_t fer_cd_sap_radix_sort_t;
+
 /**
  * Sweep and Prune
  * ----------------
  */
 struct _fer_cd_sap_t {
     fer_vec3_t axis[FER_CD_SAP_NUM_AXIS];
+
+    fer_cd_sap_geom_t *geoms;
+    size_t geoms_len, geoms_alloc;
+    fer_cd_sap_minmax_t *minmax[FER_CD_SAP_NUM_AXIS];
+    size_t minmax_len, minmax_alloc;
+
+    fer_cd_sap_radix_sort_t *radix_sort;
+    int dirty; /*!< Number of dirty geoms */
+
+    //fer_list_t minmax[FER_CD_SAP_NUM_AXIS]; /*!< Sorted lists for min/max
+    //                                             values along each axis */
+
     fer_hmap_t *pairs; /*!< Hash map of collide pairs */
-    fer_list_t minmax[FER_CD_SAP_NUM_AXIS]; /*!< Sorted lists for min/max
-                                                 values along each axis */
     fer_list_t *collide_pairs;    /*!< Array of lists of possible collide pairs
                                        (fer_cd_sap_pair_t's connected by .list) */
     size_t collide_pairs_buckets; /*!< Length of .collide_pairs[] array */
@@ -51,7 +81,7 @@ typedef struct _fer_cd_sap_t fer_cd_sap_t;
  */
 struct _fer_cd_sap_pair_t {
     struct _fer_cd_geom_t *g[2]; /*!< Reference to geoms */
-    int num_axis;                /*!< This counts number of axis where
+    uint8_t num_axis;            /*!< This counts number of axis where
                                       these two geoms overlap */
     fer_list_t hmap;             /*!< Connection into hash map */
     fer_list_t list;             /*!< Connection into sap.collide_pairs
@@ -71,9 +101,21 @@ fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size);
 void ferCDSAPDel(fer_cd_sap_t *sap);
 
 /**
+ * Adds geom to SAP
+ */
+void ferCDSAPAdd(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
+
+/**
  * Updates given geom in SAP
  */
 void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
+
+/**
+ * Remove given geom from SAP
+ */
+void ferCDSAPRemove(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
+
+void ferCDSAPProcess(fer_cd_t *cd, fer_cd_sap_t *sap);
 
 /**
  * Returns number of buckets of collide pairs lists
@@ -100,13 +142,9 @@ _fer_inline size_t ferCDSAPCollidePairsBuckets(const fer_cd_sap_t *sap);
 _fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,
                                                    size_t bucket);
 
-/**
- * Remove given geom from SAP
- */
-void ferCDSAPRemove(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
-
 /** For debugging purposes */
 void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out);
+void ferCDSAPDump(fer_cd_sap_t *sap);
 
 
 /**** INLINES ****/

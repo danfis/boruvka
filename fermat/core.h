@@ -61,6 +61,7 @@ typedef union _fer_sse_t fer_sse_t;
 # endif /* FER_DOUBLE */
 
 typedef float fer_real_t;
+typedef uint32_t fer_uint_t;
 
 /*# define FER_EPS 1E-6 */
 # define FER_EPS FLT_EPSILON  /*!< epsilon */
@@ -93,6 +94,7 @@ typedef float fer_real_t;
 
 #ifdef FER_DOUBLE
 typedef double fer_real_t;
+typedef uint64_t fer_uint_t;
 
 /*# define FER_EPS 1E-10*/
 # define FER_EPS DBL_EPSILON
@@ -122,6 +124,13 @@ typedef double fer_real_t;
 # define FER_POW(x, y)   (pow((x), (y)))
 
 #endif /* FER_DOUBLE */
+
+union _fer_real_uint_t {
+    fer_real_t f;
+    fer_uint_t i;
+};
+typedef union _fer_real_uint_t fer_real_uint_t;
+
 
 #define FER_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
 #define FER_MAX(x, y) ((x) > (y) ? (x) : (y)) /*!< maximum */
@@ -180,6 +189,11 @@ _fer_inline fer_real_t ferRsqrt(fer_real_t v);
  * Alignes given memory.
  */
 _fer_inline void *ferAlign(void *mem, int alignment);
+
+/**
+ * Returns integer representation of real number
+ */
+_fer_inline fer_uint_t ferRealAsUInt(fer_real_t x);
 
 /***** INLINES *****/
 #ifdef FER_SSE
@@ -270,6 +284,13 @@ _fer_inline void *ferAlign(void *mem, int align)
 
     padding = align - (long)mem % align;
     return (void *)((long)mem + padding);
+}
+
+_fer_inline fer_uint_t ferRealAsUInt(fer_real_t x)
+{
+    fer_real_uint_t v;
+    v.f = x;
+    return v.i;
 }
 
 #ifdef __cplusplus

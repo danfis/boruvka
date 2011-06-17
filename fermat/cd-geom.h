@@ -37,7 +37,7 @@ struct _fer_cd_geom_t {
 
     void *data;
 
-    void *sap;
+    int sap;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
 

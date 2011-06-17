@@ -35,7 +35,10 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
 
     g->data = NULL;
 
-    g->sap = NULL;
+    g->sap = -1;
+
+    if (cd->sap)
+        ferCDSAPAdd(cd->sap, g);
 
     return g;
 }
@@ -58,6 +61,9 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
     cd->geoms_dirty_len--;
 
     if (cd->sap && g->sap)
+        ferCDSAPRemove(cd->sap, g);
+
+    if (g->sap >= 0)
         ferCDSAPRemove(cd->sap, g);
 
     free(g);

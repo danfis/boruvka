@@ -402,6 +402,7 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
 
     // first of all update all dirty geoms
     updateDirtyGeoms(cd);
+    ferCDSAPDump(cd->sap);
 
     // try all pairs
     len = ferCDSAPCollidePairsBuckets(cd->sap);
@@ -456,6 +457,8 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
             ferCDSeparateSAP(cd, cb, data);
         }
     }
+
+    exit(-1);
 }
 
 
@@ -534,4 +537,6 @@ static void updateDirtyGeoms(fer_cd_t *cd)
         ferCDSAPUpdate(cd->sap, g);
         __ferCDGeomResetDirty(cd, g);
     }
+
+    ferCDSAPProcess(cd, cd->sap);
 }
