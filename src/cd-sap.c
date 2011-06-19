@@ -465,6 +465,8 @@ static void radixSort(fer_cd_sap_t *sap, int axis)
         rs->minmax = FER_ALLOC_ARR(fer_cd_sap_minmax_t, rs->minmax_alloc);
     }
 
+    rs->minmax_len = 2 * sap->geoms_len;
+
     if (sizeof(fer_real_t) == 4){
         radixSortSort(rs, sap->minmax[axis], rs->minmax, 0);
         radixSortSort(rs, rs->minmax, sap->minmax[axis], 1);
@@ -492,8 +494,8 @@ void ferCDSAPDump(fer_cd_sap_t *sap)
     fprintf(stderr, "geoms_len: %d, geoms_alloc: %d\n", (int)sap->geoms_len, (int)sap->geoms_alloc);
     fprintf(stderr, "geoms:\n");
     for (i = 0; i < sap->geoms_len; i++){
-        fprintf(stderr, "    [%02u]: %02d, %02d, %02d; %02d, %02d, %02d (%lx)\n",
-                i, sap->geoms[i].min[0], sap->geoms[i].min[1],
+        fprintf(stderr, "    [%02d]: %02d, %02d, %02d; %02d, %02d, %02d (%lx)\n",
+                (int)i, sap->geoms[i].min[0], sap->geoms[i].min[1],
                 sap->geoms[i].min[2], sap->geoms[i].max[0],
                 sap->geoms[i].max[1], sap->geoms[i].max[2],
                 (long)sap->geoms[i].g);
@@ -502,8 +504,8 @@ void ferCDSAPDump(fer_cd_sap_t *sap)
 
     fprintf(stderr, "minmax:\n");
     for (i = 0; i < 2 * sap->geoms_len; i++){
-        fprintf(stderr, "    [%02u]: %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)\n",
-                i, MINMAX_GEOM(&sap->minmax[0][i]), MINMAX_ISMAX(&sap->minmax[0][i]),
+        fprintf(stderr, "    [%02d]: %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)  |  %02d, %d, % 10f (%x)\n",
+                (int)i, MINMAX_GEOM(&sap->minmax[0][i]), MINMAX_ISMAX(&sap->minmax[0][i]),
                 sap->minmax[0][i].val, (int)ferRealAsUInt(sap->minmax[0][i].val),
                 MINMAX_GEOM(&sap->minmax[1][i]), MINMAX_ISMAX(&sap->minmax[1][i]),
                 sap->minmax[1][i].val, (int)ferRealAsUInt(sap->minmax[1][i].val),
@@ -587,11 +589,11 @@ static uint32_t pairHash(fer_list_t *key, void *sap)
     uint32_t k[2];
 
     if (pair->g[0] > pair->g[1]){
-        k[0] = (uint32_t)pair->g[0];
-        k[1] = (uint32_t)pair->g[1];
+        k[0] = (uint32_t)(long)pair->g[0];
+        k[1] = (uint32_t)(long)pair->g[1];
     }else{
-        k[1] = (uint32_t)pair->g[0];
-        k[0] = (uint32_t)pair->g[1];
+        k[1] = (uint32_t)(long)pair->g[0];
+        k[0] = (uint32_t)(long)pair->g[1];
     }
 
     return ferHashJenkins(k, 2, 0);
