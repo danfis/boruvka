@@ -25,6 +25,8 @@
 #define MINMAX_GEOM(minmax) \
     ((minmax)->geom_ismax >> 0x1)
 
+/** Find collide pairs of {g} */
+static void ferCDSAPFindPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g);
 /** Process all geoms - radix sort approach */
 static void ferCDSAPProcessAll(fer_cd_t *cd, fer_cd_sap_t *sap);
 
@@ -47,6 +49,7 @@ static int pairEq(const fer_list_t *key1, const fer_list_t *key2, void *sap);
  *  list */
 static void pairAdd(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2);
 static void pairRemove(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2);
+static void pairRemoveAll(fer_cd_sap_t *sap);
 
 
 
@@ -74,7 +77,7 @@ fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size)
 
     sap->radix_sort = radixSortNew();
 
-    sap->added = 0;
+    sap->dirty = 0;
 
 
     // initialize list of possible collide pairs
@@ -150,62 +153,7 @@ void ferCDSAPAdd(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
     geom->sap = sap->geoms_len;
 
     sap->geoms_len++;
-    sap->added++;
-}
-
-static void ferCDSAPUpdateMinMax(fer_cd_sap_t *sap, fer_cd_geom_t *geom,
-                                 int axis)
-{
-    fer_cd_sap_minmax_t *minmax, *minmax_last, *min, *max, tmp;
-
-    minmax = sap->minmax[axis];
-    minmax_last = minmax + (2 * sap->geoms_len) - 1;
-    min = &sap->minmax[axis][sap->geoms[geom->sap].min[axis]];
-    max = &sap->minmax[axis][sap->geoms[geom->sap].max[axis]];
-
-    // try to move MIN to LEFT
-    while (minmax != min && min->val < (min - 1)->val){
-        FER_SWAP(*min, *(min - 1), tmp);
-
-        if (MINMAX_ISMAX(min)){
-            pairAdd(sap, sap->geoms[MINMAX_GEOM(min)].g,
-                         sap->geoms[MINMAX_GEOM(min - 1)].g);
-        }
-        min = min - 1;
-    }
-
-    // try to move MAX to RIGHT
-    while (minmax_last != max && max->val > (max + 1)->val){
-        FER_SWAP(*max, *(max + 1), tmp);
-
-        if (!MINMAX_ISMAX(max)){
-            pairAdd(sap, sap->geoms[MINMAX_GEOM(max)].g,
-                         sap->geoms[MINMAX_GEOM(max + 1)].g);
-        }
-        max = max + 1;
-    }
-
-    // try to move MIN to RIGHT
-    while (minmax_last != min && min->val > (min + 1)->val){
-        FER_SWAP(*min, *(min + 1), tmp);
-
-        if (MINMAX_ISMAX(min)){
-            pairRemove(sap, sap->geoms[MINMAX_GEOM(min)].g,
-                            sap->geoms[MINMAX_GEOM(min + 1)].g);
-        }
-        min = min + 1;
-    }
-
-    // try to move MAX to LEFT
-    while (minmax != max && max->val < (max - 1)->val){
-        FER_SWAP(*max, *(max - 1), tmp);
-
-        if (MINMAX_ISMAX(max)){
-            pairRemove(sap, sap->geoms[MINMAX_GEOM(max)].g,
-                            sap->geoms[MINMAX_GEOM(max - 1)].g);
-        }
-        max = max - 1;
-    }
+    sap->dirty = 1;
 }
 
 void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
@@ -214,41 +162,68 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
     fer_cd_sap_geom_t *g;
     fer_real_t min, max;
 
-    //if (sap->added == 0)
-    //    ferCDSAPDump(sap);
-
     g = &sap->geoms[geom->sap];
+
     for (i = 0; i < FER_CD_SAP_NUM_AXIS; i++){
         // update min/max values
         __ferCDGeomSetMinMax(geom, &sap->axis[i], &min, &max);
-        //DBG("[%d %d] %f %f -> %f %f", g->min[i], g->max[i], sap->minmax[i][g->min[i]].val,
-        //        sap->minmax[i][g->max[i]].val, min, max);
         sap->minmax[i][g->min[i]].val = min;
         sap->minmax[i][g->max[i]].val = max;
-
-        if (sap->added == 0){
-            //ferCDSAPUpdateMinMax(sap, geom, i);
-        }
     }
 
+    sap->dirty = 1;
 }
 
 void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 {
     // TODO
+    sap->dirty = 1;
 }
 
 
 
+
+void ferCDSAPProcess(fer_cd_t *cd, fer_cd_sap_t *sap)
+{
+    if (sap->dirty){
+        ferCDSAPProcessAll(cd, sap);
+        sap->dirty = 0;
+    }
+}
+
+
 #include <fermat/timer.h>
+
+static void ferCDSAPFindPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g)
+{
+    int diff[3], d, j;
+    fer_cd_sap_minmax_t *minmax;
+
+    diff[0] = g->max[0] - g->min[0];
+    diff[1] = g->max[1] - g->min[1];
+    diff[2] = g->max[2] - g->min[2];
+
+    if (diff[0] < diff[1]){
+        if (diff[0] < diff[2]){
+            d = 0;
+        }else{
+            d = 2;
+        }
+    }else if (diff[1] < diff[2]){
+        d = 1;
+    }else{
+        d = 2;
+    }
+
+    minmax = sap->minmax[d];
+    for (j = g->min[d] + 1; j < g->max[d]; j++){
+        pairAdd(sap, g->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
+    }
+}
 
 static void ferCDSAPProcessAll(fer_cd_t *cd, fer_cd_sap_t *sap)
 {
-    fer_list_t *item;
-    fer_cd_sap_geom_t *g1;
-    fer_cd_sap_minmax_t *minmax;
-    fer_cd_sap_pair_t *pair;
-    int i, j, d, diff[3];
+    int i;
 
     fer_timer_t timer;
 
@@ -262,13 +237,7 @@ static void ferCDSAPProcessAll(fer_cd_t *cd, fer_cd_sap_t *sap)
 
     ferTimerStart(&timer);
     // remove all current pairs - we will reevaluate it all
-    for (i = 0; i < sap->collide_pairs_buckets; i++){
-        while (!ferListEmpty(&sap->collide_pairs[i])){
-            item = ferListNext(&sap->collide_pairs[i]);
-            pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
-            pairDel(pair);
-        }
-    }
+    pairRemoveAll(sap);
     ferTimerStop(&timer);
     fprintf(stderr, "remove pairs: %lu us\n", ferTimerElapsedInUs(&timer));
 
@@ -276,42 +245,15 @@ static void ferCDSAPProcessAll(fer_cd_t *cd, fer_cd_sap_t *sap)
     ferTimerStart(&timer);
     // obtain all pairs from min-max arrays
     for (i = 0; i < sap->geoms_len; i++){
-        g1 = &sap->geoms[i];
-        diff[0] = g1->max[0] - g1->min[0];
-        diff[1] = g1->max[1] - g1->min[1];
-        diff[2] = g1->max[2] - g1->min[2];
-
-        if (diff[0] < diff[1]){
-            if (diff[0] < diff[2]){
-                d = 0;
-            }else{
-                d = 2;
-            }
-        }else if (diff[1] < diff[2]){
-            d = 1;
-        }else{
-            d = 2;
-        }
-
-        minmax = sap->minmax[d];
-        for (j = g1->min[d] + 1; j < g1->max[d]; j++){
-            pairAdd(sap, g1->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
-        }
+        ferCDSAPFindPairs(sap, &sap->geoms[i]);
     }
     ferTimerStop(&timer);
     fprintf(stderr, "create pairs: %lu us\n", ferTimerElapsedInUs(&timer));
-
-    sap->added = 0;
 }
 
-void ferCDSAPProcess(fer_cd_t *cd, fer_cd_sap_t *sap)
-{
-    if (sap->added > 0){
-        ferCDSAPProcessAll(cd, sap);
-    }else{
-        ferCDSAPProcessAll(cd, sap);
-    }
-}
+
+
+
 
 static fer_cd_sap_radix_sort_t *radixSortNew(void)
 {
@@ -455,6 +397,8 @@ _fer_inline void radixSortSortFinal(fer_cd_sap_t *sap,
 static void radixSort(fer_cd_sap_t *sap, int axis)
 {
     fer_cd_sap_radix_sort_t *rs = sap->radix_sort;
+    fer_cd_sap_minmax_t *minmax;
+    int i;
 
     // allocate temporary array
     if (rs->minmax_alloc < 2 * sap->geoms_len){
@@ -481,6 +425,15 @@ static void radixSort(fer_cd_sap_t *sap, int axis)
         radixSortSort(rs, rs->minmax, sap->minmax[axis], 5);
         radixSortSort(rs, sap->minmax[axis], rs->minmax, 6);
         radixSortSortFinal(sap, rs, rs->minmax, sap->minmax[axis], 7, axis);
+    }
+
+    for (i = 0; i < rs->minmax_len; i++){
+        minmax = &sap->minmax[axis][i];
+        if (MINMAX_ISMAX(minmax)){
+            sap->geoms[MINMAX_GEOM(minmax)].max[axis] = i;
+        }else{
+            sap->geoms[MINMAX_GEOM(minmax)].min[axis] = i;
+        }
     }
 }
 
@@ -650,3 +603,18 @@ static void pairRemove(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)
     }
 }
 
+static void pairRemoveAll(fer_cd_sap_t *sap)
+{
+    fer_list_t *item;
+    fer_cd_sap_pair_t *pair;
+    size_t i;
+
+    for (i = 0; i < sap->collide_pairs_buckets; i++){
+        while (!ferListEmpty(&sap->collide_pairs[i])){
+            item = ferListNext(&sap->collide_pairs[i]);
+            pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+            pairDel(pair);
+        }
+    }
+    sap->collide_pairs = 0;
+}

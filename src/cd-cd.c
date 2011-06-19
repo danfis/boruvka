@@ -410,6 +410,10 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
         FER_LIST_FOR_EACH(pairs, item){
             pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
+            if (pair->g[0] == pair->g[1]){
+                DBG("!!! %lx", (long)pair);
+            }
+
             cd->contacts[0]->num = 0;
             ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
             if (cd->contacts[0]->num > 0){
