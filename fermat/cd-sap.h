@@ -25,6 +25,7 @@ extern "C" {
 
 
 struct _fer_cd_geom_t;
+struct _fer_cd_sap_t;
 
 #define FER_CD_SAP_NUM_AXIS 3
 
@@ -43,8 +44,16 @@ typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
 struct _fer_cd_sap_radix_sort_t {
     fer_cd_sap_minmax_t *minmax;
     size_t minmax_len, minmax_alloc;
-    uint32_t counter[1 << 8];
-    uint32_t negative; /*!< Number of negative values */
+    uint32_t *counter;
+    uint32_t *negative; /*!< Number of negative values */
+    size_t tasks;
+
+    fer_cd_t *cd;
+    fer_cd_sap_minmax_t *src_minmax, *dst_minmax;
+    fer_uint_t mask, shift;
+    struct _fer_cd_sap_t *sap;
+    int axis;
+    int final;
 };
 typedef struct _fer_cd_sap_radix_sort_t fer_cd_sap_radix_sort_t;
 
