@@ -200,6 +200,7 @@ static void ferCDSAPFindPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g)
 {
     int diff[3], d, j;
     fer_cd_sap_minmax_t *minmax;
+    fer_cd_geom_t *g2;
 
     diff[0] = g->max[0] - g->min[0];
     diff[1] = g->max[1] - g->min[1];
@@ -219,7 +220,10 @@ static void ferCDSAPFindPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g)
 
     minmax = sap->minmax[d];
     for (j = g->min[d] + 1; j < g->max[d]; j++){
-        pairAdd(sap, g->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
+        g2 = sap->geoms[MINMAX_GEOM(&minmax[j])].g;
+        if (ferCDGeomOBBOverlap(g->g, g2)){
+            pairAdd(sap, g->g, sap->geoms[MINMAX_GEOM(&minmax[j])].g);
+        }
     }
 }
 
@@ -267,6 +271,10 @@ static void radixSortInit(fer_cd_sap_radix_sort_t *rs)
     rs->counter  = FER_ALLOC_ARR(uint32_t, (1 << 8) * sap->par);
     rs->negative = FER_ALLOC_ARR(uint32_t, sap->par);
 
+    rs->barrier = NULL;
+    if (sap->par > 1)
+        rs->barrier = ferBarrierNew(sap->par);
+
     rs->context.src = rs->context.dst = NULL;
 }
 
@@ -278,6 +286,8 @@ static void radixSortDestroy(fer_cd_sap_radix_sort_t *rs)
         free(rs->counter);
     if (rs->negative)
         free(rs->negative);
+    if (rs->barrier)
+        ferBarrierDel(rs->barrier);
 }
 
 _fer_inline fer_cd_sap_t *radixSortSAP(fer_cd_sap_radix_sort_t *rs)
@@ -292,10 +302,9 @@ _fer_inline void radixSortZeroizeCounter(fer_cd_sap_radix_sort_t *rs,
 /** Fix counter values to point to correct position */
 _fer_inline void radixSortFixCounter(fer_cd_sap_radix_sort_t *rs);
 
-static void __radixSortCountTask(int id, void *data,
-                                 const fer_tasks_thinfo_t *thinfo);
 static void __radixSortTask(int id, void *data,
                             const fer_tasks_thinfo_t *thinfo);
+
 /** Perform one cycle of sort */
 static void radixSortSort(fer_cd_sap_radix_sort_t *rs);
 
@@ -360,21 +369,11 @@ _fer_inline void radixSortFixCounter(fer_cd_sap_radix_sort_t *rs)
     }
 }
 
-
-static void __radixSortCountTask(int id, void *data,
-                                 const fer_tasks_thinfo_t *thinfo)
+static void __radixSortCount(int id, int from, int to, int offset,
+                             fer_cd_sap_radix_sort_t *rs)
 {
-    fer_cd_sap_radix_sort_t *rs = (fer_cd_sap_radix_sort_t *)data;
-    fer_cd_sap_t *sap = radixSortSAP(rs);
-    int i, len, from, to, offset;
+    int i;
     fer_uint_t val;
-
-    len  = rs->minmax_len / sap->par;
-    from = id * len;
-    to   = from + len;
-    if (id == sap->par - 1)
-        to = rs->minmax_len;
-    offset = (1 << 8) * id;
 
     radixSortZeroizeCounter(rs, offset);
     if (rs->context.i == rs->context.len - 1){
@@ -398,20 +397,12 @@ static void __radixSortCountTask(int id, void *data,
     }
 }
 
-static void __radixSortTask(int id, void *data,
-                            const fer_tasks_thinfo_t *thinfo)
+static void __radixSortSort(int id, int from, int to, int offset,
+                            fer_cd_sap_radix_sort_t *rs)
 {
-    fer_cd_sap_radix_sort_t *rs = (fer_cd_sap_radix_sort_t *)data;
     fer_cd_sap_t *sap = radixSortSAP(rs);
     fer_uint_t val, pos;
-    int i, len, from, to, offset, neg;
-
-    len  = rs->minmax_len / sap->par;
-    from = id * len;
-    to   = from + len;
-    if (id == sap->par - 1)
-        to = rs->minmax_len;
-    offset = (1 << 8) * id;
+    int i, neg;
 
     if (rs->context.i == rs->context.len - 1){
         // compute number of negative values
@@ -459,30 +450,44 @@ static void __radixSortTask(int id, void *data,
     }
 }
 
+static void __radixSortTask(int id, void *data,
+                            const fer_tasks_thinfo_t *thinfo)
+{
+    fer_cd_sap_radix_sort_t *rs = (fer_cd_sap_radix_sort_t *)data;
+    fer_cd_sap_t *sap = radixSortSAP(rs);
+    int len, from, to, offset;
+
+    len  = rs->minmax_len / sap->par;
+    from = id * len;
+    to   = from + len;
+    if (id == sap->par - 1)
+        to = rs->minmax_len;
+    offset = (1 << 8) * id;
+
+    __radixSortCount(id, from, to, offset, rs);
+    ferBarrier(rs->barrier);
+
+    if (id == 0)
+        radixSortFixCounter(rs);
+    ferBarrier(rs->barrier);
+
+    __radixSortSort(id, from, to, offset, rs);
+}
+
 static void radixSortSort(fer_cd_sap_radix_sort_t *rs)
 {
     fer_cd_sap_t *sap = radixSortSAP(rs);
     size_t i;
 
-    // run counting
-    if (sap->par > 1){
-        for (i = 0; i < sap->par; i++){
-            ferTasksAdd(sap->cd->tasks, __radixSortCountTask, i, rs);
-        }
-        ferTasksBarrier(sap->cd->tasks);
-    }else{
-        __radixSortCountTask(0, rs, NULL);
-    }
-    radixSortFixCounter(rs);
-
-    // and sort the values to dst
     if (sap->par > 1){
         for (i = 0; i < sap->par; i++){
             ferTasksAdd(sap->cd->tasks, __radixSortTask, i, rs);
         }
         ferTasksBarrier(sap->cd->tasks);
     }else{
-        __radixSortTask(0, rs, NULL);
+        __radixSortCount(0, 0, rs->minmax_len, 0, rs);
+        radixSortFixCounter(rs);
+        __radixSortSort(0, 0, rs->minmax_len, 0, rs);
     }
 }
 
@@ -621,7 +626,7 @@ static void pairAdd(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)
     pair.g[1] = g2;
 
     hmap = ferHMapGet(sap->pairs, &pair.hmap);
-    if (!hmap && ferCDGeomOBBOverlap(g1, g2)){
+    if (!hmap){
         p = pairNew(&pair);
         ferHMapPut(sap->pairs, &p->hmap);
 
@@ -629,6 +634,19 @@ static void pairAdd(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)
         sap->collide_pairs_next = (sap->collide_pairs_next + 1) % sap->par;
         sap->collide_pairs_len++;
     }
+
+    /*
+    fer_cd_sap_pair_t pair, *p;
+
+    pair.g[0] = g1;
+    pair.g[1] = g2;
+
+    p = pairNew(&pair);
+
+    ferListAppend(&sap->collide_pairs[sap->collide_pairs_next], &p->list);
+    sap->collide_pairs_next = (sap->collide_pairs_next + 1) % sap->par;
+    sap->collide_pairs_len++;
+    */
 }
 
 static void pairRemove(fer_cd_sap_t *sap, fer_cd_geom_t *g1, fer_cd_geom_t *g2)

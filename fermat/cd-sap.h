@@ -18,6 +18,7 @@
 #define __FER_CD_SAP_H__
 
 #include <fermat/cd.h>
+#include <fermat/barrier.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,6 +48,8 @@ struct _fer_cd_sap_radix_sort_t {
     uint32_t *counter;  /*!< Array for count-sort */
     uint32_t *negative; /*!< Number of negative values */
 
+    fer_barrier_t *barrier;
+
     struct {
         fer_cd_sap_minmax_t *src, *dst;
         fer_uint_t mask, shift;
@@ -71,7 +74,6 @@ struct _fer_cd_sap_t {
     fer_cd_sap_minmax_t *minmax[FER_CD_SAP_NUM_AXIS];
 
     int dirty; /*!< True if any geom was changed */
-
 
     fer_cd_sap_radix_sort_t radix_sort; /*!< Cached radix sort struct */
 
