@@ -26,18 +26,17 @@ extern "C" {
 
 
 struct _fer_cd_geom_t;
-struct _fer_cd_sap_t;
 
 struct _fer_cd_sap_geom_t {
     struct _fer_cd_geom_t *g;
     uint32_t min[3], max[3];
-};
+} fer_packed;
 typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
 
 struct _fer_cd_sap_minmax_t {
     uint32_t geom_ismax; /*!< 31: geom id, 1: ismax */
     fer_real_t val;
-};
+} fer_packed;
 typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
 
 struct _fer_cd_sap_radix_sort_t {
@@ -84,8 +83,6 @@ struct _fer_cd_sap_t {
                                     Length of this array is .par */
     size_t collide_pairs_len;  /*!< Overall number of collide pairs in all
                                     buckets of .collide_pairs */
-    size_t collide_pairs_next; /*!< Next .collide_pairs bucket that will be
-                                    used */
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 
@@ -94,12 +91,10 @@ typedef struct _fer_cd_sap_t fer_cd_sap_t;
  */
 struct _fer_cd_sap_pair_t {
     struct _fer_cd_geom_t *g[2]; /*!< Reference to geoms */
-    uint8_t num_axis;            /*!< This counts number of axis where
-                                      these two geoms overlap */
     fer_list_t hmap;             /*!< Connection into hash map */
     fer_list_t list;             /*!< Connection into sap.collide_pairs
                                       list */
-};
+} fer_packed;
 typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
 
 /**
@@ -128,6 +123,9 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
  */
 void ferCDSAPRemove(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 
+/**
+ * Find out all collide pairs.
+ */
 void ferCDSAPProcess(fer_cd_sap_t *sap);
 
 /**

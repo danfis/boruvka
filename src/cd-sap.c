@@ -93,7 +93,6 @@ fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, size_t par, size_t hash_table_size)
     // initialize list of possible collide pairs
     sap->collide_pairs = FER_ALLOC_ARR(fer_list_t, par);
     sap->collide_pairs_len = 0;
-    sap->collide_pairs_next = 0;
     for (i = 0; i < par; i++){
         ferListInit(&sap->collide_pairs[i]);
     }
@@ -585,9 +584,8 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
 
         FER_LIST_FOR_EACH(list, item){
             pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, hmap);
-            fprintf(out, "[%04d]: (%lx) g[0]: %lx, g[1]: %lx, num_axis: %d\n",
-                    (int)i, (long)pair, (long)pair->g[0], (long)pair->g[1],
-                    pair->num_axis);
+            fprintf(out, "[%04d]: (%lx) g[0]: %lx, g[1]: %lx\n",
+                    (int)i, (long)pair, (long)pair->g[0], (long)pair->g[1]);
         }
     }
 
@@ -612,9 +610,8 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
         fprintf(out, ".collide_pairs:\n");
         FER_LIST_FOR_EACH(&sap->collide_pairs[d], item){
             pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
-            fprintf(out, "    (%lx) g[0]: %lx, g[1]: %lx, num_axis: %d\n",
-                    (long)pair, (long)pair->g[0], (long)pair->g[1],
-                    pair->num_axis);
+            fprintf(out, "    (%lx) g[0]: %lx, g[1]: %lx\n",
+                    (long)pair, (long)pair->g[0], (long)pair->g[1]);
         }
     }
 }
@@ -627,7 +624,6 @@ static fer_cd_sap_pair_t *pairNew(fer_cd_geom_t *g1, fer_cd_geom_t *g2)
     pair = FER_ALLOC(fer_cd_sap_pair_t);
     pair->g[0] = g1;
     pair->g[1] = g2;
-    pair->num_axis = 0;
     ferListInit(&pair->hmap);
     ferListInit(&pair->list);
 
