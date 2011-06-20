@@ -130,6 +130,7 @@ void ferCDSAPDel(fer_cd_sap_t *sap)
     for (i = 0; i < sap->pairs_reg_lock_len; i++){
         pthread_mutex_destroy(&sap->pairs_reg_lock[i]);
     }
+    free(sap->pairs_reg_lock);
 
     if (sap->collide_pairs)
         free(sap->collide_pairs);
