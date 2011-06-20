@@ -44,16 +44,15 @@ typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
 struct _fer_cd_sap_radix_sort_t {
     fer_cd_sap_minmax_t *minmax;
     size_t minmax_len, minmax_alloc;
-    uint32_t *counter;
+    uint32_t *counter;  /*!< Array for count-sort */
     uint32_t *negative; /*!< Number of negative values */
-    size_t tasks;
 
-    fer_cd_t *cd;
-    fer_cd_sap_minmax_t *src_minmax, *dst_minmax;
-    fer_uint_t mask, shift;
-    struct _fer_cd_sap_t *sap;
-    int axis;
-    int final;
+    struct {
+        fer_cd_sap_minmax_t *src, *dst;
+        fer_uint_t mask, shift;
+        int axis;
+        fer_uint_t i, len;
+    } context;
 };
 typedef struct _fer_cd_sap_radix_sort_t fer_cd_sap_radix_sort_t;
 
@@ -62,23 +61,28 @@ typedef struct _fer_cd_sap_radix_sort_t fer_cd_sap_radix_sort_t;
  * ----------------
  */
 struct _fer_cd_sap_t {
+    fer_cd_t *cd; /*!< Back pointer to main struct */
+    size_t par;   /*!< Level of parallelization */
+
     fer_vec3_t axis[FER_CD_SAP_NUM_AXIS];
 
     fer_cd_sap_geom_t *geoms;
     size_t geoms_len, geoms_alloc;
     fer_cd_sap_minmax_t *minmax[FER_CD_SAP_NUM_AXIS];
 
-    fer_cd_sap_radix_sort_t *radix_sort; /*!< Cached radix sort struct */
+    int dirty; /*!< True if any geom was changed */
 
-    int dirty;
+
+    fer_cd_sap_radix_sort_t radix_sort; /*!< Cached radix sort struct */
 
     fer_hmap_t *pairs; /*!< Hash map of collide pairs */
-    fer_list_t *collide_pairs;    /*!< Array of lists of possible collide pairs
-                                       (fer_cd_sap_pair_t's connected by .list) */
-    size_t collide_pairs_buckets; /*!< Length of .collide_pairs[] array */
-    size_t collide_pairs_len;     /*!< Overall number of collide pairs in all
-                                       buckets of .collide_pairs */
-    size_t collide_pairs_next;
+    fer_list_t *collide_pairs; /*!< Array of lists of possible collide pairs
+                                    (fer_cd_sap_pair_t's connected by .list).
+                                    Length of this array is .par */
+    size_t collide_pairs_len;  /*!< Overall number of collide pairs in all
+                                    buckets of .collide_pairs */
+    size_t collide_pairs_next; /*!< Next .collide_pairs bucket that will be
+                                    used */
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 
@@ -99,7 +103,7 @@ typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
  * Creates new SAP instance.
  * Note that for one fer_cd_t instance must be maximally one SAP instance.
  */
-fer_cd_sap_t *ferCDSAPNew(size_t buckets, size_t hash_table_size);
+fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, size_t par, size_t hash_table_size);
 
 /**
  * Deletes SAP
@@ -121,7 +125,7 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
  */
 void ferCDSAPRemove(fer_cd_sap_t *sap, struct _fer_cd_geom_t *geom);
 
-void ferCDSAPProcess(fer_cd_t *cd, fer_cd_sap_t *sap);
+void ferCDSAPProcess(fer_cd_sap_t *sap);
 
 /**
  * Returns number of buckets of collide pairs lists
@@ -156,7 +160,7 @@ void ferCDSAPDump(fer_cd_sap_t *sap);
 /**** INLINES ****/
 _fer_inline size_t ferCDSAPCollidePairsBuckets(const fer_cd_sap_t *sap)
 {
-    return sap->collide_pairs_buckets;
+    return (size_t)sap->par;
 }
 
 _fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,

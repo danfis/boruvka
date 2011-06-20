@@ -178,7 +178,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     cd->sap = NULL;
     if (params->use_sap && params->sap_size > 0){
-        cd->sap = ferCDSAPNew(num_threads, params->sap_size);
+        cd->sap = ferCDSAPNew(cd, num_threads, params->sap_size);
     }
 
     return cd;
@@ -535,5 +535,5 @@ static void updateDirtyGeoms(fer_cd_t *cd)
         __ferCDGeomResetDirty(cd, g);
     }
 
-    ferCDSAPProcess(cd, cd->sap);
+    ferCDSAPProcess(cd->sap);
 }
