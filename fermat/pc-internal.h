@@ -53,15 +53,27 @@ _fer_inline int ferPCMemFull(const fer_pc_mem_t *m);
  * No boundaries are checked!
  */
 #define ferPCMemGet(mem, pos, TYPE) \
-    (TYPE *)((char *)(mem)->data + ((pos) * sizeof(TYPE)))
+    ferPCMemGet2(mem, pos, TYPE, sizeof(TYPE))
+
+#define ferPCMemGet2(mem, pos, TYPE, SIZE) \
+    (TYPE *)((char *)(mem)->data + ((pos) * SIZE))
 
 /**
  * Adds element (of given type) to chunk.
  * No boundaries are checked!
  */
 #define ferPCMemAdd(mem, el, TYPE) \
+    ferPCMemAdd2(mem, el, TYPE, sizeof(TYPE))
+
+#define ferPCMemAdd2(mem, el, TYPE, SIZE) \
     do { \
-        *((TYPE *)((char *)(mem)->data + ((mem)->len * sizeof(TYPE)))) = *(el); \
+        *((TYPE *)((char *)(mem)->data + ((mem)->len * SIZE))) = *(el); \
+        (mem)->len++; \
+    } while (0)
+
+#define ferPCMemAdd2Memcpy(mem, el, TYPE, SIZE) \
+    do { \
+        memcpy((void *)((char *)(mem)->data + ((mem)->len * SIZE)), el, SIZE); \
         (mem)->len++; \
     } while (0)
 

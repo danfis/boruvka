@@ -5,6 +5,7 @@
 #include "vec.h"
 #include "quat.h"
 #include "pc3.h"
+#include "pc.h"
 #include "mat3.h"
 #include "mat4.h"
 #include "cubes3.h"
@@ -28,6 +29,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSVec),
     TEST_SUITE_ADD(TSQuat),
     TEST_SUITE_ADD(TSPC3),
+    TEST_SUITE_ADD(TSPC),
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
 

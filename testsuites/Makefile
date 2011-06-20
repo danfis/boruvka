@@ -41,7 +41,7 @@ endif
 
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
-OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o \
+OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        mat3.o mat4.o cubes3.o cubes2.o nncells.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o \
        tasks.o task-pool.o
@@ -63,13 +63,13 @@ bench: cu bench.c libdata.a
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
 
-test-rand-mt: test-rand-mt.c
+test-rand-mt: test-rand-mt.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-test-nn: test-nn.c
+test-nn: test-nn.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-test-surf-match: test-surf-match.c
+test-surf-match: test-surf-match.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
 
 test-cd-spheres: test-cd-spheres.cpp libdata.a
@@ -80,9 +80,9 @@ test-cd-ode: test-cd-ode.c libdata.a
 	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
 
 bench-heap: $(BENCH_HEAP)
-bench-heap-fibo: bench-heap-fibo.c bench-heap.c
+bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c
+bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 %.o: %.c %.h

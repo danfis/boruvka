@@ -99,6 +99,10 @@ _fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val);
  */
 _fer_inline void ferVecSetZero(size_t size, fer_vec_t *v);
 
+/**
+ * Returns true if two vectors equal
+ */
+_fer_inline int ferVecEq(size_t size, const fer_vec_t *v, const fer_vec_t *w);
 
 /**
  * Returns squared length of vector.
@@ -250,6 +254,18 @@ _fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val)
 _fer_inline void ferVecSetZero(size_t size, fer_vec_t *v)
 {
     ferVecSetAll(size, v, FER_ZERO);
+}
+
+_fer_inline int ferVecEq(size_t size, const fer_vec_t *v, const fer_vec_t *w)
+{
+    size_t i;
+
+    for (i = 0; i < size; i++){
+        if (ferNEq(ferVecGet(v, i), ferVecGet(w, i)))
+            return 0;
+    }
+
+    return 1;
 }
 
 
