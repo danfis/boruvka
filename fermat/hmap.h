@@ -91,7 +91,7 @@ _fer_inline size_t ferHMapSize(const fer_hmap_t *t);
 /**
  * Put key into hash map.
  */
-void ferHMapPut(fer_hmap_t *m, fer_list_t *key1);
+_fer_inline void ferHMapPut(fer_hmap_t *m, fer_list_t *key1);
 
 /**
  * Returns a key from hash map that equals to {key1} or NULL if there is no
@@ -100,13 +100,13 @@ void ferHMapPut(fer_hmap_t *m, fer_list_t *key1);
  * Note that {.eq} callback is used for this and {key1} is used as key1
  * argument.
  */
-fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1);
+_fer_inline fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1);
 
 /**
  * Removes key from hash map.
  * Return 0 if such a key was stored in hash map and -1 otherwise.
  */
-int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1);
+_fer_inline int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1);
 
 /**
  * Fill given {list} with all elements from hash map.
@@ -115,10 +115,62 @@ int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1);
 void ferHMapGather(fer_hmap_t *m, fer_list_t *list);
 
 
+/**
+ * Returns ID of given key corresponding to the hash map
+ */
+uint32_t ferHMapID(const fer_hmap_t *m, fer_list_t *key1);
+
+/**
+ * Put key with specified id into hash map.
+ */
+_fer_inline void ferHMapIDPut(fer_hmap_t *m, uint32_t id, fer_list_t *key1);
+
+/**
+ * Returns a key from hash map that have given {id} and equals to {key1} or
+ * NULL if there is no such key.
+ *
+ * Note that {.eq} callback is used for this and {key1} is used as key1
+ * argument.
+ */
+fer_list_t *ferHMapIDGet(const fer_hmap_t *m, uint32_t id, fer_list_t *key1);
+
+/**
+ * Removes key with given {id} from hash map.
+ * Return 0 if such a key was stored in hash map and -1 otherwise.
+ */
+int ferHMapIDRemove(fer_hmap_t *m, uint32_t id, fer_list_t *key1);
+
 /**** INLINES ****/
 _fer_inline size_t ferHMapSize(const fer_hmap_t *t)
 {
     return t->size;
+}
+
+_fer_inline void ferHMapPut(fer_hmap_t *m, fer_list_t *key1)
+{
+    uint32_t id;
+    id = ferHMapID(m, key1);
+    ferHMapIDPut(m, id, key1);
+}
+
+_fer_inline fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1)
+{
+    uint32_t id;
+    id = ferHMapID(m, key1);
+    return ferHMapIDGet(m, id, key1);
+}
+
+_fer_inline int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1)
+{
+    uint32_t id;
+    id = ferHMapID(m, key1);
+    return ferHMapIDRemove(m, id, key1);
+}
+
+_fer_inline void ferHMapIDPut(fer_hmap_t *m, uint32_t id, fer_list_t *key1)
+{
+    // put item into table
+    ferListAppend(&m->table[id], key1);
 }
 
 #ifdef __cplusplus

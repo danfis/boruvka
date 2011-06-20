@@ -69,26 +69,20 @@ void ferHMapDel(fer_hmap_t *h)
     free(h);
 }
 
-void ferHMapPut(fer_hmap_t *m, fer_list_t *key1)
+
+uint32_t ferHMapID(const fer_hmap_t *m, fer_list_t *key1)
 {
     uint32_t id;
 
-    // get hash value
     id = m->hash(key1, m->data);
     id = id % m->size;
 
-    // put item into table
-    ferListAppend(&m->table[id], key1);
+    return id;
 }
 
-fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1)
+fer_list_t *ferHMapIDGet(const fer_hmap_t *m, uint32_t id, fer_list_t *key1)
 {
-    uint32_t id;
     fer_list_t *item;
-
-    // get hash value
-    id = m->hash(key1, m->data);
-    id = id % m->size;
 
     FER_LIST_FOR_EACH(&m->table[id], item){
         if (m->eq(key1, item, m->data))
@@ -98,11 +92,11 @@ fer_list_t *ferHMapGet(const fer_hmap_t *m, fer_list_t *key1)
     return NULL;
 }
 
-int ferHMapRemove(fer_hmap_t *m, fer_list_t *key1)
+int ferHMapIDRemove(fer_hmap_t *m, uint32_t id, fer_list_t *key1)
 {
     fer_list_t *item;
 
-    item = ferHMapGet(m, key1);
+    item = ferHMapIDGet(m, id, key1);
     if (item){
         ferListDel(item);
         return 0;

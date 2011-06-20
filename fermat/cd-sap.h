@@ -28,8 +28,6 @@ extern "C" {
 struct _fer_cd_geom_t;
 struct _fer_cd_sap_t;
 
-#define FER_CD_SAP_NUM_AXIS 3
-
 struct _fer_cd_sap_geom_t {
     struct _fer_cd_geom_t *g;
     uint32_t min[3], max[3];
@@ -67,17 +65,20 @@ struct _fer_cd_sap_t {
     fer_cd_t *cd; /*!< Back pointer to main struct */
     size_t par;   /*!< Level of parallelization */
 
-    fer_vec3_t axis[FER_CD_SAP_NUM_AXIS];
+    fer_vec3_t axis[3];
 
     fer_cd_sap_geom_t *geoms;
     size_t geoms_len, geoms_alloc;
-    fer_cd_sap_minmax_t *minmax[FER_CD_SAP_NUM_AXIS];
+    fer_cd_sap_minmax_t *minmax[3];
 
     int dirty; /*!< True if any geom was changed */
 
     fer_cd_sap_radix_sort_t radix_sort; /*!< Cached radix sort struct */
 
-    fer_hmap_t *pairs; /*!< Hash map of collide pairs */
+    fer_hmap_t *pairs_reg;           /*!< Register (hash map) of collide pairs */
+    pthread_mutex_t *pairs_reg_lock; /*!< Array of locks for .pairs_reg */
+    size_t pairs_reg_lock_len;       /*!< Length of .pairs_reg_lock */
+
     fer_list_t *collide_pairs; /*!< Array of lists of possible collide pairs
                                     (fer_cd_sap_pair_t's connected by .list).
                                     Length of this array is .par */
