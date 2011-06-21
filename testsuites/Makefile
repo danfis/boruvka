@@ -58,7 +58,7 @@ libdata.a: $(OBJS_DATA)
 	ranlib $@
 
 test: cu libdata.a $(OBJS) main.c
-	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS) $(OPENCL_LDFLAGS)
 bench: cu bench.c libdata.a
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
@@ -73,11 +73,11 @@ test-surf-match: test-surf-match.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
 
 test-cd-spheres: test-cd-spheres.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS) $(OPENCL_LDFLAGS)
 test-cd-trimesh: test-cd-trimesh.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS) $(OPENCL_LDFLAGS)
 test-cd-ode: test-cd-ode.c libdata.a
-	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) $(OPENCL_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++ $(OPENCL_LDFLAGS)
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a

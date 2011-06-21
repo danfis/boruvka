@@ -83,6 +83,8 @@ struct _fer_cd_sap_t {
                                     Length of this array is .par */
     size_t collide_pairs_len;  /*!< Overall number of collide pairs in all
                                     buckets of .collide_pairs */
+
+    void *gpu;
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 
