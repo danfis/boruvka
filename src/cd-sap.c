@@ -704,6 +704,7 @@ struct _gpu_t {
     fer_cd_sap_minmax_t *minmax, *minmax_tmp;
     uint32_t minmax_len;
     cl_uint *counter;
+    cl_uint *counter_sum;
     cl_uint *negative;
 };
 typedef struct _gpu_t gpu_t;
@@ -717,11 +718,13 @@ static void gpuUpdate(fer_cd_sap_t *sap)
     if (!sap->gpu){
         gpu = FER_ALLOC(gpu_t);
         gpu->cl = ferCLNewSimple(ferCLProgramFromFile("sap.cl"), "-W");
-        gpu->kernel_radix_sort = ferCLKernelNew(gpu->cl, "radixSort");
-        gpu->num_threads = 256;
+        //gpu->kernel_radix_sort = ferCLKernelNew(gpu->cl, "radixSort");
+        gpu->num_threads = 16;
         gpu->minmax = gpu->minmax_tmp = NULL;
         gpu->minmax_len = 0;
-        gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, gpu->num_threads * (1 << 8));
+        //gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, gpu->num_threads * (1 << 4));
+        gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 16 * 5);
+        gpu->counter_sum = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 5);
         sap->gpu = gpu;
     }
 
@@ -751,6 +754,7 @@ static void gpuDel(fer_cd_sap_t *sap)
         FER_CL_FREE(gpu->cl, gpu->minmax_tmp);
     }
     FER_CL_FREE(gpu->cl, gpu->counter);
+    FER_CL_FREE(gpu->cl, gpu->counter_sum);
     free(gpu);
 }
 
@@ -778,39 +782,146 @@ static void gpuSave(fer_cd_sap_t *sap)
 
     ferTimerStop(&timer);
     DBG("%lu us", ferTimerElapsedInUs(&timer));
-
-    {
-        uint32_t i;
-
-        fprintf(stderr, "minmax: ");
-        for (i = 0; i < 20 && i < gpu->minmax_len; i++){
-            fprintf(stderr, " %f (%x)", sap->minmax[0][i].val,
-                    ferRealAsUInt(sap->minmax[0][i].val));
-        }
-        fprintf(stderr, "\n");
-    }
 }
 
 static void gpuRun(fer_cd_sap_t *sap)
 {
     gpu_t *gpu = (gpu_t *)sap->gpu;
     size_t glob[1], loc[1];
+    uint32_t num_groups;
+    uint32_t i, shift;
+    fer_cd_sap_minmax_t *src, *dst, *tmp;
+
+    num_groups = 2;
+    glob[0] = 16 * num_groups;
+    loc[0] = 16;
+
+    int k_reduce, k_fix_counter1, k_fix_counter2, k_copy;
+
+    ferCLKernelNew(gpu->cl, "radixSortReduce");
+    k_reduce = ferCLKernelsLen(gpu->cl) - 1;
+    DBG("k_reduce: %d", k_reduce);
+
+    ferCLKernelNew(gpu->cl, "radixSortFixCounter1");
+    k_fix_counter1 = ferCLKernelsLen(gpu->cl) - 1;
+    DBG("k_fix_counter1: %d", k_fix_counter1);
+
+    ferCLKernelNew(gpu->cl, "radixSortFixCounter2");
+    k_fix_counter2 = ferCLKernelsLen(gpu->cl) - 1;
+    DBG("k_fix_counter2: %d", k_fix_counter2);
+
+    ferCLKernelNew(gpu->cl, "radixSortCopy");
+    k_copy = ferCLKernelsLen(gpu->cl) - 1;
+    DBG("k_copy: %d", k_copy);
 
     ferTimerStart(&timer);
 
-    FER_CL_KERNEL_SET_ARG(gpu->cl, gpu->kernel_radix_sort, 0, gpu->minmax);
-    FER_CL_KERNEL_SET_ARG(gpu->cl, gpu->kernel_radix_sort, 1, gpu->minmax_tmp);
-    FER_CL_KERNEL_SET_ARG(gpu->cl, gpu->kernel_radix_sort, 2, gpu->counter);
-    FER_CL_KERNEL_SET_ARG(gpu->cl, gpu->kernel_radix_sort, 3, gpu->minmax_len);
+    shift = 0;
+    src = gpu->minmax;
+    dst = gpu->minmax_tmp;
+    for (i = 0; i < 8; i++){
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 0, src);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 1, gpu->minmax_len);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 2, gpu->counter);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 3, gpu->counter_sum);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 4, shift);
+        ferCLKernelEnqueue(gpu->cl, k_reduce, 1, glob, loc);
 
-    glob[0] = loc[0] = gpu->num_threads;
-    ferCLKernelEnqueue(gpu->cl, gpu->kernel_radix_sort,
-                       1, glob, loc);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter1, 0, gpu->counter_sum);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter1, 1, num_groups);
+        ferCLKernelEnqueue(gpu->cl, k_fix_counter1, 1, loc, loc);
+
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter2, 0, gpu->counter);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter2, 1, gpu->counter_sum);
+        ferCLKernelEnqueue(gpu->cl, k_fix_counter2, 1, glob, loc);
+
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 0, src);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 1, dst);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 2, gpu->minmax_len);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 3, gpu->counter);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 4, shift);
+        ferCLKernelEnqueue(gpu->cl, k_copy, 1, glob, loc);
+
+        tmp = src;
+        src = dst;
+        dst = tmp;
+        shift += 4;
+    }
 
     ferCLFinish(gpu->cl);
 
+
     ferTimerStop(&timer);
     DBG("%lu us", ferTimerElapsedInUs(&timer));
+
+    {
+    uint32_t *counter = FER_ALLOC_ARR(uint32_t, 16 * 16 * 5);
+    uint32_t *counter_sum = FER_ALLOC_ARR(uint32_t, 16 * 5);
+    FER_CL_COPY_TO_HOST(gpu->cl, gpu->counter, counter, uint, 16 * 16 * 5);
+    FER_CL_COPY_TO_HOST(gpu->cl, gpu->counter_sum, counter_sum, uint, 16 * 5);
+
+    {
+        uint32_t i;
+
+        fprintf(stderr, "counter:\n");
+        for (i = 0; i < 16 * 16 * 2; i++){
+            if (i % 16 == 0)
+                fprintf(stderr, "[%02d]: ", i / 16);
+            fprintf(stderr, " %u", counter[i]);
+            if ((i + 1) % 16 == 0)
+                fprintf(stderr, "\n");
+        }
+        fprintf(stderr, "\n");
+
+        fprintf(stderr, "counter_sum:\n");
+        for (i = 0; i < 16 * 2; i++){
+            fprintf(stderr, " %u", counter_sum[i]);
+            if ((i + 1) % 16 == 0)
+                fprintf(stderr, "\n");
+        }
+        fprintf(stderr, "\n");
+    }
+
+    free(counter);
+    free(counter_sum);
+    }
+
+    {
+    FER_CL_COPY_TO_HOST(gpu->cl, gpu->minmax_tmp, sap->minmax[0],
+                          fer_cd_sap_minmax_t, gpu->minmax_len);
+
+    {
+        uint32_t i;
+
+        fprintf(stderr, "minmax_tmp:\n");
+        for (i = 0; i < 20 && i < gpu->minmax_len; i++){
+            fprintf(stderr, " % 10f (%x)", sap->minmax[0][i].val,
+                    ferRealAsUInt(sap->minmax[0][i].val));
+            if ((i + 1) % 5 == 0)
+                fprintf(stderr, "\n");
+        }
+        fprintf(stderr, "\n");
+    }
+    }
+
+    {
+    FER_CL_COPY_TO_HOST(gpu->cl, gpu->minmax, sap->minmax[0],
+                          fer_cd_sap_minmax_t, gpu->minmax_len);
+
+    {
+        uint32_t i;
+
+        fprintf(stderr, "minmax:\n");
+        for (i = 0; i < 20 && i < gpu->minmax_len; i++){
+            fprintf(stderr, " % 10f (%x)", sap->minmax[0][i].val,
+                    ferRealAsUInt(sap->minmax[0][i].val));
+            if ((i + 1) % 5 == 0)
+                fprintf(stderr, "\n");
+        }
+        fprintf(stderr, "\n");
+    }
+    }
+
 }
 
 static void ferCDSAPProcessGPU(fer_cd_sap_t *sap)
