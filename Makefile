@@ -160,6 +160,9 @@ doc:
 cython:
 	$(MAKE) -C cython
 
+analyze: clean
+	$(SCAN_BUILD) $(MAKE)
+
 
 help:
 	@echo "Targets:"
@@ -170,15 +173,17 @@ help:
 	@echo "    check-valgrind - Build & Run automated tests in valgrind(1)"
 	@echo "    clean          - Remove all generated files"
 	@echo "    install        - Install library into system"
+	@echo "    analyze        - Performs static analysis using Clang Static Analyzer"
 	@echo "Options:"
-	@echo "    CC      - Path to C compiler          (=$(CC))"
-	@echo "    CXX     - Path to C++ compiler        (=$(CXX))"
-	@echo "    M4      - Path to m4 macro processor  (=$(M4))"
-	@echo "    SED     - Path to sed(1)              (=$(SED))"
-	@echo "    PYTHON  - Path to python interpret    (=$(PYTHON))"
-	@echo "    PYTHON2 - Path to python interpret v2 (=$(PYTHON2))"
-	@echo "    PYTHON3 - Path to python interpret v3 (=$(PYTHON3))"
-	@echo "    CYTHON  - Path to cython              (=$(CYTHON))"
+	@echo "    CC         - Path to C compiler          (=$(CC))"
+	@echo "    CXX        - Path to C++ compiler        (=$(CXX))"
+	@echo "    M4         - Path to m4 macro processor  (=$(M4))"
+	@echo "    SED        - Path to sed(1)              (=$(SED))"
+	@echo "    PYTHON     - Path to python interpret    (=$(PYTHON))"
+	@echo "    PYTHON2    - Path to python interpret v2 (=$(PYTHON2))"
+	@echo "    PYTHON3    - Path to python interpret v3 (=$(PYTHON3))"
+	@echo "    CYTHON     - Path to cython              (=$(CYTHON))"
+	@echo "    SCAN_BUILD - Path to scan-build          (=$(SCAN_BUILD))"
 	@echo ""
 	@echo "    CC_NOT_GCC 'yes'/'no' - If set to 'yes' no gcc specific options will be used (=$(CC_NOT_GCC))"
 	@echo ""
@@ -214,4 +219,4 @@ help:
 	@echo "    OPENCL_CFLAGS  = $(OPENCL_CFLAGS)"
 	@echo "    OPENCL_LDFLAGS = $(OPENCL_LDFLAGS)"
 
-.PHONY: all clean check check-valgrind help doc install cython
+.PHONY: all clean check check-valgrind help doc install cython analyze

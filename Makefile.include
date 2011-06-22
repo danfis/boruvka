@@ -22,6 +22,7 @@ PYTHON ?= python
 PYTHON2 ?= python2
 PYTHON3 ?= python3
 CYTHON  ?= cython
+SCAN_BUILD ?= scan-build
 
 PYTHON_CONFIG ?= python-config
 
