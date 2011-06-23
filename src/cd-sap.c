@@ -311,6 +311,7 @@ static void ferCDSAPProcessAll(fer_cd_sap_t *sap)
     }
     ferTimerStop(&timer);
     fprintf(stderr, "Radix Sort: %lu us\n", ferTimerElapsedInUs(&timer));
+    exit(-1);
 
     // remove all current pairs - we will reevaluate it all
     pairRemoveAll(sap);
@@ -723,9 +724,9 @@ static void gpuUpdate(fer_cd_sap_t *sap)
         gpu->minmax = gpu->minmax_tmp = NULL;
         gpu->minmax_len = 0;
         //gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, gpu->num_threads * (1 << 4));
-        gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 16 * 5);
-        gpu->counter_sum = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 5);
-        gpu->negative = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 5);
+        gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 16 * 100);
+        gpu->counter_sum = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 100);
+        gpu->negative = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 100);
         sap->gpu = gpu;
     }
 
@@ -794,7 +795,7 @@ static void gpuRun(fer_cd_sap_t *sap)
     uint32_t i, shift, use_negative;
     fer_cd_sap_minmax_t *src, *dst, *tmp;
 
-    num_groups = 2;
+    num_groups = 50;
     glob[0] = 16 * num_groups;
     loc[0] = 16;
     glob_fix[0] = 2 * loc[0];
@@ -957,5 +958,5 @@ static void ferCDSAPProcessGPU(fer_cd_sap_t *sap)
     gpuSave(sap);
 
     gpuDel(sap);
-    exit(-1);
+    //exit(-1);
 }

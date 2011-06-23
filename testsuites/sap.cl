@@ -129,7 +129,7 @@ __kernel void radixSortFixCounter1(__global uint *global_counter_sum,
         }
         barrier(CLK_GLOBAL_MEM_FENCE);
     }else if (get_group_id(0) == 1 && local_id == 0){
-        for (i = 1; i < num_groups; i++){
+        for (i = num_groups - 1; i > 0 && negative[i] > 0; --i){
             negative[0] += negative[i];
         }
     }
