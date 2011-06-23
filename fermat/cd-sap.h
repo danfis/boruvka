@@ -67,18 +67,6 @@ struct _fer_cd_sap_t {
     size_t pairs_buckets; /*!< Length of .pairs[] */
     size_t pairs_len;     /*!< Overall number of collide pairs in all
                                buckets of .pairs[] */
-
-#if 0
-    size_t par;   /*!< Level of parallelization */
-    fer_cd_sap_radix_sort_t radix_sort; /*!< Cached radix sort struct */
-
-    fer_hmap_t *pairs_reg;           /*!< Register (hash map) of collide pairs */
-    pthread_mutex_t *pairs_reg_lock; /*!< Array of locks for .pairs_reg */
-    size_t pairs_reg_lock_len;       /*!< Length of .pairs_reg_lock */
-
-
-    void *gpu;
-#endif
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 

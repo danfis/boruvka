@@ -14,11 +14,6 @@
  *  See the License for more information.
  */
 
-#include <fermat/cd.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
-
-
 struct _fer_cd_sap_1_radix_sort_t {
     fer_cd_sap_minmax_t *minmax;
     size_t minmax_len, minmax_alloc;
@@ -93,18 +88,20 @@ static void radixSortSort(fer_cd_sap_minmax_t *src,
                           uint32_t *counter,
                           uint32_t shift);
 static void radixSortSortFinal(fer_cd_sap_minmax_t *src,
+                               uint32_t srclen,
                                fer_cd_sap_minmax_t *dst,
-                               uint32_t len,
+                               uint32_t dstlen,
                                uint32_t *counter,
                                uint32_t negative,
-                               uint32_t shift);
+                               uint32_t shift,
+                               fer_cd_sap_geom_t *geoms, int axis);
 
 static void sap1RadixSort(fer_cd_sap_t *_sap, int axis)
 {
     fer_cd_sap_1_t *sap = (fer_cd_sap_1_t *)_sap;
     fer_cd_sap_1_radix_sort_t *rs;
     fer_cd_sap_minmax_t *src, *dst, *tmp;
-    uint32_t shift, i;
+    uint32_t shift, i, len;
 
     rs = &sap->rs;
 
@@ -118,10 +115,11 @@ static void sap1RadixSort(fer_cd_sap_t *_sap, int axis)
     }
     rs->minmax_len = 2 * sap->sap.geoms_len;
 
+    len = (fer_uint_t)sizeof(fer_real_t) - 1;
     shift = 0;
     src = sap->sap.minmax[axis];
     dst = rs->minmax;
-    for (i = 0; i < 3; i++){
+    for (i = 0; i < len; i++){
         radixSortCount(src, rs->minmax_len, rs->counter, shift);
         radixSortFixCounter(rs->counter);
         radixSortSort(src, dst, rs->minmax_len, rs->counter, shift);
@@ -132,15 +130,10 @@ static void sap1RadixSort(fer_cd_sap_t *_sap, int axis)
 
     radixSortCountFinal(src, rs->minmax_len, rs->counter, &rs->negative, shift);
     radixSortFixCounter(rs->counter);
-    radixSortSortFinal(src, dst, rs->minmax_len, rs->counter, rs->negative, shift);
-
-    for (i = 0; i < rs->minmax_len; i++){
-        if (MINMAX_ISMAX(&dst[i])){
-            sap->sap.geoms[MINMAX_GEOM(&dst[i])].max[axis] = i;
-        }else{
-            sap->sap.geoms[MINMAX_GEOM(&dst[i])].min[axis] = i;
-        }
-    }
+    radixSortSortFinal(src, rs->minmax_len,
+                       dst, rs->minmax_len,
+                       rs->counter, rs->negative, shift,
+                       sap->sap.geoms, axis);
 }
 
 _fer_inline uint32_t radixSortVal(const fer_cd_sap_minmax_t *m,
@@ -224,25 +217,33 @@ static void radixSortSort(fer_cd_sap_minmax_t *src,
 }
 
 static void radixSortSortFinal(fer_cd_sap_minmax_t *src,
+                               uint32_t srclen,
                                fer_cd_sap_minmax_t *dst,
-                               uint32_t len,
+                               uint32_t dstlen,
                                uint32_t *counter,
                                uint32_t negative,
-                               uint32_t shift)
+                               uint32_t shift,
+                               fer_cd_sap_geom_t *geoms, int axis)
 {
     uint32_t i;
     fer_uint_t val, pos;
 
-    for (i = 0; i < len; i++){
+    for (i = 0; i < srclen; i++){
         val = radixSortVal(&src[i], shift);
         pos = counter[val];
-        if (pos >= len - negative){
-            pos = len - pos - 1;
+        if (pos >= dstlen - negative){
+            pos = dstlen - pos - 1;
         }else{
             pos = negative + pos;
         }
 
         dst[pos] = src[i];
+
+        if (MINMAX_ISMAX(&dst[pos])){
+            geoms[MINMAX_GEOM(&dst[pos])].max[axis] = pos;
+        }else{
+            geoms[MINMAX_GEOM(&dst[pos])].min[axis] = pos;
+        }
 
         ++counter[val];
     }

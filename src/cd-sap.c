@@ -66,22 +66,24 @@ static int pairEq(const fer_list_t *key1, const fer_list_t *key2, void *sap);
 static void pairRemoveAll(fer_cd_sap_t *sap);
 
 #include "cd-sap-1.c"
+#include "cd-sap-threads.c"
 
 
 fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, uint64_t flags)
 {
-    if (__FER_CD_SAP_THREADS(flags) == 0){
-        return ferCDSAP1New(cd, flags);
+    if (__FER_CD_SAP_THREADS(flags) > 1){
+        return ferCDSAPThreadsNew(cd, flags);
     }
 
     return ferCDSAP1New(cd, flags);
-    return NULL;
 }
 
 void ferCDSAPDel(fer_cd_sap_t *sap)
 {
     if (sap->type == FER_CD_SAP_TYPE_1){
         ferCDSAP1Del(sap);
+    }else if (sap->type == FER_CD_SAP_TYPE_THREADS){
+        ferCDSAPThreadsDel(sap);
     }
 }
 
@@ -149,7 +151,6 @@ void ferCDSAPProcess(fer_cd_sap_t *sap)
     int i;
 
     if (sap->dirty){
-
         ferTimerStart(&timer);
         // do radix sort for all min/max values
         for (i = 0; i < 3; i++){
