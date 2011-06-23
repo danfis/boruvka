@@ -24,6 +24,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * Sweep and Prune
+ * ----------------
+ */
 
 struct _fer_cd_geom_t;
 
@@ -39,52 +43,42 @@ struct _fer_cd_sap_minmax_t {
 } fer_packed;
 typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
 
-struct _fer_cd_sap_radix_sort_t {
-    fer_cd_sap_minmax_t *minmax;
-    size_t minmax_len, minmax_alloc;
-    uint32_t *counter;  /*!< Array for count-sort */
-    uint32_t *negative; /*!< Number of negative values */
+#define FER_CD_SAP_TYPE_1       0x0
+#define FER_CD_SAP_TYPE_THREADS 0x1
+#define FER_CD_SAP_TYPE_GPU     0x2
 
-    fer_barrier_t *barrier;
-
-    struct {
-        fer_cd_sap_minmax_t *src, *dst;
-        fer_uint_t mask, shift;
-        int axis;
-        fer_uint_t i, len;
-    } context;
-};
-typedef struct _fer_cd_sap_radix_sort_t fer_cd_sap_radix_sort_t;
-
-/**
- * Sweep and Prune
- * ----------------
- */
 struct _fer_cd_sap_t {
-    fer_cd_t *cd; /*!< Back pointer to main struct */
+    int type;                 /*!< Type of SAP */
+    void (*radix_sort)(struct _fer_cd_sap_t *, int axis);
+    void (*find_pairs)(struct _fer_cd_sap_t *);
+
+    fer_cd_t *cd;             /*!< Back pointer to main struct */
+    fer_vec3_t axis[3];       /*!< Projection axes */
+    fer_cd_sap_geom_t *geoms; /*!< Array of geoms */
+    size_t geoms_len;         /*!< Length of .geoms[] */
+    size_t geoms_alloc;       /*!< Length of allocated memory for .geoms[] */
+    fer_cd_sap_minmax_t *minmax[3]; /*!< Array of min/max values */
+    uint8_t dirty;            /*!< True if any geom was changed */
+    uint32_t added;           /*!< Number of geoms added from last call of
+                                   ferCDSAPProcess() */
+
+    fer_list_t *pairs;    /*!< Array of lists of possible collide pairs
+                               (fer_cd_sap_pair_t is connected by .list). */
+    size_t pairs_buckets; /*!< Length of .pairs[] */
+    size_t pairs_len;     /*!< Overall number of collide pairs in all
+                               buckets of .pairs[] */
+
+#if 0
     size_t par;   /*!< Level of parallelization */
-
-    fer_vec3_t axis[3];
-
-    fer_cd_sap_geom_t *geoms;
-    size_t geoms_len, geoms_alloc;
-    fer_cd_sap_minmax_t *minmax[3];
-
-    int dirty; /*!< True if any geom was changed */
-
     fer_cd_sap_radix_sort_t radix_sort; /*!< Cached radix sort struct */
 
     fer_hmap_t *pairs_reg;           /*!< Register (hash map) of collide pairs */
     pthread_mutex_t *pairs_reg_lock; /*!< Array of locks for .pairs_reg */
     size_t pairs_reg_lock_len;       /*!< Length of .pairs_reg_lock */
 
-    fer_list_t *collide_pairs; /*!< Array of lists of possible collide pairs
-                                    (fer_cd_sap_pair_t's connected by .list).
-                                    Length of this array is .par */
-    size_t collide_pairs_len;  /*!< Overall number of collide pairs in all
-                                    buckets of .collide_pairs */
 
     void *gpu;
+#endif
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_t fer_cd_sap_t;
 
@@ -100,10 +94,35 @@ struct _fer_cd_sap_pair_t {
 typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
 
 /**
+ * Flags has this layout (from most significant bits):
+ * 24 bits: hash table size
+ *  8 bits: num threads
+ * 32 bits: reserved
+ */
+
+/**
+ * Sets size of hash table.
+ * Default 1024.
+ */
+#define FER_CD_SAP_HASH_TABLE_SIZE(size) \
+    (((uint64_t)((uint32_t)size & ~((~0u) << 24u))) << (64u - 24u))
+#define __FER_CD_SAP_HASH_TABLE_SIZE(flags) \
+    (((uint64_t)flags) >> (64u - 24u))
+
+/**
+ * Sets number of threads used by SAP.
+ * Default 0.
+ */
+#define FER_CD_SAP_THREADS(num_threads) \
+    (((uint64_t)((uint32_t)num_threads & 0xffu)) << (64u - 24u - 8u))
+#define __FER_CD_SAP_THREADS(flags) \
+    ((((uint64_t)flags) >> (64u - 24u - 8u)) & 0xffu)
+
+/**
  * Creates new SAP instance.
  * Note that for one fer_cd_t instance must be maximally one SAP instance.
  */
-fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, size_t par, size_t hash_table_size);
+fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, uint64_t flags);
 
 /**
  * Deletes SAP
@@ -159,17 +178,16 @@ _fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,
 void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out);
 void ferCDSAPDump(fer_cd_sap_t *sap);
 
-
 /**** INLINES ****/
 _fer_inline size_t ferCDSAPCollidePairsBuckets(const fer_cd_sap_t *sap)
 {
-    return (size_t)sap->par;
+    return (size_t)sap->pairs_buckets;
 }
 
 _fer_inline const fer_list_t *ferCDSAPCollidePairs(const fer_cd_sap_t *sap,
                                                    size_t bucket)
 {
-    return &sap->collide_pairs[bucket];
+    return &sap->pairs[bucket];
 }
 
 #ifdef __cplusplus

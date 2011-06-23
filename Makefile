@@ -95,6 +95,8 @@ src/surf-matching.c: src/surf-matching-cl.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+.objs/cd-sap.o: src/cd-sap.c src/cd-sap-1.c fermat/cd-sap.h fermat/config.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .objs/%.cpp.o: src/%.c fermat/%.h fermat/config.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

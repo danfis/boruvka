@@ -178,7 +178,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     cd->sap = NULL;
     if (params->use_sap && params->sap_size > 0){
-        cd->sap = ferCDSAPNew(cd, num_threads, params->sap_size);
+        cd->sap = ferCDSAPNew(cd, FER_CD_SAP_HASH_TABLE_SIZE(params->sap_size)
+                                    | FER_CD_SAP_THREADS(num_threads));
     }
 
     return cd;

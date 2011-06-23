@@ -23,12 +23,15 @@
 #include <fermat/timer.h>
 static fer_timer_t timer;
 
+#define RADIX_SORT_MASK 0xffu
+
 
 #define MINMAX_ISMAX(minmax) \
     ((minmax)->geom_ismax & 0x1)
 #define MINMAX_GEOM(minmax) \
     ((minmax)->geom_ismax >> 0x1)
 
+#if 0
 /** Find all collide pairs */
 static void ferCDSAPFindPairs(fer_cd_sap_t *sap);
 /** Find collide pairs of {g} */
@@ -44,6 +47,12 @@ _fer_inline fer_cd_sap_t *radixSortSAP(fer_cd_sap_radix_sort_t *rs);
 /** Sorts min-max values along specified axis */
 static void radixSort(fer_cd_sap_t *sap, int axis);
 
+
+#endif
+
+static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets);
+static void ferCDSAPDestroy(fer_cd_sap_t *sap);
+
 /** Creates new pair from other fer_cd_sap_pair_t struct */
 static fer_cd_sap_pair_t *pairNew(fer_cd_geom_t *g1, fer_cd_geom_t *g2);
 /** Deletes collide pair */
@@ -56,91 +65,24 @@ static int pairEq(const fer_list_t *key1, const fer_list_t *key2, void *sap);
 /** Removes all pairs from all buckets */
 static void pairRemoveAll(fer_cd_sap_t *sap);
 
+#include "cd-sap-1.c"
 
 
-fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, size_t par, size_t hash_table_size)
+fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, uint64_t flags)
 {
-    fer_cd_sap_t *sap;
-    size_t i;
-
-    sap = FER_ALLOC_ALIGN(fer_cd_sap_t, 16);
-
-    sap->cd = cd;
-    sap->par = par;
-
-    // set up axis
-    ferVec3Set(&sap->axis[0], FER_ONE,  FER_ONE, FER_ZERO);
-    ferVec3Set(&sap->axis[1], FER_ZERO, FER_ONE,  FER_ONE);
-    ferVec3Set(&sap->axis[2], FER_ONE, FER_ZERO, FER_ONE);
-
-    // init geoms and minmax arrays
-    sap->geoms_alloc = 100;
-    sap->geoms_len = 0;
-    sap->geoms = FER_ALLOC_ARR(fer_cd_sap_geom_t, sap->geoms_alloc);
-    for (i = 0; i < 3; i++){
-        sap->minmax[i] = FER_ALLOC_ARR(fer_cd_sap_minmax_t,
-                                       sap->geoms_alloc * 2);
+    if (__FER_CD_SAP_THREADS(flags) == 0){
+        return ferCDSAP1New(cd, flags);
     }
 
-    radixSortInit(&sap->radix_sort);
-
-    sap->dirty = 0;
-
-    sap->pairs_reg = ferHMapNew(hash_table_size, pairHash, pairEq, (void *)sap);
-    sap->pairs_reg_lock_len = sap->par;
-    sap->pairs_reg_lock = FER_ALLOC_ARR(pthread_mutex_t,
-                                        sap->pairs_reg_lock_len);
-    for (i = 0; i < sap->pairs_reg_lock_len; i++){
-        pthread_mutex_init(&sap->pairs_reg_lock[i], NULL);
-    }
-
-    // initialize list of possible collide pairs
-    sap->collide_pairs = FER_ALLOC_ARR(fer_list_t, par);
-    sap->collide_pairs_len = 0;
-    for (i = 0; i < par; i++){
-        ferListInit(&sap->collide_pairs[i]);
-    }
-
-    sap->gpu = NULL;
-
-    return sap;
+    return ferCDSAP1New(cd, flags);
+    return NULL;
 }
 
 void ferCDSAPDel(fer_cd_sap_t *sap)
 {
-    fer_list_t allpairs, *item;
-    fer_cd_sap_pair_t *pair;
-    int i;
-
-    if (sap->geoms)
-        free(sap->geoms);
-    for (i = 0; i < 3; i++){
-        if (sap->minmax[i])
-            free(sap->minmax[i]);
+    if (sap->type == FER_CD_SAP_TYPE_1){
+        ferCDSAP1Del(sap);
     }
-
-    radixSortDestroy(&sap->radix_sort);
-
-    // delete all pairs from hash table
-    ferListInit(&allpairs);
-    ferHMapGather(sap->pairs_reg, &allpairs);
-    while (!ferListEmpty(&allpairs)){
-        item = ferListNext(&allpairs);
-        ferListDel(item);
-        pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, hmap);
-        pairDel(pair);
-    }
-
-    ferHMapDel(sap->pairs_reg);
-    for (i = 0; i < sap->pairs_reg_lock_len; i++){
-        pthread_mutex_destroy(&sap->pairs_reg_lock[i]);
-    }
-    free(sap->pairs_reg_lock);
-
-    if (sap->collide_pairs)
-        free(sap->collide_pairs);
-
-    free(sap);
 }
 
 void ferCDSAPAdd(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
@@ -171,6 +113,7 @@ void ferCDSAPAdd(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 
     sap->geoms_len++;
     sap->dirty = 1;
+    sap->added++;
 }
 
 void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
@@ -199,18 +142,93 @@ void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 
 
 
-static void ferCDSAPProcessGPU(fer_cd_sap_t *sap);
+//static void ferCDSAPProcessGPU(fer_cd_sap_t *sap);
 
 void ferCDSAPProcess(fer_cd_sap_t *sap)
 {
+    int i;
+
     if (sap->dirty){
-        ferCDSAPProcessAll(sap);
+
+        ferTimerStart(&timer);
+        // do radix sort for all min/max values
+        for (i = 0; i < 3; i++){
+            sap->radix_sort(sap, i);
+        }
+        ferTimerStop(&timer);
+        fprintf(stderr, "Radix Sort: %lu us\n", ferTimerElapsedInUs(&timer));
+
+        ferTimerStart(&timer);
+        // remove all current pairs - we will reevaluate it all
+        pairRemoveAll(sap);
+
+        // obtain all pairs from min-max arrays
+        sap->find_pairs(sap);
+        ferTimerStop(&timer);
+        fprintf(stderr, "Find Pairs: %lu us\n", ferTimerElapsedInUs(&timer));
     }
 
     sap->dirty = 0;
+    sap->added = 0;
 }
 
 
+static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets)
+{
+    int i;
+
+    sap->cd = cd;
+
+    // set up axis
+    ferVec3Set(&sap->axis[0], FER_ONE,  FER_ONE, FER_ZERO);
+    ferVec3Set(&sap->axis[1], FER_ZERO, FER_ONE,  FER_ONE);
+    ferVec3Set(&sap->axis[2], FER_ONE, FER_ZERO, FER_ONE);
+
+    // init geoms and minmax arrays
+    sap->geoms_alloc = 100;
+    sap->geoms_len = 0;
+    sap->geoms = FER_ALLOC_ARR(fer_cd_sap_geom_t, sap->geoms_alloc);
+    for (i = 0; i < 3; i++){
+        sap->minmax[i] = FER_ALLOC_ARR(fer_cd_sap_minmax_t,
+                                       sap->geoms_alloc * 2);
+    }
+
+    sap->dirty = 0;
+    sap->added = 0;
+
+    sap->pairs = FER_ALLOC_ARR(fer_list_t, buckets);
+    sap->pairs_buckets = buckets;
+    for (i = 0; i < buckets; i++){
+        ferListInit(&sap->pairs[i]);
+    }
+    sap->pairs_len = 0;
+}
+
+static void ferCDSAPDestroy(fer_cd_sap_t *sap)
+{
+    fer_list_t *item;
+    fer_cd_sap_pair_t *pair;
+    int i;
+
+    if (sap->geoms)
+        free(sap->geoms);
+    for (i = 0; i < 3; i++){
+        if (sap->minmax[i])
+            free(sap->minmax[i]);
+    }
+
+    for (i = 0; i < sap->pairs_buckets; i++){
+        while (!ferListEmpty(&sap->pairs[i])){
+            item = ferListNext(&sap->pairs[i]);
+            pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
+            pairDel(pair);
+        }
+    }
+}
+
+
+
+#if 0
 static void ferCDSAPFindGeomPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g,
                                   int bucket)
 {
@@ -629,6 +647,7 @@ void ferCDSAPDumpPairs(fer_cd_sap_t *sap, FILE *out)
         }
     }
 }
+#endif
 
 
 static fer_cd_sap_pair_t *pairNew(fer_cd_geom_t *g1, fer_cd_geom_t *g2)
@@ -684,18 +703,19 @@ static void pairRemoveAll(fer_cd_sap_t *sap)
     fer_cd_sap_pair_t *pair;
     size_t i;
 
-    for (i = 0; i < sap->par; i++){
-        while (!ferListEmpty(&sap->collide_pairs[i])){
-            item = ferListNext(&sap->collide_pairs[i]);
+    for (i = 0; i < sap->pairs_buckets; i++){
+        while (!ferListEmpty(&sap->pairs[i])){
+            item = ferListNext(&sap->pairs[i]);
             pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
             pairDel(pair);
         }
     }
-    sap->collide_pairs_len = 0;
+    sap->pairs_len = 0;
 }
 
 
 
+#if 0
 #include <fermat/opencl.h>
 #include <fermat/timer.h>
 struct _gpu_t {
@@ -960,3 +980,4 @@ static void ferCDSAPProcessGPU(fer_cd_sap_t *sap)
     gpuDel(sap);
     //exit(-1);
 }
+#endif
