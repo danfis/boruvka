@@ -717,7 +717,7 @@ static void gpuUpdate(fer_cd_sap_t *sap)
 
     if (!sap->gpu){
         gpu = FER_ALLOC(gpu_t);
-        gpu->cl = ferCLNewSimple(ferCLProgramFromFile("sap.cl"), "-W");
+        gpu->cl = ferCLNewSimple(ferCLProgramFromFile("sap.cl"), "");
         //gpu->kernel_radix_sort = ferCLKernelNew(gpu->cl, "radixSort");
         gpu->num_threads = 16;
         gpu->minmax = gpu->minmax_tmp = NULL;
@@ -725,6 +725,7 @@ static void gpuUpdate(fer_cd_sap_t *sap)
         //gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, gpu->num_threads * (1 << 4));
         gpu->counter  = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 16 * 5);
         gpu->counter_sum = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 16 * 5);
+        gpu->negative = FER_CL_ALLOC_ARR(gpu->cl, cl_uint, 5);
         sap->gpu = gpu;
     }
 
@@ -755,6 +756,7 @@ static void gpuDel(fer_cd_sap_t *sap)
     }
     FER_CL_FREE(gpu->cl, gpu->counter);
     FER_CL_FREE(gpu->cl, gpu->counter_sum);
+    FER_CL_FREE(gpu->cl, gpu->negative);
     free(gpu);
 }
 
@@ -787,14 +789,15 @@ static void gpuSave(fer_cd_sap_t *sap)
 static void gpuRun(fer_cd_sap_t *sap)
 {
     gpu_t *gpu = (gpu_t *)sap->gpu;
-    size_t glob[1], loc[1];
+    size_t glob[1], loc[1], glob_fix[1];
     uint32_t num_groups;
-    uint32_t i, shift;
+    uint32_t i, shift, use_negative;
     fer_cd_sap_minmax_t *src, *dst, *tmp;
 
     num_groups = 2;
     glob[0] = 16 * num_groups;
     loc[0] = 16;
+    glob_fix[0] = 2 * loc[0];
 
     int k_reduce, k_fix_counter1, k_fix_counter2, k_copy;
 
@@ -820,16 +823,25 @@ static void gpuRun(fer_cd_sap_t *sap)
     src = gpu->minmax;
     dst = gpu->minmax_tmp;
     for (i = 0; i < 8; i++){
+        use_negative = (i == 7);
+
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 0, src);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 1, gpu->minmax_len);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 2, gpu->counter);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 3, gpu->counter_sum);
-        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 4, shift);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 4, gpu->negative);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 5, shift);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_reduce, 6, use_negative);
         ferCLKernelEnqueue(gpu->cl, k_reduce, 1, glob, loc);
 
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter1, 0, gpu->counter_sum);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter1, 1, num_groups);
-        ferCLKernelEnqueue(gpu->cl, k_fix_counter1, 1, loc, loc);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter1, 2, gpu->negative);
+        if (use_negative){
+            ferCLKernelEnqueue(gpu->cl, k_fix_counter1, 1, glob_fix, loc);
+        }else{
+            ferCLKernelEnqueue(gpu->cl, k_fix_counter1, 1, loc, loc);
+        }
 
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter2, 0, gpu->counter);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_fix_counter2, 1, gpu->counter_sum);
@@ -839,7 +851,9 @@ static void gpuRun(fer_cd_sap_t *sap)
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 1, dst);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 2, gpu->minmax_len);
         FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 3, gpu->counter);
-        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 4, shift);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 4, gpu->negative);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 5, shift);
+        FER_CL_KERNEL_SET_ARG(gpu->cl, k_copy, 6, use_negative);
         ferCLKernelEnqueue(gpu->cl, k_copy, 1, glob, loc);
 
         tmp = src;
@@ -857,8 +871,10 @@ static void gpuRun(fer_cd_sap_t *sap)
     {
     uint32_t *counter = FER_ALLOC_ARR(uint32_t, 16 * 16 * 5);
     uint32_t *counter_sum = FER_ALLOC_ARR(uint32_t, 16 * 5);
+    uint32_t *negative = FER_ALLOC_ARR(uint32_t, 5);
     FER_CL_COPY_TO_HOST(gpu->cl, gpu->counter, counter, uint, 16 * 16 * 5);
     FER_CL_COPY_TO_HOST(gpu->cl, gpu->counter_sum, counter_sum, uint, 16 * 5);
+    FER_CL_COPY_TO_HOST(gpu->cl, gpu->negative, negative, uint, 5);
 
     {
         uint32_t i;
@@ -880,10 +896,17 @@ static void gpuRun(fer_cd_sap_t *sap)
                 fprintf(stderr, "\n");
         }
         fprintf(stderr, "\n");
+
+        fprintf(stderr, "negative:\n");
+        for (i = 0; i < 5; i++){
+            fprintf(stderr, " %u", negative[i]);
+        }
+        fprintf(stderr, "\n");
     }
 
     free(counter);
     free(counter_sum);
+    free(negative);
     }
 
     {
