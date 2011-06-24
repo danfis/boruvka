@@ -85,7 +85,8 @@ typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
  * Flags has this layout (from most significant bits):
  * 24 bits: hash table size
  *  8 bits: num threads
- * 32 bits: reserved
+ *  1 bit:  1 if GPU enabled
+ * 31 bits: reserved
  */
 
 /**
@@ -105,6 +106,14 @@ typedef struct _fer_cd_sap_pair_t fer_cd_sap_pair_t;
     (((uint64_t)((uint32_t)num_threads & 0xffu)) << (64u - 24u - 8u))
 #define __FER_CD_SAP_THREADS(flags) \
     ((((uint64_t)flags) >> (64u - 24u - 8u)) & 0xffu)
+
+/**
+ * Enables GPU SAP
+ */
+#define FER_CD_SAP_GPU \
+    ((uint64_t)1 << 31u)
+#define __FER_CD_SAP_GPU(flags) \
+    ((((uint64_t)flags) >> 31u) & 0x1u)
 
 /**
  * Creates new SAP instance.

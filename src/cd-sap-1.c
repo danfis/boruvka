@@ -251,19 +251,27 @@ static void radixSortSortFinal(fer_cd_sap_minmax_t *src,
 
 
 
-static void sap1FindPairsGeom(fer_cd_sap_1_t *sap, fer_cd_sap_geom_t *geom);
+static void sapFindPairs1(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg);
+static void sapFindPairs1Geom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
+                              fer_cd_sap_geom_t *geom);
 
 static void sap1FindPairs(fer_cd_sap_t *_sap)
 {
     fer_cd_sap_1_t *sap = (fer_cd_sap_1_t *)_sap;
+    sapFindPairs1(_sap, sap->pairs_reg);
+}
+
+static void sapFindPairs1(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg)
+{
     size_t i;
 
-    for (i = 0; i < sap->sap.geoms_len; i++){
-        sap1FindPairsGeom(sap, &sap->sap.geoms[i]);
+    for (i = 0; i < sap->geoms_len; i++){
+        sapFindPairs1Geom(sap, pairs_reg, &sap->geoms[i]);
     }
 }
 
-static void sap1FindPairsGeom(fer_cd_sap_1_t *sap, fer_cd_sap_geom_t *geom)
+static void sapFindPairs1Geom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
+                              fer_cd_sap_geom_t *geom)
 {
     fer_cd_sap_minmax_t *minmax;
     fer_cd_geom_t *g2;
@@ -286,23 +294,23 @@ static void sap1FindPairsGeom(fer_cd_sap_1_t *sap, fer_cd_sap_geom_t *geom)
         d = 2;
     }
 
-    minmax = sap->sap.minmax[d];
+    minmax = sap->minmax[d];
     for (i = geom->min[d] + 1; i < geom->max[d]; i++){
-        g2 = sap->sap.geoms[MINMAX_GEOM(&minmax[i])].g;
+        g2 = sap->geoms[MINMAX_GEOM(&minmax[i])].g;
         if (ferCDGeomOBBOverlap(geom->g, g2)){
             pair_test.g[0] = geom->g;
             pair_test.g[1] = g2;
 
-            if (ferHMapGet(sap->pairs_reg, &pair_test.hmap) == NULL){
+            if (ferHMapGet(pairs_reg, &pair_test.hmap) == NULL){
                 // create new pair
                 pair = pairNew(geom->g, g2);
 
                 // add this pair to list of pairs (into specified bucket)
-                ferListAppend(&sap->sap.pairs[0], &pair->list);
-                sap->sap.pairs_len++;
+                ferListAppend(&sap->pairs[0], &pair->list);
+                sap->pairs_len++;
 
                 // add pair into register
-                ferHMapPut(sap->pairs_reg, &pair->hmap);
+                ferHMapPut(pairs_reg, &pair->hmap);
             }
         }
     }

@@ -179,7 +179,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     cd->sap = NULL;
     if (params->use_sap && params->sap_size > 0){
         cd->sap = ferCDSAPNew(cd, FER_CD_SAP_HASH_TABLE_SIZE(params->sap_size)
-                                    | FER_CD_SAP_THREADS(num_threads));
+                                    | FER_CD_SAP_THREADS(num_threads)
+                                    | FER_CD_SAP_GPU);
     }
 
     return cd;
@@ -524,17 +525,22 @@ int __ferCDShapeSeparate(struct _fer_cd_t *cd,
     return num;
 }
 
+#include <fermat/timer.h>
 static void updateDirtyGeoms(fer_cd_t *cd)
 {
     fer_list_t *item;
     fer_cd_geom_t *g;
 
+    fer_timer_t timer;
+    ferTimerStart(&timer);
     while (!ferListEmpty(&cd->geoms_dirty)){
         item = ferListNext(&cd->geoms_dirty);
         g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
         ferCDSAPUpdate(cd->sap, g);
         __ferCDGeomResetDirty(cd, g);
     }
+    ferTimerStop(&timer);
+    DBG("%lu us", ferTimerElapsedInUs(&timer));
 
     ferCDSAPProcess(cd->sap);
 }

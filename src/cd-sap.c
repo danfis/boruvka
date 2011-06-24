@@ -67,11 +67,14 @@ static void pairRemoveAll(fer_cd_sap_t *sap);
 
 #include "cd-sap-1.c"
 #include "cd-sap-threads.c"
+#include "cd-sap-gpu.c"
 
 
 fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, uint64_t flags)
 {
-    if (__FER_CD_SAP_THREADS(flags) > 1){
+    if (__FER_CD_SAP_GPU(flags)){
+        return ferCDSAPGPUNew(cd, flags);
+    }else if (__FER_CD_SAP_THREADS(flags) > 1){
         return ferCDSAPThreadsNew(cd, flags);
     }
 
@@ -84,6 +87,8 @@ void ferCDSAPDel(fer_cd_sap_t *sap)
         ferCDSAP1Del(sap);
     }else if (sap->type == FER_CD_SAP_TYPE_THREADS){
         ferCDSAPThreadsDel(sap);
+    }else if (sap->type == FER_CD_SAP_TYPE_GPU){
+        ferCDSAPGPUDel(sap);
     }
 }
 
