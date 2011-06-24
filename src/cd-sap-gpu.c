@@ -26,7 +26,6 @@ struct _fer_cd_sap_gpu_t {
     uint32_t minmax_len;
     cl_uint *counter;
     cl_uint *counter_sum;
-    cl_uint *negative;
     uint32_t num_groups;
 
     struct {
@@ -46,6 +45,7 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
     fer_cd_sap_gpu_t *sap;
     char *program;
     size_t regsize;
+    ferCLPrintPlatforms(stdout);
 
     sap = FER_ALLOC(fer_cd_sap_gpu_t);
 
@@ -77,13 +77,12 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
     sap->kernel.fix_counter2 = 2;
     sap->kernel.copy         = 3;
 
-    sap->num_groups  = 40;
+    sap->num_groups  = 50;
     sap->minmax      = NULL;
     sap->minmax_tmp  = NULL;
     sap->minmax_len  = 0;
     sap->counter     = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * 16 * sap->num_groups);
     sap->counter_sum = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * sap->num_groups);
-    sap->negative    = FER_CL_ALLOC_ARR(sap->cl, cl_uint, sap->num_groups);
 
     return (fer_cd_sap_t *)sap;
 }
@@ -103,9 +102,6 @@ static void ferCDSAPGPUDel(fer_cd_sap_t *_sap)
     }
     if (sap->counter_sum){
         FER_CL_FREE(sap->cl, sap->counter_sum);
-    }
-    if (sap->negative){
-        FER_CL_FREE(sap->cl, sap->negative);
     }
 
     ferCDSAPDestroy(&sap->sap);
@@ -169,37 +165,27 @@ static void gpuRadixSortSave(fer_cd_sap_gpu_t *sap, int axis)
 
 static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
 {
-    size_t glob[1], loc[1], glob_fix[1];
-    uint32_t i, shift, use_negative;
+    size_t glob[1], loc[1];
+    uint32_t i, shift;
     fer_cd_sap_minmax_t *src, *dst, *tmp;
 
     glob[0] = 16 * sap->num_groups;
     loc[0] = 16;
-    glob_fix[0] = 2 * loc[0];
 
     shift = 0;
     src = sap->minmax;
     dst = sap->minmax_tmp;
     for (i = 0; i < 8; i++){
-        use_negative = (i == 7);
-
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 0, src);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 1, sap->minmax_len);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 2, sap->counter);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 3, sap->counter_sum);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 4, sap->negative);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 5, shift);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 6, use_negative);
+        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.reduce, 4, shift);
         ferCLKernelEnqueue(sap->cl, sap->kernel.reduce, 1, glob, loc);
 
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.fix_counter1, 0, sap->counter_sum);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.fix_counter1, 1, sap->num_groups);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.fix_counter1, 2, sap->negative);
-        if (use_negative){
-            ferCLKernelEnqueue(sap->cl, sap->kernel.fix_counter1, 1, glob_fix, loc);
-        }else{
-            ferCLKernelEnqueue(sap->cl, sap->kernel.fix_counter1, 1, loc, loc);
-        }
+        ferCLKernelEnqueue(sap->cl, sap->kernel.fix_counter1, 1, loc, loc);
 
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.fix_counter2, 0, sap->counter);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.fix_counter2, 1, sap->counter_sum);
@@ -209,9 +195,7 @@ static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 1, dst);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 2, sap->minmax_len);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 3, sap->counter);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 4, sap->negative);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 5, shift);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 6, use_negative);
+        FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.copy, 4, shift);
         ferCLKernelEnqueue(sap->cl, sap->kernel.copy, 1, glob, loc);
 
         FER_SWAP(src, dst, tmp);

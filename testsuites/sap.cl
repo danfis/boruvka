@@ -16,7 +16,11 @@ inline uint minmaxPos(__global fer_cd_sap_minmax_t *m,
                       uint shift)
 {
     union float_uint_t fi;
+    uint mask;
     fi.f = m->val;
+
+    mask = -(int)(fi.i >> 31u) | 0x80000000;
+    fi.i = fi.i ^ mask;
     fi.i = (fi.i >> shift) & MASK;
     return fi.i;
 }
@@ -25,9 +29,7 @@ __kernel void radixSortReduce(__global fer_cd_sap_minmax_t *_src,
                               uint minmax_len,
                               __global uint *__global_counter,
                               __global uint *global_counter_sum,
-                              __global uint *global_negative,
-                              uint shift,
-                              uint use_negative)
+                              uint shift)
 {
     uint id        = get_global_id(0);
     uint local_id  = get_local_id(0);
@@ -36,7 +38,6 @@ __kernel void radixSortReduce(__global fer_cd_sap_minmax_t *_src,
     __global uint *global_counter;
     __local uint local_counter[LEN * LEN];
     __local uint *counter = local_counter + (local_id * LEN);
-    __local uint negative[LEN];
 
     // compute length of section managed by this thread and strating
     // position ({from})
@@ -51,20 +52,9 @@ __kernel void radixSortReduce(__global fer_cd_sap_minmax_t *_src,
 
     // run count sort on local counter
     src = _src + from;
-    if (use_negative){
-        negative[local_id] = 0;
-        for (i = 0; i < len; i++){
-            pos = minmaxPos(src + i, shift);
-            ++counter[pos];
-
-            if (src[i].val < 0.f)
-                ++negative[local_id];
-        }
-    }else{
-        for (i = 0; i < len; i++){
-            pos = minmaxPos(src + i, shift);
-            ++counter[pos];
-        }
+    for (i = 0; i < len; i++){
+        pos = minmaxPos(src + i, shift);
+        ++counter[pos];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -76,24 +66,12 @@ __kernel void radixSortReduce(__global fer_cd_sap_minmax_t *_src,
         global_counter[i] = local_counter[i];
         global_counter_sum[id] += local_counter[i];
     }
-
-    if (use_negative){
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        if (local_id == 0){
-            id = get_group_id(0);
-            global_negative[id] = 0;
-            for (i = 0; i < LEN; i++)
-                global_negative[id] += negative[i];
-        }
-    }
 }
 
 
 
 __kernel void radixSortFixCounter1(__global uint *global_counter_sum,
-                                   uint num_groups,
-                                   __global uint *negative)
+                                   uint num_groups)
 {
     uint id        = get_global_id(0);
     uint local_id  = get_local_id(0);
@@ -128,10 +106,6 @@ __kernel void radixSortFixCounter1(__global uint *global_counter_sum,
             }
         }
         barrier(CLK_GLOBAL_MEM_FENCE);
-    }else if (get_group_id(0) == 1 && local_id == 0){
-        for (i = 1; i < num_groups; i++){
-            negative[0] += negative[i];
-        }
     }
 }
 
@@ -164,9 +138,7 @@ __kernel void radixSortCopy(__global fer_cd_sap_minmax_t *_src,
                             __global fer_cd_sap_minmax_t *dst,
                             uint minmax_len,
                             __global uint *__global_counter,
-                            __global uint *global_negative,
-                            uint shift,
-                            uint use_negative)
+                            uint shift)
 {
     uint id        = get_global_id(0);
     uint local_id  = get_local_id(0);
@@ -174,7 +146,6 @@ __kernel void radixSortCopy(__global fer_cd_sap_minmax_t *_src,
     __global fer_cd_sap_minmax_t *src;
     __global uint *global_counter;
     uint counter[LEN];
-    uint negative = global_negative[0];
 
     len  = minmax_len / get_global_size(0);
     from = id * len;
@@ -188,29 +159,12 @@ __kernel void radixSortCopy(__global fer_cd_sap_minmax_t *_src,
 
     // place minmax values in its place
     src = _src + from;
-    if (use_negative){
-        for (i = 0; i < len; i++){
-            val = minmaxPos(src + i, shift);
-            pos = counter[val];
+    for (i = 0; i < len; i++){
+        val = minmaxPos(src + i, shift);
+        pos = counter[val];
 
-            if (pos >= minmax_len - negative){
-                pos = minmax_len - pos - 1;
-            }else{
-                pos = negative + pos;
-            }
+        dst[pos] = src[i];
 
-            dst[pos] = src[i];
-
-            ++counter[val];
-        }
-    }else{
-        for (i = 0; i < len; i++){
-            val = minmaxPos(src + i, shift);
-            pos = counter[val];
-
-            dst[pos] = src[i];
-
-            ++counter[val];
-        }
+        ++counter[val];
     }
 }

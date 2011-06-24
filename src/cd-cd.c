@@ -180,7 +180,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     if (params->use_sap && params->sap_size > 0){
         cd->sap = ferCDSAPNew(cd, FER_CD_SAP_HASH_TABLE_SIZE(params->sap_size)
                                     | FER_CD_SAP_THREADS(num_threads)
-                                    | FER_CD_SAP_GPU);
+                                    | FER_CD_SAP_GPU
+                              );
     }
 
     return cd;
