@@ -175,7 +175,6 @@ size_t ferCubes`N`Nearest(fer_cubes`N`_t *cs, const fer_vec`N`_t *p, size_t num,
     // compute center cube from point p - this is where we start searching
     __ferCubesPosCoords(cs, p, center);
 
-    border = FER_ZERO;
     radius = 0;
     while (1){
         ferCubesNearestInRadius(cs, center, radius);

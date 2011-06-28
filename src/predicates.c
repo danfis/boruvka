@@ -1238,7 +1238,7 @@ static REAL orient3dadapt(const fer_pred_t *pred,
     wlength = scale_expansion_zeroelim(pred, abtlen, abt, cdztail, w);
     finlength = fast_expansion_sum_zeroelim(pred, finlength, finnow, wlength, w,
                                             finother);
-    finswap = finnow; finnow = finother; finother = finswap;
+    finnow = finother;
   }
 
   return finnow[finlength - 1];
@@ -1909,7 +1909,7 @@ static REAL incircleadapt(const fer_pred_t *pred,
                                               temp32blen, temp32b, temp64);
       finlength = fast_expansion_sum_zeroelim(pred, finlength, finnow, temp64len,
                                               temp64, finother);
-      finswap = finnow; finnow = finother; finother = finswap;
+      finnow = finother;
     }
   }
 

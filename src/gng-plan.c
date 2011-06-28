@@ -386,6 +386,9 @@ static void newNode(fer_gngp_t *gng)
         // TODO: put assert here - this shouldn't happen
         DBG("%d", (int)ferNetNodeEdgesLen(&n1->node));
         DBG("%lx %lx", (long)n1, (long)n2);
+        fprintf(stderr, "Error: It somehow happens that there is unconnected "
+                        "node in mesh. This is error that shouldn't happen!\n");
+        return;
     }
 
     // 2. Create new node between n1 and n2

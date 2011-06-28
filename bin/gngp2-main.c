@@ -390,7 +390,6 @@ static void printPath(fer_list_t *path, FILE *out)
         if (ferListNext(item) == path)
             break;
 
-        n = FER_LIST_ENTRY(item, fer_gngp_node_t, path);
         fprintf(out, "%d %d\n", (int)id, (int)id + 1);
         id++;
     }
