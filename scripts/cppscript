@@ -45,12 +45,12 @@ CC=$(cat "$INFILE" | grep -e 'CC *= *' \
                    | sed 's| *\**/ *$||')
 
 if [ "$CC" = "" ]; then
-    CC=gcc
+    CC=g++
 fi;
 
 
 sed 1d "$INFILE" >$TMP.c
-$CC -Wall -pedantic --std=gnu99 $CFLAGS -o $TMP.bin $TMP.c $LDFLAGS
+$CC -Wall -pedantic $CFLAGS -o $TMP.bin $TMP.c $LDFLAGS
 if [ ! -x $TMP.bin ]; then
     echo "ERROR:"
     echo "$CC -Wall -pedantic --std=gnu99 $CFLAGS -o $TMP.bin $TMP.c $LDFLAGS"
