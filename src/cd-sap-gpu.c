@@ -24,6 +24,7 @@ struct _fer_cd_sap_gpu_t {
     fer_cl_t *cl;
     fer_cd_sap_minmax_t *minmax, *minmax_tmp;
     uint32_t minmax_len;
+    cl_uint *block_offsets;
     cl_uint *counter;
     cl_uint *counter_sum;
     uint32_t num_groups;
@@ -33,6 +34,9 @@ struct _fer_cd_sap_gpu_t {
         int fix_counter1;
         int fix_counter2;
         int copy;
+
+        int blocks;
+        int offsets;
     } kernel;
 };
 typedef struct _fer_cd_sap_gpu_t fer_cd_sap_gpu_t;
@@ -68,7 +72,9 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
     if (ferCLKernelNew(sap->cl, "radixSortReduce") != 0
             || ferCLKernelNew(sap->cl, "radixSortFixCounter1") != 0
             || ferCLKernelNew(sap->cl, "radixSortFixCounter2") != 0
-            || ferCLKernelNew(sap->cl, "radixSortCopy") != 0){
+            || ferCLKernelNew(sap->cl, "radixSortCopy") != 0
+            || ferCLKernelNew(sap->cl, "radixSortBlocks") != 0
+            || ferCLKernelNew(sap->cl, "radixSortOffsets") != 0){
         fprintf(stderr, "Error: Can't load kernels for GPU Radix Sort! Exiting...\n");
         exit(-1);
     }
@@ -76,13 +82,16 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
     sap->kernel.fix_counter1 = 1;
     sap->kernel.fix_counter2 = 2;
     sap->kernel.copy         = 3;
+    sap->kernel.blocks       = 4;
+    sap->kernel.offsets      = 5;
 
-    sap->num_groups  = 50;
+    sap->num_groups  = 1;
     sap->minmax      = NULL;
     sap->minmax_tmp  = NULL;
     sap->minmax_len  = 0;
-    sap->counter     = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * 16 * sap->num_groups);
-    sap->counter_sum = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * sap->num_groups);
+    // TODO
+    //sap->counter     = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * 16 * sap->num_groups);
+    //sap->counter_sum = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * sap->num_groups);
 
     return (fer_cd_sap_t *)sap;
 }
@@ -166,8 +175,100 @@ static void gpuRadixSortSave(fer_cd_sap_gpu_t *sap, int axis)
 static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
 {
     size_t glob[1], loc[1];
-    uint32_t i, shift;
+    uint32_t i, shift, nbits, startbit, num_groups;
     fer_cd_sap_minmax_t *src, *dst, *tmp;
+
+    num_groups = sap->minmax_len / (256 * 4);
+    if (sap->minmax_len % (256 * 4) > 0)
+        num_groups += 1;
+    nbits = 32;
+    startbit = 0;
+    glob[0] = 256 * 1;
+    loc[0]  = 256;
+
+    for (i = 0; i < 256 * 4 * 2; i++){
+        if (i % 4 == 0)
+            fprintf(stderr, "[%04d]: ", i);
+        fprintf(stderr, " [% 11f (%x)]", sap->sap.minmax[0][i].val,
+                (int)ferRealAsUInt(sap->sap.minmax[0][i].val));
+        if ((i + 1) % 4 == 0)
+            fprintf(stderr, "\n");
+        if ((i + 1) % (256 * 4) == 0)
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.blocks, 0, sap->minmax);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.blocks, 1, sap->minmax_tmp);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.blocks, 2, sap->minmax_len);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.blocks, 3, startbit);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.blocks, 4, num_groups);
+    ferCLKernelSetArg(sap->cl, sap->kernel.blocks, 5, 4 * 256 * sizeof(uint32_t), NULL);
+    ferCLKernelEnqueue(sap->cl, sap->kernel.blocks, 1, glob, loc);
+
+    ferCLFinish(sap->cl);
+
+    FER_CL_COPY_TO_HOST(sap->cl, sap->minmax_tmp, sap->sap.minmax[0],
+                        fer_cd_sap_minmax_t, sap->minmax_len);
+    for (i = 0; i < 256 * 4 * 2; i++){
+        if (i % 4 == 0)
+            fprintf(stderr, "[%04d]: ", i);
+        fprintf(stderr, " [% 11f (%x)]", sap->sap.minmax[0][i].val,
+                (int)ferRealAsUInt(sap->sap.minmax[0][i].val));
+        if ((i + 1) % 4 == 0)
+            fprintf(stderr, "\n");
+        if ((i + 1) % (256 * 4) == 0)
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+
+    // ---------
+
+    fprintf(stderr, "len, num_groups: %d %d\n", (int)sap->minmax_len, (int)num_groups);
+    num_groups *= 2;
+    glob[0] *= 1;
+    sap->block_offsets = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * num_groups);
+    sap->counter       = FER_CL_ALLOC_ARR(sap->cl, cl_uint, 16 * num_groups);
+
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 0, sap->minmax_tmp);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 1, sap->counter);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 2, sap->block_offsets);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 3, sap->minmax_len);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 4, startbit);
+    FER_CL_KERNEL_SET_ARG(sap->cl, sap->kernel.offsets, 5, num_groups);
+    ferCLKernelSetArg(sap->cl, sap->kernel.offsets, 6, 3 * 256 * sizeof(uint32_t), NULL);
+    ferCLKernelEnqueue(sap->cl, sap->kernel.offsets, 1, glob, loc);
+
+    ferCLFinish(sap->cl);
+
+    uint32_t *counter       = FER_ALLOC_ARR(uint32_t, 16 * num_groups);
+    uint32_t *block_offsets = FER_ALLOC_ARR(uint32_t, 16 * num_groups);
+
+    FER_CL_COPY_TO_HOST(sap->cl, sap->counter, counter, uint32_t, 16 * num_groups);
+    FER_CL_COPY_TO_HOST(sap->cl, sap->block_offsets, block_offsets, uint32_t, 16 * num_groups);
+
+    for (i = 0; i < 16 * num_groups; i++){
+        if (i % 16 == 0)
+            fprintf(stderr, "[%04d]: ", i);
+        fprintf(stderr, " %03d", counter[i]);
+        if ((i + 1) % 16 == 0)
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+
+    for (i = 0; i < 16 * num_groups; i++){
+        if (i % 16 == 0)
+            fprintf(stderr, "[%04d]: ", i);
+        fprintf(stderr, " %03d", block_offsets[i]);
+        if ((i + 1) % 16 == 0)
+            fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+
+    FER_CL_FREE(sap->cl, sap->counter);
+    FER_CL_FREE(sap->cl, sap->block_offsets);
+
+    exit(-1);
 
     glob[0] = 16 * sap->num_groups;
     loc[0] = 16;
