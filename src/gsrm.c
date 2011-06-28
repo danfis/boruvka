@@ -175,6 +175,10 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq);
 static node_t *createNewNode2(fer_gsrm_t *g, node_t *sq, node_t *sf);
 
 
+/** --- Topology learning --- */
+static void learnTopology(fer_gsrm_t *g);
+
+
 /** --- Postprocessing functions --- */
 /** Returns (via min, max, avg arguments) minimum, maximum and average area
  *  of faces in a mesh. */
@@ -320,68 +324,7 @@ int ferGSRMRun(fer_gsrm_t *g)
         g->cycle++;
     } while (ferMesh3VerticesLen(g->mesh) < g->params.max_nodes);
 
-#if 0
-    size_t step, step_progress;
-
-    // check if there are some input signals
-    if (ferPC3Len(g->is) <= 3){
-        DBG2("No input signals!");
-        return -1;
-    }
-
-    // initialize cache
-    if (!g->c)
-        g->c = cacheNew();
-
-    // initialize NN search structure
-    if (g->cells)
-        ferNNCellsDel(g->cells);
-
-    g->params.cells.d    = 3;
-    g->params.cells.aabb = (fer_real_t *)ferPC3AABB(g->is);
-    g->cells = ferNNCellsNew(&g->params.cells);
-
-    // first shuffle of all input signals
-    ferPC3Permutate(g->is);
-    // and initialize its iterator
-    ferPC3ItInit(&g->isit, g->is);
-
-    // start timer
-    ferTimerStart(&g->timer);
-
-    // initialize mesh with three random nodes
-    meshInit(g);
-
-    step = 1;
-    step_progress = 0;
-    while (ferMesh3VerticesLen(g->mesh) < g->params.max_nodes){
-        drawInputPoint(g);
-
-        echl(g);
-
-        if (fer_unlikely(step >= g->params.lambda)){
-            createNewNode(g);
-            step = 0;
-            //ferMesh3DumpSVT(g->mesh, stdout, "1");
-
-            if (g->params.verbosity >= 2
-                    && fer_unlikely(step_progress % FER_GSRM_PROGRESS_REFRESH == 0)){
-                PR_PROGRESS(g);
-                step_progress = 0;
-            }
-            step_progress++;
-        }
-
-        decreaseErrCounter(g);
-
-        step++;
-    }
-
-    if (g->params.verbosity >= 1){
-        PR_PROGRESS(g);
-        fprintf(stderr, "\n");
-    }
-#endif
+    learnTopology(g);
 
     return 0;
 }
@@ -1158,6 +1101,29 @@ static void createNewNode(fer_gsrm_t *g)
 
 
 
+/** --- Topology learning --- */
+static void learnTopology(fer_gsrm_t *g)
+{
+    fer_vec3_t *is;
+    fer_pc3_it_t pcit;
+    fer_nncells_el_t *el[2];
+
+    // for each input point
+    ferPC3ItInit(&pcit, g->is);
+    while (!ferPC3ItEnd(&pcit)){
+        is = ferPC3ItGet(&pcit);
+
+        // 1. Find two nearest nodes
+        ferNNCellsNearest(g->cells, (const fer_vec_t *)is, 2, el);
+        g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
+        g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
+
+        // 2. Connect winning nodes
+        echlConnectNodes(g);
+
+        ferPC3ItNext(&pcit);
+    }
+}
 
 /** --- Postprocessing functions --- */
 static void faceAreaStat(fer_gsrm_t *g, fer_real_t *_min, fer_real_t *_max,
