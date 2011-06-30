@@ -27,9 +27,7 @@ struct _fer_cd_sap_th_radix_sort_t {
 
     struct {
         fer_cd_sap_minmax_t *src, *dst;
-        fer_uint_t shift;
         int axis;
-        fer_uint_t i, len;
     } context;
 };
 typedef struct _fer_cd_sap_th_radix_sort_t fer_cd_sap_th_radix_sort_t;
@@ -106,7 +104,7 @@ static void ferCDSAPThreadsDel(fer_cd_sap_t *_sap)
     free(sap);
 }
 
-_fer_inline void thradixSortFixCounter(uint32_t *counter, uint32_t threads);
+static uint32_t thradixSortFixCounter(uint32_t *counter, uint32_t threads);
 static void __thradixSortTask(int id, void *data,
                               const fer_tasks_thinfo_t *thinfo);
 static void thRadixSortSort(fer_cd_sap_th_radix_sort_t *rs);
@@ -115,8 +113,6 @@ static void sapthRadixSort(fer_cd_sap_t *_sap, int axis)
 {
     fer_cd_sap_th_t *sap = (fer_cd_sap_th_t *)_sap;
     fer_cd_sap_th_radix_sort_t *rs = &sap->rs;
-    fer_cd_sap_minmax_t *tmp;
-    fer_uint_t i;
 
     // allocate temporary array
     if (rs->minmax_alloc < 2 * sap->sap.geoms_len){
@@ -132,22 +128,11 @@ static void sapthRadixSort(fer_cd_sap_t *_sap, int axis)
     rs->context.src  = sap->sap.minmax[axis];
     rs->context.dst  = rs->minmax;
     rs->context.axis = axis;
-    rs->context.len  = (fer_uint_t)sizeof(fer_real_t);
 
-    for (i = 0; i < rs->context.len; i++){
-        // set up context
-        rs->context.shift = i * 8;
-        rs->context.i = i;
-
-        // run sorting
-        thRadixSortSort(rs);
-
-        // swap src and dst min-max arrays
-        FER_SWAP(rs->context.src, rs->context.dst, tmp);
-    }
+    thRadixSortSort(rs);
 }
 
-_fer_inline void thradixSortFixCounter(uint32_t *counter, uint32_t threads)
+static uint32_t thradixSortFixCounter(uint32_t *counter, uint32_t threads)
 {
     uint32_t t, i, s, c;
 
@@ -158,6 +143,8 @@ _fer_inline void thradixSortFixCounter(uint32_t *counter, uint32_t threads)
             s = c;
         }
     }
+
+    return s;
 }
 
 static void __thradixSortTask(int id, void *data,
@@ -165,9 +152,12 @@ static void __thradixSortTask(int id, void *data,
 {
     fer_cd_sap_th_radix_sort_t *rs = (fer_cd_sap_th_radix_sort_t *)data;
     fer_cd_sap_th_t *sap = fer_container_of(rs, fer_cd_sap_th_t, rs);
-    int len, from, i;
+    int len, from, i, shift, end;
     uint32_t *counter;
-    fer_cd_sap_minmax_t *minmax;
+    fer_cd_sap_minmax_t *src, *dst, *minmax, *tmp;
+
+    src = rs->context.src;
+    dst = rs->context.dst;
 
     // compute length of section managed by this thread and strating
     // position ({from})
@@ -177,34 +167,43 @@ static void __thradixSortTask(int id, void *data,
         len = rs->minmax_len - from;
 
     counter = rs->counter + (256 * id);
-    minmax  = rs->context.src + from;
 
-    radixSortZeroizeCounter(counter);
-    if (rs->context.i == rs->context.len - 1){
-        radixSortCountFinal(minmax, len, counter, rs->negative + id, rs->context.shift);
-    }else{
-        radixSortCount(minmax, len, counter, rs->context.shift);
-    }
-    ferBarrier(rs->barrier);
-
-
-    if (id == 0){
-        thradixSortFixCounter(rs->counter, sap->num_threads);
-    }else if (rs->context.i == rs->context.len - 1 && id == 1){
-        for (i = 1; i < sap->num_threads; i++){
-            rs->negative[0] += rs->negative[i];
+    end = (fer_uint_t)sizeof(fer_real_t) * 8;
+    for (shift = 0; shift < end; shift += 8){
+        minmax  = src + from;
+    
+        radixSortZeroizeCounter(counter);
+        if (shift == end - 8){
+            radixSortCountFinal(minmax, len, counter, rs->negative + id, shift);
+        }else{
+            radixSortCount(minmax, len, counter, shift);
         }
-    }
-    ferBarrier(rs->barrier);
+        ferBarrier(rs->barrier);
+    
+    
+        if (id == 0){
+            thradixSortFixCounter(rs->counter, sap->num_threads);
+        }else if (shift == end - 8 && id == 1){
+            for (i = 1; i < sap->num_threads; i++){
+                rs->negative[0] += rs->negative[i];
+            }
+        }
+        ferBarrier(rs->barrier);
+    
+    
+        if (shift == end - 8){
+            radixSortSortFinal(minmax, len,
+                               dst, rs->minmax_len,
+                               counter, rs->negative[0], shift,
+                               sap->sap.geoms, rs->context.axis);
+        }else{
+            radixSortSort(minmax, dst, len, counter, shift);
 
+            // swap src and dst min-max arrays
+            FER_SWAP(src, dst, tmp);
 
-    if (rs->context.i == rs->context.len - 1){
-        radixSortSortFinal(minmax, len,
-                           rs->context.dst, rs->minmax_len,
-                           counter, rs->negative[0], rs->context.shift,
-                           sap->sap.geoms, rs->context.axis);
-    }else{
-        radixSortSort(minmax, rs->context.dst, len, counter, rs->context.shift);
+            ferBarrier(rs->barrier);
+        }
     }
 }
 
