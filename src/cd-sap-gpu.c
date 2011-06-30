@@ -15,6 +15,7 @@
  */
 
 #include <fermat/opencl.h>
+#include "cd-sap-gpu-cl.c"
 
 struct _fer_cd_sap_gpu_t {
     fer_cd_sap_t sap;
@@ -62,7 +63,6 @@ static void sapgpuFindPairs(fer_cd_sap_t *sap);
 static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
 {
     fer_cd_sap_gpu_t *sap;
-    char *program;
     size_t regsize;
     ferCLPrintPlatforms(stdout);
 
@@ -79,9 +79,7 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
 
     // TODO
     // create OpenCL instance
-    program = ferCLProgramFromFile("sap.cl");
-    sap->cl = ferCLNewSimple(program, "");
-    free(program);
+    sap->cl = ferCLNewSimple2(opencl_program_len, opencl_program, "");
 
     // create kernels
     if (ferCLKernelNew(sap->cl, "radixSortBlocks") != 0

@@ -90,6 +90,8 @@ bin/fer-%: bin/%-main.c libfermat.a
 
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
+src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
+	touch $@
 
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -127,6 +129,8 @@ src/surf-matching.c: src/surf-matching-cl.c
 %.c: fermat/config.h
 
 %-cl.c: %.cl
+	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
+src/cd-sap-gpu-cl.c: src/cd-sap-gpu.cl
 	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
 
 

@@ -1,3 +1,51 @@
+/***
+ * fermat
+ * -------
+ * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
+ *
+ *  This file is part of fermat.
+ *
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
+ *
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
+ *
+ *
+ *  Some functions are ported from CUDPP (http://code.google.com/p/cudpp/).
+ *  These functions are marked in a comment.
+ *  Copyright and license of these functions (copied from license.txt file):
+ *
+ *  Copyright (c) 2007-2010 The Regents of the University of California, Davis
+ *  campus ("The Regents") and NVIDIA Corporation ("NVIDIA"). All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, 
+ * are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright notice, 
+ *       this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright notice, 
+ *       this list of conditions and the following disclaimer in the documentation 
+ *       and/or other materials provided with the distribution.
+ *     * Neither the name of the The Regents, nor NVIDIA, nor the names of its 
+ *       contributors may be used to endorse or promote products derived from this 
+ *       software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
 #define BITS 4u
 #define MASK 0xfu
 #define LEN (1 << BITS)
@@ -38,14 +86,10 @@ inline float floatUnKey(uint k)
 
 
 /**
- * @brief Scans one warp quickly, optimized for 32-element warps, using shared memory
- * 
  * Scans each warp in parallel ("warp-scan"), one element per thread.
  * uses 2 numElements of shared memory per thread (64 numElements per warp)
- * 
- * @param[in] val Elements per thread to scan
- * @param[in,out] sData
-**/
+ * Function ported from CUDPP.
+ */
 uint scanwarp(uint val, volatile __local uint* sData, int maxlevel)
 {
     // The following is the same as 2 * WARP_SIZE * warpId + threadInWarp = 
@@ -66,13 +110,10 @@ uint scanwarp(uint val, volatile __local uint* sData, int maxlevel)
 }
 
 /**
- * @brief Scans 4*CTA_SIZE unsigned ints in a block
- *
- * scan4 scans 4*CTA_SIZE numElements in a block (4 per
- * thread), using a warp-scan algorithm
- * 
- * @param[in] idata 4-vector of integers to scan
-**/
+ * scan4 scans 4*CTA_SIZE numElements in a block (4 per thread), using a
+ * warp-scan algorithm.
+ * Function ported from CUDPP.
+ */
 uint4 scan4(uint4 idata, __local uint* ptr)
 {    
     uint idx = get_local_id(0);
@@ -109,17 +150,12 @@ uint4 scan4(uint4 idata, __local uint* ptr)
 }
 
 /**
- * @brief Computes output position for each thread given predicate; trues come first then falses
- * 
- * Rank is the core of the radix sort loop.  Given a predicate, it
+ * Rank is the core of the radix sort loop. Given a predicate, it
  * computes the output position for each thread in an ordering where all
  * True threads come first, followed by all False threads. 
  * This version handles 4 predicates per thread; hence, "rank4".
- *
- * @param[in] preds true/false values for each of the 4 elements in this thread
- *
- * @todo is the description of "preds" correct?
-**/
+ * Function ported from CUDPP.
+ */
 uint4 rank4(uint4 preds, __local uint* shared_mem, __local uint* numtrue)
 {
     int local_id = get_local_id(0);
@@ -143,13 +179,10 @@ uint4 rank4(uint4 preds, __local uint* shared_mem, __local uint* numtrue)
 }
 
 /**
- * @brief Sorts one block
- *
  * Uses rank to sort one bit at a time: Sorts a block according
  * to bits startbit -> nbits + startbit
- * @param[in,out] key
- * @param[in,out] value
-**/
+ * Function ported from CUDPP.
+ */
 void radixSortBlock(uint4 *key, uint4 *value, uint startbit,
                     __local uint *shared_mem)
 {
@@ -195,6 +228,10 @@ void radixSortBlock(uint4 *key, uint4 *value, uint startbit,
     }
 }
 
+/**
+ * Sorts blocks of size 4*256.
+ * Function adapted from CUDPP.
+ */
 __kernel void radixSortBlocks(__global fer_cd_sap_minmax_t *in,
                               __global fer_cd_sap_minmax_t *out,
                               uint len,
@@ -278,31 +315,13 @@ __kernel void radixSortBlocks(__global fer_cd_sap_minmax_t *in,
 }
 
 
-/** @brief Computes the number of keys of each radix in each block stores offset.
-*
-* Given an array with blocks sorted according to a 4-bit radix group, each 
-* block counts the number of keys that fall into each radix in the group, and 
-* finds the starting offset of each radix in the block.  It then writes the radix 
-* counts to the counters array, and the starting offsets to the blockOffsets array.
-*
-* Template parameters are used to generate efficient code for various special cases
-* For example, we have to handle arrays that are a multiple of the block size 
-* (fullBlocks) differently than arrays that are not. "loop" is used when persistent 
-* CTAs are used. 
-*
-* By persistent CTAs we mean that we launch only as many thread blocks as can 
-* be resident in the GPU and no more, rather than launching as many threads as
-* we have elements. Persistent CTAs loop over blocks of elements until all work
-* is complete.  This can be faster in some cases.  In our tests it is faster
-* for large sorts (and the threshold is higher on compute version 1.1 and earlier
-* GPUs than it is on compute version 1.2 GPUs.
-* 
-* @param[in] keys Input keys
-* @param[out] counters Radix count for each block
-* @param[out] blockOffsets The offset address for each block
-* @param[in] numElements Total number of elements
-* @param[in] totalBlocks Total number of blocks
-**/
+/**
+ * Given an array with blocks sorted according to a 4-bit radix group, each 
+ * block counts the number of keys that fall into each radix in the group, and 
+ * finds the starting offset of each radix in the block.  It then writes the radix 
+ * counts to the counters array, and the starting offsets to the block_offsets array.
+ * Function adapted from CUDPP.
+ */
 __kernel void radixSortOffsets(__global fer_cd_sap_minmax_t *keys, 
                                __global uint *counters, 
                                __global uint *block_offsets, 
@@ -397,42 +416,10 @@ __kernel void radixSortOffsets(__global fer_cd_sap_minmax_t *keys,
 }
 
 
-/**@brief Reorders data in the global array.
-*
-* reorderData shuffles data in the array globally after the radix
-* offsets have been found. On compute version 1.1 and earlier GPUs, this code depends 
-* on SORT_CTA_SIZE being 16 * number of radices (i.e. 16 * 2^nbits).
-* 
-* On compute version 1.1 GPUs ("manualCoalesce=true") this function ensures
-* that all writes are coalesced using extra work in the kernel.  On later
-* GPUs coalescing rules have been relaxed, so this extra overhead hurts 
-* performance.  On these GPUs we set manualCoalesce=false and directly store
-* the results.
-*
-* Template parameters are used to generate efficient code for various special cases
-* For example, we have to handle arrays that are a multiple of the block size 
-* (fullBlocks) differently than arrays that are not.  "loop" is used when persistent 
-* CTAs are used. 
-*
-* By persistent CTAs we mean that we launch only as many thread blocks as can 
-* be resident in the GPU and no more, rather than launching as many threads as
-* we have elements. Persistent CTAs loop over blocks of elements until all work
-* is complete.  This can be faster in some cases.  In our tests it is faster
-* for large sorts (and the threshold is higher on compute version 1.1 and earlier
-* GPUs than it is on compute version 1.2 GPUs.
-*
-* @param[out] outKeys Output of sorted keys 
-* @param[out] outValues Output of associated values 
-* @param[in] keys Input of unsorted keys in GPU 
-* @param[in] values Input of associated input values 
-* @param[in] blockOffsets The offset address for each block
-* @param[in] offsets Address of each radix within each block
-* @param[in] sizes Number of elements in a block
-* @param[in] numElements Total number of elements
-* @param[in] totalBlocks Total number of data blocks to process
-*
-* @todo Args that are const below should be prototyped as const
-**/
+/**
+ * Reorder data from {in} array into {out} array according to g_counters
+ * and offsets.
+ */
 __kernel void radixSortReorder(__global fer_cd_sap_minmax_t *in,
                                __global fer_cd_sap_minmax_t *out,
                                __global uint *g_counters,
@@ -497,6 +484,10 @@ __kernel void radixSortReorder(__global fer_cd_sap_minmax_t *in,
     }
 }
 
+/**
+ * Computes pre-scan (as described in Blelloch (1990)) of one block. One
+ * thread computes 4 items.
+ */
 __kernel void radixSortPrescan(__global uint *in,
                                __global uint *out,
                                __global uint *sums,
