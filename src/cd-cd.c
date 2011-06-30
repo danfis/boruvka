@@ -26,7 +26,8 @@ void ferCDParamsInit(fer_cd_params_t *params)
                             | FER_CD_FIT_COVARIANCE;
 
     params->use_sap = 1;
-    params->sap_size = 1023;
+    params->sap_gpu = 0;
+    params->sap_hashsize = 1023;
 
     params->max_contacts = 20;
     params->num_threads = 1;
@@ -38,6 +39,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     size_t i, j;
     size_t num_threads;
     fer_cd_params_t __params;
+    uint64_t sapflags;
 
     if (!params){
         ferCDParamsInit(&__params);
@@ -177,11 +179,14 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     cd->geoms_dirty_len = 0;
 
     cd->sap = NULL;
-    if (params->use_sap && params->sap_size > 0){
-        cd->sap = ferCDSAPNew(cd, FER_CD_SAP_HASH_TABLE_SIZE(params->sap_size)
-                                    | FER_CD_SAP_THREADS(num_threads)
-                                    | FER_CD_SAP_GPU
-                              );
+    if (params->use_sap && params->sap_hashsize > 0){
+        sapflags = FER_CD_SAP_HASH_TABLE_SIZE(params->sap_hashsize);
+        if (num_threads > 1)
+            sapflags |= FER_CD_SAP_THREADS(num_threads);
+        if (params->sap_gpu)
+            sapflags |= FER_CD_SAP_GPU;
+
+        cd->sap = ferCDSAPNew(cd, sapflags);
     }
 
     return cd;

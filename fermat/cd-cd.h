@@ -48,10 +48,11 @@ struct _fer_cd_params_t {
                                Default: FER_CD_TOP_DOWN
                                             | FER_CD_FIT_COVARIANCE */
 
-    int use_sap;     /*!< True if SAP should be used. Default: true */
-    size_t sap_size; /*!< Size of SAP's hash table.
-                          Set it to reasonable high number (consider prime
-                          number). Default: 1023 */
+    int use_sap; /*!< True if SAP should be used. Default: true */
+    int sap_gpu; /*!< True if SAP should run on GPU. Default: false */
+    size_t sap_hashsize; /*!< Size of SAP's hash table.
+                              Set it to reasonable high number (consider
+                              prime number). Default: 1023 */
 
     size_t max_contacts; /*!< Maximal number of contacts.
                               Default: 20 */

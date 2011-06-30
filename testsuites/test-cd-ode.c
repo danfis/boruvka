@@ -679,6 +679,7 @@ int main (int argc, char **argv)
     fer_timer_t timer;
     int i;
     int num_threads = 1;
+    int sap_gpu = 0;
 
     // setup pointers to drawstuff callback functions
     dsFunctions fn;
@@ -691,12 +692,18 @@ int main (int argc, char **argv)
 
     if (argc > 4 && (strcmp(argv[1], "test") == 0
                         || strcmp(argv[1], "testgl") == 0)){
-        num_threads = atoi(argv[4]);
+        if (strcmp(argv[4], "gpu") == 0){
+            num_threads = 1;
+            sap_gpu = 1;
+        }else{
+            num_threads = atoi(argv[4]);
+        }
     }
 
     ferCDParamsInit(&params);
     params.use_sap = 1;
-    params.sap_size = 1023 * 1023 * 10 + 1;
+    params.sap_gpu = sap_gpu;
+    params.sap_hashsize = 1023 * 1023 * 10 + 1;
     params.num_threads = num_threads;
     cd = ferCDNew(&params);
 
