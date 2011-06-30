@@ -36,165 +36,6 @@ inline float floatUnKey(uint k)
     return fi.f;
 }
 
-inline uint minmaxPos(__global fer_cd_sap_minmax_t *m,
-                      uint shift)
-{
-    union float_uint_t fi;
-    uint mask;
-    fi.f = m->val;
-
-    mask = -(int)(fi.i >> 31u) | 0x80000000;
-    fi.i = fi.i ^ mask;
-    fi.i = (fi.i >> shift) & MASK;
-    return fi.i;
-}
-
-__kernel void radixSortReduce(__global fer_cd_sap_minmax_t *_src,
-                              uint minmax_len,
-                              __global uint *__global_counter,
-                              __global uint *global_counter_sum,
-                              uint shift)
-{
-    uint id        = get_global_id(0);
-    uint local_id  = get_local_id(0);
-    uint i, from, len, pos, j;
-    __global fer_cd_sap_minmax_t *src;
-    __global uint *global_counter;
-    __local uint local_counter[LEN * LEN];
-    __local uint *counter = local_counter + (local_id * LEN);
-
-    // compute length of section managed by this thread and strating
-    // position ({from})
-    len  = minmax_len / get_global_size(0);
-    from = id * len;
-    if (id == get_global_size(0) - 1)
-        len = minmax_len - from;
-
-    // zeroize counter
-    for (i = 0; i < LEN; i++)
-        counter[i] = 0;
-
-    // run count sort on local counter
-    src = _src + from;
-    for (i = 0; i < len; i++){
-        pos = minmaxPos(src + i, shift);
-        ++counter[pos];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    // reduce colums of counter and copy that into global memory
-    global_counter = __global_counter + (LEN * LEN * get_group_id(0));
-
-    global_counter_sum[id] = 0;
-    for (i = local_id, j = 0; i < LEN * LEN; i += LEN, j++){
-        global_counter[i] = local_counter[i];
-        global_counter_sum[id] += local_counter[i];
-    }
-}
-
-
-
-__kernel void radixSortFixCounter1(__global uint *global_counter_sum,
-                                   uint num_groups)
-{
-    uint id        = get_global_id(0);
-    uint local_id  = get_local_id(0);
-    uint add, i, len, tmp;
-
-    if (get_group_id(0) == 0){
-        // sum values in columns
-        len = LEN * num_groups;
-        for (i = local_id + LEN; i < len; i += LEN){
-            global_counter_sum[i] += global_counter_sum[i - LEN];
-        }
-        barrier(CLK_GLOBAL_MEM_FENCE);
-
-        // sum values in last section
-        if (id == 0){
-            add = global_counter_sum[(LEN * (num_groups - 1))];
-            len = LEN * num_groups;
-            for (i = LEN * (num_groups - 1) + 1; i < len; ++i){
-                tmp = global_counter_sum[i];
-                global_counter_sum[i] += add;
-                add += tmp;
-            }
-        }
-        barrier(CLK_GLOBAL_MEM_FENCE);
-
-        // fix sum values in columns
-        if (local_id != 0){
-            add = global_counter_sum[(LEN * (num_groups - 1)) + local_id- 1];
-            len = LEN * (num_groups - 1);
-            for (i = local_id; i < len; i += LEN){
-                global_counter_sum[i] += add;
-            }
-        }
-        barrier(CLK_GLOBAL_MEM_FENCE);
-    }
-}
-
-__kernel void radixSortFixCounter2(__global uint *__global_counter,
-                                   __global uint *global_counter_sum)
-{
-    uint id        = get_global_id(0);
-    uint local_id  = get_local_id(0);
-    __global uint *global_counter;
-    uint add, i, len, tmp;
-
-    global_counter = __global_counter + (LEN * LEN * get_group_id(0));
-
-    add = 0;
-    if (get_group_id(0) > 0){
-        add = global_counter_sum[id - LEN];
-    }else if (local_id != 0){
-        add = global_counter_sum[(LEN * (get_num_groups(0) - 1)) + local_id - 1];
-    }
-
-    len = LEN * LEN + local_id;
-    for (i = local_id; i < len; i += LEN){
-        tmp = global_counter[i];
-        global_counter[i] = add;
-        add += tmp;
-    }
-}
-
-__kernel void radixSortCopy(__global fer_cd_sap_minmax_t *_src,
-                            __global fer_cd_sap_minmax_t *dst,
-                            uint minmax_len,
-                            __global uint *__global_counter,
-                            uint shift)
-{
-    uint id        = get_global_id(0);
-    uint local_id  = get_local_id(0);
-    uint from, len, i, val, pos;
-    __global fer_cd_sap_minmax_t *src;
-    __global uint *global_counter;
-    uint counter[LEN];
-
-    len  = minmax_len / get_global_size(0);
-    from = id * len;
-    if (id == get_global_size(0) - 1)
-        len = minmax_len - from;
-
-    // copy counterto private memory
-    global_counter  = __global_counter + LEN * id;
-    for (i = 0; i < LEN; i++)
-        counter[i] = global_counter[i];
-
-    // place minmax values in its place
-    src = _src + from;
-    for (i = 0; i < len; i++){
-        val = minmaxPos(src + i, shift);
-        pos = counter[val];
-
-        dst[pos] = src[i];
-
-        ++counter[val];
-    }
-}
-
-
-
 
 /**
  * @brief Scans one warp quickly, optimized for 32-element warps, using shared memory
@@ -494,8 +335,8 @@ __kernel void radixSortOffsets(__global fer_cd_sap_minmax_t *keys,
             radix2.y = (idx + 1 < len ? floatKey(keys[idx + 1].val) : UINT_MAX);
         }
 
-        shared_mem[2 * local_id + 0] = (radix2.x >> startbit) & MASK;
-        shared_mem[2 * local_id + 1] = (radix2.y >> startbit) & MASK;
+        shared_mem[local_id << 1      ] = (radix2.x >> startbit) & MASK;
+        shared_mem[(local_id << 1) + 1] = (radix2.y >> startbit) & MASK;
 
         // Finds the position where the shared_mem entries differ and stores start 
         // index for each radix.
@@ -592,164 +433,201 @@ __kernel void radixSortOffsets(__global fer_cd_sap_minmax_t *keys,
 *
 * @todo Args that are const below should be prototyped as const
 **/
-#if 0
-template<uint startbit, bool fullBlocks, bool manualCoalesce, bool unflip, bool loop>
-__global__ void 
-LAUNCH_BOUNDS(SORT_CTA_SIZE)
-__kernel void reorderData(__global fer_cd_sap_minmax_t *in,
-                          __global fer_cd_sap_minmax_t *out,
-                          __global uint *block_offsets,
-                          __global uint *offsets,
-                          __global uint *sizes,
-                          uint len,
-                          uint total_groups)
+__kernel void radixSortReorder(__global fer_cd_sap_minmax_t *in,
+                               __global fer_cd_sap_minmax_t *out,
+                               __global uint *g_counters,
+                               __global uint *g_offsets,
+                               uint len,
+                               uint startbit,
+                               uint total_groups)
 {
-    __local uint2 sKeys2[SORT_CTA_SIZE];
-    __local uint2 sValues2[SORT_CTA_SIZE];
-    __local uint sOffsets[16];
-    __local uint sBlockOffsets[16];
-
-    uint *sKeys1   = (uint *)sKeys2; 
-    uint *sValues1 = (uint *)sValues2; 
-
+    __local uint counters[16];
+    __local uint offsets[16];
+    fer_cd_sap_minmax_t keyval;
+    uint key, pos;
     uint group_id   = get_group_id(0);
     uint local_size = get_local_size(0);
     uint local_id   = get_local_id(0);
-    uint idx;
+    uint idx, lidx;
+
 
     while (group_id < total_groups){
+        // copy counters and offsets to local memory
+        if (local_id < 16){
+            counters[local_id] = g_counters[local_id * total_groups + group_id];
+        }else if (local_id >= 16 && local_id < 32){
+            offsets[local_id - 16] = g_offsets[group_id * 16 + (local_id - 16)];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+
         idx = group_id * local_size + local_id;
         idx = idx << 1;
+        lidx = local_id << 1;
 
-        // copy data to private memory
-        if (idx + 1 < len){
-            sKeys1[local_id    ].x = floatKey(in[idx].val);
-            sKeys1[local_id + 1].x = floatKey(in[idx + 1].val);
+        if (idx < len){
+            keyval = in[idx];
+            key = floatKey(keyval.val);
+            key = (key >> startbit) & MASK;
+            pos = counters[key] + (lidx - offsets[key]);
 
-            sValues1[local_id    ].x = in[idx].geom_ismax;
-            sValues1[local_id + 1].x = in[idx + 1].geom_ismax;
+            out[pos] = keyval;
+            //out[idx].val = offsets[key];
+            //out[idx].geom_ismax = key;
+        }
+
+        ++idx;
+        ++lidx;
+        if (idx < len){
+            keyval = in[idx];
+            key = floatKey(keyval.val);
+            key = (key >> startbit) & MASK;
+            pos = counters[key] + (lidx - offsets[key]);
+
+            out[pos] = keyval;
+            //out[idx].val = offsets[key];
+            //out[idx].geom_ismax = key;
+        }
+
+        if (get_num_groups(0) < total_groups){
+            group_id += get_num_groups(0);
+            barrier(CLK_LOCAL_MEM_FENCE);
         }else{
-            if (idx < len){
-                sKeys1[local_id].x = floatKey(in[idx].val);
-                sValues1[local_id].x = in[idx].geom_ismax;
-            }else{
-                sKeys1[local_id].x = UINT_MAX;
-                sValues1[local_id].x = UINT_MAX;
-            }
-
-            if (idx + 1 < len){
-                sKeys1[local_id + 1].x = floatKey(in[idx + 1].val);
-                sValues1[local_id + 1].x = in[idx + 1].geom_ismax;
-            }else{
-                sKeys1[local_id + 1].x = UINT_MAX;
-                sValues1[local_id + 1].x = UINT_MAX;
-            }
-        }
-    }
-
-    while (!loop || blockId < totalBlocks)
-    {
-        uint i = blockId * blockDim.x + threadIdx.x;
-
-        // handle non-full last block if array is not multiple of 1024 numElements
-        if(!fullBlocks && (((i + 1) << 1) > numElements))
-        {
-            uint *keys1   = (uint*)keys;
-            uint *values1 = (uint*)values;
-            uint j = i << 1; 
-
-            sKeys1[threadIdx.x << 1]   = (j < numElements) ? keys1[j]   : UINT_MAX; 
-            sValues1[threadIdx.x << 1] = (j < numElements) ? values1[j] : UINT_MAX; 
-            j++; 
-            sKeys1[(threadIdx.x << 1) + 1]   = (j < numElements) ? keys1[j]   : UINT_MAX; 
-            sValues1[(threadIdx.x << 1) + 1] = (j < numElements) ? values1[j] : UINT_MAX; 
-        }
-        else
-        {
-            sKeys2[threadIdx.x]   = keys[i];
-            sValues2[threadIdx.x] = values[i];
-        }
-
-        if (!manualCoalesce)
-        {
-            if(threadIdx.x < 16)  
-            {
-                sOffsets[threadIdx.x]      = offsets[threadIdx.x * totalBlocks + blockId];
-                sBlockOffsets[threadIdx.x] = blockOffsets[blockId * 16 + threadIdx.x];
-            }
-            __syncthreads();
-
-            uint radix = (sKeys1[threadIdx.x] >> startbit) & 0xF;
-            uint globalOffset = sOffsets[radix] + threadIdx.x - sBlockOffsets[radix];
-
-            if (fullBlocks || globalOffset < numElements)
-            {
-                outKeys[globalOffset]   = floatUnflip<unflip>(sKeys1[threadIdx.x]);
-                outValues[globalOffset] = sValues1[threadIdx.x];
-            }
-
-            radix = (sKeys1[threadIdx.x + SORT_CTA_SIZE] >> startbit) & 0xF;
-            globalOffset = sOffsets[radix] + threadIdx.x + SORT_CTA_SIZE - sBlockOffsets[radix];
-
-            if (fullBlocks || globalOffset < numElements)
-            {
-                outKeys[globalOffset]   = floatUnflip<unflip>(sKeys1[threadIdx.x + SORT_CTA_SIZE]);
-                outValues[globalOffset] = sValues1[threadIdx.x + SORT_CTA_SIZE];
-            }
-        }
-        else
-        {
-            __shared__ uint sSizes[16];
-
-            if(threadIdx.x < 16)  
-            {
-                sOffsets[threadIdx.x]      = offsets[threadIdx.x * totalBlocks + blockId];
-                sBlockOffsets[threadIdx.x] = blockOffsets[blockId * 16 + threadIdx.x];
-                sSizes[threadIdx.x]        = sizes[threadIdx.x * totalBlocks + blockId];
-            }
-            __syncthreads();
-
-            // 1 half-warp is responsible for writing out all values for 1 radix. 
-            // Loops if there are more than 16 values to be written out. 
-            // All start indices are rounded down to the nearest multiple of 16, and
-            // all end indices are rounded up to the nearest multiple of 16.
-            // Thus it can do extra work if the start and end indices are not multiples of 16
-            // This is bounded by a factor of 2 (it can do 2X more work at most).
-
-            const uint halfWarpID     = threadIdx.x >> 4;
-
-            const uint halfWarpOffset = threadIdx.x & 0xF;
-            const uint leadingInvalid = sOffsets[halfWarpID] & 0xF;
-
-            uint startPos = sOffsets[halfWarpID] & 0xFFFFFFF0;
-            uint endPos   = (sOffsets[halfWarpID] + sSizes[halfWarpID]) + 15 - 
-                ((sOffsets[halfWarpID] + sSizes[halfWarpID] - 1) & 0xF);
-            uint numIterations = endPos - startPos;
-
-            uint outOffset = startPos + halfWarpOffset;
-            uint inOffset  = sBlockOffsets[halfWarpID] - leadingInvalid + halfWarpOffset;
-
-            for(uint j = 0; j < numIterations; j += 16, outOffset += 16, inOffset += 16)
-            {       
-                if( (outOffset >= sOffsets[halfWarpID]) && 
-                    (inOffset - sBlockOffsets[halfWarpID] < sSizes[halfWarpID])) 
-                {
-                    if(blockId < totalBlocks - 1 || outOffset < numElements) 
-                    {
-                        outKeys[outOffset]   = floatUnflip<unflip>(sKeys1[inOffset]);
-                        outValues[outOffset] = sValues1[inOffset];
-                    }
-                }       
-            }
-        }
-
-        if (loop)
-        {
-            blockId += gridDim.x;
-            __syncthreads();
-        }
-        else
             break;
+        }
     }
 }
-#endif
+
+__kernel void radixSortPrescan(__global uint *in,
+                               __global uint *out,
+                               __global uint *sums,
+                               uint len, uint total_groups,
+                               __local uint *temp)
+{
+    uint group_id = get_group_id(0);
+    uint local_size = get_local_size(0);
+    uint idx;
+    uint4 key;
+
+    while (group_id < total_groups){
+        // we must compute global id using this because of loop in case
+        // there is not enough groups to cover all values
+        idx = group_id * local_size + get_local_id(0);
+
+        // each thread process 4 keys/values
+        idx = idx << 2;
+
+        // copy keys and values into private memory
+        if (idx + 4 <= len){
+            key = ((__global uint4 *)in)[idx >> 2];
+        }else{
+            key.x = (idx     < len ? in[idx + 0] : 0);
+            key.y = (idx + 1 < len ? in[idx + 1] : 0);
+            key.z = (idx + 2 < len ? in[idx + 2] : 0);
+            key.w = 0;
+        }
+
+        if (sums && get_local_id(0) == local_size - 1){
+            sums[group_id] = key.w;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        // sort the block - note that this is already sync'ed
+        key = scan4(key, temp);
+
+        if (sums && get_local_id(0) == local_size - 1){
+            sums[group_id] += key.w;
+        }
+
+        // copy keys and values back to global memory
+        if (idx + 4 <= len){
+            ((__global uint4 *)out)[idx >> 2] = key;
+        }else{
+            if (idx < len){
+                out[idx + 0] = key.x;
+
+                if (idx + 1 < len){
+                    out[idx + 1] = key.y;
+
+                    if (idx + 2 < len){
+                        out[idx + 2] = key.z;
+                    }
+                }
+            }
+        }
+
+
+        if (get_num_groups(0) < total_groups){
+            group_id += get_num_groups(0);
+            barrier(CLK_LOCAL_MEM_FENCE);
+        }else{
+            break;
+        }
+    }
+}
+
+__kernel void radixSortPrescanFinish(__global uint *in,
+                                     __global uint *out,
+                                     __global uint *sums,
+                                     uint len, uint total_groups)
+{
+    uint group_id = get_group_id(0);
+    uint local_size = get_local_size(0);
+    uint idx;
+    __local sadd[1];
+    uint4 key, add;
+
+    group_id += 1;
+    while (group_id < total_groups){
+        if (get_local_id(0) == 0){
+            sadd[0] = sums[group_id];
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        add.x = sadd[0];
+        add.w = add.z = add.y = add.x;
+
+        // we must compute global id using this because of loop in case
+        // there is not enough groups to cover all values
+        idx = group_id * local_size + get_local_id(0);
+
+        // each thread process 4 keys/values
+        idx = idx << 2;
+
+        // copy keys and values into private memory
+        if (idx + 4 <= len){
+            key = ((__global uint4 *)in)[idx >> 2];
+        }else{
+            key.x = (idx     < len ? in[idx + 0] : 0);
+            key.y = (idx + 1 < len ? in[idx + 1] : 0);
+            key.z = (idx + 2 < len ? in[idx + 2] : 0);
+            key.w = 0;
+        }
+        key += add;
+
+
+        // copy keys and values back to global memory
+        if (idx + 4 <= len){
+            ((__global uint4 *)out)[idx >> 2] = key;
+        }else{
+            if (idx < len){
+                out[idx + 0] = key.x;
+
+                if (idx + 1 < len){
+                    out[idx + 1] = key.y;
+
+                    if (idx + 2 < len){
+                        out[idx + 2] = key.z;
+                    }
+                }
+            }
+        }
+
+
+        if (get_num_groups(0) < total_groups){
+            group_id += get_num_groups(0);
+            barrier(CLK_LOCAL_MEM_FENCE);
+        }else{
+            break;
+        }
+    }
+}
