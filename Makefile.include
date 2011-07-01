@@ -53,8 +53,8 @@ ifeq '$(PROFIL)' 'yes'
 endif
 
 ifeq '$(DEBUG)' 'yes'
-  CFLAGS = -g -Wno-unused-function
-  CXXFLAGS = -g -Wno-unused-function
+  CFLAGS = -g
+  CXXFLAGS = -g
   CONFIG_FLAGS += -DDEBUG
 else
   # force to use optimizations
@@ -69,6 +69,10 @@ endif
 ifneq '$(NOWALL)' 'yes'
   CFLAGS += -Wall
   CXXFLAGS += -Wall
+  ifeq '$(DEBUG)' 'yes'
+    CFLAGS   += -Wno-unused-function
+    CXXFLAGS += -Wno-unused-function
+  endif
 endif
 ifneq '$(NOPEDANTIC)' 'yes'
   CFLAGS += -pedantic
