@@ -125,7 +125,27 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 
 void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 {
-    // TODO
+    int i;
+    fer_cd_sap_geom_t *glast, *g;
+
+    g     = &sap->geoms[geom->sap];
+    glast = &sap->geoms[sap->geoms_len - 1];
+    for (i = 0; i < 3; i++){
+        sap->minmax[i][glast->min[i]].geom_ismax = geom->sap << 1;
+        sap->minmax[i][glast->max[i]].geom_ismax  = geom->sap << 1;
+        sap->minmax[i][glast->max[i]].geom_ismax |= 0x1;
+
+        sap->minmax[i][g->min[i]] = sap->minmax[i][glast->min[i]];
+        sap->minmax[i][g->max[i]] = sap->minmax[i][glast->max[i]];
+
+        glast->min[i] = g->min[i];
+        glast->max[i] = g->max[i];
+    }
+
+    *g = *glast;
+
+    sap->geoms_len--;
+
     sap->dirty = 1;
 }
 
