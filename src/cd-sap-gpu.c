@@ -23,8 +23,8 @@ struct _fer_cd_sap_gpu_t {
     fer_hmap_t *pairs_reg; /*!< Register (hash map) of collide pairs */
 
     fer_cl_t *cl;
-    fer_cd_sap_minmax_t *minmax, *minmax_tmp;
-    uint32_t minmax_len;
+    fer_cd_sap_min_t *min, *min_tmp;
+    uint32_t min_len;
     uint32_t *counters, *block_offsets, *sums;
 
     struct {
@@ -178,10 +178,10 @@ static void gpuRadixSortLoad(fer_cd_sap_gpu_t *sap, int axis)
 
 
     // alloc memory
-    sap->minmax_len = 2 * sap->sap.geoms_len;
-    sap->minmax     = FER_CL_CLONE_FROM_HOST(sap->cl, sap->sap.minmax[axis],
-                                             fer_cd_sap_minmax_t, sap->minmax_len);
-    sap->minmax_tmp = FER_CL_ALLOC_ARR(sap->cl, fer_cd_sap_minmax_t, sap->minmax_len);
+    sap->min_len = sap->sap.geoms_len;
+    sap->min     = FER_CL_CLONE_FROM_HOST(sap->cl, sap->sap.min[axis],
+                                          fer_cd_sap_min_t, sap->min_len);
+    sap->min_tmp = FER_CL_ALLOC_ARR(sap->cl, fer_cd_sap_min_t, sap->min_len);
 
     len = sap->offsets.num_groups * 16;
     sap->counters = FER_CL_ALLOC_ARR(sap->cl, uint32_t, len);
@@ -194,27 +194,23 @@ static void gpuRadixSortLoad(fer_cd_sap_gpu_t *sap, int axis)
 static void gpuRadixSortSave(fer_cd_sap_gpu_t *sap, int axis)
 {
     size_t i;
-    fer_cd_sap_minmax_t *minmax;
+    fer_cd_sap_min_t *min;
     fer_cd_sap_geom_t *geoms;
 
-    minmax = sap->sap.minmax[axis];
-    geoms  = sap->sap.geoms;
+    min   = sap->sap.min[axis];
+    geoms = sap->sap.geoms;
 
-    FER_CL_COPY_TO_HOST(sap->cl, sap->minmax, minmax,
-                        fer_cd_sap_minmax_t, sap->minmax_len);
+    FER_CL_COPY_TO_HOST(sap->cl, sap->min, min,
+                        fer_cd_sap_min_t, sap->min_len);
 
 
-    for (i = 0; i < sap->minmax_len; i++){
-        if (MINMAX_ISMAX(&minmax[i])){
-            geoms[MINMAX_GEOM(&minmax[i])].max[axis] = i;
-        }else{
-            geoms[MINMAX_GEOM(&minmax[i])].min[axis] = i;
-        }
+    for (i = 0; i < sap->min_len; i++){
+        geoms[min[i].geom].min[axis] = i;
     }
 
     // free allocated memory
-    FER_CL_FREE(sap->cl, sap->minmax);
-    FER_CL_FREE(sap->cl, sap->minmax_tmp);
+    FER_CL_FREE(sap->cl, sap->min);
+    FER_CL_FREE(sap->cl, sap->min_tmp);
     FER_CL_FREE(sap->cl, sap->counters);
     FER_CL_FREE(sap->cl, sap->block_offsets);
     FER_CL_FREE(sap->cl, sap->sums);
@@ -223,18 +219,18 @@ static void gpuRadixSortSave(fer_cd_sap_gpu_t *sap, int axis)
 static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
 {
     uint32_t startbit;
-    fer_cd_sap_minmax_t *src, *dst;
+    fer_cd_sap_min_t *src, *dst;
     uint32_t *zero = NULL;
     uint32_t one = 1;
 
-    src = sap->minmax;
-    dst = sap->minmax_tmp;
+    src = sap->min;
+    dst = sap->min_tmp;
 
     for (startbit = 0; startbit < 32; startbit += 4){
         // sort blocks of 4 * 256 elements
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 0, src);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 1, dst);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 2, sap->minmax_len);
+        FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 2, sap->min_len);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 3, startbit);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->blocks.kernel, 4, sap->blocks.num_groups);
         ferCLKernelSetArg(sap->cl, sap->blocks.kernel, 5, sap->blocks.sharedmem, NULL);
@@ -245,7 +241,7 @@ static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 0, dst);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 1, sap->counters);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 2, sap->block_offsets);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 3, sap->minmax_len);
+        FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 3, sap->min_len);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 4, startbit);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->offsets.kernel, 5, sap->offsets.num_groups);
         ferCLKernelSetArg(sap->cl, sap->offsets.kernel, 6, sap->offsets.sharedmem, NULL);
@@ -284,7 +280,7 @@ static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 1, src);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 2, sap->counters);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 3, sap->block_offsets);
-        FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 4, sap->minmax_len);
+        FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 4, sap->min_len);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 5, startbit);
         FER_CL_KERNEL_SET_ARG(sap->cl, sap->reorder.kernel, 6, sap->reorder.num_groups);
         ferCLKernelEnqueue(sap->cl, sap->reorder.kernel, 1, sap->reorder.glob, sap->reorder.loc);

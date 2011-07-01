@@ -25,17 +25,11 @@
 #define RADIX_SORT_MASK 0xffu
 
 
-#define MINMAX_ISMAX(minmax) \
-    ((minmax)->geom_ismax & 0x1)
-#define MINMAX_GEOM(minmax) \
-    ((minmax)->geom_ismax >> 0x1)
-
-
 static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets);
 static void ferCDSAPDestroy(fer_cd_sap_t *sap);
 
-/** Estimation of variance accros minmax array */
-static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_minmax_t *m,
+/** Estimation of variance accros min array */
+static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_min_t *m,
                                          size_t len);
 
 /** Creates new pair from other fer_cd_sap_pair_t struct */
@@ -86,19 +80,15 @@ void ferCDSAPAdd(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
         sap->geoms = FER_REALLOC_ARR(sap->geoms, fer_cd_sap_geom_t, sap->geoms_alloc);
 
         for (i = 0; i < 3; i++){
-            sap->minmax[i] = FER_REALLOC_ARR(sap->minmax[i],
-                                             fer_cd_sap_minmax_t,
-                                             sap->geoms_alloc * 2);
+            sap->min[i] = FER_REALLOC_ARR(sap->min[i], fer_cd_sap_min_t,
+                                          sap->geoms_alloc);
         }
     }
 
     sap->geoms[sap->geoms_len].g = geom;
     for (i = 0; i < 3; i++){
-        sap->minmax[i][sap->geoms_len * 2].geom_ismax = sap->geoms_len << 1;
-        sap->minmax[i][sap->geoms_len * 2 + 1].geom_ismax = sap->geoms_len << 1;
-        sap->minmax[i][sap->geoms_len * 2 + 1].geom_ismax |= 0x1;
-        sap->geoms[sap->geoms_len].min[i] = sap->geoms_len * 2;
-        sap->geoms[sap->geoms_len].max[i] = sap->geoms_len * 2 + 1;
+        sap->min[i][sap->geoms_len].geom = sap->geoms_len;
+        sap->geoms[sap->geoms_len].min[i] = sap->geoms_len;
     }
 
     geom->sap = sap->geoms_len;
@@ -119,8 +109,8 @@ void ferCDSAPUpdate(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
     for (i = 0; i < 3; i++){
         // update min/max values
         __ferCDGeomSetMinMax(geom, &sap->axis[i], &min, &max);
-        sap->minmax[i][g->min[i]].val = min;
-        sap->minmax[i][g->max[i]].val = max;
+        sap->min[i][g->min[i]].val = min;
+        g->max[i] = max;
     }
 
     sap->dirty = 1;
@@ -134,15 +124,11 @@ void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
     g     = &sap->geoms[geom->sap];
     glast = &sap->geoms[sap->geoms_len - 1];
     for (i = 0; i < 3; i++){
-        sap->minmax[i][glast->min[i]].geom_ismax = geom->sap << 1;
-        sap->minmax[i][glast->max[i]].geom_ismax  = geom->sap << 1;
-        sap->minmax[i][glast->max[i]].geom_ismax |= 0x1;
+        sap->min[i][glast->min[i]].geom = geom->sap;
 
-        sap->minmax[i][g->min[i]] = sap->minmax[i][glast->min[i]];
-        sap->minmax[i][g->max[i]] = sap->minmax[i][glast->max[i]];
+        sap->min[i][g->min[i]] = sap->min[i][glast->min[i]];
 
         glast->min[i] = g->min[i];
-        glast->max[i] = g->max[i];
     }
 
     *g = *glast;
@@ -160,7 +146,7 @@ void ferCDSAPProcess(fer_cd_sap_t *sap)
 
     if (sap->dirty){
         ferTimerStart(&timer);
-        // do radix sort for all min/max values
+        // do radix sort for all min values
         for (i = 0; i < 3; i++){
             sap->radix_sort(sap, i);
         }
@@ -193,13 +179,12 @@ static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets)
     ferVec3Set(&sap->axis[1], FER_ZERO, FER_ONE,  FER_ONE);
     ferVec3Set(&sap->axis[2], FER_ONE, FER_ZERO, FER_ONE);
 
-    // init geoms and minmax arrays
+    // init geoms and min arrays
     sap->geoms_alloc = 100;
     sap->geoms_len = 0;
     sap->geoms = FER_ALLOC_ARR(fer_cd_sap_geom_t, sap->geoms_alloc);
     for (i = 0; i < 3; i++){
-        sap->minmax[i] = FER_ALLOC_ARR(fer_cd_sap_minmax_t,
-                                       sap->geoms_alloc * 2);
+        sap->min[i] = FER_ALLOC_ARR(fer_cd_sap_min_t, sap->geoms_alloc);
     }
 
     sap->dirty = 0;
@@ -222,8 +207,8 @@ static void ferCDSAPDestroy(fer_cd_sap_t *sap)
     if (sap->geoms)
         free(sap->geoms);
     for (i = 0; i < 3; i++){
-        if (sap->minmax[i])
-            free(sap->minmax[i]);
+        if (sap->min[i])
+            free(sap->min[i]);
     }
 
     for (i = 0; i < sap->pairs_buckets; i++){
@@ -299,7 +284,7 @@ static void pairRemoveAll(fer_cd_sap_t *sap)
     sap->pairs_len = 0;
 }
 
-static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_minmax_t *m,
+static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_min_t *m,
                                          size_t mlen)
 {
     size_t i;

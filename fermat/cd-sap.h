@@ -33,15 +33,16 @@ struct _fer_cd_geom_t;
 
 struct _fer_cd_sap_geom_t {
     struct _fer_cd_geom_t *g;
-    uint32_t min[3], max[3];
+    uint32_t min[3];
+    fer_real_t max[3];
 } fer_packed;
 typedef struct _fer_cd_sap_geom_t fer_cd_sap_geom_t;
 
-struct _fer_cd_sap_minmax_t {
-    uint32_t geom_ismax; /*!< 31: geom id, 1: ismax */
+struct _fer_cd_sap_min_t {
+    uint32_t geom;
     fer_real_t val;
 } fer_packed;
-typedef struct _fer_cd_sap_minmax_t fer_cd_sap_minmax_t;
+typedef struct _fer_cd_sap_min_t fer_cd_sap_min_t;
 
 #define FER_CD_SAP_TYPE_1       0x0
 #define FER_CD_SAP_TYPE_THREADS 0x1
@@ -57,7 +58,7 @@ struct _fer_cd_sap_t {
     fer_cd_sap_geom_t *geoms; /*!< Array of geoms */
     size_t geoms_len;         /*!< Length of .geoms[] */
     size_t geoms_alloc;       /*!< Length of allocated memory for .geoms[] */
-    fer_cd_sap_minmax_t *minmax[3]; /*!< Array of min/max values */
+    fer_cd_sap_min_t *min[3]; /*!< Array of min values */
     uint8_t dirty;            /*!< True if any geom was changed */
     uint32_t added;           /*!< Number of geoms added from last call of
                                    ferCDSAPProcess() */

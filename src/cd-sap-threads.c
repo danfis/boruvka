@@ -18,15 +18,15 @@
 
 
 struct _fer_cd_sap_th_radix_sort_t {
-    fer_cd_sap_minmax_t *minmax;
-    size_t minmax_len, minmax_alloc;
+    fer_cd_sap_min_t *min;
+    size_t min_len, min_alloc;
     uint32_t *counter;  /*!< Array for count-sort */
     uint32_t *negative; /*!< Number of negative values */
 
     fer_barrier_t *barrier;
 
     struct {
-        fer_cd_sap_minmax_t *src, *dst;
+        fer_cd_sap_min_t *src, *dst;
         int axis;
     } context;
 };
@@ -74,9 +74,9 @@ static fer_cd_sap_t *ferCDSAPThreadsNew(fer_cd_t *cd, uint64_t flags)
         pthread_mutex_init(&sap->pairs_reg_lock[i], NULL);
     }
 
-    sap->rs.minmax = NULL;
-    sap->rs.minmax_len = 0;
-    sap->rs.minmax_alloc = 0;
+    sap->rs.min = NULL;
+    sap->rs.min_len = 0;
+    sap->rs.min_alloc = 0;
     sap->rs.counter = FER_ALLOC_ARR(uint32_t, 256 * num_threads);
     sap->rs.negative = FER_ALLOC_ARR(uint32_t, num_threads);
     sap->rs.barrier  = ferBarrierNew(num_threads);
@@ -95,8 +95,8 @@ static void ferCDSAPThreadsDel(fer_cd_sap_t *_sap)
         pthread_mutex_destroy(&sap->pairs_reg_lock[i]);
     }
 
-    if (sap->rs.minmax)
-        free(sap->rs.minmax);
+    if (sap->rs.min)
+        free(sap->rs.min);
     free(sap->rs.counter);
     free(sap->rs.negative);
     ferBarrierDel(sap->rs.barrier);
@@ -117,18 +117,18 @@ static void sapthRadixSort(fer_cd_sap_t *_sap, int axis)
     fer_cd_sap_th_radix_sort_t *rs = &sap->rs;
 
     // allocate temporary array
-    if (rs->minmax_alloc < 2 * sap->sap.geoms_len){
-        if (rs->minmax)
-            free(rs->minmax);
-        rs->minmax_alloc = 2 * sap->sap.geoms_alloc;
-        rs->minmax_len = 2 * sap->sap.geoms_len;
-        rs->minmax = FER_ALLOC_ARR(fer_cd_sap_minmax_t, rs->minmax_alloc);
+    if (rs->min_alloc < sap->sap.geoms_len){
+        if (rs->min)
+            free(rs->min);
+        rs->min_alloc = sap->sap.geoms_alloc;
+        rs->min_len = sap->sap.geoms_len;
+        rs->min = FER_ALLOC_ARR(fer_cd_sap_min_t, rs->min_alloc);
     }
-    rs->minmax_len = 2 * sap->sap.geoms_len;
+    rs->min_len = sap->sap.geoms_len;
 
     // set up context
-    rs->context.src  = sap->sap.minmax[axis];
-    rs->context.dst  = rs->minmax;
+    rs->context.src  = sap->sap.min[axis];
+    rs->context.dst  = rs->min;
     rs->context.axis = axis;
 
     thRadixSortSort(rs);
@@ -156,29 +156,29 @@ static void __thradixSortTask(int id, void *data,
     fer_cd_sap_th_t *sap = fer_container_of(rs, fer_cd_sap_th_t, rs);
     int len, from, i, shift, end;
     uint32_t *counter;
-    fer_cd_sap_minmax_t *src, *dst, *minmax, *tmp;
+    fer_cd_sap_min_t *src, *dst, *min, *tmp;
 
     src = rs->context.src;
     dst = rs->context.dst;
 
     // compute length of section managed by this thread and strating
     // position ({from})
-    len  = rs->minmax_len / sap->num_threads;
+    len  = rs->min_len / sap->num_threads;
     from = id * len;
     if (id == sap->num_threads - 1)
-        len = rs->minmax_len - from;
+        len = rs->min_len - from;
 
     counter = rs->counter + (256 * id);
 
     end = (fer_uint_t)sizeof(fer_real_t) * 8;
     for (shift = 0; shift < end; shift += 8){
-        minmax  = src + from;
+        min  = src + from;
     
         radixSortZeroizeCounter(counter);
         if (shift == end - 8){
-            radixSortCountFinal(minmax, len, counter, rs->negative + id, shift);
+            radixSortCountFinal(min, len, counter, rs->negative + id, shift);
         }else{
-            radixSortCount(minmax, len, counter, shift);
+            radixSortCount(min, len, counter, shift);
         }
         ferBarrier(rs->barrier);
     
@@ -194,12 +194,12 @@ static void __thradixSortTask(int id, void *data,
     
     
         if (shift == end - 8){
-            radixSortSortFinal(minmax, len,
-                               dst, rs->minmax_len,
+            radixSortSortFinal(min, len,
+                               dst, rs->min_len,
                                counter, rs->negative[0], shift,
                                sap->sap.geoms, rs->context.axis);
         }else{
-            radixSortSort(minmax, dst, len, counter, shift);
+            radixSortSort(min, dst, len, counter, shift);
 
             // swap src and dst min-max arrays
             FER_SWAP(src, dst, tmp);
@@ -233,9 +233,9 @@ static void sapthFindPairs(fer_cd_sap_t *_sap)
     size_t i, axis;
     fer_real_t var[3];
 
-    var[0] = ferCDSAPMinMaxVariance(sap->sap.minmax[0], 2 * sap->sap.geoms_len);
-    var[1] = ferCDSAPMinMaxVariance(sap->sap.minmax[1], 2 * sap->sap.geoms_len);
-    var[2] = ferCDSAPMinMaxVariance(sap->sap.minmax[2], 2 * sap->sap.geoms_len);
+    var[0] = ferCDSAPMinMaxVariance(sap->sap.min[0], sap->sap.geoms_len);
+    var[1] = ferCDSAPMinMaxVariance(sap->sap.min[1], sap->sap.geoms_len);
+    var[2] = ferCDSAPMinMaxVariance(sap->sap.min[2], sap->sap.geoms_len);
     if (var[0] > var[1]){
         if (var[0] > var[2]){
             axis = 0;
@@ -259,18 +259,15 @@ static void sapthFindPairsGeom(fer_cd_sap_th_t *sap, fer_cd_sap_geom_t *g,
                                int bucket)
 {
     int j;
-    fer_cd_sap_minmax_t *minmax;
+    fer_cd_sap_min_t *min;
     fer_cd_geom_t *g2;
     fer_cd_sap_pair_t *pair;
     uint32_t id;
     int lockid;
 
-    minmax = sap->sap.minmax[sap->axis];
-    for (j = g->min[sap->axis] + 1; j < g->max[sap->axis]; j++){
-        if (MINMAX_ISMAX(&minmax[j]))
-            continue;
-
-        g2 = sap->sap.geoms[MINMAX_GEOM(&minmax[j])].g;
+    min = sap->sap.min[sap->axis];
+    for (j = g->min[sap->axis] + 1; j < sap->sap.geoms_len && min[j].val < g->max[sap->axis]; j++){
+        g2 = sap->sap.geoms[min[j].geom].g;
         if (ferCDGeomOBBOverlap(g->g, g2)){
             // create new pair
             pair = pairNew(g->g, g2);
