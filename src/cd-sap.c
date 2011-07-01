@@ -31,24 +31,6 @@ static fer_timer_t timer;
 #define MINMAX_GEOM(minmax) \
     ((minmax)->geom_ismax >> 0x1)
 
-#if 0
-/** Find all collide pairs */
-static void ferCDSAPFindPairs(fer_cd_sap_t *sap);
-/** Find collide pairs of {g} */
-static void ferCDSAPFindGeomPairs(fer_cd_sap_t *sap, fer_cd_sap_geom_t *g,
-                                  int bucket);
-/** Process all geoms - radix sort approach */
-static void ferCDSAPProcessAll(fer_cd_sap_t *sap);
-
-/** Create and delete radix sort struct */
-static void radixSortInit(fer_cd_sap_radix_sort_t *rs);
-static void radixSortDestroy(fer_cd_sap_radix_sort_t *rs);
-_fer_inline fer_cd_sap_t *radixSortSAP(fer_cd_sap_radix_sort_t *rs);
-/** Sorts min-max values along specified axis */
-static void radixSort(fer_cd_sap_t *sap, int axis);
-
-
-#endif
 
 static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets);
 static void ferCDSAPDestroy(fer_cd_sap_t *sap);
