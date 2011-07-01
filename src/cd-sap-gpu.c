@@ -358,5 +358,5 @@ static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
 static void sapgpuFindPairs(fer_cd_sap_t *_sap)
 {
     fer_cd_sap_gpu_t *sap = (fer_cd_sap_gpu_t *)_sap;
-    sapFindPairs1(_sap, sap->pairs_reg);
+    sapFindPairs(_sap, sap->pairs_reg);
 }

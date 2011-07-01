@@ -41,6 +41,8 @@ struct _fer_cd_sap_th_t {
     fer_hmap_t *pairs_reg;           /*!< Register (hash map) of collide pairs */
     pthread_mutex_t *pairs_reg_lock; /*!< Array of locks for .pairs_reg */
     size_t pairs_reg_lock_len;       /*!< Length of .pairs_reg_lock */
+
+    size_t axis;
 } fer_packed fer_aligned(16);
 typedef struct _fer_cd_sap_th_t fer_cd_sap_th_t;
 
@@ -228,7 +230,24 @@ static void __findPairsTask(int id, void *data,
 static void sapthFindPairs(fer_cd_sap_t *_sap)
 {
     fer_cd_sap_th_t *sap = (fer_cd_sap_th_t *)_sap;
-    size_t i;
+    size_t i, axis;
+    fer_real_t var[3];
+
+    var[0] = ferCDSAPMinMaxVariance(sap->sap.minmax[0], 2 * sap->sap.geoms_len);
+    var[1] = ferCDSAPMinMaxVariance(sap->sap.minmax[1], 2 * sap->sap.geoms_len);
+    var[2] = ferCDSAPMinMaxVariance(sap->sap.minmax[2], 2 * sap->sap.geoms_len);
+    if (var[0] > var[1]){
+        if (var[0] > var[2]){
+            axis = 0;
+        }else{
+            axis = 2;
+        }
+    }else if (var[1] > var[2]){
+        axis = 1;
+    }else{
+        axis = 2;
+    }
+    sap->axis = axis;
 
     for (i = 0; i < sap->num_threads; i++){
         ferTasksAdd(sap->sap.cd->tasks, __findPairsTask, i, sap);
@@ -239,31 +258,18 @@ static void sapthFindPairs(fer_cd_sap_t *_sap)
 static void sapthFindPairsGeom(fer_cd_sap_th_t *sap, fer_cd_sap_geom_t *g,
                                int bucket)
 {
-    int diff[3], d, j;
+    int j;
     fer_cd_sap_minmax_t *minmax;
     fer_cd_geom_t *g2;
     fer_cd_sap_pair_t *pair;
     uint32_t id;
     int lockid;
 
-    diff[0] = g->max[0] - g->min[0];
-    diff[1] = g->max[1] - g->min[1];
-    diff[2] = g->max[2] - g->min[2];
+    minmax = sap->sap.minmax[sap->axis];
+    for (j = g->min[sap->axis] + 1; j < g->max[sap->axis]; j++){
+        if (MINMAX_ISMAX(&minmax[j]))
+            continue;
 
-    if (diff[0] < diff[1]){
-        if (diff[0] < diff[2]){
-            d = 0;
-        }else{
-            d = 2;
-        }
-    }else if (diff[1] < diff[2]){
-        d = 1;
-    }else{
-        d = 2;
-    }
-
-    minmax = sap->sap.minmax[d];
-    for (j = g->min[d] + 1; j < g->max[d]; j++){
         g2 = sap->sap.geoms[MINMAX_GEOM(&minmax[j])].g;
         if (ferCDGeomOBBOverlap(g->g, g2)){
             // create new pair

@@ -251,51 +251,51 @@ static void radixSortSortFinal(fer_cd_sap_minmax_t *src,
 
 
 
-static void sapFindPairs1(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg);
-static void sapFindPairs1Geom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
-                              fer_cd_sap_geom_t *geom);
+static void sapFindPairs(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg);
+static void sapFindPairsGeom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
+                             fer_cd_sap_geom_t *geom, int axis);
 
 static void sap1FindPairs(fer_cd_sap_t *_sap)
 {
     fer_cd_sap_1_t *sap = (fer_cd_sap_1_t *)_sap;
-    sapFindPairs1(_sap, sap->pairs_reg);
+    sapFindPairs(_sap, sap->pairs_reg);
 }
 
-static void sapFindPairs1(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg)
+static void sapFindPairs(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg)
 {
-    size_t i;
+    size_t i, axis;
+    fer_real_t var[3];
+
+    var[0] = ferCDSAPMinMaxVariance(sap->minmax[0], 2 * sap->geoms_len);
+    var[1] = ferCDSAPMinMaxVariance(sap->minmax[1], 2 * sap->geoms_len);
+    var[2] = ferCDSAPMinMaxVariance(sap->minmax[2], 2 * sap->geoms_len);
+    if (var[0] > var[1]){
+        if (var[0] > var[2]){
+            axis = 0;
+        }else{
+            axis = 2;
+        }
+    }else if (var[1] > var[2]){
+        axis = 1;
+    }else{
+        axis = 2;
+    }
 
     for (i = 0; i < sap->geoms_len; i++){
-        sapFindPairs1Geom(sap, pairs_reg, &sap->geoms[i]);
+        sapFindPairsGeom(sap, pairs_reg, &sap->geoms[i], axis);
     }
 }
 
-static void sapFindPairs1Geom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
-                              fer_cd_sap_geom_t *geom)
+static void sapFindPairsGeom(fer_cd_sap_t *sap, fer_hmap_t *pairs_reg,
+                             fer_cd_sap_geom_t *geom, int axis)
 {
     fer_cd_sap_minmax_t *minmax;
     fer_cd_geom_t *g2;
     fer_cd_sap_pair_t *pair, pair_test;
-    int diff[3], d, i;
+    int i;
 
-    diff[0] = geom->max[0] - geom->min[0];
-    diff[1] = geom->max[1] - geom->min[1];
-    diff[2] = geom->max[2] - geom->min[2];
-
-    if (diff[0] < diff[1]){
-        if (diff[0] < diff[2]){
-            d = 0;
-        }else{
-            d = 2;
-        }
-    }else if (diff[1] < diff[2]){
-        d = 1;
-    }else{
-        d = 2;
-    }
-
-    minmax = sap->minmax[d];
-    for (i = geom->min[d] + 1; i < geom->max[d]; i++){
+    minmax = sap->minmax[axis];
+    for (i = geom->min[axis] + 1; i < geom->max[axis]; i++){
         g2 = sap->geoms[MINMAX_GEOM(&minmax[i])].g;
         if (ferCDGeomOBBOverlap(geom->g, g2)){
             pair_test.g[0] = geom->g;

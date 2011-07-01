@@ -21,7 +21,6 @@
 
 /** TODO **/
 #include <fermat/timer.h>
-static fer_timer_t timer;
 
 #define RADIX_SORT_MASK 0xffu
 
@@ -34,6 +33,10 @@ static fer_timer_t timer;
 
 static void ferCDSAPInit(fer_cd_t *cd, fer_cd_sap_t *sap, size_t buckets);
 static void ferCDSAPDestroy(fer_cd_sap_t *sap);
+
+/** Estimation of variance accros minmax array */
+static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_minmax_t *m,
+                                         size_t len);
 
 /** Creates new pair from other fer_cd_sap_pair_t struct */
 static fer_cd_sap_pair_t *pairNew(fer_cd_geom_t *g1, fer_cd_geom_t *g2);
@@ -150,12 +153,10 @@ void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 }
 
 
-
-//static void ferCDSAPProcessGPU(fer_cd_sap_t *sap);
-
 void ferCDSAPProcess(fer_cd_sap_t *sap)
 {
     int i;
+    fer_timer_t timer;
 
     if (sap->dirty){
         ferTimerStart(&timer);
@@ -296,4 +297,28 @@ static void pairRemoveAll(fer_cd_sap_t *sap)
         }
     }
     sap->pairs_len = 0;
+}
+
+static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_minmax_t *m,
+                                         size_t mlen)
+{
+    size_t i;
+    fer_real_t avg, len, var, tr1, tr2;
+
+    tr1 = -FER_REAL_MAX / FER_REAL(2.);
+    tr2 =  FER_REAL_MAX / FER_REAL(2.);
+    avg = len = var = 0;
+    for (i = 0; i < mlen; ++i, ++m){
+        if (m->val > tr1 && m->val < tr2){
+            avg += m->val;
+            len += FER_ONE;
+            var += FER_CUBE(m->val);
+        }
+    }
+
+    avg /= len;
+    var /= len;
+    var -= FER_CUBE(avg);
+
+    return var;
 }
