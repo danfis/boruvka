@@ -1,7 +1,7 @@
 ###
 # fermat
 # -------
-# Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
+# Copyright (c)2010-2011 Daniel Fiser <danfis@danfis.cz>
 #
 #  This file is part of fermat.
 #
@@ -145,7 +145,7 @@ OZCOLLIDE_LDFLAGS ?= -lozcollide
 
 
 ifneq '$(CC_NOT_GCC)' 'yes'
-  CFLAGS += --std=gnu99 -ffast-math
+  CFLAGS += -std=gnu99 -ffast-math -O3
 endif
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
