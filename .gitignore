@@ -7,9 +7,6 @@ fer-*
 gann-*
 fermat/pc[234].h
 fermat/cubes[234].h
-fermat/gng[23].h
 src/pc[234].c
 src/cubes[234].c
-src/gng[23].c
 src/*-cl.c
-bin/gng-[23]d-main.c

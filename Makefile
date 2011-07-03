@@ -63,7 +63,6 @@ endif
 # header files that must be generated
 HEADERS  = pc2.h pc3.h pc4.h
 HEADERS += cubes2.h cubes3.h
-HEADERS += gng2.h gng3.h
 
 OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
 OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
@@ -140,7 +139,6 @@ clean:
 	rm -f $(BIN_TARGETS)
 	rm -f fermat/config.h
 	rm -f fermat/pc{2,3,4}.h
-	rm -f fermat/gng{2,3}.h
 	rm -f src/pc{2,3,4}.c
 	rm -f fermat/cubes{2,3,4}.h
 	rm -f src/cubes{2,3,4}.c
