@@ -246,3 +246,28 @@ size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename)
 
     return added;
 }
+
+void ferPCAABB(const fer_pc_t *pc, fer_real_t *aabb)
+{
+    size_t i;
+    fer_pc_it_t it;
+    const fer_vec_t *v;
+
+    for (i = 0; i < pc->dim; i++){
+        aabb[2 * i] = FER_REAL_MAX;
+        aabb[2 * i + 1] = -FER_REAL_MAX;
+    }
+
+    ferPCItInit(&it, (fer_pc_t *)pc);
+    while (!ferPCItEnd(&it)){
+        v = ferPCItGet(&it);
+        for (i = 0; i < pc->dim; i++){
+            if (ferVecGet(v, i) < aabb[2 * i])
+                aabb[2 * i] = ferVecGet(v, i);
+            if (ferVecGet(v, i) > aabb[2 * i + 1])
+                aabb[2 * i + 1] = ferVecGet(v, i);
+        }
+
+        ferPCItNext(&it);
+    }
+}

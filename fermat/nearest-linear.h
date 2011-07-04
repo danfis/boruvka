@@ -35,7 +35,8 @@ extern "C" {
 /**
  * Callback that takes two items and returns distance between them.
  */
-typedef fer_real_t (*fer_nearest_linear_dist_t)(void *item1, fer_list_t *item2);
+typedef fer_real_t (*fer_nearest_linear_dist_t)(void *item1, fer_list_t *item2,
+                                                void *data);
 
 /** ^^^^ */
 
@@ -45,7 +46,8 @@ typedef fer_real_t (*fer_nearest_linear_dist_t)(void *item1, fer_list_t *item2);
  */
 size_t ferNearestLinear(fer_list_t *list, void *p,
                         fer_nearest_linear_dist_t dist_cb,
-                        fer_list_t **nearest, size_t num);
+                        fer_list_t **nearest, size_t num,
+                        void *data);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -22,7 +22,7 @@ static void randList(fer_list_t *head)
     }
 }
 
-static fer_real_t linearDist(void *item1, fer_list_t *item2)
+static fer_real_t linearDist(void *item1, fer_list_t *item2, void *_)
 {
     fer_real_t r1, r2;
     struct linear_t *it;
@@ -79,21 +79,21 @@ TEST(nearestLinear)
 
     p = 10.;
     randList(&list.list);
-    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 2);
+    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 2, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 2);
 
     p = -1.;
     randList(&list.list);
-    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 4);
+    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 4, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 4);
 
     p = 3.5;
     randList(&list.list);
-    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 3);
+    len = ferNearestLinear(&list.list, &p, linearDist, nearest, 3, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 3);

@@ -197,7 +197,7 @@ static const void *ferGNG2InputSignal(void *data)
     return v;
 }
 
-static fer_real_t dist22(void *is, fer_list_t *nlist)
+static fer_real_t dist22(void *is, fer_list_t *nlist, void *_)
 {
     fer_gng_node_t *gn;
     fer_gng2_node_t *n;
@@ -230,7 +230,7 @@ _fer_inline void ferGNG2NearestLinear(const void *input_signal,
     fer_list_t *ns[2];
 
     ns[0] = ns[1] = NULL;
-    ferNearestLinear(ferGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2);
+    ferNearestLinear(ferGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2, NULL);
 
     *n1 = ferGNGNodeFromList(ns[0]);
     *n2 = ferGNGNodeFromList(ns[1]);

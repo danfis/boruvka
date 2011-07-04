@@ -101,6 +101,11 @@ void ferPCPermutate(fer_pc_t *pc);
  */
 size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename);
 
+/**
+ * Sets {aabb} array which must have at least 2 * dim items to axis aligned
+ * bounding box of points in point cloud.
+ */
+void ferPCAABB(const fer_pc_t *pc, fer_real_t *aabb);
 
 
 /**

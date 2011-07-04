@@ -22,7 +22,8 @@ static void bubbleUp(fer_real_t *dists, fer_list_t **nearest, size_t len);
 
 size_t ferNearestLinear(fer_list_t *list, void *p,
                         fer_nearest_linear_dist_t dist_cb,
-                        fer_list_t **nearest, size_t num)
+                        fer_list_t **nearest, size_t num,
+                        void *data)
 {
     fer_list_t *item;
     fer_real_t *dists, dist;
@@ -35,7 +36,7 @@ size_t ferNearestLinear(fer_list_t *list, void *p,
     len = 0;
 
     FER_LIST_FOR_EACH(list, item){
-        dist = dist_cb(p, item);
+        dist = dist_cb(p, item, data);
 
         if (len < num){
             dists[len]   = dist;

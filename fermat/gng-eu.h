@@ -80,6 +80,8 @@ struct _fer_gng_eu_t {
     fer_pc_it_t pcit; /*!< Iterator over .pc */
 
     fer_nncells_t *cells; /*!< Cells for nearest neighbor search */
+    int use_cells;
+    fer_nncells_params_t cells_params;
 };
 typedef struct _fer_gng_eu_t fer_gng_eu_t;
 

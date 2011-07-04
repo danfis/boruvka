@@ -134,7 +134,7 @@ static void elAdd(fer_cubes2_t *cs, el_t *ns, size_t len)
     }
 }
 
-static fer_real_t dist2(void *item1, fer_list_t *item2)
+static fer_real_t dist2(void *item1, fer_list_t *item2, void *_)
 {
     el_t *el1, *el2;
 
@@ -176,7 +176,7 @@ TEST(cubes2Nearest)
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
             ferCubes2Nearest(cs, &v, k + 1, nsc);
-            ferNearestLinear(&head, &v, dist2, nsl, k + 1);
+            ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);

@@ -78,7 +78,6 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_ops_t *_ops,
 {
     fer_gng_eu_t *gng;
     fer_gng_ops_t ops;
-    fer_nncells_params_t cells_params;
 
     gng = FER_ALLOC(fer_gng_eu_t);
 
@@ -98,11 +97,8 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_ops_t *_ops,
     gng->pc = ferPCNew(gng->dim);
 
     gng->cells = NULL;
-    if (params->use_cells){
-        cells_params = params->cells;
-        cells_params.d = gng->dim;
-        gng->cells = ferNNCellsNew(&cells_params);
-    }
+    gng->use_cells = params->use_cells;
+    gng->cells_params = params->cells;
 
     return gng;
 }
@@ -121,8 +117,25 @@ void ferGNGEuDel(fer_gng_eu_t *gng)
 
 void ferGNGEuRun(fer_gng_eu_t *gng)
 {
+    fer_real_t *aabb;
+
     ferPCPermutate(gng->pc);
     ferPCItInit(&gng->pcit, gng->pc);
+
+    if (gng->use_cells){
+        if (!gng->cells_params.aabb){
+            aabb = FER_ALLOC_ARR(fer_real_t, gng->dim);
+            ferPCAABB(gng->pc, aabb);
+            gng->cells_params.aabb = aabb;
+
+            gng->cells = ferNNCellsNew(&gng->cells_params);
+
+            gng->cells_params.aabb = NULL;
+            free(aabb);
+        }else{
+            gng->cells = ferNNCellsNew(&gng->cells_params);
+        }
+    }
 
     ferGNGRun(gng->gng);
 }
@@ -193,14 +206,15 @@ static const void *ferGNGEuInputSignal(void *data)
     return v;
 }
 
-static fer_real_t dist22(int dim, void *is, fer_list_t *nlist)
+static fer_real_t dist22(void *is, fer_list_t *nlist, void *data)
 {
+    fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
     fer_gng_node_t *gn;
     fer_gng_eu_node_t *n;
 
     gn = ferGNGNodeFromList(nlist);
     n = fer_container_of(gn, fer_gng_eu_node_t, node);
-    return ferVecDist2(dim, (const fer_vec_t *)is, n->w);
+    return ferVecDist2(gng->dim, (const fer_vec_t *)is, n->w);
 }
 
 static void ferGNGEuNearest(const void *input_signal,
@@ -222,17 +236,18 @@ _fer_inline void ferGNGEuNearestLinear(const void *input_signal,
                                        fer_gng_node_t **n2,
                                        void *data)
 {
-    //fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
+    fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
     fer_list_t *ns[2];
 
     ns[0] = ns[1] = NULL;
-    // TODO ferNearestLinear(ferGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2);
+    ferNearestLinear(ferGNGNodes(gng->gng), (void *)input_signal, dist22, ns, 2,
+                     (void *)gng);
 
     *n1 = ferGNGNodeFromList(ns[0]);
     *n2 = ferGNGNodeFromList(ns[1]);
 }
 
-_fer_inline void ferGNGEuNearestCubes(const void *input_signal,
+_fer_inline void ferGNGEuNearestCells(const void *input_signal,
                                       fer_gng_node_t **n1,
                                       fer_gng_node_t **n2,
                                       void *data)

@@ -131,7 +131,7 @@ static void elAdd(fer_nncells_t *cs, el_t *ns, size_t len)
     }
 }
 
-static fer_real_t dist2(void *item1, fer_list_t *item2)
+static fer_real_t dist2(void *item1, fer_list_t *item2, void *_)
 {
     el_t *el2;
     fer_vec2_t *v;
@@ -181,7 +181,7 @@ TEST(nncellsNearest2)
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
             ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
-            ferNearestLinear(&head, &v, dist2, nsl, k + 1);
+            ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);
@@ -231,7 +231,7 @@ static void el6Add(fer_nncells_t *cs, el6_t *ns, size_t len)
     }
 }
 
-static fer_real_t dist62(void *item1, fer_list_t *item2)
+static fer_real_t dist62(void *item1, fer_list_t *item2, void *_)
 {
     el6_t *el2;
     fer_vec_t *v;
@@ -280,7 +280,7 @@ TEST(nncellsNearest6)
             }
 
             ferNNCellsNearest(cs, v, k + 1, nsc);
-            ferNearestLinear(&head, v, dist62, nsl, k + 1);
+            ferNearestLinear(&head, v, dist62, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el6_t, c);
