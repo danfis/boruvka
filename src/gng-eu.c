@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <fermat/gng-eu.h>
 #include <fermat/nearest-linear.h>
+#include <fermat/vec3.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
@@ -99,6 +100,7 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_ops_t *_ops,
     gng->cells = NULL;
     gng->use_cells = params->use_cells;
     gng->cells_params = params->cells;
+    gng->cells_params.d = gng->dim;
 
     return gng;
 }
@@ -124,7 +126,7 @@ void ferGNGEuRun(fer_gng_eu_t *gng)
 
     if (gng->use_cells){
         if (!gng->cells_params.aabb){
-            aabb = FER_ALLOC_ARR(fer_real_t, gng->dim);
+            aabb = FER_ALLOC_ARR(fer_real_t, 2 * gng->dim);
             ferPCAABB(gng->pc, aabb);
             gng->cells_params.aabb = aabb;
 
@@ -296,13 +298,15 @@ static void ferGNGEuMoveTowards(fer_gng_node_t *node,
 
 void ferGNGEuDumpSVT(fer_gng_eu_t *gng, FILE *out, const char *name)
 {
-    /* TODO 
     fer_list_t *list, *item;
     fer_net_node_t *nn;
     fer_gng_node_t *gn;
     fer_net_edge_t *e;
     fer_gng_eu_node_t *n;
     size_t i, id1, id2;
+
+    if (gng->dim != 2 && gng->dim != 3)
+        return;
 
     fprintf(out, "--------\n");
 
@@ -317,7 +321,11 @@ void ferGNGEuDumpSVT(fer_gng_eu_t *gng, FILE *out, const char *name)
         n  = ferGNGEuNodeFromGNG(gn);
 
         n->_id = i++;
-        ferVec2Print(n->w, out);
+        if (gng->dim == 2){
+            ferVec2Print((const fer_vec2_t *)n->w, out);
+        }else{
+            ferVec3Print((const fer_vec3_t *)n->w, out);
+        }
         fprintf(out, "\n");
     }
 
@@ -338,6 +346,5 @@ void ferGNGEuDumpSVT(fer_gng_eu_t *gng, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
-    */
 }
 

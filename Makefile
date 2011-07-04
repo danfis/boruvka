@@ -28,7 +28,7 @@ ifeq '$(USE_RAPID)' 'yes'
 endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
-BIN_TARGETS += fer-gng-2d fer-gng-3d fer-plan-2d
+BIN_TARGETS += fer-gng-2d fer-gng-3d fer-gng-eu fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
 
 TARGETS = libfermat.a
