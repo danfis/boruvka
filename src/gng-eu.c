@@ -102,6 +102,14 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_ops_t *_ops,
     gng->cells_params = params->cells;
     gng->cells_params.d = gng->dim;
 
+    if (gng->dim == 2){
+        gng->tmpv = (fer_vec_t *)ferVec2New(FER_ZERO, FER_ZERO);
+    }else if (gng->dim == 3){
+        gng->tmpv = (fer_vec_t *)ferVec3New(FER_ZERO, FER_ZERO, FER_ZERO);
+    }else{
+        gng->tmpv = ferVecNew(gng->dim);
+    }
+
     return gng;
 }
 
@@ -113,6 +121,14 @@ void ferGNGEuDel(fer_gng_eu_t *gng)
 
     if (gng->cells)
         ferNNCellsDel(gng->cells);
+
+    if (gng->dim == 2){
+        ferVec2Del((fer_vec2_t *)gng->tmpv);
+    }else if (gng->dim == 3){
+        ferVec3Del((fer_vec3_t *)gng->tmpv);
+    }else{
+        ferVecDel(gng->tmpv);
+    }
 
     free(gng);
 }
@@ -149,7 +165,13 @@ static fer_gng_node_t *ferGNGEuNewNode(const void *input_signal, void *data)
     fer_gng_eu_node_t *n;
 
     n = FER_ALLOC(fer_gng_eu_node_t);
-    n->w = ferVecClone(gng->dim, (const fer_vec_t *)input_signal);
+    if (gng->dim == 2){
+        n->w = (fer_vec_t *)ferVec2Clone((const fer_vec2_t *)input_signal);
+    }else if (gng->dim == 3){
+        n->w = (fer_vec_t *)ferVec3Clone((const fer_vec3_t *)input_signal);
+    }else{
+        n->w = ferVecClone(gng->dim, (const fer_vec_t *)input_signal);
+    }
 
     if (gng->cells){
         ferNNCellsElInit(&n->cells, n->w);
@@ -164,16 +186,25 @@ static fer_gng_node_t *ferGNGEuNewNodeBetween(const fer_gng_node_t *_n1,
                                               void *data)
 {
     fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
-    fer_vec_t w;
     fer_gng_eu_node_t *n1, *n2;
 
     n1 = fer_container_of(_n1, fer_gng_eu_node_t, node);
     n2 = fer_container_of(_n2, fer_gng_eu_node_t, node);
 
-    ferVecAdd2(gng->dim, &w, n1->w, n2->w);
-    ferVecScale(gng->dim, &w, FER_REAL(0.5));
+    if (gng->dim == 2){
+        ferVec2Add2((fer_vec2_t *)gng->tmpv, (const fer_vec2_t *)n1->w,
+                                             (const fer_vec2_t *)n2->w);
+        ferVec2Scale((fer_vec2_t *)gng->tmpv, FER_REAL(0.5));
+    }else if (gng->dim == 3){
+        ferVec3Add2((fer_vec3_t *)gng->tmpv, (const fer_vec3_t *)n1->w,
+                                             (const fer_vec3_t *)n2->w);
+        ferVec3Scale((fer_vec3_t *)gng->tmpv, FER_REAL(0.5));
+    }else{
+        ferVecAdd2(gng->dim, gng->tmpv, n1->w, n2->w);
+        ferVecScale(gng->dim, gng->tmpv, FER_REAL(0.5));
+    }
 
-    return ferGNGEuNewNode(&w, data);
+    return ferGNGEuNewNode(gng->tmpv, data);
 }
 
 static void ferGNGEuDelNode(fer_gng_node_t *_n, void *data)
@@ -216,7 +247,13 @@ static fer_real_t dist22(void *is, fer_list_t *nlist, void *data)
 
     gn = ferGNGNodeFromList(nlist);
     n = fer_container_of(gn, fer_gng_eu_node_t, node);
-    return ferVecDist2(gng->dim, (const fer_vec_t *)is, n->w);
+    if (gng->dim == 2){
+        return ferVec2Dist2((const fer_vec2_t *)is, (const fer_vec2_t *)n->w);
+    }else if (gng->dim == 3){
+        return ferVec3Dist2((const fer_vec3_t *)is, (const fer_vec3_t *)n->w);
+    }else{
+        return ferVecDist2(gng->dim, (const fer_vec_t *)is, n->w);
+    }
 }
 
 static void ferGNGEuNearest(const void *input_signal,
@@ -275,7 +312,13 @@ static fer_real_t ferGNGEuDist2(const void *input_signal,
     fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
     fer_gng_eu_node_t *n;
     n = fer_container_of(node, fer_gng_eu_node_t, node);
-    return ferVecDist2(gng->dim, (const fer_vec_t *)input_signal, n->w);
+    if (gng->dim == 2){
+        return ferVec2Dist2((const fer_vec2_t *)input_signal, (const fer_vec2_t *)n->w);
+    }else if (gng->dim == 3){
+        return ferVec3Dist2((const fer_vec3_t *)input_signal, (const fer_vec3_t *)n->w);
+    }else{
+        return ferVecDist2(gng->dim, (const fer_vec_t *)input_signal, n->w);
+    }
 }
 
 static void ferGNGEuMoveTowards(fer_gng_node_t *node,
@@ -284,12 +327,24 @@ static void ferGNGEuMoveTowards(fer_gng_node_t *node,
 {
     fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
     fer_gng_eu_node_t *n;
-    fer_vec_t move;
 
     n = fer_container_of(node, fer_gng_eu_node_t, node);
-    ferVecSub2(gng->dim, &move, (const fer_vec_t *)input_signal, n->w);
-    ferVecScale(gng->dim, &move, fraction);
-    ferVecAdd(gng->dim, n->w, &move);
+
+    if (gng->dim == 2){
+        ferVec2Sub2((fer_vec2_t *)gng->tmpv, (const fer_vec2_t *)input_signal,
+                                             (const fer_vec2_t *)n->w);
+        ferVec2Scale((fer_vec2_t *)gng->tmpv, fraction);
+        ferVec2Add((fer_vec2_t *)n->w, (const fer_vec2_t *)gng->tmpv);
+    }else if (gng->dim == 3){
+        ferVec3Sub2((fer_vec3_t *)gng->tmpv, (const fer_vec3_t *)input_signal,
+                                             (const fer_vec3_t *)n->w);
+        ferVec3Scale((fer_vec3_t *)gng->tmpv, fraction);
+        ferVec3Add((fer_vec3_t *)n->w, (const fer_vec3_t *)gng->tmpv);
+    }else{
+        ferVecSub2(gng->dim, gng->tmpv, (const fer_vec_t *)input_signal, n->w);
+        ferVecScale(gng->dim, gng->tmpv, fraction);
+        ferVecAdd(gng->dim, n->w, gng->tmpv);
+    }
 
     if (gng->cells){
         ferNNCellsUpdate(gng->cells, &n->cells);
