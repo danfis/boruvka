@@ -97,6 +97,7 @@ struct _fer_nncells_t {
 
     size_t *dim;               /*!< How many cells are along x, y, ... axis */
     fer_real_t edge;           /*!< Size of edge of one cell */
+    fer_real_t edge_recp;      /*!< 1 / .edge */
     fer_nncells_cell_t *cells; /*!< Array of all cells */
     size_t cells_len;          /*!< Length of .cells array */
     size_t next_expand;        /*!< Treshold when number of cells should be
@@ -316,7 +317,7 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
     mul = 1;
     for (i = 0; i < cs->d; i++){
         f  = ferVecGet(coords, i) + cs->shift[i];
-        f *= ferRecp((fer_real_t)cs->edge);
+        f *= cs->edge_recp;
 
         tmp = FER_MAX((int)f, 0);
         tmp = FER_MIN(tmp, cs->dim[i] - 1);

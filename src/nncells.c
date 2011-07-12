@@ -254,12 +254,13 @@ static void cellsAlloc(fer_nncells_t *c, size_t num_cells)
 
     // set edge size as d'th root of volume
     c->edge = FER_POW(volume, ferRecp(c->d));
+    c->edge_recp = ferRecp(c->edge);
 
     // and finally compute number of cells along each axis
     // there is addition of 1 to be sure that whole space will be mapped to
     // cubes
     for (i = 0; i < c->d; i++){
-        c->dim[i] = (size_t)(fdim[i] / c->edge) + (size_t)1;
+        c->dim[i] = (size_t)(fdim[i] * c->edge_recp) + (size_t)1;
     }
     free(fdim);
 
@@ -547,7 +548,7 @@ _fer_inline fer_real_t initBorder(fer_nncells_t *cs, const fer_vec_t *p)
     for (i = 0; i < cs->d; i++){
         local = ferVecGet(p, i) + cs->shift[i];
 
-        f = local * ferRecp((fer_real_t)cs->edge);
+        f = local * cs->edge_recp;
         min = f * cs->edge;
         max = min + cs->edge;
 
