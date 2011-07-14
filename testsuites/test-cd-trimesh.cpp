@@ -177,7 +177,7 @@ void testCDBunny(void)
 
         ret = ferCDGeomCollide(cd, g1, g2);
         if (ret != ret2){
-            fprintf(stdout, "# testCDBunny :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+            fprintf(stdout, "# testCDBunny :: [%04d] FAIL (%d %d)\n", (int)i, (int)ret, (int)ret2);
         }
         ferTimerStop(&timer);
         //fprintf(stdout, "# testCDBunny :: Coll[%02d] %04lu - %d (%d)\n", i, ferTimerElapsedInUs(&timer), ret, ret2);
@@ -367,7 +367,7 @@ void testCD(int task)
         ret = ferCDGeomCollide(cd, g1, g2);
         //exit(-1);
         if (check_ret[task] && ret != ret2){
-            fprintf(stdout, "# testCD[%02d] :: [%04d] FAIL (%d %d)\n", task, i, ret, ret2);
+            fprintf(stdout, "# testCD[%02d] :: [%04d] FAIL (%d %d)\n", (int)task, (int)i, (int)ret, (int)ret2);
         }
         //fprintf(stderr, " %d\n", ret);
         ferTimerStop(&timer);

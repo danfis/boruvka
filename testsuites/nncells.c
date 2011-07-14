@@ -65,7 +65,7 @@ TEST(nncellsEl2)
     printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
     printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
     dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d\n", dim[0], dim[1]);
+    printf("nncells2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     //assertEquals(ferNNCellsCubeId(cs, n), 22);
 
@@ -154,7 +154,7 @@ TEST(nncellsNearest2)
     fer_nncells_t *cs;
     fer_nncells_params_t params;
     fer_real_t range[4] = { -9., 9., -11., 7. };
-    size_t num = 40, i, j, k;
+    size_t i, j, k;
     const size_t *dim;
 
     printf("nncells2Nearest:\n");
@@ -174,7 +174,7 @@ TEST(nncellsNearest2)
     printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
     printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
     dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d\n", dim[0], dim[1]);
+    printf("nncells2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){
@@ -207,7 +207,6 @@ typedef struct _el6_t el6_t;
 static void el6New(el6_t *ns, size_t len, fer_list_t *head)
 {
     size_t i, j;
-    fer_real_t v[6];
 
     ferListInit(head);
 
@@ -252,7 +251,7 @@ TEST(nncellsNearest6)
     fer_nncells_t *cs;
     fer_nncells_params_t params;
     fer_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
-    size_t num = 40000, i, j, k;
+    size_t i, j, k;
     const size_t *dim;
 
     printf("nncells6Nearest:\n");
@@ -271,7 +270,7 @@ TEST(nncellsNearest6)
     printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
     printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
     dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d %d %d %d %d\n", dim[0], dim[1], dim[2], dim[3], dim[4], dim[5]);
+    printf("nncells2 dim: %d %d %d %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2], (int)dim[3], (int)dim[4], (int)dim[5]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){

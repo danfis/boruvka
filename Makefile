@@ -28,14 +28,14 @@ ifeq '$(USE_RAPID)' 'yes'
 endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
-BIN_TARGETS += fer-gng-2d fer-gng-3d fer-gng-eu fer-plan-2d
+BIN_TARGETS += fer-gng-eu fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
-OBJS += pc2.o pc3.o pc4.o pc-internal.o pc.o
+OBJS += pc.o pc-internal.o
 OBJS += predicates.o
 OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
 OBJS += mesh3.o qhull.o net.o chull3.o
@@ -43,7 +43,7 @@ OBJS += fibo.o pairheap.o
 OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
-OBJS += gng.o gng2.o gng3.o gng-eu.o
+OBJS += gng.o gng-eu.o
 OBJS += gng-plan.o prm.o rrt.o
 OBJS += tasks.o
 OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o
@@ -61,8 +61,7 @@ ifeq '$(USE_RAPID)' 'yes'
 endif
 
 # header files that must be generated
-HEADERS  = pc2.h pc3.h pc4.h
-HEADERS += cubes2.h cubes3.h
+HEADERS = cubes2.h cubes3.h
 
 OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
 OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))

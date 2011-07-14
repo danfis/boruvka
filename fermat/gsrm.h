@@ -19,7 +19,7 @@
 
 #include <fermat/core.h>
 #include <fermat/timer.h>
-#include <fermat/pc3.h>
+#include <fermat/pc.h>
 #include <fermat/mesh3.h>
 #include <fermat/nncells.h>
 #include <fermat/pairheap.h>
@@ -71,8 +71,8 @@ void ferGSRMParamsInit(fer_gsrm_params_t *params);
 struct _fer_gsrm_t {
     fer_gsrm_params_t params; /*!< Parameters of algorithm */
 
-    fer_pc3_t *is;        /*!< Input signals */
-    fer_pc3_it_t isit;    /*!< Iterator over is */
+    fer_pc_t *is;         /*!< Input signals */
+    fer_pc_it_t isit;     /*!< Iterator over is */
     fer_mesh3_t *mesh;    /*!< Reconstructed mesh */
     fer_nncells_t *cells; /*!< Search structure for nearest neighbor */
 

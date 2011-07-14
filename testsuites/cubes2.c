@@ -31,7 +31,7 @@ TEST(cubes2New)
     printf("cube size: %f\n", (float)ferCubes2Size(cs));
     printf("cubes len: %d\n", (int)ferCubes2Len(cs));
     dim = ferCubes2Dim(cs);
-    printf("cubes dim: %d %d\n", dim[0], dim[1]);
+    printf("cubes dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     ferCubes2Del(cs);
 
@@ -68,7 +68,7 @@ TEST(cubes2El)
     printf("cube size: %f\n", (float)ferCubes2Size(cs));
     printf("cubes len: %d\n", (int)ferCubes2Len(cs));
     dim = ferCubes2Dim(cs);
-    printf("cubes dim: %d %d\n", dim[0], dim[1]);
+    printf("cubes dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     //assertEquals(ferCubes2CubeId(cs, n), 22);
 
@@ -169,7 +169,7 @@ TEST(cubes2Nearest)
     printf("cube size: %f\n", (float)ferCubes2Size(cs));
     printf("cubes len: %d\n", (int)ferCubes2Len(cs));
     dim = ferCubes2Dim(cs);
-    printf("cubes dim: %d %d\n", dim[0], dim[1]);
+    printf("cubes dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){

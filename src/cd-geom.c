@@ -182,7 +182,7 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
 
     if (zero_tris > 0){
         fprintf(stderr, "CD Warning: ferCDGeomAddTrisFromRaw(): %d triangles"
-                        " with zero area ignored.\n", zero_tris);
+                        " with zero area ignored.\n", (int)zero_tris);
     }
 
     fclose(fin);

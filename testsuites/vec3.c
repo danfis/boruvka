@@ -788,7 +788,7 @@ TEST(vec3TriTriOverlap)
     for (i = 0; i < vecs_len / 100; i += 6){
         res = ferVec3TriTriOverlap(&vecs[i + 0], &vecs[i + 1], &vecs[i + 2],
                                    &vecs[i + 3], &vecs[i + 4], &vecs[i + 5]);
-        printf("# res[%04u]: %d\n", i, res);
+        printf("# res[%04d]: %d\n", (int)i, (int)res);
         /*
         char name[120];
         sprintf(name, "v: %d", res);

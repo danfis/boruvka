@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/pc3.h>
+#include <fermat/vec3.h>
+#include <fermat/pc.h>
 #include <fermat/dbg.h>
 
 TEST(pcSetUp)
@@ -11,29 +12,29 @@ TEST(pcTearDown)
 {
 }
 
-static int pcContains(fer_pc3_t *pc, const fer_vec3_t *v)
+static int pcContains(fer_pc_t *pc, const fer_vec3_t *v)
 {
-    fer_pc3_it_t it;
+    fer_pc_it_t it;
     const fer_vec3_t *w;
 
-    ferPC3ItInit(&it, pc);
-    while (!ferPC3ItEnd(&it)){
-        w = ferPC3ItGet(&it);
+    ferPCItInit(&it, pc);
+    while (!ferPCItEnd(&it)){
+        w = (fer_vec3_t *)ferPCItGet(&it);
         if (ferVec3Eq(w, v))
             return 1;
 
-        ferPC3ItNext(&it);
+        ferPCItNext(&it);
     }
     return 0;
 }
 
-void pcPrint(fer_pc3_t *pc)
+void pcPrint(fer_pc_t *pc)
 {
-    size_t i, len = ferPC3Len(pc);
+    size_t i, len = ferPCLen(pc);
     const fer_vec3_t *w;
 
     for (i = 0; i < len; i++){
-        w = ferPC3Get(pc, i);
+        w = (fer_vec3_t *)ferPCGet(pc, i);
         fprintf(stdout, "%g %g %g\n",
                 ferVec3X(w), ferVec3Y(w), ferVec3Z(w));
     }
@@ -42,35 +43,34 @@ void pcPrint(fer_pc3_t *pc)
 TEST(pcPermutate)
 {
     fer_vec3_t v[1000], w;
-    fer_pc3_t *pc;
+    fer_pc_t *pc;
     size_t i;
 
     for (i = 0; i < 1000; i++){
         ferVec3Set(&v[i], i, 0., 0.);
     }
 
-    pc = ferPC3New();
-    ferPC3SetMinChunkSize(pc, 2);
+    pc = ferPCNew2(3, 2);
 
-    ferPC3Add(pc, &v[0]);
-    ferPC3Permutate(pc);
-    assertEquals(1, ferPC3Len(pc));
+    ferPCAdd(pc, (fer_vec_t *)&v[0]);
+    ferPCPermutate(pc);
+    assertEquals(1, ferPCLen(pc));
     assertTrue(pcContains(pc, &v[0]));
 
-    ferPC3Add(pc, &v[1]);
-    ferPC3Add(pc, &v[2]);
-    assertEquals(3, ferPC3Len(pc));
-    assertTrue(pcContains(pc, &v[0]));
-    assertTrue(pcContains(pc, &v[1]));
-    assertTrue(pcContains(pc, &v[2]));
-    ferPC3Permutate(pc);
+    ferPCAdd(pc, (fer_vec_t *)&v[1]);
+    ferPCAdd(pc, (fer_vec_t *)&v[2]);
+    assertEquals(3, ferPCLen(pc));
     assertTrue(pcContains(pc, &v[0]));
     assertTrue(pcContains(pc, &v[1]));
     assertTrue(pcContains(pc, &v[2]));
+    ferPCPermutate(pc);
+    assertTrue(pcContains(pc, &v[0]));
+    assertTrue(pcContains(pc, &v[1]));
+    assertTrue(pcContains(pc, &v[2]));
 
-    ferPC3Add(pc, &v[3]);
-    assertEquals(4, ferPC3Len(pc));
-    ferPC3Permutate(pc);
+    ferPCAdd(pc, (fer_vec_t *)&v[3]);
+    assertEquals(4, ferPCLen(pc));
+    ferPCPermutate(pc);
     assertTrue(pcContains(pc, &v[0]));
     assertTrue(pcContains(pc, &v[1]));
     assertTrue(pcContains(pc, &v[2]));
@@ -78,47 +78,48 @@ TEST(pcPermutate)
 
 
     for (i = 4; i < 169; i++){
-        ferPC3Add(pc, &v[i]);
+        ferPCAdd(pc, (fer_vec_t *)&v[i]);
     }
-    assertEquals(ferPC3Len(pc), 169);
-    ferPC3Permutate(pc);
+    assertEquals(ferPCLen(pc), 169);
+    ferPCPermutate(pc);
     for (i = 0; i < 169; i++){
         assertTrue(pcContains(pc, &v[i]));
     }
 
 
     for (i = 169; i < 1000; i++){
-        ferPC3Add(pc, &v[i]);
+        ferPCAdd(pc, (fer_vec_t *)&v[i]);
     }
-    assertEquals(ferPC3Len(pc), 1000);
-    ferPC3Permutate(pc);
+    assertEquals(ferPCLen(pc), 1000);
+    ferPCPermutate(pc);
     for (i = 0; i < 1000; i++){
         assertTrue(pcContains(pc, &v[i]));
     }
 
     // test some basic operation on the points
     for (i = 0; i < 10; i++){
-        ferVec3Add2(&w, ferPC3Get(pc, 0), ferPC3Get(pc, 1));
+        ferVec3Add2(&w, (const fer_vec3_t *)ferPCGet(pc, 0),
+                        (const fer_vec3_t *)ferPCGet(pc, 1));
     }
 
-    ferPC3Del(pc);
+    ferPCDel(pc);
 }
 
 TEST(pcFromFile)
 {
-    fer_pc3_t *pc;
+    fer_pc_t *pc;
     size_t added;
 
-    pc = ferPC3New();
+    pc = ferPCNew(3);
 
-    added = ferPC3AddFromFile(pc, "asdfg");
+    added = ferPCAddFromFile(pc, "asdfg");
     assertEquals(added, 0);
 
-    added = ferPC3AddFromFile(pc, "cube.txt");
+    added = ferPCAddFromFile(pc, "cube.txt");
     assertEquals(added, 2402);
     printf("\n----- pcFromFile ----\n");
     pcPrint(pc);
     printf("\n----- pcFromFile END ----\n");
 
-    ferPC3Del(pc);
+    ferPCDel(pc);
 }

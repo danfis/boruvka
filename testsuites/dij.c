@@ -62,7 +62,7 @@ static void dumpPath(node_t *endnode, FILE *out)
     }
     fprintf(out, "Edges:\n");
     for (i = 0; i < size - 1; i++){
-        fprintf(out, "%d %d\n", i, i + 1);
+        fprintf(out, "%d %d\n", (int)i, (int)i + 1);
     }
 
     fprintf(out, "----\n");

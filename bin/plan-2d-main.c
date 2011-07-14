@@ -1,6 +1,6 @@
 #include <fermat/gng.h>
 #include <fermat/vec2.h>
-#include <fermat/pc2.h>
+#include <fermat/pc.h>
 #include <fermat/cubes2.h>
 #include <fermat/dij.h>
 #include <fermat/alloc.h>
@@ -22,8 +22,8 @@ typedef struct _node_t node_t;
 
 struct _plan_t {
     fer_gng_t *gng;
-    fer_pc2_t *pc;
-    fer_pc2_it_t pcit;
+    fer_pc_t *pc;
+    fer_pc_it_t pcit;
     fer_cubes2_t *cubes;
     fer_dij_t *dij;
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     fer_dij_ops_t dij_ops;
     plan_t plan;
     size_t size;
-    const fer_real_t *aabb;
+    fer_real_t aabb[4];
     int res;
 
     if (argc != 3){
@@ -95,13 +95,13 @@ int main(int argc, char *argv[])
 
     plan.gng = ferGNGNew(&gng_ops, &gng_params);
 
-    plan.pc  = ferPC2New();
-    size = ferPC2AddFromFile(plan.pc, argv[1]);
+    plan.pc  = ferPCNew(2);
+    size = ferPCAddFromFile(plan.pc, argv[1]);
     fprintf(stderr, "Added %u points.\n", (unsigned int)size);
 
     plan.max_nodes = atoi(argv[2]);
 
-    aabb = ferPC2AABB(plan.pc);
+    ferPCAABB(plan.pc, aabb);
     plan.cubes = ferCubes2New(aabb, plan.max_nodes);
 
     plan.start = ferVec2New(1, 1);
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     netDumpSVT(plan.gng, stdout, NULL);
 
     ferGNGDel(plan.gng);
-    ferPC2Del(plan.pc);
+    ferPCDel(plan.pc);
     ferCubes2Del(plan.cubes);
     ferVec2Del(plan.start);
     ferVec2Del(plan.goal);
@@ -148,8 +148,8 @@ static void init(fer_gng_node_t **n1, fer_gng_node_t **n2, void *_p)
     plan_t *p = (plan_t *)_p;
     node_t *nn;
 
-    ferPC2Permutate(p->pc);
-    ferPC2ItInit(&p->pcit, p->pc);
+    ferPCPermutate(p->pc);
+    ferPCItInit(&p->pcit, p->pc);
 
     *n1 = new_node(p->start, p);
     *n2 = new_node(p->goal, p);
@@ -212,13 +212,13 @@ static const void *input_signal(void *_p)
     plan_t *p = (plan_t *)_p;
     const fer_vec2_t *v;
 
-    if (ferPC2ItEnd(&p->pcit)){
-        ferPC2Permutate(p->pc);
-        ferPC2ItInit(&p->pcit, p->pc);
+    if (ferPCItEnd(&p->pcit)){
+        ferPCPermutate(p->pc);
+        ferPCItInit(&p->pcit, p->pc);
     }
 
-    v = ferPC2ItGet(&p->pcit);
-    ferPC2ItNext(&p->pcit);
+    v = (fer_vec2_t *)ferPCItGet(&p->pcit);
+    ferPCItNext(&p->pcit);
 
     return v;
 }

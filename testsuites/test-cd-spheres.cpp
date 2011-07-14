@@ -72,7 +72,7 @@ static void testCD1(void)
 
         ret = ferCDGeomCollide(cd, g1, g2);
         if (ret != ret2){
-            fprintf(stdout, "# testCD1 :: [%04d] FAIL\n", i);
+            fprintf(stdout, "# testCD1 :: [%04d] FAIL\n", (int)i);
         }
         ferTimerStop(&timer);
         //DBG("Coll[%02d] %04lu - %d (%d)", i, ferTimerElapsedInUs(&timer), ret, ret2);
@@ -119,7 +119,7 @@ static void testCDSphereGrid1(void)
         }
 
         if (ret != ret2){
-            fprintf(stdout, "# testCDSphereGrid1 :: [%04d] FAIL (%d %d)\n", i, ret, ret2);
+            fprintf(stdout, "# testCDSphereGrid1 :: [%04d] FAIL (%d %d)\n", (int)i, (int)ret, (int)ret2);
         }
         ferTimerStop(&timer);
         //DBG("Coll[%02d] %04lu - %d (%d)", i, ferTimerElapsedInUs(&timer), ret, ret2);

@@ -19,7 +19,7 @@ static void mesh3DelFace(fer_mesh3_face_t *f, void *data);
 
 /** Writes point cloud into fd in format qhull accepts.
  *  Returns 0 on success */
-static int writePC33(fer_pc3_t *pc, int fd);
+static int writePC33(fer_pc_t *pc, int fd);
 /** Parses input from fd into Mesh3 */
 static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd);
 
@@ -65,7 +65,7 @@ void ferQDelaunaySetPath(fer_qdelaunay_t *q, const char *path)
     q->bin_path = strdup(path);
 }
 
-fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc3_t *pc)
+fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc_t *pc)
 {
     int pipe_points[2];
     int pipe_result[2];
@@ -125,7 +125,7 @@ fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc3_t *pc)
     close(pipe_result[1]);
 
     // write points on qdelaunay stdin
-    if (writePC33((fer_pc3_t *)pc, pipe_points[1]) != 0){
+    if (writePC33((fer_pc_t *)pc, pipe_points[1]) != 0){
         ERR2("Can't open write end of pipe using stdio.");
         close(pipe_points[1]);
     }
@@ -172,10 +172,10 @@ static void mesh3DelFace(fer_mesh3_face_t *f, void *data)
     free(f);
 }
 
-static int writePC33(fer_pc3_t *pc, int fd)
+static int writePC33(fer_pc_t *pc, int fd)
 {
     FILE *fout;
-    fer_pc3_it_t pcit;
+    fer_pc_it_t pcit;
     fer_vec3_t *v;
 
     fout = fdopen(fd, "w");
@@ -186,15 +186,15 @@ static int writePC33(fer_pc3_t *pc, int fd)
     fprintf(fout, "3\n");
 
     // then write number of points
-    fprintf(fout, "%d\n", (int)ferPC3Len(pc));
+    fprintf(fout, "%d\n", (int)ferPCLen(pc));
 
     // and write all points
-    ferPC3ItInit(&pcit, (fer_pc3_t *)pc);
-    while (!ferPC3ItEnd(&pcit)){
-        v = ferPC3ItGet(&pcit);
+    ferPCItInit(&pcit, (fer_pc_t *)pc);
+    while (!ferPCItEnd(&pcit)){
+        v = (fer_vec3_t *)ferPCItGet(&pcit);
         fprintf(fout, "%g %g %g\n", ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
 
-        ferPC3ItNext(&pcit);
+        ferPCItNext(&pcit);
     }
 
     fclose(fout);

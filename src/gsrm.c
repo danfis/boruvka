@@ -245,7 +245,7 @@ fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
     g->params = *params;
 
     // initialize point cloude (input signals)
-    g->is = ferPC3New();
+    g->is = ferPCNew(3);
 
     // init 3D mesh
     g->mesh = ferMesh3New();
@@ -271,7 +271,7 @@ void ferGSRMDel(fer_gsrm_t *g)
         cacheDel(g->c);
 
     if (g->is)
-        ferPC3Del(g->is);
+        ferPCDel(g->is);
 
     if (g->mesh)
         ferMesh3Del2(g->mesh, nodeDel2, (void *)g,
@@ -293,7 +293,7 @@ void ferGSRMDel(fer_gsrm_t *g)
 
 size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
 {
-    return ferPC3AddFromFile(g->is, fn);
+    return ferPCAddFromFile(g->is, fn);
 }
 
 int ferGSRMRun(fer_gsrm_t *g)
@@ -430,9 +430,10 @@ static int init(fer_gsrm_t *g)
 {
     size_t i;
     fer_real_t maxbeta;
+    fer_real_t aabb[6];
 
     // check if there are some input signals
-    if (ferPC3Len(g->is) <= 3){
+    if (ferPCLen(g->is) <= 3){
         DBG2("No input signals!");
         return -1;
     }
@@ -474,14 +475,15 @@ static int init(fer_gsrm_t *g)
     // initialize NN search structure
     if (g->cells)
         ferNNCellsDel(g->cells);
+    ferPCAABB(g->is, aabb);
     g->params.cells.d    = 3;
-    g->params.cells.aabb = (fer_real_t *)ferPC3AABB(g->is);
+    g->params.cells.aabb = aabb;
     g->cells = ferNNCellsNew(&g->params.cells);
 
     // first shuffle of all input signals
-    ferPC3Permutate(g->is);
+    ferPCPermutate(g->is);
     // and initialize its iterator
-    ferPC3ItInit(&g->isit, g->is);
+    ferPCItInit(&g->isit, g->is);
 
 
     // start timer
@@ -740,26 +742,26 @@ static void meshInit(fer_gsrm_t *g)
 
     for (i = 0; i < 3; i++){
         // obtain input signal
-        v = ferPC3ItGet(&g->isit);
+        v = (fer_vec3_t *)ferPCItGet(&g->isit);
 
         // create new node
         nodeNew(g, v);
 
         // move to next point
-        ferPC3ItNext(&g->isit);
+        ferPCItNext(&g->isit);
     }
 }
 
 static void drawInputPoint(fer_gsrm_t *g)
 {
-    if (ferPC3ItEnd(&g->isit)){
+    if (ferPCItEnd(&g->isit)){
         // if iterator is at the end permutate point cloud again
-        ferPC3Permutate(g->is);
+        ferPCPermutate(g->is);
         // and re-initialize iterator
-        ferPC3ItInit(&g->isit, g->is);
+        ferPCItInit(&g->isit, g->is);
     }
-    g->c->is = ferPC3ItGet(&g->isit);
-    ferPC3ItNext(&g->isit);
+    g->c->is = (fer_vec3_t *)ferPCItGet(&g->isit);
+    ferPCItNext(&g->isit);
 }
 
 
@@ -1104,24 +1106,24 @@ static void createNewNode(fer_gsrm_t *g)
 /** --- Topology learning --- */
 static void learnTopology(fer_gsrm_t *g)
 {
-    fer_vec3_t *is;
-    fer_pc3_it_t pcit;
+    fer_vec_t *is;
+    fer_pc_it_t pcit;
     fer_nncells_el_t *el[2];
 
     // for each input point
-    ferPC3ItInit(&pcit, g->is);
-    while (!ferPC3ItEnd(&pcit)){
-        is = ferPC3ItGet(&pcit);
+    ferPCItInit(&pcit, g->is);
+    while (!ferPCItEnd(&pcit)){
+        is = ferPCItGet(&pcit);
 
         // 1. Find two nearest nodes
-        ferNNCellsNearest(g->cells, (const fer_vec_t *)is, 2, el);
+        ferNNCellsNearest(g->cells, is, 2, el);
         g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
         g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
 
         // 2. Connect winning nodes
         echlConnectNodes(g);
 
-        ferPC3ItNext(&pcit);
+        ferPCItNext(&pcit);
     }
 }
 

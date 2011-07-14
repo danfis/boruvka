@@ -31,7 +31,7 @@ TEST(cubesNew)
     printf("cube size: %f\n", (float)ferCubes3Size(cs));
     printf("cubes len: %d\n", (int)ferCubes3Len(cs));
     dim = ferCubes3Dim(cs);
-    printf("cubes dim: %d %d %d\n", dim[0], dim[1], dim[2]);
+    printf("cubes dim: %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2]);
 
     ferCubes3Del(cs);
 
@@ -68,7 +68,7 @@ TEST(cubesEl)
     printf("cube size: %f\n", (float)ferCubes3Size(cs));
     printf("cubes len: %d\n", (int)ferCubes3Len(cs));
     dim = ferCubes3Dim(cs);
-    printf("cubes dim: %d %d %d\n", dim[0], dim[1], dim[2]);
+    printf("cubes dim: %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2]);
 
     //assertEquals(ferCubes3CubeId(cs, n), 22);
 
@@ -154,14 +154,13 @@ static size_t nearest(el_t *ns, size_t nslen,
                     const fer_vec3_t *v,
                     fer_cubes3_el_t **n, size_t len)
 {
-    size_t i, j, nlen, curi;
+    size_t i, j, curi;
     fer_real_t dist, curdist;
     //el_t *tmp;
     int skip;
 
     len = FER_MIN(len, nslen);
 
-    nlen = 0;
     curi = 0;
     while (curi != len){
         curdist = FER_REAL_MAX;
@@ -219,7 +218,7 @@ static void nearRun(fer_cubes3_t *cs,
                     el_t *n, size_t nlen)
 
 {
-    size_t i, p, reslen;
+    size_t i, p;
     size_t howmany = ferRand(&r, 0, nlen);
 
     // change some nodes
@@ -235,7 +234,7 @@ static void nearRun(fer_cubes3_t *cs,
         near[i] = near2[i] = NULL;
     }
 
-    reslen = ferCubes3Nearest(cs, v, len, near);
+    ferCubes3Nearest(cs, v, len, near);
     nearest(n, nlen, v, near2, len);
 
     assertTrue(cmp(near, near2, len));
@@ -264,7 +263,7 @@ TEST(cubesNearest)
     printf("cube size: %f\n", (float)ferCubes3Size(cs));
     printf("cubes len: %d\n", (int)ferCubes3Len(cs));
     dim = ferCubes3Dim(cs);
-    printf("cubes dim: %d %d %d\n", dim[0], dim[1], dim[2]);
+    printf("cubes dim: %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2]);
 
     for (i=0; i < N_LOOPS; i++)
         nearRun(cs, near, near2, 1, &v, ns, N_LEN);
@@ -303,7 +302,7 @@ TEST(cubesNearest2)
     printf("cube size: %f\n", (float)ferCubes3Size(cs));
     printf("cubes len: %d\n", (int)ferCubes3Len(cs));
     dim = ferCubes3Dim(cs);
-    printf("cubes dim: %d %d %d\n", dim[0], dim[1], dim[2]);
+    printf("cubes dim: %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2]);
 
     for (i=0; i < N_LOOPS; i++)
         nearRun(cs, near, near2, 5, &v, ns, 3);

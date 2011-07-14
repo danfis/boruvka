@@ -95,7 +95,7 @@ static void testCorrect(void)
 
     for (k = 0; k < nearest_len; k++){
         for (i=0; i < loops; i++){
-            fprintf(stderr, "[%d] %08d / %08d\r", k, i, loops);
+            fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
             ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
@@ -115,9 +115,9 @@ static void testCorrect(void)
         }
 
         if (incorrect){
-            fprintf(stderr, "[%d] %08d / %08d FAIL\n", k, i, loops);
+            fprintf(stderr, "[%d] %08d / %08d FAIL\n", (int)k, (int)i, (int)loops);
         }else{
-            fprintf(stderr, "[%d] %08d / %08d OK\n", k, i, loops);
+            fprintf(stderr, "[%d] %08d / %08d OK\n", (int)k, (int)i, (int)loops);
         }
     }
 
