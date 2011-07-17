@@ -85,14 +85,22 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_ops_t *_ops,
     gng->dim = params->dim;
 
     ops = *_ops;
-    ops.init_data             = (void *)gng;
-    ops.new_node_data         = (void *)gng;
-    ops.new_node_between_data = (void *)gng;
-    ops.del_node_data         = (void *)gng;
-    ops.input_signal_data     = (void *)gng;
-    ops.nearest_data          = (void *)gng;
-    ops.dist2_data            = (void *)gng;
-    ops.move_towards_data     = (void *)gng;
+    if (ops.init == NULL)
+        ops.init_data = (void *)gng;
+    if (ops.new_node == ferGNGEuNewNode)
+        ops.new_node_data = (void *)gng;
+    if (ops.new_node_between == ferGNGEuNewNodeBetween)
+        ops.new_node_between_data = (void *)gng;
+    if (ops.del_node == ferGNGEuDelNode)
+        ops.del_node_data = (void *)gng;
+    if (ops.input_signal == ferGNGEuInputSignal)
+        ops.input_signal_data = (void *)gng;
+    if (ops.nearest == ferGNGEuNearest)
+        ops.nearest_data = (void *)gng;
+    if (ops.dist2 == ferGNGEuDist2)
+        ops.dist2_data = (void *)gng;
+    if (ops.move_towards == ferGNGEuMoveTowards)
+        ops.move_towards_data = (void *)gng;
     gng->gng = ferGNGNew(&ops, &params->gng);
 
     gng->pc = ferPCNew(gng->dim);

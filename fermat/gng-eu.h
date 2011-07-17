@@ -146,6 +146,21 @@ typedef struct _fer_gng_eu_node_t fer_gng_eu_node_t;
 _fer_inline size_t ferGNGEuNodesLen(const fer_gng_eu_t *gng);
 
 /**
+ * Returns list of nodes.
+ */
+_fer_inline fer_list_t *ferGNGEuNodes(fer_gng_eu_t *gng);
+
+/**
+ * Connects new node at given position (is).
+ */
+_fer_inline fer_gng_node_t *ferGNGEuConnectNewNode(fer_gng_eu_t *gng, const void *is);
+
+/**
+ * Returns GNG-Eu node from list pointer.
+ */
+_fer_inline fer_gng_eu_node_t *ferGNGEuNodeFromList(fer_list_t *item);
+
+/**
  * Cast from Net node to GNGEu node.
  */
 _fer_inline fer_gng_eu_node_t *ferGNGEuNodeFromNet(fer_net_node_t *n);
@@ -191,6 +206,21 @@ _fer_inline fer_net_t *ferGNGEuNet(fer_gng_eu_t *gng)
 _fer_inline size_t ferGNGEuNodesLen(const fer_gng_eu_t *gng)
 {
     return ferGNGNodesLen(gng->gng);
+}
+
+_fer_inline fer_list_t *ferGNGEuNodes(fer_gng_eu_t *gng)
+{
+    return ferGNGNodes(gng->gng);
+}
+
+_fer_inline fer_gng_node_t *ferGNGEuConnectNewNode(fer_gng_eu_t *gng, const void *is)
+{
+    return ferGNGConnectNewNode(gng->gng, is);
+}
+
+_fer_inline fer_gng_eu_node_t *ferGNGEuNodeFromList(fer_list_t *item)
+{
+    return ferGNGEuNodeFromGNG(ferGNGNodeFromList(item));
 }
 
 _fer_inline fer_gng_eu_node_t *ferGNGEuNodeFromNet(fer_net_node_t *n)

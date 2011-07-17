@@ -30,6 +30,7 @@ endif
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-eu fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
+BIN_TARGETS += fer-gngp
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -44,7 +45,7 @@ OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng-eu.o
-OBJS += gng-plan.o prm.o rrt.o
+OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
 OBJS += tasks.o
 OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
