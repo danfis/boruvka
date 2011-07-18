@@ -201,11 +201,13 @@ static void ferGNGPlanMoveTowards(fer_gng_node_t *node,
                                   fer_real_t fraction, void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
-    const fer_gng_plan_node_t *n; 
+    fer_gng_plan_node_t *n; 
 
     n = fer_container_of(node, fer_gng_plan_node_t, node);
 
     ferVecSub2(gng->dim, gng->tmpv, (const fer_vec_t *)input_signal, n->w);
     ferVecScale(gng->dim, gng->tmpv, fraction);
     ferVecAdd(gng->dim, n->w, gng->tmpv);
+
+    ferNNCellsUpdate(gng->cells, &n->cells);
 }
