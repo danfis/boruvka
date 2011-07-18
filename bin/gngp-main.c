@@ -20,7 +20,6 @@ fer_timer_t timer;
 fer_vec_t *is;
 
 
-static void dumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 static int (*eval)(const fer_vec_t *w, void *data);
 
 static int terminate(void *data);
@@ -60,10 +59,13 @@ int main(int argc, char *argv[])
 
     ops.terminate    = terminate;
     ops.input_signal = inputSignal;
+    ops.eval         = eval1_5;
     ops.callback     = callback;
-    ops.callback_period = 500;
+    ops.callback_period = 5;
 
     params.dim = 2;
+    params.max_dist2 = 0.15;
+    params.min_nodes = 2000;
     params.cells.d = 2;
     params.cells.aabb = aabb;
     params.cells.max_dens = 2;
@@ -76,7 +78,7 @@ int main(int argc, char *argv[])
     ferGNGPlanRun(gng);
     ferTimerStopAndPrintElapsed(&timer, stderr, "\r\n");
 
-    dumpSVT(gng, stdout, "Result");
+    ferGNGPlanDumpSVT(gng, stdout, "Result");
     ferGNGPlanDel(gng);
 
     ferRandMTDel(rand_mt);
@@ -117,19 +119,19 @@ static int terminate(void *data)
 static void callback(void *data)
 {
     size_t nodes_len;
-    /*
     FILE *fout;
     char fn[1000];
-
-    nodes_len = ferGNGPNodesLen(p->gng);
-
-    sprintf(fn, "out/%010d.svt", ferGNGPNodesLen(p->gng));
-    fout = fopen(fn, "w");
-    ferGNGPDumpSVT(p->gng, fout, NULL);
-    fclose(fout);
-    */
+    static int counter = 0;
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
+
+    sprintf(fn, "out/%010d.svt", counter++);
+    fout = fopen(fn, "w");
+    if (fout){
+        ferGNGPlanDumpSVT(gng, fout, NULL);
+        fclose(fout);
+    }
+
     ferTimerStopAndPrintElapsed(&timer, stderr, " %d\r", (int)nodes_len);
 }
 
@@ -226,6 +228,7 @@ static int eval1_3(const fer_vec_t *w, void *data)
 
 static int eval1_5(const fer_vec_t *w, void *data)
 {
+    return eval1(w, data, 0.1);
     return eval1(w, data, 0.05);
 }
 
@@ -339,60 +342,3 @@ static int eval4_5(const fer_vec_t *w, void *data)
 }
 
 
-static void dumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
-{
-    fer_list_t *list, *item;
-    fer_net_t *net;
-    fer_net_node_t *nn;
-    fer_gng_node_t *gn;
-    fer_net_edge_t *e;
-    fer_gng_plan_node_t *n;
-    size_t i, id1, id2;
-
-    if (gng->dim != 2 && gng->dim != 3)
-        return;
-
-    net = ferGNGPlanNet(gng);
-
-    fprintf(out, "--------\n");
-
-    if (name)
-        fprintf(out, "Name: %s\n", name);
-
-    fprintf(out, "Points:\n");
-    list = ferNetNodes(net);
-    i = 0;
-    FER_LIST_FOR_EACH(list, item){
-        nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
-        gn = ferGNGNodeFromNet(nn);
-        n  = fer_container_of(gn, fer_gng_plan_node_t, node);
-
-        n->_id = i++;
-        if (gng->dim == 2){
-            ferVec2Print((const fer_vec2_t *)n->w, out);
-        }else{
-            ferVec3Print((const fer_vec3_t *)n->w, out);
-        }
-        fprintf(out, "\n");
-    }
-
-
-    fprintf(out, "Edges:\n");
-    list = ferGNGEdges(gng->gng);
-    FER_LIST_FOR_EACH(list, item){
-        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
-
-        nn = ferNetEdgeNode(e, 0);
-        gn = ferGNGNodeFromNet(nn);
-        n  = fer_container_of(gn, fer_gng_plan_node_t, node);
-        id1 = n->_id;
-
-        nn = ferNetEdgeNode(e, 1);
-        gn = ferGNGNodeFromNet(nn);
-        n  = fer_container_of(gn, fer_gng_plan_node_t, node);
-        id2 = n->_id;
-        fprintf(out, "%d %d\n", (int)id1, (int)id2);
-    }
-
-    fprintf(out, "--------\n");
-}

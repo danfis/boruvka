@@ -28,6 +28,8 @@ static void ferGNGNewNode(fer_gng_t *gng);
 _fer_inline void nodeAdd(fer_gng_t *gng, fer_gng_node_t *n);
 /** Removes node from network */
 _fer_inline void nodeRemove(fer_gng_t *gng, fer_gng_node_t *n);
+/** Removes node from network and deletes it */
+_fer_inline void nodeDel(fer_gng_t *gng, fer_gng_node_t *n);
 /** Fixes node's error counter, i.e. applies correct beta^(n * lambda) */
 _fer_inline void nodeFixError(fer_gng_t *gng, fer_gng_node_t *n);
 /** Increment error counter */
@@ -180,6 +182,44 @@ fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is)
     return r;
 }
 
+void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node)
+{
+    fer_list_t *edges, *item, *itemtmp;
+    fer_net_edge_t *ne;
+    fer_gng_edge_t *edge;
+    fer_net_node_t *nn;
+    fer_gng_node_t **nodes;
+    size_t i, nodes_len;
+
+    // allocate array for nodes that remain unconnected
+    nodes = FER_ALLOC_ARR(fer_gng_node_t *, ferNetNodeEdgesLen(&node->node));
+    nodes_len = 0;
+
+    // remove incidenting edges
+    edges = ferNetNodeEdges(&node->node);
+    FER_LIST_FOR_EACH_SAFE(edges, item, itemtmp){
+        ne = ferNetEdgeFromNodeList(item);
+        edge = ferGNGEdgeFromNet(ne);
+
+        // add unconnected node to array
+        nn = ferNetEdgeOtherNode(ne, &node->node);
+        if (ferNetNodeEdgesLen(nn) == 1)
+            nodes[nodes_len++] = ferGNGNodeFromNet(nn);
+
+        edgeDel(gng, edge);
+    }
+
+    // remove node from net but don't delete it
+    nodeRemove(gng, node);
+
+    // delete unconnected nodes
+    for (i = 0; i < nodes_len; i++){
+        nodeDel(gng, nodes[i]);
+    }
+
+    free(nodes);
+}
+
 
 static void ferGNGInit(fer_gng_t *gng)
 {
@@ -285,7 +325,7 @@ static void ferGNGLearn(fer_gng_t *gng, size_t step)
 
             if (ferNetNodeEdgesLen(nn) == 0){
                 // remove node if not connected into net anymore
-                nodeRemove(gng, n);
+                nodeDel(gng, n);
                 n = NULL;
             }
         }
@@ -300,7 +340,7 @@ static void ferGNGLearn(fer_gng_t *gng, size_t step)
     // remove winning node if not connected into net
     if (ferNetNodeEdgesLen(&n1->node) == 0){
         // remove node if not connected into net anymore
-        nodeRemove(gng, n1);
+        nodeDel(gng, n1);
     }
 }
 
@@ -357,6 +397,11 @@ _fer_inline void nodeRemove(fer_gng_t *gng, fer_gng_node_t *n)
 {
     ferPairHeapRemove(gng->err_heap, &n->err_heap);
     ferNetRemoveNode(gng->net, &n->node);
+}
+
+_fer_inline void nodeDel(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    nodeRemove(gng, n);
     gng->ops.del_node(n, gng->ops.del_node_data);
 }
 

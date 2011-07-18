@@ -37,6 +37,8 @@ struct _fer_gng_plan_node_t {
     fer_nncells_el_t cells; /*!< Connection into cells */
     fer_vec_t *w;           /*!< Weight vector */
 
+    fer_list_t obst; /*!< Connection into list of obstacle nodes */
+
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
 
@@ -53,6 +55,9 @@ typedef struct _fer_gng_plan_node_t fer_gng_plan_node_t;
  */
 
 /** vvvv */
+
+#define FER_GNG_PLAN_FREE 0
+#define FER_GNG_PLAN_OBST 1
 
 /**
  * TODO
@@ -93,7 +98,11 @@ void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops);
  * ---------------
  */
 struct _fer_gng_plan_params_t {
-    int dim;
+    int dim;              /*!< Dimensionality of space. Default: 2 */
+    fer_real_t max_dist2; /*!< Maximal cube distance between two nodes in path.
+                               Default: 0.1 */
+    int min_nodes;        /*!< Minimal number of nodes to start path search.
+                               Default: 100 */
 
     fer_gng_params_t gng;
     fer_nncells_params_t cells;
@@ -115,14 +124,18 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params);
 
 struct _fer_gng_plan_t {
     int dim;
+    fer_real_t max_dist2;
+    int min_nodes;
+
+    fer_gng_plan_ops_t ops; /*!< Callbacks */
 
     fer_gng_t *gng;
     fer_nncells_t *cells;
 
-    fer_gng_plan_eval eval;
-    fer_gng_input_signal input_signal;
-    void *eval_data;
-    void *input_signal_data;
+    fer_list_t obst;           /*!< List of obstacle nodes */
+    fer_nncells_t *obst_cells; /*!< NNCells for obstacle nodes */
+
+    fer_vec_t *start, *goal; /*!< Start and goal positions */
 
     fer_vec_t *tmpv;
 };
@@ -148,6 +161,10 @@ void ferGNGPlanDel(fer_gng_plan_t *gng);
  */
 void ferGNGPlanRun(fer_gng_plan_t *gng);
 
+/**
+ * Dumps net.
+ */
+void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 
 _fer_inline fer_gng_t *ferGNGPlanGNG(fer_gng_plan_t *gngp);
 _fer_inline fer_net_t *ferGNGPlanNet(fer_gng_plan_t *gngp);
@@ -168,9 +185,6 @@ int ferGNGPFindPath(fer_gng_plan_t *gng,
  */
 void ferGNGPDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 
-/**
- * Dump nodes - coordinates and set
- */
 void ferGNGPDumpNodes(fer_gng_plan_t *gng, FILE *out);
 #endif
 

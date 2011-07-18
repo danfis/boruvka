@@ -284,6 +284,13 @@ void ferGNGRun(fer_gng_t *gng);
 fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
 
 /**
+ * Removes node from net, i.e., deletes all incidenting edges and removes it
+ * from net. Also nodes that remain unconnected are deleted.
+ * Note that no destructor is called on {node}.
+ */
+void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node);
+
+/**
  * Returns age of edge.
  *
  * Always use this function instead of direct access to struct!
