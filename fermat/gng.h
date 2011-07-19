@@ -291,6 +291,12 @@ fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
 void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node);
 
 /**
+ * Deletes edge between {n1} and {n2}.
+ */
+void ferGNGDelEdgeBetween(fer_gng_t *gng,
+                          fer_gng_node_t *n1, fer_gng_node_t *n2);
+
+/**
  * Returns age of edge.
  *
  * Always use this function instead of direct access to struct!

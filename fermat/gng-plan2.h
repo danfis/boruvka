@@ -42,6 +42,8 @@ struct _fer_gng_plan_node_t {
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;    /*!< Connection into list representing path */
 
+    int fixed;
+
     int _id;
 };
 typedef struct _fer_gng_plan_node_t fer_gng_plan_node_t;

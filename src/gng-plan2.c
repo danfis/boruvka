@@ -190,6 +190,11 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
     // check each node in path if it is in free space
     FER_LIST_FOR_EACH(path, item){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+
+        // skip fixed nodes - we know these are in FREE space
+        if (n->fixed)
+            continue;
+
         eval = gng->ops.eval(n->w, gng->ops.eval_data);
 
         // node is in obstacle
@@ -205,6 +210,9 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
             ferNNCellsAdd(gng->obst_cells, &n->cells);
 
             cut = 0;
+        }else{
+            // node node as fixed because this is in FREE space
+            n->fixed = 1;
         }
     }
 
@@ -245,8 +253,9 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
 static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
 {
     fer_list_t *item;
-    fer_gng_plan_node_t *n;
+    fer_gng_plan_node_t *n, *p;
     const fer_vec_t *w;
+    int isfree = 1;
 
     if (ferListEmpty(path))
         return 0;
@@ -258,13 +267,23 @@ static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
         return 0;
 
     // check middle nodes
+    isfree = 1;
+    p = n;
     w = n->w;
     for (item = ferListNext(item); item != path; item = ferListNext(item)){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-        if (!ferGNGPlanIsEdgeFree(gng, w, n->w))
-            return 0;
+        if (!ferGNGPlanIsEdgeFree(gng, w, n->w)){
+            // delete edge that is in OBST space
+            ferGNGDelEdgeBetween(gng->gng, &p->node, &n->node);
+            isfree = 0;
+        }
+
+        p = n;
         w = n->w;
     }
+
+    if (!isfree)
+        return 0;
 
     // check last node
     item = ferListPrev(path);
@@ -343,6 +362,8 @@ static fer_gng_node_t *ferGNGPlanNewNode(const void *input_signal, void *data)
     ferNNCellsElInit(&node->cells, node->w);
     ferNNCellsAdd(gng->cells, &node->cells);
 
+    node->fixed = 0;
+
     return &node->node;
 }
 
@@ -405,6 +426,10 @@ static void ferGNGPlanMoveTowards(fer_gng_node_t *node,
     fer_gng_plan_node_t *n; 
 
     n = fer_container_of(node, fer_gng_plan_node_t, node);
+
+    // don't move fixed nodes
+    if (n->fixed)
+        return;
 
     ferVecSub2(gng->dim, gng->tmpv, (const fer_vec_t *)input_signal, n->w);
     ferVecScale(gng->dim, gng->tmpv, fraction);

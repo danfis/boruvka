@@ -220,6 +220,17 @@ void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node)
     free(nodes);
 }
 
+void ferGNGDelEdgeBetween(fer_gng_t *gng,
+                          fer_gng_node_t *n1, fer_gng_node_t *n2)
+{
+    fer_net_edge_t *ne;
+    fer_gng_edge_t *e;
+
+    ne = ferNetNodeCommonEdge(&n1->node, &n2->node);
+    e  = fer_container_of(ne, fer_gng_edge_t, edge);
+
+    edgeDel(gng, e);
+}
 
 static void ferGNGInit(fer_gng_t *gng)
 {
