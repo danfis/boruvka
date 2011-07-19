@@ -25,8 +25,7 @@ static int (*eval)(const fer_vec_t *w, void *data);
 static int terminate(void *data);
 static void callback(void *data);
 static const void *inputSignal(void *data);
-static void setUpScene(const char *scene,
-                       fer_vec_t *start, fer_vec_t *goal);
+static void setUpScene(const char *scene);
 static int eval1_1(const fer_vec_t *w, void *data);
 static int eval1_3(const fer_vec_t *w, void *data);
 static int eval1_5(const fer_vec_t *w, void *data);
@@ -40,13 +39,15 @@ static int eval4_1(const fer_vec_t *w, void *data);
 static int eval4_3(const fer_vec_t *w, void *data);
 static int eval4_5(const fer_vec_t *w, void *data);
 
+static void dump(void);
+
 
 int main(int argc, char *argv[])
 {
     fer_real_t aabb[4] = { -5, 5, -5, 5 };
 
-    if (argc < 2){
-        fprintf(stderr, "Usage: %s max_nodes find_path_period scene\n", argv[0]);
+    if (argc < 4){
+        fprintf(stderr, "Usage: %s max_nodes min_nodes scene\n", argv[0]);
         return -1;
     }
 
@@ -64,12 +65,16 @@ int main(int argc, char *argv[])
     ops.callback_period = 5;
 
     params.dim = 2;
-    params.max_dist2 = 0.15;
-    params.min_nodes = 2000;
+    params.max_dist  = 0.01;
+    params.min_nodes = atoi(argv[2]);
+    params.start = ferVecNew(2);
+    params.goal  = ferVecNew(2);
     params.cells.d = 2;
     params.cells.aabb = aabb;
     params.cells.max_dens = 2;
     params.cells.expand_rate = 2;
+
+    setUpScene(argv[3]);
 
     rand_mt = ferRandMTNewAuto();
     gng = ferGNGPlanNew(&ops, &params);
@@ -78,7 +83,7 @@ int main(int argc, char *argv[])
     ferGNGPlanRun(gng);
     ferTimerStopAndPrintElapsed(&timer, stderr, "\r\n");
 
-    ferGNGPlanDumpSVT(gng, stdout, "Result");
+    dump();
     ferGNGPlanDel(gng);
 
     ferRandMTDel(rand_mt);
@@ -119,19 +124,10 @@ static int terminate(void *data)
 static void callback(void *data)
 {
     size_t nodes_len;
-    FILE *fout;
-    char fn[1000];
-    static int counter = 0;
+
+    dump();
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-
-    sprintf(fn, "out/%010d.svt", counter++);
-    fout = fopen(fn, "w");
-    if (fout){
-        ferGNGPlanDumpSVT(gng, fout, NULL);
-        fclose(fout);
-    }
-
     ferTimerStopAndPrintElapsed(&timer, stderr, " %d\r", (int)nodes_len);
 }
 
@@ -145,58 +141,69 @@ static const void *inputSignal(void *data)
     return is;
 }
 
-static void setUpScene(const char *scene,
-                       fer_vec_t *start, fer_vec_t *goal)
+static void setUpScene(const char *scene)
 {
 
     if (strcmp(scene, "1_1") == 0){
         eval = eval1_1;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
+        params.max_dist = 0.005;
     }else if (strcmp(scene, "1_3") == 0){
         eval = eval1_3;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
+        params.max_dist = 0.015;
     }else if (strcmp(scene, "1_5") == 0){
         eval = eval1_5;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(-4.), FER_REAL(-4.));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(1.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
+        params.max_dist = 0.025;
     }else if (strcmp(scene, "2_1") == 0){
         eval = eval2_1;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.005;
     }else if (strcmp(scene, "2_3") == 0){
         eval = eval2_3;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.015;
     }else if (strcmp(scene, "2_5") == 0){
         eval = eval2_5;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.025;
     }else if (strcmp(scene, "3_1") == 0){
         eval = eval3_1;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.005;
     }else if (strcmp(scene, "3_3") == 0){
         eval = eval3_3;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.015;
     }else if (strcmp(scene, "3_5") == 0){
         eval = eval3_5;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(4.5), FER_REAL(4.5));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
+        params.max_dist = 0.025;
     }else if (strcmp(scene, "4_1") == 0){
         eval = eval4_1;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
+        params.max_dist = 0.005;
     }else if (strcmp(scene, "4_3") == 0){
         eval = eval4_3;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
+        params.max_dist = 0.015;
     }else if (strcmp(scene, "4_5") == 0){
         eval = eval4_5;
-        ferVec2Set((fer_vec2_t *)start, FER_REAL(4.5), FER_REAL(-4.5));
-        ferVec2Set((fer_vec2_t *)goal, FER_REAL(0.45), FER_REAL(0.));
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
+        params.max_dist = 0.025;
     }
 }
 
@@ -228,7 +235,7 @@ static int eval1_3(const fer_vec_t *w, void *data)
 
 static int eval1_5(const fer_vec_t *w, void *data)
 {
-    return eval1(w, data, 0.1);
+    //return eval1(w, data, 0.1);
     return eval1(w, data, 0.05);
 }
 
@@ -342,3 +349,18 @@ static int eval4_5(const fer_vec_t *w, void *data)
 }
 
 
+static void dump(void)
+{
+    FILE *fout;
+    char fn[1000];
+    static int counter = 0;
+
+    sprintf(fn, "out/%010d.svt", counter++);
+    fout = fopen(fn, "w");
+    if (fout){
+        ferGNGPlanDumpNetSVT(gng, fout, NULL);
+        ferGNGPlanDumpObstSVT(gng, fout, NULL);
+        ferGNGPlanDumpPathSVT(gng, fout, NULL);
+        fclose(fout);
+    }
+}

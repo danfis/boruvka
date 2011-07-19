@@ -64,8 +64,11 @@ void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops)
 void ferGNGPlanParamsInit(fer_gng_plan_params_t *params)
 {
     params->dim       = 2;
-    params->max_dist2 = FER_REAL(0.1);
+    params->max_dist  = FER_REAL(0.1);
     params->min_nodes = 100;
+
+    params->start = NULL;
+    params->goal  = NULL;
 
     ferGNGParamsInit(&params->gng);
     ferNNCellsParamsInit(&params->cells);
@@ -83,7 +86,7 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
 
     gng = FER_ALLOC(fer_gng_plan_t);
     gng->dim       = params->dim;
-    gng->max_dist2 = params->max_dist2;
+    gng->max_dist  = params->max_dist;
     gng->min_nodes = params->min_nodes;
 
     // initialize GNG operations
@@ -129,14 +132,12 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     if (!gng->ops.input_signal_data)
         gng->ops.input_signal_data = ops->input_signal_data;
 
-    gng->start = ferVecNew(2);
-    gng->goal  = ferVecNew(2);
-    ferVecSet(gng->start, 0, -4.);
-    ferVecSet(gng->start, 1, -4.);
-    ferVecSet(gng->goal, 0, 1.5);
-    ferVecSet(gng->goal, 1, 4.5);
+    ferListInit(&gng->path);
+    gng->start = ferVecClone(gng->dim, params->start);
+    gng->goal = ferVecClone(gng->dim, params->goal);
 
-    gng->tmpv = ferVecNew(gng->dim);
+    gng->tmpv  = ferVecNew(gng->dim);
+    gng->tmpv2 = ferVecNew(gng->dim);
 
     return gng;
 }
@@ -159,7 +160,11 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
         free(n);
     }
 
+    ferVecDel(gng->start);
+    ferVecDel(gng->goal);
+
     ferVecDel(gng->tmpv);
+    ferVecDel(gng->tmpv2);
 
     free(gng);
 }
@@ -169,61 +174,116 @@ void ferGNGPlanRun(fer_gng_plan_t *gng)
     ferGNGRun(gng->gng);
 }
 
+static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
+{
+    fer_list_t *item;
+    fer_gng_plan_node_t *n;
+    int eval, cut = -1;
+
+    // check each node in path if it is in free space
+    FER_LIST_FOR_EACH(path, item){
+        n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+        eval = gng->ops.eval(n->w, gng->ops.eval_data);
+
+        // node is in obstacle
+        if (eval == FER_GNG_PLAN_OBST){
+            // remove node from NNCells
+            ferNNCellsRemove(gng->cells, &n->cells);
+
+            // remove node from GNG
+            ferGNGRemoveNode(gng->gng, &n->node);
+
+            // add node to obst list
+            ferListAppend(&gng->obst, &n->obst);
+            ferNNCellsAdd(gng->obst_cells, &n->cells);
+
+            cut = 0;
+        }
+    }
+
+    return cut;
+}
+
+static int ferGNGPlanIsEdgeCorrect(fer_gng_plan_t *gng,
+                                   const fer_vec_t *from,
+                                   const fer_vec_t *to)
+{
+    fer_real_t dist;
+    int eval;
+
+    dist = ferVecDist(gng->dim, from, to);
+    if (dist > gng->max_dist){
+        // store start node in .tmpv
+        ferVecCopy(gng->dim, gng->tmpv, from);
+
+        // store step vector in .tmpv2
+        ferVecSub2(gng->dim, gng->tmpv2, to, from);
+        ferVecScale(gng->dim, gng->tmpv2,
+                    gng->max_dist * ferRecp(ferVecLen(gng->dim, gng->tmpv2)));
+    }
+
+    while (dist > gng->max_dist){
+        // move to next position on edge
+        ferVecAdd(gng->dim, gng->tmpv, gng->tmpv2);
+        dist -= gng->max_dist;
+
+        // eval the position
+        eval = gng->ops.eval(gng->tmpv, gng->ops.eval_data);
+        if (eval == FER_GNG_PLAN_OBST)
+            return 0;
+    }
+
+    return 1;
+}
+
+static int ferGNGPlanIsPathCorrect(fer_gng_plan_t *gng, fer_list_t *path)
+{
+    fer_list_t *item;
+    fer_gng_plan_node_t *n;
+    const fer_vec_t *w;
+
+    if (ferListEmpty(path))
+        return 0;
+
+    // check first node
+    item = ferListNext(path);
+    n    = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+    if (!ferGNGPlanIsEdgeCorrect(gng, gng->start, n->w))
+        return 0;
+
+    // check middle nodes
+    w = n->w;
+    for (item = ferListNext(item); item != path; item = ferListNext(item)){
+        n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+        if (!ferGNGPlanIsEdgeCorrect(gng, w, n->w))
+            return 0;
+        w = n->w;
+    }
+
+    // check last node
+    item = ferListPrev(path);
+    n    = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+    if (!ferGNGPlanIsEdgeCorrect(gng, n->w, gng->goal))
+        return 0;
+
+    return 1;
+}
+
 static int ferGNGPlanTerminate(void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
-    fer_list_t path, *item;
-    fer_gng_plan_node_t *n;
-    fer_vec_t *prev_w;
-    int eval, correct;
-    fer_real_t dist;
 
     if (ferGNGNodesLen(gng->gng) >= gng->min_nodes){
         // find path between start and goal
-        ferListInit(&path);
-        ferGNGPlanFindPath(gng, gng->start, gng->goal, &path);
+        ferListInit(&gng->path);
+        ferGNGPlanFindPath(gng, gng->start, gng->goal, &gng->path);
 
-        // check each node in path if it is in free space
-        correct = 1;
-        prev_w = gng->start;
-        FER_LIST_FOR_EACH(&path, item){
-            n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-            eval = gng->ops.eval(n->w, gng->ops.eval_data);
-
-            // node is in obstacle
-            if (eval == FER_GNG_PLAN_OBST){
-                // remove node from NNCells
-                ferNNCellsRemove(gng->cells, &n->cells);
-
-                // remove node from GNG
-                ferGNGRemoveNode(gng->gng, &n->node);
-
-                // add node to obst list
-                ferListAppend(&gng->obst, &n->obst);
-                ferNNCellsAdd(gng->obst_cells, &n->cells);
-
-                correct = 0;
-            }else if (correct){
-                // node is in free space and path is still correct
-                // check distance from previous node
-                dist = ferVecDist(gng->dim, prev_w, n->w);
-                if (dist > gng->max_dist2)
-                    correct = 0;
-            }
-
-            prev_w = n->w;
-        }
-
-        // check last node
-        if (correct){
-            dist = ferVecDist(gng->dim, prev_w, gng->goal);
-            if (dist > gng->max_dist2)
-                correct = 0;
-        }
-
-        // we found correct path from start to goal
-        if (correct){
-            return 1;
+        // cut path from obstacle nodes
+        if (ferGNGPlanCutPath(gng, &gng->path) != 0){
+            // check if path is correct, i.e., if there is (or can be made)
+            // edges between all nodes of max length gng->max_dist
+            if (ferGNGPlanIsPathCorrect(gng, &gng->path))
+                return 1;
         }
     }
 
@@ -252,7 +312,7 @@ static const void *ferGNGPlanInputSignal(void *data)
             dist = ferVecDist(gng->dim, vec, node->w);
             //DBG("dist: %f", dist);
         }
-    } while (dist < gng->max_dist2);
+    } while (dist < gng->max_dist);
 
     return (void *)vec;
 }
@@ -463,7 +523,7 @@ static int ferGNGPlanFindPath(fer_gng_plan_t *gng,
 }
 
 
-void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
+void ferGNGPlanDumpNetSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
 {
     fer_list_t *list, *item;
     fer_net_t *net;
@@ -480,8 +540,11 @@ void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
 
     fprintf(out, "--------\n");
 
-    if (name)
+    if (name){
         fprintf(out, "Name: %s FREE\n", name);
+    }else{
+        fprintf(out, "Name: FREE\n");
+    }
 
     fprintf(out, "Points:\n");
     list = ferNetNodes(net);
@@ -519,15 +582,27 @@ void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
+    fflush(out);
+}
+
+void ferGNGPlanDumpObstSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
+{
+    fer_list_t *item;
+    fer_gng_plan_node_t *n;
 
     if (ferListEmpty(&gng->obst))
         return;
 
 
-    if (name)
+    fprintf(out, "--------\n");
+    if (name){
         fprintf(out, "Name: %s OBST\n", name);
+    }else{
+        fprintf(out, "Name: OBST\n");
+    }
 
     fprintf(out, "Point color: 0.8 0.1 0.1\n");
+    fprintf(out, "Point size: 2\n");
     fprintf(out, "Points:\n");
     FER_LIST_FOR_EACH(&gng->obst, item){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, obst);
@@ -541,4 +616,52 @@ void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
+    fflush(out);
+}
+
+void ferGNGPlanDumpPathSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
+{
+    fer_gng_plan_node_t *n;
+    fer_list_t *item;
+    size_t i, len;
+
+    if (ferListEmpty(&gng->path))
+        return;
+
+    fprintf(out, "--------\n");
+    fflush(out);
+
+    if (name){
+        fprintf(out, "Name: %s Path\n", name);
+    }else{
+        fprintf(out, "Name: Path\n");
+    }
+
+    fprintf(out, "Point color: 0.1 0.8 0.1\n");
+    fprintf(out, "Edge color: 0.1 0.8 0.1\n");
+    fprintf(out, "Edge width: 3\n");
+    fprintf(out, "Points:\n");
+    fflush(out);
+    i = 0;
+    FER_LIST_FOR_EACH(&gng->path, item){
+        n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+
+        n->_id = i++;
+        if (gng->dim == 2){
+            ferVec2Print((const fer_vec2_t *)n->w, out);
+        }else{
+            ferVec3Print((const fer_vec3_t *)n->w, out);
+        }
+        fprintf(out, "\n");
+    }
+
+
+    fprintf(out, "Edges:\n");
+    len = i - 1;
+    for (i = 0; i < len; i++){
+        fprintf(out, "%d %d\n", i, i + 1);
+    }
+
+    fprintf(out, "--------\n");
+    fflush(out);
 }

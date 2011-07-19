@@ -98,11 +98,14 @@ void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops);
  * ---------------
  */
 struct _fer_gng_plan_params_t {
-    int dim;              /*!< Dimensionality of space. Default: 2 */
-    fer_real_t max_dist2; /*!< Maximal cube distance between two nodes in path.
-                               Default: 0.1 */
-    int min_nodes;        /*!< Minimal number of nodes to start path search.
-                               Default: 100 */
+    int dim;             /*!< Dimensionality of space. Default: 2 */
+    fer_real_t max_dist; /*!< Maximal cube distance between two nodes in path.
+                              Default: 0.1 */
+    int min_nodes;       /*!< Minimal number of nodes to start path search.
+                              Default: 100 */
+
+    const fer_vec_t *start; /*!< Start position */
+    const fer_vec_t *goal;  /*!< Goal position */
 
     fer_gng_params_t gng;
     fer_nncells_params_t cells;
@@ -124,7 +127,7 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params);
 
 struct _fer_gng_plan_t {
     int dim;
-    fer_real_t max_dist2;
+    fer_real_t max_dist;
     int min_nodes;
 
     fer_gng_plan_ops_t ops; /*!< Callbacks */
@@ -135,9 +138,10 @@ struct _fer_gng_plan_t {
     fer_list_t obst;           /*!< List of obstacle nodes */
     fer_nncells_t *obst_cells; /*!< NNCells for obstacle nodes */
 
+    fer_list_t path;
     fer_vec_t *start, *goal; /*!< Start and goal positions */
 
-    fer_vec_t *tmpv;
+    fer_vec_t *tmpv, *tmpv2;
 };
 typedef struct _fer_gng_plan_t fer_gng_plan_t;
 
@@ -164,7 +168,17 @@ void ferGNGPlanRun(fer_gng_plan_t *gng);
 /**
  * Dumps net.
  */
-void ferGNGPlanDumpSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
+void ferGNGPlanDumpNetSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
+
+/**
+ * Dumps obstacle nodes.
+ */
+void ferGNGPlanDumpObstSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
+
+/**
+ * Dumps last found path.
+ */
+void ferGNGPlanDumpPathSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 
 _fer_inline fer_gng_t *ferGNGPlanGNG(fer_gng_plan_t *gngp);
 _fer_inline fer_net_t *ferGNGPlanNet(fer_gng_plan_t *gngp);
