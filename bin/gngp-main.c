@@ -19,8 +19,9 @@ fer_rand_mt_t *rand_mt;
 fer_timer_t timer;
 fer_vec_t *is;
 
+int dump_period = 10;
+const char *dump_prefix = NULL;
 
-static int (*eval)(const fer_vec_t *w, void *data);
 
 static int terminate(void *data);
 static void callback(void *data);
@@ -47,9 +48,14 @@ int main(int argc, char *argv[])
     fer_real_t aabb[4] = { -5, 5, -5, 5 };
 
     if (argc < 4){
-        fprintf(stderr, "Usage: %s max_nodes min_nodes scene\n", argv[0]);
+        fprintf(stderr, "Usage: %s max_nodes min_nodes scene [dump_prefix dump_period]\n", argv[0]);
         return -1;
     }
+
+    if (argc >= 5)
+        dump_prefix = argv[4];
+    if (argc >= 6)
+        dump_period = atoi(argv[5]);
 
     is = ferVecNew(2);
 
@@ -60,7 +66,7 @@ int main(int argc, char *argv[])
 
     ops.terminate    = terminate;
     ops.input_signal = inputSignal;
-    ops.eval         = eval1_5;
+    ops.eval         = NULL;
     ops.callback     = callback;
     ops.callback_period = 5;
 
@@ -83,7 +89,14 @@ int main(int argc, char *argv[])
     ferGNGPlanRun(gng);
     ferTimerStopAndPrintElapsed(&timer, stderr, "\r\n");
 
-    dump();
+    if (dump_prefix){
+        dump();
+    }else{
+        ferGNGPlanDumpNetSVT(gng, stdout, NULL);
+        ferGNGPlanDumpObstSVT(gng, stdout, NULL);
+        ferGNGPlanDumpPathSVT(gng, stdout, NULL);
+    }
+
     ferGNGPlanDel(gng);
 
     ferRandMTDel(rand_mt);
@@ -97,35 +110,20 @@ int main(int argc, char *argv[])
 static int terminate(void *data)
 {
     size_t nodes_len;
+    static int counter = 0;
+
+    if (dump_prefix && ++counter == dump_period){
+        dump();
+        counter = 0;
+    }
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-
-#if 0
-    int res;
-    fer_list_t path;
-
-    if (ferGNGEuNodesLen(p->gng) > p->find_path
-            && ferGNGEuNodesLen(p->gng) % p->find_path == 0){
-        ferListInit(&path);
-        res = ferGNGEuFindPath(p->gng, p->start, p->goal, &path);
-        if (res == 0){
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Path found. Nodes: %d\n",
-                    (int)ferGNGPNodesLen(p->gng));
-            printPath(&path, stdout);
-            return 1;
-        }
-    }
-#endif
-
     return nodes_len >= max_nodes;
 }
 
 static void callback(void *data)
 {
     size_t nodes_len;
-
-    dump();
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
     ferTimerStopAndPrintElapsed(&timer, stderr, " %d\r", (int)nodes_len);
@@ -145,62 +143,62 @@ static void setUpScene(const char *scene)
 {
 
     if (strcmp(scene, "1_1") == 0){
-        eval = eval1_1;
+        ops.eval = eval1_1;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
         params.max_dist = 0.005;
     }else if (strcmp(scene, "1_3") == 0){
-        eval = eval1_3;
+        ops.eval = eval1_3;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
         params.max_dist = 0.015;
     }else if (strcmp(scene, "1_5") == 0){
-        eval = eval1_5;
+        ops.eval = eval1_5;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.), FER_REAL(-4.));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(1.5), FER_REAL(4.5));
         params.max_dist = 0.025;
     }else if (strcmp(scene, "2_1") == 0){
-        eval = eval2_1;
+        ops.eval = eval2_1;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.005;
     }else if (strcmp(scene, "2_3") == 0){
-        eval = eval2_3;
+        ops.eval = eval2_3;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.015;
     }else if (strcmp(scene, "2_5") == 0){
-        eval = eval2_5;
+        ops.eval = eval2_5;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.025;
     }else if (strcmp(scene, "3_1") == 0){
-        eval = eval3_1;
+        ops.eval = eval3_1;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.005;
     }else if (strcmp(scene, "3_3") == 0){
-        eval = eval3_3;
+        ops.eval = eval3_3;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.015;
     }else if (strcmp(scene, "3_5") == 0){
-        eval = eval3_5;
+        ops.eval = eval3_5;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.5), FER_REAL(4.5));
         params.max_dist = 0.025;
     }else if (strcmp(scene, "4_1") == 0){
-        eval = eval4_1;
+        ops.eval = eval4_1;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
         params.max_dist = 0.005;
     }else if (strcmp(scene, "4_3") == 0){
-        eval = eval4_3;
+        ops.eval = eval4_3;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
         params.max_dist = 0.015;
     }else if (strcmp(scene, "4_5") == 0){
-        eval = eval4_5;
+        ops.eval = eval4_5;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
         params.max_dist = 0.025;
@@ -355,7 +353,7 @@ static void dump(void)
     char fn[1000];
     static int counter = 0;
 
-    sprintf(fn, "out/%010d.svt", counter++);
+    sprintf(fn, "%s%010d.svt", dump_prefix, counter++);
     fout = fopen(fn, "w");
     if (fout){
         ferGNGPlanDumpNetSVT(gng, fout, NULL);
