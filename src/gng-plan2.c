@@ -20,6 +20,13 @@
 #include <fermat/vec2.h>
 #include <fermat/vec3.h>
 
+/** Cut obstacle nodes from path */
+static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path);
+/** Returns true if edge is whole in FREE space */
+static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
+                                const fer_vec_t *from, const fer_vec_t *to);
+/** Returns true if whole path is in FREE space */
+static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path);
 
 static int ferGNGPlanTerminate(void *);
 static const void *ferGNGPlanInputSignal(void *);
@@ -204,9 +211,8 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
     return cut;
 }
 
-static int ferGNGPlanIsEdgeCorrect(fer_gng_plan_t *gng,
-                                   const fer_vec_t *from,
-                                   const fer_vec_t *to)
+static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
+                                const fer_vec_t *from, const fer_vec_t *to)
 {
     fer_real_t dist;
     int eval;
@@ -236,7 +242,7 @@ static int ferGNGPlanIsEdgeCorrect(fer_gng_plan_t *gng,
     return 1;
 }
 
-static int ferGNGPlanIsPathCorrect(fer_gng_plan_t *gng, fer_list_t *path)
+static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
 {
     fer_list_t *item;
     fer_gng_plan_node_t *n;
@@ -248,14 +254,14 @@ static int ferGNGPlanIsPathCorrect(fer_gng_plan_t *gng, fer_list_t *path)
     // check first node
     item = ferListNext(path);
     n    = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-    if (!ferGNGPlanIsEdgeCorrect(gng, gng->start, n->w))
+    if (!ferGNGPlanIsEdgeFree(gng, gng->start, n->w))
         return 0;
 
     // check middle nodes
     w = n->w;
     for (item = ferListNext(item); item != path; item = ferListNext(item)){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-        if (!ferGNGPlanIsEdgeCorrect(gng, w, n->w))
+        if (!ferGNGPlanIsEdgeFree(gng, w, n->w))
             return 0;
         w = n->w;
     }
@@ -263,7 +269,7 @@ static int ferGNGPlanIsPathCorrect(fer_gng_plan_t *gng, fer_list_t *path)
     // check last node
     item = ferListPrev(path);
     n    = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-    if (!ferGNGPlanIsEdgeCorrect(gng, n->w, gng->goal))
+    if (!ferGNGPlanIsEdgeFree(gng, n->w, gng->goal))
         return 0;
 
     return 1;
@@ -280,9 +286,9 @@ static int ferGNGPlanTerminate(void *data)
 
         // cut path from obstacle nodes
         if (ferGNGPlanCutPath(gng, &gng->path) != 0){
-            // check if path is correct, i.e., if there is (or can be made)
-            // edges between all nodes of max length gng->max_dist
-            if (ferGNGPlanIsPathCorrect(gng, &gng->path))
+            // check if path is in FREE space, i.e., if there is (or can be
+            // create in FREE space) edges between all nodes of max length gng->max_dist
+            if (ferGNGPlanIsPathFree(gng, &gng->path))
                 return 1;
         }
     }
