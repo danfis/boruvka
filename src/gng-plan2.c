@@ -222,6 +222,8 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
 static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
                                 const fer_vec_t *from, const fer_vec_t *to)
 {
+    fer_gng_plan_node_t *n;
+    fer_gng_node_t *nn;
     fer_real_t dist;
     int eval;
 
@@ -243,8 +245,26 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
 
         // eval the position
         eval = gng->ops.eval(gng->tmpv, gng->ops.eval_data);
-        if (eval == FER_GNG_PLAN_OBST)
+        if (eval == FER_GNG_PLAN_OBST){
+            // create new node
+            nn = ferGNGPlanNewNode((const void *)gng->tmpv, (void *)gng);
+            n  = fer_container_of(nn, fer_gng_plan_node_t, node);
+
+            // remove it from cells
+            ferNNCellsRemove(gng->cells, &n->cells);
+
+            // and add it to obst list
+            ferListAppend(&gng->obst, &n->obst);
+            ferNNCellsAdd(gng->obst_cells, &n->cells);
+
+            // return that edge is not in FREE space
             return 0;
+        }else{
+            // connect new node in evaluated place and fix it
+            nn = ferGNGConnectNewNode(gng->gng, gng->tmpv);
+            n  = fer_container_of(nn, fer_gng_plan_node_t, node);
+            n->fixed = 1;
+        }
     }
 
     return 1;
