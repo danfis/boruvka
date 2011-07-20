@@ -28,6 +28,9 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
 /** Returns true if whole path is in FREE space */
 static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path);
 
+/** Fix given node */
+static void ferGNGPlanFixNode(fer_gng_plan_t *gng, fer_gng_plan_node_t *n);
+
 static int ferGNGPlanTerminate(void *);
 static const void *ferGNGPlanInputSignal(void *);
 static void ferGNGPlanInit(fer_gng_node_t **n1, fer_gng_node_t **n2, void *);
@@ -184,6 +187,38 @@ void ferGNGPlanRun(fer_gng_plan_t *gng)
     ferGNGRun(gng->gng);
 }
 
+fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng)
+{
+    fer_real_t avg;
+    int num;
+    fer_list_t *list, *item;
+    fer_gng_edge_t *e;
+    fer_gng_node_t *nn[2];
+    fer_gng_plan_node_t *n[2];
+
+    num = 0;
+    avg = FER_ZERO;
+
+    list = ferGNGEdges(gng->gng);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferGNGEdgeFromList(item);
+
+        // get start and end node
+        ferGNGEdgeNodes(e, nn + 0, nn + 1);
+        n[0] = fer_container_of(nn[0], fer_gng_plan_node_t, node);
+        n[1] = fer_container_of(nn[1], fer_gng_plan_node_t, node);
+
+        if (n[0]->fixed || n[1]->fixed)
+            continue;
+
+        avg += ferVecDist(gng->dim, n[0]->w, n[1]->w);
+        num += 1;
+    }
+
+    return avg / (fer_real_t)num;
+}
+
+
 static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
 {
     fer_list_t *item, *tmpitem;
@@ -215,7 +250,7 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
             cut = 0;
         }else{
             // node node as fixed because this is in FREE space
-            n->fixed = 1;
+            ferGNGPlanFixNode(gng, n);
         }
     }
 
@@ -312,36 +347,15 @@ static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
     return 1;
 }
 
-fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng)
+static void ferGNGPlanFixNode(fer_gng_plan_t *gng, fer_gng_plan_node_t *n)
 {
-    fer_real_t avg;
-    int num;
-    fer_list_t *list, *item;
-    fer_gng_edge_t *e;
-    fer_gng_node_t *nn[2];
-    fer_gng_plan_node_t *n[2];
+    if (n->fixed)
+        return;
 
-    num = 0;
-    avg = FER_ZERO;
-
-    list = ferGNGEdges(gng->gng);
-    FER_LIST_FOR_EACH(list, item){
-        e = ferGNGEdgeFromList(item);
-
-        // get start and end node
-        ferGNGEdgeNodes(e, nn + 0, nn + 1);
-        n[0] = fer_container_of(nn[0], fer_gng_plan_node_t, node);
-        n[1] = fer_container_of(nn[1], fer_gng_plan_node_t, node);
-
-        if (n[0]->fixed || n[1]->fixed)
-            continue;
-
-        avg += ferVecDist(gng->dim, n[0]->w, n[1]->w);
-        num += 1;
-    }
-
-    return avg / (fer_real_t)num;
+    n->fixed = 1;
+    ferGNGConnectNewNode(gng->gng, (const void *)n->w);
 }
+
 
 static int ferGNGPlanTerminate(void *data)
 {
