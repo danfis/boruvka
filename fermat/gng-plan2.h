@@ -105,6 +105,9 @@ struct _fer_gng_plan_params_t {
                               Default: 0.1 */
     int min_nodes;       /*!< Minimal number of nodes to start path search.
                               Default: 100 */
+    int min_nodes_inc;   /*!< Const by which is increased .min_nodes param
+                              when no path is found.
+                              Default: 10 */
 
     const fer_vec_t *start; /*!< Start position */
     const fer_vec_t *goal;  /*!< Goal position */
@@ -131,6 +134,7 @@ struct _fer_gng_plan_t {
     int dim;
     fer_real_t max_dist;
     int min_nodes;
+    int min_nodes_inc;
 
     fer_gng_plan_ops_t ops; /*!< Callbacks */
 
@@ -181,6 +185,11 @@ void ferGNGPlanDumpObstSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
  * Dumps last found path.
  */
 void ferGNGPlanDumpPathSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
+
+/**
+ * Returns average edge length
+ */
+fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng);
 
 _fer_inline fer_gng_t *ferGNGPlanGNG(fer_gng_plan_t *gngp);
 _fer_inline fer_net_t *ferGNGPlanNet(fer_gng_plan_t *gngp);

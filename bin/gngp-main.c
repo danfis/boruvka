@@ -68,11 +68,12 @@ int main(int argc, char *argv[])
     ops.input_signal = inputSignal;
     ops.eval         = NULL;
     ops.callback     = callback;
-    ops.callback_period = 5;
+    ops.callback_period = 100;
 
     params.dim = 2;
-    params.max_dist  = 0.01;
+    params.max_dist = 0.01;
     params.min_nodes = atoi(argv[2]);
+    params.min_nodes_inc = 10;
     params.start = ferVecNew(2);
     params.goal  = ferVecNew(2);
     params.cells.d = 2;
@@ -126,7 +127,7 @@ static void callback(void *data)
     size_t nodes_len;
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-    ferTimerStopAndPrintElapsed(&timer, stderr, " %d\r", (int)nodes_len);
+    ferTimerStopAndPrintElapsed(&timer, stderr, " %08d\r", (int)nodes_len);
 }
 
 static const void *inputSignal(void *data)

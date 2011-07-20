@@ -70,9 +70,10 @@ void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops)
 
 void ferGNGPlanParamsInit(fer_gng_plan_params_t *params)
 {
-    params->dim       = 2;
-    params->max_dist  = FER_REAL(0.1);
-    params->min_nodes = 100;
+    params->dim           = 2;
+    params->max_dist      = FER_REAL(0.1);
+    params->min_nodes     = 100;
+    params->min_nodes_inc = 10;
 
     params->start = NULL;
     params->goal  = NULL;
@@ -92,9 +93,11 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     fer_nncells_params_t cells_params;
 
     gng = FER_ALLOC(fer_gng_plan_t);
-    gng->dim       = params->dim;
-    gng->max_dist  = params->max_dist;
-    gng->min_nodes = params->min_nodes;
+    gng->dim           = params->dim;
+    gng->max_dist      = params->max_dist;
+    gng->min_nodes     = params->min_nodes;
+    gng->min_nodes_inc = params->min_nodes_inc;
+
 
     // initialize GNG operations
     ferGNGOpsInit(&gng_ops);
@@ -183,12 +186,12 @@ void ferGNGPlanRun(fer_gng_plan_t *gng)
 
 static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
 {
-    fer_list_t *item;
+    fer_list_t *item, *tmpitem;
     fer_gng_plan_node_t *n;
     int eval, cut = -1;
 
     // check each node in path if it is in free space
-    FER_LIST_FOR_EACH(path, item){
+    FER_LIST_FOR_EACH_SAFE(path, item, tmpitem){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
 
         // skip fixed nodes - we know these are in FREE space
@@ -259,11 +262,6 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
 
             // return that edge is not in FREE space
             return 0;
-        }else{
-            // connect new node in evaluated place and fix it
-            nn = ferGNGConnectNewNode(gng->gng, gng->tmpv);
-            n  = fer_container_of(nn, fer_gng_plan_node_t, node);
-            n->fixed = 1;
         }
     }
 
@@ -314,14 +312,51 @@ static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
     return 1;
 }
 
+fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng)
+{
+    fer_real_t avg;
+    int num;
+    fer_list_t *list, *item;
+    fer_gng_edge_t *e;
+    fer_gng_node_t *nn[2];
+    fer_gng_plan_node_t *n[2];
+
+    num = 0;
+    avg = FER_ZERO;
+
+    list = ferGNGEdges(gng->gng);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferGNGEdgeFromList(item);
+
+        // get start and end node
+        ferGNGEdgeNodes(e, nn + 0, nn + 1);
+        n[0] = fer_container_of(nn[0], fer_gng_plan_node_t, node);
+        n[1] = fer_container_of(nn[1], fer_gng_plan_node_t, node);
+
+        if (n[0]->fixed || n[1]->fixed)
+            continue;
+
+        avg += ferVecDist(gng->dim, n[0]->w, n[1]->w);
+        num += 1;
+    }
+
+    return avg / (fer_real_t)num;
+}
+
 static int ferGNGPlanTerminate(void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
 
+    ferListInit(&gng->path);
+
     if (ferGNGNodesLen(gng->gng) >= gng->min_nodes){
         // find path between start and goal
-        ferListInit(&gng->path);
         ferGNGPlanFindPath(gng, gng->start, gng->goal, &gng->path);
+
+        if (ferListEmpty(&gng->path)){
+            // no path was found - increase min_nodes param
+            gng->min_nodes += gng->min_nodes_inc;
+        }
 
         // cut path from obstacle nodes
         if (ferGNGPlanCutPath(gng, &gng->path) != 0){
