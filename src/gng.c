@@ -187,37 +187,17 @@ void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node)
     fer_list_t *edges, *item, *itemtmp;
     fer_net_edge_t *ne;
     fer_gng_edge_t *edge;
-    fer_net_node_t *nn;
-    fer_gng_node_t **nodes;
-    size_t i, nodes_len;
-
-    // allocate array for nodes that remain unconnected
-    nodes = FER_ALLOC_ARR(fer_gng_node_t *, ferNetNodeEdgesLen(&node->node));
-    nodes_len = 0;
 
     // remove incidenting edges
     edges = ferNetNodeEdges(&node->node);
     FER_LIST_FOR_EACH_SAFE(edges, item, itemtmp){
         ne = ferNetEdgeFromNodeList(item);
         edge = ferGNGEdgeFromNet(ne);
-
-        // add unconnected node to array
-        nn = ferNetEdgeOtherNode(ne, &node->node);
-        if (ferNetNodeEdgesLen(nn) == 1)
-            nodes[nodes_len++] = ferGNGNodeFromNet(nn);
-
         edgeDel(gng, edge);
     }
 
     // remove node from net but don't delete it
     nodeRemove(gng, node);
-
-    // delete unconnected nodes
-    for (i = 0; i < nodes_len; i++){
-        nodeDel(gng, nodes[i]);
-    }
-
-    free(nodes);
 }
 
 void ferGNGDelEdgeBetween(fer_gng_t *gng,
@@ -230,6 +210,18 @@ void ferGNGDelEdgeBetween(fer_gng_t *gng,
     e  = fer_container_of(ne, fer_gng_edge_t, edge);
 
     edgeDel(gng, e);
+}
+
+void ferGNGEdgeNodes(fer_gng_edge_t *e,
+                     fer_gng_node_t **n1, fer_gng_node_t **n2)
+{
+    fer_net_node_t *n;
+
+    n   = ferNetEdgeNode(&e->edge, 0);
+    *n1 = fer_container_of(n, fer_gng_node_t, node);
+
+    n   = ferNetEdgeNode(&e->edge, 1);
+    *n2 = fer_container_of(n, fer_gng_node_t, node);
 }
 
 static void ferGNGInit(fer_gng_t *gng)
@@ -360,16 +352,22 @@ static void ferGNGNewNode(fer_gng_t *gng)
     fer_gng_node_t *q, *f, *r;
     fer_gng_edge_t *eqf;
 
-    // 1. Get node with highest error counter
-    q = nodeWithHighestErr(gng);
+    do {
+        // 1. Get node with highest error counter
+        q = nodeWithHighestErr(gng);
 
-    // 2. Get q's neighbor with highest error counter
-    f = nodeWithHighestErr2(gng, q, &eqf);
-    if (!f){
-        ERR2("Node with highest error counter doesn't have any neighbors! "
-             "This shouldn't happen - something's wrong with algorithm.");
-        return;
-    }
+        // 2. Get q's neighbor with highest error counter
+        f = nodeWithHighestErr2(gng, q, &eqf);
+
+        // Node with highest error counter doesn't have any neighbors!
+        // Generally, this shouldn't happen but if it does, it means that
+        // user had to delete some node from outside. In this case delete
+        // the {q} node and try to find next node with highest error
+        // counter.
+        if (!f){
+            nodeDel(gng, q);
+        }
+    } while (!f);
 
     // 3. Create new node between q and f
     r = gng->ops.new_node_between(q, f, gng->ops.new_node_between_data);

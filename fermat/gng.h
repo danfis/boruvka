@@ -285,8 +285,8 @@ fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
 
 /**
  * Removes node from net, i.e., deletes all incidenting edges and removes it
- * from net. Also nodes that remain unconnected are deleted.
- * Note that no destructor is called on {node}.
+ * from net.
+ * Note that destructor is _not_ called on {node}.
  */
 void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node);
 
@@ -302,6 +302,12 @@ void ferGNGDelEdgeBetween(fer_gng_t *gng,
  * Always use this function instead of direct access to struct!
  */
 int ferGNGEdgeAge(const fer_gng_t *gng, const fer_gng_edge_t *edge);
+
+/**
+ * Returns (via {n1} and {n2}) incidenting nodes of edge
+ */
+void ferGNGEdgeNodes(fer_gng_edge_t *e,
+                     fer_gng_node_t **n1, fer_gng_node_t **n2);
 
 /**
  * Returns net of nodes.
@@ -327,6 +333,11 @@ _fer_inline fer_list_t *ferGNGNodes(fer_gng_t *gng);
  * Returns number of edges in net.
  */
 _fer_inline size_t ferGNGEdgesLen(const fer_gng_t *gng);
+
+/**
+ * Returns list of nodes
+ */
+_fer_inline fer_list_t *ferGNGEdges(fer_gng_t *gng);
 
 /**
  * Returns GNG node from list pointer.
