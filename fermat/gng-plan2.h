@@ -136,6 +136,8 @@ struct _fer_gng_plan_t {
     int min_nodes;
     int min_nodes_inc;
 
+    unsigned long evals; /*!< Number of eval'ed nodes */
+
     fer_gng_plan_ops_t ops; /*!< Callbacks */
 
     fer_gng_t *gng;
@@ -170,6 +172,11 @@ void ferGNGPlanDel(fer_gng_plan_t *gng);
  * true.
  */
 void ferGNGPlanRun(fer_gng_plan_t *gng);
+
+/**
+ * Returns number eval'ed nodes so far
+ */
+_fer_inline unsigned long ferGNGPlanEvals(const fer_gng_plan_t *gng);
 
 /**
  * Dumps net.
@@ -215,6 +222,11 @@ void ferGNGPDumpNodes(fer_gng_plan_t *gng, FILE *out);
 
 
 /**** INLINES ****/
+_fer_inline unsigned long ferGNGPlanEvals(const fer_gng_plan_t *gng)
+{
+    return gng->evals;
+}
+
 _fer_inline fer_gng_t *ferGNGPlanGNG(fer_gng_plan_t *gngp)
 {
     return gngp->gng;

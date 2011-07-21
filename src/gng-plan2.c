@@ -101,6 +101,8 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     gng->min_nodes     = params->min_nodes;
     gng->min_nodes_inc = params->min_nodes_inc;
 
+    gng->evals = 0L;
+
 
     // initialize GNG operations
     ferGNGOpsInit(&gng_ops);
@@ -234,6 +236,7 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
             continue;
 
         eval = gng->ops.eval(n->w, gng->ops.eval_data);
+        gng->evals += 1L;
 
         // node is in obstacle
         if (eval == FER_GNG_PLAN_OBST){
@@ -283,6 +286,7 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
 
         // eval the position
         eval = gng->ops.eval(gng->tmpv, gng->ops.eval_data);
+        gng->evals += 1L;
         if (eval == FER_GNG_PLAN_OBST){
             // create new node
             nn = ferGNGPlanNewNode((const void *)gng->tmpv, (void *)gng);

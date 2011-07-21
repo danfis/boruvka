@@ -119,7 +119,8 @@ static void callback(void *data)
     size_t nodes_len;
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-    ferTimerStopAndPrintElapsed(&timer, stderr, " %08d\r", (int)nodes_len);
+    ferTimerStopAndPrintElapsed(&timer, stderr, " nodes: %08d, evals: %010lu\r",
+                                (int)nodes_len, ferGNGPlanEvals(gng));
 }
 
 static const void *inputSignal(void *data)
