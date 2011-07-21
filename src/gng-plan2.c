@@ -162,8 +162,8 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
     fer_list_t *item;
     fer_gng_plan_node_t *n;
 
-    ferNNCellsDel(gng->cells);
     ferGNGDel(gng->gng);
+    ferNNCellsDel(gng->cells);
 
     ferNNCellsDel(gng->obst_cells);
 
@@ -456,9 +456,11 @@ static fer_gng_node_t *ferGNGPlanNewNodeBetween(const fer_gng_node_t *_n1,
 
 static void ferGNGPlanDelNode(fer_gng_node_t *_n, void *data)
 {
+    fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
     fer_gng_plan_node_t *n = (fer_gng_plan_node_t *)_n;
 
     ferVecDel(n->w);
+    ferNNCellsRemove(gng->cells, &n->cells);
     free(n);
 }
 
