@@ -17,6 +17,7 @@
 #include <fermat/rrt.h>
 #include <fermat/timer.h>
 #include <fermat/rand-mt.h>
+#include <fermat/dbg.h>
 
 #define FREE FER_RRT_FREE
 #define OBST FER_RRT_OBST
@@ -173,6 +174,7 @@ static const fer_vec_t *newConf(const fer_vec_t *near,
     fer_vec2_t move;
 
     ferVec2Sub2(&move, (const fer_vec2_t *)rand, (const fer_vec2_t *)near);
+    ferVec2Normalize(&move);
     ferVec2Scale(&move, alg->step);
 
     ferVec2Add2(&alg->new_conf, (const fer_vec2_t *)near, &move);
