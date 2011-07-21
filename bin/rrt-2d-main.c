@@ -18,6 +18,10 @@
 #include <fermat/timer.h>
 #include <fermat/rand-mt.h>
 
+#define FREE FER_RRT_FREE
+#define OBST FER_RRT_OBST
+#include "plan-eval.c"
+
 struct _alg_t {
     fer_rrt_t *rrt;
     fer_timer_t timer;
@@ -35,6 +39,7 @@ struct _alg_t {
 };
 typedef struct _alg_t alg_t;
 
+static int (*__eval)(const fer_vec_t *conf, void *_);
 
 static int terminate(void *data);
 static void callback(void *data);
@@ -51,8 +56,8 @@ int main(int argc, char *argv[])
     fer_real_t aabb[4] = { -5, 5, -5, 5 };
     alg_t alg;
 
-    if (argc != 2){
-        fprintf(stderr, "Usage: %s max_nodes\n", argv[0]);
+    if (argc != 3){
+        fprintf(stderr, "Usage: %s max_nodes scene\n", argv[0]);
         return -1;
     }
 
@@ -79,6 +84,8 @@ int main(int argc, char *argv[])
     ferVec2Set(&alg.goal, FER_REAL(1.5), FER_REAL(4.5));
     alg.evals = 0;
     alg.step = 0.01;
+
+    setUpScene(argv[2], &__eval, (fer_vec_t *)&alg.start, (fer_vec_t *)&alg.goal, &alg.step);
 
     alg.rand = ferRandMTNewAuto();
 
@@ -177,21 +184,8 @@ static const fer_vec_t *newConf(const fer_vec_t *near,
 
 static int eval(const fer_vec2_t *conf, alg_t *alg)
 {
-    fer_real_t x, y;
-
-    x = ferVec2X(conf);
-    y = ferVec2Y(conf);
-
     alg->evals += 1L;
-
-    if (y < -2
-            || (y < 4 && y > -2 && x > -0.15 && x < 0.15)
-            || (y > 4 && x > -2 && x < 2)){
-        //fprintf(stderr, "eval: FREE\n");
-        return FER_RRT_FREE;
-    }
-    //fprintf(stderr, "eval: OBST\n");
-    return FER_RRT_OBST;
+    return __eval((const fer_vec_t *)conf, NULL);
 }
 
 static void printPath(fer_list_t *path, FILE *out)
