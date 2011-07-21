@@ -39,6 +39,7 @@ static int eval3_5(const fer_vec_t *w, void *data);
 static int eval4_1(const fer_vec_t *w, void *data);
 static int eval4_3(const fer_vec_t *w, void *data);
 static int eval4_5(const fer_vec_t *w, void *data);
+static int eval5_5(const fer_vec_t *w, void *data);
 
 static void dump(void);
 
@@ -103,6 +104,8 @@ int main(int argc, char *argv[])
     ferRandMTDel(rand_mt);
     
     ferVecDel(is);
+    ferVecDel((fer_vec_t *)params.start);
+    ferVecDel((fer_vec_t *)params.goal);
 
     return 0;
 }
@@ -202,6 +205,11 @@ static void setUpScene(const char *scene)
         ops.eval = eval4_5;
         ferVec2Set((fer_vec2_t *)params.start, FER_REAL(4.5), FER_REAL(-4.5));
         ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(0.45), FER_REAL(0.));
+        params.max_dist = 0.025;
+    }else if (strcmp(scene, "5_5") == 0){
+        ops.eval = eval5_5;
+        ferVec2Set((fer_vec2_t *)params.start, FER_REAL(-4.7), FER_REAL(4.7));
+        ferVec2Set((fer_vec2_t *)params.goal, FER_REAL(4.7), FER_REAL(-4.7));
         params.max_dist = 0.025;
     }
 }
@@ -345,6 +353,27 @@ static int eval4_3(const fer_vec_t *w, void *data)
 static int eval4_5(const fer_vec_t *w, void *data)
 {
     return eval4(w, data, 0.05);
+}
+
+static int eval5_5(const fer_vec_t *w, void *data)
+{
+    fer_real_t x, y;
+    x = ferVecGet(w, 0);
+    y = ferVecGet(w, 1);
+
+    //p->evals += 1L;
+
+    if ((x > -2 && x < 2 && y > -2 && y < 2)
+            || (x > -4.5 && x < -4 && y > 4)
+            || (x > -4.5 && x < -4 && y > 3.5 && y < 3.95)
+            || (x < -4.45 && y > 3.5 && y < 3.95)
+
+            || (x > 2 && x < 4.5 && y < -3.)
+            || (x > 4.55 && y > -4.5 && y < -3.)
+        ){
+        return OBST;
+    }
+    return FREE;
 }
 
 
