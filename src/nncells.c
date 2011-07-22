@@ -76,6 +76,7 @@ void ferNNCellsParamsInit(fer_nncells_params_t *p)
     p->max_dens    = 1;
     p->expand_rate = FER_REAL(2.);
     p->aabb        = NULL;
+    p->approx      = 0;
 }
 
 
@@ -115,6 +116,7 @@ fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
         cellsAlloc(c, 1);
     }
 
+    c->approx = params->approx;
 
     c->cache = NULL;
 
@@ -140,8 +142,9 @@ void ferNNCellsDel(fer_nncells_t *c)
     free(c);
 }
 
-size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
-                         fer_nncells_el_t **els)
+static size_t __ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p,
+                                  size_t num, fer_nncells_el_t **els,
+                                  int approx)
 {
     size_t center_id;
     size_t *center, *pos;
@@ -173,7 +176,7 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
         // one from them is before border, i.e. we are sure there is no
         // nearest point in other cells.
         if (cs->cache->len == cs->cache->max_len
-                && cs->cache->dist[cs->cache->len - 1] < border2){
+                && (approx || cs->cache->dist[cs->cache->len - 1] < border2)){
             break;
         }
 
@@ -197,6 +200,18 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     free(pos);
 
     return cs->cache->len;
+}
+
+size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
+                         fer_nncells_el_t **els)
+{
+    return __ferNNCellsNearest(cs, p, num, els, cs->approx);
+}
+
+size_t ferNNCellsNearestApprox(fer_nncells_t *cs, const fer_vec_t *p,
+                               size_t num, fer_nncells_el_t **els)
+{
+    return __ferNNCellsNearest(cs, p, num, els, 1);
 }
 
 void __ferNNCellsExpand(fer_nncells_t *cs)
