@@ -386,6 +386,8 @@ static void obtainPath(fer_rrt_node_t *s, fer_rrt_node_t *g,
 
         dn = dn->prev;
     }
+    n = fer_container_of(dn, fer_rrt_node_t, dij);
+    ferListPrepend(list, &n->path);
 }
 int ferRRTFindPath(fer_rrt_t *rrt,
                    const fer_rrt_node_t *_init, const fer_rrt_node_t *_goal,
