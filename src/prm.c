@@ -400,7 +400,7 @@ static size_t findNearest(fer_prm_t *prm, const fer_vec_t *conf,
     for (found = 0; found < size; found++){
         m = fer_container_of(els[found], fer_prm_node_t, cells);
 
-        if (ferVecDist2(prm->params.d, m->conf, conf) < prm->params.max_dist){
+        if (ferVecDist(prm->params.d, m->conf, conf) < prm->params.max_dist){
             nearest[found] = m;
         }else{
             break;

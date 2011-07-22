@@ -194,6 +194,11 @@ void ferGNGPlanDumpObstSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 void ferGNGPlanDumpPathSVT(fer_gng_plan_t *gng, FILE *out, const char *name);
 
 /**
+ * Dumps path. One vector per line.
+ */
+void ferGNGPlanDumpPath(fer_gng_plan_t *gng, FILE *out);
+
+/**
  * Returns average edge length
  */
 fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng);

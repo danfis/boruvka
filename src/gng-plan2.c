@@ -769,3 +769,23 @@ void ferGNGPlanDumpPathSVT(fer_gng_plan_t *gng, FILE *out, const char *name)
     fprintf(out, "--------\n");
     fflush(out);
 }
+
+void ferGNGPlanDumpPath(fer_gng_plan_t *gng, FILE *out)
+{
+    fer_gng_plan_node_t *n;
+    fer_list_t *item;
+    size_t i;
+
+    if (ferListEmpty(&gng->path))
+        return;
+
+    FER_LIST_FOR_EACH(&gng->path, item){
+        n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
+
+        for (i = 0; i < gng->dim; i++){
+            fprintf(out, "%f ", (float)ferVecGet(n->w, i));
+        }
+        fprintf(out, "\n");
+    }
+    fflush(out);
+}

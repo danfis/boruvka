@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
     params.goal  = ferVecNew(2);
     params.cells.d = 2;
     params.cells.aabb = aabb;
-    params.cells.max_dens = 2;
-    params.cells.expand_rate = 2;
+    params.cells.max_dens = 1;
+    params.cells.expand_rate = 1.4;
 
     setUpScene(argv[3], &ops.eval,
                (fer_vec_t *)params.start, (fer_vec_t *)params.goal,
