@@ -45,8 +45,6 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m);
 static fer_gngp_node_t *connectNewNode(fer_gngp_t *gng, const fer_vec_t *w);
 
 /*** Find path ***/
-static fer_real_t findPathDist(const fer_dij_node_t *_n1,
-                               const fer_dij_node_t *_n2, void *_);
 static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_);
 /** Initializes all nodes in net for dijkstra search */
 static void findPathDijInit(fer_gngp_t *gng);
@@ -658,23 +656,14 @@ static void cutSubnet(fer_gngp_t *gng, fer_gngp_node_t *m)
 
 
 /*** Find path ***/
-static fer_real_t findPathDist(const fer_dij_node_t *_n1,
-                               const fer_dij_node_t *_n2, void *data)
+static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *data)
 {
     fer_gngp_t *gng = (fer_gngp_t *)data;
-    fer_gngp_node_t *n1, *n2;
-
-    n1 = fer_container_of(_n1, fer_gngp_node_t, dij);
-    n2 = fer_container_of(_n2, fer_gngp_node_t, dij);
-    return ferVecDist(gng->params.d, n1->w, n2->w);
-}
-
-static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
-{
     fer_list_t *list, *item;
     fer_gngp_node_t *n, *o;
     fer_net_edge_t *edge;
     fer_net_node_t *node;
+    fer_real_t dist;
 
     n = fer_container_of(_n, fer_gngp_node_t, dij);
 
@@ -685,7 +674,8 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
         o    = fer_container_of(node, fer_gngp_node_t, node);
 
         if (!ferDijNodeClosed(&o->dij) && o->set == n->set){
-            ferDijNodeAdd(&o->dij, expand);
+            dist = ferVecDist(gng->params.d, n->w, o->w);
+            ferDijNodeAdd(&o->dij, expand, dist);
         }
     }
 }
@@ -757,7 +747,6 @@ int ferGNGPFindPath(fer_gngp_t *gng,
 
     // initialize operations
     ferDijOpsInit(&ops);
-    ops.dist   = findPathDist;
     ops.expand = findPathExpand;
     ops.data   = (void *)gng;
 

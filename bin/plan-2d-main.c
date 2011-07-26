@@ -55,7 +55,6 @@ static void callback(void *data);
 static void netDumpSVT(fer_gng_t *gng, FILE *out, const char *name);
 
 /** Dijkstra callbacks */
-static fer_real_t dij_dist(const fer_dij_node_t *n1, const fer_dij_node_t *n2, void *);
 static void dij_expand(fer_dij_node_t *n, fer_list_t *list, void *);
 
 
@@ -116,7 +115,6 @@ int main(int argc, char *argv[])
 
     addStartGoalNodes(&plan);
 
-    dij_ops.dist   = dij_dist;
     dij_ops.expand = dij_expand;
     plan.dij = ferDijNew(&dij_ops);
 
@@ -330,17 +328,6 @@ static void netDumpSVT(fer_gng_t *gng, FILE *out, const char *name)
 
 
 
-static fer_real_t dij_dist(const fer_dij_node_t *_n1,
-                           const fer_dij_node_t *_n2, void *_)
-            
-{
-    node_t *n1, *n2;
-    n1 = fer_container_of(_n1, node_t, dij);
-    n2 = fer_container_of(_n2, node_t, dij);
-
-    return ferVec2Dist(n1->w, n2->w);
-}
-
 static void dij_expand(fer_dij_node_t *_n, fer_list_t *neighbors, void *_p)
 {
     fer_list_t *list, *item;
@@ -348,6 +335,7 @@ static void dij_expand(fer_dij_node_t *_n, fer_list_t *neighbors, void *_p)
     fer_net_node_t *net_n, *net_o;
     fer_gng_node_t *gng_o;
     fer_net_edge_t *e;
+    fer_real_t dist;
 
     n = fer_container_of(_n, node_t, dij);
 
@@ -360,7 +348,8 @@ static void dij_expand(fer_dij_node_t *_n, fer_list_t *neighbors, void *_p)
         o     = fer_container_of(gng_o, node_t, gng);
 
         if (!ferDijNodeClosed(&o->dij)){
-            ferDijNodeAdd(&o->dij, neighbors);
+            dist = ferVec2Dist(n->w, o->w);
+            ferDijNodeAdd(&o->dij, neighbors, dist);
         }
     }
 }

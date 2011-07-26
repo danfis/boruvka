@@ -5,8 +5,6 @@
 #define NUM_NODES 20
 
 
-static fer_real_t dist(const fer_dij_node_t *n1,
-                       const fer_dij_node_t *n2, void *);
 static void expand(fer_dij_node_t *n, fer_list_t *list, void *);
 
 struct _node_t {
@@ -138,7 +136,6 @@ TEST(dij1)
     initNodes1(nodes);
 
     ferDijOpsInit(&ops);
-    ops.dist = dist;
     ops.expand = expand;
 
     dij = ferDijNew(&ops);
@@ -152,25 +149,18 @@ TEST(dij1)
     ferDijDel(dij);
 }
 
-static fer_real_t dist(const fer_dij_node_t *_n1,
-                       const fer_dij_node_t *_n2, void *_)
-{
-    node_t *n1, *n2;
-    n1 = fer_container_of(_n1, node_t, dij);
-    n2 = fer_container_of(_n2, node_t, dij);
-
-    return ferVec2Dist(&n1->v, &n2->v);
-}
-
 static void expand(fer_dij_node_t *_n, fer_list_t *list, void *_)
 {
     size_t i;
     node_t *n;
+    fer_real_t dist;
 
     n = fer_container_of(_n, node_t, dij);
 
     for (i = 0; i < n->nodes_len; i++){
-        if (!ferDijNodeClosed(&n->nodes[i]->dij))
-            ferDijNodeAdd(&n->nodes[i]->dij, list);
+        if (!ferDijNodeClosed(&n->nodes[i]->dij)){
+            dist = ferVec2Dist(&n->v, &n->nodes[i]->v);
+            ferDijNodeAdd(&n->nodes[i]->dij, list, dist);
+        }
     }
 }

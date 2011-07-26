@@ -323,23 +323,14 @@ void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name)
 
 
 /*** Find path ***/
-static fer_real_t findPathDist(const fer_dij_node_t *_n1,
-                               const fer_dij_node_t *_n2, void *data)
+static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *data)
 {
     fer_rrt_t *rrt = (fer_rrt_t *)data;
-
-    fer_rrt_node_t *n1, *n2;
-    n1 = fer_container_of(_n1, fer_rrt_node_t, dij);
-    n2 = fer_container_of(_n2, fer_rrt_node_t, dij);
-    return ferVecDist(rrt->params.d, n1->conf, n2->conf);
-}
-
-static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
-{
     fer_list_t *list, *item;
     fer_rrt_node_t *n, *o;
     fer_net_edge_t *edge;
     fer_net_node_t *node;
+    fer_real_t dist;
 
     n = fer_container_of(_n, fer_rrt_node_t, dij);
 
@@ -350,7 +341,8 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
         o    = fer_container_of(node, fer_rrt_node_t, node);
 
         if (!ferDijNodeClosed(&o->dij)){
-            ferDijNodeAdd(&o->dij, expand);
+            dist = ferVecDist(rrt->params.d, n->conf, o->conf);
+            ferDijNodeAdd(&o->dij, expand, dist);
         }
     }
 }
@@ -406,7 +398,6 @@ int ferRRTFindPath(fer_rrt_t *rrt,
 
     // initialize operations
     ferDijOpsInit(&ops);
-    ops.dist   = findPathDist;
     ops.expand = findPathExpand;
     ops.data   = (void *)rrt;
 
