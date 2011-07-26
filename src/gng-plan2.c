@@ -251,6 +251,7 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
             ferNNCellsAdd(gng->obst_cells, &n->cells);
 
             cut = 0;
+            return 0;
         }else{
             // node node as fixed because this is in FREE space
             ferGNGPlanFixNode(gng, n);

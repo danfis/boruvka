@@ -29,7 +29,8 @@ fer_vec3_t cdtr;
 fer_mat3_t cdrot;
 
 fer_real_t aabb[12] = { -54, 85, -45, 93, -48, 90,
-                        -M_PI, M_PI, -M_PI, M_PI, -M_PI, M_PI };
+                        0, 2 * M_PI, 0, 2 * M_PI, 0, 2 * M_PI };
+                        //-M_PI, M_PI, -M_PI, M_PI, -M_PI, M_PI };
 fer_rrt_ops_t ops;
 fer_rrt_params_t params;
 fer_rrt_t *rrt;
@@ -141,7 +142,7 @@ int main(int argc, char *argv[])
         ferVecSet(start, 2, 2.36);
         ferVecSetZero(6, goal);
         ferVecSet(goal, 0, -7.8);
-        ferVecSet(goal, 1, -10);
+        ferVecSet(goal, 1, -6);
         ferVecSet(goal, 2, 2.36);
 
         aabb[0] = -10;
@@ -155,6 +156,28 @@ int main(int argc, char *argv[])
 
         ferCDGeomAddTrisFromRaw(cd, map, "/home/danfis/dev/imr-data/trimesh/room/map.raw");
         ferCDGeomAddTrisFromRaw(cd, robot, "/home/danfis/dev/imr-data/trimesh/room/robot.raw");
+
+    }else if (strcmp(argv[2], "room2") == 0){
+        ferVecSetZero(6, start);
+        ferVecSet(start, 0, -1.5);
+        ferVecSet(start, 1, 6.6);
+        ferVecSet(start, 2, 2.86);
+        ferVecSetZero(6, goal);
+        ferVecSet(goal, 0, -1.5);
+        ferVecSet(goal, 1, -6);
+        ferVecSet(goal, 2, 2.86);
+
+        aabb[0] = -10;
+        aabb[1] = 15;
+        aabb[2] = -15;
+        aabb[3] = 11;
+        aabb[4] = 0;
+        aabb[5] = 6;
+
+        step = 0.15;
+
+        ferCDGeomAddTrisFromRaw(cd, map, "/home/danfis/dev/imr-data/trimesh/room2/map.raw");
+        ferCDGeomAddTrisFromRaw(cd, robot, "/home/danfis/dev/imr-data/trimesh/room2/robot.raw");
     }
 
 
@@ -194,6 +217,7 @@ static int terminate(const fer_rrt_t *rrt, void *data)
     const fer_rrt_node_t *last;
     const fer_vec_t *lastv;
     fer_real_t dist;
+    static fer_real_t best_dist = FER_REAL_MAX;
 
     nodes = ferRRTNodesLen(rrt);
     if (nodes >= max_nodes){
@@ -205,7 +229,25 @@ static int terminate(const fer_rrt_t *rrt, void *data)
     last = ferRRTNodeLast(rrt);
     lastv = ferRRTNodeConf(last);
     dist = ferVecDist(6, lastv, goal);
-    //DBG("%f %lx", dist, (long)last);
+    if (dist < best_dist){
+        best_dist = dist;
+        DBG("best_dist: %f", best_dist);
+        /*
+        printf("%f %f %f %f %f %f\n",
+                (float)ferVecGet(lastv, 0), (float)ferVecGet(lastv, 1),
+                (float)ferVecGet(lastv, 2), (float)ferVecGet(lastv, 3),
+                (float)ferVecGet(lastv, 4), (float)ferVecGet(lastv, 5));
+        fflush(stdout);
+        */
+    }
+    /*
+    DBG("%f %f %f %f %f %f -> %f %f %f %f %f %f",
+        ferVecGet(lastv, 0), ferVecGet(lastv, 1), ferVecGet(lastv, 2),
+        ferVecGet(lastv, 3), ferVecGet(lastv, 4), ferVecGet(lastv, 5),
+        ferVecGet(goal, 0), ferVecGet(goal, 1), ferVecGet(goal, 2),
+        ferVecGet(goal, 3), ferVecGet(goal, 4), ferVecGet(goal, 5));
+    DBG("%f %lx", dist, (long)last);
+    */
     if (dist < step){
         printPath(stdout);
         return 1;
@@ -262,11 +304,22 @@ static const fer_vec_t *expand(const fer_rrt_t *rrt,
     const fer_vec_t *near;
     int i;
 
+    if (ferNetNodeEdgesLen(&node_near->node) > 5)
+        return NULL;
+
     near = ferRRTNodeConf(node_near);
+
+    ferVecSub2(6, vec, rand, near);
+    ferVecScale(6, vec, ferRandMT(rand_mt, 0, step) * ferRecp(ferVecLen(6, vec)));
+    ferVecAdd2(6, new_conf, near, vec);
+    if (eval(new_conf) == FER_RRT_FREE)
+        return new_conf;
+    return NULL;
 
     best_dist = FER_REAL_MAX;
     for (i = 0; i < 3; i++){
         move = ferRandMT(rand_mt, -step, step);
+        //move = ferRandMT(rand_mt, -0.016, 0.016);
 
         ferVecCopy(6, vec, near);
         ferVecSet(vec, i, ferVecGet(vec, i) + move);
@@ -280,7 +333,7 @@ static const fer_vec_t *expand(const fer_rrt_t *rrt,
     }
 
     for (i = 3; i < 6; i++){
-        move = ferRandMT(rand_mt, -0.08, 0.08);
+        move = ferRandMT(rand_mt, -0.016, 0.016);
 
         ferVecCopy(6, vec, near);
         ferVecSet(vec, i, ferVecGet(vec, i) + move);

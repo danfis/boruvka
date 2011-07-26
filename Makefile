@@ -31,7 +31,7 @@ BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-eu fer-plan-2d
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
 BIN_TARGETS += fer-rrt-2d fer-rrt-6d
-BIN_TARGETS += fer-gngp fer-gngp-6d
+BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
