@@ -369,9 +369,9 @@ static void addStartGoalNodes(plan_t *p)
 {
     fer_gng_node_t *node;
 
-    node = ferGNGConnectNewNode(p->gng, p->start);
+    node = ferGNGNodeNewAtPos(p->gng, p->start);
     p->start_node = fer_container_of(node, node_t, gng);
-    node = ferGNGConnectNewNode(p->gng, p->goal);
+    node = ferGNGNodeNewAtPos(p->gng, p->goal);
     p->goal_node = fer_container_of(node, node_t, gng);
 }
 

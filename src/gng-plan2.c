@@ -244,7 +244,7 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
             ferNNCellsRemove(gng->cells, &n->cells);
 
             // remove node from GNG
-            ferGNGRemoveNode(gng->gng, &n->node);
+            ferGNGNodeRemove(gng->gng, &n->node);
 
             // add node to obst list
             ferListAppend(&gng->obst, &n->obst);
@@ -332,7 +332,7 @@ static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path)
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
         if (!ferGNGPlanIsEdgeFree(gng, w, n->w)){
             // delete edge that is in OBST space
-            ferGNGDelEdgeBetween(gng->gng, &p->node, &n->node);
+            ferGNGEdgeBetweenDel(gng->gng, &p->node, &n->node);
             isfree = 0;
         }
 
@@ -358,7 +358,7 @@ static void ferGNGPlanFixNode(fer_gng_plan_t *gng, fer_gng_plan_node_t *n)
         return;
 
     n->fixed = 1;
-    ferGNGConnectNewNode(gng->gng, (const void *)n->w);
+    ferGNGNodeNewAtPos(gng->gng, (const void *)n->w);
 }
 
 

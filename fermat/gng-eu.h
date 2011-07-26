@@ -215,7 +215,7 @@ _fer_inline fer_list_t *ferGNGEuNodes(fer_gng_eu_t *gng)
 
 _fer_inline fer_gng_node_t *ferGNGEuConnectNewNode(fer_gng_eu_t *gng, const void *is)
 {
-    return ferGNGConnectNewNode(gng->gng, is);
+    return ferGNGNodeNewAtPos(gng->gng, is);
 }
 
 _fer_inline fer_gng_eu_node_t *ferGNGEuNodeFromList(fer_list_t *item)

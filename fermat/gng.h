@@ -264,9 +264,57 @@ void ferGNGDel(fer_gng_t *gng);
  * Runs GNG algorithm.
  *
  * This runs whole algorithm in loop until operation terminate() returns
- * true.
+ * true:
+ * ~~~~~~
+ * ferGNGinit()
+ * do:
+ *     for (step = 1 .. params.lambda):
+ *         ferGNGLearn()
+ *     ferGNGNewNode()
+ * while not ops.terminate()
  */
 void ferGNGRun(fer_gng_t *gng);
+
+
+/**
+ * Initialize gng net.
+ *
+ * ~~~~~
+ * if ops.init != NULL:
+ *     ops.init()
+ * else:
+ *     is = ops.input_signal()
+ *     n1 = ops.new_node(is)
+ *
+ *     is = ops.input_signal()
+ *     n2 = ops.new_node(is)
+ * create edge between n1 and n2
+ */
+void ferGNGInit(fer_gng_t *gng);
+
+/**
+ * One competitive hebbian learning step.
+ */
+void ferGNGLearn(fer_gng_t *gng);
+
+/**
+ * Creates new node in place with highest error counter.
+ */
+void ferGNGNewNode(fer_gng_t *gng);
+
+/**
+ * Returns node with highest error counter.
+ */
+fer_gng_node_t *ferGNGNodeWithHighestError(fer_gng_t *gng);
+
+/**
+ * Finds out node with highest error counter ({n1}) and its neighbor with
+ * highest error counter ({n2}). Into {edge} is stored edge connecting
+ * those nodes. {n1}, {n2} and {edge} are ignored if NULL is passed.
+ */
+void ferGNGNodeWithHighestError2(fer_gng_t *gng,
+                                 fer_gng_node_t **n1, fer_gng_node_t **n2,
+                                 fer_gng_edge_t **edge);
 
 
 
@@ -277,37 +325,6 @@ void ferGNGRun(fer_gng_t *gng);
  * See fer_gng_node_t.
  * See fer_gng_edge_t.
  */
-
-/**
- * Connects new node at given position (is).
- */
-fer_gng_node_t *ferGNGConnectNewNode(fer_gng_t *gng, const void *is);
-
-/**
- * Removes node from net, i.e., deletes all incidenting edges and removes it
- * from net.
- * Note that destructor is _not_ called on {node}.
- */
-void ferGNGRemoveNode(fer_gng_t *gng, fer_gng_node_t *node);
-
-/**
- * Deletes edge between {n1} and {n2}.
- */
-void ferGNGDelEdgeBetween(fer_gng_t *gng,
-                          fer_gng_node_t *n1, fer_gng_node_t *n2);
-
-/**
- * Returns age of edge.
- *
- * Always use this function instead of direct access to struct!
- */
-int ferGNGEdgeAge(const fer_gng_t *gng, const fer_gng_edge_t *edge);
-
-/**
- * Returns (via {n1} and {n2}) incidenting nodes of edge
- */
-void ferGNGEdgeNodes(fer_gng_edge_t *e,
-                     fer_gng_node_t **n1, fer_gng_node_t **n2);
 
 /**
  * Returns net of nodes.
@@ -382,6 +399,107 @@ _fer_inline fer_net_edge_t *ferGNGEdgeToNet(fer_gng_edge_t *e);
 
 
 
+/**
+ * Node API
+ * ^^^^^^^^^
+ *
+ * See fer_gng_node_t.
+ */
+
+/**
+ * Adds node into network
+ */
+_fer_inline void ferGNGNodeAdd(fer_gng_t *gng, fer_gng_node_t *n);
+
+/**
+ * Removes node from network
+ */
+_fer_inline void ferGNGNodeRemove(fer_gng_t *gng, fer_gng_node_t *n);
+
+/**
+ * Removes node from network and deletes it (ops.del_node is used).
+ */
+_fer_inline void ferGNGNodeDel(fer_gng_t *gng, fer_gng_node_t *n);
+
+/**
+ * Fixes node's error counter, i.e. applies correct beta^(n * lambda)
+ */
+_fer_inline void ferGNGNodeFixError(fer_gng_t *gng, fer_gng_node_t *n);
+
+/**
+ * Increment error counter
+ */
+_fer_inline void ferGNGNodeIncError(fer_gng_t *gng, fer_gng_node_t *n,
+                                    fer_real_t inc);
+/**
+ * Scales error counter
+ */
+_fer_inline void ferGNGNodeScaleError(fer_gng_t *gng, fer_gng_node_t *n,
+                                      fer_real_t scale);
+
+/**
+ * Disconnects node from net, i.e., deletes all incidenting edges.
+ */
+void ferGNGNodeDisconnect(fer_gng_t *gng, fer_gng_node_t *n);
+
+/**
+ * Connects new node at given position (is) and connects it with two
+ * nearest nodes [ops.new_node(), ops.nearest()].
+ */
+fer_gng_node_t *ferGNGNodeNewAtPos(fer_gng_t *gng, const void *is);
+
+
+
+
+/**
+ * Edge API
+ * ^^^^^^^^^
+ *
+ * See fer_gng_edge_t.
+ */
+
+/**
+ * Creates and initializes new edge between {n1} and {n2}.
+ */
+fer_gng_edge_t *ferGNGEdgeNew(fer_gng_t *gng, fer_gng_node_t *n1,
+                                              fer_gng_node_t *n2);
+
+/**
+ * Deletes edge
+ */
+void ferGNGEdgeDel(fer_gng_t *gng, fer_gng_edge_t *edge);
+
+/**
+ * Returns age of edge.
+ *
+ * Always use this function instead of direct access to struct!
+ */
+_fer_inline int ferGNGEdgeAge(const fer_gng_t *gng, const fer_gng_edge_t *edge);
+
+
+/**
+ * Returns edge connecting {n1} and {n2}.
+ */
+_fer_inline fer_gng_edge_t *ferGNGEdgeBetween(fer_gng_t *gng,
+                                              fer_gng_node_t *n1,
+                                              fer_gng_node_t *n2);
+
+/**
+ * Deletes edge between {n1} and {n2}.
+ */
+void ferGNGEdgeBetweenDel(fer_gng_t *gng,
+                          fer_gng_node_t *n1, fer_gng_node_t *n2);
+
+/**
+ * Returns (via {n1} and {n2}) incidenting nodes of edge
+ */
+_fer_inline void ferGNGEdgeNodes(fer_gng_edge_t *e,
+                                 fer_gng_node_t **n1, fer_gng_node_t **n2);
+
+
+
+
+
 /**** INLINES ****/
 _fer_inline fer_net_t *ferGNGNet(fer_gng_t *gng)
 {
@@ -446,6 +564,96 @@ _fer_inline fer_net_node_t *ferGNGNodeToNet(fer_gng_node_t *n)
 _fer_inline fer_net_edge_t *ferGNGEdgeToNet(fer_gng_edge_t *e)
 {
     return &e->edge;
+}
+
+
+
+_fer_inline void ferGNGNodeAdd(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    n->err       = FER_ZERO;
+    n->err_cycle = gng->cycle;
+    ferPairHeapAdd(gng->err_heap, &n->err_heap);
+
+    ferNetAddNode(gng->net, &n->node);
+}
+
+_fer_inline void ferGNGNodeRemove(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    ferPairHeapRemove(gng->err_heap, &n->err_heap);
+
+    if (ferNetNodeEdgesLen(&n->node) != 0)
+        ferGNGNodeDisconnect(gng, n);
+    ferNetRemoveNode(gng->net, &n->node);
+}
+
+_fer_inline void ferGNGNodeDel(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    ferGNGNodeRemove(gng, n);
+    gng->ops.del_node(n, gng->ops.del_node_data);
+}
+
+_fer_inline void ferGNGNodeFixError(fer_gng_t *gng, fer_gng_node_t *n)
+{
+    unsigned long diff;
+
+    diff = gng->cycle - n->err_cycle;
+    if (diff > 0 && diff <= gng->beta_lambda_n_len){
+        n->err *= gng->beta_lambda_n[diff - 1];
+    }else if (diff > 0){
+        n->err *= gng->beta_lambda_n[gng->beta_lambda_n_len - 1];
+
+        diff = diff - gng->beta_lambda_n_len;
+        n->err *= pow(gng->beta_n[gng->beta_lambda_n_len - 1], diff);
+    }
+    n->err_cycle = gng->cycle;
+}
+
+_fer_inline void ferGNGNodeIncError(fer_gng_t *gng, fer_gng_node_t *n,
+                                    fer_real_t inc)
+{
+    ferGNGNodeFixError(gng, n);
+    n->err += inc;
+    ferPairHeapUpdate(gng->err_heap, &n->err_heap);
+}
+
+_fer_inline void ferGNGNodeScaleError(fer_gng_t *gng, fer_gng_node_t *n,
+                                      fer_real_t scale)
+{
+    ferGNGNodeFixError(gng, n);
+    n->err *= scale;
+    ferPairHeapUpdate(gng->err_heap, &n->err_heap);
+}
+
+
+
+_fer_inline int ferGNGEdgeAge(const fer_gng_t *gng, const fer_gng_edge_t *edge)
+{
+    return edge->age;
+}
+
+_fer_inline fer_gng_edge_t *ferGNGEdgeBetween(fer_gng_t *gng,
+                                              fer_gng_node_t *n1,
+                                              fer_gng_node_t *n2)
+{
+    fer_net_edge_t *ne;
+    fer_gng_edge_t *e = NULL;
+
+    ne = ferNetNodeCommonEdge(&n1->node, &n2->node);
+    if (ne)
+        e  = fer_container_of(ne, fer_gng_edge_t, edge);
+    return e;
+}
+
+_fer_inline void ferGNGEdgeNodes(fer_gng_edge_t *e,
+                                 fer_gng_node_t **n1, fer_gng_node_t **n2)
+{
+    fer_net_node_t *n;
+
+    n   = ferNetEdgeNode(&e->edge, 0);
+    *n1 = fer_container_of(n, fer_gng_node_t, node);
+
+    n   = ferNetEdgeNode(&e->edge, 1);
+    *n2 = fer_container_of(n, fer_gng_node_t, node);
 }
 
 #ifdef __cplusplus
