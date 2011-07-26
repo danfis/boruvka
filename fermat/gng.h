@@ -303,6 +303,14 @@ void ferGNGLearn(fer_gng_t *gng);
 void ferGNGNewNode(fer_gng_t *gng);
 
 /**
+ * Performs hebbian learning between two given nodes - connection
+ * between these two nodes is strengthened, i.e., edge is eigher created or
+ * age of the existing edge is set to zero.
+ */
+void ferGNGHebbianLearning(fer_gng_t *gng,
+                           fer_gng_node_t *n1, fer_gng_node_t *n2);
+
+/**
  * Returns node with highest error counter.
  */
 fer_gng_node_t *ferGNGNodeWithHighestError(fer_gng_t *gng);

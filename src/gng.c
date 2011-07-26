@@ -144,8 +144,6 @@ void ferGNGRun(fer_gng_t *gng)
             gng->ops.callback(gng->ops.callback_data);
             cycle = 0L;
         }
-
-        gng->cycle++;
     } while (!gng->ops.terminate(gng->ops.terminate_data));
 }
 
@@ -182,8 +180,10 @@ void ferGNGLearn(fer_gng_t *gng)
     fer_real_t dist2;
     fer_list_t *list, *item, *item_tmp;
 
-    if (gng->step > gng->params.lambda)
+    if (gng->step > gng->params.lambda){
+        gng->cycle += 1L;
         gng->step = 1;
+    }
 
     // 1. Get input signal
     input_signal = gng->ops.input_signal(gng->ops.input_signal_data);
@@ -193,13 +193,7 @@ void ferGNGLearn(fer_gng_t *gng)
 
     // 3. Create connection between n1 and n2 if doesn't exist and set age
     //    to zero
-    nedge = ferNetNodeCommonEdge(&n1->node, &n2->node);
-    if (!nedge){
-        edge = ferGNGEdgeNew(gng, n1, n2);
-    }else{
-        edge = fer_container_of(nedge, fer_gng_edge_t, edge);
-    }
-    edge->age = 0;
+    ferGNGHebbianLearning(gng, n1, n2);
 
     // 4. Increase error counter of winner node
     dist2 = gng->ops.dist2(input_signal, n1, gng->ops.dist2_data);
@@ -287,6 +281,21 @@ fer_gng_node_t *ferGNGNodeWithHighestError(fer_gng_t *gng)
     maxn = fer_container_of(max, fer_gng_node_t, err_heap);
 
     return maxn;
+}
+
+void ferGNGHebbianLearning(fer_gng_t *gng,
+                           fer_gng_node_t *n1, fer_gng_node_t *n2)
+{
+    fer_net_edge_t *nedge;
+    fer_gng_edge_t *edge;
+
+    nedge = ferNetNodeCommonEdge(&n1->node, &n2->node);
+    if (!nedge){
+        edge = ferGNGEdgeNew(gng, n1, n2);
+    }else{
+        edge = fer_container_of(nedge, fer_gng_edge_t, edge);
+    }
+    edge->age = 0;
 }
 
 static void __ferGNGNodeWithHighestError2(fer_gng_t *gng,

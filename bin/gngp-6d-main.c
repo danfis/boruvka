@@ -42,15 +42,15 @@ static void dump(void);
 
 int main(int argc, char *argv[])
 {
-    if (argc < 4){
-        fprintf(stderr, "Usage: %s max_nodes min_nodes scene [dump_prefix dump_period]\n", argv[0]);
+    if (argc < 3){
+        fprintf(stderr, "Usage: %s max_nodes scene [dump_prefix dump_period]\n", argv[0]);
         return -1;
     }
 
+    if (argc >= 4)
+        dump_prefix = argv[3];
     if (argc >= 5)
-        dump_prefix = argv[4];
-    if (argc >= 6)
-        dump_period = atoi(argv[5]);
+        dump_period = atoi(argv[4]);
 
     is    = ferVecNew(6);
     start = ferVecNew(6);
@@ -69,8 +69,7 @@ int main(int argc, char *argv[])
 
     params.dim = 6;
     params.max_dist = 0.12;
-    params.min_nodes = atoi(argv[2]);
-    params.min_nodes_inc = 10;
+    params.min_nodes = 100;
     params.start = start;
     params.goal  = goal;
     params.cells.d = 6;
@@ -88,7 +87,7 @@ int main(int argc, char *argv[])
     robot = ferCDGeomNew(cd);
 
 
-    if (strcmp(argv[3], "alpha") == 0){
+    if (strcmp(argv[2], "alpha") == 0){
         ferVecSetZero(6, start);
         ferVecSet(start, 0, -2.6);
         ferVecSet(start, 1, 2.34);
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
         ferCDGeomAddTrisFromRaw(cd, map, "/home/danfis/dev/imr-data/trimesh/alpha-puzzle/map.raw");
         ferCDGeomAddTrisFromRaw(cd, robot, "/home/danfis/dev/imr-data/trimesh/alpha-puzzle/robot.raw");
 
-    }else if (strcmp(argv[3], "room") == 0){
+    }else if (strcmp(argv[2], "room") == 0){
         ferVecSetZero(6, start);
         ferVecSet(start, 0, -7.8);
         ferVecSet(start, 1, 6.9);

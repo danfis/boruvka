@@ -35,15 +35,15 @@ int main(int argc, char *argv[])
 {
     fer_real_t aabb[4] = { -5, 5, -5, 5 };
 
-    if (argc < 4){
-        fprintf(stderr, "Usage: %s max_nodes min_nodes scene [dump_prefix dump_period]\n", argv[0]);
+    if (argc < 3){
+        fprintf(stderr, "Usage: %s max_nodes scene [dump_prefix dump_period]\n", argv[0]);
         return -1;
     }
 
+    if (argc >= 4)
+        dump_prefix = argv[3];
     if (argc >= 5)
-        dump_prefix = argv[4];
-    if (argc >= 6)
-        dump_period = atoi(argv[5]);
+        dump_period = atoi(argv[4]);
 
     is = ferVecNew(2);
 
@@ -60,18 +60,21 @@ int main(int argc, char *argv[])
 
     params.dim = 2;
     params.max_dist = 0.01;
-    params.min_nodes = atoi(argv[2]);
-    params.min_nodes_inc = 10;
+    params.min_dist = 0.1;
+    params.min_nodes = 100;
     params.start = ferVecNew(2);
     params.goal  = ferVecNew(2);
     params.cells.d = 2;
     params.cells.aabb = aabb;
     params.cells.max_dens = 1;
     params.cells.expand_rate = 1.4;
+    params.gng.lambda = 1000;
+    //params.gng.age_max = 20;
 
-    setUpScene(argv[3], &ops.eval,
+    setUpScene(argv[2], &ops.eval,
                (fer_vec_t *)params.start, (fer_vec_t *)params.goal,
                &params.max_dist);
+    params.min_dist = 10 * params.max_dist;
 
     rand_mt = ferRandMTNewAuto();
     gng = ferGNGPlanNew(&ops, &params);

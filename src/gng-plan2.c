@@ -31,7 +31,6 @@ static int ferGNGPlanIsPathFree(fer_gng_plan_t *gng, fer_list_t *path);
 /** Fix given node */
 static void ferGNGPlanFixNode(fer_gng_plan_t *gng, fer_gng_plan_node_t *n);
 
-static int ferGNGPlanTerminate(void *);
 static const void *ferGNGPlanInputSignal(void *);
 static void ferGNGPlanInit(fer_gng_node_t **n1, fer_gng_node_t **n2, void *);
 static fer_gng_node_t *ferGNGPlanNewNode(const void *input_signal, void *);
@@ -49,8 +48,6 @@ static void ferGNGPlanMoveTowards(fer_gng_node_t *node,
                                   fer_real_t fraction, void *);
 
 /*** Find path ***/
-static fer_real_t ferGNGPlanFindPathDist(const fer_dij_node_t *_n1,
-                                         const fer_dij_node_t *_n2, void *_);
 static void ferGNGPlanFindPathExpand(fer_dij_node_t *_n,
                                      fer_list_t *expand, void *_);
 /** Initializes all nodes in net for dijkstra search */
@@ -64,6 +61,7 @@ static int ferGNGPlanFindPath(fer_gng_plan_t *gng,
                               const fer_vec_t *wstart,
                               const fer_vec_t *wgoal,
                               fer_list_t *list);
+static int ferGNGPlanTryFindPath(fer_gng_plan_t *gng);
 
 void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops)
 {
@@ -75,8 +73,8 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params)
 {
     params->dim           = 2;
     params->max_dist      = FER_REAL(0.1);
+    params->max_dist      = FER_REAL(1.);
     params->min_nodes     = 100;
-    params->min_nodes_inc = 10;
 
     params->start = NULL;
     params->goal  = NULL;
@@ -98,8 +96,8 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     gng = FER_ALLOC(fer_gng_plan_t);
     gng->dim           = params->dim;
     gng->max_dist      = params->max_dist;
+    gng->min_dist      = params->min_dist;
     gng->min_nodes     = params->min_nodes;
-    gng->min_nodes_inc = params->min_nodes_inc;
 
     gng->evals = 0L;
 
@@ -112,7 +110,7 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     if (!gng_ops.callback_data)
         gng_ops.callback_data = ops->data;
     gng_ops.data = gng;
-    gng_ops.terminate        = ferGNGPlanTerminate;
+    //gng_ops.terminate        = ferGNGPlanTerminate;
     gng_ops.input_signal     = ferGNGPlanInputSignal;
     gng_ops.init             = ferGNGPlanInit;
     gng_ops.new_node         = ferGNGPlanNewNode;
@@ -186,7 +184,28 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
 
 void ferGNGPlanRun(fer_gng_plan_t *gng)
 {
-    ferGNGRun(gng->gng);
+    unsigned long cycle;
+    size_t i;
+    int path;
+
+    cycle = 0;
+    ferGNGInit(gng->gng);
+
+    do {
+        for (i = 0; i < gng->gng->params.lambda; i++){
+            ferGNGLearn(gng->gng);
+        }
+        path = ferGNGPlanTryFindPath(gng);
+
+        if (path == -1)
+            ferGNGNewNode(gng->gng);
+
+        cycle++;
+        if (gng->ops.callback && gng->ops.callback_period == cycle){
+            gng->ops.callback(gng->ops.callback_data);
+            cycle = 0L;
+        }
+    } while (path != 1 && !gng->ops.terminate(gng->ops.terminate_data));
 }
 
 fer_real_t ferGNGPlanAvgEdgeLen(fer_gng_plan_t *gng)
@@ -361,20 +380,21 @@ static void ferGNGPlanFixNode(fer_gng_plan_t *gng, fer_gng_plan_node_t *n)
     ferGNGNodeNewAtPos(gng->gng, (const void *)n->w);
 }
 
-
-static int ferGNGPlanTerminate(void *data)
+static int ferGNGPlanTryFindPath(fer_gng_plan_t *gng)
 {
-    fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
+    int found = 0;
 
-    ferListInit(&gng->path);
+    if (ferGNGNodesLen(gng->gng) <= gng->min_nodes)
+        return -1;
 
-    if (ferGNGNodesLen(gng->gng) >= gng->min_nodes){
+    do {
+        ferListInit(&gng->path);
+
         // find path between start and goal
         ferGNGPlanFindPath(gng, gng->start, gng->goal, &gng->path);
 
-        if (ferListEmpty(&gng->path)){
-            // no path was found - increase min_nodes param
-            gng->min_nodes += gng->min_nodes_inc;
+        if (!ferListEmpty(&gng->path)){
+            found = 1;
         }
 
         // cut path from obstacle nodes
@@ -384,10 +404,11 @@ static int ferGNGPlanTerminate(void *data)
             if (ferGNGPlanIsPathFree(gng, &gng->path))
                 return 1;
         }
-    }
+    } while (!ferListEmpty(&gng->path));
 
-
-    return gng->ops.terminate(gng->ops.terminate_data);
+    if (found)
+        return 0;
+    return -1;
 }
 
 static const void *ferGNGPlanInputSignal(void *data)
@@ -515,26 +536,16 @@ static void ferGNGPlanMoveTowards(fer_gng_node_t *node,
 
 
 /*** Find path ***/
-static fer_real_t ferGNGPlanFindPathDist(const fer_dij_node_t *_n1,
-                                         const fer_dij_node_t *_n2,
-                                         void *data)
+static void ferGNGPlanFindPathExpand(fer_dij_node_t *_n,
+                                     fer_list_t *expand, void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
-    fer_gng_plan_node_t *n1, *n2;
-
-    n1 = fer_container_of(_n1, fer_gng_plan_node_t, dij);
-    n2 = fer_container_of(_n2, fer_gng_plan_node_t, dij);
-    return ferVecDist(gng->dim, n1->w, n2->w);
-}
-
-static void ferGNGPlanFindPathExpand(fer_dij_node_t *_n,
-                                     fer_list_t *expand, void *_)
-{
     fer_list_t *list, *item;
     fer_gng_node_t *go;
     fer_gng_plan_node_t *n, *o;
     fer_net_edge_t *edge;
     fer_net_node_t *node;
+    fer_real_t dist;
 
     n = fer_container_of(_n, fer_gng_plan_node_t, dij);
 
@@ -546,7 +557,10 @@ static void ferGNGPlanFindPathExpand(fer_dij_node_t *_n,
         o    = fer_container_of(go, fer_gng_plan_node_t, node);
 
         if (!ferDijNodeClosed(&o->dij)){
-            ferDijNodeAdd(&o->dij, expand);
+            dist = ferVecDist(gng->dim, n->w, o->w);
+            if (dist < gng->min_dist){
+                ferDijNodeAdd(&o->dij, expand, dist);
+            }
         }
     }
 }
@@ -573,6 +587,10 @@ static void ferGNGPlanObtainPath(fer_gng_plan_node_t *s, fer_gng_plan_node_t *g,
     fer_dij_node_t *dn;
 
     ferListPrepend(list, &g->path);
+
+    if (g == s)
+        return;
+
     dn = g->dij.prev;
     while (dn != &s->dij){
         n = fer_container_of(dn, fer_gng_plan_node_t, dij);
@@ -606,7 +624,6 @@ static int ferGNGPlanFindPath(fer_gng_plan_t *gng,
 
     // initialize operations
     ferDijOpsInit(&ops);
-    ops.dist   = ferGNGPlanFindPathDist;
     ops.expand = ferGNGPlanFindPathExpand;
     ops.data   = (void *)gng;
 

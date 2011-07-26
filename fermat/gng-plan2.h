@@ -101,13 +101,12 @@ void ferGNGPlanOpsInit(fer_gng_plan_ops_t *ops);
  */
 struct _fer_gng_plan_params_t {
     int dim;             /*!< Dimensionality of space. Default: 2 */
-    fer_real_t max_dist; /*!< Maximal cube distance between two nodes in path.
+    fer_real_t max_dist; /*!< Maximal distance between two nodes in path.
                               Default: 0.1 */
+    fer_real_t min_dist; /*!< Minimal distance between two nodes in path.
+                              Default: 1. */
     int min_nodes;       /*!< Minimal number of nodes to start path search.
                               Default: 100 */
-    int min_nodes_inc;   /*!< Const by which is increased .min_nodes param
-                              when no path is found.
-                              Default: 10 */
 
     const fer_vec_t *start; /*!< Start position */
     const fer_vec_t *goal;  /*!< Goal position */
@@ -133,8 +132,8 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params);
 struct _fer_gng_plan_t {
     int dim;
     fer_real_t max_dist;
+    fer_real_t min_dist;
     int min_nodes;
-    int min_nodes_inc;
 
     unsigned long evals; /*!< Number of eval'ed nodes */
 
