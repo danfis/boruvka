@@ -24,8 +24,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct fer_nncells_cache_t;
-
 /** Internal structure */
 struct _fer_nncells_cell_t {
     fer_list_t list; /*!< List of all elements inside cell */
@@ -106,8 +104,6 @@ struct _fer_nncells_t {
     size_t cells_len;          /*!< Length of .cells array */
     size_t next_expand;        /*!< Treshold when number of cells should be
                                     expanded */
-
-    struct fer_nncells_cache_t *cache;
 };
 typedef struct _fer_nncells_t fer_nncells_t;
 
@@ -219,13 +215,13 @@ _fer_inline void ferNNCellsUpdateForce(fer_nncells_t *cs, fer_nncells_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
+size_t ferNNCellsNearest(const fer_nncells_t *cs, const fer_vec_t *p, size_t num,
                          fer_nncells_el_t **els);
 
 /**
  * Same as {ferNNCellsNearest} but approximate algorithm is used.
  */
-size_t ferNNCellsNearestApprox(fer_nncells_t *cs, const fer_vec_t *p,
+size_t ferNNCellsNearestApprox(const fer_nncells_t *cs, const fer_vec_t *p,
                                size_t num, fer_nncells_el_t **els);
 
 
