@@ -409,31 +409,6 @@ int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
 }
 
 
-/*
-static int __ferVec2BoxBoxOverlapAxis(const fer_vec2_t *axis,
-                                      fer_real_t origin,
-                                      const fer_vec2_t *pts)
-{
-    int i;
-    fer_real_t min, max, dot;
-
-    min = FER_REAL_MAX;
-    max = -FER_REAL_MAX;
-
-    for (i = 0; i < 4; i++){
-        dot = ferVec2Dot(&pts[i], axis);
-        if (dot < min)
-            min = dot;
-        if (dot > max)
-            max = dot;
-    }
-
-    if (min > FER_ONE + origin || max < origin)
-        return 0;
-    return 1;
-}
-*/
-
 static int __ferVec2BoxBoxOverlapAxis(const fer_vec2_t *axis,
                                       const fer_vec2_t *p,
                                       const fer_vec2_t *pts)
@@ -445,7 +420,6 @@ static int __ferVec2BoxBoxOverlapAxis(const fer_vec2_t *axis,
     for (i = 0; i < 4; i++){
         ferVec2Sub2(&s, &pts[i], p);
         dot = ferVec2Dot(axis, &s);
-        DBG("dot: %f", dot);
         if (dot > FER_ZERO){
             ++pos;
         }else{
@@ -480,32 +454,6 @@ static int __ferVec2BoxBoxOverlap(const fer_vec2_t *c1,
     }
 
     return 1;
-    /*
-    ferVec2Normalize(&axis);
-    origin = ferVec2Dot(&axis, &c1[0]);
-    if (__ferVec2BoxBoxOverlapAxis(&axis, origin, c2))
-        return 1;
-
-    ferVec2Sub2(&axis, &c1[3], &c1[0]);
-    ferVec2Normalize(&axis);
-    origin = ferVec2Dot(&axis, &c1[0]);
-    if (__ferVec2BoxBoxOverlapAxis(&axis, origin, c2))
-        return 1;
-
-    ferVec2Sub2(&axis, &c2[1], &c2[0]);
-    ferVec2Normalize(&axis);
-    origin = ferVec2Dot(&axis, &c2[0]);
-    if (__ferVec2BoxBoxOverlapAxis(&axis, origin, c1))
-        return 1;
-
-    ferVec2Sub2(&axis, &c2[3], &c2[0]);
-    ferVec2Normalize(&axis);
-    origin = ferVec2Dot(&axis, &c2[0]);
-    if (__ferVec2BoxBoxOverlapAxis(&axis, origin, c1))
-        return 1;
-
-    return 0;
-    */
 }
 
 int ferVec2BoxBoxOverlap(const fer_vec2_t *half_edges1,
@@ -545,16 +493,6 @@ int ferVec2BoxBoxOverlap(const fer_vec2_t *half_edges1,
     ferMat3MulVec2(&c2[2], &tr, &tmp);
     ferVec2Set(&tmp, ferVec2X(half_edges2), -ferVec2Y(half_edges2));
     ferMat3MulVec2(&c2[3], &tr, &tmp);
-
-    {
-        int i;
-        for (i = 0; i < 4; i++){
-            DBG("[%d] %f %f", i, ferVec2X(&c1[i]), ferVec2Y(&c1[i]));
-        }
-        for (i = 0; i < 4; i++){
-            DBG("[%d] %f %f", i, ferVec2X(&c2[i]), ferVec2Y(&c2[i]));
-        }
-    }
 
     return __ferVec2BoxBoxOverlap(c1, c2);
 }
