@@ -728,3 +728,45 @@ TEST(vec2SegInRect)
     printf("# ---- seg in rect end ----\n\n");
 }
 
+
+TEST(vec2BoxBoxOverlap)
+{
+    fer_vec2_t he[2], pos[2];
+    fer_real_t rot[2];
+    int ret;
+
+
+    ferVec2Set(&he[0], 1, 2);
+    ferVec2Set(&he[1], 2, 1);
+    ferVec2Set(&pos[0], 0, 0);
+    ferVec2Set(&pos[1], 0, 0);
+    rot[0] = rot[1] = 0;
+
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertTrue(ret);
+
+    ferVec2Set(&pos[1], 1.8, 0);
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertTrue(ret);
+
+    ferVec2Set(&pos[1], 3.1, 0);
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertFalse(ret);
+
+    ferVec2Set(&pos[0], -1, 0);
+    ferVec2Set(&pos[1], 2.1, 0);
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertFalse(ret);
+
+    ferVec2Set(&pos[0], 0, 0);
+    rot[0] = M_PI_2;
+    ferVec2Set(&pos[1], 0, 0);
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertTrue(ret);
+
+    ferVec2Set(&pos[0], 0, 3.);
+    rot[0] = M_PI_4;
+    ferVec2Set(&pos[1], 0, 0);
+    ret = ferVec2BoxBoxOverlap(&he[0], &pos[0], rot[0], &he[1], &pos[1], rot[1]);
+    assertTrue(ret);
+}

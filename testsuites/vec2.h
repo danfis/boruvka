@@ -35,6 +35,8 @@ TEST(vec2Inter);
 TEST(vec2OnLeft);
 TEST(vec2SegInRect);
 
+TEST(vec2BoxBoxOverlap);
+
 TEST_SUITE(TSVec2)
 {
     TEST_ADD(vec2SetUp),
@@ -67,6 +69,8 @@ TEST_SUITE(TSVec2)
     TEST_ADD(vec2Inter),
     TEST_ADD(vec2OnLeft),
     TEST_ADD(vec2SegInRect),
+
+    TEST_ADD(vec2BoxBoxOverlap),
 
     TEST_ADD(vec2TearDown),
     TEST_SUITE_CLOSURE
