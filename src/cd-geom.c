@@ -188,6 +188,18 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
     fclose(fin);
 }
 
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p, const fer_vec3_t *q,
+                     const fer_vec3_t *r)
+{
+    fer_cd_tri_t *tri;
+    fer_cd_obb_t *obb;
+
+    tri = ferCDTriNew(p, q, r);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)tri, cd->build_flags);
+    ferListAppend(&g->obbs, &obb->list);
+}
+
 
 struct __collide_t {
     fer_cd_t *cd;

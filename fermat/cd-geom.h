@@ -127,6 +127,13 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
 void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename);
 
+/**
+ * Adds one triangule o geom.
+ */
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p, const fer_vec3_t *q,
+                     const fer_vec3_t *r);
+
 
 /**
  * Saves geom in Lisp-like format.
