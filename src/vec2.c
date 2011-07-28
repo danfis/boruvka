@@ -402,7 +402,9 @@ int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
             || ferVec2Intersect(p1, r1, q2, r2)
             || ferVec2Intersect(q1, r1, p2, q2)
             || ferVec2Intersect(q1, r1, p2, r2)
-            || ferVec2Intersect(q1, r1, q2, r2))
+            || ferVec2Intersect(q1, r1, q2, r2)
+            || ferVec2PointInTri(p1, p2, q2, r2)
+            || ferVec2PointInTri(p2, p1, q1, r1))
         return 1;
 
     return 0;
