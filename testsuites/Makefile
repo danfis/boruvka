@@ -7,7 +7,7 @@ endif
 
 CFLAGS += -I./ -I../ -Icu/
 CXXFLAGS += -I./ -I../ -Icu/
-LDFLAGS += -L./ -ldata -Lcu/ -lcu -lrt -lm -L../ -lfermat
+LDFLAGS += -L./ -ldata -Lcu/ -lcu -lrt -lm -L../ -lfermat -pthread
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
 CHECK_REG=cu/check-regressions
@@ -19,6 +19,11 @@ ifeq '$(USE_OPENCL)' 'yes'
 endif
 
 TARGETS += test-cd-spheres test-cd-trimesh
+
+TARGETS += test-cd-ode
+ODE_CFLAGS = $(shell ode-config --cflags)
+ODE_LDFLAGS = $(shell ode-config --libs)
+ODE_DRAWSTUFF = -ldrawstuff -lX11 -lGL -lGLU
 
 
 USE_OZCOLLIDE = no
@@ -34,11 +39,12 @@ endif
 
 
 
+
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        mat3.o mat4.o cubes3.o cubes2.o nncells.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o \
-       tasks.o
+       tasks.o task-pool.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o \
 			data-protein-big.o data-protein-small.o
@@ -52,7 +58,7 @@ libdata.a: $(OBJS_DATA)
 	ranlib $@
 
 test: cu libdata.a $(OBJS) main.c
-	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS) $(OPENCL_LDFLAGS)
 bench: cu bench.c libdata.a
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
@@ -67,9 +73,11 @@ test-surf-match: test-surf-match.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
 
 test-cd-spheres: test-cd-spheres.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS) $(OPENCL_LDFLAGS)
 test-cd-trimesh: test-cd-trimesh.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS) $(OPENCL_LDFLAGS)
+test-cd-ode: test-cd-ode.c libdata.a
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) $(OPENCL_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++ $(OPENCL_LDFLAGS)
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a
@@ -107,7 +115,7 @@ cu:
 clean:
 	rm -f *.o
 	rm -f objs/*.o
-	rm -f test bench bench2 test-nn test-rand-mt
+	rm -f $(TARGETS)
 	rm -f tmp.*
 	rm -f regressions/tmp.*
 	rm -f $(BENCH_HEAP)

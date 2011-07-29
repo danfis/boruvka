@@ -161,6 +161,10 @@ void ferCDOBBDumpTreeSVT(const fer_cd_obb_t *obb,
                          const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 
+/** Updates min/max values */
+void __ferCDOBBUpdateMinMax(const fer_cd_obb_t *obb, const fer_vec3_t *axis,
+                            const fer_mat3_t *rot, const fer_vec3_t *tr,
+                            fer_real_t *min, fer_real_t *max);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -105,17 +105,17 @@ static void _saveShape(fer_cd_shape_t *shape, FILE *fout)
         tri = (fer_cd_tri_t *)shape;
 
         fprintf(fout, "(tri %f %f %f\n", 
-                (float)ferVec3X(tri->p0),
-                (float)ferVec3Y(tri->p0),
-                (float)ferVec3Z(tri->p0));
+                (float)ferVec3X(tri->p[0]),
+                (float)ferVec3Y(tri->p[0]),
+                (float)ferVec3Z(tri->p[0]));
         fprintf(fout, "     %f %f %f\n", 
-                (float)ferVec3X(tri->p1),
-                (float)ferVec3Y(tri->p1),
-                (float)ferVec3Z(tri->p1));
+                (float)ferVec3X(tri->p[1]),
+                (float)ferVec3Y(tri->p[1]),
+                (float)ferVec3Z(tri->p[1]));
         fprintf(fout, "     %f %f %f )\n", 
-                (float)ferVec3X(tri->p2),
-                (float)ferVec3Y(tri->p2),
-                (float)ferVec3Z(tri->p2));
+                (float)ferVec3X(tri->p[2]),
+                (float)ferVec3Y(tri->p[2]),
+                (float)ferVec3Z(tri->p[2]));
     }else if (shape->cl->type == FER_CD_SHAPE_BOX){
         box = (fer_cd_box_t *)shape;
         fprintf(fout, "(box %f %f %f )\n", 

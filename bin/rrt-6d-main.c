@@ -71,6 +71,8 @@ static void printPath(FILE *out);
 
 int main(int argc, char *argv[])
 {
+    fer_cd_params_t cdparams;
+
     if (argc != 3){
         fprintf(stderr, "Usage: %s max_nodes scene\n", argv[0]);
         return -1;
@@ -105,10 +107,11 @@ int main(int argc, char *argv[])
     goal  = ferVecNew(6);
 
 
-    cd = ferCDNew();
-    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE
+    ferCDParamsInit(&cdparams);
+    cdparams.build_flags = FER_CD_FIT_NAIVE
                             | FER_CD_FIT_NAIVE_NUM_ROT(5)
-                            | FER_CD_BUILD_PARALLEL(8));
+                            | FER_CD_BUILD_PARALLEL(8);
+    cd = ferCDNew(&cdparams);
     map = ferCDGeomNew(cd);
     robot = ferCDGeomNew(cd);
 
@@ -426,7 +429,6 @@ static void printPath(FILE *out)
 {
     fer_list_t *item;
     const fer_rrt_node_t *last_node, *init_node, *goal_node;
-    const fer_vec_t *last;
     fer_rrt_node_t *n;
     size_t i;
     fer_list_t path;

@@ -429,6 +429,7 @@ static int scan6f(const char *line, float *f)
 
 plan_2_3_t *planNew(const char *fn)
 {
+    fer_cd_params_t cdparams;
     plan_2_3_t *plan;
     plan_2_3_tri_t *tri;
     fer_vec3_t pts[3];
@@ -448,10 +449,12 @@ plan_2_3_t *planNew(const char *fn)
     plan->start = ferVecNew(6);
     plan->goal  = ferVecNew(6);
 
-    plan->cd = ferCDNew();
-    ferCDSetBuildFlags(plan->cd, FER_CD_FIT_NAIVE
-                                    | FER_CD_FIT_NAIVE_NUM_ROT(5)
-                                    | FER_CD_BUILD_PARALLEL(8));
+    ferCDParamsInit(&cdparams);
+    cdparams.build_flags = FER_CD_FIT_NAIVE
+                            | FER_CD_FIT_NAIVE_NUM_ROT(5)
+                            | FER_CD_BUILD_PARALLEL(8);
+    plan->cd = ferCDNew(&cdparams);
+
     // dim
     line = planNextLine(fin, __line, __len);
     if (!line || sscanf(line, "%d", d) != 1){

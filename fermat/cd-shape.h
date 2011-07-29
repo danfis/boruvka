@@ -126,6 +126,12 @@ void ferCDShapeUpdateCovTri(const fer_vec3_t *_p, const fer_vec3_t *_q,
                             fer_vec3_t *wcenter, fer_mat3_t *cov,
                             fer_real_t *area, int *num);
 
+/** Returns (via {p}) support vector of shape.
+ *  Returns 0 on success. */
+int __ferCDSupport(const fer_cd_shape_t *s,
+                   const fer_mat3_t *rot, const fer_vec3_t *tr,
+                   const fer_vec3_t *dir, fer_vec3_t *p);
+
 /**
  * Shape with set offset
  */

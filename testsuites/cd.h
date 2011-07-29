@@ -13,6 +13,20 @@ TEST(cdCollideTriMesh2);
 TEST(cdCollideSphere);
 TEST(cdCollide1);
 TEST(cdCollide2);
+TEST(cdCollide3);
+TEST(cdCollide4);
+TEST(cdCollide5);
+TEST(cdCollide6);
+TEST(cdCollide7);
+TEST(cdCollide8);
+TEST(cdCollide9);
+
+TEST(cdSeparate1);
+TEST(cdSeparate2);
+TEST(cdSeparate3);
+TEST(cdSeparate4);
+TEST(cdSeparate5);
+TEST(cdSeparate6);
 
 TEST_SUITE(TSCD) {
     TEST_ADD(cdOBBNew),
@@ -26,6 +40,20 @@ TEST_SUITE(TSCD) {
     TEST_ADD(cdCollideSphere),
     TEST_ADD(cdCollide1),
     TEST_ADD(cdCollide2),
+    TEST_ADD(cdCollide3),
+    TEST_ADD(cdCollide4),
+    TEST_ADD(cdCollide5),
+    TEST_ADD(cdCollide6),
+    TEST_ADD(cdCollide7),
+    TEST_ADD(cdCollide8),
+    TEST_ADD(cdCollide9),
+
+    TEST_ADD(cdSeparate1),
+    TEST_ADD(cdSeparate2),
+    TEST_ADD(cdSeparate3),
+    TEST_ADD(cdSeparate4),
+    TEST_ADD(cdSeparate5),
+    TEST_ADD(cdSeparate6),
 
     TEST_SUITE_CLOSURE
 };

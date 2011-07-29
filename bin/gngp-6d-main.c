@@ -42,6 +42,8 @@ static void dump(void);
 
 int main(int argc, char *argv[])
 {
+    fer_cd_params_t cdparams;
+
     if (argc < 3){
         fprintf(stderr, "Usage: %s max_nodes scene [dump_prefix dump_period]\n", argv[0]);
         return -1;
@@ -79,10 +81,11 @@ int main(int argc, char *argv[])
     params.cells.approx = 1;
 
 
-    cd = ferCDNew();
-    ferCDSetBuildFlags(cd, FER_CD_FIT_NAIVE
+    ferCDParamsInit(&cdparams);
+    cdparams.build_flags = FER_CD_FIT_NAIVE
                             | FER_CD_FIT_NAIVE_NUM_ROT(5)
-                            | FER_CD_BUILD_PARALLEL(8));
+                            | FER_CD_BUILD_PARALLEL(8);
+    cd = ferCDNew(&cdparams);
     map = ferCDGeomNew(cd);
     robot = ferCDGeomNew(cd);
 

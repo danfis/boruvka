@@ -27,6 +27,19 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
     ferMat3SetIdentity(&g->rot);
     ferListInit(&g->obbs);
 
+    // add to list of all gemos
+    ferListAppend(&cd->geoms, &g->list);
+    cd->geoms_len++;
+    ferListAppend(&cd->geoms_dirty, &g->list_dirty);
+    cd->geoms_dirty_len++;
+
+    g->data = NULL;
+
+    g->sap = -1;
+
+    if (cd->sap)
+        ferCDSAPAdd(cd->sap, g);
+
     return g;
 }
 
@@ -42,96 +55,134 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
         ferCDOBBDel(obb);
     }
 
+    ferListDel(&g->list);
+    cd->geoms_len--;
+
+    if (!ferListEmpty(&g->list_dirty)){
+        ferListDel(&g->list_dirty);
+        cd->geoms_dirty_len--;
+    }
+
+    if (cd->sap && g->sap >= 0)
+        ferCDSAPRemove(cd->sap, g);
+
     free(g);
 }
 
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g)
 {
     ferCDOBBMerge(&g->obbs, cd->build_flags);
+    ferCDGeomSetDirty(cd, g);
 }
 
 
-void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
+static void _ferCDGeomAddShape(fer_cd_t *cd, fer_cd_geom_t *g,
+                               fer_cd_shape_t *shape)
 {
-    fer_cd_sphere_t *s;
     fer_cd_obb_t *obb;
 
-    s = ferCDSphereNew(radius);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)s, cd->build_flags);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)shape, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
+}
+
+static void _ferCDGeomAddShape2(fer_cd_t *cd, fer_cd_geom_t *g,
+                                fer_cd_shape_t *shape,
+                                const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    fer_cd_shape_off_t *off;
+    fer_cd_obb_t *obb;
+
+    off = ferCDShapeOffNew((fer_cd_shape_t *)shape, rot, tr);
+    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
+    ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
+}
+
+void ferCDGeomAddSphere(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDSphereNew(radius));
 }
 
 void ferCDGeomAddSphere2(fer_cd_t *cd, fer_cd_geom_t *g, fer_real_t radius,
                          const fer_vec3_t *tr)
 {
-    fer_cd_sphere_t *s;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
-
-    s   = ferCDSphereNew(radius);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)s, fer_mat3_identity, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDSphereNew(radius),
+                        fer_mat3_identity, tr);
 }
 
 
 void ferCDGeomAddBox(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t lx, fer_real_t ly, fer_real_t lz)
 {
-    fer_cd_box_t *b;
-    fer_cd_obb_t *obb;
-
-    b   = ferCDBoxNew(lx, ly, lz);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)b, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDBoxNew(lx, ly, lz));
 }
 
 void ferCDGeomAddBox2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t lx, fer_real_t ly, fer_real_t lz,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_box_t *b;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
-
-    b   = ferCDBoxNew(lx, ly, lz);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)b, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDBoxNew(lx, ly, lz),
+                        rot, tr);
 }
 
 
 void ferCDGeomAddCyl(fer_cd_t *cd, fer_cd_geom_t *g,
                      fer_real_t radius, fer_real_t height)
 {
-    fer_cd_cyl_t *c;
-    fer_cd_obb_t *obb;
-
-    c   = ferCDCylNew(radius, height);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)c, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDCylNew(radius, height));
 }
 
 void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
                       fer_real_t radius, fer_real_t height,
                       const fer_mat3_t *rot, const fer_vec3_t *tr)
 {
-    fer_cd_cyl_t *c;
-    fer_cd_shape_off_t *off;
-    fer_cd_obb_t *obb;
-
-    c   = ferCDCylNew(radius, height);
-    off = ferCDShapeOffNew((fer_cd_shape_t *)c, rot, tr);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDCylNew(radius, height),
+                        rot, tr);
 }
 
+void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
+                     fer_real_t radius, fer_real_t height)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDCapNew(radius, height));
+}
+
+void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
+                      fer_real_t radius, fer_real_t height,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDCapNew(radius, height),
+                        rot, tr);
+}
+
+void ferCDGeomAddPlane(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDPlaneNew());
+}
+
+void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr)
+{
+    _ferCDGeomAddShape2(cd, g, (fer_cd_shape_t *)ferCDPlaneNew(),
+                        rot, tr);
+}
+
+
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p0, const fer_vec3_t *p1,
+                     const fer_vec3_t *p2)
+{
+    _ferCDGeomAddShape(cd, g, (fer_cd_shape_t *)ferCDTriNew(p0, p1, p2));
+}
 
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
                          const fer_vec3_t *pts,
                          const unsigned int *ids, size_t len)
 {
     ferCDGeomAddTriMesh2(cd, g, pts, ids, len, fer_mat3_identity, fer_vec3_origin);
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -145,10 +196,19 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
     t   = ferCDTriMeshNew(pts, ids, len, rot, tr);
     obb = ferCDOBBNewTriMesh(t, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
+
+    ferCDGeomSetDirty(cd, g);
 }
 
 void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename)
+{
+    ferCDGeomAddTrisFromRawScale(cd, g, filename, FER_ONE);
+    ferCDGeomSetDirty(cd, g);
+}
+
+void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
+                                  const char *filename, fer_real_t scale)
 {
     FILE *fin;
     float ax, ay, az, bx, by, bz, cx, cy, cz;
@@ -169,6 +229,9 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
         ferVec3Set(&p0, ax, ay, az);
         ferVec3Set(&p1, bx, by, bz);
         ferVec3Set(&p2, cx, cy, cz);
+        ferVec3Scale(&p0, scale);
+        ferVec3Scale(&p1, scale);
+        ferVec3Scale(&p2, scale);
 
         if (ferIsZero(FER_REAL(0.5) * ferVec3TriArea2(&p0, &p1, &p2))){
             zero_tris++;
@@ -186,18 +249,8 @@ void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
     }
 
     fclose(fin);
-}
 
-void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
-                     const fer_vec3_t *p, const fer_vec3_t *q,
-                     const fer_vec3_t *r)
-{
-    fer_cd_tri_t *tri;
-    fer_cd_obb_t *obb;
-
-    tri = ferCDTriNew(p, q, r);
-    obb = ferCDOBBNewShape((fer_cd_shape_t *)tri, cd->build_flags);
-    ferListAppend(&g->obbs, &obb->list);
+    ferCDGeomSetDirty(cd, g);
 }
 
 
@@ -251,6 +304,92 @@ int ferCDGeomCollide(fer_cd_t *cd,
     return 0;
 }
 
+struct __separate_t {
+    fer_cd_t *cd;
+    const fer_cd_geom_t *g1;
+    const fer_cd_geom_t *g2;
+    fer_cd_contacts_t *con;
+};
+static int __ferCDGeomSeparateCB(const fer_cd_obb_t *obb1,
+                                 const fer_cd_obb_t *obb2,
+                                 void *data)
+{
+    struct __separate_t *sep = (struct __separate_t *)data;
+
+    __ferCDShapeSeparate(sep->cd,
+                         obb1->shape, &sep->g1->rot, &sep->g1->tr,
+                         obb2->shape, &sep->g2->rot, &sep->g2->tr,
+                         sep->con);
+
+    return 0;
+}
+
+int ferCDGeomSeparate(fer_cd_t *cd,
+                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                      fer_cd_contacts_t *con)
+{
+    struct __separate_t sep;
+    fer_list_t *item1, *item2;
+    fer_cd_obb_t *obb1, *obb2;
+    int num = con->num;
+
+    sep.cd = cd;
+    sep.g1 = g1;
+    sep.g2 = g2;
+    sep.con = con;
+
+    FER_LIST_FOR_EACH(&g1->obbs, item1){
+        obb1 = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+
+        FER_LIST_FOR_EACH(&g2->obbs, item2){
+            obb2 = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+
+            ferCDOBBOverlapPairsCB(obb1, &g1->rot, &g1->tr,
+                                   obb2, &g2->rot, &g2->tr,
+                                   __ferCDGeomSeparateCB, (void *)&sep);
+        }
+    }
+
+    return con->num - num;
+}
+
+int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2)
+{
+    fer_list_t *item1, *item2;
+    fer_cd_obb_t *obb1, *obb2;
+    int ret = 0;
+
+    FER_LIST_FOR_EACH(&g1->obbs, item1){
+        obb1 = FER_LIST_ENTRY(item1, fer_cd_obb_t, list);
+
+        FER_LIST_FOR_EACH(&g2->obbs, item2){
+            obb2 = FER_LIST_ENTRY(item2, fer_cd_obb_t, list);
+
+            if (!ferCDOBBDisjoint(obb1, &g1->rot, &g1->tr,
+                                  obb2, &g2->rot, &g2->tr)){
+                ret = 1;
+                break;
+            }
+        }
+    }
+
+    return ret;
+}
+
+void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    if (!ferCDGeomDirty(cd, g)){
+        ferListAppend(&cd->geoms_dirty, &g->list_dirty);
+        cd->geoms_dirty_len++;
+    }
+}
+
+void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g)
+{
+    ferListDel(&g->list_dirty);
+    cd->geoms_dirty_len--;
+    ferListInit(&g->list_dirty);
+}
 
 static void dumpSVT(const fer_cd_geom_t *g,
                     fer_cd_obb_t *obb, FILE *out, const char *name)
@@ -306,17 +445,17 @@ static size_t _ferCDGeomDumpTriSVT(const fer_cd_obb_t *obb, FILE *out,
                             || obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI)){
             t = (fer_cd_tri_t *)obb->shape;
 
-            ferMat3MulVec(&v, rot, t->p0);
+            ferMat3MulVec(&v, rot, t->p[0]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");
 
-            ferMat3MulVec(&v, rot, t->p1);
+            ferMat3MulVec(&v, rot, t->p[1]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");
 
-            ferMat3MulVec(&v, rot, t->p2);
+            ferMat3MulVec(&v, rot, t->p[2]);
             ferVec3Add(&v, tr);
             ferVec3Print(&v, out);
             fprintf(out, "\n");
@@ -356,4 +495,20 @@ void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name)
     }
 
     fprintf(out, "-----\n");
+}
+
+
+void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
+                          const fer_vec3_t *axis,
+                          fer_real_t *min, fer_real_t *max)
+{
+    fer_list_t *item;
+    fer_cd_obb_t *obb;
+
+    *min = FER_REAL_MAX;
+    *max = -FER_REAL_MAX;
+    FER_LIST_FOR_EACH(&g->obbs, item){
+        obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
+        __ferCDOBBUpdateMinMax(obb, axis, &g->rot, &g->tr, min, max);
+    }
 }

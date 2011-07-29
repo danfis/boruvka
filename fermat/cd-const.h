@@ -120,8 +120,12 @@
 #define FER_CD_SHAPE_CAP         3
 #define FER_CD_SHAPE_TRI         5
 #define FER_CD_SHAPE_TRIMESH_TRI 6
-#define FER_CD_SHAPE_OFF         7
-#define FER_CD_SHAPE_LEN         8
+#define FER_CD_SHAPE_PLANE       7
+#define FER_CD_SHAPE_CONVEX_HULL 8
+#define FER_CD_SHAPE_RAY         9
+#define FER_CD_SHAPE_HEIGHTFIELD 10
+#define FER_CD_SHAPE_OFF         11
+#define FER_CD_SHAPE_LEN         12
 
 #define FER_CD_SHAPE_TRIMESH 20
 

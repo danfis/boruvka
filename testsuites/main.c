@@ -20,6 +20,7 @@
 #include "cd-sphere-grid.h"
 #include "chull3.h"
 #include "tasks.h"
+#include "task-pool.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -49,6 +50,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSCHull3),
 
     TEST_SUITE_ADD(TSTasks),
+    TEST_SUITE_ADD(TSTaskPool),
 
     TEST_SUITES_CLOSURE
 };

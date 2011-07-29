@@ -50,8 +50,8 @@ struct _fer_tasks_task_t {
 typedef struct _fer_tasks_task_t fer_tasks_task_t;
 
 
-fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id);
-void taskDel(fer_tasks_task_t *task);
+static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id);
+static void taskDel(fer_tasks_task_t *task);
 
 
 static void _ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id,
@@ -68,7 +68,6 @@ fer_tasks_t *ferTasksNew(size_t num_threads)
     ferListInit(&t->threads);
     t->threads_len = 0;
     t->next_id     = 1;
-    t->finished    = 0;
 
     pthread_mutex_init(&t->lock, NULL);
     sem_init(&t->full, 0, 0);
@@ -188,7 +187,8 @@ void ferTasksRunBlock(fer_tasks_t *t)
 void ferTasksBarrier(fer_tasks_t *t)
 {
     pthread_mutex_lock(&t->lock);
-    pthread_cond_wait(&t->pending_cond, &t->lock);
+    if (t->pending != 0)
+        pthread_cond_wait(&t->pending_cond, &t->lock);
     pthread_mutex_unlock(&t->lock);
 }
 
@@ -201,7 +201,6 @@ static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
 
     th = FER_ALLOC(fer_tasks_thread_t);
     th->info.id    = t->next_id++;
-    th->info.state = FER_TASKS_BLOCK;
     th->tasks      = t;
     ferListInit(&th->list);
 
@@ -280,7 +279,7 @@ static void *threadMain(void *_th)
 
 
 
-fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id)
+static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id)
 {
     fer_tasks_task_t *task;
 
@@ -294,7 +293,7 @@ fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id)
     return task;
 }
 
-void taskDel(fer_tasks_task_t *task)
+static void taskDel(fer_tasks_task_t *task)
 {
     free(task);
 }

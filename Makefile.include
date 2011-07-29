@@ -71,7 +71,7 @@ ifneq '$(NOWALL)' 'yes'
   CFLAGS += -Wall
   CXXFLAGS += -Wall
   ifeq '$(DEBUG)' 'yes'
-    CFLAGS += -Wno-unused-function
+    CFLAGS   += -Wno-unused-function
     CXXFLAGS += -Wno-unused-function
   endif
 endif

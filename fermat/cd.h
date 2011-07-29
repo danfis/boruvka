@@ -23,6 +23,8 @@
 #include <fermat/quat.h>
 #include <fermat/list.h>
 #include <fermat/chull3.h>
+#include <fermat/hmap.h>
+#include <fermat/tasks.h>
 
 #include <fermat/cd-const.h>
 
@@ -30,11 +32,16 @@
 #include <fermat/cd-sphere.h>
 #include <fermat/cd-box.h>
 #include <fermat/cd-cyl.h>
+#include <fermat/cd-cap.h>
+#include <fermat/cd-plane.h>
 #include <fermat/cd-trimesh.h>
 #include <fermat/cd-obb.h>
 
 #include <fermat/cd-collide.h>
+#include <fermat/cd-separate.h>
+#include <fermat/cd-ccd.h>
 #include <fermat/cd-cd.h>
 #include <fermat/cd-geom.h>
+#include <fermat/cd-sap.h>
 
 #endif /* __FER_CD_H__ */

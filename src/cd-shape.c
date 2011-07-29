@@ -95,6 +95,25 @@ void ferCDShapeUpdateCovTri(const fer_vec3_t *_p, const fer_vec3_t *_q,
     *num += 1;
 }
 
+int __ferCDSupport(const fer_cd_shape_t *s,
+                   const fer_mat3_t *rot, const fer_vec3_t *tr,
+                   const fer_vec3_t *_dir, fer_vec3_t *p)
+{
+    fer_vec3_t dir, q;
+
+    if (!s->cl->support){
+        ferVec3Set(p, FER_ZERO, FER_ZERO, FER_ZERO);
+        return -1;
+    }
+
+    ferMat3MulVecTrans(&dir, rot, _dir);
+    s->cl->support(s, &dir, p);
+    ferMat3MulVec(&q, rot, p);
+    ferVec3Add2(p, &q, tr);
+
+    return 0;
+}
+
 
 fer_cd_shape_off_t *ferCDShapeOffNew(fer_cd_shape_t *shape,
                                      const fer_mat3_t *rot,
