@@ -9,6 +9,7 @@
 #include <fermat/vec3.h>
 #include <fermat/mat3.h>
 #include <fermat/alloc.h>
+#include <fermat/cd.h>
 
 #define FREE FER_GNG_PLAN_FREE
 #define OBST FER_GNG_PLAN_OBST
@@ -21,19 +22,24 @@ typedef struct _plan_2_3_tri_t plan_2_3_tri_t;
 
 struct _plan_2_3_obj_t {
     fer_list_t tris;
-    fer_list_t list;
+    fer_cd_geom_t *g;
 };
 typedef struct _plan_2_3_obj_t plan_2_3_obj_t;
 
 struct _plan_2_3_t {
-    fer_real_t aabb[6];
-    fer_vec3_t start, goal;
+    int dim;
+    fer_real_t aabb[12];
+    fer_vec_t *start, *goal;
 
     fer_real_t max_dist;
     fer_real_t min_dist;
+    size_t max_nodes;
+    int lambda;
+    int age_max;
 
+    fer_cd_t *cd;
     plan_2_3_obj_t robot;
-    fer_list_t obsts;
+    plan_2_3_obj_t obst;
 };
 typedef struct _plan_2_3_t plan_2_3_t;
 
@@ -45,13 +51,13 @@ void planDel(plan_2_3_t *plan);
 fer_gng_plan_t *gng;
 fer_gng_plan_ops_t ops;
 fer_gng_plan_params_t params;
-size_t max_nodes = 100000000;
 fer_rand_mt_t *rand_mt;
 fer_timer_t timer;
 fer_vec_t *is;
 
 int dump_period = 10;
 const char *dump_prefix = NULL;
+int avg_edge_len = 0;
 
 const char *scene;
 
@@ -60,7 +66,7 @@ static void callback(void *data);
 static const void *inputSignal(void *data);
 static int eval(const fer_vec_t *w, void *data);
 
-static void dump(void);
+static void dump(int last);
 static void dumpScene(FILE *out);
 static void dumpObj(plan_2_3_obj_t *obj, const fer_vec_t *w, FILE *out);
 static void dumpRobotPath(FILE *out);
@@ -90,18 +96,18 @@ int main(int argc, char *argv[])
     ops.callback     = callback;
     ops.callback_period = 100;
 
-    params.dim = 3;
+    params.dim = plan->dim;
     params.max_dist = plan->max_dist;
     params.min_dist = plan->min_dist;
     params.min_nodes = 100;
-    params.start = (const fer_vec_t *)&plan->start;
-    params.goal  = (const fer_vec_t *)&plan->goal;
-    params.cells.d = 3;
+    params.start = plan->start;
+    params.goal  = plan->goal;
+    params.cells.d = plan->dim;
     params.cells.aabb = plan->aabb;
     params.cells.max_dens = 1;
     params.cells.expand_rate = 1.4;
-    params.gng.lambda = 1000;
-    params.gng.age_max = 20;
+    params.gng.lambda = plan->lambda;
+    params.gng.age_max = plan->age_max;
 
 
     rand_mt = ferRandMTNewAuto();
@@ -112,7 +118,7 @@ int main(int argc, char *argv[])
     ferTimerStopAndPrintElapsed(&timer, stderr, "\r\n");
 
     if (dump_prefix){
-        dump();
+        dump(1);
     }
     ferGNGPlanDumpNetSVT(gng, stdout, NULL);
     ferGNGPlanDumpObstSVT(gng, stdout, NULL);
@@ -139,12 +145,12 @@ static int terminate(void *data)
     static int counter = 0;
 
     if (dump_prefix && ++counter == dump_period){
-        dump();
+        dump(0);
         counter = 0;
     }
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-    return nodes_len >= max_nodes;
+    return nodes_len >= plan->max_nodes;
 }
 
 static void callback(void *data)
@@ -152,59 +158,52 @@ static void callback(void *data)
     size_t nodes_len;
 
     nodes_len = ferGNGNodesLen(ferGNGPlanGNG(gng));
-    ferTimerStopAndPrintElapsed(&timer, stderr, " nodes: %08d, evals: %010lu\r",
-                                (int)nodes_len, ferGNGPlanEvals(gng));
+    ferTimerStop(&timer);
+    if (avg_edge_len){
+        fprintf(stderr, "%010lu, nodes: %08d, evals: %010lu, avg edge len: %f\n",
+                ferTimerElapsedInMs(&timer),
+                (int)nodes_len, ferGNGPlanEvals(gng),
+                (float)ferGNGPlanAvgEdgeLen(gng));
+    }else{
+        fprintf(stderr, "%lu, nodes: %08d, evals: %010lu\n",
+                ferTimerElapsedInMs(&timer),
+                (int)nodes_len, ferGNGPlanEvals(gng));
+    }
 }
 
 static const void *inputSignal(void *data)
 {
-    fer_real_t x, y, z;
+    int i;
 
-    x = ferRandMT(rand_mt, plan->aabb[0], plan->aabb[1]);
-    y = ferRandMT(rand_mt, plan->aabb[2], plan->aabb[3]);
-    z = ferRandMT(rand_mt, plan->aabb[4], plan->aabb[5]);
-    ferVec3Set((fer_vec3_t *)is, x, y, z);
+    for (i = 0; i < plan->dim; i++){
+        ferVecSet(is, i, ferRandMT(rand_mt, plan->aabb[2 * i], plan->aabb[2 * i + 1]));
+    }
     return is;
 }
 
 static int eval(const fer_vec_t *w, void *data)
 {
-    fer_mat3_t tr;
-    fer_vec2_t p[3];
-    fer_list_t *item_obst, *item_tri, *item_obst_tri;
-    plan_2_3_obj_t *obst;
-    plan_2_3_tri_t *tri;
-    int ev;
+    fer_mat3_t rot;
+    fer_vec3_t pos;
 
-    ferMat3SetRot(&tr, ferVecGet(w, 2));
-    ferMat3Set1(&tr, 0, 2, ferVecGet(w, 0));
-    ferMat3Set1(&tr, 1, 2, ferVecGet(w, 1));
-
-    FER_LIST_FOR_EACH(&plan->robot.tris, item_tri){
-        tri = FER_LIST_ENTRY(item_tri, plan_2_3_tri_t, list);
-        ferMat3MulVec2(&p[0], &tr, &tri->p[0]);
-        ferMat3MulVec2(&p[1], &tr, &tri->p[1]);
-        ferMat3MulVec2(&p[2], &tr, &tri->p[2]);
-
-        FER_LIST_FOR_EACH(&plan->obsts, item_obst){
-            obst = FER_LIST_ENTRY(item_obst, plan_2_3_obj_t, list);
-            FER_LIST_FOR_EACH(&obst->tris, item_obst_tri){
-                tri = FER_LIST_ENTRY(item_obst_tri, plan_2_3_tri_t, list);
-
-                ev = ferVec2TriTriOverlap(&p[0], &p[1], &p[2],
-                                          &tri->p[0], &tri->p[1], &tri->p[2]);
-                if (ev)
-                    return OBST;
-            }
-        }
+    if (plan->dim == 3){
+        ferMat3SetRot3D(&rot, FER_ZERO, FER_ZERO, ferVecGet(w, 2));
+        ferVec3Set(&pos, ferVecGet(w, 0), ferVecGet(w, 1), FER_ZERO);
+        ferCDGeomSetRot(plan->cd, plan->robot.g, &rot);
+        ferCDGeomSetTr(plan->cd, plan->robot.g, &pos);
+    }else if (plan->dim == 2){
+        ferVec3Set(&pos, ferVecGet(w, 0), ferVecGet(w, 1), FER_ZERO);
+        ferCDGeomSetTr(plan->cd, plan->robot.g, &pos);
     }
 
+    if (ferCDGeomCollide(plan->cd, plan->robot.g, plan->obst.g))
+        return OBST;
     return FREE;
 }
 
 
 
-static void dump(void)
+static void dump(int last)
 {
     FILE *fout;
     char fn[1000];
@@ -213,43 +212,45 @@ static void dump(void)
     sprintf(fn, "%s%010d.svt", dump_prefix, counter++);
     fout = fopen(fn, "w");
     if (fout){
+        dumpScene(fout);
         ferGNGPlanDumpNetSVT(gng, fout, NULL);
         ferGNGPlanDumpObstSVT(gng, fout, NULL);
         ferGNGPlanDumpPathSVT(gng, fout, NULL);
-        dumpScene(fout);
+        if (last){
+            dumpRobotPath(fout);
+        }
+
         fclose(fout);
     }
 }
 
 static void dumpScene(FILE *out)
 {
-    fer_list_t *item_obst, *item_tri;
-    plan_2_3_obj_t *obst;
+    fer_list_t *item_tri;
     plan_2_3_tri_t *tri;
     int i, size;
 
+    if (plan->dim > 3)
+        return;
+
     fprintf(out, "----\n");
-    fprintf(out, "Face color: 0.8 0.1 0.8\n");
-    fprintf(out, "Point color: 0.8 0.1 0.8\n");
+    fprintf(out, "Face color: 0.7 0.7 0.7\n");
+    fprintf(out, "Point color: 0.7 0.7 0.7\n");
     fprintf(out, "Name: Scene\n");
     fprintf(out, "Points:\n");
 
     size = 0;
-    FER_LIST_FOR_EACH(&plan->obsts, item_obst){
-        obst = FER_LIST_ENTRY(item_obst, plan_2_3_obj_t, list);
+    FER_LIST_FOR_EACH(&plan->obst.tris, item_tri){
+        tri = FER_LIST_ENTRY(item_tri, plan_2_3_tri_t, list);
 
-        FER_LIST_FOR_EACH(&obst->tris, item_tri){
-            tri = FER_LIST_ENTRY(item_tri, plan_2_3_tri_t, list);
+        ferVec2Print(&tri->p[0], out);
+        fprintf(out, " 0 \n");
+        ferVec2Print(&tri->p[1], out);
+        fprintf(out, " 0 \n");
+        ferVec2Print(&tri->p[2], out);
+        fprintf(out, " 0 \n");
 
-            ferVec2Print(&tri->p[0], out);
-            fprintf(out, " 0 \n");
-            ferVec2Print(&tri->p[1], out);
-            fprintf(out, " 0 \n");
-            ferVec2Print(&tri->p[2], out);
-            fprintf(out, " 0 \n");
-
-            ++size;
-        }
+        ++size;
     }
 
     fprintf(out, "Faces:\n");
@@ -268,6 +269,9 @@ static void dumpObj(plan_2_3_obj_t *obj, const fer_vec_t *w, FILE *out)
     fer_list_t *item;
     plan_2_3_tri_t *tri;
     int i, size;
+
+    if (plan->dim > 3)
+        return;
 
     ferMat3SetRot(&tr, ferVecGet(w, 2));
     ferMat3Set1(&tr, 0, 2, ferVecGet(w, 0));
@@ -312,28 +316,30 @@ static void dumpRobotPath(FILE *out)
     fer_gng_plan_node_t *n;
     fer_list_t *item;
 
-    if (ferListEmpty(&gng->path))
-        return;
-
     fprintf(out, "# PATH: ");
-    ferVec3Print(&plan->start, out);
+    ferVecPrint(plan->dim, plan->start, out);
     fprintf(out, "\n");
     FER_LIST_FOR_EACH(&gng->path, item){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
-        fprintf(out, "# PATH: %f %f %f\n",
-                ferVecGet(n->w, 0), ferVecGet(n->w, 1), ferVecGet(n->w, 2));
+        fprintf(out, "# PATH: ");
+        ferVecPrint(plan->dim, n->w, out);
+        fprintf(out, "\n");
     }
     fprintf(out, "# PATH: ");
-    ferVec3Print(&plan->goal, out);
+    ferVecPrint(plan->dim, plan->goal, out);
     fprintf(out, "\n");
 
-    dumpObj(&plan->robot, (const fer_vec_t *)&plan->start, out);
+
+    if (plan->dim > 3)
+        return;
+
+    dumpObj(&plan->robot, plan->start, out);
     FER_LIST_FOR_EACH(&gng->path, item){
         n = FER_LIST_ENTRY(item, fer_gng_plan_node_t, path);
 
         dumpObj(&plan->robot, n->w, out);
     }
-    dumpObj(&plan->robot, (const fer_vec_t *)&plan->goal, out);
+    dumpObj(&plan->robot, plan->goal, out);
 }
 
 
@@ -360,25 +366,29 @@ static void planNextLineEmpty(FILE *fin, char *line, size_t len, const char *sec
 
 void planDump(const plan_2_3_t *plan)
 {
-    fer_list_t *item_obst, *item_tri, *item_obst_tri;
-    plan_2_3_obj_t *obst;
+    fer_list_t *item_tri;
     plan_2_3_tri_t *tri;
     int i;
 
+    fprintf(stderr, "dim: %d\n", plan->dim);
+
     fprintf(stderr, "AABB:");
-    for (i = 0; i < 6; i++){
+    for (i = 0; i < 2 * plan->dim; i++){
         fprintf(stderr, " %f", (float)plan->aabb[i]);
     }
     fprintf(stderr, "\n\n");
 
-    fprintf(stderr, "start: %f %f %f\n", (float)ferVec3X(&plan->start),
-            (float)ferVec3Y(&plan->start), (float)ferVec3Z(&plan->start));
-    fprintf(stderr, "goal:  %f %f %f\n", (float)ferVec3X(&plan->goal),
-            (float)ferVec3Y(&plan->goal), (float)ferVec3Z(&plan->goal));
-    fprintf(stderr, "\n");
+    fprintf(stderr, "start: ");
+    ferVecPrint(plan->dim, plan->start, stderr);
+    fprintf(stderr, "\ngoal:  ");
+    ferVecPrint(plan->dim, plan->goal, stderr);
+    fprintf(stderr, "\n\n");
 
-    fprintf(stderr, "max dist: %f\n", plan->max_dist);
-    fprintf(stderr, "min dist: %f\n", plan->min_dist);
+    fprintf(stderr, "max dist:  %f\n", plan->max_dist);
+    fprintf(stderr, "min dist:  %f\n", plan->min_dist);
+    fprintf(stderr, "max nodes: %d\n", (int)plan->max_nodes);
+    fprintf(stderr, "lambda:    %d\n", (int)plan->lambda);
+    fprintf(stderr, "age max:   %d\n", (int)plan->age_max);
     fprintf(stderr, "\n");
 
     FER_LIST_FOR_EACH(&plan->robot.tris, item_tri){
@@ -390,34 +400,44 @@ void planDump(const plan_2_3_t *plan)
     }
     fprintf(stderr, "\n");
 
-    i = 0;
-    FER_LIST_FOR_EACH(&plan->obsts, item_obst){
-        obst = FER_LIST_ENTRY(item_obst, plan_2_3_obj_t, list);
+    FER_LIST_FOR_EACH(&plan->obst.tris, item_tri){
+        tri = FER_LIST_ENTRY(item_tri, plan_2_3_tri_t, list);
 
-        FER_LIST_FOR_EACH(&obst->tris, item_obst_tri){
-            tri = FER_LIST_ENTRY(item_obst_tri, plan_2_3_tri_t, list);
-
-            fprintf(stderr, "obst[%02d]: <%f %f, %f %f, %f %f>\n",
-                    i, ferVec2X(&tri->p[0]), ferVec2Y(&tri->p[0]),
-                       ferVec2X(&tri->p[1]), ferVec2Y(&tri->p[1]),
-                       ferVec2X(&tri->p[2]), ferVec2Y(&tri->p[2]));
-        }
-
-        i++;
+        fprintf(stderr, "obst: <%f %f, %f %f, %f %f>\n",
+                ferVec2X(&tri->p[0]), ferVec2Y(&tri->p[0]),
+                ferVec2X(&tri->p[1]), ferVec2Y(&tri->p[1]),
+                ferVec2X(&tri->p[2]), ferVec2Y(&tri->p[2]));
     }
+}
+
+static int scan2f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f", f, f + 1) == 2;
+}
+static int scan3f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f %f", f, f + 1, f + 2) == 3;
+}
+static int scan4f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f %f %f", f, f + 1, f + 2, f + 3) == 4;
+}
+static int scan6f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5) == 6;
 }
 
 plan_2_3_t *planNew(const char *fn)
 {
     plan_2_3_t *plan;
-    plan_2_3_obj_t *obj;
     plan_2_3_tri_t *tri;
+    fer_vec3_t pts[3];
     FILE *fin;
     size_t __len = 1024;
     char __line[1024];
     char *line;
-    float f[6];
-    int i;
+    float f[12];
+    int i, d[3];
 
     if ((fin = fopen(fn, "r")) == NULL){
         perror("Can't open file");
@@ -425,51 +445,82 @@ plan_2_3_t *planNew(const char *fn)
     }
 
     plan = FER_ALLOC(plan_2_3_t);
+    plan->start = ferVecNew(6);
+    plan->goal  = ferVecNew(6);
+
+    plan->cd = ferCDNew();
+    ferCDSetBuildFlags(plan->cd, FER_CD_FIT_NAIVE
+                                    | FER_CD_FIT_NAIVE_NUM_ROT(5)
+                                    | FER_CD_BUILD_PARALLEL(8));
+    // dim
+    line = planNextLine(fin, __line, __len);
+    if (!line || sscanf(line, "%d", d) != 1){
+        fprintf(stderr, "Invalid file format (dim).\n");
+        exit(-1);
+    }
+    plan->dim = d[0];
+    planNextLineEmpty(fin, __line, __len, "dim");
 
     // AABB
     line = planNextLine(fin, __line, __len);
-    if (!line || sscanf(line, "%f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5) != 6){
+    if (!line
+            || (plan->dim == 3 && !scan6f(line, f))
+            || (plan->dim == 2 && !scan4f(line, f))
+       ){
         fprintf(stderr, "Invalid file format (AABB).\n");
         exit(-1);
     }
-    for (i = 0; i < 6; i++){
+    for (i = 0; i < 2 * plan->dim; i++){
         plan->aabb[i] = f[i];
     }
     planNextLineEmpty(fin, __line, __len, "AABB");
 
     // Start position
     line = planNextLine(fin, __line, __len);
-    if (!line || sscanf(line, "%f %f %f", f, f + 1, f + 2) != 3){
+    if (!line
+            || (plan->dim == 3 && !scan3f(line, f))
+            || (plan->dim == 2 && !scan2f(line, f))
+        ){
         fprintf(stderr, "Invalid file format (start position).\n");
         exit(-1);
     }
-    ferVec3Set(&plan->start, f[0], f[1], f[2]);
+    for (i = 0; i < plan->dim; i++)
+        ferVecSet(plan->start, i, f[i]);
     planNextLineEmpty(fin, __line, __len, "start position");
 
     // Goal position
     line = planNextLine(fin, __line, __len);
-    if (!line || sscanf(line, "%f %f %f", f, f + 1, f + 2) != 3){
+    if (!line
+            || (plan->dim == 3 && !scan3f(line, f))
+            || (plan->dim == 2 && !scan2f(line, f))
+        ){
         fprintf(stderr, "Invalid file format (goal position).\n");
         exit(-1);
     }
-    ferVec3Set(&plan->goal, f[0], f[1], f[2]);
+    for (i = 0; i < plan->dim; i++)
+        ferVecSet(plan->goal, i, f[i]);
     planNextLineEmpty(fin, __line, __len, "goal position");
 
     // params
     line = planNextLine(fin, __line, __len);
-    if (!line || sscanf(line, "%f %f", f, f + 1) != 2){
+    if (!line || sscanf(line, "%f %f %d %d %d", f, f + 1, d, d + 1, d + 2) != 5){
         fprintf(stderr, "Invalid file format (params).\n");
         exit(-1);
     }
     plan->max_dist = f[0];
     plan->min_dist = f[1];
+    plan->max_nodes = d[0];
+    plan->lambda    = d[1];
+    plan->age_max   = d[2];
     planNextLineEmpty(fin, __line, __len, "params");
 
     // robot
+    plan->robot.g = ferCDGeomNew(plan->cd);
     ferListInit(&plan->robot.tris);
     line = planNextLine(fin, __line, __len);
     while (line && line[0] != '\n'){
-        if (sscanf(line, "%f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5) != 6){
+        if ((plan->dim <= 3 && !scan6f(line, f))
+           ){
             fprintf(stderr, "Invalid file format (robot).\n");
             exit(-1);
         }
@@ -480,35 +531,41 @@ plan_2_3_t *planNew(const char *fn)
         ferVec2Set(&tri->p[2], f[4], f[5]);
         ferListAppend(&plan->robot.tris, &tri->list);
 
+        ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
+        ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
+        ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        ferCDGeomAddTri(plan->cd, plan->robot.g, &pts[0], &pts[1], &pts[2]);
+
         line = planNextLine(fin, __line, __len);
     }
 
-    // obstacles
-    ferListInit(&plan->obsts);
+    // obstacle
+    plan->obst.g = ferCDGeomNew(plan->cd);
+    ferListInit(&plan->obst.tris);
     line = planNextLine(fin, __line, __len);
-    while (line){
-        obj = FER_ALLOC(plan_2_3_obj_t);
-        ferListInit(&obj->tris);
-        ferListAppend(&plan->obsts, &obj->list);
-
-        while (line && line[0] != '\n'){
-            if (sscanf(line, "%f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5) != 6){
-                fprintf(stderr, "Invalid file format (robot).\n");
-                exit(-1);
-            }
-
-            tri = FER_ALLOC(plan_2_3_tri_t);
-            ferVec2Set(&tri->p[0], f[0], f[1]);
-            ferVec2Set(&tri->p[1], f[2], f[3]);
-            ferVec2Set(&tri->p[2], f[4], f[5]);
-            ferListAppend(&obj->tris, &tri->list);
-
-            line = planNextLine(fin, __line, __len);
+    while (line && line[0] != '\n'){
+        if ((plan->dim <= 3 && !scan6f(line, f))
+           ){
+            fprintf(stderr, "Invalid file format (obst).\n");
+            exit(-1);
         }
 
-        if (line)
-            line = planNextLine(fin, __line, __len);
+        tri = FER_ALLOC(plan_2_3_tri_t);
+        ferVec2Set(&tri->p[0], f[0], f[1]);
+        ferVec2Set(&tri->p[1], f[2], f[3]);
+        ferVec2Set(&tri->p[2], f[4], f[5]);
+        ferListAppend(&plan->obst.tris, &tri->list);
+
+        ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
+        ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
+        ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        ferCDGeomAddTri(plan->cd, plan->obst.g, &pts[0], &pts[1], &pts[2]);
+
+        line = planNextLine(fin, __line, __len);
     }
+
+    ferCDGeomBuild(plan->cd, plan->robot.g);
+    ferCDGeomBuild(plan->cd, plan->obst.g);
 
     planDump(plan);
     return plan;
@@ -517,7 +574,6 @@ plan_2_3_t *planNew(const char *fn)
 void planDel(plan_2_3_t *plan)
 {
     fer_list_t *item;
-    plan_2_3_obj_t *obj;
     plan_2_3_tri_t *tri;
 
     while (!ferListEmpty(&plan->robot.tris)){
@@ -527,20 +583,15 @@ void planDel(plan_2_3_t *plan)
         free(tri);
     }
 
-    while (!ferListEmpty(&plan->obsts)){
-        item = ferListNext(&plan->obsts);
-        obj  = FER_LIST_ENTRY(item, plan_2_3_obj_t, list);
+    while (!ferListEmpty(&plan->obst.tris)){
+        item = ferListNext(&plan->obst.tris);
+        tri  = FER_LIST_ENTRY(item, plan_2_3_tri_t, list);
         ferListDel(item);
-
-        while (!ferListEmpty(&obj->tris)){
-            item = ferListNext(&obj->tris);
-            tri  = FER_LIST_ENTRY(item, plan_2_3_tri_t, list);
-            ferListDel(item);
-            free(tri);
-        }
-
-        free(obj);
+        free(tri);
     }
+
+    ferVecDel(plan->start);
+    ferVecDel(plan->goal);
 
     free(plan);
 }
