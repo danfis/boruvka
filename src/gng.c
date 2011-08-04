@@ -280,6 +280,34 @@ fer_gng_node_t *ferGNGNodeWithHighestError(fer_gng_t *gng)
     max  = ferPairHeapMin(gng->err_heap);
     maxn = fer_container_of(max, fer_gng_node_t, err_heap);
 
+    if (maxn->err_cycle != gng->cycle){
+        DBG2("");
+    }
+
+    {
+        fer_list_t *list, *item;
+        fer_net_node_t *nn;
+        fer_gng_node_t *n, *__maxn = NULL;
+        fer_real_t max;
+
+        max = -FER_REAL_MAX;
+        list = ferNetNodes(gng->net);
+        FER_LIST_FOR_EACH(list, item){
+            nn = FER_LIST_ENTRY(item, fer_net_node_t, list);
+            n  = fer_container_of(nn, fer_gng_node_t, node);
+
+            ferGNGNodeFixError(gng, n);
+            if (n->err > max){
+                max = n->err;
+                __maxn = n;
+            }
+        }
+
+        if (maxn != __maxn){
+            DBG("%.30f %.30f", max, maxn->err);
+        }
+    }
+
     return maxn;
 }
 
@@ -324,6 +352,7 @@ static void __ferGNGNodeWithHighestError2(fer_gng_t *gng,
         n  = fer_container_of(nn, fer_gng_node_t, node);
 
         ferGNGNodeFixError(gng, n);
+        ferPairHeapUpdate(gng->err_heap, &n->err_heap);
 
         if (n->err > err_highest){
             err_highest = n->err;
