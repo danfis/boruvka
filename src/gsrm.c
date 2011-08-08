@@ -1,4 +1,4 @@
-/***awInputPoint(g);
+/***
  * fermat
  * -------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
@@ -305,7 +305,6 @@ int ferGSRMRun(fer_gsrm_t *g)
 
     if (g->params.verbosity >= 1){
         PR_PROGRESS(g);
-        fprintf(stderr, "\n");
     }
 
     do {
@@ -323,6 +322,12 @@ int ferGSRMRun(fer_gsrm_t *g)
 
         g->cycle++;
     } while (ferMesh3VerticesLen(g->mesh) < g->params.max_nodes);
+
+    if (g->params.verbosity >= 1){
+        PR_PROGRESS(g);
+        fprintf(stderr, "\n");
+        fflush(stderr);
+    }
 
     learnTopology(g);
 
