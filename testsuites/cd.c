@@ -270,7 +270,7 @@ TEST(cdGeomNew)
     fer_mat3_t rot;
     fer_vec3_t tr;
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
     g = ferCDGeomNew(cd);
 
 
@@ -423,7 +423,7 @@ TEST(cdCollideTriMesh)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddTriMesh(cd, g1, pts1, ids1, len1);
@@ -504,7 +504,7 @@ TEST(cdCollideTriMesh2)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddTriMesh(cd, g1, bunny_coords, bunny_ids, bunny_tri_len);
@@ -586,7 +586,7 @@ TEST(cdCollideSphere)
     fer_timer_t timer;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
 
@@ -662,7 +662,7 @@ TEST(cdCollide1)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddSphere(cd, g1, 0.2);
@@ -764,7 +764,7 @@ TEST(cdCollide2)
     int ret;
 
 
-    cd = ferCDNew();
+    cd = ferCDNew(NULL);
 
     g1 = ferCDGeomNew(cd);
     ferCDGeomAddSphere(cd, g1, 0.2);
@@ -817,11 +817,763 @@ TEST(cdCollide2)
     ret = ferCDGeomCollide(cd, g1, g2);
     assertTrue(ret);
 
+    /*
     DBG("ret: %d", ret);
     ferCDGeomDumpSVT(g1, stdout, "g1");
     ferCDGeomDumpSVT(g2, stdout, "g2");
+    */
 
-    ferCDGeomDel(cd, g1);
-    ferCDGeomDel(cd, g2);
+    //ferCDGeomDel(cd, g1);
+    //ferCDGeomDel(cd, g2);
+    ferCDDel(cd);
+}
+
+
+
+TEST(cdCollide3)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[5];
+    int i, ret;
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 5; i++)
+        g[i] = ferCDGeomNew(cd);
+
+    ferCDGeomAddSphere(cd, g[0], 0.05);
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomAddCyl(cd, g[2], 0.05, 0.2);
+    ferCDGeomAddBox(cd, g[3], 0.1, 0.1, 0.1);
+    ferCDGeomAddTrisFromRawScale(cd, g[4], "data-puzzle-2.tri", 1/200.);
+    ferCDGeomBuild(cd, g[4]);
+    //DBG("g[0]: %lx sphere", (long)g[0]);
+    //DBG("g[1]: %lx box 0.1, 0.2, 0.3", (long)g[1]);
+    //DBG("g[2]: %lx cyl 0.05, 0.2", (long)g[2]);
+    //DBG("g[3]: %lx box 0.1", (long)g[3]);
+    //DBG("g[4]: %lx trimesh", (long)g[4]);
+
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0., -0.2);
+    ferCDGeomSetRotEuler(cd, g[1], M_PI_4 / 2., 0, 0);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, 0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.1);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.09, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0., 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_4, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[2], 0.4, 0.4, 0.4);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, 0, -M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.39, 0.2, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.1, -0.05);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    //DBG("ret: %d", ret);
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+TEST(cdCollide4)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[5];
+    int i, ret;
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 5; i++)
+        g[i] = ferCDGeomNew(cd);
+
+    ferCDGeomAddSphere(cd, g[0], 0.05);
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomAddCyl(cd, g[2], 0.05, 0.2);
+    ferCDGeomAddCap(cd, g[3], 0.01, 0.2);
+    ferCDGeomAddTrisFromRawScale(cd, g[4], "data-puzzle-2.tri", 1/200.);
+    ferCDGeomBuild(cd, g[4]);
+    //DBG("g[0]: %lx sphere", (long)g[0]);
+    //DBG("g[1]: %lx box 0.1, 0.2, 0.3", (long)g[1]);
+    //DBG("g[2]: %lx cyl 0.05, 0.2", (long)g[2]);
+    //DBG("g[3]: %lx box 0.1", (long)g[3]);
+    //DBG("g[4]: %lx trimesh", (long)g[4]);
+
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[3], 0.1, -0.2, 0.3);
+    ferCDGeomSetTr3(cd, g[4], 0.1, 0.2, -0.3);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    //ferCDSAPDumpPairs(cd->sap, stderr);
+
+    ferCDGeomSetTr3(cd, g[2], -0.1, 0.2, 0.3);
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, M_PI_4, M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.24, 0.1, 0.2);
+    ferCDGeomSetTr3(cd, g[4], 0., 0.2, 0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, M_PI_4, M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.24, 0.15, 0.1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, -M_PI_4, M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], 0.05, -0.05, 0.);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+
+    ferCDGeomSetRotEuler(cd, g[3], M_PI_4, -M_PI_4, M_PI_4);
+    ferCDGeomSetTr3(cd, g[3], -0.1, 0.1, 0.25);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    //DBG("ret: %d", ret);
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+TEST(cdCollide5)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    g = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddSphere(cd, g, 0.05);
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g, 1, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.04);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.04);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    /*
+    DBG("ret: %d", ret);
+    ferCDDumpSVT(cd, stdout, "cd");
+    */
+
+    ferCDDel(cd);
+}
+
+TEST(cdCollide6)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    g = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddBox(cd, g, 0.1, 0.2, 0.3);
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g, 1, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.13);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDDel(cd);
+}
+
+
+TEST(cdCollide7)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *tri;
+    fer_vec3_t p0, p1, p2;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    tri = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferVec3Set(&p0, 0, 1, 0);
+    ferVec3Set(&p1, 1, 1, 1);
+    ferVec3Set(&p2, 1, 0, 0);
+    ferCDGeomAddTri(cd, tri, &p0, &p1, &p2);
+    ferCDGeomAddPlane(cd, plane);
+
+
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetTr3(cd, tri, 1, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, tri, 3, -12, -0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1.2);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1. - 0.13);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, tri, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    /*
+    DBG("ret: %d", ret);
+    ferCDDumpSVT(cd, stdout, "cd");
+    */
+
+    ferCDDel(cd);
+}
+
+TEST(cdCollide8)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    g = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddCap(cd, g, 0.1, 0.3);
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g, 1, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.24);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.26);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.24);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.15);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.09);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_4, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.15);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDDel(cd);
+}
+
+TEST(cdCollide9)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *plane;
+    fer_cd_geom_t *g;
+    int ret;
+
+    cd = ferCDNew(NULL);
+
+    g = ferCDGeomNew(cd);
+    plane = ferCDGeomNew(cd);
+
+    ferCDGeomAddCyl(cd, g, 0.1, 0.3);
+    ferCDGeomAddPlane(cd, plane);
+
+    ferCDGeomSetTr3(cd, g, 1, 0, 0.24);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, 0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g, 3, -12, -0.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.16);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.14);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, plane, M_PI_4, 0, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 1.06);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.15);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.09);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, plane, 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g, 0, M_PI_4, 0);
+    ferCDGeomSetTr3(cd, g, 0, 0, 0.12);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDDel(cd);
+}
+
+
+struct _geom_t {
+    int id;
+};
+typedef struct _geom_t geom_t;
+
+int sepCB(const fer_cd_t *cd,
+          const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+          const fer_cd_contacts_t *con,
+          void *data)
+{
+    size_t i;
+    const geom_t *gd1, *gd2;
+
+    gd1 = (const geom_t *)ferCDGeomData((fer_cd_geom_t *)g1);
+    gd2 = (const geom_t *)ferCDGeomData((fer_cd_geom_t *)g2);
+    for (i = 0; i < con->num; i++){
+        fprintf(stdout, "# [%02d] %02d-%02d dir: <%f %f %f>, pos: <%f %f %f>, depth: %f\n",
+                (int)i, gd1->id, gd2->id,
+                ferVec3X(&con->dir[i]), ferVec3Y(&con->dir[i]), ferVec3Z(&con->dir[i]),
+                ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
+                con->depth[i]);
+    }
+
+    return 0;
+}
+
+TEST(cdSeparate1)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[2];
+
+    fprintf(stdout, "# === cdSeparate1 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    g[0] = ferCDGeomNew(cd);
+    gd[0].id = 0;
+    ferCDGeomSetData(g[0], &gd[0]);
+    g[1] = ferCDGeomNew(cd);
+    gd[1].id = 1;
+    ferCDGeomSetData(g[1], &gd[1]);
+
+    ferCDGeomAddSphere(cd, g[0], 0.1);
+    ferCDGeomAddSphere(cd, g[1], 0.15);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0.15, 0, 0);
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0., 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 0.15, 0, 0);
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], -0.05, -0.05, -0.05);
+    ferCDGeomSetTr3(cd, g[1], 0.05, 0.05, 0.05);
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDDel(cd);
+}
+
+TEST(cdSeparate2)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[2];
+
+    fprintf(stdout, "# === cdSeparate2 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    g[0] = ferCDGeomNew(cd);
+    gd[0].id = 0;
+    ferCDGeomSetData(g[0], &gd[0]);
+    g[1] = ferCDGeomNew(cd);
+    gd[1].id = 1;
+    ferCDGeomSetData(g[1], &gd[1]);
+
+    ferCDGeomAddSphere(cd, g[0], 0.1);
+    ferCDGeomAddBox(cd, g[1], 0.1, 0.2, 0.3);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0.14, 0, 0);
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], 0., 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 0.14, 0, 0);
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    ferCDGeomSetTr3(cd, g[0], -0.05, -0.05, -0.05);
+    ferCDGeomSetTr3(cd, g[1], 0.05, 0.05, 0.05);
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+
+TEST(cdSeparate3)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[3];
+    geom_t gd[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate3 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 3; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferCDGeomAddPlane(cd, g[0]);
+    ferCDGeomAddSphere(cd, g[1], 0.1);
+    ferCDGeomAddBox(cd, g[2], 0.1, 0.2, 0.12);
+
+    ferCDGeomSetTr3(cd, g[2], 0, 0, 100);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.24);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.09);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0.11, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.10, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.11, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.10, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 05 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.08, 0.04);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //DBG2("");
+    fprintf(stdout, "# == 06 ==\n");
+    ferCDGeomSetTr3(cd, g[0], 0., 0., 0.01);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.09);
+    ferCDGeomSetTr3(cd, g[2], 0., -0.20, 0.04);
+    ferCDGeomSetRotEuler(cd, g[2], M_PI_4, M_PI_4, M_PI_4);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+TEST(cdSeparate4)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[3];
+    geom_t gd[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate4 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 3; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferCDGeomAddPlane(cd, g[0]);
+    ferCDGeomAddCap(cd, g[1], 0.1, 0.2);
+    ferCDGeomAddCyl(cd, g[2], 0.1, 0.2);
+
+    ferCDGeomSetTr3(cd, g[2], 0, 0, 100);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.2);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.05);
+    ferCDGeomSetRotEuler(cd, g[1], 0, M_PI_2, 0);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 04 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 100);
+    ferCDGeomSetTr3(cd, g[2], 0., 0, 0.05);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 05 ==\n");
+    ferCDGeomSetTr3(cd, g[2], 1.1, 0.3, 0.05);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 06 ==\n");
+    ferCDGeomSetTr3(cd, g[2], 1.1, 0.3, 0.07);
+    ferCDGeomSetRotEuler(cd, g[2], 0, M_PI_2, 0);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+
+TEST(cdSeparate5)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[3];
+    fer_vec3_t v[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate5 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 2; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferCDGeomAddPlane(cd, g[0]);
+
+    ferVec3Set(&v[0], 0., 0., 0.);
+    ferVec3Set(&v[1], 1., 1., 0.);
+    ferVec3Set(&v[2], 0., 0., 1.);
+    ferCDGeomAddTri(cd, g[1], &v[0], &v[1], &v[2]);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, -0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetRotEuler(cd, g[1], 0, M_PI, 0);
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    ferCDDel(cd);
+}
+
+TEST(cdSeparate6)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    geom_t gd[3];
+    fer_vec3_t v[3];
+    int i;
+
+    fprintf(stdout, "# === cdSeparate6 ===\n");
+
+    cd = ferCDNew(NULL);
+
+    for (i = 0; i < 2; i++){
+        g[i] = ferCDGeomNew(cd);
+        gd[i].id = i;
+        ferCDGeomSetData(g[i], &gd[i]);
+        //DBG("[%d] %lx", i, (long)g[i]);
+    }
+
+    ferVec3Set(&v[0], 0., 0., 0.);
+    ferVec3Set(&v[1], 1., 1., 0.);
+    ferVec3Set(&v[2], 0., 0., 1.);
+    ferCDGeomAddTri(cd, g[0], &v[0], &v[1], &v[2]);
+    ferVec3Set(&v[0], -0.5, 0., 0.);
+    ferVec3Set(&v[1], 0.5, 0., 1.);
+    ferVec3Set(&v[2], 0.5, 0.5, 1.);
+    ferCDGeomAddTri(cd, g[1], &v[0], &v[1], &v[2]);
+
+    fprintf(stdout, "# == 01 ==\n");
+    ferCDGeomSetTr3(cd, g[1], 0., 0, -0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+    //ferCDDumpSVT(cd, stdout, "cd");
+
+    fprintf(stdout, "# == 02 ==\n");
+    ferCDGeomSetRotEuler(cd, g[1], 0, M_PI, 0);
+    ferCDGeomSetTr3(cd, g[1], 0., 0, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    fprintf(stdout, "# == 03 ==\n");
+    ferCDGeomSetRotEuler(cd, g[1], M_PI_4, M_PI_4, 0);
+    ferCDGeomSetTr3(cd, g[1], 0., 0.1, 0.1);
+    ferCDSeparate(cd, sepCB, NULL);
+
+    //ferCDDumpSVT(cd, stdout, "cd");
+
     ferCDDel(cd);
 }

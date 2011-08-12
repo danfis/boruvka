@@ -18,10 +18,17 @@
 
 #include <fermat/alloc.h>
 #include <fermat/vec2.h>
+#include <fermat/mat3.h>
 #include <fermat/dbg.h>
 
 FER_VEC2(__fer_vec2_origin, FER_ZERO, FER_ZERO);
 const fer_vec2_t *fer_vec2_origin = &__fer_vec2_origin;
+FER_VEC2(__fer_vec2_01, FER_ZERO, FER_ONE);
+const fer_vec2_t *fer_vec2_01 = &__fer_vec2_01;
+FER_VEC2(__fer_vec2_10, FER_ONE, FER_ZERO);
+const fer_vec2_t *fer_vec2_10 = &__fer_vec2_10;
+FER_VEC2(__fer_vec2_11, FER_ONE, FER_ONE);
+const fer_vec2_t *fer_vec2_11 = &__fer_vec2_11;
 
 fer_vec2_t *ferVec2New(fer_real_t x, fer_real_t y)
 {
@@ -395,8 +402,99 @@ int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
             || ferVec2Intersect(p1, r1, q2, r2)
             || ferVec2Intersect(q1, r1, p2, q2)
             || ferVec2Intersect(q1, r1, p2, r2)
-            || ferVec2Intersect(q1, r1, q2, r2))
+            || ferVec2Intersect(q1, r1, q2, r2)
+            || ferVec2PointInTri(p1, p2, q2, r2)
+            || ferVec2PointInTri(p2, p1, q1, r1))
         return 1;
 
     return 0;
+}
+
+
+static int __ferVec2BoxBoxOverlapAxis(const fer_vec2_t *axis,
+                                      const fer_vec2_t *p,
+                                      const fer_vec2_t *pts)
+{
+    fer_vec2_t s;
+    fer_real_t dot;
+    int i, pos = 0, neg = 0;
+
+    for (i = 0; i < 4; i++){
+        ferVec2Sub2(&s, &pts[i], p);
+        dot = ferVec2Dot(axis, &s);
+        if (dot > FER_ZERO){
+            ++pos;
+        }else{
+            ++neg;
+        }
+
+        if (pos && neg)
+            return 0;
+    }
+
+    return (pos ? 1 : -1);
+}
+
+static int __ferVec2BoxBoxOverlap(const fer_vec2_t *c1,
+                                  const fer_vec2_t *c2)
+{
+    fer_vec2_t axis;
+    int i;
+
+    for (i = 0; i < 4; i++){
+        ferVec2Sub2(&axis, &c1[(i + 1) % 4], &c1[i]);
+        ferVec2Set(&axis, ferVec2Y(&axis), -ferVec2X(&axis));
+        if (__ferVec2BoxBoxOverlapAxis(&axis, &c1[(i + 1) % 4], c2) > 0)
+            return 0;
+    }
+
+    for (i = 0; i < 4; i++){
+        ferVec2Sub2(&axis, &c2[(i + 1) % 4], &c2[i]);
+        ferVec2Set(&axis, ferVec2Y(&axis), -ferVec2X(&axis));
+        if (__ferVec2BoxBoxOverlapAxis(&axis, &c2[(i + 1) % 4], c1) > 0)
+            return 0;
+    }
+
+    return 1;
+}
+
+int ferVec2BoxBoxOverlap(const fer_vec2_t *half_edges1,
+                         const fer_vec2_t *pos1, fer_real_t rot1,
+                         const fer_vec2_t *half_edges2,
+                         const fer_vec2_t *pos2, fer_real_t rot2)
+{
+    fer_vec2_t c1[4], c2[4], tmp;
+    fer_mat3_t tr;
+
+    // Box1:
+    // transformation matrix
+    ferMat3SetRot(&tr, rot1);
+    ferMat3Set1(&tr, 0, 2, ferVec2X(pos1));
+    ferMat3Set1(&tr, 1, 2, ferVec2Y(pos1));
+
+    // corner points
+    ferMat3MulVec2(&c1[0], &tr, half_edges1);
+    ferVec2Set(&tmp, -ferVec2X(half_edges1), ferVec2Y(half_edges1));
+    ferMat3MulVec2(&c1[1], &tr, &tmp);
+    ferVec2Set(&tmp, -ferVec2X(half_edges1), -ferVec2Y(half_edges1));
+    ferMat3MulVec2(&c1[2], &tr, &tmp);
+    ferVec2Set(&tmp, ferVec2X(half_edges1), -ferVec2Y(half_edges1));
+    ferMat3MulVec2(&c1[3], &tr, &tmp);
+
+    // Box2:
+    // transformation matrix
+    ferMat3SetRot(&tr, rot2);
+    ferMat3Set1(&tr, 0, 2, ferVec2X(pos2));
+    ferMat3Set1(&tr, 1, 2, ferVec2Y(pos2));
+
+    // corner points
+    ferMat3MulVec2(&c2[0], &tr, half_edges2);
+    ferVec2Set(&tmp, -ferVec2X(half_edges2), ferVec2Y(half_edges2));
+    ferMat3MulVec2(&c2[1], &tr, &tmp);
+    ferVec2Set(&tmp, -ferVec2X(half_edges2), -ferVec2Y(half_edges2));
+    ferMat3MulVec2(&c2[2], &tr, &tmp);
+    ferVec2Set(&tmp, ferVec2X(half_edges2), -ferVec2Y(half_edges2));
+    ferMat3MulVec2(&c2[3], &tr, &tmp);
+
+    return __ferVec2BoxBoxOverlap(c1, c2);
 }

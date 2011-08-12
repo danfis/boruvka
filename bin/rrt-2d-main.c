@@ -17,6 +17,11 @@
 #include <fermat/rrt.h>
 #include <fermat/timer.h>
 #include <fermat/rand-mt.h>
+#include <fermat/dbg.h>
+
+#define FREE FER_RRT_FREE
+#define OBST FER_RRT_OBST
+#include "plan-eval.c"
 
 struct _alg_t {
     fer_rrt_t *rrt;
@@ -35,14 +40,29 @@ struct _alg_t {
 };
 typedef struct _alg_t alg_t;
 
+static int (*__eval)(const fer_vec_t *conf, void *_);
 
-static int terminate(void *data);
-static void callback(void *data);
-static const fer_vec_t *conf(void *data);
-static const fer_vec_t *newConf(const fer_vec_t *near,
-                                const fer_vec_t *rand, void *data);
+static int terminate(const fer_rrt_t *rrt, void *data);
+static int terminate_expand(const fer_rrt_t *rrt,
+                            const fer_rrt_node_t *start,
+                            const fer_rrt_node_t *last,
+                            const fer_vec_t *rand, void *data);
+static void callback(const fer_rrt_t *rrt, void *data);
+static const fer_vec_t *rand_conf(const fer_rrt_t *rrt, void *data);
+static const fer_vec_t *expand(const fer_rrt_t *rrt,
+                               const fer_rrt_node_t *n,
+                               const fer_vec_t *rand, void *data);
+static void expand_all(const fer_rrt_t *rrt,
+                       const fer_rrt_node_t *n,
+                       const fer_vec_t *rand, void *data,
+                       fer_list_t *list);
+static int filter_blossom(const fer_rrt_t *rrt,
+                          const fer_vec_t *c,
+                          const fer_rrt_node_t *src,
+                          const fer_rrt_node_t *near,
+                          void *data);
 static int eval(const fer_vec2_t *conf, alg_t *alg);
-static void printPath(fer_list_t *path, FILE *out);
+static void printPath(alg_t *alg, FILE *out);
 
 int main(int argc, char *argv[])
 {
@@ -51,8 +71,8 @@ int main(int argc, char *argv[])
     fer_real_t aabb[4] = { -5, 5, -5, 5 };
     alg_t alg;
 
-    if (argc != 2){
-        fprintf(stderr, "Usage: %s max_nodes\n", argv[0]);
+    if (argc != 3){
+        fprintf(stderr, "Usage: %s max_nodes scene\n", argv[0]);
         return -1;
     }
 
@@ -67,9 +87,12 @@ int main(int argc, char *argv[])
     params.cells.aabb = aabb;
 
     ops.data      = &alg;
-    ops.conf      = conf;
+    ops.random    = rand_conf;
+    ops.expand    = expand;
+    ops.expand_all = expand_all;
+    ops.filter_blossom = filter_blossom;
     ops.terminate = terminate;
-    ops.new_conf  = newConf;
+    ops.terminate_expand = terminate_expand;
     ops.callback  = callback;
     ops.callback_period = 500;
 
@@ -80,16 +103,20 @@ int main(int argc, char *argv[])
     alg.evals = 0;
     alg.step = 0.01;
 
+    setUpScene(argv[2], &__eval, (fer_vec_t *)&alg.start, (fer_vec_t *)&alg.goal, &alg.step);
+
     alg.rand = ferRandMTNewAuto();
 
     alg.rrt = ferRRTNew(&ops, &params);
 
     ferTimerStart(&alg.timer);
-    ferRRTRun(alg.rrt, (fer_vec_t *)&alg.start);
-    callback(&alg);
+    //ferRRTRunBasic(alg.rrt, (fer_vec_t *)&alg.start);
+    //ferRRTRunConnect(alg.rrt, (fer_vec_t *)&alg.start);
+    ferRRTRunBlossom(alg.rrt, (fer_vec_t *)&alg.start);
+    callback(alg.rrt, &alg);
     fprintf(stderr, "\n");
 
-
+    printPath(&alg, stdout);
     ferRRTDumpSVT(alg.rrt, stdout, "Result");
 
     ferRRTDel(alg.rrt);
@@ -101,38 +128,44 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static int terminate(void *data)
+static int terminate(const fer_rrt_t *rrt, void *data)
 {
     alg_t *alg = (alg_t *)data;
     size_t nodes;
-    const fer_rrt_node_t *last, *init, *goal;
-    int res;
-    fer_list_t path;
+    const fer_rrt_node_t *last;
+    const fer_vec2_t *lastv;
+    fer_real_t dist;
 
-    nodes = ferRRTNodesLen(alg->rrt);
+    nodes = ferRRTNodesLen(rrt);
+    if (nodes >= alg->max_nodes)
+        return 1;
 
-    last = ferRRTNodeLast(alg->rrt);
-    if (ferVec2Dist((const fer_vec2_t *)ferRRTNodeConf(last), &alg->goal) < alg->step){
-        ferListInit(&path);
+    last = ferRRTNodeLast(rrt);
+    lastv = (const fer_vec2_t *)ferRRTNodeConf(last);
+    dist = ferVec2Dist(lastv, &alg->goal);
+    //DBG("%f %lx", dist, (long)last);
+    if (dist < alg->step)
+        return 1;
 
-        init = ferRRTNodeInitial(alg->rrt);
-        goal = ferRRTNodeNew(alg->rrt, (const fer_vec_t *)&alg->goal, last);
-
-        res = ferRRTFindPath(alg->rrt, init, goal, &path);
-        if (res == 0){
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Path found. Nodes: %d\n",
-                    (int)ferRRTNodesLen(alg->rrt));
-            printPath(&path, stdout);
-
-            return 1;
-        }
-    }
-
-    return nodes >= alg->max_nodes;
+    return 0;
 }
 
-static void callback(void *data)
+static int terminate_expand(const fer_rrt_t *rrt,
+                            const fer_rrt_node_t *start,
+                            const fer_rrt_node_t *last,
+                            const fer_vec_t *rand, void *data)
+{
+    alg_t *alg = (alg_t *)data;
+    const fer_vec2_t *n;
+    fer_real_t dist;
+
+    n = (const fer_vec2_t *)ferRRTNodeConf(last);
+    dist = ferVec2Dist(n, (const fer_vec2_t *)rand);
+
+    return dist <= alg->step;
+}
+
+static void callback(const fer_rrt_t *rrt, void *data)
 {
     alg_t *alg = (alg_t *)data;
 
@@ -142,71 +175,117 @@ static void callback(void *data)
     fflush(stderr);
 }
 
-static const fer_vec_t *conf(void *data)
+static const fer_vec_t *rand_conf(const fer_rrt_t *rrt, void *data)
 {
     alg_t *alg = (alg_t *)data;
     fer_real_t x, y;
 
-    do {
-        x = ferRandMT(alg->rand, -5, 5);
-        y = ferRandMT(alg->rand, -5, 5);
+    x = ferRandMT(alg->rand, -5, 5);
+    y = ferRandMT(alg->rand, -5, 5);
 
     //fprintf(stderr, "conf: %g %g\n", x, y);
-
-        ferVec2Set(&alg->conf, x, y);
-    } while (eval(&alg->conf, alg) == FER_RRT_OBST);
+    ferVec2Set(&alg->conf, x, y);
 
     return (const fer_vec_t *)&alg->conf;
 }
 
-static const fer_vec_t *newConf(const fer_vec_t *near,
-                                const fer_vec_t *rand, void *data)
+static const fer_vec_t *expand(const fer_rrt_t *rrt,
+                               const fer_rrt_node_t *node_near,
+                               const fer_vec_t *rand, void *data)
 {
     alg_t *alg = (alg_t *)data;
     fer_vec2_t move;
+    const fer_vec2_t *near;
+
+    near = (const fer_vec2_t *)ferRRTNodeConf(node_near);
 
     ferVec2Sub2(&move, (const fer_vec2_t *)rand, (const fer_vec2_t *)near);
+    ferVec2Normalize(&move);
     ferVec2Scale(&move, alg->step);
 
     ferVec2Add2(&alg->new_conf, (const fer_vec2_t *)near, &move);
 
     if (eval(&alg->new_conf, alg) == FER_RRT_OBST)
         return NULL;
+    //DBG("expand: %f %f", ferVec2X(&alg->new_conf), ferVec2Y(&alg->new_conf));
     return (const fer_vec_t *)&alg->new_conf;
+}
+
+static void expand_all(const fer_rrt_t *rrt,
+                       const fer_rrt_node_t *node_near,
+                       const fer_vec_t *rand, void *data,
+                       fer_list_t *list)
+{
+    alg_t *alg = (alg_t *)data;
+    const fer_vec_t *conf;
+    fer_vec2_t c, add;
+
+    ferVec2Copy(&c, (const fer_vec2_t *)rand);
+
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+
+    ferVec2Set(&add, alg->step, alg->step);
+    ferVec2Add(&c, &add);
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+
+    ferVec2Sub(&c, &add);
+    ferVec2Sub(&c, &add);
+    conf = expand(rrt, node_near, (const fer_vec_t *)&c, data);
+    if (conf)
+        ferRRTExpandAdd(2, conf, list);
+}
+
+static int filter_blossom(const fer_rrt_t *rrt,
+                          const fer_vec_t *c,
+                          const fer_rrt_node_t *src,
+                          const fer_rrt_node_t *near,
+                          void *data)
+{
+    const fer_vec_t *s, *n;
+    s = ferRRTNodeConf(src);
+    n = ferRRTNodeConf(near);
+
+    return s == n || ferVecDist(2, c, n) > ferVecDist(2, c, s);
 }
 
 static int eval(const fer_vec2_t *conf, alg_t *alg)
 {
-    fer_real_t x, y;
-
-    x = ferVec2X(conf);
-    y = ferVec2Y(conf);
-
     alg->evals += 1L;
-
-    if (y < -2
-            || (y < 4 && y > -2 && x > -0.15 && x < 0.15)
-            || (y > 4 && x > -2 && x < 2)){
-        //fprintf(stderr, "eval: FREE\n");
-        return FER_RRT_FREE;
-    }
-    //fprintf(stderr, "eval: OBST\n");
-    return FER_RRT_OBST;
+    return __eval((const fer_vec_t *)conf, NULL);
 }
 
-static void printPath(fer_list_t *path, FILE *out)
+static void printPath(alg_t *alg, FILE *out)
 {
     fer_list_t *item;
+    const fer_rrt_node_t *last_node, *init_node, *goal_node;
+    const fer_vec2_t *last;
     fer_rrt_node_t *n;
     size_t id;
+    fer_list_t path;
+
+    last_node = ferRRTNodeLast(alg->rrt);
+    last = (const fer_vec2_t *)ferRRTNodeConf(last_node);
+    if (ferVec2Dist(last, &alg->goal) > alg->step)
+        return;
+
+    init_node = ferRRTNodeInitial(alg->rrt);
+    goal_node = ferRRTNodeNew(alg->rrt, (const fer_vec_t *)&alg->goal,
+                              last_node);
+
+    ferListInit(&path);
+    ferRRTFindPath(alg->rrt, init_node, goal_node, &path);
 
     fprintf(out, "------\n");
     fprintf(out, "Name: path\n");
     fprintf(out, "Edge width: 3\n");
-    fprintf(out, "Edge color: 0 0 0\n");
+    fprintf(out, "Edge color: 0.8 0 0\n");
 
     fprintf(out, "Points:\n");
-    FER_LIST_FOR_EACH(path, item){
+    FER_LIST_FOR_EACH(&path, item){
         n = FER_LIST_ENTRY(item, fer_rrt_node_t, path);
         ferVec2Print((fer_vec2_t *)n->conf, out);
         fprintf(out, "\n");
@@ -214,8 +293,8 @@ static void printPath(fer_list_t *path, FILE *out)
 
     fprintf(out, "Edges:\n");
     id = 0;
-    FER_LIST_FOR_EACH(path, item){
-        if (ferListNext(item) == path)
+    FER_LIST_FOR_EACH(&path, item){
+        if (ferListNext(item) == &path)
             break;
 
         fprintf(out, "%d %d\n", (int)id, (int)id + 1);
@@ -224,4 +303,3 @@ static void printPath(fer_list_t *path, FILE *out)
 
     fprintf(out, "------\n");
 }
-

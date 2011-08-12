@@ -22,6 +22,7 @@ LDFLAGS += -L. -lfermat -lm -lrt
 
 ifeq '$(USE_OPENCL)' 'yes'
   CFLAGS += $(OPENCL_CFLAGS)
+  LDFLAGS += $(OPENCL_LDFLAGS)
 endif
 ifeq '$(USE_RAPID)' 'yes'
   CFLAGS += $(RAPID_CFLAGS)
@@ -29,7 +30,9 @@ endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-eu fer-plan-2d
-BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-rrt-2d
+BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
+BIN_TARGETS += fer-rrt-2d fer-rrt-6d
+BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o timer.o parse.o
@@ -44,11 +47,12 @@ OBJS += dij.o
 OBJS += gsrm.o
 OBJS += rand-mt.o
 OBJS += gng.o gng-eu.o
-OBJS += gng-plan.o prm.o rrt.o
-OBJS += tasks.o
-OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o
+OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
+OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
+OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o cd-cap.o
+OBJS += cd-plane.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
-OBJS += cd-sphere-grid.o
+OBJS += cd-sphere-grid.o cd-sap.o cd-separate.o cd-ccd.o
 OBJS += ccd.o ccd-polytope.o ccd-mpr.o ccd-gjk.o ccd-support.o
 
 ifeq '$(USE_OPENCL)' 'yes'
@@ -87,10 +91,14 @@ bin/fer-%: bin/%-main.c libfermat.a
 
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
+src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
+	touch $@
 
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+.objs/cd-sap.o: src/cd-sap.c src/cd-sap-1.c src/cd-sap-threads.c src/cd-sap-gpu.c fermat/cd-sap.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 .objs/%.cpp.o: src/%.c fermat/%.h fermat/config.h
@@ -122,6 +130,8 @@ src/surf-matching.c: src/surf-matching-cl.c
 %.c: fermat/config.h
 
 %-cl.c: %.cl
+	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
+src/cd-sap-gpu-cl.c: src/cd-sap-gpu.cl
 	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
 
 

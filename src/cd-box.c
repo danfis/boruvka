@@ -18,11 +18,6 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-/** Fills cs[8] with corners of given box */
-static void getCorners(const fer_cd_box_t *b,
-                       const fer_mat3_t *rot, const fer_vec3_t *tr,
-                       fer_vec3_t *cs);
-
 
 static fer_cd_shape_class_t shape = {
     .type          = FER_CD_SHAPE_BOX,
@@ -96,7 +91,7 @@ int ferCDBoxUpdateCHull(const fer_cd_box_t *b, fer_chull3_t *chull,
     if (!tr)
         tr = fer_vec3_origin;
 
-    getCorners(b, rot, tr, cs);
+    __ferCDBoxGetCorners(b, rot, tr, cs);
 
     for (i = 0; i < 8; i++){
         ferCHull3Add(chull, &cs[i]);
@@ -118,7 +113,7 @@ void ferCDBoxUpdateMinMax(const fer_cd_box_t *b, const fer_vec3_t *axis,
     if (!tr)
         tr = fer_vec3_origin;
 
-    getCorners(b, rot, tr, c);
+    __ferCDBoxGetCorners(b, rot, tr, c);
 
     for (i = 0; i < 8; i++){
         m = ferVec3Dot(&c[i], axis);
@@ -142,7 +137,7 @@ void ferCDBoxUpdateCov(const fer_cd_box_t *s,
     if (!tr)
         tr = fer_vec3_origin;
 
-    getCorners(s, rot, tr, c);
+    __ferCDBoxGetCorners(s, rot, tr, c);
 
     ferCDShapeUpdateCovTri(&c[0], &c[1], &c[2], rot, tr, wcenter, cov, area, num);
     ferCDShapeUpdateCovTri(&c[1], &c[2], &c[3], rot, tr, wcenter, cov, area, num);
@@ -279,9 +274,10 @@ void ferCDBoxDumpSVT(const fer_cd_box_t *b,
 }
 
 
-static void getCorners(const fer_cd_box_t *b,
-                       const fer_mat3_t *rot, const fer_vec3_t *tr,
-                       fer_vec3_t *cs)
+void __ferCDBoxGetCorners(const fer_cd_box_t *b,
+                          const fer_mat3_t *rot,
+                          const fer_vec3_t *tr,
+                          fer_vec3_t *cs)
 {
     fer_vec3_t axis[3];
     int i;

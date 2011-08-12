@@ -21,42 +21,51 @@
 #include <fermat/dbg.h>
 
 
-struct fer_nncells_cache_t {
+struct _fer_nncells_cache_t {
     fer_nncells_el_t **els; /*!< Elements that we are searching for */
     fer_real_t *dist;       /*!< Distances of elements in .els */
-    size_t dist_alloc;      /*!< Amount of allocated memory for .dist */
     size_t len;             /*!< Number of so far found elements */
     size_t max_len;         /*!< Maximal number of elements we want to find */
 
     const fer_vec_t *p;
+
+    fer_real_t __dist[4];   /*!< Preallocated array on stack for .dist[] to
+                                 avoid allocation on heap */
 };
+typedef struct _fer_nncells_cache_t fer_nncells_cache_t;
 
 static void cellInit(fer_nncells_t *cs, fer_nncells_cell_t *c, size_t id);
 
 static void cellsAlloc(fer_nncells_t *cs, size_t num_cells);
 
-/** Initializes and destroys .cache member of fer_cubes`N`_t */
-static void cacheInit(fer_nncells_t *cs, fer_nncells_el_t **els,
-                      size_t max_len, const fer_vec_t *p);
-static void cacheDestroy(fer_nncells_t *cs);
+/** Creates and destroys cache */
+static void cacheInit(fer_nncells_cache_t *cache,
+                      fer_nncells_el_t **els,
+                      size_t max_len,
+                      const fer_vec_t *p);
+static void cacheDestroy(fer_nncells_cache_t *cache);
 
 
 /** Nearest nodes in given radius around center */
-static int nearestInRadius(fer_nncells_t *cs, int radius,
+static int nearestInRadius(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                           int radius,
                            const size_t *center, size_t *pos);
 /** For 2D */
-static int nearestInRadius2(fer_nncells_t *cs, int radius,
+static int nearestInRadius2(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                            int radius,
                             const size_t *center, size_t *pos);
 /** Searches only specified cube */
-static void nearestInCell(fer_nncells_t *cs, fer_nncells_cell_t *c);
+static void nearestInCell(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                          fer_nncells_cell_t *c);
 /** Checks if given element isn't closer than the ones already stored in
  *  cache. */
-static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el);
+static void nearestCheck(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                         fer_nncells_el_t *el);
 /** Bubble sort. Takes the last element in .els and bubble it towards
  *  smaller ones (according to .dist[] value). */
-static void nearestBubbleUp(struct fer_nncells_cache_t *c);
+static void nearestBubbleUp(fer_nncells_cache_t *c);
 /** Returns distance of initial border. */
-_fer_inline fer_real_t initBorder(fer_nncells_t *cs, const fer_vec_t *p);
+_fer_inline fer_real_t initBorder(const fer_nncells_t *cs, const fer_vec_t *p);
 
 
 /** Converts position in cells to cell's ID */
@@ -76,6 +85,7 @@ void ferNNCellsParamsInit(fer_nncells_params_t *p)
     p->max_dens    = 1;
     p->expand_rate = FER_REAL(2.);
     p->aabb        = NULL;
+    p->approx      = 0;
 }
 
 
@@ -115,8 +125,7 @@ fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
         cellsAlloc(c, 1);
     }
 
-
-    c->cache = NULL;
+    c->approx = params->approx;
 
     return c;
 }
@@ -134,18 +143,18 @@ void ferNNCellsDel(fer_nncells_t *c)
         free(c->cells);
     }
 
-    if (c->cache)
-        cacheDestroy(c);
-
     free(c);
 }
 
-size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
-                         fer_nncells_el_t **els)
+
+static size_t __ferNNCellsNearest(const fer_nncells_t *cs, const fer_vec_t *p,
+                                  size_t num, fer_nncells_el_t **els,
+                                  int approx)
 {
-    size_t center_id;
+    size_t center_id, retlen;
     size_t *center, *pos;
     fer_nncells_cell_t *cell;
+    fer_nncells_cache_t cache;
     int radius;
     fer_real_t border, border2;
 
@@ -155,14 +164,14 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
     center = FER_ALLOC_ARR(size_t, cs->d);
     pos    = FER_ALLOC_ARR(size_t, cs->d);
 
-    cacheInit(cs, els, num, p);
+    cacheInit(&cache, els, num, p);
 
     center_id = __ferNNCellsCoordsToID(cs, p);
     __ferNNCellsIDToPos(cs, center_id, center);
 
     // search in center first
     cell = &cs->cells[center_id];
-    nearestInCell(cs, cell);
+    nearestInCell(cs, &cache, cell);
 
     border  = initBorder(cs, p);
     border2 = FER_CUBE(border);
@@ -172,16 +181,16 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
         // End searching if we have all points we wanted and the furthest
         // one from them is before border, i.e. we are sure there is no
         // nearest point in other cells.
-        if (cs->cache->len == cs->cache->max_len
-                && cs->cache->dist[cs->cache->len - 1] < border2){
+        if (cache.len == cache.max_len
+                && (approx || cache.dist[cache.len - 1] < border2)){
             break;
         }
 
         if (cs->d == 2){
-            if (nearestInRadius2(cs, radius, center, pos) != 0)
+            if (nearestInRadius2(cs, &cache, radius, center, pos) != 0)
                 break;
         }else{
-            if (nearestInRadius(cs, radius, center, pos) != 0)
+            if (nearestInRadius(cs, &cache, radius, center, pos) != 0)
                 break;
         }
 
@@ -193,10 +202,26 @@ size_t ferNNCellsNearest(fer_nncells_t *cs, const fer_vec_t *p, size_t num,
         radius++;
     }
 
+    retlen = cache.len;
+
     free(center);
     free(pos);
 
-    return cs->cache->len;
+    cacheDestroy(&cache);
+
+    return retlen;
+}
+
+size_t ferNNCellsNearest(const fer_nncells_t *cs, const fer_vec_t *p, size_t num,
+                         fer_nncells_el_t **els)
+{
+    return __ferNNCellsNearest(cs, p, num, els, cs->approx);
+}
+
+size_t ferNNCellsNearestApprox(const fer_nncells_t *cs, const fer_vec_t *p,
+                               size_t num, fer_nncells_el_t **els)
+{
+    return __ferNNCellsNearest(cs, p, num, els, 1);
 }
 
 void __ferNNCellsExpand(fer_nncells_t *cs)
@@ -291,40 +316,36 @@ static void cellInit(fer_nncells_t *cs, fer_nncells_cell_t *c, size_t id)
     ferListInit(&c->list);
 }
 
+ 
 
-static void cacheInit(fer_nncells_t *cs, fer_nncells_el_t **els,
-                      size_t max_len, const fer_vec_t *p)
+static void cacheInit(fer_nncells_cache_t *cache,
+                      fer_nncells_el_t **els,
+                      size_t max_len,
+                      const fer_vec_t *p)
 {
-    if (cs->cache == NULL){
-        cs->cache = FER_ALLOC(struct fer_nncells_cache_t);
-        cs->cache->dist = NULL;
-        cs->cache->dist_alloc = 0;
+    // avoid allocation on heap if possible
+    if (max_len < 4){
+        cache->dist = cache->__dist;
+    }else{
+        cache->dist = FER_ALLOC_ARR(fer_real_t, max_len);
     }
 
-    if (cs->cache->dist_alloc < max_len){
-        cs->cache->dist = FER_REALLOC_ARR(cs->cache->dist, fer_real_t, max_len);
-        cs->cache->dist_alloc = max_len;
-    }
-
-    cs->cache->els     = els;
-    cs->cache->len     = 0;
-    cs->cache->max_len = max_len;
-    cs->cache->p       = p;
+    cache->els     = els;
+    cache->len     = 0;
+    cache->max_len = max_len;
+    cache->p       = p;
 }
 
-static void cacheDestroy(fer_nncells_t *cs)
+static void cacheDestroy(fer_nncells_cache_t *cache)
 {
-    if (cs->cache){
-        if (cs->cache->dist)
-            free(cs->cache->dist);
-        free(cs->cache);
-    }
-    cs->cache = NULL;
+    if (cache->dist != cache->__dist)
+        free(cache->dist);
 }
 
 
 
-static void __nearestInRadius(fer_nncells_t *cs, int radius,
+static void __nearestInRadius(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                              int radius,
                               const size_t *center,
                               size_t *pos, int d, int fix)
 {
@@ -334,9 +355,9 @@ static void __nearestInRadius(fer_nncells_t *cs, int radius,
     if (d == fix){
         if (d == cs->d - 1){
             id = __ferNNCellsPosToID(cs, pos);
-            nearestInCell(cs, &cs->cells[id]);
+            nearestInCell(cs, cache, &cs->cells[id]);
         }else{
-            __nearestInRadius(cs, radius, center, pos, d + 1, fix);
+            __nearestInRadius(cs, cache, radius, center, pos, d + 1, fix);
         }
     }else{
         if (d < fix){
@@ -356,15 +377,16 @@ static void __nearestInRadius(fer_nncells_t *cs, int radius,
 
             if (d == cs->d - 1){
                 id = __ferNNCellsPosToID(cs, pos);
-                nearestInCell(cs, &cs->cells[id]);
+                nearestInCell(cs, cache, &cs->cells[id]);
             }else{
-                __nearestInRadius(cs, radius, center, pos, d + 1, fix);
+                __nearestInRadius(cs, cache, radius, center, pos, d + 1, fix);
             }
         }
     }
 }
 
-static int nearestInRadius(fer_nncells_t *cs, int radius,
+static int nearestInRadius(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                           int radius,
                            const size_t *center, size_t *pos)
 {
     int d, rad, ret;
@@ -375,14 +397,14 @@ static int nearestInRadius(fer_nncells_t *cs, int radius,
         rad = (int)center[d] - radius;
         if (rad >= 0){
             pos[d] = rad;
-            __nearestInRadius(cs, radius, center, pos, 0, d);
+            __nearestInRadius(cs, cache, radius, center, pos, 0, d);
             ret = 0;
         }
 
         rad = (int)center[d] + radius;
         if (rad < cs->dim[d]){
             pos[d] = rad;
-            __nearestInRadius(cs, radius, center, pos, 0, d);
+            __nearestInRadius(cs, cache, radius, center, pos, 0, d);
             ret = 0;
         }
     }
@@ -390,7 +412,8 @@ static int nearestInRadius(fer_nncells_t *cs, int radius,
     return ret;
 }
 
-static int nearestInRadius2(fer_nncells_t *cs, int radius,
+static int nearestInRadius2(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                            int radius,
                             const size_t *center, size_t *pos)
 {
     int d, from, to, id, ret;
@@ -407,7 +430,7 @@ static int nearestInRadius2(fer_nncells_t *cs, int radius,
         for (d = from; d <= to; d++){
             pos[1] = d;
             id = __ferNNCellsPosToID2(cs, pos);
-            nearestInCell(cs, &cs->cells[id]);
+            nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
     }
@@ -417,7 +440,7 @@ static int nearestInRadius2(fer_nncells_t *cs, int radius,
         for (d = from; d <= to; d++){
             pos[1] = d;
             id = __ferNNCellsPosToID2(cs, pos);
-            nearestInCell(cs, &cs->cells[id]);
+            nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
     }
@@ -432,7 +455,7 @@ static int nearestInRadius2(fer_nncells_t *cs, int radius,
         for (d = from; d <= to; d++){
             pos[0] = d;
             id = __ferNNCellsPosToID2(cs, pos);
-            nearestInCell(cs, &cs->cells[id]);
+            nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
     }
@@ -442,7 +465,7 @@ static int nearestInRadius2(fer_nncells_t *cs, int radius,
         for (d = from; d <= to; d++){
             pos[0] = d;
             id = __ferNNCellsPosToID2(cs, pos);
-            nearestInCell(cs, &cs->cells[id]);
+            nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
     }
@@ -450,7 +473,8 @@ static int nearestInRadius2(fer_nncells_t *cs, int radius,
     return ret;
 }
 
-static void nearestInCell(fer_nncells_t *cs, fer_nncells_cell_t *c)
+static void nearestInCell(const fer_nncells_t *cs, fer_nncells_cache_t *cache,
+                          fer_nncells_cell_t *c)
 {
     fer_list_t *list, *item;
     fer_nncells_el_t *el;
@@ -458,14 +482,14 @@ static void nearestInCell(fer_nncells_t *cs, fer_nncells_cell_t *c)
     list = &c->list;
     FER_LIST_FOR_EACH(list, item){
         el = FER_LIST_ENTRY(item, fer_nncells_el_t, list);
-        nearestCheck(cs, el);
+        nearestCheck(cs, cache, el);
     }
 }
 
-static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el)
+static void nearestCheck(const fer_nncells_t *cs, fer_nncells_cache_t *c,
+                         fer_nncells_el_t *el)
 {
     fer_real_t dist;
-    struct fer_nncells_cache_t *c = cs->cache;
 
     if (cs->d == 2){
         dist = ferVec2Dist2((fer_vec2_t *)c->p, (fer_vec2_t *)el->coords);
@@ -488,7 +512,7 @@ static void nearestCheck(fer_nncells_t *cs, fer_nncells_el_t *el)
     }
 }
 
-static void nearestBubbleUp(struct fer_nncells_cache_t *c)
+static void nearestBubbleUp(fer_nncells_cache_t *c)
 {
     size_t i;
     fer_real_t tmpd;
@@ -537,7 +561,7 @@ _fer_inline void __ferNNCellsIDToPos(const fer_nncells_t *cs, size_t id,
     }
 }
 
-_fer_inline fer_real_t initBorder(fer_nncells_t *cs, const fer_vec_t *p)
+_fer_inline fer_real_t initBorder(const fer_nncells_t *cs, const fer_vec_t *p)
 {
     size_t i;
     fer_real_t local, min, max;

@@ -17,6 +17,17 @@
 #include <string.h>
 #include <fermat/rrt.h>
 #include <fermat/alloc.h>
+#include <fermat/dbg.h>
+
+struct _conf_item_t {
+    int d;
+    fer_vec_t *conf;
+    fer_list_t list;
+};
+typedef struct _conf_item_t conf_item_t;
+
+static conf_item_t *confItemNew(int d, const fer_vec_t *conf);
+static void confItemDel(conf_item_t *i);
 
 static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p);
 //static void nodeDel(fer_rrt_t *rrt, fer_rrt_node_t *n);
@@ -34,10 +45,19 @@ void ferRRTOpsInit(fer_rrt_ops_t *ops)
     memset(ops, 0, sizeof(fer_rrt_ops_t));
 }
 
+void ferRRTExpandAdd(int dim, const fer_vec_t *conf, fer_list_t *list)
+{
+    conf_item_t *c;
+
+    c = confItemNew(dim, conf);
+    ferListAppend(list, &c->list);
+}
+
 void ferRRTParamsInit(fer_rrt_params_t *params)
 {
     params->d = 2;
 
+    params->use_cells = 1;
     ferNNCellsParamsInit(&params->cells);
 }
 
@@ -45,26 +65,35 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
                      const fer_rrt_params_t *params)
 {
     fer_rrt_t *rrt;
-    fer_nncells_params_t pcells;
 
     rrt = FER_ALLOC(fer_rrt_t);
 
     rrt->params = *params;
+    rrt->params.cells.d = rrt->params.d;
+
     rrt->ops    = *ops;
-    if (rrt->ops.conf_data == NULL)
-        rrt->ops.conf_data = rrt->ops.data;
+    if (rrt->ops.random_data == NULL)
+        rrt->ops.random_data = rrt->ops.data;
+    if (rrt->ops.nearest_data == NULL)
+        rrt->ops.nearest_data = rrt->ops.data;
+    if (rrt->ops.expand_data == NULL)
+        rrt->ops.expand_data = rrt->ops.data;
+    if (rrt->ops.expand_all_data == NULL)
+        rrt->ops.expand_all_data = rrt->ops.data;
     if (rrt->ops.terminate_data == NULL)
         rrt->ops.terminate_data = rrt->ops.data;
-    if (rrt->ops.new_conf_data == NULL)
-        rrt->ops.new_conf_data = rrt->ops.data;
+    if (rrt->ops.terminate_expand_data == NULL)
+        rrt->ops.terminate_expand_data = rrt->ops.data;
+    if (rrt->ops.filter_blossom_data == NULL)
+        rrt->ops.filter_blossom_data = rrt->ops.data;
     if (rrt->ops.callback_data == NULL)
         rrt->ops.callback_data = rrt->ops.data;
 
     rrt->net = ferNetNew();
 
-    pcells   = params->cells;
-    pcells.d = params->d;
-    rrt->cells = ferNNCellsNew(&pcells);
+    rrt->cells = NULL;
+    if (params->use_cells)
+        rrt->cells = ferNNCellsNew(&params->cells);
 
     rrt->node_init = NULL;
     rrt->node_last = NULL;
@@ -84,11 +113,12 @@ void ferRRTDel(fer_rrt_t *rrt)
     free(rrt);
 }
 
-void ferRRTRun(fer_rrt_t *rrt, const fer_vec_t *init)
+static void ferRRTRunBasicConnect(fer_rrt_t *rrt, const fer_vec_t *init,
+                                  int connect)
 {
-    fer_rrt_node_t *n, *near, *new;
-    fer_nncells_el_t *el;
-    const fer_vec_t *rand_conf, *new_conf;
+    fer_rrt_node_t *n, *new;
+    const fer_rrt_node_t *cnear, *start;
+    const fer_vec_t *rand, *new_conf;
     unsigned long counter;
 
     // create inital node
@@ -96,29 +126,123 @@ void ferRRTRun(fer_rrt_t *rrt, const fer_vec_t *init)
     rrt->node_init = rrt->node_last = n;
 
     counter = 1;
-    while (!rrt->ops.terminate(rrt->ops.terminate_data)){
+    while (!rrt->ops.terminate(rrt, rrt->ops.terminate_data)){
         // get random configuration
-        rand_conf = rrt->ops.conf(rrt->ops.conf_data);
+        rand = rrt->ops.random(rrt, rrt->ops.random_data);
 
         // get nearest node from net
-        ferNNCellsNearest(rrt->cells, rand_conf, 1, &el);
-        near = fer_container_of(el, fer_rrt_node_t, cells);
+        if (rrt->ops.nearest){
+            cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
+        }else if (rrt->params.use_cells){
+            cnear = ferRRTNearest(rrt, rand);
+        }else{
+            fprintf(stderr, "RRT: No 'nearest' callback is set!\n");
+            fflush(stderr);
+            return;
+        }
 
-        // get new configuration
-        new_conf = rrt->ops.new_conf(near->conf, rand_conf,
-                                     rrt->ops.new_conf_data);
+        start = cnear;
 
-        if (!new_conf)
-            continue;
+        do {
+            // get new configuration
+            new_conf = rrt->ops.expand(rrt, cnear, rand, rrt->ops.expand_data);
 
-        // add node to net
-        new = nodeNew(rrt, new_conf);
-        rrt->node_last = new;
-        // and connect in with nearest node
-        edgeNew(rrt, near, new);
+            new = NULL;
+            if (new_conf){
+                // add node to net
+                new = nodeNew(rrt, new_conf);
+                rrt->node_last = new;
+
+                // and connect in with nearest node
+                edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
+            }
+
+            cnear = new;
+        } while (cnear && connect
+                    && !rrt->ops.terminate_expand(rrt, start, cnear, rand,
+                                                  rrt->ops.terminate_expand_data));
+
 
         if (rrt->ops.callback && counter == rrt->ops.callback_period){
-            rrt->ops.callback(rrt->ops.callback_data);
+            rrt->ops.callback(rrt, rrt->ops.callback_data);
+            counter = 0L;
+        }
+        counter += 1L;
+    }
+}
+
+void ferRRTRunBasic(fer_rrt_t *rrt, const fer_vec_t *init)
+{
+    ferRRTRunBasicConnect(rrt, init, 0);
+}
+
+void ferRRTRunConnect(fer_rrt_t *rrt, const fer_vec_t *init)
+{
+    ferRRTRunBasicConnect(rrt, init, 1);
+}
+
+void ferRRTRunBlossom(fer_rrt_t *rrt, const fer_vec_t *init)
+{
+    fer_rrt_node_t *n, *new;
+    const fer_rrt_node_t *cnear, *cnear2;
+    const fer_vec_t *rand;
+    unsigned long counter;
+    fer_list_t expand, *item;
+    conf_item_t *conf;
+
+    // create inital node
+    n = nodeNew(rrt, init);
+    rrt->node_init = rrt->node_last = n;
+
+    counter = 1;
+    while (!rrt->ops.terminate(rrt, rrt->ops.terminate_data)){
+        // get random configuration
+        rand = rrt->ops.random(rrt, rrt->ops.random_data);
+
+        // get nearest node from net
+        if (rrt->ops.nearest){
+            cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
+        }else if (rrt->params.use_cells){
+            cnear = ferRRTNearest(rrt, rand);
+        }else{
+            fprintf(stderr, "RRT: No 'nearest' callback is set!\n");
+            fflush(stderr);
+            return;
+        }
+
+        // expand cnear
+        ferListInit(&expand);
+        rrt->ops.expand_all(rrt, cnear, rand, rrt->ops.expand_all_data, &expand);
+
+        // iterate over all expansions
+        while (!ferListEmpty(&expand)){
+            item = ferListNext(&expand);
+            ferListDel(item);
+            conf = FER_LIST_ENTRY(item, conf_item_t, list);
+
+            // find nearest node to expansion
+            cnear2 = NULL;
+            if (rrt->ops.nearest){
+                cnear2 = rrt->ops.nearest(rrt, conf->conf, rrt->ops.nearest_data);
+            }else if (rrt->params.use_cells){
+                cnear2 = ferRRTNearest(rrt, conf->conf);
+            }
+
+            if (rrt->ops.filter_blossom(rrt, conf->conf, cnear, cnear2,
+                                        rrt->ops.filter_blossom_data)){
+                // add node to net
+                new = nodeNew(rrt, conf->conf);
+                rrt->node_last = new;
+
+                // and connect in with nearest node
+                edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
+            }
+
+            confItemDel(conf);
+        }
+
+        if (rrt->ops.callback && counter == rrt->ops.callback_period){
+            rrt->ops.callback(rrt, rrt->ops.callback_data);
             counter = 0L;
         }
         counter += 1L;
@@ -137,6 +261,18 @@ const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,
     return new;
 }
 
+const fer_rrt_node_t *ferRRTNearest(const fer_rrt_t *rrt, const fer_vec_t *c)
+{
+    fer_nncells_el_t *el;
+    const fer_rrt_node_t *near = NULL;
+
+    if (rrt->cells && ferNNCellsNearest(rrt->cells, c, 1, &el) == 1){
+        near = fer_container_of(el, fer_rrt_node_t, cells);
+    }
+
+    return near;
+}
+
 void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name)
 {
     fer_list_t *list, *item;
@@ -151,6 +287,7 @@ void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name)
         fprintf(out, "Name: %s\n", name);
     }
 
+    fprintf(out, "Point size: 1\n");
     fprintf(out, "Points:\n");
     list = ferNetNodes(rrt->net);
     i = 0;
@@ -186,23 +323,14 @@ void ferRRTDumpSVT(fer_rrt_t *rrt, FILE *out, const char *name)
 
 
 /*** Find path ***/
-static fer_real_t findPathDist(const fer_dij_node_t *_n1,
-                               const fer_dij_node_t *_n2, void *data)
+static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *data)
 {
     fer_rrt_t *rrt = (fer_rrt_t *)data;
-
-    fer_rrt_node_t *n1, *n2;
-    n1 = fer_container_of(_n1, fer_rrt_node_t, dij);
-    n2 = fer_container_of(_n2, fer_rrt_node_t, dij);
-    return ferVecDist(rrt->params.d, n1->conf, n2->conf);
-}
-
-static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
-{
     fer_list_t *list, *item;
     fer_rrt_node_t *n, *o;
     fer_net_edge_t *edge;
     fer_net_node_t *node;
+    fer_real_t dist;
 
     n = fer_container_of(_n, fer_rrt_node_t, dij);
 
@@ -213,7 +341,8 @@ static void findPathExpand(fer_dij_node_t *_n, fer_list_t *expand, void *_)
         o    = fer_container_of(node, fer_rrt_node_t, node);
 
         if (!ferDijNodeClosed(&o->dij)){
-            ferDijNodeAdd(&o->dij, expand);
+            dist = ferVecDist(rrt->params.d, n->conf, o->conf);
+            ferDijNodeAdd(&o->dij, expand, dist);
         }
     }
 }
@@ -249,6 +378,8 @@ static void obtainPath(fer_rrt_node_t *s, fer_rrt_node_t *g,
 
         dn = dn->prev;
     }
+    n = fer_container_of(dn, fer_rrt_node_t, dij);
+    ferListPrepend(list, &n->path);
 }
 int ferRRTFindPath(fer_rrt_t *rrt,
                    const fer_rrt_node_t *_init, const fer_rrt_node_t *_goal,
@@ -267,7 +398,6 @@ int ferRRTFindPath(fer_rrt_t *rrt,
 
     // initialize operations
     ferDijOpsInit(&ops);
-    ops.dist   = findPathDist;
     ops.expand = findPathExpand;
     ops.data   = (void *)rrt;
 
@@ -288,6 +418,21 @@ int ferRRTFindPath(fer_rrt_t *rrt,
     return -1;
 }
 
+static conf_item_t *confItemNew(int d, const fer_vec_t *conf)
+{
+    conf_item_t *c;
+
+    c = FER_ALLOC(conf_item_t);
+    c->d = d;
+    c->conf = ferVecClone(d, conf);
+    return c;
+}
+
+static void confItemDel(conf_item_t *c)
+{
+    ferVecDel(c->conf);
+    free(c);
+}
 
 
 static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
@@ -300,7 +445,8 @@ static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
     ferNetAddNode(rrt->net, &n->node);
 
     ferNNCellsElInit(&n->cells, n->conf);
-    ferNNCellsAdd(rrt->cells, &n->cells);
+    if (rrt->cells)
+        ferNNCellsAdd(rrt->cells, &n->cells);
 
     return n;
 }

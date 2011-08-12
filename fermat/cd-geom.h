@@ -31,6 +31,13 @@ struct _fer_cd_geom_t {
     fer_vec3_t tr;   /*!< Translation */
     fer_mat3_t rot;  /*!< Rotation */
     fer_list_t obbs; /*!< List of OBBs */
+
+    fer_list_t list;       /*!< Reference to list of all geoms */
+    fer_list_t list_dirty; /*!< Reference to list of dirty geoms */
+
+    void *data;
+
+    int sap;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
 
@@ -50,10 +57,37 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g);
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g);
 
 /**
+ * Returns translation vector.
+ */
+_fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g);
+
+/**
+ * Returns rotation matrix
+ */
+_fer_inline const fer_mat3_t *ferCDGeomRot(fer_cd_t *cd, const fer_cd_geom_t *g);
+
+
+/**
+ * Sets user data pointer
+ */
+_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
+
+/**
+ * Returns user data pointer
+ */
+_fer_inline void *ferCDGeomData(fer_cd_geom_t *g);
+
+/**
  * Sets translation.
  */
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
                                 const fer_vec3_t *tr);
+
+/**
+ * Sets translation using x, y, z coordinates.
+ */
+_fer_inline void ferCDGeomSetTr3(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 fer_real_t x, fer_real_t y, fer_real_t z);
 
 /**
  * Sets rotation.
@@ -62,11 +96,30 @@ _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
                                  const fer_mat3_t *rot);
 
 /**
+ * Sets rotation using euler angles (x, y, z).
+ */
+_fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
+                                      fer_real_t xrot, fer_real_t yrot,
+                                      fer_real_t zrot);
+
+/**
  * Returns true if given geoms do collide.
  */
 int ferCDGeomCollide(fer_cd_t *cd,
                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 
+
+/**
+ * Returns reference to {fer_cd_contacts_t} struct containing contact info.
+ */
+int ferCDGeomSeparate(fer_cd_t *cd,
+                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                      fer_cd_contacts_t *con);
+
+/**
+ * Returns true if top-OBBs of {g1} and {g2} are overlapping
+ */
+int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
 
 
 /**
@@ -107,6 +160,36 @@ void ferCDGeomAddCyl2(fer_cd_t *cd, fer_cd_geom_t *g,
                       const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
+ * Adds capsule to geom.
+ */
+void ferCDGeomAddCap(fer_cd_t *cd, fer_cd_geom_t *g,
+                     fer_real_t radius, fer_real_t height);
+
+/**
+ * Adds capsule with offset
+ */
+void ferCDGeomAddCap2(fer_cd_t *cd, fer_cd_geom_t *g,
+                      fer_real_t radius, fer_real_t height,
+                      const fer_mat3_t *rot, const fer_vec3_t *tr);
+/**
+ * Adds plane to geom.
+ */
+void ferCDGeomAddPlane(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
+ * Adds transformed plane
+ */
+void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
+                        const fer_mat3_t *rot, const fer_vec3_t *tr);
+
+/**
+ * Adds triangle ti geom.
+ */
+void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
+                     const fer_vec3_t *p0, const fer_vec3_t *p1,
+                     const fer_vec3_t *p2);
+
+/**
  * Adds triangular mesh to geom.
  */
 void ferCDGeomAddTriMesh(fer_cd_t *cd, fer_cd_geom_t *g,
@@ -127,6 +210,13 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
 void ferCDGeomAddTrisFromRaw(fer_cd_t *cd, fer_cd_geom_t *g,
                              const char *filename);
 
+/**
+ * Similar to ferCDGeomAddTrisFromRaw() but triangles are scaled by given
+ * factor.
+ */
+void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
+                                  const char *filename, fer_real_t scale);
+
 
 /**
  * Saves geom in Lisp-like format.
@@ -141,22 +231,82 @@ int ferCDGeomSave(fer_cd_t *cd, const fer_cd_geom_t *g,
  */
 fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename);
 
+/**
+ * Set geom as dirty
+ */
+void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
+ * Returns true if geom is dirty
+ */
+_fer_inline int ferCDGeomDirty(const fer_cd_t *cd, const fer_cd_geom_t *g);
+
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpTriSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 
 
+/** Sets min/max values along given axis */
+void __ferCDGeomSetMinMax(const fer_cd_geom_t *g,
+                          const fer_vec3_t *axis,
+                          fer_real_t *min, fer_real_t *max);
+
+/** Reset geom as non-dirty */
+void __ferCDGeomResetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
+
 /**** INLINES ****/
+_fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return &g->tr;
+}
+
+_fer_inline const fer_mat3_t *ferCDGeomRot(fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return &g->rot;
+}
+
+_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data)
+{
+    g->data = data;
+}
+
+_fer_inline void *ferCDGeomData(fer_cd_geom_t *g)
+{
+    return g->data;
+}
+
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,
                                 const fer_vec3_t *tr)
 {
     ferVec3Copy(&g->tr, tr);
+    ferCDGeomSetDirty(cd, g);
+}
+
+_fer_inline void ferCDGeomSetTr3(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 fer_real_t x, fer_real_t y, fer_real_t z)
+{
+    ferVec3Set(&g->tr, x, y, z);
+    ferCDGeomSetDirty(cd, g);
 }
 
 _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
                                  const fer_mat3_t *rot)
 {
     ferMat3Copy(&g->rot, rot);
+    ferCDGeomSetDirty(cd, g);
+}
+
+_fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
+                                      fer_real_t xrot, fer_real_t yrot,
+                                      fer_real_t zrot)
+{
+    ferMat3SetRot3D(&g->rot, xrot, yrot, zrot);
+    ferCDGeomSetDirty(cd, g);
+}
+
+_fer_inline int ferCDGeomDirty(const fer_cd_t *cd, const fer_cd_geom_t *g)
+{
+    return !ferListEmpty(&g->list_dirty);
 }
 
 #ifdef __cplusplus

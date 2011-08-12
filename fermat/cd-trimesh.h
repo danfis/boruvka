@@ -28,7 +28,7 @@ extern "C" {
  */
 struct _fer_cd_tri_t {
     fer_cd_shape_t shape;     /*!< Base class */
-    fer_vec3_t *p0, *p1, *p2; /*!< Triangle end points */
+    fer_vec3_t *p[3]; /*!< Triangle end points */
 };
 typedef struct _fer_cd_tri_t fer_cd_tri_t;
 

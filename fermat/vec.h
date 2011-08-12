@@ -40,6 +40,12 @@ typedef fer_real_t fer_vec_t;
 #define FER_VEC(name, size) \
     fer_vec_t name[size]
 
+/**
+ * Static declaration of array of vectors.
+ */
+#define FER_VEC_ARR(name, size, arrsize) \
+    fer_vec_t name[arrsize][size]
+
 
 /** TODO: ToVec2/3/4 functions */
 

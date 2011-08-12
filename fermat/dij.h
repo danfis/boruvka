@@ -50,6 +50,10 @@ struct _fer_dij_node_t {
     fer_list_t _list; /*!< Internal connection into list of nodes.
                            See function ferDijNodeAdd() and operation
                            expand() */
+    fer_real_t _loc_dist; /*!< Local distance computed in last expand().
+                               See function ferDijNodeAdd() and operation
+                               expand() */
+
     fer_pairheap_node_t _heap; /*!< Internal connection into heap */
 };
 typedef struct _fer_dij_node_t fer_dij_node_t;
@@ -79,9 +83,12 @@ _fer_inline fer_real_t ferDijDist(const fer_dij_node_t *n);
 _fer_inline fer_dij_node_t *ferDijNodePrev(const fer_dij_node_t *n);
 
 /**
- * Adds node into given list.
+ * Adds node into given list and sets local distance from previous node.
+ *
+ * Use this function in expand() operation.
  */
-_fer_inline void ferDijNodeAdd(fer_dij_node_t *n, fer_list_t *list);
+_fer_inline void ferDijNodeAdd(fer_dij_node_t *n,
+                               fer_list_t *list, fer_real_t dist);
 
 /**
  * Returns node stored in list.
@@ -97,21 +104,16 @@ _fer_inline fer_dij_node_t *ferDijNodeFromList(fer_list_t *item);
  */
 
 /** vvvv */
-/**
- * Return (relative) distance between two nodes.
- */
-typedef fer_real_t (*fer_dij_dist)(const fer_dij_node_t *n1,
-                                   const fer_dij_node_t *n2, void *);
 
 /**
  * Fill given list by neighbor nodes of {n}.
  * Use ferDijNodeAdd() function to connect node into given list.
  */
 typedef void (*fer_dij_expand)(fer_dij_node_t *n, fer_list_t *list, void *);
+
 /** ^^^^ */
 
 struct _fer_dij_ops_t {
-    fer_dij_dist dist;     /*!< Distance between two nodes */
     fer_dij_expand expand; /*!< Expands nodes */
     void *data;
 };
@@ -180,9 +182,11 @@ _fer_inline fer_dij_node_t *ferDijNodePrev(const fer_dij_node_t *n)
     return n->prev;
 }
 
-_fer_inline void ferDijNodeAdd(fer_dij_node_t *n, fer_list_t *list)
+_fer_inline void ferDijNodeAdd(fer_dij_node_t *n,
+                               fer_list_t *list, fer_real_t dist)
 {
     ferListAppend(list, &n->_list);
+    n->_loc_dist = dist;
 }
 
 _fer_inline fer_dij_node_t *ferDijNodeFromList(fer_list_t *item)

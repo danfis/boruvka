@@ -49,6 +49,50 @@ int ferCDCollideSphereBox(struct _fer_cd_t *cd,
     return l1 < l2 || ferEq(l1, l2);
 }
 
+int ferCDCollideSphereCap(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s1,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_cap_t *s2,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_real_t d1, d2;
+    fer_vec3_t a, b;
+
+    ferVec3Set(&a, ferMat3Get(rot2, 0, 2) * s2->half_height,
+                   ferMat3Get(rot2, 1, 2) * s2->half_height,
+                   ferMat3Get(rot2, 2, 2) * s2->half_height);
+    ferVec3Scale2(&b, &a, -FER_ONE);
+    ferVec3Add(&a, tr2);
+    ferVec3Add(&b, tr2);
+
+    d1 = ferVec3PointSegmentDist2(tr1, &a, &b, NULL);
+    d2 = FER_CUBE(s1->radius + s2->radius);
+
+    return d1 < d2 || ferEq(d1, d2);
+}
+
+int ferCDCollideSphereTri(struct _fer_cd_t *cd,
+                          const fer_cd_sphere_t *s,
+                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                          const fer_cd_tri_t *t,
+                          const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_real_t l1, l2;
+    fer_vec3_t a, b, c;
+
+    ferMat3MulVec(&a, rot2, t->p[0]);
+    ferMat3MulVec(&b, rot2, t->p[1]);
+    ferMat3MulVec(&c, rot2, t->p[2]);
+    ferVec3Add(&a, tr2);
+    ferVec3Add(&b, tr2);
+    ferVec3Add(&c, tr2);
+
+    l1 = ferVec3PointTriDist2(tr1, &a, &b, &c, NULL);
+    l2 = FER_CUBE(s->radius);
+
+    return l1 < l2 || ferEq(l1, l2);
+}
+
 int ferCDCollideBoxBox(struct _fer_cd_t *cd,
                        const fer_cd_box_t *s1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
@@ -72,6 +116,157 @@ int ferCDCollideBoxBox(struct _fer_cd_t *cd,
     return !ret;
 }
 
+int ferCDCollidePlaneSphere(struct _fer_cd_t *cd,
+                            const fer_cd_plane_t *p,
+                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                            const fer_cd_sphere_t *s,
+                            const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t ps, axis;
+    fer_real_t d1;
+
+    ferVec3Sub2(&ps, tr2, tr1);
+    ferMat3CopyCol(&axis, rot1, 2);
+
+    d1 = ferVec3Dot(&ps, &axis);
+
+    return d1 < s->radius || ferEq(d1, s->radius) || d1 < FER_ZERO;
+}
+
+int ferCDCollidePlaneBox(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_box_t *b,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t vs[8], axis, vbox;
+    fer_real_t m;
+    int i;
+
+    ferMat3CopyCol(&axis, rot1, 2);
+    __ferCDBoxGetCorners(b, rot2, tr2, vs);
+
+    for (i = 0; i < 8; i++){
+        ferVec3Sub2(&vbox, &vs[i], tr1);
+        m = ferVec3Dot(&axis, &vbox);
+        if (m < FER_ZERO)
+            return 1;
+    }
+
+    return 0;
+}
+
+int ferCDCollidePlaneCap(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_cap_t *c,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t ca, cb;
+    fer_real_t ma, mb;
+
+    ferMat3CopyCol(&ca, rot2, 2);
+    ferVec3Scale(&ca, c->half_height);
+    ferVec3Scale2(&cb, &ca, -FER_ONE);
+    ferVec3Add(&ca, tr2);
+    ferVec3Add(&cb, tr2);
+
+    ferVec3Sub(&ca, tr1);
+    ferVec3Sub(&cb, tr1);
+
+    ma = ferMat3DotCol(rot1, 2, &ca);
+    mb = ferMat3DotCol(rot1, 2, &cb);
+
+    if (ferSign(ma) != ferSign(mb))
+        return 1;
+
+    if (ma < mb){
+        return ma < c->radius;
+    }else{
+        return mb < c->radius;
+    }
+}
+
+int ferCDCollidePlaneCyl(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_cyl_t *c,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_real_t s, s2;
+    fer_vec3_t cyldir, planenorm, v, v2;
+    fer_vec3_t ca, cb;
+    fer_real_t ma, mb;
+
+    ferMat3CopyCol(&cyldir, rot2, 2);
+    ferMat3CopyCol(&planenorm, rot1, 2);
+
+    s = ferVec3Dot(&cyldir, &planenorm);
+    if (ferEq(s, FER_ONE)){
+        // plane and cylinder's discs are parallel
+        ferVec3Sub2(&v, tr2, tr1);
+        s = ferVec3Dot(&v, &planenorm);
+        return s < c->half_height;
+    }else{
+        ferMat3CopyCol(&ca, rot2, 2);
+        ferVec3Scale(&ca, c->half_height);
+        ferVec3Scale2(&cb, &ca, -FER_ONE);
+        ferVec3Add(&ca, tr2);
+        ferVec3Add(&cb, tr2);
+
+        ferVec3Sub(&ca, tr1);
+        ferVec3Sub(&cb, tr1);
+
+        ma = ferMat3DotCol(rot1, 2, &ca);
+        mb = ferMat3DotCol(rot1, 2, &cb);
+
+        if (ferSign(ma) != ferSign(mb))
+            return 1;
+
+        if (ma > mb){
+            ma = mb;
+        }
+
+
+        ferVec3Cross(&v2, &planenorm, &cyldir);
+        ferVec3Cross(&v, &v2, &cyldir);
+        ferVec3Scale(&v, c->radius);
+        s2 = ferVec3Dot(&v, &planenorm);
+        s2 = FER_FABS(s2);
+
+        return s2 > ma  || ferEq(s2, ma);
+    }
+}
+
+int ferCDCollidePlaneTri(struct _fer_cd_t *cd,
+                         const fer_cd_plane_t *p,
+                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                         const fer_cd_tri_t *t,
+                         const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t a, b, c, axis;
+
+    ferMat3MulVec(&a, rot2, t->p[0]);
+    ferMat3MulVec(&b, rot2, t->p[1]);
+    ferMat3MulVec(&c, rot2, t->p[2]);
+    ferVec3Add(&a, tr2);
+    ferVec3Add(&b, tr2);
+    ferVec3Add(&c, tr2);
+    ferVec3Sub(&a, tr1);
+    ferVec3Sub(&b, tr1);
+    ferVec3Sub(&c, tr1);
+
+    ferMat3CopyCol(&axis, rot1, 2);
+
+    if (ferVec3Dot(&a, &axis) < FER_ZERO)
+        return 1;
+    if (ferVec3Dot(&b, &axis) < FER_ZERO)
+        return 1;
+    if (ferVec3Dot(&c, &axis) < FER_ZERO)
+        return 1;
+    return 0;
+}
+
 int ferCDCollideTriTri(struct _fer_cd_t *cd,
                        const fer_cd_tri_t *tri1,
                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
@@ -80,18 +275,18 @@ int ferCDCollideTriTri(struct _fer_cd_t *cd,
 {
     fer_vec3_t p1, q1, r1, p2, q2, r2;
 
-    ferMat3MulVec(&p1, rot1, tri1->p0);
+    ferMat3MulVec(&p1, rot1, tri1->p[0]);
     ferVec3Add(&p1, tr1);
-    ferMat3MulVec(&q1, rot1, tri1->p1);
+    ferMat3MulVec(&q1, rot1, tri1->p[1]);
     ferVec3Add(&q1, tr1);
-    ferMat3MulVec(&r1, rot1, tri1->p2);
+    ferMat3MulVec(&r1, rot1, tri1->p[2]);
     ferVec3Add(&r1, tr1);
 
-    ferMat3MulVec(&p2, rot2, tri2->p0);
+    ferMat3MulVec(&p2, rot2, tri2->p[0]);
     ferVec3Add(&p2, tr2);
-    ferMat3MulVec(&q2, rot2, tri2->p1);
+    ferMat3MulVec(&q2, rot2, tri2->p[1]);
     ferVec3Add(&q2, tr2);
-    ferMat3MulVec(&r2, rot2, tri2->p2);
+    ferMat3MulVec(&r2, rot2, tri2->p[2]);
     ferVec3Add(&r2, tr2);
 
     /*
@@ -160,75 +355,3 @@ int ferCDCollideOffAny(struct _fer_cd_t *cd,
                                    s2, rot2, tr2);
 }
 
-
-
-struct _ccd_t {
-    const fer_cd_shape_t *s;
-    const fer_mat3_t *rot;
-    const fer_vec3_t *tr;
-};
-typedef struct _ccd_t ccd_t;
-static void ccdSupport(const void *obj, const fer_vec3_t *_dir,
-                       fer_vec3_t *p)
-{
-    const ccd_t *s = (const ccd_t *)obj;
-    fer_vec3_t dir, q;
-
-    if (!s->s->cl->support){
-        ferVec3Set(p, FER_ZERO, FER_ZERO, FER_ZERO);
-        return;
-    }
-
-    ferMat3MulVecTrans(&dir, s->rot, _dir);
-    s->s->cl->support(s->s, &dir, p);
-    ferMat3MulVec(&q, s->rot, p);
-    ferVec3Add2(p, &q, s->tr);
-}
-
-static void ccdCenter(const void *obj, fer_vec3_t *c)
-{
-    const ccd_t *s = (const ccd_t *)obj;
-
-    if (!s->s->cl->center){
-        ferVec3Set(c, FER_ZERO, FER_ZERO, FER_ZERO);
-        return;
-    }
-
-    s->s->cl->center(s->s, s->rot, s->tr, c);
-}
-
-int ferCDCollideCCD(struct _fer_cd_t *cd,
-                    const fer_cd_shape_t *_s1,
-                    const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                    const fer_cd_shape_t *_s2,
-                    const fer_mat3_t *rot2, const fer_vec3_t *tr2)
-{
-    ccd_t s1, s2;
-    fer_ccd_t ccd;
-    int ret;
-
-    ferCCDInit(&ccd);
-    ccd.support1 = ccd.support2 = ccdSupport;
-    ccd.center1  = ccd.center2  = ccdCenter;
-    //TODO: ccd.max_iterations = xxx;
-    //TODO: ccd.mpr_tolerance = xxx;
-
-    if (!rot1)
-        rot1 = fer_mat3_identity;
-    if (!tr1)
-        tr1 = fer_vec3_origin;
-    if (!rot2)
-        rot2 = fer_mat3_identity;
-    if (!tr2)
-        tr2 = fer_vec3_origin;
-
-    s1.s   = _s1;
-    s1.rot = rot1;
-    s1.tr  = tr1;
-    s2.s   = _s2;
-    s2.rot = rot2;
-    s2.tr  = tr2;
-
-    ret = ferCCDMPRCollide(&ccd, &s1, &s2);
-    return ret;
-}

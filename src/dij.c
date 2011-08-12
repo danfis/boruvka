@@ -90,11 +90,8 @@ int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,
             if (fer_unlikely(nextnode->state == FER_DIJ_STATE_CLOSED))
                 continue;
 
-            // get distance from current node
-            dist = dij->ops.dist(node, nextnode, dij->ops.data);
-
             // Relax operation.
-            dist += node->dist;
+            dist = node->dist + nextnode->_loc_dist;
             // Let assume that nextnode->dist is always higher than dist if
             // nextnode wasn't touched until now - user was responsible to
             // call ferDijNodeInit() function which sets .dist to

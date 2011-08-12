@@ -69,18 +69,18 @@ fer_cd_trimesh_tri_t *ferCDTriNew(const fer_vec3_t *p1,
 
     t = FER_ALLOC(fer_cd_tri_t);
     t->shape.cl = &shape_tri;
-    t->p0 = ferVec3Clone(p1);
-    t->p1 = ferVec3Clone(p2);
-    t->p2 = ferVec3Clone(p3);
+    t->p[0] = ferVec3Clone(p1);
+    t->p[1] = ferVec3Clone(p2);
+    t->p[2] = ferVec3Clone(p3);
 
     return t;
 }
 
 void ferCDTriDel(fer_cd_trimesh_tri_t *t)
 {
-    ferVec3Del(t->p0);
-    ferVec3Del(t->p1);
-    ferVec3Del(t->p2);
+    ferVec3Del(t->p[0]);
+    ferVec3Del(t->p[1]);
+    ferVec3Del(t->p[2]);
     free(t);
 }
 
@@ -93,9 +93,9 @@ fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
     tri = FER_ALLOC(fer_cd_trimesh_tri_t);
 
     tri->shape.cl = &shape_trimesh_tri;
-    tri->p0 = (fer_vec3_t *)p1;
-    tri->p1 = (fer_vec3_t *)p2;
-    tri->p2 = (fer_vec3_t *)p3;
+    tri->p[0] = (fer_vec3_t *)p1;
+    tri->p[1] = (fer_vec3_t *)p2;
+    tri->p[2] = (fer_vec3_t *)p3;
 
     return tri;
 }
@@ -159,21 +159,21 @@ void ferCDTriSupport(const fer_cd_trimesh_tri_t *t, const fer_vec3_t *dir,
 {
     fer_real_t d1, d2, d3;
 
-    d1 = ferVec3Dot(t->p0, dir);
-    d2 = ferVec3Dot(t->p1, dir);
-    d3 = ferVec3Dot(t->p2, dir);
+    d1 = ferVec3Dot(t->p[0], dir);
+    d2 = ferVec3Dot(t->p[1], dir);
+    d3 = ferVec3Dot(t->p[2], dir);
 
     if (d1 > d2){
         if (d1 > d3){
-            ferVec3Copy(p, t->p0);
+            ferVec3Copy(p, t->p[0]);
         }else{ // d1 <= d3
-            ferVec3Copy(p, t->p2);
+            ferVec3Copy(p, t->p[2]);
         }
     }else{ // d1 <= d2
         if (d2 > d3){
-            ferVec3Copy(p, t->p1);
+            ferVec3Copy(p, t->p[1]);
         }else{ // d2 <= d3
-            ferVec3Copy(p, t->p2);
+            ferVec3Copy(p, t->p[2]);
         }
     }
 }
@@ -201,8 +201,8 @@ void ferCDTriCenter(const fer_cd_trimesh_tri_t *t,
 {
     fer_vec3_t v;
 
-    ferVec3Add2(center, t->p0, t->p1);
-    ferVec3Add(center, t->p2);
+    ferVec3Add2(center, t->p[0], t->p[1]);
+    ferVec3Add(center, t->p[2]);
     ferVec3Scale(center, ferRecp(FER_REAL(3.)));
 
     if (rot){
@@ -254,9 +254,9 @@ void ferCDTriFitOBB(const fer_cd_trimesh_tri_t *tri,
     axis[2] = _axis2;
 
     // 1. compute triangle edges
-    ferVec3Sub2(&e01, tri->p1, tri->p0);
-    ferVec3Sub2(&e02, tri->p2, tri->p0);
-    ferVec3Sub2(&e12, tri->p2, tri->p1);
+    ferVec3Sub2(&e01, tri->p[1], tri->p[0]);
+    ferVec3Sub2(&e02, tri->p[2], tri->p[0]);
+    ferVec3Sub2(&e12, tri->p[2], tri->p[1]);
 
     // 2. find longest edge and compute from that first normalized axis of
     //    bounding box
@@ -289,16 +289,16 @@ void ferCDTriFitOBB(const fer_cd_trimesh_tri_t *tri,
     // 5. min and max values of projected points of triangle on bounding
     //    boxes' axes.
     for (i = 0; i < 3; i++){
-        min[i] = max[i] = ferVec3Dot(tri->p0, axis[i]);
+        min[i] = max[i] = ferVec3Dot(tri->p[0], axis[i]);
 
-        m = ferVec3Dot(tri->p1, axis[i]);
+        m = ferVec3Dot(tri->p[1], axis[i]);
         if (m < min[i]){
             min[i] = m;
         }else{
             max[i] = m;
         }
 
-        m = ferVec3Dot(tri->p2, axis[i]);
+        m = ferVec3Dot(tri->p[2], axis[i]);
         if (m < min[i]){
             min[i] = m;
         }else if (m > max[i]){
@@ -340,15 +340,15 @@ int ferCDTriUpdateCHull(const fer_cd_trimesh_tri_t *tri, fer_chull3_t *chull,
     if (!tr)
         tr = fer_vec3_origin;
 
-    ferMat3MulVec(&v, rot, tri->p0);
+    ferMat3MulVec(&v, rot, tri->p[0]);
     ferVec3Add(&v, tr);
     ferCHull3Add(chull, &v);
 
-    ferMat3MulVec(&v, rot, tri->p1);
+    ferMat3MulVec(&v, rot, tri->p[1]);
     ferVec3Add(&v, tr);
     ferCHull3Add(chull, &v);
 
-    ferMat3MulVec(&v, rot, tri->p2);
+    ferMat3MulVec(&v, rot, tri->p[2]);
     ferVec3Add(&v, tr);
     ferCHull3Add(chull, &v);
 
@@ -393,7 +393,7 @@ void ferCDTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
     DBG_VEC3(tri->p1, "tri->p1: ");
     DBG_VEC3(tri->p2, "tri->p2: ");
     */
-    ferMat3MulVec(&p, rot, tri->p0);
+    ferMat3MulVec(&p, rot, tri->p[0]);
     ferVec3Add(&p, tr);
     m = ferVec3Dot(&p, axis);
     if (m < *min)
@@ -401,7 +401,7 @@ void ferCDTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
     if (m > *max)
         *max = m;
 
-    ferMat3MulVec(&p, rot, tri->p1);
+    ferMat3MulVec(&p, rot, tri->p[1]);
     ferVec3Add(&p, tr);
     m = ferVec3Dot(&p, axis);
     if (m < *min)
@@ -409,7 +409,7 @@ void ferCDTriUpdateMinMax(const fer_cd_trimesh_tri_t *tri,
     if (m > *max)
         *max = m;
 
-    ferMat3MulVec(&p, rot, tri->p2);
+    ferMat3MulVec(&p, rot, tri->p[2]);
     ferVec3Add(&p, tr);
     m = ferVec3Dot(&p, axis);
     if (m < *min)
@@ -449,7 +449,7 @@ void ferCDTriUpdateCov(const fer_cd_tri_t *t,
                        fer_vec3_t *wcenter, fer_mat3_t *cov,
                        fer_real_t *area, int *num)
 {
-    ferCDShapeUpdateCovTri(t->p0, t->p1, t->p2, rot, tr, wcenter, cov, area, num);
+    ferCDShapeUpdateCovTri(t->p[0], t->p[1], t->p[2], rot, tr, wcenter, cov, area, num);
 }
 
 void ferCDTriMeshUpdateCov(const fer_cd_trimesh_t *t,
@@ -485,15 +485,15 @@ void ferCDTriDumpSVT(const fer_cd_trimesh_tri_t *tri,
     }
 
     fprintf(out, "Points:\n");
-    ferMat3MulVec(&v, rot, tri->p0);
+    ferMat3MulVec(&v, rot, tri->p[0]);
     ferVec3Add(&v, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
-    ferMat3MulVec(&v, rot, tri->p1);
+    ferMat3MulVec(&v, rot, tri->p[1]);
     ferVec3Add(&v, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");
-    ferMat3MulVec(&v, rot, tri->p2);
+    ferMat3MulVec(&v, rot, tri->p[2]);
     ferVec3Add(&v, tr);
     ferVec3Print(&v, out);
     fprintf(out, "\n");

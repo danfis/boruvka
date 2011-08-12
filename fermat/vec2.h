@@ -59,6 +59,21 @@ typedef struct _fer_vec2_t fer_vec2_t;
  */
 extern const fer_vec2_t *fer_vec2_origin;
 
+/**
+ * Holds vector (0, 1) - readonly
+ */
+extern const fer_vec2_t *fer_vec2_01;
+
+/**
+ * Holds vector (1, 0) - readonly
+ */
+extern const fer_vec2_t *fer_vec2_10;
+
+/**
+ * Holds vector (1, 1) - readonly
+ */
+extern const fer_vec2_t *fer_vec2_11;
+
 #define FER_VEC2_STATIC(x, y) \
     { .f = { (x), (y) } }
 
@@ -403,6 +418,21 @@ int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
                          const fer_vec2_t *r1,
                          const fer_vec2_t *p2, const fer_vec2_t *q2,
                          const fer_vec2_t *r2);
+
+/**
+ * Returns true if point {P} is inside triangle {pqr}.
+ */
+_fer_inline int ferVec2PointInTri(const fer_vec2_t *P,
+                                  const fer_vec2_t *p, const fer_vec2_t *q,
+                                  const fer_vec2_t *r);
+
+/**
+ * Returns true if boxes overlap.
+ */
+int ferVec2BoxBoxOverlap(const fer_vec2_t *half_edges1,
+                         const fer_vec2_t *pos1, fer_real_t rot1,
+                         const fer_vec2_t *half_edges2,
+                         const fer_vec2_t *pos2, fer_real_t rot2);
 
 /***** INLINES *****/
 _fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d)
@@ -832,6 +862,17 @@ _fer_inline int ferVec2OnLeft(const fer_vec2_t *v,
     return ferVec2Area2(p1, p2, v) > FER_ZERO;
 }
 
+
+_fer_inline int ferVec2PointInTri(const fer_vec2_t *P,
+                                  const fer_vec2_t *p, const fer_vec2_t *q,
+                                  const fer_vec2_t *r)
+{
+    int count = 0;
+    count += ferVec2OnLeft(P, p, q);
+    count += ferVec2OnLeft(P, q, r);
+    count += ferVec2OnLeft(P, r, p);
+    return count == 3 || count == 0;
+}
 
 #ifdef __cplusplus
 } /* extern "C" */
