@@ -35,20 +35,28 @@ BIN_TARGETS += fer-rrt-2d fer-rrt-6d
 BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 
 TARGETS = libfermat.a
-OBJS  = alloc.o timer.o parse.o
+OBJS  = alloc.o
+
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
-OBJS += pc.o pc-internal.o
 OBJS += predicates.o
-OBJS += cubes2.o cubes3.o nncells.o nearest-linear.o
-OBJS += mesh3.o qhull.o net.o chull3.o
-OBJS += fibo.o pairheap.o
-OBJS += dij.o
-OBJS += gsrm.o
-OBJS += rand-mt.o
-OBJS += gng.o gng-eu.o
+
+OBJS += pc.o pc-internal.o
+
+OBJS += nncells.o nearest-linear.o
+OBJS += cubes2.o cubes3.o
+
+OBJS += mesh3.o net.o qhull.o chull3.o
+
+OBJS += fibo.o pairheap.o dij.o
+
+OBJS += gng.o gng-eu.o gsrm.o
 OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
+
 OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
+
+OBJS += rand-mt.o timer.o parse.o
+
 OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o cd-cap.o
 OBJS += cd-plane.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o

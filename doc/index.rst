@@ -21,7 +21,6 @@ Fermat:
    fer-rand-mt.h.rst
    fer-timer.h.rst
    fer-parse.h.rst
-   fer-predicates.h.rst
    fer-opencl.h.rst
 
 .. toctree::
@@ -35,11 +34,25 @@ Fermat:
    fer-mat3.h.rst
    fer-mat4.h.rst
 
-   fer-pc2.h.rst
-   fer-pc3.h.rst
-   fer-pc4.h.rst
+   fer-predicates.h.rst
 
+   fer-pc.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-nncells.h.rst
+   fer-nearest-linear.h.rst
+   fer-cubes2.h.rst
+   fer-cubes3.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-mesh3.h.rst
+   fer-net.h.rst
    fer-qhull.h.rst
+   fer-chull3.h.rst
 
 .. toctree::
    :maxdepth: 1
@@ -48,27 +61,12 @@ Fermat:
    fer-fibo.h.rst
    fer-pairheap.h.rst
 
-.. toctree::
-   :maxdepth: 1
-
-   fer-nncells.h.rst
-   fer-cubes2.h.rst
-   fer-cubes3.h.rst
-   fer-nearest-linear.h.rst
 
 .. toctree::
    :maxdepth: 1
 
-   fer-mesh3.h.rst
-   fer-trimesh.h.rst
-
-.. toctree::
-   :maxdepth: 1
-
-   fer-net.h.rst
    fer-gng.h.rst
-   fer-gng2.h.rst
-   fer-gng3.h.rst
+   fer-gng-eu.h.rst
    fer-gsrm.h.rst
 
 
@@ -77,6 +75,17 @@ Fermat:
 
    fer-prm.h.rst
    fer-rrt.h.rst
+   fer-gng-plan.h.rst
+   fer-gng-plan2.h.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-tasks.h.rst
+   fer-task-pool.h.rst
+   fer-hmap.h.rst
+   fer-hfunc.h.rst
+   fer-barrier.h.rst
 
 .. toctree::
    :maxdepth: 1

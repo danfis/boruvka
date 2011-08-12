@@ -6,17 +6,29 @@ SPHINXBUILD   = sphinx-build
 PAPER         = a4
 BUILDDIR      = .
 
-RSTS  = alloc core compiler
-RSTS += list rand rand-mt timer parse predicates opencl
-RSTS += vec vec2 vec3 vec4 quat mat3 mat4
-RSTS += pc2 pc3 pc4
-RSTS += qhull
-RSTS += dij fibo pairheap
-RSTS += mesh3 trimesh
-RSTS += nncells cubes2 cubes3 nearest-linear
-RSTS += gsrm
-RSTS += net gng gng2 gng3
-RSTS += prm rrt
+RSTS  = core compiler alloc
+RSTS += list rand rand-mt timer parse
+
+RSTS += vec4 vec3 vec2 vec
+RSTS += quat
+RSTS += mat4 mat3
+RSTS += predicates
+
+RSTS += pc
+
+RSTS += nncells nearest-linear
+RSTS += cubes2 cubes3
+
+RSTS += mesh3 net qhull chull3
+
+RSTS += fibo pairheap dij
+
+RSTS += gng gng-eu gsrm
+RSTS += gng-plan gng-plan2 prm rrt
+
+RSTS += tasks task-pool hmap hfunc barrier
+
+RSTS += opencl
 RSTS += surf-matching
 
 RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
