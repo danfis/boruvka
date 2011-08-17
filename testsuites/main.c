@@ -21,6 +21,7 @@
 #include "chull3.h"
 #include "tasks.h"
 #include "task-pool.h"
+#include "vptree.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -51,6 +52,8 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSTasks),
     TEST_SUITE_ADD(TSTaskPool),
+
+    TEST_SUITE_ADD(TSVPTree),
 
     TEST_SUITES_CLOSURE
 };
