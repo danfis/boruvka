@@ -68,7 +68,8 @@ struct _build_t {
 typedef struct _build_t build_t;
 
 /** Adds all elements from els to node */
-static void buildAddEls(_fer_vptree_node_t *node,
+static void buildAddEls(fer_vptree_t *vp,
+                        _fer_vptree_node_t *node,
                         fer_vptree_el_t **els, size_t els_len);
 /** Fills {els} with len samples from {els_in} */
 static void buildSampleEls(build_t *build, fer_vptree_el_t **els_in, size_t els_len,
@@ -101,6 +102,7 @@ void ferVPTreeElInit(fer_vptree_el_t *el, const fer_vec_t *p)
 {
     ferListInit(&el->list);
     el->p = p;
+    el->node = NULL;
 }
 
 fer_vptree_t *ferVPTreeNew(const fer_vptree_params_t *params)
@@ -150,7 +152,58 @@ void ferVPTreeAdd(fer_vptree_t *vp, fer_vptree_el_t *el)
 
 void ferVPTreeRemove(fer_vptree_t *vp, fer_vptree_el_t *el)
 {
-    // TODO
+    _fer_vptree_node_t *node, *par, *other;
+
+    // get parent node
+    node = el->node;
+
+    // remove element from node
+    ferListDel(&el->list);
+    node->size--;
+    el->node = NULL;
+    ferListInit(&el->list);
+
+    // check if node isn't empty
+    if (node->size == 0){
+        // if node is empty, exchange node's parent with other parent's
+        // node (branch)
+
+        // first check if node isn't root
+        if (node == vp->root){
+            nodeDel(vp, vp->root);
+            vp->root = NULL;
+            return;
+        }
+
+        // get parent and other (sibling) node
+        par = node->parent;
+        if (par->left == node){
+            other = par->right;
+        }else{
+            other = par->left;
+        }
+
+        // delete node
+        nodeDel(vp, node);
+
+        // exchange parent and other
+        if (par == vp->root){
+            vp->root = other;
+            other->parent = NULL;
+        }else{
+            if (par->parent->left == par){
+                par->parent->left = other;
+            }else{
+                par->parent->right = other;
+            }
+            other->parent = par->parent;
+        }
+
+        // delete par
+        ferVecDel(par->vp);
+        par->left = par->right = NULL;
+        nodeDel(vp, par);
+    }
 }
 
 void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el)
@@ -347,10 +400,17 @@ static void radiusVar(fer_vptree_t *vp,
         }
     }
 
+    if (distlen == 0){
+        *radius = 0;
+        *var    = 0;
+        return;
+    }
+
+
     qsort(dist, distlen, sizeof(fer_real_t), radiusVarCmp);
 
     *radius = dist[distlen / 2];
-    if (distlen % 2 == 0){
+    if (distlen % 2 == 0 && distlen > 0){
         *radius += dist[distlen / 2 - 1];
         *radius /= FER_REAL(2.);
     }
@@ -443,6 +503,7 @@ static void nodeAdd(fer_vptree_t *vp, _fer_vptree_node_t *n,
 {
     ferListAppend(&n->els, &el->list);
     n->size++;
+    el->node = n;
 }
 
 static _fer_vptree_node_t *nodeFindLeaf(fer_vptree_t *vp,
@@ -556,16 +617,16 @@ fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
     return vp;
 }
 
-static void buildAddEls(_fer_vptree_node_t *node,
+static void buildAddEls(fer_vptree_t *vp,
+                        _fer_vptree_node_t *node,
                         fer_vptree_el_t **els,
                         size_t els_len)
 {
     size_t i;
 
     for (i = 0; i < els_len; i++){
-        ferListAppend(&node->els, &els[i]->list);
+        nodeAdd(vp, node, els[i]);
     }
-    node->size = els_len;
 }
 
 static void buildSampleEls(build_t *build, fer_vptree_el_t **els_in, size_t els_len,
@@ -584,24 +645,29 @@ static _fer_vptree_node_t *buildNode(build_t *build,
                                      fer_vptree_el_t **els, size_t els_len)
 {
     _fer_vptree_node_t *node;
-    size_t cur, len;
+    size_t i, cur, len;
 
     node = nodeNew(build->vp);
 
     if (els_len <= build->vp->params.maxsize){
         // all elements can fit to current node
-        buildAddEls(node, els, els_len);
+        buildAddEls(build->vp, node, els, els_len);
     }else{
-        len = FER_MIN(build->vp->params.samplesize, els_len);
-
         // create vantage point
         node->vp = ferVecNew(build->vp->params.dim);
 
-        // generate random sample of VPs
-        buildSampleEls(build, els, els_len, build->ps, len);
-
-        // random sample data set
-        buildSampleEls(build, els, els_len, build->ds, len);
+        // generate random sample of VPs and datas
+        if (build->vp->params.samplesize < els_len){
+            len = build->vp->params.samplesize;
+            buildSampleEls(build, els, els_len, build->ps, len);
+            buildSampleEls(build, els, els_len, build->ds, len);
+        }else{
+            len = els_len;
+            for (i = 0; i < len; i++){
+                build->ps[i] = els[i];
+                build->ds[i] = els[i];
+            }
+        }
 
         // find out best vantage point
         bestVP(build->vp, build->ps, len, build->ds, len, build->dist,
@@ -611,7 +677,7 @@ static _fer_vptree_node_t *buildNode(build_t *build,
         cur = reorganizeEls(build->vp, node->vp, node->radius, els, els_len);
 
         if (cur == 0 || cur == els_len){
-            buildAddEls(node, els, els_len);
+            buildAddEls(build->vp, node, els, els_len);
             ferVecDel(node->vp);
             node->vp = NULL;
         }else{

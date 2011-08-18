@@ -99,6 +99,7 @@ typedef struct _fer_vptree_t fer_vptree_t;
 struct _fer_vptree_el_t {
     fer_list_t list;    /*!< Connection into node's list of elements */
     const fer_vec_t *p; /*!< Pointer to user-defined point */
+    _fer_vptree_node_t *node; /*!< Back reference to owner of this element */
 };
 typedef struct _fer_vptree_el_t fer_vptree_el_t;
 

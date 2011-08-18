@@ -14,6 +14,7 @@ struct _el_t {
     fer_vec2_t w;
     fer_vptree_el_t el;
     fer_list_t list;
+    int added;
 };
 typedef struct _el_t el_t;
 
@@ -214,6 +215,55 @@ TEST(vptreeAdd)
             //fprintf(stdout, "%02d:\n", i);
             ferVPTreeAdd(vp, &els[i].el);
             //ferVPTreeDump(vp, stdout);
+        }
+
+        //ferVPTreeDump(vp, stdout);
+        for (i = 0; i < ADD_NUM_TESTS; i++){
+            for (j = 1; j <= ADD_NUM_NNS; j++){
+                build2Test(rand, vp, &els_list, j);
+            }
+        }
+        ferVPTreeDel(vp);
+    }
+
+    ferRandMTDel(rand);
+}
+
+TEST(vptreeAddRm)
+{
+    fer_rand_mt_t *rand;
+    fer_vptree_t *vp;
+    fer_vptree_params_t params;
+    static fer_list_t els_list;
+    static int els_len = ADD_ELS_LEN;
+    static el_t els[ADD_ELS_LEN];
+    int i, j, size;
+
+    rand = ferRandMTNewAuto();
+
+    ferListInit(&els_list);
+    for (i = 0; i < els_len; i++){
+        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
+        ferVPTreeElInit(&els[i].el, (const fer_vec_t *)&els[i].w);
+        ferListAppend(&els_list, &els[i].list);
+        els[i].added = 0;
+    }
+
+    for (size = 1; size <= ADD_MAXSIZE; size++){
+        ferVPTreeParamsInit(&params);
+        params.dim = 2;
+        params.maxsize = size;
+        vp = ferVPTreeNew(&params);
+
+        for (i = 0; i < ADD_ELS_LEN; i++){
+            //fprintf(stdout, "%02d:\n", i);
+            ferVPTreeAdd(vp, &els[i].el);
+            //ferVPTreeDump(vp, stdout);
+        }
+
+        for (i = 0; i < ADD_ELS_LEN; i += 3){
+            ferVPTreeRemove(vp, &els[i].el);
+            ferListDel(&els[i].list);
         }
 
         //ferVPTreeDump(vp, stdout);
