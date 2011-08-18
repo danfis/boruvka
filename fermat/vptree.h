@@ -25,6 +25,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+struct _fer_vptree_el_t;
+
 /**
  * Vantage Point Tree
  * ===================
@@ -69,8 +71,9 @@ void ferVPTreeParamsInit(fer_vptree_params_t *params);
 
 struct __fer_vptree_node_t {
     fer_vec_t *vp;     /*!< Vantage point */
-    fer_real_t mean;
+    fer_real_t radius;
     struct __fer_vptree_node_t *left, *right; /*!< Left and right subtree */
+    struct __fer_vptree_node_t *parent;
     fer_list_t els;    /*!< List of elements */
     size_t size;       /*!< Number of elements */
 };
@@ -79,6 +82,9 @@ typedef struct __fer_vptree_node_t _fer_vptree_node_t;
 struct _fer_vptree_t {
     fer_vptree_params_t params;
     _fer_vptree_node_t *root;
+
+    struct _fer_vptree_el_t **els; /*!< Tmp array for elements */
+    size_t els_size;               /*!< Size of .els array */
 };
 typedef struct _fer_vptree_t fer_vptree_t;
 
