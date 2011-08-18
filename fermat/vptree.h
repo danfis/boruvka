@@ -141,6 +141,16 @@ void ferVPTreeRemove(fer_vptree_t *vp, fer_vptree_el_t *el);
  */
 void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el);
 
+/**
+ * Finds {num} nearest elements to given point {p}.
+ *
+ * Array of pointers els must be allocated and must have at least {num}
+ * elements. This array is filled with pointers to elements that are
+ * nearest to point {p}. Number of found elements is returned.
+ */
+size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
+                        fer_vptree_el_t **els);
+
 
 void ferVPTreeDump(fer_vptree_t *vp, FILE *out);
 
