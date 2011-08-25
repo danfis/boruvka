@@ -30,6 +30,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 
+/**
+ * Growing Neural Gas In Euclidean Space
+ * ======================================
+ */
+
+
 struct _fer_gng_eu_node_t {
     fer_net_node_t node;
 
@@ -93,17 +99,16 @@ typedef void (*fer_gng_eu_callback)(void *);
 /** ^^^^ */
 
 struct _fer_gng_eu_ops_t {
-    fer_gng_eu_new_node         new_node;
-    fer_gng_eu_del_node         del_node;
-    fer_gng_eu_input_signal     input_signal;
-    fer_gng_eu_terminate        terminate;
+    fer_gng_eu_new_node     new_node;
+    fer_gng_eu_del_node     del_node;
+    fer_gng_eu_input_signal input_signal;
+    fer_gng_eu_terminate    terminate;
 
     fer_gng_eu_callback callback;
     unsigned long callback_period;
 
     void *data; /*!< Data pointer that will be provided to all callbacks if
                      not specified otherwise. */
-
     void *new_node_data;
     void *del_node_data;
     void *input_signal_data;
