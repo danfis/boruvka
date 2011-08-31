@@ -58,6 +58,8 @@ OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
 
 OBJS += rand-mt.o timer.o parse.o
 
+OBJS += image.o
+
 OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o cd-cap.o
 OBJS += cd-plane.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
