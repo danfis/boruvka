@@ -30,6 +30,7 @@ endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-eu fer-plan-2d
+BIN_TARGETS += fer-gng-t
 BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
 BIN_TARGETS += fer-rrt-2d fer-rrt-6d
 BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
@@ -52,6 +53,7 @@ OBJS += mesh3.o net.o qhull.o chull3.o
 OBJS += fibo.o pairheap.o dij.o
 
 OBJS += gng.o gng-eu.o gsrm.o
+OBJS += gng-t.o
 OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
 
 OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
