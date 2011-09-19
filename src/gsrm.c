@@ -234,7 +234,7 @@ void ferGSRMParamsInit(fer_gsrm_params_t *params)
     params->verbosity = 1;
 
     ferNNCellsParamsInit(&params->cells);
-    params->cells.d = 3;
+    params->cells.dim = 3;
 }
 
 fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
@@ -481,7 +481,7 @@ static int init(fer_gsrm_t *g)
     if (g->cells)
         ferNNCellsDel(g->cells);
     ferPCAABB(g->is, aabb);
-    g->params.cells.d    = 3;
+    g->params.cells.dim    = 3;
     g->params.cells.aabb = aabb;
     g->cells = ferNNCellsNew(&g->params.cells);
 

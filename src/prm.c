@@ -80,7 +80,7 @@ fer_prm_t *ferPRMNew(const fer_prm_ops_t *ops,
     prm->net = ferNetNew();
 
     pcells   = params->cells;
-    pcells.d = params->d;
+    pcells.dim = params->d;
     prm->cells = ferNNCellsNew(&pcells);
 
     ferListInit(&prm->components);

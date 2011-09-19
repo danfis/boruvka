@@ -117,7 +117,7 @@ fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
     gng->net   = ferNetNew();
 
     pcells   = params->cells;
-    pcells.d = params->d;
+    pcells.dim = params->d;
     gng->cells = ferNNCellsNew(&pcells);
 
     gng->params = *params;

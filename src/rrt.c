@@ -69,7 +69,7 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
     rrt = FER_ALLOC(fer_rrt_t);
 
     rrt->params = *params;
-    rrt->params.cells.d = rrt->params.d;
+    rrt->params.cells.dim = rrt->params.d;
 
     rrt->ops    = *ops;
     if (rrt->ops.random_data == NULL)

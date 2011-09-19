@@ -23,7 +23,7 @@
 #include <fermat/vec2.h>
 #include <fermat/vec3.h>
 #include <fermat/pc.h>
-#include <fermat/nncells.h>
+#include <fermat/nn.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +43,8 @@ struct _fer_gng_eu_node_t {
     unsigned long err_cycle;      /*!< Last cycle in which were .err changed */
     fer_pairheap_node_t err_heap; /*!< Connection to error heap */
 
-    fer_vec_t *w;           /*!< Weight vector */
-    fer_nncells_el_t cells; /*!< Struct for searching in cubes2 */
+    fer_vec_t *w;   /*!< Weight vector */
+    fer_nn_el_t nn; /*!< Struct for NN search */
 
     int _id; /*!< Currently useful only for ferGNGEuDumpSVT(). */
 };
@@ -139,9 +139,11 @@ struct _fer_gng_eu_params_t {
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
 
-    int use_cells; /*!< True if cells should be used for nearest neighbor
-                        search. Default: true */
-    fer_nncells_params_t cells;
+    int use_nn; /*!< Set to one of types defined in fermat/nn.h (FER_NN_*)
+                     to use non-linear algorithm for NN search. You also
+                     must set {.nn} params appropriately.
+                     Default: FER_NN_NNCELLS */
+    fer_nn_params_t nn;
 };
 typedef struct _fer_gng_eu_params_t fer_gng_eu_params_t;
 
@@ -173,7 +175,7 @@ struct _fer_gng_eu_t {
     size_t step;
     unsigned long cycle;
 
-    fer_nncells_t *cells;
+    fer_nn_t *nn;
 
     fer_vec_t *tmpv;
 };
@@ -526,9 +528,9 @@ _fer_inline void ferGNGEuNodeAdd(fer_gng_eu_t *gng_eu, fer_gng_eu_node_t *n,
         n->w = ferVecClone(gng_eu->params.dim, (const fer_vec_t *)w);
     }
 
-    if (gng_eu->cells){
-        ferNNCellsElInit(&n->cells, n->w);
-        ferNNCellsAdd(gng_eu->cells, &n->cells);
+    if (gng_eu->nn){
+        ferNNElInit(gng_eu->nn, &n->nn, n->w);
+        ferNNAdd(gng_eu->nn, &n->nn);
     }
 }
 
@@ -540,8 +542,8 @@ _fer_inline void ferGNGEuNodeRemove(fer_gng_eu_t *gng_eu, fer_gng_eu_node_t *n)
         ferGNGEuNodeDisconnect(gng_eu, n);
     ferNetRemoveNode(gng_eu->net, &n->node);
 
-    if (gng_eu->cells){
-        ferNNCellsRemove(gng_eu->cells, &n->cells);
+    if (gng_eu->nn){
+        ferNNRemove(gng_eu->nn, &n->nn);
     }
 
     ferVecDel(n->w);

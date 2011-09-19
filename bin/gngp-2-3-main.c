@@ -57,7 +57,7 @@ fer_vec_t *is;
 
 int dump_period = 10;
 const char *dump_prefix = NULL;
-int avg_edge_len = 0;
+int avg_edge_len = 1;
 
 const char *scene;
 
@@ -102,10 +102,10 @@ int main(int argc, char *argv[])
     params.min_nodes = 100;
     params.start = plan->start;
     params.goal  = plan->goal;
-    params.cells.d = plan->dim;
+    params.cells.dim = plan->dim;
     params.cells.aabb = plan->aabb;
-    params.cells.max_dens = 1;
-    params.cells.expand_rate = 1.4;
+    params.cells.max_dens = 0.1;
+    params.cells.expand_rate = 1.1;
     params.gng.lambda = plan->lambda;
     params.gng.age_max = plan->age_max;
 
@@ -186,6 +186,7 @@ static int eval(const fer_vec_t *w, void *data)
     fer_mat3_t rot;
     fer_vec3_t pos;
 
+    fprintf(stderr, "eval\n");
     if (plan->dim == 3){
         ferMat3SetRot3D(&rot, FER_ZERO, FER_ZERO, ferVecGet(w, 2));
         ferVec3Set(&pos, ferVecGet(w, 0), ferVecGet(w, 1), FER_ZERO);
@@ -193,6 +194,11 @@ static int eval(const fer_vec_t *w, void *data)
         ferCDGeomSetTr(plan->cd, plan->robot.g, &pos);
     }else if (plan->dim == 2){
         ferVec3Set(&pos, ferVecGet(w, 0), ferVecGet(w, 1), FER_ZERO);
+        ferCDGeomSetTr(plan->cd, plan->robot.g, &pos);
+    }else if (plan->dim == 6){
+        ferMat3SetRot3D(&rot, ferVecGet(w, 3), ferVecGet(w, 4), ferVecGet(w, 5));
+        ferVec3Set(&pos, ferVecGet(w, 0), ferVecGet(w, 1), ferVecGet(w, 2));
+        ferCDGeomSetRot(plan->cd, plan->robot.g, &rot);
         ferCDGeomSetTr(plan->cd, plan->robot.g, &pos);
     }
 
@@ -391,6 +397,7 @@ void planDump(const plan_2_3_t *plan)
     fprintf(stderr, "age max:   %d\n", (int)plan->age_max);
     fprintf(stderr, "\n");
 
+    /*
     FER_LIST_FOR_EACH(&plan->robot.tris, item_tri){
         tri = FER_LIST_ENTRY(item_tri, plan_2_3_tri_t, list);
         fprintf(stderr, "robot: <%f %f, %f %f, %f %f>\n",
@@ -408,6 +415,7 @@ void planDump(const plan_2_3_t *plan)
                 ferVec2X(&tri->p[1]), ferVec2Y(&tri->p[1]),
                 ferVec2X(&tri->p[2]), ferVec2Y(&tri->p[2]));
     }
+    */
 }
 
 static int scan2f(const char *line, float *f)
@@ -425,6 +433,15 @@ static int scan4f(const char *line, float *f)
 static int scan6f(const char *line, float *f)
 {
     return sscanf(line, "%f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5) == 6;
+}
+static int scan9f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f %f %f %f %f %f %f %f", f, f + 1, f + 2, f + 3, f + 4, f + 5, f + 6, f + 7, f + 8) == 9;
+}
+static int scan12f(const char *line, float *f)
+{
+    return sscanf(line, "%f %f %f %f %f %f %f %f %f %f %f %f",
+                  f, f + 1, f + 2, f + 3, f + 4, f + 5, f + 6, f + 7, f + 8, f + 9, f + 10, f + 11) == 12;
 }
 
 plan_2_3_t *planNew(const char *fn)
@@ -469,6 +486,7 @@ plan_2_3_t *planNew(const char *fn)
     if (!line
             || (plan->dim == 3 && !scan6f(line, f))
             || (plan->dim == 2 && !scan4f(line, f))
+            || (plan->dim == 6 && !scan12f(line, f))
        ){
         fprintf(stderr, "Invalid file format (AABB).\n");
         exit(-1);
@@ -483,6 +501,7 @@ plan_2_3_t *planNew(const char *fn)
     if (!line
             || (plan->dim == 3 && !scan3f(line, f))
             || (plan->dim == 2 && !scan2f(line, f))
+            || (plan->dim == 6 && !scan6f(line, f))
         ){
         fprintf(stderr, "Invalid file format (start position).\n");
         exit(-1);
@@ -496,6 +515,7 @@ plan_2_3_t *planNew(const char *fn)
     if (!line
             || (plan->dim == 3 && !scan3f(line, f))
             || (plan->dim == 2 && !scan2f(line, f))
+            || (plan->dim == 6 && !scan6f(line, f))
         ){
         fprintf(stderr, "Invalid file format (goal position).\n");
         exit(-1);
@@ -523,6 +543,7 @@ plan_2_3_t *planNew(const char *fn)
     line = planNextLine(fin, __line, __len);
     while (line && line[0] != '\n'){
         if ((plan->dim <= 3 && !scan6f(line, f))
+                || (plan->dim == 6 && !scan9f(line, f))
            ){
             fprintf(stderr, "Invalid file format (robot).\n");
             exit(-1);
@@ -534,9 +555,15 @@ plan_2_3_t *planNew(const char *fn)
         ferVec2Set(&tri->p[2], f[4], f[5]);
         ferListAppend(&plan->robot.tris, &tri->list);
 
-        ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
-        ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
-        ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        if (plan->dim <= 3){
+            ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
+            ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
+            ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        }else if (plan->dim == 6){
+            ferVec3Set(&pts[0], f[0], f[1], f[2]);
+            ferVec3Set(&pts[0], f[3], f[4], f[5]);
+            ferVec3Set(&pts[0], f[6], f[7], f[8]);
+        }
         ferCDGeomAddTri(plan->cd, plan->robot.g, &pts[0], &pts[1], &pts[2]);
 
         line = planNextLine(fin, __line, __len);
@@ -548,6 +575,7 @@ plan_2_3_t *planNew(const char *fn)
     line = planNextLine(fin, __line, __len);
     while (line && line[0] != '\n'){
         if ((plan->dim <= 3 && !scan6f(line, f))
+                || (plan->dim == 6 && !scan9f(line, f))
            ){
             fprintf(stderr, "Invalid file format (obst).\n");
             exit(-1);
@@ -559,15 +587,23 @@ plan_2_3_t *planNew(const char *fn)
         ferVec2Set(&tri->p[2], f[4], f[5]);
         ferListAppend(&plan->obst.tris, &tri->list);
 
-        ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
-        ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
-        ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        if (plan->dim <= 3){
+            ferVec3Set(&pts[0], f[0], f[1], FER_ZERO);
+            ferVec3Set(&pts[1], f[2], f[3], FER_ZERO);
+            ferVec3Set(&pts[2], f[4], f[5], FER_ZERO);
+        }else if (plan->dim == 6){
+            ferVec3Set(&pts[0], f[0], f[1], f[2]);
+            ferVec3Set(&pts[0], f[3], f[4], f[5]);
+            ferVec3Set(&pts[0], f[6], f[7], f[8]);
+        }
         ferCDGeomAddTri(plan->cd, plan->obst.g, &pts[0], &pts[1], &pts[2]);
 
         line = planNextLine(fin, __line, __len);
     }
 
+    fprintf(stderr, "Building robot...\n");
     ferCDGeomBuild(plan->cd, plan->robot.g);
+    fprintf(stderr, "Building obstacle...\n");
     ferCDGeomBuild(plan->cd, plan->obst.g);
 
     planDump(plan);

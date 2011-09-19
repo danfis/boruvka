@@ -82,7 +82,7 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params)
     ferGNGParamsInit(&params->gng);
     ferNNCellsParamsInit(&params->cells);
 
-    params->cells.d = 2;
+    params->cells.dim = 2;
 }
 
 
@@ -122,7 +122,7 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
 
     // initialize NNCells params
     cells_params = params->cells;
-    cells_params.d = params->dim;
+    cells_params.dim = params->dim;
 
     // create GNG object
     gng->gng = ferGNGNew(&gng_ops, &params->gng);

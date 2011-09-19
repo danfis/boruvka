@@ -81,7 +81,7 @@ _fer_inline void __ferNNCellsIDToPos(const fer_nncells_t *cs, size_t id,
 
 void ferNNCellsParamsInit(fer_nncells_params_t *p)
 {
-    p->d           = 2;
+    p->dim         = 2;
     p->num_cells   = 10000;
     p->max_dens    = 1;
     p->expand_rate = FER_REAL(2.);
@@ -100,7 +100,7 @@ fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
 
     c->num_els = 0;
 
-    c->d = params->d;
+    c->d = params->dim;
     if (params->num_cells > 0){
         c->max_dens = 0;
         c->expand   = FER_ZERO;

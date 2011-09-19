@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     params.min_nodes = 100;
     params.start = start;
     params.goal  = goal;
-    params.cells.d = 6;
+    params.cells.dim = 6;
     params.cells.aabb = aabb;
     params.cells.max_dens = 1.;
     params.cells.expand_rate = 1.1;

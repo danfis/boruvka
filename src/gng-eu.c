@@ -72,8 +72,9 @@ void ferGNGEuParamsInit(fer_gng_eu_params_t *params)
     params->beta    = 0.9995;
     params->age_max = 200;
 
-    params->use_cells = 1;
-    ferNNCellsParamsInit(&params->cells);
+    params->use_nn = FER_NN_NNCELLS;
+    ferNNCellsParamsInit(&params->nn.nncells);
+    ferVPTreeParamsInit(&params->nn.vptree);
 }
 
 
@@ -81,7 +82,7 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_eu_ops_t *ops,
                      const fer_gng_eu_params_t *params)
 {
     fer_gng_eu_t *gng_eu;
-    fer_nncells_params_t nnp;
+    fer_nn_params_t nnp;
     size_t i;
     fer_real_t maxbeta;
 
@@ -129,11 +130,12 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_eu_ops_t *ops,
 
 
     // initialize nncells
-    gng_eu->cells = NULL;
-    if (params->use_cells){
-        nnp = params->cells;
-        nnp.d = params->dim;
-        gng_eu->cells = ferNNCellsNew(&nnp);
+    gng_eu->nn = NULL;
+    if (params->use_nn){
+        nnp = params->nn;
+        nnp.nncells.dim = params->dim;
+        nnp.vptree.dim = params->dim;
+        gng_eu->nn = ferNNNew(params->use_nn, &nnp);
     }
 
     // initialize temporary vector
@@ -163,8 +165,8 @@ void ferGNGEuDel(fer_gng_eu_t *gng_eu)
     if (gng_eu->err_heap)
         ferPairHeapDel(gng_eu->err_heap);
 
-    if (gng_eu->cells)
-        ferNNCellsDel(gng_eu->cells);
+    if (gng_eu->nn)
+        ferNNDel(gng_eu->nn);
 
     if (gng_eu->params.dim == 2){
         ferVec2Del((fer_vec2_t *)gng_eu->tmpv);
@@ -684,14 +686,14 @@ _fer_inline void ferGNGEuNearestCells(fer_gng_eu_t *gng,
                                       fer_gng_eu_node_t **n1,
                                       fer_gng_eu_node_t **n2)
 {
-    fer_nncells_el_t *els[2];
+    fer_nn_el_t *els[2];
 
     *n1 = *n2 = NULL;
 
-    ferNNCellsNearest(gng->cells, is, 2, els);
+    ferNNNearest(gng->nn, is, 2, els);
 
-    *n1 = fer_container_of(els[0], fer_gng_eu_node_t, cells);
-    *n2 = fer_container_of(els[1], fer_gng_eu_node_t, cells);
+    *n1 = fer_container_of(els[0], fer_gng_eu_node_t, nn);
+    *n2 = fer_container_of(els[1], fer_gng_eu_node_t, nn);
 }
 
 static void ferGNGEuNearest(fer_gng_eu_t *gng,
@@ -699,7 +701,7 @@ static void ferGNGEuNearest(fer_gng_eu_t *gng,
                             fer_gng_eu_node_t **n1,
                             fer_gng_eu_node_t **n2)
 {
-    if (gng->cells){
+    if (gng->nn){
         ferGNGEuNearestCells(gng, is, n1, n2);
     }else{
         ferGNGEuNearestLinear(gng, is, n1, n2);
@@ -742,7 +744,7 @@ _fer_inline void ferGNGEuMoveTowards(fer_gng_eu_t *gng,
         ferVecAdd(gng->params.dim, n->w, gng->tmpv);
     }
 
-    if (gng->cells){
-        ferNNCellsUpdate(gng->cells, &n->cells);
+    if (gng->nn){
+        ferNNUpdate(gng->nn, &n->nn);
     }
 }

@@ -43,7 +43,7 @@ typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
  * -----------
  */
 struct _fer_nncells_params_t {
-    size_t d;               /*!< Dimension of space. Default: 2 */
+    size_t dim;             /*!< Dimension of space. Default: 2 */
     size_t num_cells;       /*!< Number of cells that should be created.
                                  Note that this is only initial guess -
                                  finite number of cells can be little bit

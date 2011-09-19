@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     params.min_nodes = 100;
     params.start = ferVecNew(2);
     params.goal  = ferVecNew(2);
-    params.cells.d = 2;
+    params.cells.dim = 2;
     params.cells.aabb = aabb;
     params.cells.max_dens = 1;
     params.cells.expand_rate = 1.4;

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
     // create NN search structure
     ferNNCellsParamsInit(&cells_params);
-    cells_params.d           = atoi(argv[1]);
+    cells_params.dim         = atoi(argv[1]);
     cells_params.num_cells   = 0;
     cells_params.max_dens    = 0.1;
     cells_params.expand_rate = 1.5;
