@@ -44,7 +44,7 @@ OBJS += predicates.o
 
 OBJS += pc.o pc-internal.o
 
-OBJS += nncells.o nearest-linear.o
+OBJS += gug.o nearest-linear.o
 OBJS += cubes2.o cubes3.o
 OBJS += vptree.o
 

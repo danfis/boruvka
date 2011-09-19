@@ -57,8 +57,8 @@ void ferRRTParamsInit(fer_rrt_params_t *params)
 {
     params->d = 2;
 
-    params->use_cells = 1;
-    ferNNCellsParamsInit(&params->cells);
+    params->use_gug = 1;
+    ferGUGParamsInit(&params->gug);
 }
 
 fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
@@ -69,7 +69,7 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
     rrt = FER_ALLOC(fer_rrt_t);
 
     rrt->params = *params;
-    rrt->params.cells.dim = rrt->params.d;
+    rrt->params.gug.dim = rrt->params.d;
 
     rrt->ops    = *ops;
     if (rrt->ops.random_data == NULL)
@@ -91,9 +91,9 @@ fer_rrt_t *ferRRTNew(const fer_rrt_ops_t *ops,
 
     rrt->net = ferNetNew();
 
-    rrt->cells = NULL;
-    if (params->use_cells)
-        rrt->cells = ferNNCellsNew(&params->cells);
+    rrt->gug = NULL;
+    if (params->use_gug)
+        rrt->gug = ferGUGNew(&params->gug);
 
     rrt->node_init = NULL;
     rrt->node_last = NULL;
@@ -107,8 +107,8 @@ void ferRRTDel(fer_rrt_t *rrt)
         ferNetDel2(rrt->net, nodeNetDel, (void *)rrt,
                              edgeNetDel, (void *)rrt);
 
-    if (rrt->cells)
-        ferNNCellsDel(rrt->cells);
+    if (rrt->gug)
+        ferGUGDel(rrt->gug);
 
     free(rrt);
 }
@@ -133,7 +133,7 @@ static void ferRRTRunBasicConnect(fer_rrt_t *rrt, const fer_vec_t *init,
         // get nearest node from net
         if (rrt->ops.nearest){
             cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
-        }else if (rrt->params.use_cells){
+        }else if (rrt->params.use_gug){
             cnear = ferRRTNearest(rrt, rand);
         }else{
             fprintf(stderr, "RRT: No 'nearest' callback is set!\n");
@@ -202,7 +202,7 @@ void ferRRTRunBlossom(fer_rrt_t *rrt, const fer_vec_t *init)
         // get nearest node from net
         if (rrt->ops.nearest){
             cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
-        }else if (rrt->params.use_cells){
+        }else if (rrt->params.use_gug){
             cnear = ferRRTNearest(rrt, rand);
         }else{
             fprintf(stderr, "RRT: No 'nearest' callback is set!\n");
@@ -224,7 +224,7 @@ void ferRRTRunBlossom(fer_rrt_t *rrt, const fer_vec_t *init)
             cnear2 = NULL;
             if (rrt->ops.nearest){
                 cnear2 = rrt->ops.nearest(rrt, conf->conf, rrt->ops.nearest_data);
-            }else if (rrt->params.use_cells){
+            }else if (rrt->params.use_gug){
                 cnear2 = ferRRTNearest(rrt, conf->conf);
             }
 
@@ -263,11 +263,11 @@ const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,
 
 const fer_rrt_node_t *ferRRTNearest(const fer_rrt_t *rrt, const fer_vec_t *c)
 {
-    fer_nncells_el_t *el;
+    fer_gug_el_t *el;
     const fer_rrt_node_t *near = NULL;
 
-    if (rrt->cells && ferNNCellsNearest(rrt->cells, c, 1, &el) == 1){
-        near = fer_container_of(el, fer_rrt_node_t, cells);
+    if (rrt->gug && ferGUGNearest(rrt->gug, c, 1, &el) == 1){
+        near = fer_container_of(el, fer_rrt_node_t, gug);
     }
 
     return near;
@@ -444,9 +444,9 @@ static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
 
     ferNetAddNode(rrt->net, &n->node);
 
-    ferNNCellsElInit(&n->cells, n->conf);
-    if (rrt->cells)
-        ferNNCellsAdd(rrt->cells, &n->cells);
+    ferGUGElInit(&n->gug, n->conf);
+    if (rrt->gug)
+        ferGUGAdd(rrt->gug, &n->gug);
 
     return n;
 }

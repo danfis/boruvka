@@ -10,7 +10,7 @@
 #include "mat4.h"
 #include "cubes3.h"
 #include "cubes2.h"
-#include "nncells.h"
+#include "gug.h"
 #include "mesh3.h"
 #include "nearest.h"
 #include "fibo.h"
@@ -36,7 +36,8 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSCubes3),
     TEST_SUITE_ADD(TSCubes2),
-    TEST_SUITE_ADD(TSNNCells),
+    TEST_SUITE_ADD(TSGUG),
+    TEST_SUITE_ADD(TSVPTree),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),
 
@@ -52,8 +53,6 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSTasks),
     TEST_SUITE_ADD(TSTaskPool),
-
-    TEST_SUITE_ADD(TSVPTree),
 
     TEST_SUITES_CLOSURE
 };

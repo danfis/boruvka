@@ -72,9 +72,8 @@ void ferGNGEuParamsInit(fer_gng_eu_params_t *params)
     params->beta    = 0.9995;
     params->age_max = 200;
 
-    params->use_nn = FER_NN_NNCELLS;
-    ferNNCellsParamsInit(&params->nn.nncells);
-    ferVPTreeParamsInit(&params->nn.vptree);
+    params->use_nn = FER_NN_GUG;
+    ferNNParamsInit(&params->nn);
 }
 
 
@@ -133,7 +132,7 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_eu_ops_t *ops,
     gng_eu->nn = NULL;
     if (params->use_nn){
         nnp = params->nn;
-        nnp.nncells.dim = params->dim;
+        nnp.gug.dim = params->dim;
         nnp.vptree.dim = params->dim;
         gng_eu->nn = ferNNNew(params->use_nn, &nnp);
     }

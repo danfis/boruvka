@@ -17,7 +17,7 @@
 #ifndef __FER_NN_H__
 #define __FER_NN_H__
 
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/vptree.h>
 
 /**
@@ -29,7 +29,7 @@
  * this is the easiest way to do that.
  *
  * Currently incorporated algorithms are:
- *     1. :doc:`/fer-nncells.h`
+ *     1. :doc:`/fer-gug.h`
  *     2. :doc:`/fer-vptree.h`
  *
  * See fer_nn_t.
@@ -42,17 +42,23 @@ struct _fer_nn_t {
 typedef struct _fer_nn_t fer_nn_t;
 
 struct _fer_nn_params_t {
-    fer_nncells_params_t nncells;
+    fer_gug_params_t gug;
     fer_vptree_params_t vptree;
 };
 typedef struct _fer_nn_params_t fer_nn_params_t;
+
+/**
+ * Initialize parameters
+ */
+_fer_inline void ferNNParamsInit(fer_nn_params_t *params);
+
 
 /**
  * Types of Algorithms
  * --------------------
  */
 /** vvvv **/
-#define FER_NN_NNCELLS 1
+#define FER_NN_GUG     1
 #define FER_NN_VPTREE  2
 /** ^^^^ **/
 
@@ -127,10 +133,16 @@ _fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
 
 
 /**** INLINES ****/
+_fer_inline void ferNNParamsInit(fer_nn_params_t *params)
+{
+    ferGUGParamsInit(&params->gug);
+    ferVPTreeParamsInit(&params->vptree);
+}
+
 _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        ferNNCellsElInit((fer_nncells_el_t *)el, p);
+    if (nn->type == FER_NN_GUG){
+        ferGUGElInit((fer_gug_el_t *)el, p);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeElInit((fer_vptree_el_t *)el, p);
     }
@@ -140,8 +152,8 @@ _fer_inline fer_nn_t *ferNNNew(uint8_t type, const fer_nn_params_t *params)
 {
     fer_nn_t *nn = NULL;
 
-    if (type == FER_NN_NNCELLS){
-        nn = (fer_nn_t *)ferNNCellsNew(&params->nncells);
+    if (type == FER_NN_GUG){
+        nn = (fer_nn_t *)ferGUGNew(&params->gug);
     }else if (type == FER_NN_VPTREE){
         nn = (fer_nn_t *)ferVPTreeNew(&params->vptree);
     }
@@ -151,8 +163,8 @@ _fer_inline fer_nn_t *ferNNNew(uint8_t type, const fer_nn_params_t *params)
 
 _fer_inline void ferNNDel(fer_nn_t *nn)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        ferNNCellsDel((fer_nncells_t *)nn);
+    if (nn->type == FER_NN_GUG){
+        ferGUGDel((fer_gug_t *)nn);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeDel((fer_vptree_t *)nn);
     }
@@ -160,8 +172,8 @@ _fer_inline void ferNNDel(fer_nn_t *nn)
 
 _fer_inline void ferNNAdd(fer_nn_t *nn, fer_nn_el_t *el)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        ferNNCellsAdd((fer_nncells_t *)nn, (fer_nncells_el_t *)el);
+    if (nn->type == FER_NN_GUG){
+        ferGUGAdd((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeAdd((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
     }
@@ -169,8 +181,8 @@ _fer_inline void ferNNAdd(fer_nn_t *nn, fer_nn_el_t *el)
 
 _fer_inline void ferNNRemove(fer_nn_t *nn, fer_nn_el_t *el)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        ferNNCellsRemove((fer_nncells_t *)nn, (fer_nncells_el_t *)el);
+    if (nn->type == FER_NN_GUG){
+        ferGUGRemove((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeRemove((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
     }
@@ -178,8 +190,8 @@ _fer_inline void ferNNRemove(fer_nn_t *nn, fer_nn_el_t *el)
 
 _fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        ferNNCellsUpdate((fer_nncells_t *)nn, (fer_nncells_el_t *)el);
+    if (nn->type == FER_NN_GUG){
+        ferGUGUpdate((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeUpdate((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
     }
@@ -188,9 +200,9 @@ _fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el)
 _fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
                                 size_t num, fer_nn_el_t **els)
 {
-    if (nn->type == FER_NN_NNCELLS){
-        return ferNNCellsNearest((const fer_nncells_t *)nn, p, num,
-                                 (fer_nncells_el_t **)els);
+    if (nn->type == FER_NN_GUG){
+        return ferGUGNearest((const fer_gug_t *)nn, p, num,
+                                 (fer_gug_el_t **)els);
     }else if (nn->type == FER_NN_VPTREE){
         return ferVPTreeNearest((const fer_vptree_t *)nn, p, num,
                                 (fer_vptree_el_t **)els);

@@ -103,22 +103,22 @@ void ferGNGPParamsInit(fer_gngp_params_t *params)
 
     params->warm_start = 5000;
 
-    ferNNCellsParamsInit(&params->cells);
+    ferGUGParamsInit(&params->gug);
 }
 
 fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
                        const fer_gngp_params_t *params)
 {
     fer_gngp_t *gng;
-    fer_nncells_params_t pcells;
+    fer_gug_params_t pgug;
 
     gng = FER_ALLOC(fer_gngp_t);
 
     gng->net   = ferNetNew();
 
-    pcells   = params->cells;
-    pcells.dim = params->d;
-    gng->cells = ferNNCellsNew(&pcells);
+    pgug   = params->gug;
+    pgug.dim = params->d;
+    gng->gug = ferGUGNew(&pgug);
 
     gng->params = *params;
     gng->beta_n = NULL;
@@ -144,8 +144,8 @@ fer_gngp_t *ferGNGPNew(const fer_gngp_ops_t *ops,
 
 void ferGNGPDel(fer_gngp_t *gng)
 {
-    if (gng->cells)
-        ferNNCellsDel(gng->cells);
+    if (gng->gug)
+        ferGUGDel(gng->gug);
 
     if (gng->net){
         ferNetDel2(gng->net, netNodeDel, NULL,
@@ -449,20 +449,20 @@ static void newNode(fer_gngp_t *gng)
 static int nearest(fer_gngp_t *gng, const fer_vec_t *w,
                    fer_gngp_node_t **n1, fer_gngp_node_t **n2)
 {
-    fer_nncells_el_t *els[2];
+    fer_gug_el_t *els[2];
     fer_gngp_node_t *n;
     size_t found;
 
     els[0] = els[1] = NULL;
-    found = ferNNCellsNearest(gng->cells, w, 2, els);
+    found = ferGUGNearest(gng->gug, w, 2, els);
     if (found != 2){
         DBG2("Not found two nearest nodes! This shouldn't happen!");
         return -1;
     }
 
-    n = fer_container_of(els[0], fer_gngp_node_t, cells);
+    n = fer_container_of(els[0], fer_gngp_node_t, gug);
     *n1 = n;
-    n = fer_container_of(els[1], fer_gngp_node_t, cells);
+    n = fer_container_of(els[1], fer_gngp_node_t, gug);
     *n2 = n;
 
     return 0;
@@ -801,8 +801,8 @@ static fer_gngp_node_t *nodeNew(fer_gngp_t *gng, const fer_vec_t *w)
 
     n->w = ferVecClone(gng->params.d, w);
 
-    ferNNCellsElInit(&n->cells, n->w);
-    ferNNCellsAdd(gng->cells, &n->cells);
+    ferGUGElInit(&n->gug, n->w);
+    ferGUGAdd(gng->gug, &n->gug);
 
     n->err = FER_ZERO;
     n->err_cycle = gng->cycle;
@@ -817,7 +817,7 @@ static void nodeDel(fer_gngp_t *gng, fer_gngp_node_t *n)
 {
     ferVecDel(n->w);
 
-    ferNNCellsRemove(gng->cells, &n->cells);
+    ferGUGRemove(gng->gug, &n->gug);
 
     ferPairHeapRemove(gng->err_heap, &n->err_heap);
 
@@ -866,7 +866,7 @@ static void nodeMoveTowards(fer_gngp_t *gng, fer_gngp_node_t *n,
     ferVecSub2(gng->params.d, move, to, n->w);
     ferVecScale(gng->params.d, move, frac);
     ferVecAdd(gng->params.d, n->w, move);
-    ferNNCellsUpdate(gng->cells, &n->cells);
+    ferGUGUpdate(gng->gug, &n->gug);
 
     // increase error counter
     if (incerr){

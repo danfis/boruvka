@@ -102,10 +102,10 @@ int main(int argc, char *argv[])
     params.min_nodes = 100;
     params.start = plan->start;
     params.goal  = plan->goal;
-    params.cells.dim = plan->dim;
-    params.cells.aabb = plan->aabb;
-    params.cells.max_dens = 0.1;
-    params.cells.expand_rate = 1.1;
+    params.gug.dim = plan->dim;
+    params.gug.aabb = plan->aabb;
+    params.gug.max_dens = 0.1;
+    params.gug.expand_rate = 1.1;
     params.gng.lambda = plan->lambda;
     params.gng.age_max = plan->age_max;
 

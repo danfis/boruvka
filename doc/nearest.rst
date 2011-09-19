@@ -5,7 +5,7 @@ Nearest Neighbor Search
    :maxdepth: 1
 
    fer-nn.h.rst
-   fer-nncells.h.rst
+   fer-gug.h.rst
    fer-nearest-linear.h.rst
    fer-cubes2.h.rst
    fer-cubes3.h.rst

@@ -19,7 +19,7 @@
 
 #include <fermat/gng.h>
 #include <fermat/vec.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/dij.h>
 #include <fermat/pairheap.h>
 
@@ -34,8 +34,8 @@ extern "C" {
 
 struct _fer_gng_plan_node_t {
     fer_gng_node_t node;
-    fer_nncells_el_t cells; /*!< Connection into cells */
-    fer_vec_t *w;           /*!< Weight vector */
+    fer_gug_el_t gug;    /*!< Connection into GUG */
+    fer_vec_t *w;        /*!< Weight vector */
 
     fer_list_t obst; /*!< Connection into list of obstacle nodes */
 
@@ -112,7 +112,7 @@ struct _fer_gng_plan_params_t {
     const fer_vec_t *goal;  /*!< Goal position */
 
     fer_gng_params_t gng;
-    fer_nncells_params_t cells;
+    fer_gug_params_t gug;
 };
 typedef struct _fer_gng_plan_params_t fer_gng_plan_params_t;
 
@@ -140,10 +140,10 @@ struct _fer_gng_plan_t {
     fer_gng_plan_ops_t ops; /*!< Callbacks */
 
     fer_gng_t *gng;
-    fer_nncells_t *cells;
+    fer_gug_t *gug;
 
-    fer_list_t obst;           /*!< List of obstacle nodes */
-    fer_nncells_t *obst_cells; /*!< NNCells for obstacle nodes */
+    fer_list_t obst;     /*!< List of obstacle nodes */
+    fer_gug_t *obst_gug; /*!< GUG for obstacle nodes */
 
     fer_list_t path;
     fer_vec_t *start, *goal; /*!< Start and goal positions */

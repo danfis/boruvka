@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_NNCELLS_H__
-#define __FER_NNCELLS_H__
+#ifndef __FER_GUG_H__
+#define __FER_GUG_H__
 
 #include <fermat/list.h>
 #include <fermat/vec.h>
@@ -25,15 +25,15 @@ extern "C" {
 #endif /* __cplusplus */
 
 /** Internal structure */
-struct _fer_nncells_cell_t {
+struct _fer_gug_cell_t {
     fer_list_t list; /*!< List of all elements inside cell */
 };
-typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
+typedef struct _fer_gug_cell_t fer_gug_cell_t;
 
 
 /**
- * NNCells - Nearest Neighbor Cells
- * =================================
+ * Growing Uniform Grid
+ * =====================
  *
  * TODO: example
  */
@@ -42,7 +42,7 @@ typedef struct _fer_nncells_cell_t fer_nncells_cell_t;
  * Parameters
  * -----------
  */
-struct _fer_nncells_params_t {
+struct _fer_gug_params_t {
     size_t dim;             /*!< Dimension of space. Default: 2 */
     size_t num_cells;       /*!< Number of cells that should be created.
                                  Note that this is only initial guess -
@@ -70,19 +70,19 @@ struct _fer_nncells_params_t {
                                  neighbor search should be used.
                                  Defaule: False */
 };
-typedef struct _fer_nncells_params_t fer_nncells_params_t;
+typedef struct _fer_gug_params_t fer_gug_params_t;
 
 /**
  * Initializes params struct.
  */
-void ferNNCellsParamsInit(fer_nncells_params_t *p);
+void ferGUGParamsInit(fer_gug_params_t *p);
 
 
 /**
- * NNCells
+ * GUG
  * --------
  */
-struct _fer_nncells_t {
+struct _fer_gug_t {
     uint8_t type;        /*!< Type of NN search algorithm. See fermat/nn.h */
 
     size_t d;            /*!< Dimension of covered space */
@@ -102,12 +102,12 @@ struct _fer_nncells_t {
     size_t *dim;               /*!< How many cells are along x, y, ... axis */
     fer_real_t edge;           /*!< Size of edge of one cell */
     fer_real_t edge_recp;      /*!< 1 / .edge */
-    fer_nncells_cell_t *cells; /*!< Array of all cells */
+    fer_gug_cell_t *cells; /*!< Array of all cells */
     size_t cells_len;          /*!< Length of .cells array */
     size_t next_expand;        /*!< Treshold when number of cells should be
                                     expanded */
 };
-typedef struct _fer_nncells_t fer_nncells_t;
+typedef struct _fer_gug_t fer_gug_t;
 
 
 /**
@@ -116,20 +116,20 @@ typedef struct _fer_nncells_t fer_nncells_t;
  *
  * TODO: Example
  */
-struct _fer_nncells_el_t {
+struct _fer_gug_el_t {
     const fer_vec_t *p; /*!< Pointer to user-defined point vector */
     fer_list_t list;    /*!< List struct which is used for connection to cells */
     size_t cell_id;  /*!< Id of cell where is element currently registered,
-                          i.e. .list is connected into fer_nncells_t's
+                          i.e. .list is connected into fer_gug_t's
                           .cells[.cell_id] cell. */
 };
-typedef struct _fer_nncells_el_t fer_nncells_el_t;
+typedef struct _fer_gug_el_t fer_gug_el_t;
 
 /**
  * Initialize element struct.
- * You must call this before adding to nncells.
+ * You must call this before adding to gug.
  */
-_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *p);
+_fer_inline void ferGUGElInit(fer_gug_el_t *el, const fer_vec_t *p);
 
 
 /**
@@ -138,76 +138,76 @@ _fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *p);
  */
 
 /**
- * Creates and initialize new nncells structure.
+ * Creates and initialize new gug structure.
  */
-fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params);
+fer_gug_t *ferGUGNew(const fer_gug_params_t *params);
 
 /**
- * Deletes nncells struct.
+ * Deletes gug struct.
  */
-void ferNNCellsDel(fer_nncells_t *c);
+void ferGUGDel(fer_gug_t *c);
 
 /**
  * Returns number of elements stored in cells.
  */
-_fer_inline size_t ferNNCellsSize(const fer_nncells_t *c);
+_fer_inline size_t ferGUGSize(const fer_gug_t *c);
 
 /**
  * Returns dimension of covered space.
  */
-_fer_inline size_t ferNNCellsD(const fer_nncells_t *c);
+_fer_inline size_t ferGUGD(const fer_gug_t *c);
 
 /**
  * Returns number of cubes alogn x, y, z (, ...) axis.
  */
-_fer_inline const size_t *ferNNCellsDim(const fer_nncells_t *c);
+_fer_inline const size_t *ferGUGDim(const fer_gug_t *c);
 
 /**
  * Returns number cells.
  */
-_fer_inline size_t ferNNCellsCellsLen(const fer_nncells_t *c);
+_fer_inline size_t ferGUGCellsLen(const fer_gug_t *c);
 
 /**
  * Returns size (length) of edge of one cell.
  */
-_fer_inline fer_real_t ferNNCellsCellSize(const fer_nncells_t *c);
+_fer_inline fer_real_t ferGUGCellSize(const fer_gug_t *c);
 
 
 /**
  * Adds element to cells according to its coordinates in space.
  * This function should be called only once.
  *
- * First parameter is pointer to nncells structure.
- * Second parameter is nncells element structure - this structure is used
+ * First parameter is pointer to gug structure.
+ * Second parameter is gug element structure - this structure is used
  * for connection into cubes structure (don't forget to call
- * ferNNCellsElInit()).
+ * ferGUGElInit()).
  */
-_fer_inline void ferNNCellsAdd(fer_nncells_t *cs, fer_nncells_el_t *el);
+_fer_inline void ferGUGAdd(fer_gug_t *cs, fer_gug_el_t *el);
 
 /**
  * Removes element from cells.
  *
- * First parameter is pointer to nncells structure.
+ * First parameter is pointer to gug structure.
  * Second parameter is pointer to struct using which were element
  * connected in cubes.
  */
-_fer_inline void ferNNCellsRemove(fer_nncells_t *cs, fer_nncells_el_t *el);
+_fer_inline void ferGUGRemove(fer_gug_t *cs, fer_gug_el_t *el);
 
 /**
  * Updates elements position in cells.
  * Call this function anytime element is moved. If you don't do that
  * position of element in cells could be incorrect.
  *
- * Parameters are same as in ferNNCellsAdd().
+ * Parameters are same as in ferGUGAdd().
  */
-_fer_inline void ferNNCellsUpdate(fer_nncells_t *cs, fer_nncells_el_t *el);
+_fer_inline void ferGUGUpdate(fer_gug_t *cs, fer_gug_el_t *el);
 
 /**
- * This function si similar to ferNNCellsUpdate() but given element is
+ * This function si similar to ferGUGUpdate() but given element is
  * always removed from cubes and then added again. No checking if
  * re-registering is needed is performed.
  */
-_fer_inline void ferNNCellsUpdateForce(fer_nncells_t *cs, fer_nncells_el_t *el);
+_fer_inline void ferGUGUpdateForce(fer_gug_t *cs, fer_gug_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -216,14 +216,14 @@ _fer_inline void ferNNCellsUpdateForce(fer_nncells_t *cs, fer_nncells_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferNNCellsNearest(const fer_nncells_t *cs, const fer_vec_t *p, size_t num,
-                         fer_nncells_el_t **els);
+size_t ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p, size_t num,
+                         fer_gug_el_t **els);
 
 /**
- * Same as {ferNNCellsNearest} but approximate algorithm is used.
+ * Same as {ferGUGNearest} but approximate algorithm is used.
  */
-size_t ferNNCellsNearestApprox(const fer_nncells_t *cs, const fer_vec_t *p,
-                               size_t num, fer_nncells_el_t **els);
+size_t ferGUGNearestApprox(const fer_gug_t *cs, const fer_vec_t *p,
+                               size_t num, fer_gug_el_t **els);
 
 
 
@@ -233,50 +233,50 @@ size_t ferNNCellsNearestApprox(const fer_nncells_t *cs, const fer_vec_t *p,
  * given coordinates.
  * This function _always_ returns correct ID.
  */
-_fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
+_fer_inline size_t __ferGUGCoordsToID(const fer_gug_t *cs,
                                           const fer_vec_t *p);
 
 
 /** Expands number of cells. This is function for internal use. Don't use it! */
-void __ferNNCellsExpand(fer_nncells_t *cs);
+void __ferGUGExpand(fer_gug_t *cs);
 
 /**** INLINES ****/
-_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *p)
+_fer_inline void ferGUGElInit(fer_gug_el_t *el, const fer_vec_t *p)
 {
     el->p = p;
 }
 
 
-_fer_inline size_t ferNNCellsSize(const fer_nncells_t *c)
+_fer_inline size_t ferGUGSize(const fer_gug_t *c)
 {
     return c->num_els;
 }
 
-_fer_inline size_t ferNNCellsD(const fer_nncells_t *c)
+_fer_inline size_t ferGUGD(const fer_gug_t *c)
 {
     return c->d;
 }
 
-_fer_inline const size_t *ferNNCellsDim(const fer_nncells_t *c)
+_fer_inline const size_t *ferGUGDim(const fer_gug_t *c)
 {
     return c->dim;
 }
 
-_fer_inline size_t ferNNCellsCellsLen(const fer_nncells_t *c)
+_fer_inline size_t ferGUGCellsLen(const fer_gug_t *c)
 {
     return c->cells_len;
 }
 
-_fer_inline fer_real_t ferNNCellsCellSize(const fer_nncells_t *c)
+_fer_inline fer_real_t ferGUGCellSize(const fer_gug_t *c)
 {
     return c->edge;
 }
 
-_fer_inline void ferNNCellsAdd(fer_nncells_t *cs, fer_nncells_el_t *el)
+_fer_inline void ferGUGAdd(fer_gug_t *cs, fer_gug_el_t *el)
 {
     size_t id;
 
-    id = __ferNNCellsCoordsToID(cs, el->p);
+    id = __ferGUGCoordsToID(cs, el->p);
 
     ferListAppend(&cs->cells[id].list, &el->list);
 
@@ -284,10 +284,10 @@ _fer_inline void ferNNCellsAdd(fer_nncells_t *cs, fer_nncells_el_t *el)
     cs->num_els++;
 
     if (cs->num_els >= cs->next_expand)
-        __ferNNCellsExpand(cs);
+        __ferGUGExpand(cs);
 }
 
-_fer_inline void ferNNCellsRemove(fer_nncells_t *cs, fer_nncells_el_t *el)
+_fer_inline void ferGUGRemove(fer_gug_t *cs, fer_gug_el_t *el)
 {
     ferListDel(&el->list);
 
@@ -295,26 +295,26 @@ _fer_inline void ferNNCellsRemove(fer_nncells_t *cs, fer_nncells_el_t *el)
     cs->num_els--;
 }
 
-_fer_inline void ferNNCellsUpdate(fer_nncells_t *cs, fer_nncells_el_t *el)
+_fer_inline void ferGUGUpdate(fer_gug_t *cs, fer_gug_el_t *el)
 {
     size_t id;
 
-    id = __ferNNCellsCoordsToID(cs, el->p);
+    id = __ferGUGCoordsToID(cs, el->p);
     if (id != el->cell_id){
-        ferNNCellsUpdateForce(cs, el);
+        ferGUGUpdateForce(cs, el);
     }
 }
 
-_fer_inline void ferNNCellsUpdateForce(fer_nncells_t *cs, fer_nncells_el_t *el)
+_fer_inline void ferGUGUpdateForce(fer_gug_t *cs, fer_gug_el_t *el)
 {
-    ferNNCellsRemove(cs, el);
-    ferNNCellsAdd(cs, el);
+    ferGUGRemove(cs, el);
+    ferGUGAdd(cs, el);
 }
 
 
 
 
-_fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
+_fer_inline size_t __ferGUGCoordsToID(const fer_gug_t *cs,
                                           const fer_vec_t *p)
 {
     size_t i, tmp, id, mul;
@@ -340,4 +340,4 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_NNCELLS_H__ */
+#endif /* __FER_GUG_H__ */

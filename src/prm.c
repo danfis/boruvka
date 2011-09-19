@@ -31,7 +31,7 @@ static void nodeDelWithEdges(fer_prm_t *prm, fer_prm_node_t *n);
 /** Finds maximaly prm->params.max_neighbors nearest to given node.
  *  Number of found nodes is returned. */
 static size_t findNearest(fer_prm_t *prm, const fer_vec_t *conf,
-                          fer_prm_node_t **nearest, fer_nncells_el_t **els);
+                          fer_prm_node_t **nearest, fer_gug_el_t **els);
 /** Creates new component consisting of one node */
 static void componentNew(fer_prm_t *prm, fer_prm_node_t *n);
 /** Returns true if two nodes belong to same component */
@@ -52,7 +52,7 @@ void ferPRMParamsInit(fer_prm_params_t *params)
     params->max_dist = 0.001;
     params->max_neighbors = 10;
 
-    ferNNCellsParamsInit(&params->cells);
+    ferGUGParamsInit(&params->gug);
 }
 
 
@@ -60,7 +60,7 @@ fer_prm_t *ferPRMNew(const fer_prm_ops_t *ops,
                      const fer_prm_params_t *params)
 {
     fer_prm_t *prm;
-    fer_nncells_params_t pcells;
+    fer_gug_params_t pcells;
 
     prm = FER_ALLOC(fer_prm_t);
 
@@ -79,9 +79,9 @@ fer_prm_t *ferPRMNew(const fer_prm_ops_t *ops,
 
     prm->net = ferNetNew();
 
-    pcells   = params->cells;
+    pcells   = params->gug;
     pcells.dim = params->d;
-    prm->cells = ferNNCellsNew(&pcells);
+    prm->gug = ferGUGNew(&pcells);
 
     ferListInit(&prm->components);
 
@@ -97,8 +97,8 @@ void ferPRMDel(fer_prm_t *prm)
         ferNetDel2(prm->net,
                    nodeNetDel, (void *)prm,
                    edgeNetDel, (void *)prm);
-    if (prm->cells)
-        ferNNCellsDel(prm->cells);
+    if (prm->gug)
+        ferGUGDel(prm->gug);
 
     while (!ferListEmpty(&prm->components)){
         item = ferListNext(&prm->components);
@@ -115,12 +115,12 @@ void ferPRMRun(fer_prm_t *prm)
     const fer_vec_t *c;
     fer_prm_node_t *cn;
     fer_prm_node_t **nearest;
-    fer_nncells_el_t **tmp_nearest;
+    fer_gug_el_t **tmp_nearest;
     size_t i, nearest_len;
     unsigned long counter = 1;
 
     nearest = FER_ALLOC_ARR(fer_prm_node_t *, prm->params.max_neighbors);
-    tmp_nearest = FER_ALLOC_ARR(fer_nncells_el_t *, prm->params.max_neighbors);
+    tmp_nearest = FER_ALLOC_ARR(fer_gug_el_t *, prm->params.max_neighbors);
 
     while (!prm->ops.terminate(prm->ops.terminate_data)){
         // obtain random configuration
@@ -323,8 +323,8 @@ static fer_prm_node_t *nodeNew(fer_prm_t *prm, const fer_vec_t *p)
     n->comp = NULL;
     ferNetAddNode(prm->net, &n->node);
 
-    ferNNCellsElInit(&n->cells, n->conf);
-    ferNNCellsAdd(prm->cells, &n->cells);
+    ferGUGElInit(&n->gug, n->conf);
+    ferGUGAdd(prm->gug, &n->gug);
 
     return n;
 }
@@ -334,7 +334,7 @@ static void nodeDel(fer_prm_t *prm, fer_prm_node_t *n)
     if (n->conf)
         ferVecDel(n->conf);
     ferNetRemoveNode(prm->net, &n->node);
-    ferNNCellsRemove(prm->cells, &n->cells);
+    ferGUGRemove(prm->gug, &n->gug);
     free(n);
 }
 
@@ -380,16 +380,16 @@ static void edgeNetDel(fer_net_edge_t *n, void *_)
 
 
 static size_t findNearest(fer_prm_t *prm, const fer_vec_t *conf,
-                          fer_prm_node_t **nearest, fer_nncells_el_t **els)
+                          fer_prm_node_t **nearest, fer_gug_el_t **els)
 {
     size_t size, found;
     fer_prm_node_t *m;
 
-    size = ferNNCellsNearest(prm->cells, conf,
+    size = ferGUGNearest(prm->gug, conf,
                               prm->params.max_neighbors, els);
 
     for (found = 0; found < size; found++){
-        m = fer_container_of(els[found], fer_prm_node_t, cells);
+        m = fer_container_of(els[found], fer_prm_node_t, gug);
 
         if (ferVecDist(prm->params.d, m->conf, conf) < prm->params.max_dist){
             nearest[found] = m;
@@ -441,12 +441,12 @@ static fer_prm_component_t *topComponent(const fer_prm_node_t *n)
 static fer_prm_node_t *connectNewNode(fer_prm_t *prm, const fer_vec_t *c)
 {
     fer_prm_node_t **nearest;
-    fer_nncells_el_t **tmp_nearest;
+    fer_gug_el_t **tmp_nearest;
     size_t nearest_len, i;
     fer_prm_node_t *n;
 
     nearest = FER_ALLOC_ARR(fer_prm_node_t *, prm->params.max_neighbors);
-    tmp_nearest = FER_ALLOC_ARR(fer_nncells_el_t *, prm->params.max_neighbors);
+    tmp_nearest = FER_ALLOC_ARR(fer_gug_el_t *, prm->params.max_neighbors);
 
     nearest_len = findNearest(prm, c, nearest, tmp_nearest);
 

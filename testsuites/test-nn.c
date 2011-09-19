@@ -1,7 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/cubes2.h>
 #include <fermat/nearest-linear.h>
 #include <fermat/rand.h>
@@ -10,7 +10,7 @@
 
 struct _el_t {
     fer_vec2_t v;
-    fer_nncells_el_t c;
+    fer_gug_el_t c;
     fer_cubes2_el_t c2;
     fer_list_t list;
 };
@@ -34,19 +34,19 @@ static void elNew(el_t *ns, size_t len, fer_list_t *head)
         y = ferRand(&r, -20., 20.);
 
         ferVec2Set(&ns[i].v, x, y);
-        ferNNCellsElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
+        ferGUGElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
         ferCubes2ElInit(&ns[i].c2, &ns[i].v);
 
         ferListAppend(head, &ns[i].list);
     }
 }
 
-static void elAdd(fer_nncells_t *cs, fer_cubes2_t *cs2, el_t *ns, size_t len)
+static void elAdd(fer_gug_t *cs, fer_cubes2_t *cs2, el_t *ns, size_t len)
 {
     size_t i;
 
     for (i = 0; i < len; i++){
-        ferNNCellsAdd(cs, &ns[i].c);
+        ferGUGAdd(cs, &ns[i].c);
         ferCubes2Add(cs2, &ns[i].c2);
     }
 }
@@ -66,28 +66,28 @@ static void testCorrect(void)
     fer_vec2_t v;
     fer_list_t head;
     el_t *ns;
-    fer_nncells_el_t *nsc[50];
+    fer_gug_el_t *nsc[50];
     fer_cubes2_el_t *nsc2[50];
     fer_list_t *nsl[50];
     el_t *near[10];
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_cubes2_t *cs2;
     fer_real_t range[4] = { -15., 15., -18., 17. };
     size_t num = 500, i, j, k;
     int incorrect = 0;
 
-    printf("nncells2Nearest:\n");
+    printf("gug2Nearest:\n");
 
     ns = (el_t *)malloc(sizeof(el_t) * arr_len);
 
-    ferNNCellsParamsInit(&params);
-    params.d = 2;
+    ferGUGParamsInit(&params);
+    params.dim = 2;
     params.num_cells = 0;
     params.max_dens = 1;
     params.expand_rate = 2.;
     params.aabb = range;
-    cs = ferNNCellsNew(&params);
+    cs = ferGUGNew(&params);
     cs2 = ferCubes2New(range, num);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, arr_len, &head);
@@ -98,7 +98,7 @@ static void testCorrect(void)
             fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
+            ferGUGNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
             ferCubes2Nearest(cs2, &v, k + 1, nsc2);
             ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
 
@@ -121,7 +121,7 @@ static void testCorrect(void)
         }
     }
 
-    ferNNCellsDel(cs);
+    ferGUGDel(cs);
     ferCubes2Del(cs2);
 
     free(ns);
@@ -133,12 +133,12 @@ static void bench(void)
     fer_vec2_t v;
     fer_list_t head;
     el_t *ns;
-    fer_nncells_el_t *nsc[50];
+    fer_gug_el_t *nsc[50];
     fer_cubes2_el_t *nsc2[50];
     fer_list_t *nsl[50];
     el_t *near[10];
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_cubes2_t *cs2;
     fer_real_t range[4] = { -9., 9., -11., 7. };
     size_t num = 40, i, j, k;
@@ -149,13 +149,13 @@ static void bench(void)
 
     ns = (el_t *)malloc(sizeof(el_t) * arr_len);
 
-    ferNNCellsParamsInit(&params);
-    params.d = 2;
+    ferGUGParamsInit(&params);
+    params.dim = 2;
     params.num_cells = 0;
     params.max_dens = 1;
     params.expand_rate = 2.;
     params.aabb = range;
-    cs = ferNNCellsNew(&params);
+    cs = ferGUGNew(&params);
     cs2 = ferCubes2New(range, num);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, arr_len, &head);
@@ -164,22 +164,22 @@ static void bench(void)
     for (k = 0; k < nearest_len; k++){
         ferTimerStart(&timer);
         for (i=0; i < loops; i++){
-            //fprintf(stderr, "nncells [%d] %08d / %08d\r", k, i, loops);
+            //fprintf(stderr, "gug [%d] %08d / %08d\r", k, i, loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
+            ferGUGNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);
                 write(devnull, &near[0]->v, 1);
             }
         }
         ferTimerStop(&timer);
-        ferTimerPrintElapsed(&timer, stderr, " - [%d] - nncells -                \n", k);
+        ferTimerPrintElapsed(&timer, stderr, " - [%d] - gug -                \n", k);
 
 
         ferTimerStart(&timer);
         for (i=0; i < loops; i++){
-            //fprintf(stderr, "nncells [%d] %08d / %08d\r", k, i, loops);
+            //fprintf(stderr, "gug [%d] %08d / %08d\r", k, i, loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
             ferCubes2Nearest(cs2, &v, k + 1, nsc2);
@@ -194,7 +194,7 @@ static void bench(void)
 
         ferTimerStart(&timer);
         for (i=0; i < loops; i++){
-            //fprintf(stderr, "nncells [%d] %08d / %08d\r", k, i, loops);
+            //fprintf(stderr, "gug [%d] %08d / %08d\r", k, i, loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
             ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
@@ -208,7 +208,7 @@ static void bench(void)
 
     }
 
-    ferNNCellsDel(cs);
+    ferGUGDel(cs);
 
     free(ns);
 

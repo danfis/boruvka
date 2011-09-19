@@ -50,7 +50,7 @@ static struct option options[] = {
     { "alpha",     required_argument, NULL, ALPHA },
     { "age-max",   required_argument, NULL, AGE_MAX },
     { "max-nodes", required_argument, NULL, MAX_NODES },
-    { "num-cells", required_argument, NULL, NUM_CELLS },
+    { "num-gug", required_argument, NULL, NUM_CELLS },
     { "min-dangle", required_argument, NULL, MIN_DANGLE },
     { "max-angle", required_argument, NULL, MAX_ANGLE },
     { "angle-merge-edges", required_argument, NULL, ANGLE_MERGE_EDGES },
@@ -150,9 +150,9 @@ void readOptions(int argc, char *argv[])
 
     ferGSRMParamsInit(&params);
     params.verbosity = 1;
-    params.cells.num_cells = 0;
-    params.cells.max_dens = 0.1;
-    params.cells.expand_rate = 1.5;
+    params.gug.num_cells = 0;
+    params.gug.max_dens = 0.1;
+    params.gug.expand_rate = 1.5;
 
     while ((c = getopt_long(argc, argv, "hvo:", options, &option_index)) != -1){
         switch(c){
@@ -201,8 +201,8 @@ void readOptions(int argc, char *argv[])
                 break;
             case NUM_CELLS:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "num-cells must be fixed point number");
-                params.cells.num_cells = iv;
+                    usage(argc, argv, "num-gug must be fixed point number");
+                params.gug.num_cells = iv;
                 break;
 
             case MIN_DANGLE:
@@ -294,9 +294,9 @@ void printAttrs(void)
     fprintf(stderr, "    age_max:   %d\n", (int)param->age_max);
     fprintf(stderr, "    max nodes: %d\n", (int)param->max_nodes);
     fprintf(stderr, "\n");
-    fprintf(stderr, "    num cells:   %d\n", (int)param->cells.num_cells);
-    fprintf(stderr, "    max dens:    %f\n", (float)param->cells.max_dens);
-    fprintf(stderr, "    expand rate: %f\n", (float)param->cells.expand_rate);
+    fprintf(stderr, "    num cells:   %d\n", (int)param->gug.num_cells);
+    fprintf(stderr, "    max dens:    %f\n", (float)param->gug.max_dens);
+    fprintf(stderr, "    expand rate: %f\n", (float)param->gug.expand_rate);
     fprintf(stderr, "\n");
     fprintf(stderr, "    min d. angle:  %f\n", (float)param->min_dangle);
     fprintf(stderr, "    max angle:     %f\n", (float)param->max_angle);

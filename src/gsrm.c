@@ -26,7 +26,7 @@
                          (g)->params.max_nodes, \
                          ferMesh3EdgesLen((g)->mesh), \
                          ferMesh3FacesLen((g)->mesh), \
-                         ferNNCellsCellsLen((g)->cells)); \
+                         ferGUGCellsLen((g)->gug)); \
     fflush(stderr)
 
 #define PR_PROGRESS_PREFIX(g, prefix) \
@@ -36,7 +36,7 @@
                          (g)->params.max_nodes, \
                          ferMesh3EdgesLen((g)->mesh), \
                          ferMesh3FacesLen((g)->mesh), \
-                         ferNNCellsCellsLen((g)->cells)); \
+                         ferGUGCellsLen((g)->gug)); \
     fflush(stderr)
 
 
@@ -48,7 +48,7 @@ struct _node_t {
     fer_pairheap_node_t err_heap; /*!< Connection into error heap */
 
     fer_mesh3_vertex_t vert; /*!< Vertex in mesh */
-    fer_nncells_el_t cells;  /*!< Struct for NN search */
+    fer_gug_el_t gug;        /*!< Struct for NN search */
 };
 typedef struct _node_t node_t;
 
@@ -233,8 +233,8 @@ void ferGSRMParamsInit(fer_gsrm_params_t *params)
 
     params->verbosity = 1;
 
-    ferNNCellsParamsInit(&params->cells);
-    params->cells.dim = 3;
+    ferGUGParamsInit(&params->gug);
+    params->gug.dim = 3;
 }
 
 fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
@@ -250,9 +250,9 @@ fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
     // init 3D mesh
     g->mesh = ferMesh3New();
 
-    // init nncells for NN search to NULL, actual allocation will be made
+    // init gug for NN search to NULL, actual allocation will be made
     // after we know what area do we need to cover
-    g->cells = NULL;
+    g->gug = NULL;
 
     g->c = NULL;
 
@@ -278,8 +278,8 @@ void ferGSRMDel(fer_gsrm_t *g)
                               edgeDel2, (void *)g,
                               faceDel2, (void *)g);
 
-    if (g->cells)
-        ferNNCellsDel(g->cells);
+    if (g->gug)
+        ferGUGDel(g->gug);
 
     if (g->beta_n)
         free(g->beta_n);
@@ -478,12 +478,12 @@ static int init(fer_gsrm_t *g)
         g->c = cacheNew();
 
     // initialize NN search structure
-    if (g->cells)
-        ferNNCellsDel(g->cells);
+    if (g->gug)
+        ferGUGDel(g->gug);
     ferPCAABB(g->is, aabb);
-    g->params.cells.dim    = 3;
-    g->params.cells.aabb = aabb;
-    g->cells = ferNNCellsNew(&g->params.cells);
+    g->params.gug.dim    = 3;
+    g->params.gug.aabb = aabb;
+    g->gug = ferGUGNew(&g->params.gug);
 
     // first shuffle of all input signals
     ferPCPermutate(g->is);
@@ -549,12 +549,12 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
     ferMesh3VertexSetCoords(&n->vert, n->v);
 
     // initialize cells struct with its own weight vector
-    ferNNCellsElInit(&n->cells, (fer_vec_t *)n->v);
+    ferGUGElInit(&n->gug, (fer_vec_t *)n->v);
 
     // add node into mesh
     ferMesh3AddVertex(g->mesh, &n->vert);
     // and add node into cells
-    ferNNCellsAdd(g->cells, &n->cells);
+    ferGUGAdd(g->gug, &n->gug);
 
     // set error counter
     n->err = FER_ZERO;
@@ -626,7 +626,7 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     ferVec3Del(n->v);
 
     // remove node from cells
-    ferNNCellsRemove(g->cells, &n->cells);
+    ferGUGRemove(g->gug, &n->gug);
 
     // remove from error heap
     ferPairHeapRemove(g->err_heap, &n->err_heap);
@@ -644,7 +644,7 @@ static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
     ferVec3Del(n->v);
 
     // remove node from cells
-    ferNNCellsRemove(g->cells, &n->cells);
+    ferGUGRemove(g->gug, &n->gug);
 
     free(n);
 }
@@ -774,12 +774,12 @@ static void drawInputPoint(fer_gsrm_t *g)
 /** --- ECHL functions --- **/
 static void echl(fer_gsrm_t *g)
 {
-    fer_nncells_el_t *el[2];
+    fer_gug_el_t *el[2];
 
     // 1. Find two nearest nodes
-    ferNNCellsNearest(g->cells, (const fer_vec_t *)g->c->is, 2, el);
-    g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
-    g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
+    ferGUGNearest(g->gug, (const fer_vec_t *)g->c->is, 2, el);
+    g->c->nearest[0] = fer_container_of(el[0], node_t, gug);
+    g->c->nearest[1] = fer_container_of(el[1], node_t, gug);
 
     // 2. Connect winning nodes
     echlConnectNodes(g);
@@ -1113,7 +1113,7 @@ static void learnTopology(fer_gsrm_t *g)
 {
     fer_vec_t *is;
     fer_pc_it_t pcit;
-    fer_nncells_el_t *el[2];
+    fer_gug_el_t *el[2];
 
     // for each input point
     ferPCItInit(&pcit, g->is);
@@ -1121,9 +1121,9 @@ static void learnTopology(fer_gsrm_t *g)
         is = ferPCItGet(&pcit);
 
         // 1. Find two nearest nodes
-        ferNNCellsNearest(g->cells, is, 2, el);
-        g->c->nearest[0] = fer_container_of(el[0], node_t, cells);
-        g->c->nearest[1] = fer_container_of(el[1], node_t, cells);
+        ferGUGNearest(g->gug, is, 2, el);
+        g->c->nearest[0] = fer_container_of(el[0], node_t, gug);
+        g->c->nearest[1] = fer_container_of(el[1], node_t, gug);
 
         // 2. Connect winning nodes
         echlConnectNodes(g);

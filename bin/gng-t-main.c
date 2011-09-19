@@ -4,7 +4,7 @@
 #include <fermat/timer.h>
 #include <fermat/gng-t.h>
 #include <fermat/pc.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/alloc.h>
 #include <fermat/vec3.h>
 
@@ -12,7 +12,7 @@ struct _node_t {
     fer_gngt_node_t node;
 
     fer_vec_t *w;
-    fer_nncells_el_t cells;
+    fer_gug_el_t gug;
 
     int _id;
 };
@@ -27,8 +27,8 @@ fer_gngt_params_t params;
 fer_gngt_ops_t ops;
 fer_gngt_t *gng;
 
-fer_nncells_params_t cells_params;
-fer_nncells_t *cells;
+fer_gug_params_t gug_params;
+fer_gug_t *gug;
 
 fer_timer_t timer;
 
@@ -76,14 +76,14 @@ int main(int argc, char *argv[])
 
 
     // create NN search structure
-    ferNNCellsParamsInit(&cells_params);
-    cells_params.dim         = atoi(argv[1]);
-    cells_params.num_cells   = 0;
-    cells_params.max_dens    = 0.1;
-    cells_params.expand_rate = 1.5;
+    ferGUGParamsInit(&gug_params);
+    gug_params.dim         = atoi(argv[1]);
+    gug_params.num_cells   = 0;
+    gug_params.max_dens    = 0.1;
+    gug_params.expand_rate = 1.5;
     ferPCAABB(pc, aabb);
-    cells_params.aabb = aabb;
-    cells = ferNNCellsNew(&cells_params);
+    gug_params.aabb = aabb;
+    gug = ferGUGNew(&gug_params);
 
     // create GNG-T
     ferGNGTParamsInit(&params);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     dumpSVT(gng, stdout, NULL);
 
     ferGNGTDel(gng);
-    ferNNCellsDel(cells);
+    ferGUGDel(gug);
     ferPCDel(pc);
 
     return 0;
@@ -170,8 +170,8 @@ static fer_gngt_node_t *new_node(const void *is, void *_)
 
     n = FER_ALLOC(node_t);
     n->w = ferVecClone(dim, (const fer_vec_t *)is);
-    ferNNCellsElInit(&n->cells, n->w);
-    ferNNCellsAdd(cells, &n->cells);
+    ferGUGElInit(&n->gug, n->w);
+    ferGUGAdd(gug, &n->gug);
 
     return &n->node;
 }
@@ -192,7 +192,7 @@ static void del_node(fer_gngt_node_t *_n, void *_)
 {
     node_t *n = fer_container_of(_n, node_t, node);
 
-    ferNNCellsRemove(cells, &n->cells);
+    ferGUGRemove(gug, &n->gug);
     ferVecDel(n->w);
     free(n);
 }
@@ -201,12 +201,12 @@ static void nearest(const void *is,
                     fer_gngt_node_t **n1,
                     fer_gngt_node_t **n2, void *_)
 {
-    fer_nncells_el_t *els[2];
+    fer_gug_el_t *els[2];
     node_t *ns[2];
 
-    ferNNCellsNearest(cells, (const fer_vec_t *)is, 2, els);
-    ns[0] = fer_container_of(els[0], node_t, cells);
-    ns[1] = fer_container_of(els[1], node_t, cells);
+    ferGUGNearest(gug, (const fer_vec_t *)is, 2, els);
+    ns[0] = fer_container_of(els[0], node_t, gug);
+    ns[1] = fer_container_of(els[1], node_t, gug);
     *n1 = &ns[0]->node;
     *n2 = &ns[1]->node;
 }
@@ -231,7 +231,7 @@ static void move_towards(fer_gngt_node_t *node,
     ferVecScale(dim, tmpv, fraction);
     ferVecAdd(dim, n->w, tmpv);
 
-    ferNNCellsUpdate(cells, &n->cells);
+    ferGUGUpdate(gug, &n->gug);
 }
 
 static void dumpSVT(fer_gngt_t *gng, FILE *out, const char *name)

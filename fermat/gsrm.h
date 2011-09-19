@@ -21,7 +21,7 @@
 #include <fermat/timer.h>
 #include <fermat/pc.h>
 #include <fermat/mesh3.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/pairheap.h>
 
 #ifdef __cplusplus
@@ -59,7 +59,7 @@ struct _fer_gsrm_params_t {
 
     int verbosity; /*!< Verbosity level */
 
-    fer_nncells_params_t cells; /*!< NNCells parameters */
+    fer_gug_params_t gug; /*!< GUG parameters */
 };
 typedef struct _fer_gsrm_params_t fer_gsrm_params_t;
 
@@ -71,10 +71,10 @@ void ferGSRMParamsInit(fer_gsrm_params_t *params);
 struct _fer_gsrm_t {
     fer_gsrm_params_t params; /*!< Parameters of algorithm */
 
-    fer_pc_t *is;         /*!< Input signals */
-    fer_pc_it_t isit;     /*!< Iterator over is */
-    fer_mesh3_t *mesh;    /*!< Reconstructed mesh */
-    fer_nncells_t *cells; /*!< Search structure for nearest neighbor */
+    fer_pc_t *is;      /*!< Input signals */
+    fer_pc_it_t isit;  /*!< Iterator over is */
+    fer_mesh3_t *mesh; /*!< Reconstructed mesh */
+    fer_gug_t *gug;    /*!< Search structure for nearest neighbor */
 
     fer_real_t *beta_n;        /*!< Precomputed beta^n for n = 1, ..., lambda */
     fer_real_t *beta_lambda_n; /*!< Precomputed beta^(n*lambda) for

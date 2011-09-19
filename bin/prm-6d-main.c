@@ -60,10 +60,10 @@ int main(int argc, char *argv[])
     params.d = 6;
     params.max_neighbors = 10;
     params.max_dist      = 5.;
-    params.cells.num_cells = 0;
-    params.cells.max_dens  = 1;
-    params.cells.expand_rate = 1.2;
-    params.cells.aabb = aabb;
+    params.gug.num_cells = 0;
+    params.gug.max_dens  = 1;
+    params.gug.expand_rate = 1.2;
+    params.gug.aabb = aabb;
 
     ops.data      = NULL;
     ops.conf      = confcb;

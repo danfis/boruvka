@@ -1,5 +1,5 @@
 #include <cu/cu.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/vec2.h>
 #include <fermat/rand.h>
 #include <fermat/nearest-linear.h>
@@ -7,101 +7,101 @@
 
 static fer_rand_t r;
 
-TEST(nncellsSetUp)
+TEST(gugSetUp)
 {
     ferRandInit(&r);
 }
 
-TEST(nncellsTearDown)
+TEST(gugTearDown)
 {
 }
 
-TEST(nncellsNew2)
+TEST(gugNew2)
 {
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_real_t bound[4] = { -3, 2, 1, 4 };
 
-    ferNNCellsParamsInit(&params);
-    params.d = 2;
+    ferGUGParamsInit(&params);
+    params.dim = 2;
     params.aabb = bound;
     params.num_cells = 10;
-    cs = ferNNCellsNew(&params);
-    assertEquals(ferNNCellsD(cs), 2);
-    assertEquals(ferNNCellsSize(cs), 0);
-    ferNNCellsDel(cs);
+    cs = ferGUGNew(&params);
+    assertEquals(ferGUGD(cs), 2);
+    assertEquals(ferGUGSize(cs), 0);
+    ferGUGDel(cs);
 }
 
 struct _el_t {
     fer_vec2_t v;
-    fer_nncells_el_t c;
+    fer_gug_el_t c;
     fer_list_t list;
 };
 typedef struct _el_t el_t;
 
-TEST(nncellsEl2)
+TEST(gugEl2)
 {
     el_t n;
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_real_t range[6] = { -1., 1.,
                             -2., 2. };
     size_t num = 16;
     const size_t *dim;
 
-    printf("nncellsNode:\n");
+    printf("gugNode:\n");
 
     ferVec2Set(&n.v, 0., 0.);
-    ferNNCellsElInit(&n.c, (const fer_vec_t *)&n.v);
+    ferGUGElInit(&n.c, (const fer_vec_t *)&n.v);
 
-    ferNNCellsParamsInit(&params);
-    params.d = 2;
+    ferGUGParamsInit(&params);
+    params.dim = 2;
     params.aabb = range;
     params.num_cells = num;
-    cs = ferNNCellsNew(&params);
+    cs = ferGUGNew(&params);
 
-    ferNNCellsAdd(cs, &n.c);
+    ferGUGAdd(cs, &n.c);
 
-    printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
-    printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
-    dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
+    printf("cube size: %f\n", (float)ferGUGCellSize(cs));
+    printf("gug2 len: %d\n", (int)ferGUGCellsLen(cs));
+    dim = ferGUGDim(cs);
+    printf("gug2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
-    //assertEquals(ferNNCellsCubeId(cs, n), 22);
+    //assertEquals(ferGUGCubeId(cs, n), 22);
 
     ferVec2Set(&n.v, 0.8, 0.2);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 11);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 11);
     assertEquals(n.c.cell_id, 11);
 
     ferVec2Set(&n.v, 0.8, -0.7);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 5);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 5);
     assertEquals(n.c.cell_id, 5);
 
     ferVec2Set(&n.v, -0.2, -1.1);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 4);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 4);
     assertEquals(n.c.cell_id, 4);
 
     ferVec2Set(&n.v, -10., -10.);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 0);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 0);
     assertEquals(n.c.cell_id, 0);
 
     ferVec2Set(&n.v, 10., 10.);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 17);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 17);
     assertEquals(n.c.cell_id, 17);
 
     ferVec2Set(&n.v, 10., 1.2);
-    ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 14);
+    ferGUGUpdate(cs, &n.c);
+    assertEquals(__ferGUGCoordsToID(cs, n.c.p), 14);
     assertEquals(n.c.cell_id, 14);
 
-    ferNNCellsDel(cs);
+    ferGUGDel(cs);
 
-    printf("------ nncellsNode\n\n");
+    printf("------ gugNode\n\n");
 }
 
 static void elNew(el_t *ns, size_t len, fer_list_t *head)
@@ -116,18 +116,18 @@ static void elNew(el_t *ns, size_t len, fer_list_t *head)
         y = ferRand(&r, -10., 10.);
 
         ferVec2Set(&ns[i].v, x, y);
-        ferNNCellsElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
+        ferGUGElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
 
         ferListAppend(head, &ns[i].list);
     }
 }
 
-static void elAdd(fer_nncells_t *cs, el_t *ns, size_t len)
+static void elAdd(fer_gug_t *cs, el_t *ns, size_t len)
 {
     size_t i;
 
     for (i = 0; i < len; i++){
-        ferNNCellsAdd(cs, &ns[i].c);
+        ferGUGAdd(cs, &ns[i].c);
     }
 }
 
@@ -143,44 +143,44 @@ static fer_real_t dist2(void *item1, fer_list_t *item2, void *_)
 
 #define N_LEN 500
 #define N_LOOPS 2000
-TEST(nncellsNearest2)
+TEST(gugNearest2)
 {
     fer_vec2_t v;
     fer_list_t head;
     el_t ns[N_LEN];
-    fer_nncells_el_t *nsc[5];
+    fer_gug_el_t *nsc[5];
     fer_list_t *nsl[5];
     el_t *near[10];
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_real_t range[4] = { -9., 9., -11., 7. };
     size_t i, j, k;
     const size_t *dim;
 
-    printf("nncells2Nearest:\n");
+    printf("gug2Nearest:\n");
 
-    ferNNCellsParamsInit(&params);
-    params.d = 2;
+    ferGUGParamsInit(&params);
+    params.dim = 2;
     params.num_cells = 0;
     params.max_dens = 1;
     params.expand_rate = 2.;
     params.aabb = range;
-    cs = ferNNCellsNew(&params);
+    cs = ferGUGNew(&params);
     ferVec2Set(&v, 0., 0.1);
     elNew(ns, N_LEN, &head);
     elAdd(cs, ns, N_LEN);
 
 
-    printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
-    printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
-    dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
+    printf("cube size: %f\n", (float)ferGUGCellSize(cs));
+    printf("gug2 len: %d\n", (int)ferGUGCellsLen(cs));
+    dim = ferGUGDim(cs);
+    printf("gug2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNCellsNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
+            ferGUGNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
             ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
@@ -191,15 +191,15 @@ TEST(nncellsNearest2)
         }
     }
 
-    ferNNCellsDel(cs);
+    ferGUGDel(cs);
 
-    printf("------ nncellsNearest\n\n");
+    printf("------ gugNearest\n\n");
 }
 
 
 struct _el6_t {
     FER_VEC(v, 6);
-    fer_nncells_el_t c;
+    fer_gug_el_t c;
     fer_list_t list;
 };
 typedef struct _el6_t el6_t;
@@ -215,18 +215,18 @@ static void el6New(el6_t *ns, size_t len, fer_list_t *head)
             ferVecSet(ns[i].v, j, ferRand(&r, -10., 10.));
         }
 
-        ferNNCellsElInit(&ns[i].c, ns[i].v);
+        ferGUGElInit(&ns[i].c, ns[i].v);
 
         ferListAppend(head, &ns[i].list);
     }
 }
 
-static void el6Add(fer_nncells_t *cs, el6_t *ns, size_t len)
+static void el6Add(fer_gug_t *cs, el6_t *ns, size_t len)
 {
     size_t i;
 
     for (i = 0; i < len; i++){
-        ferNNCellsAdd(cs, &ns[i].c);
+        ferGUGAdd(cs, &ns[i].c);
     }
 }
 
@@ -240,37 +240,37 @@ static fer_real_t dist62(void *item1, fer_list_t *item2, void *_)
     return ferVecDist2(6, v, el2->v);
 }
 
-TEST(nncellsNearest6)
+TEST(gugNearest6)
 {
     FER_VEC(v, 6);
     fer_list_t head;
     el6_t ns[N_LEN];
-    fer_nncells_el_t *nsc[5];
+    fer_gug_el_t *nsc[5];
     fer_list_t *nsl[5];
     el6_t *near[10];
-    fer_nncells_t *cs;
-    fer_nncells_params_t params;
+    fer_gug_t *cs;
+    fer_gug_params_t params;
     fer_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
     size_t i, j, k;
     const size_t *dim;
 
-    printf("nncells6Nearest:\n");
+    printf("gug6Nearest:\n");
 
-    ferNNCellsParamsInit(&params);
-    params.d = 6;
+    ferGUGParamsInit(&params);
+    params.dim = 6;
     params.num_cells = 0;
     params.max_dens = 1;
     params.expand_rate = 2.;
     params.aabb = range;
-    cs = ferNNCellsNew(&params);
+    cs = ferGUGNew(&params);
     el6New(ns, N_LEN, &head);
     el6Add(cs, ns, N_LEN);
 
 
-    printf("cube size: %f\n", (float)ferNNCellsCellSize(cs));
-    printf("nncells2 len: %d\n", (int)ferNNCellsCellsLen(cs));
-    dim = ferNNCellsDim(cs);
-    printf("nncells2 dim: %d %d %d %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2], (int)dim[3], (int)dim[4], (int)dim[5]);
+    printf("cube size: %f\n", (float)ferGUGCellSize(cs));
+    printf("gug2 len: %d\n", (int)ferGUGCellsLen(cs));
+    dim = ferGUGDim(cs);
+    printf("gug2 dim: %d %d %d %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2], (int)dim[3], (int)dim[4], (int)dim[5]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){
@@ -278,7 +278,7 @@ TEST(nncellsNearest6)
                 ferVecSet(v, j, ferRand(&r, -10., 10.));
             }
 
-            ferNNCellsNearest(cs, v, k + 1, nsc);
+            ferGUGNearest(cs, v, k + 1, nsc);
             ferNearestLinear(&head, v, dist62, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
@@ -289,7 +289,7 @@ TEST(nncellsNearest6)
         }
     }
 
-    ferNNCellsDel(cs);
+    ferGUGDel(cs);
 
-    printf("------ nncells6Nearest\n\n");
+    printf("------ gug6Nearest\n\n");
 }

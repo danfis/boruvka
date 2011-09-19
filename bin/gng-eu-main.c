@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
 
     ferGNGEuParamsInit(&params);
     params.dim = atoi(argv[1]);
-    params.use_nn = FER_NN_NNCELLS;
+    params.use_nn = FER_NN_GUG;
     //params.use_nn = FER_NN_VPTREE;
-    params.nn.nncells.num_cells = 0;
-    params.nn.nncells.max_dens = 0.1;
-    params.nn.nncells.expand_rate = 1.5;
+    params.nn.gug.num_cells = 0;
+    params.nn.gug.max_dens = 0.1;
+    params.nn.gug.expand_rate = 1.5;
 
     ferGNGEuOpsInit(&ops);
     ops.terminate = terminate;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     pc = ferPCNew(params.dim);
     size = ferPCAddFromFile(pc, argv[2]);
     ferPCAABB(pc, aabb);
-    params.nn.nncells.aabb = aabb;
+    params.nn.gug.aabb = aabb;
     fprintf(stderr, "Added %d points from %s\n", (int)size, argv[2]);
 
     ferPCPermutate(pc);

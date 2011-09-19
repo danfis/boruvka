@@ -72,10 +72,10 @@ int main(int argc, char *argv[])
     params.d = 2;
     //params.num_cells = p.max_nodes;
     //params.cells.num_cells = 10000;
-    params.cells.num_cells = 0;
-    params.cells.max_dens  = 1;
-    params.cells.expand_rate = 1.5;
-    params.cells.aabb = aabb;
+    params.gug.num_cells = 0;
+    params.gug.max_dens  = 1;
+    params.gug.expand_rate = 1.5;
+    params.gug.aabb = aabb;
     params.warm_start = p.find_path;
     params.alpha = 0.;
     params.beta  = 1.;

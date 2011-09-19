@@ -62,7 +62,7 @@ typedef struct _fer_gng_eu_edge_t fer_gng_eu_edge_t;
 
 /**
  * GNGEu Operations
- * ---------------
+ * -----------------
  *
  * See fer_gng_eu_ops_t.
  */
@@ -127,7 +127,7 @@ void ferGNGEuOpsInit(fer_gng_eu_ops_t *ops);
 
 /**
  * GNGEu Parameters
- * ---------------
+ * -----------------
  */
 struct _fer_gng_eu_params_t {
     int dim;          /*!< Dimension */
@@ -156,7 +156,7 @@ void ferGNGEuParamsInit(fer_gng_eu_params_t *params);
 
 /**
  * GNGEu Algorithm
- * --------------
+ * ----------------
  *
  * See fer_gng_eu_t.
  */

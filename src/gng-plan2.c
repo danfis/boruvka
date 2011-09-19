@@ -80,9 +80,9 @@ void ferGNGPlanParamsInit(fer_gng_plan_params_t *params)
     params->goal  = NULL;
 
     ferGNGParamsInit(&params->gng);
-    ferNNCellsParamsInit(&params->cells);
+    ferGUGParamsInit(&params->gug);
 
-    params->cells.dim = 2;
+    params->gug.dim = 2;
 }
 
 
@@ -91,7 +91,7 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
 {
     fer_gng_plan_t *gng;
     fer_gng_ops_t gng_ops;
-    fer_nncells_params_t cells_params;
+    fer_gug_params_t cells_params;
 
     gng = FER_ALLOC(fer_gng_plan_t);
     gng->dim           = params->dim;
@@ -120,21 +120,21 @@ fer_gng_plan_t *ferGNGPlanNew(const fer_gng_plan_ops_t *ops,
     gng_ops.dist2            = ferGNGPlanDist2;
     gng_ops.move_towards     = ferGNGPlanMoveTowards;
 
-    // initialize NNCells params
-    cells_params = params->cells;
+    // initialize GUG params
+    cells_params = params->gug;
     cells_params.dim = params->dim;
 
     // create GNG object
     gng->gng = ferGNGNew(&gng_ops, &params->gng);
 
-    // create NNCells for FREE nodes
-    gng->cells = ferNNCellsNew(&cells_params);
+    // create GUG for FREE nodes
+    gng->gug = ferGUGNew(&cells_params);
 
     // init list of obstacle nodes
     ferListInit(&gng->obst);
 
-    // create NNCells for OBST nodes
-    gng->obst_cells = ferNNCellsNew(&cells_params);
+    // create GUG for OBST nodes
+    gng->obst_gug = ferGUGNew(&cells_params);
 
     // initialize GNG-Plan operations
     gng->ops = *ops;
@@ -161,9 +161,9 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
     fer_gng_plan_node_t *n;
 
     ferGNGDel(gng->gng);
-    ferNNCellsDel(gng->cells);
+    ferGUGDel(gng->gug);
 
-    ferNNCellsDel(gng->obst_cells);
+    ferGUGDel(gng->obst_gug);
 
     while (!ferListEmpty(&gng->obst)){
         item = ferListNext(&gng->obst);
@@ -259,15 +259,15 @@ static int ferGNGPlanCutPath(fer_gng_plan_t *gng, fer_list_t *path)
 
         // node is in obstacle
         if (eval == FER_GNG_PLAN_OBST){
-            // remove node from NNCells
-            ferNNCellsRemove(gng->cells, &n->cells);
+            // remove node from GUG
+            ferGUGRemove(gng->gug, &n->gug);
 
             // remove node from GNG
             ferGNGNodeRemove(gng->gng, &n->node);
 
             // add node to obst list
             ferListAppend(&gng->obst, &n->obst);
-            ferNNCellsAdd(gng->obst_cells, &n->cells);
+            ferGUGAdd(gng->obst_gug, &n->gug);
 
             cut = 0;
             return 0;
@@ -313,11 +313,11 @@ static int ferGNGPlanIsEdgeFree(fer_gng_plan_t *gng,
             n  = fer_container_of(nn, fer_gng_plan_node_t, node);
 
             // remove it from cells
-            ferNNCellsRemove(gng->cells, &n->cells);
+            ferGUGRemove(gng->gug, &n->gug);
 
             // and add it to obst list
             ferListAppend(&gng->obst, &n->obst);
-            ferNNCellsAdd(gng->obst_cells, &n->cells);
+            ferGUGAdd(gng->obst_gug, &n->gug);
 
             // return that edge is not in FREE space
             return 0;
@@ -414,7 +414,7 @@ static int ferGNGPlanTryFindPath(fer_gng_plan_t *gng)
 static const void *ferGNGPlanInputSignal(void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
-    fer_nncells_el_t *el;
+    fer_gug_el_t *el;
     fer_gng_plan_node_t *node;
     const fer_vec_t *vec;
     size_t num_els;
@@ -426,9 +426,9 @@ static const void *ferGNGPlanInputSignal(void *data)
 
         dist = FER_REAL_MAX;
         // find nearest node in obstacles
-        num_els = ferNNCellsNearest(gng->obst_cells, vec, 1, &el);
+        num_els = ferGUGNearest(gng->obst_gug, vec, 1, &el);
         if (num_els == 1){
-            node = fer_container_of(el, fer_gng_plan_node_t, cells);
+            node = fer_container_of(el, fer_gng_plan_node_t, gug);
             dist = ferVecDist(gng->dim, vec, node->w);
             //DBG("dist: %f", dist);
         }
@@ -454,8 +454,8 @@ static fer_gng_node_t *ferGNGPlanNewNode(const void *input_signal, void *data)
 
     node->w = ferVecClone(gng->dim, (const fer_vec_t *)input_signal);
 
-    ferNNCellsElInit(&node->cells, node->w);
-    ferNNCellsAdd(gng->cells, &node->cells);
+    ferGUGElInit(&node->gug, node->w);
+    ferGUGAdd(gng->gug, &node->gug);
 
     node->fixed = 0;
 
@@ -482,7 +482,7 @@ static void ferGNGPlanDelNode(fer_gng_node_t *_n, void *data)
     fer_gng_plan_node_t *n = (fer_gng_plan_node_t *)_n;
 
     ferVecDel(n->w);
-    ferNNCellsRemove(gng->cells, &n->cells);
+    ferGUGRemove(gng->gug, &n->gug);
     free(n);
 }
 
@@ -491,12 +491,12 @@ static void ferGNGPlanNearest(const void *input_signal,
                               void *data)
 {
     fer_gng_plan_t *gng = (fer_gng_plan_t *)data;
-    fer_nncells_el_t *els[2];
+    fer_gug_el_t *els[2];
     fer_gng_plan_node_t *n1, *n2;
 
-    ferNNCellsNearest(gng->cells, (const fer_vec_t *)input_signal, 2, els);
-    n1 = fer_container_of(els[0], fer_gng_plan_node_t, cells);
-    n2 = fer_container_of(els[1], fer_gng_plan_node_t, cells);
+    ferGUGNearest(gng->gug, (const fer_vec_t *)input_signal, 2, els);
+    n1 = fer_container_of(els[0], fer_gng_plan_node_t, gug);
+    n2 = fer_container_of(els[1], fer_gng_plan_node_t, gug);
 
     *n1_out = &n1->node;
     *n2_out = &n2->node;
@@ -530,7 +530,7 @@ static void ferGNGPlanMoveTowards(fer_gng_node_t *node,
     ferVecScale(gng->dim, gng->tmpv, fraction);
     ferVecAdd(gng->dim, n->w, gng->tmpv);
 
-    ferNNCellsUpdate(gng->cells, &n->cells);
+    ferGUGUpdate(gng->gug, &n->gug);
 }
 
 
@@ -608,16 +608,16 @@ static int ferGNGPlanFindPath(fer_gng_plan_t *gng,
     fer_dij_ops_t ops;
     fer_dij_t *dij;
     fer_gng_plan_node_t *n[2];
-    fer_nncells_el_t *el[2];
+    fer_gug_el_t *el[2];
     int result;
 
     // get nearest nodes to wstart and wgoal
-    if (ferNNCellsNearest(gng->cells, wstart, 1, &el[0]) != 1)
+    if (ferGUGNearest(gng->gug, wstart, 1, &el[0]) != 1)
         return -1;
-    if (ferNNCellsNearest(gng->cells, wgoal, 1, &el[1]) != 1)
+    if (ferGUGNearest(gng->gug, wgoal, 1, &el[1]) != 1)
         return -1;
-    n[0] = fer_container_of(el[0], fer_gng_plan_node_t, cells);
-    n[1] = fer_container_of(el[1], fer_gng_plan_node_t, cells);
+    n[0] = fer_container_of(el[0], fer_gng_plan_node_t, gug);
+    n[1] = fer_container_of(el[1], fer_gng_plan_node_t, gug);
 
     // initialize whole net
     ferGNGPlanFindPathDijInit(gng);

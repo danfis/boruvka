@@ -19,7 +19,7 @@
 
 #include <fermat/vec.h>
 #include <fermat/net.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/dij.h>
 
 #ifdef __cplusplus
@@ -117,7 +117,7 @@ struct _fer_prm_params_t {
     fer_real_t max_neighbors; /*!< Maximum number of calls of the local
                                    planner per node */
 
-    fer_nncells_params_t cells;
+    fer_gug_params_t gug;
 };
 typedef struct _fer_prm_params_t fer_prm_params_t;
 
@@ -133,8 +133,8 @@ void ferPRMParamsInit(fer_prm_params_t *params);
  * --------------
  */
 struct _fer_prm_t {
-    fer_net_t *net;       /*!< Holds roadmap */
-    fer_nncells_t *cells; /*!< NN search */
+    fer_net_t *net; /*!< Holds roadmap */
+    fer_gug_t *gug; /*!< NN search */
 
     fer_prm_ops_t ops;
     fer_prm_params_t params;
@@ -153,7 +153,7 @@ struct _fer_prm_node_t {
     fer_vec_t *conf;
     fer_prm_component_t *comp;
     fer_net_node_t node;
-    fer_nncells_el_t cells;
+    fer_gug_el_t gug;
 
     fer_dij_node_t dij; /*!< Connection for dijkstra algorithm */
     fer_list_t path;

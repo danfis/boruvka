@@ -64,10 +64,10 @@ int main(int argc, char *argv[])
     params.min_nodes = 100;
     params.start = ferVecNew(2);
     params.goal  = ferVecNew(2);
-    params.cells.dim = 2;
-    params.cells.aabb = aabb;
-    params.cells.max_dens = 1;
-    params.cells.expand_rate = 1.4;
+    params.gug.dim = 2;
+    params.gug.aabb = aabb;
+    params.gug.max_dens = 1;
+    params.gug.expand_rate = 1.4;
     params.gng.lambda = 1000;
     //params.gng.age_max = 20;
 

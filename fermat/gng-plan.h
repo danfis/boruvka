@@ -19,7 +19,7 @@
 
 #include <fermat/net.h>
 #include <fermat/vec.h>
-#include <fermat/nncells.h>
+#include <fermat/gug.h>
 #include <fermat/dij.h>
 #include <fermat/pairheap.h>
 
@@ -37,10 +37,10 @@ extern "C" {
 #define FER_GNGP_OBST 2
 
 struct _fer_gngp_node_t {
-    fer_net_node_t node;   /*!< Connection into net */
-    fer_nncells_el_t cells; /*!< Connection into cells */
-    int set;                /*!< Specifies into which set node belongs to */
-    fer_vec_t *w;           /*!< Weight vector */
+    fer_net_node_t node; /*!< Connection into net */
+    fer_gug_el_t gug;    /*!< Connection into GUG */
+    int set;             /*!< Specifies into which set node belongs to */
+    fer_vec_t *w;        /*!< Weight vector */
 
     fer_list_t fifo;     /*!< Connection into fifo queue - used internally */
     unsigned int evaled; /*!< Marks nodes that were already evalueated - used
@@ -140,7 +140,7 @@ struct _fer_gngp_params_t {
 
     size_t warm_start;
 
-    fer_nncells_params_t cells;
+    fer_gug_params_t gug;
 };
 typedef struct _fer_gngp_params_t fer_gngp_params_t;
 
@@ -159,7 +159,7 @@ void ferGNGPParamsInit(fer_gngp_params_t *params);
 
 struct _fer_gngp_t {
     fer_net_t *net;
-    fer_nncells_t *cells;
+    fer_gug_t *gug;
     fer_gngp_ops_t ops;
     fer_gngp_params_t params;
 
