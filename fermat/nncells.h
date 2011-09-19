@@ -83,6 +83,8 @@ void ferNNCellsParamsInit(fer_nncells_params_t *p);
  * --------
  */
 struct _fer_nncells_t {
+    uint8_t type;        /*!< Type of NN search algorithm. See fermat/nn.h */
+
     size_t d;            /*!< Dimension of covered space */
     fer_real_t max_dens; /*!< Maximal density - see params.max_dens */
     fer_real_t expand;   /*!< See params.expand_rate */
@@ -115,12 +117,11 @@ typedef struct _fer_nncells_t fer_nncells_t;
  * TODO: Example
  */
 struct _fer_nncells_el_t {
-    fer_list_t list; /*!< List struct which is used for connection to cells */
+    const fer_vec_t *p; /*!< Pointer to user-defined point vector */
+    fer_list_t list;    /*!< List struct which is used for connection to cells */
     size_t cell_id;  /*!< Id of cell where is element currently registered,
                           i.e. .list is connected into fer_nncells_t's
                           .cells[.cell_id] cell. */
-
-    const fer_vec_t *coords; /*!< Pointer to user's position vector */
 };
 typedef struct _fer_nncells_el_t fer_nncells_el_t;
 
@@ -128,7 +129,7 @@ typedef struct _fer_nncells_el_t fer_nncells_el_t;
  * Initialize element struct.
  * You must call this before adding to nncells.
  */
-_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *coords);
+_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *p);
 
 
 /**
@@ -233,16 +234,16 @@ size_t ferNNCellsNearestApprox(const fer_nncells_t *cs, const fer_vec_t *p,
  * This function _always_ returns correct ID.
  */
 _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
-                                          const fer_vec_t *coords);
+                                          const fer_vec_t *p);
 
 
 /** Expands number of cells. This is function for internal use. Don't use it! */
 void __ferNNCellsExpand(fer_nncells_t *cs);
 
 /**** INLINES ****/
-_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *coords)
+_fer_inline void ferNNCellsElInit(fer_nncells_el_t *el, const fer_vec_t *p)
 {
-    el->coords = coords;
+    el->p = p;
 }
 
 
@@ -275,7 +276,7 @@ _fer_inline void ferNNCellsAdd(fer_nncells_t *cs, fer_nncells_el_t *el)
 {
     size_t id;
 
-    id = __ferNNCellsCoordsToID(cs, el->coords);
+    id = __ferNNCellsCoordsToID(cs, el->p);
 
     ferListAppend(&cs->cells[id].list, &el->list);
 
@@ -298,7 +299,7 @@ _fer_inline void ferNNCellsUpdate(fer_nncells_t *cs, fer_nncells_el_t *el)
 {
     size_t id;
 
-    id = __ferNNCellsCoordsToID(cs, el->coords);
+    id = __ferNNCellsCoordsToID(cs, el->p);
     if (id != el->cell_id){
         ferNNCellsUpdateForce(cs, el);
     }
@@ -314,7 +315,7 @@ _fer_inline void ferNNCellsUpdateForce(fer_nncells_t *cs, fer_nncells_el_t *el)
 
 
 _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
-                                          const fer_vec_t *coords)
+                                          const fer_vec_t *p)
 {
     size_t i, tmp, id, mul;
     fer_real_t f;
@@ -322,7 +323,7 @@ _fer_inline size_t __ferNNCellsCoordsToID(const fer_nncells_t *cs,
     id  = 0;
     mul = 1;
     for (i = 0; i < cs->d; i++){
-        f  = ferVecGet(coords, i) + cs->shift[i];
+        f  = ferVecGet(p, i) + cs->shift[i];
         f *= cs->edge_recp;
 
         tmp = FER_MAX((int)f, 0);

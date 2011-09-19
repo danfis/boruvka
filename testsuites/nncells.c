@@ -71,32 +71,32 @@ TEST(nncellsEl2)
 
     ferVec2Set(&n.v, 0.8, 0.2);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 11);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 11);
     assertEquals(n.c.cell_id, 11);
 
     ferVec2Set(&n.v, 0.8, -0.7);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 5);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 5);
     assertEquals(n.c.cell_id, 5);
 
     ferVec2Set(&n.v, -0.2, -1.1);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 4);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 4);
     assertEquals(n.c.cell_id, 4);
 
     ferVec2Set(&n.v, -10., -10.);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 0);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 0);
     assertEquals(n.c.cell_id, 0);
 
     ferVec2Set(&n.v, 10., 10.);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 17);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 17);
     assertEquals(n.c.cell_id, 17);
 
     ferVec2Set(&n.v, 10., 1.2);
     ferNNCellsUpdate(cs, &n.c);
-    assertEquals(__ferNNCellsCoordsToID(cs, n.c.coords), 14);
+    assertEquals(__ferNNCellsCoordsToID(cs, n.c.p), 14);
     assertEquals(n.c.cell_id, 14);
 
     ferNNCellsDel(cs);

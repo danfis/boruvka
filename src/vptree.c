@@ -18,6 +18,7 @@
 #include <fermat/rand-mt.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
+#include <fermat/nn.h>
 
 
 /** Finds out radius and variance */
@@ -110,6 +111,8 @@ fer_vptree_t *ferVPTreeNew(const fer_vptree_params_t *params)
     fer_vptree_t *vp;
 
     vp = FER_ALLOC(fer_vptree_t);
+    vp->type = FER_NN_VPTREE;
+
     vp->params = *params;
 
     vp->root = NULL;
@@ -594,6 +597,7 @@ fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
     size_t i;
 
     vp = ferVPTreeNew(params);
+    vp->type = FER_NN_VPTREE;
 
     build.vp   = vp;
     build.els  = FER_ALLOC_ARR(fer_vptree_el_t *, els_len);

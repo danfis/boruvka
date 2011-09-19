@@ -19,6 +19,7 @@
 #include <fermat/vec.h>
 #include <fermat/vec3.h>
 #include <fermat/dbg.h>
+#include <fermat/nn.h>
 
 
 struct _fer_nncells_cache_t {
@@ -95,6 +96,8 @@ fer_nncells_t *ferNNCellsNew(const fer_nncells_params_t *params)
     fer_nncells_t *c;
 
     c = FER_ALLOC(fer_nncells_t);
+    c->type = FER_NN_NNCELLS;
+
     c->num_els = 0;
 
     c->d = params->d;
@@ -492,11 +495,11 @@ static void nearestCheck(const fer_nncells_t *cs, fer_nncells_cache_t *c,
     fer_real_t dist;
 
     if (cs->d == 2){
-        dist = ferVec2Dist2((fer_vec2_t *)c->p, (fer_vec2_t *)el->coords);
+        dist = ferVec2Dist2((fer_vec2_t *)c->p, (fer_vec2_t *)el->p);
     }else if (cs->d == 3){
-        dist = ferVec3Dist2((fer_vec3_t *)c->p, (fer_vec3_t *)el->coords);
+        dist = ferVec3Dist2((fer_vec3_t *)c->p, (fer_vec3_t *)el->p);
     }else{
-        dist = ferVecDist2(cs->d, c->p, el->coords);
+        dist = ferVecDist2(cs->d, c->p, el->p);
     }
     if (c->len < c->max_len){
         c->els[c->len]  = el;

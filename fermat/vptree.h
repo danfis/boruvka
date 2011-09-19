@@ -44,6 +44,13 @@ struct _fer_vptree_el_t;
 
 
 /**
+ * Parameters
+ * -----------
+ *
+ * See fer_vptree_params_t.
+ */
+
+/**
  * Returns distance between two {d}-dimensional vectors
  */
 typedef fer_real_t (*fer_vptree_dist)(int d,
@@ -80,6 +87,8 @@ struct __fer_vptree_node_t {
 typedef struct __fer_vptree_node_t _fer_vptree_node_t;
 
 struct _fer_vptree_t {
+    uint8_t type; /*!< Type of NN search algorithm. See fermat/nn.h */
+
     fer_vptree_params_t params;
     _fer_vptree_node_t *root;
 
@@ -97,8 +106,8 @@ typedef struct _fer_vptree_t fer_vptree_t;
  * TODO: Example
  */
 struct _fer_vptree_el_t {
+    const fer_vec_t *p; /*!< Pointer to user-defined point vector */
     fer_list_t list;    /*!< Connection into node's list of elements */
-    const fer_vec_t *p; /*!< Pointer to user-defined point */
     _fer_vptree_node_t *node; /*!< Back reference to owner of this element */
 };
 typedef struct _fer_vptree_el_t fer_vptree_el_t;
