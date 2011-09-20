@@ -87,6 +87,7 @@ ifeq '$(USE_DOUBLE)' ''
 endif
 endif
 
+USE_MEMCHECK ?= no
 USE_SSE    ?= no
 USE_OPENCL ?= auto
 USE_RAPID  ?= auto
@@ -99,6 +100,9 @@ endif
 ifeq '$(USE_DOUBLE)' 'yes'
   CONFIG_FLAGS += -DUSE_DOUBLE
   USE_OPENCL := no
+endif
+ifeq '$(USE_MEMCHECK)' 'yes'
+  CONFIG_FLAGS += -DUSE_MEMCHECK
 endif
 ifeq '$(USE_SSE)' 'yes'
   CONFIG_FLAGS += -DUSE_SSE

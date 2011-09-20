@@ -65,14 +65,18 @@ extern "C" {
 #define FER_REALLOC_ARR(ptr, type, num_elements) \
     _FER_ALLOC_MEMORY(type, ptr, sizeof(type) * (num_elements))
 
-/**
- * Deallocates memory
- */
-#define FER_FREE(ptr) \
-    free(ptr)
+#ifndef FER_MEMCHECK
+# define FER_FREE(ptr) free(ptr) /*!< Deallocates memory */
+#else /* FER_MEMCHECK */
+# define FER_FREE(ptr) ferFreeCheck(ptr)
+#endif /* FER_MEMCHECK */
 
 void *ferRealloc(void *ptr, size_t size);
 void *ferAllocAlign(size_t size, size_t alignment);
+
+#ifdef FER_MEMCHECK
+void ferFreeCheck(void *ptr);
+#endif /* FER_MEMCHECK */
 
 #ifdef __cplusplus
 } /* extern "C" */
