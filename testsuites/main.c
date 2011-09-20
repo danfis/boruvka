@@ -22,6 +22,7 @@
 #include "tasks.h"
 #include "task-pool.h"
 #include "vptree.h"
+#include "nn.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -38,6 +39,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSCubes2),
     TEST_SUITE_ADD(TSGUG),
     TEST_SUITE_ADD(TSVPTree),
+    TEST_SUITE_ADD(TSNN),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),
 

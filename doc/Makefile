@@ -16,7 +16,7 @@ RSTS += predicates
 
 RSTS += pc
 
-RSTS += nn gug nearest-linear vptree
+RSTS += nn gug nearest-linear vptree nn-linear
 RSTS += cubes2 cubes3
 
 RSTS += mesh3 net qhull chull3

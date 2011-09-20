@@ -50,12 +50,16 @@ struct _fer_vptree_el_t;
  * See fer_vptree_params_t.
  */
 
+/** vvvv */
+
 /**
  * Returns distance between two {d}-dimensional vectors
  */
 typedef fer_real_t (*fer_vptree_dist)(int d,
                                       const fer_vec_t *v1,
                                       const fer_vec_t *v2, void *data);
+
+/** ^^^^ */
 
 struct _fer_vptree_params_t {
     int dim;              /*!< Dimension of space. Default: 2 */

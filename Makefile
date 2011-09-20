@@ -47,6 +47,7 @@ OBJS += pc.o pc-internal.o
 OBJS += gug.o nearest-linear.o
 OBJS += cubes2.o cubes3.o
 OBJS += vptree.o
+OBJS += nn-linear.o
 
 OBJS += mesh3.o net.o qhull.o chull3.o
 

@@ -19,6 +19,11 @@
 
 #include <fermat/gug.h>
 #include <fermat/vptree.h>
+#include <fermat/nn-linear.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /**
  * Generalized API for Nearest Neighbor Search
@@ -31,6 +36,7 @@
  * Currently incorporated algorithms are:
  *     1. :doc:`/fer-gug.h`
  *     2. :doc:`/fer-vptree.h`
+ *     3. :doc:`/fer-nn-linear.h`
  *
  * See fer_nn_t.
  * See fer_nn_params_t.
@@ -44,6 +50,7 @@ typedef struct _fer_nn_t fer_nn_t;
 struct _fer_nn_params_t {
     fer_gug_params_t gug;
     fer_vptree_params_t vptree;
+    fer_nn_linear_params_t linear;
 };
 typedef struct _fer_nn_params_t fer_nn_params_t;
 
@@ -57,10 +64,14 @@ _fer_inline void ferNNParamsInit(fer_nn_params_t *params);
  * Types of Algorithms
  * --------------------
  */
-/** vvvv **/
-#define FER_NN_GUG     1
-#define FER_NN_VPTREE  2
-/** ^^^^ **/
+
+/** vvvv */
+
+#define FER_NN_GUG    1 /*!< Growing Uniform Grid */
+#define FER_NN_VPTREE 2 /*!< VP-Tree */
+#define FER_NN_LINEAR 3 /*!< Linear searching */
+
+/** ^^^^ */
 
 
 /**
@@ -137,6 +148,7 @@ _fer_inline void ferNNParamsInit(fer_nn_params_t *params)
 {
     ferGUGParamsInit(&params->gug);
     ferVPTreeParamsInit(&params->vptree);
+    ferNNLinearParamsInit(&params->linear);
 }
 
 _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
@@ -145,6 +157,8 @@ _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
         ferGUGElInit((fer_gug_el_t *)el, p);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeElInit((fer_vptree_el_t *)el, p);
+    }else if (nn->type == FER_NN_LINEAR){
+        ferNNLinearElInit((fer_nn_linear_el_t *)el, p);
     }
 }
 
@@ -156,6 +170,8 @@ _fer_inline fer_nn_t *ferNNNew(uint8_t type, const fer_nn_params_t *params)
         nn = (fer_nn_t *)ferGUGNew(&params->gug);
     }else if (type == FER_NN_VPTREE){
         nn = (fer_nn_t *)ferVPTreeNew(&params->vptree);
+    }else if (type == FER_NN_LINEAR){
+        nn = (fer_nn_t *)ferNNLinearNew(&params->linear);
     }
 
     return nn;
@@ -167,6 +183,8 @@ _fer_inline void ferNNDel(fer_nn_t *nn)
         ferGUGDel((fer_gug_t *)nn);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeDel((fer_vptree_t *)nn);
+    }else if (nn->type == FER_NN_LINEAR){
+        ferNNLinearDel((fer_nn_linear_t *)nn);
     }
 }
 
@@ -176,6 +194,8 @@ _fer_inline void ferNNAdd(fer_nn_t *nn, fer_nn_el_t *el)
         ferGUGAdd((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeAdd((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+    }else if (nn->type == FER_NN_LINEAR){
+        ferNNLinearAdd((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
     }
 }
 
@@ -185,6 +205,8 @@ _fer_inline void ferNNRemove(fer_nn_t *nn, fer_nn_el_t *el)
         ferGUGRemove((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeRemove((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+    }else if (nn->type == FER_NN_LINEAR){
+        ferNNLinearRemove((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
     }
 }
 
@@ -194,6 +216,8 @@ _fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el)
         ferGUGUpdate((fer_gug_t *)nn, (fer_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
         ferVPTreeUpdate((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+    }else if (nn->type == FER_NN_LINEAR){
+        ferNNLinearUpdate((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
     }
 }
 
@@ -206,9 +230,16 @@ _fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
     }else if (nn->type == FER_NN_VPTREE){
         return ferVPTreeNearest((const fer_vptree_t *)nn, p, num,
                                 (fer_vptree_el_t **)els);
+    }else if (nn->type == FER_NN_LINEAR){
+        return ferNNLinearNearest((const fer_nn_linear_t *)nn, p, num,
+                                  (fer_nn_linear_el_t **)els);
     }
 
     return 0;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 
 #endif /* __FER_NN_H__ */
