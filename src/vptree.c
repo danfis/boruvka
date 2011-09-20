@@ -128,8 +128,8 @@ void ferVPTreeDel(fer_vptree_t *vp)
     if (vp->root)
         nodeDel(vp, vp->root);
     if (vp->els)
-        free(vp->els);
-    free(vp);
+        FER_FREE(vp->els);
+    FER_FREE(vp);
 }
 
 
@@ -315,7 +315,7 @@ size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
 
     nearest(&n, vp->root);
 
-    free(n.dist);
+    FER_FREE(n.dist);
 
     return n.els_len;
 }
@@ -498,7 +498,7 @@ static void nodeDel(fer_vptree_t *vp, _fer_vptree_node_t *n)
         ferVecDel(n->vp);
     }
 
-    free(n);
+    FER_FREE(n);
 }
 
 static void nodeAdd(fer_vptree_t *vp, _fer_vptree_node_t *n,
@@ -538,7 +538,7 @@ static void nodeAddSplit(fer_vptree_t *vp,
 
     // allocate array if necessary
     if (vp->els_size < n->size + 1){
-        free(vp->els);
+        FER_FREE(vp->els);
         vp->els_size = n->size + 1;
         vp->els = FER_ALLOC_ARR(fer_vptree_el_t *, vp->els_size);
     }
@@ -560,7 +560,7 @@ static void nodeAddSplit(fer_vptree_t *vp,
     // set the best vantage point
     dist = FER_ALLOC_ARR(fer_real_t, n->size + 1);
     bestVP(vp, vp->els, n->size + 1, vp->els, n->size + 1, dist, n->vp, &n->radius);
-    free(dist);
+    FER_FREE(dist);
 
 
     // reorganize els[] to left and right side
@@ -612,10 +612,10 @@ fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
 
     vp->root = buildNode(&build, build.els, els_len);
 
-    free(build.els);
-    free(build.dist);
-    free(build.ps);
-    free(build.ds);
+    FER_FREE(build.els);
+    FER_FREE(build.dist);
+    FER_FREE(build.ps);
+    FER_FREE(build.ds);
     ferRandMTDel(build.rand);
 
     return vp;

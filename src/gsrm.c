@@ -282,13 +282,13 @@ void ferGSRMDel(fer_gsrm_t *g)
         ferGUGDel(g->gug);
 
     if (g->beta_n)
-        free(g->beta_n);
+        FER_FREE(g->beta_n);
     if (g->beta_lambda_n)
-        free(g->beta_lambda_n);
+        FER_FREE(g->beta_lambda_n);
     if (g->err_heap)
         ferPairHeapDel(g->err_heap);
 
-    free(g);
+    FER_FREE(g);
 }
 
 size_t ferGSRMAddInputSignals(fer_gsrm_t *g, const char *fn)
@@ -452,7 +452,7 @@ static int init(fer_gsrm_t *g)
 
     // precompute beta^n
     if (g->beta_n)
-        free(g->beta_n);
+        FER_FREE(g->beta_n);
 
     g->beta_n = FER_ALLOC_ARR(fer_real_t, g->params.lambda);
     g->beta_n[0] = g->params.beta;
@@ -462,7 +462,7 @@ static int init(fer_gsrm_t *g)
 
     // precompute beta^(n * lambda)
     if (g->beta_lambda_n)
-        free(g->beta_lambda_n);
+        FER_FREE(g->beta_lambda_n);
 
     maxbeta = g->beta_n[g->params.lambda - 1];
 
@@ -531,8 +531,8 @@ static fer_gsrm_cache_t *cacheNew(void)
 
 static void cacheDel(fer_gsrm_cache_t *c)
 {
-    free(c->common_neighb);
-    free(c);
+    FER_FREE(c->common_neighb);
+    FER_FREE(c);
 }
 
 
@@ -632,7 +632,7 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     ferPairHeapRemove(g->err_heap, &n->err_heap);
 
     // Note: no need of deallocation of .vert and .cells
-    free(n);
+    FER_FREE(n);
 }
 
 static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
@@ -646,7 +646,7 @@ static void nodeDel2(fer_mesh3_vertex_t *v, void *data)
     // remove node from cells
     ferGUGRemove(g->gug, &n->gug);
 
-    free(n);
+    FER_FREE(n);
 }
 
 
@@ -683,14 +683,14 @@ static void edgeDel(fer_gsrm_t *g, edge_t *e)
         exit(-1);
     }
 
-    free(e);
+    FER_FREE(e);
 }
 
 static void edgeDel2(fer_mesh3_edge_t *edge, void *data)
 {
     edge_t *e;
     e = fer_container_of(edge, edge_t, edge);
-    free(e);
+    FER_FREE(e);
 }
 
 
@@ -715,7 +715,7 @@ static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n)
 
     res = ferMesh3AddFace(g->mesh, &f->face, &e->edge, e2, e3);
     if (fer_unlikely(res != 0)){
-        free(f);
+        FER_FREE(f);
         return NULL;
     }
 
@@ -727,14 +727,14 @@ static face_t *faceNew(fer_gsrm_t *g, edge_t *e, node_t *n)
 static void faceDel(fer_gsrm_t *g, face_t *f)
 {
     ferMesh3RemoveFace(g->mesh, &f->face);
-    free(f);
+    FER_FREE(f);
 }
 
 static void faceDel2(fer_mesh3_face_t *face, void *data)
 {
     face_t *f;
     f = fer_container_of(face, face_t, face);
-    free(f);
+    FER_FREE(f);
 }
 
 

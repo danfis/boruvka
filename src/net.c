@@ -27,7 +27,7 @@ fer_net_node_t *ferNetNodeNew(void)
 
 void ferNetNodeDel(fer_net_node_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 fer_net_edge_t *ferNetNodeCommonEdge(const fer_net_node_t *v1,
@@ -65,7 +65,7 @@ fer_net_edge_t *ferNetEdgeNew(void)
 
 void ferNetEdgeDel(fer_net_edge_t *e)
 {
-    free(e);
+    FER_FREE(e);
 }
 
 /** Returns true if two given edges have exactly one common node */
@@ -154,7 +154,7 @@ void ferNetDel2(fer_net_t *m,
         }
     }
 
-    free(m);
+    FER_FREE(m);
 }
 
 void ferNetAddNode(fer_net_t *m, fer_net_node_t *v)

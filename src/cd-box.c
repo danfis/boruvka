@@ -46,7 +46,7 @@ fer_cd_box_t *ferCDBoxNew(fer_real_t lx, fer_real_t ly, fer_real_t lz)
 void ferCDBoxDel(fer_cd_box_t *b)
 {
     ferVec3Del(b->half_extents);
-    free(b);
+    FER_FREE(b);
 }
 
 void ferCDBoxSupport(const fer_cd_box_t *b, const fer_vec3_t *dir,

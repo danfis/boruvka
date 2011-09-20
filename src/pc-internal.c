@@ -64,5 +64,5 @@ void ferPCMemDel(fer_pc_mem_t *m)
 
 {
     ferListDel(&m->list);
-    free(m);
+    FER_FREE(m);
 }

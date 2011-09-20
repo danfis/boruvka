@@ -175,7 +175,7 @@ static void penEPAPos(const fer_ccd_pt_t *pt, const fer_ccd_pt_el_t *nearest,
     }
     ferVec3Scale(pos, FER_ONE / scale);
 
-    free(vs);
+    FER_FREE(vs);
 }
 
 int ferCCDGJKPenetration(const fer_ccd_t *ccd,

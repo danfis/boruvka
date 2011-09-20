@@ -47,9 +47,9 @@ fer_surf_match_t *ferSurfMatchNew(size_t maxlen1, size_t maxlen2)
 void ferSurfMatchDel(fer_surf_match_t *sm)
 {
     ferCLDel(sm->cl);
-    free(sm->vecs1);
-    free(sm->vecs2);
-    free(sm);
+    FER_FREE(sm->vecs1);
+    FER_FREE(sm->vecs2);
+    FER_FREE(sm);
 }
 
 void ferSurfMatchSet1(fer_surf_match_t *sm, size_t i, const fer_vec_t *v)
@@ -166,8 +166,8 @@ void ferSurfMatch(fer_surf_match_t *sm, size_t _len1, size_t _len2)
         }
     }
 
-    free(dist_host);
-    free(ids_host);
+    FER_FREE(dist_host);
+    FER_FREE(ids_host);
 
     FER_CL_FREE(sm->cl, vecs1);
     FER_CL_FREE(sm->cl, vecs2);

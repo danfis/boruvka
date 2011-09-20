@@ -68,21 +68,21 @@ void ferCDSphereGridDel(fer_cd_sphere_grid_t *g)
                 item = ferListNext(&g->grid[i].spheres);
                 ferListDel(item);
                 cs = FER_LIST_ENTRY(item, cell_sphere_t, list);
-                free(cs);
+                FER_FREE(cs);
             }
         }
 
-        free(g->grid);
+        FER_FREE(g->grid);
     }
 
     while (!ferListEmpty(&g->spheres)){
         item = ferListNext(&g->spheres);
         ferListDel(item);
         s = FER_LIST_ENTRY(item, sphere_t, list);
-        free(s);
+        FER_FREE(s);
     }
 
-    free(g);
+    FER_FREE(g);
 }
 
 
@@ -108,7 +108,7 @@ void ferCDSphereGridBuild(fer_cd_sphere_grid_t *g, fer_real_t edge)
         return;
 
     if (g->grid)
-        free(g->grid);
+        FER_FREE(g->grid);
     g->grid = NULL;
 
     min[0] = min[1] = min[2] = FER_REAL_MAX;

@@ -51,7 +51,7 @@ fer_nn_linear_t *ferNNLinearNew(const fer_nn_linear_params_t *params)
 void ferNNLinearDel(fer_nn_linear_t *nn)
 {
     ferListInit(&nn->list);
-    free(nn);
+    FER_FREE(nn);
 }
 
 size_t ferNNLinearNearest(const fer_nn_linear_t *nn, const fer_vec_t *p, size_t num,
@@ -86,7 +86,7 @@ size_t ferNNLinearNearest(const fer_nn_linear_t *nn, const fer_vec_t *p, size_t 
         }
     }
 
-    free(dists);
+    FER_FREE(dists);
     return len;
 }
 

@@ -42,7 +42,7 @@ fer_cd_plane_t *ferCDPlaneNew(void)
 
 void ferCDPlaneDel(fer_cd_plane_t *c)
 {
-    free(c);
+    FER_FREE(c);
 }
 
 void ferCDPlaneSupport(const fer_cd_plane_t *c, const fer_vec3_t *dir,

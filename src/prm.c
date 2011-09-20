@@ -104,10 +104,10 @@ void ferPRMDel(fer_prm_t *prm)
         item = ferListNext(&prm->components);
         ferListDel(item);
         comp = fer_container_of(item, fer_prm_component_t, list);
-        free(comp);
+        FER_FREE(comp);
     }
 
-    free(prm);
+    FER_FREE(prm);
 }
 
 void ferPRMRun(fer_prm_t *prm)
@@ -161,8 +161,8 @@ void ferPRMRun(fer_prm_t *prm)
         }
     }
 
-    free(nearest);
-    free(tmp_nearest);
+    FER_FREE(nearest);
+    FER_FREE(tmp_nearest);
 }
 
 void ferPRMDumpSVT(fer_prm_t *prm, FILE *out, const char *name)
@@ -335,7 +335,7 @@ static void nodeDel(fer_prm_t *prm, fer_prm_node_t *n)
         ferVecDel(n->conf);
     ferNetRemoveNode(prm->net, &n->node);
     ferGUGRemove(prm->gug, &n->gug);
-    free(n);
+    FER_FREE(n);
 }
 
 static void edgeNew(fer_prm_t *prm, fer_prm_node_t *n1, fer_prm_node_t *n2)
@@ -360,7 +360,7 @@ static void edgeNew(fer_prm_t *prm, fer_prm_node_t *n1, fer_prm_node_t *n2)
 static void edgeDel(fer_prm_t *prm, fer_net_edge_t *e)
 {
     ferNetRemoveEdge(prm->net, e);
-    free(e);
+    FER_FREE(e);
 }
 
 static void nodeNetDel(fer_net_node_t *_n, void *_)
@@ -370,12 +370,12 @@ static void nodeNetDel(fer_net_node_t *_n, void *_)
     n = fer_container_of(_n, fer_prm_node_t, node);
     if (n->conf)
         ferVecDel(n->conf);
-    free(n);
+    FER_FREE(n);
 }
 
 static void edgeNetDel(fer_net_edge_t *n, void *_)
 {
-    free(n);
+    FER_FREE(n);
 }
 
 
@@ -464,8 +464,8 @@ static fer_prm_node_t *connectNewNode(fer_prm_t *prm, const fer_vec_t *c)
         }
     }
 
-    free(nearest);
-    free(tmp_nearest);
+    FER_FREE(nearest);
+    FER_FREE(tmp_nearest);
 
     return n;
 }

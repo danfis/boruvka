@@ -112,7 +112,7 @@ fer_vec3_t *ferVec3New(fer_real_t x, fer_real_t y, fer_real_t z)
 
 void ferVec3Del(fer_vec3_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 fer_vec3_t *ferVec3ArrNew(size_t num_vecs)
@@ -130,7 +130,7 @@ fer_vec3_t *ferVec3ArrNew(size_t num_vecs)
 
 void ferVec3ArrDel(fer_vec3_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 _fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,

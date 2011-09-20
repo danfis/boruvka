@@ -127,7 +127,7 @@ void ferCHull3Del(fer_chull3_t *h)
                  edgeDelMesh, NULL,
                  faceDelMesh, NULL);
 
-    free(h);
+    FER_FREE(h);
 }
 
 void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point)
@@ -230,14 +230,14 @@ static fer_chull3_vert_t *vertNew(fer_chull3_t *h, const fer_vec3_t *v)
 static void vertDel(fer_chull3_t *h, fer_chull3_vert_t *v)
 {
     ferMesh3RemoveVertex(h->mesh, &v->m);
-    free(v);
+    FER_FREE(v);
 }
 static void vertDelMesh(fer_mesh3_vertex_t *_v, void *_)
 {
     fer_chull3_vert_t *v;
 
     v = fer_container_of(_v, fer_chull3_vert_t, m);
-    free(v);
+    FER_FREE(v);
 }
 
 
@@ -257,7 +257,7 @@ static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
 static void edgeDel(fer_chull3_t *h, fer_chull3_edge_t *e)
 {
     ferMesh3RemoveEdge(h->mesh, &e->m);
-    free(e);
+    FER_FREE(e);
 }
 
 static void edgeDelMesh(fer_mesh3_edge_t *_e, void *_)
@@ -265,7 +265,7 @@ static void edgeDelMesh(fer_mesh3_edge_t *_e, void *_)
     fer_chull3_edge_t *e;
 
     e = fer_container_of(_e, fer_chull3_edge_t, m);
-    free(e);
+    FER_FREE(e);
 }
 
 static void edgeVertices(fer_chull3_edge_t *e, fer_chull3_vert_t **v)
@@ -301,7 +301,7 @@ static fer_chull3_face_t *faceNew(fer_chull3_t *h,
 static void faceDel(fer_chull3_t *h, fer_chull3_face_t *f)
 {
     ferMesh3RemoveFace(h->mesh, &f->m);
-    free(f);
+    FER_FREE(f);
 }
 
 static void faceDelMesh(fer_mesh3_face_t *_f, void *_)
@@ -309,7 +309,7 @@ static void faceDelMesh(fer_mesh3_face_t *_f, void *_)
     fer_chull3_face_t *f;
 
     f = fer_container_of(_f, fer_chull3_face_t, m);
-    free(f);
+    FER_FREE(f);
 }
 
 static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,

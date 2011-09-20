@@ -45,7 +45,7 @@ fer_vec2_t *ferVec2New(fer_real_t x, fer_real_t y)
 
 void ferVec2Del(fer_vec2_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 /*

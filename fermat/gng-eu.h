@@ -24,6 +24,7 @@
 #include <fermat/vec3.h>
 #include <fermat/pc.h>
 #include <fermat/nn.h>
+#include <fermat/alloc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -555,7 +556,7 @@ _fer_inline void ferGNGEuNodeDel(fer_gng_eu_t *gng_eu, fer_gng_eu_node_t *n)
     if (gng_eu->ops.del_node){
         gng_eu->ops.del_node(n, gng_eu->ops.del_node_data);
     }else{
-        free(n);
+        FER_FREE(n);
     }
 }
 

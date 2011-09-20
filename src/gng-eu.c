@@ -152,9 +152,9 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_eu_ops_t *ops,
 void ferGNGEuDel(fer_gng_eu_t *gng_eu)
 {
     if (gng_eu->beta_n)
-        free(gng_eu->beta_n);
+        FER_FREE(gng_eu->beta_n);
     if (gng_eu->beta_lambda_n)
-        free(gng_eu->beta_lambda_n);
+        FER_FREE(gng_eu->beta_lambda_n);
 
     if (gng_eu->net){
         ferNetDel2(gng_eu->net, nodeFinalDel, gng_eu,
@@ -175,7 +175,7 @@ void ferGNGEuDel(fer_gng_eu_t *gng_eu)
         ferVecDel(gng_eu->tmpv);
     }
 
-    free(gng_eu);
+    FER_FREE(gng_eu);
 }
 
 
@@ -543,7 +543,7 @@ fer_gng_eu_edge_t *ferGNGEuEdgeNew(fer_gng_eu_t *gng_eu, fer_gng_eu_node_t *n1,
 void ferGNGEuEdgeDel(fer_gng_eu_t *gng_eu, fer_gng_eu_edge_t *e)
 {
     ferNetRemoveEdge(gng_eu->net, &e->edge);
-    free(e);
+    FER_FREE(e);
 }
 
 void ferGNGEuEdgeBetweenDel(fer_gng_eu_t *gng_eu,
@@ -588,7 +588,7 @@ static void nodeFinalDel(fer_net_node_t *node, void *data)
 
 static void delEdge(fer_net_edge_t *edge, void *data)
 {
-    free(edge);
+    FER_FREE(edge);
 }
 
 

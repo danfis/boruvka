@@ -66,7 +66,7 @@ void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g)
     if (cd->sap && g->sap >= 0)
         ferCDSAPRemove(cd->sap, g);
 
-    free(g);
+    FER_FREE(g);
 }
 
 void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g)

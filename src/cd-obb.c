@@ -195,7 +195,7 @@ void ferCDOBBDel(fer_cd_obb_t *obb)
     if (obb->shape && obb->shape->cl->del)
         obb->shape->cl->del(obb->shape);
 
-    free(obb);
+    FER_FREE(obb);
 }
 
 
@@ -398,7 +398,7 @@ void ferCDOBBFreePairs(fer_list_t *pairs)
         item = ferListNext(pairs);
         ferListDel(item);
         pair = FER_LIST_ENTRY(item, fer_cd_obb_pair_t, list);
-        free(pair);
+        FER_FREE(pair);
     }
 }
 
@@ -755,13 +755,13 @@ static void _mergeTopDownTask(int id, void *data, const fer_tasks_thinfo_t *info
             // all OBBs are on one side - simply add them to the obb
             ferListMove(&task1->obbs, &obb->obbs);
             ferListMove(&task2->obbs, &obb->obbs);
-            free(task1);
-            free(task2);
+            FER_FREE(task1);
+            FER_FREE(task2);
         }else{
             if (ferListNext(&task1->obbs) == ferListPrev(&task1->obbs)){
                 // task1 contains only one OBB
                 ferListMove(&task1->obbs, &obb->obbs);
-                free(task1);
+                FER_FREE(task1);
             }else{
                 // perform task1
                 ferTasksAdd(task->tasks, _mergeTopDownTask, 0, (void *)task1);
@@ -770,7 +770,7 @@ static void _mergeTopDownTask(int id, void *data, const fer_tasks_thinfo_t *info
             // similarly for task2
             if (ferListNext(&task2->obbs) == ferListPrev(&task2->obbs)){
                 ferListMove(&task2->obbs, &obb->obbs);
-                free(task2);
+                FER_FREE(task2);
             }else{
                 ferTasksAdd(task->tasks, _mergeTopDownTask, 0, (void *)task2);
             }
@@ -784,7 +784,7 @@ static void _mergeTopDownTask(int id, void *data, const fer_tasks_thinfo_t *info
         pthread_mutex_unlock(task->lock);
 
         // free task struct
-        free(task);
+        FER_FREE(task);
     }else{
         task->parent = obb;
     }
@@ -827,7 +827,7 @@ static fer_cd_obb_t *mergeTopDownTasks(fer_list_t *obbs, uint32_t flags)
     // obtain top OBB
     obb = task->parent;
 
-    free(task);
+    FER_FREE(task);
     ferTasksDel(tasks);
     pthread_mutex_destroy(&lock);
 
@@ -1020,7 +1020,7 @@ static void mergeBottomUpTask(int id, void *data, const fer_tasks_thinfo_t *info
     ferListAppend(task->obbs, &obb->list);
     pthread_mutex_unlock(task->lock);
 
-    free(task);
+    FER_FREE(task);
 }
 
 static fer_cd_obb_t *mergeBottomUpTasks(fer_list_t *_obbs, uint32_t flags)

@@ -27,7 +27,7 @@ fer_mat3_t *ferMat3New(void)
 
 void ferMat3Del(fer_mat3_t *m)
 {
-    free(m);
+    FER_FREE(m);
 }
 
 

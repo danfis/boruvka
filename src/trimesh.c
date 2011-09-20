@@ -35,7 +35,7 @@ void ferTriMeshDel(fer_trimesh_t *tm)
     if (tm->data)
         delete (RAPID_model *)tm->data;
 
-    free(tm);
+    FER_FREE(tm);
 }
 
 int ferTriMeshLoad(fer_trimesh_t *tm, const char *fn)
@@ -77,7 +77,7 @@ int ferTriMeshLoad(fer_trimesh_t *tm, const char *fn)
     }
     m->EndModel();
 
-    free(ps);
+    FER_FREE(ps);
 
     fclose(fin);
 

@@ -65,8 +65,8 @@ void ferHMapDel(fer_hmap_t *h)
         }
     }
 
-    free(h->table);
-    free(h);
+    FER_FREE(h->table);
+    FER_FREE(h);
 }
 
 

@@ -70,7 +70,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
         }
     }
 
-    free(platforms);
+    FER_FREE(platforms);
     if (platform == (cl_platform_id)-1)
         return NULL;
 
@@ -82,7 +82,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     // create context
     cl->context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
     if (__ferCLErrorCheck(err, "Can't create context") != 0){
-        free(cl);
+        FER_FREE(cl);
         return NULL;
     }
 
@@ -90,7 +90,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     cl->queue = clCreateCommandQueue(cl->context, cl->device, 0, &err);
     if (__ferCLErrorCheck(err, "Can't create command queue") != 0){
         clReleaseContext(cl->context);
-        free(cl);
+        FER_FREE(cl);
         return NULL;
     }
 
@@ -99,7 +99,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     if (__ferCLErrorCheck(err, "Can't create program") != 0){
         clReleaseCommandQueue(cl->queue);
         clReleaseContext(cl->context);
-        free(cl);
+        FER_FREE(cl);
         return NULL;
     }
 
@@ -115,7 +115,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
             if (__ferCLErrorCheck(err, "Can't obtain build log") == 0){
                 fprintf(stderr, " >> Build log:\n%s\n", buf2);
             }
-            free(buf2);
+            FER_FREE(buf2);
         }else{
             if (__ferCLErrorCheck(err, "Can't obtain build log") == 0){
                 fprintf(stderr, " >> Build log:\n%s\n", buf);
@@ -125,7 +125,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
         clReleaseProgram(cl->program);
         clReleaseCommandQueue(cl->queue);
         clReleaseContext(cl->context);
-        free(cl);
+        FER_FREE(cl);
         return NULL;
     }
 
@@ -150,8 +150,8 @@ void ferCLDel(fer_cl_t *cl)
     clReleaseContext(cl->context);
 
     if (cl->kernels)
-        free(cl->kernels);
-    free(cl);
+        FER_FREE(cl->kernels);
+    FER_FREE(cl);
 }
 
 int ferCLKernelNew(fer_cl_t *cl, const char *kernel)
@@ -287,15 +287,15 @@ void ferCLPrintPlatforms(FILE *out)
                         fprintf(out, ", %d", (int)buf_size2[bi]);
                     }
                     fprintf(out, ")\n");
-                    free(buf_size2);
+                    FER_FREE(buf_size2);
                 }
             }
 
-            free(devices);
+            FER_FREE(devices);
         }
     }
 
-    free(platforms);
+    FER_FREE(platforms);
 }
 
 char *ferCLProgramFromFile(const char *filename)
@@ -383,7 +383,7 @@ void *ferCLCloneToHost(fer_cl_t *cl, const void *src, size_t size)
     dst = ferRealloc(NULL, size);
     err = clEnqueueReadBuffer(cl->queue, (cl_mem)src, CL_TRUE, 0, size, dst, 0, NULL, NULL);
     if (__ferCLErrorCheck(err, "Can't read device memory") != 0){
-        free(dst);
+        FER_FREE(dst);
         return NULL;
     }
     return dst;

@@ -107,7 +107,7 @@ static void ferCDSAPGPUDel(fer_cd_sap_t *_sap)
 
     ferCDSAPDestroy(&sap->sap);
 
-    free(sap);
+    FER_FREE(sap);
 }
 
 /* alloc enough memory on device and copy there data from host */
@@ -343,8 +343,8 @@ static void gpuRadixSortRun(fer_cd_sap_gpu_t *sap)
     }
     fprintf(stderr, "\n");
 
-    free(__counter);
-    free(__block_offsets);
+    FER_FREE(__counter);
+    FER_FREE(__block_offsets);
     }
     //exit(-1);
     */

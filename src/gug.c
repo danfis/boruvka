@@ -136,17 +136,17 @@ fer_gug_t *ferGUGNew(const fer_gug_params_t *params)
 void ferGUGDel(fer_gug_t *c)
 {
     if (c->dim)
-        free(c->dim);
+        FER_FREE(c->dim);
     if (c->shift)
-        free(c->shift);
+        FER_FREE(c->shift);
     if (c->aabb)
-        free(c->aabb);
+        FER_FREE(c->aabb);
 
     if (c->cells){
-        free(c->cells);
+        FER_FREE(c->cells);
     }
 
-    free(c);
+    FER_FREE(c);
 }
 
 
@@ -207,8 +207,8 @@ static size_t __ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p,
 
     retlen = cache.len;
 
-    free(center);
-    free(pos);
+    FER_FREE(center);
+    FER_FREE(pos);
 
     cacheDestroy(&cache);
 
@@ -257,7 +257,7 @@ void __ferGUGExpand(fer_gug_t *cs)
         }
     }
 
-    free(cells);
+    FER_FREE(cells);
 
     //DBG("cells: %d", (int)cs->cells_len);
 }
@@ -290,7 +290,7 @@ static void cellsAlloc(fer_gug_t *c, size_t num_cells)
     for (i = 0; i < c->d; i++){
         c->dim[i] = (size_t)(fdim[i] * c->edge_recp) + (size_t)1;
     }
-    free(fdim);
+    FER_FREE(fdim);
 
 
     // compute number of cells
@@ -342,7 +342,7 @@ static void cacheInit(fer_gug_cache_t *cache,
 static void cacheDestroy(fer_gug_cache_t *cache)
 {
     if (cache->dist != cache->__dist)
-        free(cache->dist);
+        FER_FREE(cache->dist);
 }
 
 

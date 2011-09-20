@@ -136,7 +136,7 @@ void ferCDShapeOffDel(fer_cd_shape_off_t *s)
         s->shape->cl->del(s->shape);
     ferMat3Del(s->rot);
     ferVec3Del(s->tr);
-    free(s);
+    FER_FREE(s);
 }
 
 void ferCDShapeOffSupport(const fer_cd_shape_off_t *s, const fer_vec3_t *_dir,

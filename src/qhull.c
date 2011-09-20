@@ -35,7 +35,7 @@ void ferQHullMesh3Del(fer_qhull_mesh3_t *m)
     if (m->vecs){
         ferVec3ArrDel(m->vecs);
     }
-    free(m);
+    FER_FREE(m);
 }
 
 
@@ -54,14 +54,14 @@ fer_qdelaunay_t *ferQDelaunayNew(void)
 void ferQDelaunayDel(fer_qdelaunay_t *q)
 {
     if (q->bin_path)
-        free(q->bin_path);
-    free(q);
+        FER_FREE(q->bin_path);
+    FER_FREE(q);
 }
 
 void ferQDelaunaySetPath(fer_qdelaunay_t *q, const char *path)
 {
     if (q->bin_path)
-        free(q->bin_path);
+        FER_FREE(q->bin_path);
     q->bin_path = strdup(path);
 }
 
@@ -159,17 +159,17 @@ static fer_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
 
 static void mesh3DelVert(fer_mesh3_vertex_t *v, void *data)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 static void mesh3DelEdge(fer_mesh3_edge_t *e, void *data)
 {
-    free(e);
+    FER_FREE(e);
 }
 
 static void mesh3DelFace(fer_mesh3_face_t *f, void *data)
 {
-    free(f);
+    FER_FREE(f);
 }
 
 static int writePC33(fer_pc_t *pc, int fd)
@@ -278,7 +278,7 @@ static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd)
     }
 
     if (verts)
-        free(verts);
+        FER_FREE(verts);
 
     fclose(fin);
     return qmesh;

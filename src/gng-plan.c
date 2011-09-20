@@ -153,13 +153,13 @@ void ferGNGPDel(fer_gngp_t *gng)
     }
 
     if (gng->beta_n)
-        free(gng->beta_n);
+        FER_FREE(gng->beta_n);
     if (gng->beta_lambda_n)
-        free(gng->beta_lambda_n);
+        FER_FREE(gng->beta_lambda_n);
     if (gng->err_heap)
         ferPairHeapDel(gng->err_heap);
 
-    free(gng);
+    FER_FREE(gng);
 }
 
 void ferGNGPRun(fer_gngp_t *gng)
@@ -293,7 +293,7 @@ static void init(fer_gngp_t *gng)
 
     // precompute beta^n
     if (gng->beta_n)
-        free(gng->beta_n);
+        FER_FREE(gng->beta_n);
 
     gng->beta_n = FER_ALLOC_ARR(fer_real_t, gng->params.lambda);
     gng->beta_n[0] = gng->params.beta;
@@ -303,7 +303,7 @@ static void init(fer_gngp_t *gng)
 
     // precompute beta^(n * lambda)
     if (gng->beta_lambda_n)
-        free(gng->beta_lambda_n);
+        FER_FREE(gng->beta_lambda_n);
 
     maxbeta = gng->beta_n[gng->params.lambda - 1];
 
@@ -826,7 +826,7 @@ static void nodeDel(fer_gngp_t *gng, fer_gngp_node_t *n)
         return;
     }
 
-    free(n);
+    FER_FREE(n);
 }
 
 static void nodeDelWithEdges(fer_gngp_t *gng, fer_gngp_node_t *n)
@@ -915,7 +915,7 @@ static void netNodeDel(fer_net_node_t *_n, void *_)
     fer_gngp_node_t *n;
     n = fer_container_of(_n, fer_gngp_node_t, node);
     ferVecDel(n->w);
-    free(n);
+    FER_FREE(n);
 }
 
 
@@ -936,12 +936,12 @@ static fer_gngp_edge_t *edgeNew(fer_gngp_t *gng, fer_gngp_node_t *n1,
 static void edgeDel(fer_gngp_t *gng, fer_gngp_edge_t *e)
 {
     ferNetRemoveEdge(gng->net, &e->edge);
-    free(e);
+    FER_FREE(e);
 }
 
 static void netEdgeDel(fer_net_edge_t *_n, void *_)
 {
     fer_gngp_edge_t *n;
     n = fer_container_of(_n, fer_gngp_edge_t, edge);
-    free(n);
+    FER_FREE(n);
 }

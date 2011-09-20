@@ -70,7 +70,7 @@ fer_rand_mt_t *ferRandMTNewAuto(void)
 
 void ferRandMTDel(fer_rand_mt_t *r)
 {
-    free(r);
+    FER_FREE(r);
 }
 
 void ferRandMTReseed(fer_rand_mt_t *r, uint32_t seed)

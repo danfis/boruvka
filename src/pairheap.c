@@ -32,7 +32,7 @@ fer_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data)
 
 void ferPairHeapDel(fer_pairheap_t *ph)
 {
-    free(ph);
+    FER_FREE(ph);
 }
 
 void ferPairHeapRemove(fer_pairheap_t *ph, fer_pairheap_node_t *n)

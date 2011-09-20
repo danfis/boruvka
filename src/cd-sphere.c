@@ -42,7 +42,7 @@ fer_cd_sphere_t *ferCDSphereNew(fer_real_t radius)
 
 void ferCDSphereDel(fer_cd_sphere_t *s)
 {
-    free(s);
+    FER_FREE(s);
 }
 
 void ferCDSphereSupport(const fer_cd_sphere_t *s, const fer_vec3_t *dir,

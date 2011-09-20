@@ -125,7 +125,7 @@ void ferTasksDel(fer_tasks_t *t)
 
     pthread_cond_destroy(&t->pending_cond);
 
-    free(t);
+    FER_FREE(t);
 }
 
 void ferTasksCancelDel(fer_tasks_t *t)
@@ -209,7 +209,7 @@ static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
 
 static void threadDel(fer_tasks_thread_t *th)
 {
-    free(th);
+    FER_FREE(th);
 }
 
 static void threadJoin(fer_tasks_thread_t *th)
@@ -295,7 +295,7 @@ static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, in
 
 static void taskDel(fer_tasks_task_t *task)
 {
-    free(task);
+    FER_FREE(task);
 }
 
 

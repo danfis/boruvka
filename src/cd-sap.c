@@ -205,10 +205,10 @@ static void ferCDSAPDestroy(fer_cd_sap_t *sap)
     int i;
 
     if (sap->geoms)
-        free(sap->geoms);
+        FER_FREE(sap->geoms);
     for (i = 0; i < 3; i++){
         if (sap->min[i])
-            free(sap->min[i]);
+            FER_FREE(sap->min[i]);
     }
 
     for (i = 0; i < sap->pairs_buckets; i++){
@@ -239,7 +239,7 @@ static void pairDel(fer_cd_sap_pair_t *p)
     // delete it from hash table
     ferListDel(&p->hmap);
     ferListDel(&p->list);
-    free(p);
+    FER_FREE(p);
 }
 
 static uint32_t pairHash(fer_list_t *key, void *sap)

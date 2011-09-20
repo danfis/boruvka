@@ -61,7 +61,7 @@ void ferPCDel(fer_pc_t *pc)
     if (pc->rand)
         ferRandMTDel(pc->rand);
 
-    free(pc);
+    FER_FREE(pc);
 }
 
 void ferPCAdd(fer_pc_t *pc, const fer_vec_t *v)

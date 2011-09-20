@@ -35,7 +35,7 @@ void ferBarrierDel(fer_barrier_t *b)
 {
     pthread_mutex_destroy(&b->lock);
     pthread_cond_destroy(&b->cond);
-    free(b);
+    FER_FREE(b);
 }
 
 void ferBarrier(fer_barrier_t *b)

@@ -38,7 +38,7 @@ fer_vec4_t *ferVec4New(fer_real_t x, fer_real_t y, fer_real_t z, fer_real_t w)
 
 void ferVec4Del(fer_vec4_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 fer_vec4_t *ferVec4ArrNew(size_t num_vecs)
@@ -56,6 +56,6 @@ fer_vec4_t *ferVec4ArrNew(size_t num_vecs)
 
 void ferVec4ArrDel(fer_vec4_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 

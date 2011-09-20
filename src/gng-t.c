@@ -86,7 +86,7 @@ void ferGNGTDel(fer_gngt_t *gng)
                              delEdge, gng);
     }
 
-    free(gng);
+    FER_FREE(gng);
 }
 
 void ferGNGTRun(fer_gngt_t *gng)
@@ -315,7 +315,7 @@ fer_gngt_edge_t *ferGNGTEdgeNew(fer_gngt_t *gng, fer_gngt_node_t *n1,
 void ferGNGTEdgeDel(fer_gngt_t *gng, fer_gngt_edge_t *edge)
 {
     ferNetRemoveEdge(gng->net, &edge->edge);
-    free(edge);
+    FER_FREE(edge);
 }
 
 void ferGNGTEdgeBetweenDel(fer_gngt_t *gng,
@@ -380,5 +380,5 @@ static void nodeFinalDel(fer_net_node_t *node, void *data)
 
 static void delEdge(fer_net_edge_t *edge, void *data)
 {
-    free(edge);
+    FER_FREE(edge);
 }

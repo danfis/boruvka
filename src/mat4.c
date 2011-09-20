@@ -35,7 +35,7 @@ fer_mat4_t *ferMat4New(void)
 
 void ferMat4Del(fer_mat4_t *m)
 {
-    free(m);
+    FER_FREE(m);
 }
 
 int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a)

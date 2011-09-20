@@ -28,7 +28,7 @@ fer_mesh3_vertex_t *ferMesh3VertexNew(void)
 
 void ferMesh3VertexDel(fer_mesh3_vertex_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }
 
 fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
@@ -66,7 +66,7 @@ fer_mesh3_edge_t *ferMesh3EdgeNew(void)
 
 void ferMesh3EdgeDel(fer_mesh3_edge_t *e)
 {
-    free(e);
+    FER_FREE(e);
 }
 
 /** Returns true if two given edges have exactly one common vertex */
@@ -114,7 +114,7 @@ fer_mesh3_face_t *ferMesh3FaceNew(void)
 
 void ferMesh3FaceDel(fer_mesh3_face_t *f)
 {
-    free(f);
+    FER_FREE(f);
 }
 
 
@@ -182,7 +182,7 @@ void ferMesh3Del2(fer_mesh3_t *m,
         }
     }
 
-    free(m);
+    FER_FREE(m);
 }
 
 void ferMesh3AddVertex(fer_mesh3_t *m, fer_mesh3_vertex_t *v)

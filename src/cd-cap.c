@@ -44,7 +44,7 @@ fer_cd_cap_t *ferCDCapNew(fer_real_t radius, fer_real_t height)
 
 void ferCDCapDel(fer_cd_cap_t *c)
 {
-    free(c);
+    FER_FREE(c);
 }
 
 void ferCDCapSupport(const fer_cd_cap_t *c, const fer_vec3_t *dir,

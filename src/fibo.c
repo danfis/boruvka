@@ -54,7 +54,7 @@ fer_fibo_t *ferFiboNew(fer_fibo_lt lt, void *data)
 
 void ferFiboDel(fer_fibo_t *fibo)
 {
-    free(fibo);
+    FER_FREE(fibo);
 }
 
 fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f)

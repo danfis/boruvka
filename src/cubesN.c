@@ -154,8 +154,8 @@ void ferCubes`N`Del(fer_cubes`N`_t *cs)
     if (cs->cache)
         ferCubesCacheDestroy(cs);
 
-    free(cs->cubes);
-    free(cs);
+    FER_FREE(cs->cubes);
+    FER_FREE(cs);
 }
 
 
@@ -223,8 +223,8 @@ static void ferCubesCacheDestroy(fer_cubes`N`_t *cs)
 {
     if (cs->cache){
         if (cs->cache->dist)
-            free(cs->cache->dist);
-        free(cs->cache);
+            FER_FREE(cs->cache->dist);
+        FER_FREE(cs->cache);
     }
     cs->cache = NULL;
 }

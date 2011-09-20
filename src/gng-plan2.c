@@ -170,7 +170,7 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
         ferListDel(item);
         n    = FER_LIST_ENTRY(item, fer_gng_plan_node_t, obst);
         ferVecDel(n->w);
-        free(n);
+        FER_FREE(n);
     }
 
     ferVecDel(gng->start);
@@ -179,7 +179,7 @@ void ferGNGPlanDel(fer_gng_plan_t *gng)
     ferVecDel(gng->tmpv);
     ferVecDel(gng->tmpv2);
 
-    free(gng);
+    FER_FREE(gng);
 }
 
 void ferGNGPlanRun(fer_gng_plan_t *gng)
@@ -483,7 +483,7 @@ static void ferGNGPlanDelNode(fer_gng_node_t *_n, void *data)
 
     ferVecDel(n->w);
     ferGUGRemove(gng->gug, &n->gug);
-    free(n);
+    FER_FREE(n);
 }
 
 static void ferGNGPlanNearest(const void *input_signal,

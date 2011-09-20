@@ -20,6 +20,7 @@
 
 #include <fermat/ccd-support.h>
 #include <fermat/list.h>
+#include <fermat/alloc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -195,7 +196,7 @@ _fer_inline int ferCCDPtDelVertex(fer_ccd_pt_t *pt, fer_ccd_pt_vertex_t *v)
         pt->nearest = NULL;
     }
 
-    free(v);
+    FER_FREE(v);
     return 0;
 }
 
@@ -217,7 +218,7 @@ _fer_inline int ferCCDPtDelEdge(fer_ccd_pt_t *pt, fer_ccd_pt_edge_t *e)
         pt->nearest = NULL;
     }
 
-    free(e);
+    FER_FREE(e);
     return 0;
 }
 
@@ -242,7 +243,7 @@ _fer_inline int ferCCDPtDelFace(fer_ccd_pt_t *pt, fer_ccd_pt_face_t *f)
         pt->nearest = NULL;
     }
 
-    free(f);
+    FER_FREE(f);
     return 0;
 }
 

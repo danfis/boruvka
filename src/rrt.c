@@ -110,7 +110,7 @@ void ferRRTDel(fer_rrt_t *rrt)
     if (rrt->gug)
         ferGUGDel(rrt->gug);
 
-    free(rrt);
+    FER_FREE(rrt);
 }
 
 static void ferRRTRunBasicConnect(fer_rrt_t *rrt, const fer_vec_t *init,
@@ -431,7 +431,7 @@ static conf_item_t *confItemNew(int d, const fer_vec_t *conf)
 static void confItemDel(conf_item_t *c)
 {
     ferVecDel(c->conf);
-    free(c);
+    FER_FREE(c);
 }
 
 
@@ -455,7 +455,7 @@ static fer_rrt_node_t *nodeNew(fer_rrt_t *rrt, const fer_vec_t *p)
 static void nodeDel(fer_rrt_t *rrt, fer_rrt_node_t *n)
 {
     ferVecDel(n->conf);
-    free(n);
+    FER_FREE(n);
 }
 */
 
@@ -470,7 +470,7 @@ static void edgeNew(fer_rrt_t *rrt, fer_rrt_node_t *n1, fer_rrt_node_t *n2)
 /*
 static void edgeDel(fer_rrt_t *rrt, fer_net_edge_t *e)
 {
-    free(e);
+    FER_FREE(e);
 }
 */
 
@@ -481,10 +481,10 @@ static void nodeNetDel(fer_net_node_t *_n, void *_)
     n = fer_container_of(_n, fer_rrt_node_t, node);
 
     ferVecDel(n->conf);
-    free(n);
+    FER_FREE(n);
 }
 
 static void edgeNetDel(fer_net_edge_t *n, void *_)
 {
-    free(n);
+    FER_FREE(n);
 }

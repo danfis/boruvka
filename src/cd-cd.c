@@ -209,7 +209,7 @@ void ferCDDel(fer_cd_t *cd)
         for (i = 0; i < cd->contacts_len; i++){
             ferCDContactsDel(cd->contacts[i]);
         }
-        free(cd->contacts);
+        FER_FREE(cd->contacts);
     }
 
     if (cd->tasks)
@@ -219,7 +219,7 @@ void ferCDDel(fer_cd_t *cd)
     if (cd->sap)
         ferCDSAPDel(cd->sap);
 
-    free(cd);
+    FER_FREE(cd);
 }
 
 void ferCDSetCollideFn(fer_cd_t *cd, int shape1, int shape2,

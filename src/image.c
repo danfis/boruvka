@@ -125,7 +125,7 @@ fer_image_pgmf_t *ferImagePGMF(const char *filename)
 
 void ferImagePGMFDel(fer_image_pgmf_t *p)
 {
-    free(p);
+    FER_FREE(p);
 }
 
 void ferImagePGMFSave(fer_image_pgmf_t *img, const char *filename)

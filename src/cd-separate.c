@@ -22,11 +22,11 @@
 void ferCDContactsDel(fer_cd_contacts_t *contacts)
 {
     if (contacts->size > 0){
-        free(contacts->pos);
-        free(contacts->dir);
-        free(contacts->depth);
+        FER_FREE(contacts->pos);
+        FER_FREE(contacts->dir);
+        FER_FREE(contacts->depth);
     }
-    free(contacts);
+    FER_FREE(contacts);
 }
 
 fer_cd_contacts_t *ferCDContactsNew(size_t size)

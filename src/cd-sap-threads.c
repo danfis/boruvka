@@ -96,14 +96,14 @@ static void ferCDSAPThreadsDel(fer_cd_sap_t *_sap)
     }
 
     if (sap->rs.min)
-        free(sap->rs.min);
-    free(sap->rs.counter);
-    free(sap->rs.negative);
+        FER_FREE(sap->rs.min);
+    FER_FREE(sap->rs.counter);
+    FER_FREE(sap->rs.negative);
     ferBarrierDel(sap->rs.barrier);
 
     ferCDSAPDestroy(&sap->sap);
 
-    free(sap);
+    FER_FREE(sap);
 }
 
 static uint32_t thradixSortFixCounter(uint32_t *counter, uint32_t threads);
@@ -119,7 +119,7 @@ static void sapthRadixSort(fer_cd_sap_t *_sap, int axis)
     // allocate temporary array
     if (rs->min_alloc < sap->sap.geoms_len){
         if (rs->min)
-            free(rs->min);
+            FER_FREE(rs->min);
         rs->min_alloc = sap->sap.geoms_alloc;
         rs->min_len = sap->sap.geoms_len;
         rs->min = FER_ALLOC_ARR(fer_cd_sap_min_t, rs->min_alloc);

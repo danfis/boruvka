@@ -125,7 +125,7 @@ static void _ferGNGInit(fer_gng_t *gng)
 
     // precompute beta^n
     if (gng->beta_n)
-        free(gng->beta_n);
+        FER_FREE(gng->beta_n);
     gng->beta_n = FER_ALLOC_ARR(fer_real_t, gng->params.lambda);
     gng->beta_n[0] = gng->params.beta;
     for (i = 1; i < gng->params.lambda; i++){
@@ -134,7 +134,7 @@ static void _ferGNGInit(fer_gng_t *gng)
 
     // precompute beta^(n * lambda)
     if (gng->beta_lambda_n)
-        free(gng->beta_lambda_n);
+        FER_FREE(gng->beta_lambda_n);
 
     maxbeta = gng->beta_n[gng->params.lambda - 1];
 
@@ -358,7 +358,7 @@ _fer_inline fer_gng_edge_t *edgeNew(fer_gng_t *gng, fer_gng_node_t *n1,
 _fer_inline void edgeDel(fer_gng_t *gng, fer_gng_edge_t *e)
 {
     ferNetRemoveEdge(gng->net, &e->edge);
-    free(e);
+    FER_FREE(e);
 }
 
 

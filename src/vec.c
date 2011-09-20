@@ -28,5 +28,5 @@ fer_vec_t *ferVecNew(size_t size)
 
 void ferVecDel(fer_vec_t *v)
 {
-    free(v);
+    FER_FREE(v);
 }

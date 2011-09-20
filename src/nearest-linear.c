@@ -52,7 +52,7 @@ size_t ferNearestLinear(fer_list_t *list, void *p,
         }
     }
 
-    free(dists);
+    FER_FREE(dists);
     return len;
 }
 

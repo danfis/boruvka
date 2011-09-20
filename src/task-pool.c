@@ -87,9 +87,9 @@ void ferTaskPoolDel(fer_task_pool_t *t)
     for (i = 0; i < t->threads_len; i++){
         threadDel(t->threads[i]);
     }
-    free(t->threads);
+    FER_FREE(t->threads);
 
-    free(t);
+    FER_FREE(t);
 }
 
 void ferTaskPoolAdd(fer_task_pool_t *t, int tid,
@@ -171,7 +171,7 @@ static void threadDel(fer_task_pool_thread_t *th)
 
     pthread_cond_destroy(&th->pending_cond);
 
-    free(th);
+    FER_FREE(th);
 }
 
 static void threadJoin(fer_task_pool_thread_t *th)
@@ -248,7 +248,7 @@ static fer_task_pool_task_t *taskNew(fer_task_pool_t *t, fer_task_pool_fn fn, vo
 
 static void taskDel(fer_task_pool_task_t *task)
 {
-    free(task);
+    FER_FREE(task);
 }
 
 

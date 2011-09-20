@@ -81,7 +81,7 @@ void ferCDTriDel(fer_cd_trimesh_tri_t *t)
     ferVec3Del(t->p[0]);
     ferVec3Del(t->p[1]);
     ferVec3Del(t->p[2]);
-    free(t);
+    FER_FREE(t);
 }
 
 fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
@@ -102,7 +102,7 @@ fer_cd_trimesh_tri_t *ferCDTriMeshTriNew(const fer_vec3_t *p1,
 
 void ferCDTriMeshTriDel(fer_cd_trimesh_tri_t *tri)
 {
-    free(tri);
+    FER_FREE(tri);
 }
 
 
@@ -149,9 +149,9 @@ fer_cd_trimesh_t *ferCDTriMeshNew(const fer_vec3_t *pts,
 
 void ferCDTriMeshDel(fer_cd_trimesh_t *t)
 {
-    free(t->pts);
-    free(t->ids);
-    free(t);
+    FER_FREE(t->pts);
+    FER_FREE(t->ids);
+    FER_FREE(t);
 }
 
 void ferCDTriSupport(const fer_cd_trimesh_tri_t *t, const fer_vec3_t *dir,

@@ -44,7 +44,7 @@ fer_cd_cyl_t *ferCDCylNew(fer_real_t radius, fer_real_t height)
 
 void ferCDCylDel(fer_cd_cyl_t *c)
 {
-    free(c);
+    FER_FREE(c);
 }
 
 void ferCDCylSupport(const fer_cd_cyl_t *c, const fer_vec3_t *dir,

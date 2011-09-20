@@ -39,7 +39,7 @@ void ferDijDel(fer_dij_t *dij)
 {
     if (dij->heap)
         ferPairHeapDel(dij->heap);
-    free(dij);
+    FER_FREE(dij);
 }
 
 int ferDijRun(fer_dij_t *dij, fer_dij_node_t *start,

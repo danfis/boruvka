@@ -62,12 +62,12 @@ static void ferCDSAP1Del(fer_cd_sap_t *_sap)
     ferHMapDel(sap->pairs_reg);
 
     if (sap->rs.min)
-        free(sap->rs.min);
-    free(sap->rs.counter);
+        FER_FREE(sap->rs.min);
+    FER_FREE(sap->rs.counter);
 
     ferCDSAPDestroy(&sap->sap);
 
-    free(sap);
+    FER_FREE(sap);
 }
 
 _fer_inline uint32_t radixSortVal(const fer_cd_sap_min_t *m,
@@ -108,7 +108,7 @@ static void sap1RadixSort(fer_cd_sap_t *_sap, int axis)
     // allocate temporary array
     if (rs->min_alloc < sap->sap.geoms_len){
         if (rs->min)
-            free(rs->min);
+            FER_FREE(rs->min);
         rs->min_alloc = 2 * sap->sap.geoms_alloc;
         rs->min_len = 2 * sap->sap.geoms_len;
         rs->min = FER_ALLOC_ARR(fer_cd_sap_min_t, rs->min_alloc);
