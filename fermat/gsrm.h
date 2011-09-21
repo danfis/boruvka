@@ -61,6 +61,9 @@ struct _fer_gsrm_params_t {
 
     fer_nn_params_t nn; /*!< Params for nearest neighbor search. Default is
                              used Growing Uniform Grid with default values */
+
+    int unoptimized_err; /*!< True if unoptimized error handling should be
+                              used. Default: false */
 };
 typedef struct _fer_gsrm_params_t fer_gsrm_params_t;
 

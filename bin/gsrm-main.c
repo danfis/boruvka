@@ -42,7 +42,9 @@ typedef enum {
     NN_LINEAR,
     VPTREE_MAX_SIZE,
     GUG_MAX_DENS,
-    GUG_EXPAND_RATE
+    GUG_EXPAND_RATE,
+
+    UNOPTIMIZED_ERR
 } options_enum;
 
 static struct option options[] = {
@@ -69,6 +71,8 @@ static struct option options[] = {
     { "vptree-max-size", required_argument, NULL, VPTREE_MAX_SIZE },
     { "gug-max-dens", required_argument, NULL, GUG_MAX_DENS },
     { "gug-expand-rate", required_argument, NULL, GUG_EXPAND_RATE },
+
+    { "unoptimized-err", no_argument, NULL, UNOPTIMIZED_ERR },
 
     { NULL, 0, NULL, 0}
 };
@@ -259,6 +263,10 @@ void readOptions(int argc, char *argv[])
                 params.nn.gug.expand_rate = fv;
                 break;
 
+            case UNOPTIMIZED_ERR:
+                params.unoptimized_err = 1;
+                break;
+
             case OUTFILE:
                 if (strcmp(optarg, "stdout") == 0){
                     outfile_fn = NULL;
@@ -296,6 +304,8 @@ static void usage(int argc, char *argv[], const char *opt_msg)
     fprintf(stderr, "            --min-dangle        float  Minimal dihedral angle between faces\n");
     fprintf(stderr, "            --max-angle         float  Maximal angle in cusp of face\n");
     fprintf(stderr, "            --angle-merge-edges float  Minimal angle between edges to merge them\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "            --unoptimized-err   Turn off optimization of error handling\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "            --nn-gug                  Use Growing Uniform Grid for NN search (default choise)\n");
     fprintf(stderr, "            --nn-vptree               Use VP-Tree for NN search\n");

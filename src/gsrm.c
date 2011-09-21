@@ -236,6 +236,8 @@ void ferGSRMParamsInit(fer_gsrm_params_t *params)
     params->nn.gug.dim = 3;
     params->nn.vptree.dim = 3;
     params->nn.linear.dim = 3;
+
+    params->unoptimized_err = 0;
 }
 
 fer_gsrm_t *ferGSRMNew(const fer_gsrm_params_t *params)
@@ -447,9 +449,11 @@ static int init(fer_gsrm_t *g)
     g->cycle = 1L;
 
     // initialize error heap
-    if (g->err_heap)
-        ferPairHeapDel(g->err_heap);
-    g->err_heap = ferPairHeapNew(errHeapLT, (void *)g);
+    if (!g->params.unoptimized_err){
+        if (g->err_heap)
+            ferPairHeapDel(g->err_heap);
+        g->err_heap = ferPairHeapNew(errHeapLT, (void *)g);
+    }
 
     // precompute beta^n
     if (g->beta_n)
@@ -561,8 +565,10 @@ static node_t *nodeNew(fer_gsrm_t *g, const fer_vec3_t *v)
 
     // set error counter
     n->err = FER_ZERO;
-    n->err_cycle = g->cycle;
-    ferPairHeapAdd(g->err_heap, &n->err_heap);
+    if (!g->params.unoptimized_err){
+        n->err_cycle = g->cycle;
+        ferPairHeapAdd(g->err_heap, &n->err_heap);
+    }
 
     //DBG("n: %lx, vert: %lx (%g %g %g)", (long)n, (long)&n->vert,
     //    ferVec3X(&n->v), ferVec3Y(&n->v), ferVec3Z(&n->v));
@@ -632,7 +638,9 @@ static void nodeDel(fer_gsrm_t *g, node_t *n)
     ferNNRemove(g->nn, &n->nn);
 
     // remove from error heap
-    ferPairHeapRemove(g->err_heap, &n->err_heap);
+    if (!g->params.unoptimized_err){
+        ferPairHeapRemove(g->err_heap, &n->err_heap);
+    }
 
     // Note: no need of deallocation of .vert and .cells
     FER_FREE(n);
@@ -775,6 +783,21 @@ static void drawInputPoint(fer_gsrm_t *g)
 
 
 /** --- ECHL functions --- **/
+static void decreaseAllErrors(fer_gsrm_t *g)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *v;
+    node_t *n;
+
+    list = ferMesh3Vertices(g->mesh);
+    FER_LIST_FOR_EACH(list, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+        n = fer_container_of(v, node_t, vert);
+        n->err = n->err * g->params.beta;
+    }
+}
+
+
 static void echl(fer_gsrm_t *g)
 {
     fer_nn_el_t *el[2];
@@ -792,6 +815,10 @@ static void echl(fer_gsrm_t *g)
 
     // 4. Update all edges emitating from winning node
     echlUpdate(g);
+
+    if (g->params.unoptimized_err){
+        decreaseAllErrors(g);
+    }
 }
 
 static void echlCommonNeighbors(fer_gsrm_t *g, node_t *n1, node_t *n2)
@@ -962,9 +989,13 @@ static void echlMove(fer_gsrm_t *g)
     echlMoveNode(g, wn, g->params.eb);
 
     // increase error counter
-    err  = ferVec3Dist2(wn->v, g->c->is);
-    err *= g->beta_n[g->params.lambda - g->step];
-    nodeIncError(g, wn, err);
+    if (!g->params.unoptimized_err){
+        err  = ferVec3Dist2(wn->v, g->c->is);
+        err *= g->beta_n[g->params.lambda - g->step];
+        nodeIncError(g, wn, err);
+    }else{
+        wn->err += ferVec3Dist2(wn->v, g->c->is);
+    }
 
     // move nodes connected with the winner
     list = ferMesh3VertexEdges(wvert);
@@ -1020,10 +1051,39 @@ static void echlUpdate(fer_gsrm_t *g)
 
 
 /** --- Create New Node functions --- **/
+static node_t *nodeWithHighestErrCounterLinear(fer_gsrm_t *g)
+{
+    fer_list_t *list, *item;
+    fer_mesh3_vertex_t *v;
+    node_t *n;
+    fer_real_t err;
+    node_t *max;
+
+    max = NULL;
+    err = -FER_REAL_MAX;
+
+    list = ferMesh3Vertices(g->mesh);
+    FER_LIST_FOR_EACH(list, item){
+        v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+        n = fer_container_of(v, node_t, vert);
+
+        if (n->err > err){
+            max = n;
+            err = n->err;
+        }
+    }
+
+    return max;
+}
+
 static node_t *nodeWithHighestErrCounter(fer_gsrm_t *g)
 {
     fer_pairheap_node_t *max;
     node_t *maxn;
+
+    if (g->params.unoptimized_err){
+        return nodeWithHighestErrCounterLinear(g);
+    }
 
     max  = ferPairHeapMin(g->err_heap);
     maxn = fer_container_of(max, node_t, err_heap);
@@ -1039,6 +1099,7 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
     fer_real_t max_err;
     node_t *n, *max_n;
 
+
     max_err = -FER_REAL_MAX;
     max_n   = NULL;
     list = ferMesh3VertexEdges(&sq->vert);
@@ -1047,7 +1108,9 @@ static node_t *nodesNeighborWithHighestErrCounter(fer_gsrm_t *g, node_t *sq)
         other_vert = ferMesh3EdgeOtherVertex(edge, &sq->vert);
         n = fer_container_of(other_vert, node_t, vert);
 
-        nodeFixError(g, n);
+        if (!g->params.unoptimized_err){
+            nodeFixError(g, n);
+        }
 
         if (n->err > max_err){
             max_err = n->err;
@@ -1099,12 +1162,19 @@ static void createNewNode(fer_gsrm_t *g)
     sr = createNewNode2(g, sq, sf);
 
     // set up error counters of sq, sf and sr
-    nodeScaleError(g, sq, g->params.alpha);
-    nodeScaleError(g, sf, g->params.alpha);
-    sr->err  = sq->err + sf->err;
-    sr->err /= FER_REAL(2.);
-    sr->err_cycle = g->cycle;
-    ferPairHeapUpdate(g->err_heap, &sr->err_heap);
+    if (!g->params.unoptimized_err){
+        nodeScaleError(g, sq, g->params.alpha);
+        nodeScaleError(g, sf, g->params.alpha);
+        sr->err  = sq->err + sf->err;
+        sr->err /= FER_REAL(2.);
+        sr->err_cycle = g->cycle;
+        ferPairHeapUpdate(g->err_heap, &sr->err_heap);
+    }else{
+        sq->err *= g->params.alpha;
+        sf->err *= g->params.alpha;
+        sr->err  = sq->err + sf->err;
+        sr->err /= FER_REAL(2.);
+    }
 
     // create edges sq-sr and sf-sr
     edgeNew(g, sq, sr);
