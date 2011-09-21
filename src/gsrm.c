@@ -942,6 +942,9 @@ _fer_inline void echlMoveNode(fer_gsrm_t *g, node_t *n, fer_real_t k)
 
     // move node
     ferVec3Add(n->v, &v);
+
+    // update node in search structure
+    ferNNUpdate(g->nn, &n->nn);
 }
 
 static void echlMove(fer_gsrm_t *g)
