@@ -140,11 +140,10 @@ struct _fer_gng_eu_params_t {
     fer_real_t beta;  /*!< Decrease error counter rate for all nodes */
     int age_max;      /*!< Maximal age of edge */
 
-    int use_nn; /*!< Set to one of types defined in fermat/nn.h (FER_NN_*)
-                     to use non-linear algorithm for NN search. You also
-                     must set {.nn} params appropriately.
-                     Default: FER_NN_NNCELLS */
-    fer_nn_params_t nn;
+    fer_nn_params_t nn; /*!< Defines which algorithm will be used for
+                             nearest neighbor search.
+                             Default is Growing Uniform Grid with default
+                             values */
 };
 typedef struct _fer_gng_eu_params_t fer_gng_eu_params_t;
 

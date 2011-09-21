@@ -48,6 +48,8 @@ struct _fer_nn_t {
 typedef struct _fer_nn_t fer_nn_t;
 
 struct _fer_nn_params_t {
+    uint8_t type; /*!< Type of NN search algorithm. See 'Types of
+                       Algorithms'. Default: FER_NN_LINEAR */
     fer_gug_params_t gug;
     fer_vptree_params_t vptree;
     fer_nn_linear_params_t linear;
@@ -107,7 +109,7 @@ _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p);
  * A type of the NN search algorithm must be provided and appropriate part
  * of the fer_nn_params_t struct must be set.
  */
-_fer_inline fer_nn_t *ferNNNew(uint8_t type, const fer_nn_params_t *params);
+_fer_inline fer_nn_t *ferNNNew(const fer_nn_params_t *params);
 
 /**
  * Free all allocated memory.
@@ -146,6 +148,7 @@ _fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
 /**** INLINES ****/
 _fer_inline void ferNNParamsInit(fer_nn_params_t *params)
 {
+    params->type = FER_NN_LINEAR;
     ferGUGParamsInit(&params->gug);
     ferVPTreeParamsInit(&params->vptree);
     ferNNLinearParamsInit(&params->linear);
@@ -162,15 +165,15 @@ _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
     }
 }
 
-_fer_inline fer_nn_t *ferNNNew(uint8_t type, const fer_nn_params_t *params)
+_fer_inline fer_nn_t *ferNNNew(const fer_nn_params_t *params)
 {
     fer_nn_t *nn = NULL;
 
-    if (type == FER_NN_GUG){
+    if (params->type == FER_NN_GUG){
         nn = (fer_nn_t *)ferGUGNew(&params->gug);
-    }else if (type == FER_NN_VPTREE){
+    }else if (params->type == FER_NN_VPTREE){
         nn = (fer_nn_t *)ferVPTreeNew(&params->vptree);
-    }else if (type == FER_NN_LINEAR){
+    }else if (params->type == FER_NN_LINEAR){
         nn = (fer_nn_t *)ferNNLinearNew(&params->linear);
     }
 

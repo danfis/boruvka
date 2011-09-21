@@ -37,7 +37,12 @@ typedef enum {
 
     DUMP_TRIANGLES,
 
-    NUM_CELLS
+    NN_GUG,
+    NN_VPTREE,
+    NN_LINEAR,
+    VPTREE_MAX_SIZE,
+    GUG_MAX_DENS,
+    GUG_EXPAND_RATE
 } options_enum;
 
 static struct option options[] = {
@@ -50,7 +55,6 @@ static struct option options[] = {
     { "alpha",     required_argument, NULL, ALPHA },
     { "age-max",   required_argument, NULL, AGE_MAX },
     { "max-nodes", required_argument, NULL, MAX_NODES },
-    { "num-gug", required_argument, NULL, NUM_CELLS },
     { "min-dangle", required_argument, NULL, MIN_DANGLE },
     { "max-angle", required_argument, NULL, MAX_ANGLE },
     { "angle-merge-edges", required_argument, NULL, ANGLE_MERGE_EDGES },
@@ -58,6 +62,13 @@ static struct option options[] = {
     { "dump-triangles", required_argument, NULL, DUMP_TRIANGLES },
 
     { "outfile", required_argument, NULL, OUTFILE },
+
+    { "nn-gug",    no_argument, NULL, NN_GUG },
+    { "nn-vptree", no_argument, NULL, NN_VPTREE },
+    { "nn-linear", no_argument, NULL, NN_LINEAR },
+    { "vptree-max-size", required_argument, NULL, VPTREE_MAX_SIZE },
+    { "gug-max-dens", required_argument, NULL, GUG_MAX_DENS },
+    { "gug-expand-rate", required_argument, NULL, GUG_EXPAND_RATE },
 
     { NULL, 0, NULL, 0}
 };
@@ -150,9 +161,9 @@ void readOptions(int argc, char *argv[])
 
     ferGSRMParamsInit(&params);
     params.verbosity = 1;
-    params.gug.num_cells = 0;
-    params.gug.max_dens = 0.1;
-    params.gug.expand_rate = 1.5;
+    params.nn.gug.num_cells = 0;
+    params.nn.gug.max_dens = 0.1;
+    params.nn.gug.expand_rate = 1.5;
 
     while ((c = getopt_long(argc, argv, "hvo:", options, &option_index)) != -1){
         switch(c){
@@ -176,7 +187,7 @@ void readOptions(int argc, char *argv[])
                 break;
             case LAMBDA:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "lambda must be fixed point number");
+                    usage(argc, argv, "lambda must be int number");
                 params.lambda = iv;
                 break;
             case BETA:
@@ -191,18 +202,13 @@ void readOptions(int argc, char *argv[])
                 break;
             case AGE_MAX:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "age-max must be fixed point number");
+                    usage(argc, argv, "age-max must be int number");
                 params.age_max = iv;
                 break;
             case MAX_NODES:
                 if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "max-nodes must be fixed point number");
+                    usage(argc, argv, "max-nodes must be int number");
                 params.max_nodes = iv;
-                break;
-            case NUM_CELLS:
-                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "num-gug must be fixed point number");
-                params.gug.num_cells = iv;
                 break;
 
             case MIN_DANGLE:
@@ -227,6 +233,31 @@ void readOptions(int argc, char *argv[])
                         usage(argc, argv, "can't open file for dump-triangles");
                     strncpy(dump_triangles_fn, optarg, DUMP_TRIANGLES_FN_LEN);
                     break;
+
+            case NN_GUG:
+                params.nn.type = FER_NN_GUG;
+                break;
+            case NN_VPTREE:
+                params.nn.type = FER_NN_VPTREE;
+                break;
+            case NN_LINEAR:
+                params.nn.type = FER_NN_LINEAR;
+                break;
+            case VPTREE_MAX_SIZE:
+                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
+                    usage(argc, argv, "vptree-max-size be int number");
+                params.nn.vptree.maxsize = iv;
+                break;
+            case GUG_MAX_DENS:
+                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
+                    usage(argc, argv, "gug-max-dens must be float");
+                params.nn.gug.max_dens = fv;
+                break;
+            case GUG_EXPAND_RATE:
+                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
+                    usage(argc, argv, "gug-expand-rate must be float");
+                params.nn.gug.expand_rate = fv;
+                break;
 
             case OUTFILE:
                 if (strcmp(optarg, "stdout") == 0){
@@ -261,11 +292,17 @@ static void usage(int argc, char *argv[], const char *opt_msg)
     fprintf(stderr, "            --alpha     float  Error counter decreasing rate\n");
     fprintf(stderr, "            --age-max   int\n");
     fprintf(stderr, "            --max-nodes int    Stop Criterium\n");
-    fprintf(stderr, "            --num-cells int    Number of cells (default is 0)\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "            --min-dangle        float  Minimal dihedral angle between faces\n");
     fprintf(stderr, "            --max-angle         float  Maximal angle in cusp of face\n");
     fprintf(stderr, "            --angle-merge-edges float  Minimal angle between edges to merge them\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "            --nn-gug                  Use Growing Uniform Grid for NN search (default choise)\n");
+    fprintf(stderr, "            --nn-vptree               Use VP-Tree for NN search\n");
+    fprintf(stderr, "            --nn-linear               Use linear NN search\n");
+    fprintf(stderr, "            --vptree-max-size  int    Maximal number of elements in leaf node\n");
+    fprintf(stderr, "            --gug-max-dens     float  Maximal density\n");
+    fprintf(stderr, "            --gug-expand-rate  float  Expand rate\n");
     fprintf(stderr, "\n");
 
     fprintf(stderr, "\n");
@@ -294,9 +331,6 @@ void printAttrs(void)
     fprintf(stderr, "    age_max:   %d\n", (int)param->age_max);
     fprintf(stderr, "    max nodes: %d\n", (int)param->max_nodes);
     fprintf(stderr, "\n");
-    fprintf(stderr, "    num cells:   %d\n", (int)param->gug.num_cells);
-    fprintf(stderr, "    max dens:    %f\n", (float)param->gug.max_dens);
-    fprintf(stderr, "    expand rate: %f\n", (float)param->gug.expand_rate);
     fprintf(stderr, "\n");
     fprintf(stderr, "    min d. angle:  %f\n", (float)param->min_dangle);
     fprintf(stderr, "    max angle:     %f\n", (float)param->max_angle);
@@ -305,6 +339,13 @@ void printAttrs(void)
     fprintf(stderr, "    input signals: %s\n", is_fn);
     fprintf(stderr, "\n");
     fprintf(stderr, "    outfile: %s\n", (outfile_fn == NULL ? "stdout" : outfile_fn));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "VP-Tree:\n");
+    fprintf(stderr, "    maxsize: %d\n", (int)param->nn.vptree.maxsize);
+    fprintf(stderr, "GUG:\n");
+    fprintf(stderr, "    num cells:   %d\n", (int)param->nn.gug.num_cells);
+    fprintf(stderr, "    max dens:    %f\n", (float)param->nn.gug.max_dens);
+    fprintf(stderr, "    expand rate: %f\n", (float)param->nn.gug.expand_rate);
     fprintf(stderr, "\n");
 }
 

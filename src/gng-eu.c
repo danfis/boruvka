@@ -72,8 +72,8 @@ void ferGNGEuParamsInit(fer_gng_eu_params_t *params)
     params->beta    = 0.9995;
     params->age_max = 200;
 
-    params->use_nn = FER_NN_GUG;
     ferNNParamsInit(&params->nn);
+    params->nn.type = FER_NN_GUG;
 }
 
 
@@ -129,13 +129,11 @@ fer_gng_eu_t *ferGNGEuNew(const fer_gng_eu_ops_t *ops,
 
 
     // initialize nncells
-    gng_eu->nn = NULL;
-    if (params->use_nn){
-        nnp = params->nn;
-        nnp.gug.dim = params->dim;
-        nnp.vptree.dim = params->dim;
-        gng_eu->nn = ferNNNew(params->use_nn, &nnp);
-    }
+    nnp = params->nn;
+    nnp.gug.dim = params->dim;
+    nnp.vptree.dim = params->dim;
+    nnp.linear.dim = params->dim;
+    gng_eu->nn = ferNNNew(&nnp);
 
     // initialize temporary vector
     if (gng_eu->params.dim == 2){
@@ -649,41 +647,10 @@ static const void *ferGNGEuInputSignal(void *data)
 }
 
 
-static fer_real_t dist22(void *is, fer_list_t *nlist, void *data)
-{
-    fer_gng_eu_t *gng = (fer_gng_eu_t *)data;
-    fer_gng_eu_node_t *n;
-
-    n = ferGNGEuNodeFromList(nlist);
-    if (gng->params.dim == 2){
-        return ferVec2Dist2((const fer_vec2_t *)is, (const fer_vec2_t *)n->w);
-    }else if (gng->params.dim == 3){
-        return ferVec3Dist2((const fer_vec3_t *)is, (const fer_vec3_t *)n->w);
-    }else{
-        return ferVecDist2(gng->params.dim, (const fer_vec_t *)is, n->w);
-    }
-}
-
-
-_fer_inline void ferGNGEuNearestLinear(fer_gng_eu_t *gng,
-                                       const fer_vec_t *is,
-                                       fer_gng_eu_node_t **n1,
-                                       fer_gng_eu_node_t **n2)
-{
-    fer_list_t *ns[2];
-
-    ns[0] = ns[1] = NULL;
-    ferNearestLinear(ferGNGEuNodes(gng), (void *)is, dist22, ns, 2,
-                     (void *)gng);
-
-    *n1 = ferGNGEuNodeFromList(ns[0]);
-    *n2 = ferGNGEuNodeFromList(ns[1]);
-}
-
-_fer_inline void ferGNGEuNearestCells(fer_gng_eu_t *gng,
-                                      const fer_vec_t *is,
-                                      fer_gng_eu_node_t **n1,
-                                      fer_gng_eu_node_t **n2)
+static void ferGNGEuNearest(fer_gng_eu_t *gng,
+                            const fer_vec_t *is,
+                            fer_gng_eu_node_t **n1,
+                            fer_gng_eu_node_t **n2)
 {
     fer_nn_el_t *els[2];
 
@@ -693,18 +660,6 @@ _fer_inline void ferGNGEuNearestCells(fer_gng_eu_t *gng,
 
     *n1 = fer_container_of(els[0], fer_gng_eu_node_t, nn);
     *n2 = fer_container_of(els[1], fer_gng_eu_node_t, nn);
-}
-
-static void ferGNGEuNearest(fer_gng_eu_t *gng,
-                            const fer_vec_t *is,
-                            fer_gng_eu_node_t **n1,
-                            fer_gng_eu_node_t **n2)
-{
-    if (gng->nn){
-        ferGNGEuNearestCells(gng, is, n1, n2);
-    }else{
-        ferGNGEuNearestLinear(gng, is, n1, n2);
-    }
 }
 
 
@@ -743,7 +698,5 @@ _fer_inline void ferGNGEuMoveTowards(fer_gng_eu_t *gng,
         ferVecAdd(gng->params.dim, n->w, gng->tmpv);
     }
 
-    if (gng->nn){
-        ferNNUpdate(gng->nn, &n->nn);
-    }
+    ferNNUpdate(gng->nn, &n->nn);
 }

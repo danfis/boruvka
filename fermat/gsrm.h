@@ -21,7 +21,7 @@
 #include <fermat/timer.h>
 #include <fermat/pc.h>
 #include <fermat/mesh3.h>
-#include <fermat/gug.h>
+#include <fermat/nn.h>
 #include <fermat/pairheap.h>
 
 #ifdef __cplusplus
@@ -59,7 +59,8 @@ struct _fer_gsrm_params_t {
 
     int verbosity; /*!< Verbosity level */
 
-    fer_gug_params_t gug; /*!< GUG parameters */
+    fer_nn_params_t nn; /*!< Params for nearest neighbor search. Default is
+                             used Growing Uniform Grid with default values */
 };
 typedef struct _fer_gsrm_params_t fer_gsrm_params_t;
 
@@ -74,7 +75,7 @@ struct _fer_gsrm_t {
     fer_pc_t *is;      /*!< Input signals */
     fer_pc_it_t isit;  /*!< Iterator over is */
     fer_mesh3_t *mesh; /*!< Reconstructed mesh */
-    fer_gug_t *gug;    /*!< Search structure for nearest neighbor */
+    fer_nn_t *nn;      /*!< Search structure for nearest neighbor */
 
     fer_real_t *beta_n;        /*!< Precomputed beta^n for n = 1, ..., lambda */
     fer_real_t *beta_lambda_n; /*!< Precomputed beta^(n*lambda) for
