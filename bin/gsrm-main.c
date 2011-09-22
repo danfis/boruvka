@@ -44,7 +44,8 @@ typedef enum {
     GUG_MAX_DENS,
     GUG_EXPAND_RATE,
 
-    UNOPTIMIZED_ERR
+    UNOPTIMIZED_ERR,
+    NO_POSTPROCESS
 } options_enum;
 
 static struct option options[] = {
@@ -73,6 +74,7 @@ static struct option options[] = {
     { "gug-expand-rate", required_argument, NULL, GUG_EXPAND_RATE },
 
     { "unoptimized-err", no_argument, NULL, UNOPTIMIZED_ERR },
+    { "no-postprocess", no_argument, NULL, NO_POSTPROCESS },
 
     { NULL, 0, NULL, 0}
 };
@@ -84,6 +86,7 @@ static const char *is_fn = NULL;
 static const char *outfile_fn;
 static FILE *dump_triangles = NULL;
 static char dump_triangles_fn[DUMP_TRIANGLES_FN_LEN + 1] = "";
+static int no_postprocess = 0;
 
 static void usage(int argc, char *argv[], const char *opt_msg);
 static void readOptions(int argc, char *argv[]);
@@ -121,7 +124,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "\n");
 
     if (ferGSRMRun(gsrm) == 0){
-        ferGSRMPostprocess(gsrm);
+        if (!no_postprocess)
+            ferGSRMPostprocess(gsrm);
 
         ferTimerStart(&timer);
 
@@ -266,6 +270,9 @@ void readOptions(int argc, char *argv[])
             case UNOPTIMIZED_ERR:
                 params.unoptimized_err = 1;
                 break;
+            case NO_POSTPROCESS:
+                no_postprocess = 1;
+                break;
 
             case OUTFILE:
                 if (strcmp(optarg, "stdout") == 0){
@@ -306,6 +313,7 @@ static void usage(int argc, char *argv[], const char *opt_msg)
     fprintf(stderr, "            --angle-merge-edges float  Minimal angle between edges to merge them\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "            --unoptimized-err   Turn off optimization of error handling\n");
+    fprintf(stderr, "            --no-postprocess    Turn off postprocessing\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "            --nn-gug                  Use Growing Uniform Grid for NN search (default choise)\n");
     fprintf(stderr, "            --nn-vptree               Use VP-Tree for NN search\n");
