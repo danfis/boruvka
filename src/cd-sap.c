@@ -46,13 +46,21 @@ static void pairRemoveAll(fer_cd_sap_t *sap);
 
 #include "cd-sap-1.c"
 #include "cd-sap-threads.c"
-#include "cd-sap-gpu.c"
+
+#ifdef FER_OPENCL
+# include "cd-sap-gpu.c"
+#endif /* FER_OPENCL */
 
 
 fer_cd_sap_t *ferCDSAPNew(fer_cd_t *cd, uint64_t flags)
 {
     if (__FER_CD_SAP_GPU(flags)){
+#ifdef FER_OPENCL
         return ferCDSAPGPUNew(cd, flags);
+#else /* FER_OPENCL */
+        fprintf(stderr, "GPU SAP is not available!\n");
+        exit(-1);
+#endif /* FER_OPENCL */
     }else if (__FER_CD_SAP_THREADS(flags) > 1){
         return ferCDSAPThreadsNew(cd, flags);
     }
@@ -67,7 +75,12 @@ void ferCDSAPDel(fer_cd_sap_t *sap)
     }else if (sap->type == FER_CD_SAP_TYPE_THREADS){
         ferCDSAPThreadsDel(sap);
     }else if (sap->type == FER_CD_SAP_TYPE_GPU){
+#ifdef FER_OPENCL
         ferCDSAPGPUDel(sap);
+#else /* FER_OPENCL */
+        fprintf(stderr, "GPU SAP is not available!\n");
+        exit(-1);
+#endif /* FER_OPENCL */
     }
 }
 

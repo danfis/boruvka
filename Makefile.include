@@ -155,6 +155,7 @@ OZCOLLIDE_LDFLAGS ?= -lozcollide
 ifneq '$(CC_NOT_GCC)' 'yes'
   CFLAGS += -std=gnu99 -ffast-math -O3
 endif
+LDFLAGS += -pthread
 LDFLAGS += $(SYSTEM_LDFLAGS)
 
 
