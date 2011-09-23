@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     ferGNGEuParamsInit(&params);
     params.dim = atoi(argv[1]);
     params.nn.type = FER_NN_GUG;
+    params.nn.type = FER_NN_VPTREE;
     params.nn.gug.num_cells = 0;
     params.nn.gug.max_dens = 0.1;
     params.nn.gug.expand_rate = 1.5;

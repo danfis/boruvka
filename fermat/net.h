@@ -229,6 +229,22 @@ void ferNetAddEdge(fer_net_t *m, fer_net_edge_t *e,
 void ferNetRemoveEdge(fer_net_t *m, fer_net_edge_t *e);
 
 
+/**
+ * Traverses all nodes in net.
+ * The callback {cb} is called for each node in net.
+ */
+void ferNetTraverseNode(fer_net_t *net,
+                        void (*cb)(fer_net_t *net, fer_net_node_t *n, void *data),
+                        void *data);
+
+/**
+ * Traverses all edges in net.
+ * The callback {cb} is called for each edge in net.
+ */
+void ferNetTraverseEdge(fer_net_t *net,
+                        void (*cb)(fer_net_t *net, fer_net_edge_t *e, void *data),
+                        void *data);
+
 #if 0
 /**
  * Dumps net as one object in SVT format.

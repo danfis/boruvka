@@ -208,3 +208,31 @@ void ferNetRemoveEdge(fer_net_t *m, fer_net_edge_t *e)
     ferListDel(&e->list);
     m->edges_len--;
 }
+
+
+void ferNetTraverseNode(fer_net_t *net,
+                        void (*cb)(fer_net_t *net, fer_net_node_t *n, void *data),
+                        void *data)
+{
+    fer_list_t *item;
+    fer_net_node_t *n;
+
+    FER_LIST_FOR_EACH(&net->nodes, item){
+        n = FER_LIST_ENTRY(item, fer_net_node_t, list);
+        cb(net, n, data);
+    }
+}
+
+void ferNetTraverseEdge(fer_net_t *net,
+                        void (*cb)(fer_net_t *net, fer_net_edge_t *e, void *data),
+                        void *data)
+{
+    fer_list_t *item;
+    fer_net_edge_t *e;
+
+    FER_LIST_FOR_EACH(&net->edges, item){
+        e = FER_LIST_ENTRY(item, fer_net_edge_t, list);
+        cb(net, e, data);
+    }
+}
+
