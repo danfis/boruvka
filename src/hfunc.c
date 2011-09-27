@@ -73,3 +73,26 @@ uint32_t ferHashJenkins(const uint32_t *k, size_t length, uint32_t initval)
     /*------------------------------------------------------ report the result */
     return c;
 }
+
+
+uint32_t ferHashDJB2(const char *str)
+{
+    uint32_t hash = 5381;
+    int c;
+
+    while ((c = *str++) != 0x0){
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+    return hash;
+}
+
+uint32_t ferHashSDBM(const char *str)
+{
+    uint32_t hash = 0;
+    int c;
+
+    while (c = *str++)
+        hash = c + (hash << 6) + (hash << 16) - hash;
+
+    return hash;
+}
