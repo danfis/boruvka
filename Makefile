@@ -24,9 +24,6 @@ ifeq '$(USE_OPENCL)' 'yes'
   CFLAGS += $(OPENCL_CFLAGS)
   LDFLAGS += $(OPENCL_LDFLAGS)
 endif
-ifeq '$(USE_RAPID)' 'yes'
-  CFLAGS += $(RAPID_CFLAGS)
-endif
 
 BIN_TARGETS  = fer-gsrm fer-qdelaunay
 BIN_TARGETS += fer-gng-eu fer-plan-2d
@@ -73,10 +70,6 @@ ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
   OBJS += surf-matching.o
 endif
-ifeq '$(USE_RAPID)' 'yes'
-  OBJSPP = trimesh.cpp.o
-  BIN_TARGETS += fer-gngp-alpha fer-print-alpha
-endif
 
 # header files that must be generated
 HEADERS = cubes2.h cubes3.h
@@ -94,11 +87,6 @@ libfermat.a: $(OBJS) $(OBJSPP)
 
 fermat/config.h: fermat/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
-
-bin/fer-gngp-alpha: bin/gngp-alpha-main.c libfermat.a
-	$(CC) $(CFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS) -lstdc++
-bin/fer-print-alpha: bin/print-alpha-main.c libfermat.a
-	$(CC) $(CFLAGS) $(RAPID_CFLAGS) -o $@ $< $(LDFLAGS) $(RAPID_LDFLAGS) -lstdc++
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)

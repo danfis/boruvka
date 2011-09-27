@@ -80,8 +80,9 @@ static void _nnAdd(uint8_t type, fer_nn_params_t *params)
     int i, j;
 
     rand = ferRandMTNewAuto();
+    params->type = type;
 
-    nn = ferNNNew(type, params);
+    nn = ferNNNew(params);
 
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
@@ -135,7 +136,8 @@ static void _nnAddRm(uint8_t type, fer_nn_params_t *params)
 
     rand = ferRandMTNewAuto();
 
-    nn = ferNNNew(type, params);
+    params->type = type;
+    nn = ferNNNew(params);
 
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){

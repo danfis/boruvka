@@ -8,6 +8,5 @@ ifdef(`USE_SSE', `#define FER_SSE')
 ifdef(`USE_SSE', `ifdef(`USE_SINGLE', `#define FER_SSE_SINGLE', `#define FER_SSE_DOUBLE')')
 ifdef(`DEBUG', `#define FER_DEBUG')
 ifdef(`USE_OPENCL', `#define FER_OPENCL')
-ifdef(`USE_RAPID', `#define FER_RAPID')
 
 #endif /* __FER_CONFIG_H__ */
