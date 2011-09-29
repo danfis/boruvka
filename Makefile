@@ -14,6 +14,7 @@
 #  See the License for more information.
 ##
 
+-include Makefile.local
 -include Makefile.include
 
 CFLAGS += -I.

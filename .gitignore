@@ -12,3 +12,5 @@ src/cubes[234].c
 src/*-cl.c
 src/cfg-lexer.c
 src/cfg-lexer-gen.h
+Makefile.local
+
