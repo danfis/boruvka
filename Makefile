@@ -99,6 +99,8 @@ src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
 
 src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 	$(FLEX) --header-file=src/cfg-lexer-gen.h -o $@ $<
+.objs/cfg.o: src/cfg.c fermat/cfg.h fermat/config.h src/cfg-lexer.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
@@ -148,6 +150,7 @@ install:
 
 clean:
 	rm -f $(OBJS)
+	rm -f src/cfg-lexer.c src/cfg-lexer-gen.h
 	rm -f .objs/*.o
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
