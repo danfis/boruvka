@@ -30,15 +30,24 @@ extern "C" {
  * Config Files
  * =============
  *
+ * See fer_cfg_t.
+ *
  * Example config file:
  * ---------------------
  * ~~~~~
  * # comment
  * str = 'some string'  # comment
  * f   = 10.3e10
+ *
+ * # with specified types: float, string, 2-D vector and 3-D vector
+ * # respectively
+ * val1:f  = 1.2e-10
+ * val2:s  = 'a123g'
  * vec2:v2 = 10 12.1
  * vec3:v3 = 10 12.1 11.1
  *
+ * # arrays
+ * flts:f[4] = 1 2 3 4
  * vecs2:v2[2] =
  *      10 12.1
  *      11 13.1
@@ -49,7 +58,6 @@ extern "C" {
  * ~~~~~
  *
  *
- * See fer_cfg_t.
  */
 
 struct _fer_cfg_t {

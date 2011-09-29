@@ -8,6 +8,7 @@ BUILDDIR      = .
 
 RSTS  = core compiler alloc
 RSTS += list rand rand-mt timer parse
+RSTS += cfg
 
 RSTS += vec4 vec3 vec2 vec
 RSTS += quat
