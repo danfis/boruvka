@@ -23,6 +23,7 @@
 #include "task-pool.h"
 #include "vptree.h"
 #include "nn.h"
+#include "cfg.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -55,6 +56,8 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSTasks),
     TEST_SUITE_ADD(TSTaskPool),
+
+    TEST_SUITE_ADD(TSCfg),
 
     TEST_SUITES_CLOSURE
 };

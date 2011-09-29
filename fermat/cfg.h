@@ -34,18 +34,18 @@ extern "C" {
  * ---------------------
  * ~~~~~
  * # comment
- * str = some string  # comment
+ * str = 'some string'  # comment
  * f   = 10.3e10
- * vec2 = v2(10 12.1)
- * vec3 = v3(10 12.1 11.1)
+ * vec2:v2 = 10 12.1
+ * vec3:v3 = 10 12.1 11.1
  *
- * vecs2 = v2[2](
+ * vecs2:v2[2] =
  *      10 12.1
- *      11 13.1)
- * vecs3 = v3[2](
+ *      11 13.1
+ * vecs3:v3[3] =
  *      10 12.1 1.1
  *      1 1.1 2.e-2
- *      )
+ *      3 1.4 9.e3
  * ~~~~~
  *
  *
@@ -216,6 +216,34 @@ int ferCfgParamV2(const fer_cfg_t *c, const char *name, fer_vec2_t *val);
  * Return 0 on success.
  */
 int ferCfgParamV3(const fer_cfg_t *c, const char *name, fer_vec3_t *val);
+
+/**
+ * Returns (via {val} and {len}) a value of speficied parameter.
+ * Return 0 on success.
+ */
+int ferCfgParamStrArr(const fer_cfg_t *c, const char *name,
+                      char ***val, size_t *len);
+
+/**
+ * Returns (via {val} and {len}) a value of speficied parameter.
+ * Return 0 on success.
+ */
+int ferCfgParamFltArr(const fer_cfg_t *c, const char *name,
+                      const fer_real_t **val, size_t *len);
+
+/**
+ * Returns (via {val} and {len}) a value of speficied parameter.
+ * Return 0 on success.
+ */
+int ferCfgParamV2Arr(const fer_cfg_t *c, const char *name,
+                     const fer_vec2_t **val, size_t *len);
+
+/**
+ * Returns (via {val} and {len}) a value of speficied parameter.
+ * Return 0 on success.
+ */
+int ferCfgParamV3Arr(const fer_cfg_t *c, const char *name,
+                     const fer_vec3_t **val, size_t *len);
 
 #ifdef __cplusplus
 }

@@ -18,6 +18,7 @@ CC ?= gcc
 CXX ?= g++
 M4 ?= m4
 SED ?= sed
+FLEX ?= flex
 PYTHON ?= python
 PYTHON2 ?= python2
 PYTHON3 ?= python3

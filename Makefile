@@ -34,7 +34,7 @@ BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
-OBJS += cfg.o
+OBJS += cfg.o cfg-lexer.o
 
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
@@ -97,6 +97,8 @@ src/surf-matching.c: src/surf-matching-cl.c
 src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
 	touch $@
 
+src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
+	$(FLEX) --header-file=src/cfg-lexer-gen.h -o $@ $<
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/config.h
