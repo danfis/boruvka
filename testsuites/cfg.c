@@ -113,3 +113,36 @@ TEST(cfg1)
 
     ferCfgDel(cfg);
 }
+
+
+struct _cfg1_format_t {
+    fer_real_t var1, var2;
+    fer_vec3_t v3;
+    fer_real_t *var6;
+    size_t var6len;
+};
+typedef struct _cfg1_format_t cfg1_format_t;
+
+TEST(cfg1format)
+{
+    fer_cfg_t *cfg;
+    cfg1_format_t f;
+    size_t i;
+
+    cfg = ferCfgRead("cfg1.cfg");
+    if (!cfg)
+        return;
+
+    ferCfgScan(cfg, "var1:f var2:f  var_v3:v3 var6:f[] var6:f#",
+               &f.var1, &f.var2, &f.v3, &f.var6, &f.var6len);
+    assertTrue(ferEq(f.var1, 10));
+    assertTrue(ferEq(f.var2, 12));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 0), 2));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 1), 3));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 2), 4));
+    assertEquals(f.var6len, 2);
+    assertTrue(ferEq(f.var6[0], 1));
+    assertTrue(ferEq(f.var6[1], 2));
+
+    ferCfgDel(cfg);
+}

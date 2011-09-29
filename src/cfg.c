@@ -15,6 +15,7 @@
  *  See the License for more information.
  */
 
+#include <stdarg.h>
 #include <fermat/cfg.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
@@ -35,6 +36,7 @@ static uint32_t hmapHash(fer_list_t *key, void *data);
 static int hmapEq(const fer_list_t *k1, const fer_list_t *k2, void *data);
 
 static void ferCfgParamDel(fer_cfg_param_t *p);
+static fer_cfg_param_t *ferCfgParam(const fer_cfg_t *c, const char *name);
 static fer_cfg_param_t *ferCfgParamByType(const fer_cfg_t *c, const char *name,
                                           uint8_t type);
 static void ferCfgParamInsert(fer_cfg_t *c, fer_cfg_param_t *p);
@@ -316,6 +318,117 @@ int ferCfgParamV3Arr(const fer_cfg_t *c, const char *name,
 }
 
 
+static const char *_ferCfgScanNext(const char *format, char *name, char *type);
+int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
+{
+    char name[1024];
+    char type[4];
+    const char *s;
+    int store;
+    va_list ap;
+    fer_real_t *vf;
+    const fer_real_t **vfa;
+    const char **vs;
+    char ***vsa;
+    fer_vec2_t *v2;
+    const fer_vec2_t **v2a;
+    fer_vec3_t *v3;
+    const fer_vec3_t **v3a;
+    fer_cfg_param_t *param;
+    size_t len, *vlen;
+
+    va_start(ap, format);
+
+    s = format;
+    while ((s = _ferCfgScanNext(s, name, type)) != NULL){
+        param = ferCfgParam(c, name);
+        if (!param){
+            fprintf(stderr, "Fermat :: CfgScan :: No such parameter: `%s'.\n", name);
+            return -1;
+        }
+
+        if (strcmp(type, "f") == 0){
+            vf = va_arg(ap, fer_real_t *);
+            store = ferCfgParamFlt(c, name, vf);
+        }else if (strcmp(type, "s") == 0){
+            vs = va_arg(ap, const char **);
+            store = ferCfgParamStr(c, name, vs);
+        }else if (strcmp(type, "v2") == 0){
+            v2 = va_arg(ap, fer_vec2_t *);
+            store = ferCfgParamV2(c, name, v2);
+        }else if (strcmp(type, "v3") == 0){
+            v3 = va_arg(ap, fer_vec3_t *);
+            store = ferCfgParamV3(c, name, v3);
+
+        }else if (strcmp(type, "f[]") == 0){
+            vfa = va_arg(ap, const fer_real_t **);
+            store = ferCfgParamFltArr(c, name, vfa, &len);
+        }else if (strcmp(type, "s[]") == 0){
+            vsa = va_arg(ap, char ***);
+            store = ferCfgParamStrArr(c, name, vsa, &len);
+        }else if (strcmp(type, "v2[]") == 0){
+            v2a = va_arg(ap, const fer_vec2_t **);
+            store = ferCfgParamV2Arr(c, name, v2a, &len);
+        }else if (strcmp(type, "v3[]") == 0){
+            v3a = va_arg(ap, const fer_vec3_t **);
+            store = ferCfgParamV3Arr(c, name, v3a, &len);
+
+        }else if (strcmp(type, "f#") == 0){
+            vlen = va_arg(ap, size_t *);
+            store = ferCfgParamFltArr(c, name, (const fer_real_t **)&vf, vlen);
+        }else if (strcmp(type, "s#") == 0){
+            vlen = va_arg(ap, size_t *);
+            store = ferCfgParamStrArr(c, name, (char ***)&vs, vlen);
+        }else if (strcmp(type, "v2#") == 0){
+            vlen = va_arg(ap, size_t *);
+            store = ferCfgParamV2Arr(c, name, (const fer_vec2_t **)&v2, vlen);
+        }else if (strcmp(type, "v3#") == 0){
+            vlen = va_arg(ap, size_t *);
+            store = ferCfgParamV3Arr(c, name, (const fer_vec3_t **)&v3, vlen);
+        }
+
+        if (store != 0){
+            fprintf(stderr, "Fermat :: CfgScan :: Invalid type of `%s'.\n", name);
+            return -1;
+        }
+    }
+
+    va_end(ap);
+    return 0;
+}
+
+#define IS_WS(s) \
+    (*s == ' ' || *s == '\t')
+#define SKIP_WS(s) \
+    while (*s != 0x0 && IS_WS(s)) ++s
+static const char *_ferCfgScanNext(const char *format, char *name, char *type)
+{
+    const char *s = format;
+    int i;
+
+    SKIP_WS(s);
+    for (i = 0; *s != 0x0 && *s != ':'; ++i, ++s){
+        name[i] = *s;
+    }
+    name[i] = 0x0;
+    if (i == 0)
+        return NULL;
+    if (*s == ':')
+        ++s;
+
+    for (i = 0; *s != 0x0 && !IS_WS(s); ++i, ++s){
+        type[i] = *s;
+    }
+    type[i] = 0x0;
+    if (i == 0)
+        return NULL;
+
+    return s;
+}
+
+
+
+
 
 static uint32_t hmapHash(fer_list_t *key, void *data)
 {
@@ -358,8 +471,7 @@ static void ferCfgParamDel(fer_cfg_param_t *p)
     FER_FREE(p);
 }
 
-static fer_cfg_param_t *ferCfgParamByType(const fer_cfg_t *c, const char *name,
-                                          uint8_t type)
+static fer_cfg_param_t *ferCfgParam(const fer_cfg_t *c, const char *name)
 {
     fer_list_t *item;
     fer_cfg_param_t *p, q;
@@ -370,9 +482,17 @@ static fer_cfg_param_t *ferCfgParamByType(const fer_cfg_t *c, const char *name,
         return NULL;
 
     p = FER_LIST_ENTRY(item, fer_cfg_param_t, hmap);
-    if (p->type != type)
-        return NULL;
+    return p;
+}
 
+static fer_cfg_param_t *ferCfgParamByType(const fer_cfg_t *c, const char *name,
+                                          uint8_t type)
+{
+    fer_cfg_param_t *p;
+
+    p = ferCfgParam(c, name);
+    if (!p || p->type != type)
+        return NULL;
     return p;
 }
 

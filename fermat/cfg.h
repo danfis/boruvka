@@ -253,6 +253,44 @@ int ferCfgParamV2Arr(const fer_cfg_t *c, const char *name,
 int ferCfgParamV3Arr(const fer_cfg_t *c, const char *name,
                      const fer_vec3_t **val, size_t *len);
 
+
+/**
+ * Scans config file according to {format}, which consists of parameter
+ * speficiers delimited by spaces.
+ * Returns 0 on success.
+ *
+ * Parameter specifier has following form:
+ *     name_of_param:type
+ * where type can be:
+ *     1. f, s, v2 or v3 for single value parameters
+ *     2. f[], s[], v2[] or v3[] for array pointers
+ *     3. f#, s#, v2# or v3# for array lengths of type size_t
+ *
+ * Example 1:
+ * ~~~~~~~~
+ * struct st_t {
+ *     fer_real_t x, y;
+ *     fer_vec2_t p;
+ * };
+ * ...
+ * struct st_t data;
+ * ferCfgScan(cfg, "xpos:f ypos:f point:v2", &data.x, &data.y, &data.p);
+ * ~~~~~~~~~
+ * 
+ * Example 2:
+ * ~~~~~~~~
+ * struct st_t {
+ *     fer_real_t x;
+ *     const fer_real_t *fs;
+ *     size_t fs_len;
+ * };
+ * ...
+ * struct st_t data;
+ * ferCfgScan(cfg, "xpos:f flts:f[] flts:f#", &data.x, &data.fs, &data.fs_len);
+ * ~~~~~~~~~
+ */
+int ferCfgScan(const fer_cfg_t *c, const char *format, ...);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
