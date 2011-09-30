@@ -14,5 +14,6 @@ Core Functions And Structures
    fer-timer.h.rst
    fer-parse.h.rst
    fer-cfg.h.rst
+   fer-opts.h.rst
 
    fer-opencl.h.rst

@@ -24,6 +24,7 @@
 #include "vptree.h"
 #include "nn.h"
 #include "cfg.h"
+#include "opts.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -58,6 +59,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSTaskPool),
 
     TEST_SUITE_ADD(TSCfg),
+    TEST_SUITE_ADD(TSOpts),
 
     TEST_SUITES_CLOSURE
 };
