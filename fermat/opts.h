@@ -50,7 +50,7 @@ extern "C" {
  *     int i;
  *
  *     // define options
- *     ferOptsAdd("opt1", 'o', FER_OPTS_FLT, (void *)&opt1, NULL);
+ *     ferOptsAdd("opt1", 'o', FER_OPTS_REAL, (void *)&opt1, NULL);
  *     ferOptsAdd("help", 'h', FER_OPTS_NONE, (void *)&help, FER_OPTS_CB(helpcb));
  *
  *     // parse options
@@ -117,11 +117,11 @@ extern "C" {
 #define FER_OPTS_INT 0x02
 
 /**
- * Float.
+ * Real.
  *     1. .set - [fer_real_t *]
  *     2. .callback - void (*)(const char *long_name, char short_name, fer_real_t val)
  */
-#define FER_OPTS_FLT 0x03
+#define FER_OPTS_REAL 0x03
 
 /**
  * String.
@@ -129,6 +129,13 @@ extern "C" {
  *     2. .callback - void (*)(const char *long_name, char short_name, const char *)
  */
 #define FER_OPTS_STR 0x04
+
+/**
+ * size_t.
+ *     1. .set - [size_t *]
+ *     2. .callback - void (*)(const char *long_name, char short_name, size_t)
+ */
+#define FER_OPTS_SIZE_T 0x05
 
 /** ^^^^ */
 

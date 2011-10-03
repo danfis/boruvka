@@ -14,8 +14,8 @@ TEST(opts1)
     static char *argv[] = { "program", "--opt1", "11.1", "-h", "filename" };
     int i;
 
-    ferOptsAdd("opt1", 'o', FER_OPTS_FLT, (void *)&opt1, NULL, "Option 1", NULL);
-    ferOptsAdd(NULL, 'h', FER_OPTS_NONE, (void *)&help, FER_OPTS_CB(opts1_help), "Option 1", NULL);
+    ferOptsAdd("opt1", 'o', FER_OPTS_REAL, (void *)&opt1, NULL);
+    ferOptsAdd(NULL, 'h', FER_OPTS_NONE, (void *)&help, FER_OPTS_CB(opts1_help));
 
     ferOpts(&argc, (char **)argv);
 

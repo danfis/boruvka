@@ -14,70 +14,10 @@
  *  See the License for more information.
  */
 
-#include <getopt.h>
+#include <fermat/opts.h>
 #include <fermat/gsrm.h>
 #include <fermat/parse.h>
 
-
-typedef enum {
-    HELP = 'h',
-    OUTFILE = 'o',
-    VERBOSE = 'v',
-
-    EPSILON_N = 1000,
-    EPSILON_B,
-    LAMBDA,
-    BETA,
-    ALPHA,
-    AGE_MAX,
-    MAX_NODES,
-    MIN_DANGLE,
-    MAX_ANGLE,
-    ANGLE_MERGE_EDGES,
-
-    DUMP_TRIANGLES,
-
-    NN_GUG,
-    NN_VPTREE,
-    NN_LINEAR,
-    VPTREE_MAX_SIZE,
-    GUG_MAX_DENS,
-    GUG_EXPAND_RATE,
-
-    UNOPTIMIZED_ERR,
-    NO_POSTPROCESS
-} options_enum;
-
-static struct option options[] = {
-    { "help", no_argument, NULL, HELP },
-
-    { "epsilon-n", required_argument, NULL, EPSILON_N },
-    { "epsilon-b", required_argument, NULL, EPSILON_B },
-    { "lambda",    required_argument, NULL, LAMBDA },
-    { "beta",      required_argument, NULL, BETA },
-    { "alpha",     required_argument, NULL, ALPHA },
-    { "age-max",   required_argument, NULL, AGE_MAX },
-    { "max-nodes", required_argument, NULL, MAX_NODES },
-    { "min-dangle", required_argument, NULL, MIN_DANGLE },
-    { "max-angle", required_argument, NULL, MAX_ANGLE },
-    { "angle-merge-edges", required_argument, NULL, ANGLE_MERGE_EDGES },
-
-    { "dump-triangles", required_argument, NULL, DUMP_TRIANGLES },
-
-    { "outfile", required_argument, NULL, OUTFILE },
-
-    { "nn-gug",    no_argument, NULL, NN_GUG },
-    { "nn-vptree", no_argument, NULL, NN_VPTREE },
-    { "nn-linear", no_argument, NULL, NN_LINEAR },
-    { "vptree-max-size", required_argument, NULL, VPTREE_MAX_SIZE },
-    { "gug-max-dens", required_argument, NULL, GUG_MAX_DENS },
-    { "gug-expand-rate", required_argument, NULL, GUG_EXPAND_RATE },
-
-    { "unoptimized-err", no_argument, NULL, UNOPTIMIZED_ERR },
-    { "no-postprocess", no_argument, NULL, NO_POSTPROCESS },
-
-    { NULL, 0, NULL, 0}
-};
 
 #define DUMP_TRIANGLES_FN_LEN 100
 static fer_gsrm_params_t params;
@@ -87,6 +27,9 @@ static const char *outfile_fn;
 static FILE *dump_triangles = NULL;
 static char dump_triangles_fn[DUMP_TRIANGLES_FN_LEN + 1] = "";
 static int no_postprocess = 0;
+
+static int pargc;
+static char **pargv;
 
 static void usage(int argc, char *argv[], const char *opt_msg);
 static void readOptions(int argc, char *argv[]);
@@ -160,12 +103,50 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
-void readOptions(int argc, char *argv[])
+static void optHelp(const char *l, char s)
 {
-    int c, option_index;
-    long iv;
-    fer_real_t fv;
+    usage(pargc, pargv, NULL);
+}
+
+static void optIncVerbosity(const char *l, char s)
+{
+    params.verbosity += 1;
+}
+
+static void optDumpTriangles(const char *l, char s, const char *val)
+{
+    dump_triangles = fopen(val, "w");
+    if (dump_triangles == NULL)
+        usage(pargc, pargv, "can't open file for dump-triangles");
+    strncpy(dump_triangles_fn, val, DUMP_TRIANGLES_FN_LEN);
+}
+
+static void optNN(const char *l, char s)
+{
+    if (strcmp(l, "nn-gug") == 0){
+        params.nn.type = FER_NN_GUG;
+    }else if (strcmp(l, "nn-vptree") == 0){
+        params.nn.type = FER_NN_VPTREE;
+    }else if (strcmp(l, "nn-linear") == 0){
+        params.nn.type = FER_NN_LINEAR;
+    }
+}
+
+static void optOutput(const char *l, char s, const char *val)
+{
+    if (strcmp(val, "stdout") == 0){
+        outfile_fn = NULL;
+    }else{
+        outfile_fn = val;
+    }
+}
+
+static void readOptions(int argc, char *argv[])
+{
+    int i;
+
+    pargc = argc;
+    pargv = argv;
 
     ferGSRMParamsInit(&params);
     params.verbosity = 1;
@@ -173,120 +154,41 @@ void readOptions(int argc, char *argv[])
     params.nn.gug.max_dens = 0.1;
     params.nn.gug.expand_rate = 1.5;
 
-    while ((c = getopt_long(argc, argv, "hvo:", options, &option_index)) != -1){
-        switch(c){
-            case HELP:
-                usage(argc, argv, NULL);
-                break;
-            case VERBOSE:
-                params.verbosity += 1;
-                break;
-            case EPSILON_N:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "epsilon-n must be floating point "
-                                      "number");
-                params.en = fv;
-                break;
-            case EPSILON_B:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "epsilon-b must be floating point "
-                                      "number");
-                params.eb = fv;
-                break;
-            case LAMBDA:
-                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "lambda must be int number");
-                params.lambda = iv;
-                break;
-            case BETA:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "beta must be floating point number");
-                params.beta = fv;
-                break;
-            case ALPHA:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "alpha must be floating point number");
-                params.alpha = fv;
-                break;
-            case AGE_MAX:
-                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "age-max must be int number");
-                params.age_max = iv;
-                break;
-            case MAX_NODES:
-                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "max-nodes must be int number");
-                params.max_nodes = iv;
-                break;
+    ferOptsAdd("help",             'h', FER_OPTS_NONE,  NULL, FER_OPTS_CB(optHelp));
+    ferOptsAdd("verbose",          'v', FER_OPTS_NONE,  NULL, FER_OPTS_CB(optIncVerbosity));
+    ferOptsAdd("epsilon-n",         0, FER_OPTS_REAL,   (void *)&params.en, NULL);
+    ferOptsAdd("epsilon-b",         0, FER_OPTS_REAL,   (void *)&params.eb, NULL);
+    ferOptsAdd("lambda",            0, FER_OPTS_SIZE_T, (void *)&params.lambda, NULL);
+    ferOptsAdd("beta",              0, FER_OPTS_REAL,   (void *)&params.beta, NULL);
+    ferOptsAdd("alpha",             0, FER_OPTS_REAL,   (void *)&params.alpha, NULL);
+    ferOptsAdd("age-max",           0, FER_OPTS_INT,    (void *)&params.age_max, NULL);
+    ferOptsAdd("max-nodes",         0, FER_OPTS_SIZE_T, (void *)&params.max_nodes, NULL);
+    ferOptsAdd("min-dangle",        0, FER_OPTS_REAL,   (void *)&params.min_dangle, NULL);
+    ferOptsAdd("max-angle",         0, FER_OPTS_REAL,   (void *)&params.max_angle, NULL);
+    ferOptsAdd("angle-merge-edges", 0, FER_OPTS_REAL,   (void *)&params.angle_merge_edges, NULL);
+    ferOptsAdd("dump-triangles",    0, FER_OPTS_STR,    NULL, FER_OPTS_CB(optDumpTriangles));
+    ferOptsAdd("nn-gug",            0, FER_OPTS_NONE,   NULL, FER_OPTS_CB(optNN));
+    ferOptsAdd("nn-vptree",         0, FER_OPTS_NONE,   NULL, FER_OPTS_CB(optNN));
+    ferOptsAdd("nn-linear",         0, FER_OPTS_NONE,   NULL, FER_OPTS_CB(optNN));
+    ferOptsAdd("vptree-max-size",   0, FER_OPTS_INT,    (void *)&params.nn.vptree.maxsize, NULL);
+    ferOptsAdd("gug-max-dens",      0, FER_OPTS_REAL,   (void *)&params.nn.gug.max_dens, NULL);
+    ferOptsAdd("gug-expand-rate",   0, FER_OPTS_REAL,   (void *)&params.nn.gug.expand_rate, NULL);
+    ferOptsAdd("unoptimized-err",   0, FER_OPTS_NONE,   (void *)&params.unoptimized_err, NULL);
+    ferOptsAdd("no-postprocess",    0, FER_OPTS_NONE,   (void *)&no_postprocess, NULL);
+    ferOptsAdd("output",           'o', FER_OPTS_STR,   NULL, FER_OPTS_CB(optOutput));
 
-            case MIN_DANGLE:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "min-dangle must be float");
-                params.min_dangle = fv;
-                break;
-            case MAX_ANGLE:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "max-angle must be float");
-                params.max_angle = fv;
-                break;
-            case ANGLE_MERGE_EDGES:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "angle-merge-edges must be float");
-                params.angle_merge_edges = fv;
-                break;
-
-            case DUMP_TRIANGLES:
-                    dump_triangles = fopen(optarg, "w");
-                    if (dump_triangles == NULL)
-                        usage(argc, argv, "can't open file for dump-triangles");
-                    strncpy(dump_triangles_fn, optarg, DUMP_TRIANGLES_FN_LEN);
-                    break;
-
-            case NN_GUG:
-                params.nn.type = FER_NN_GUG;
-                break;
-            case NN_VPTREE:
-                params.nn.type = FER_NN_VPTREE;
-                break;
-            case NN_LINEAR:
-                params.nn.type = FER_NN_LINEAR;
-                break;
-            case VPTREE_MAX_SIZE:
-                if (ferParseLong(optarg, optarg + strlen(optarg), &iv, NULL) != 0)
-                    usage(argc, argv, "vptree-max-size be int number");
-                params.nn.vptree.maxsize = iv;
-                break;
-            case GUG_MAX_DENS:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "gug-max-dens must be float");
-                params.nn.gug.max_dens = fv;
-                break;
-            case GUG_EXPAND_RATE:
-                if (ferParseReal(optarg, optarg + strlen(optarg), &fv, NULL) != 0)
-                    usage(argc, argv, "gug-expand-rate must be float");
-                params.nn.gug.expand_rate = fv;
-                break;
-
-            case UNOPTIMIZED_ERR:
-                params.unoptimized_err = 1;
-                break;
-            case NO_POSTPROCESS:
-                no_postprocess = 1;
-                break;
-
-            case OUTFILE:
-                if (strcmp(optarg, "stdout") == 0){
-                    outfile_fn = NULL;
-                }else{
-                    outfile_fn = optarg;
-                }
-                break;
-
-            default:
-                usage(argc, argv, "");
-        }
+    if (ferOpts(&argc, argv) != 0){
+        usage(argc, argv, NULL);
     }
-    if (argc - optind != 1){
+
+    if (argc > 2){
+        for (i = 1; i < argc; i++){
+            if (argv[i][0] == '-' && argv[i][1] == '-'){
+                fprintf(stderr, "Unknown option %s\n", argv[i]);
+            }
+        }
+        usage(argc, argv, NULL);
+    }else if (argc <= 1){
         usage(argc, argv, "filename must be specified");
     }
     is_fn = argv[argc - 1];

@@ -126,13 +126,30 @@ int ferOpts(int *argc, char **argv)
     return ok;
 }
 
-static fer_opt_t *findOpt(char *arg)
+static fer_opt_t *findOpt(char *_arg)
 {
+    char *arg = _arg;
+    fer_opt_t *opt;
+
     if (arg[0] == '-'){
         if (arg[1] == '-'){
             return findOptLong(arg + 2);
-        }else if (arg[1] != 0x0 && arg[2] == 0x0){
-            return findOptShort(arg[1]);
+        }else{
+            if (arg[1] == 0x0)
+                return NULL;
+
+            for (++arg; *arg != 0x0; ++arg){
+                opt = findOptShort(*arg);
+                if (arg[1] == 0x0){
+                    return opt;
+                }else if (opt->type == FER_OPTS_NONE){
+                    optNoArg(opt);
+                }else{
+                    fprintf(stderr, "Invalid option %s.\n", _arg);
+                    return NULL;
+                }
+            }
+            
         }
     }
 
@@ -179,59 +196,46 @@ static void optNoArg(fer_opt_t *opt)
     }
 }
 
+#define _optArgLong(opt, arg, type) \
+    void (*cb)(const char *, char, type); \
+    long val; \
+    \
+    if (ferParseLong((arg), strend(arg), &val, NULL) != 0){ \
+        if (opt->long_name){ \
+            fprintf(stderr, "Invalid argument of --%s option.\n", (opt)->long_name); \
+        }else{ \
+            fprintf(stderr, "Invalid argument of -%c option.\n", (opt)->short_name); \
+        } \
+        return -1; \
+    } \
+    \
+    if ((opt)->set){ \
+        *(type *)(opt)->set = (type)val; \
+    } \
+    \
+    if ((opt)->callback){ \
+        cb = (void (*)(const char *, char, type))(opt)->callback; \
+        cb((opt)->long_name, (opt)->short_name, (type)val); \
+    } \
+    \
+    return 0
+
 static int optArgLong(fer_opt_t *opt, const char *arg)
 {
-    void (*cb)(const char *, char, long);
-    long val;
-
-    if (ferParseLong(arg, strend(arg), &val, NULL) != 0){
-        if (opt->long_name){
-            fprintf(stderr, "Invalid argument of --%s option.\n", opt->long_name);
-        }else{
-            fprintf(stderr, "Invalid argument of -%c option.\n", opt->short_name);
-        }
-        return -1;
-    }
-
-    if (opt->set){
-        *(long *)opt->set = val;
-    }
-
-    if (opt->callback){
-        cb = (void (*)(const char *, char, long))opt->callback;
-        cb(opt->long_name, opt->short_name, val);
-    }
-
-    return 0;
+    _optArgLong(opt, arg, long);
 }
 
 static int optArgInt(fer_opt_t *opt, const char *arg)
 {
-    void (*cb)(const char *, char, int);
-    long val;
-
-    if (ferParseLong(arg, strend(arg), &val, NULL) != 0){
-        if (opt->long_name){
-            fprintf(stderr, "Invalid argument of --%s option.\n", opt->long_name);
-        }else{
-            fprintf(stderr, "Invalid argument of -%c option.\n", opt->short_name);
-        }
-        return -1;
-    }
-
-    if (opt->set){
-        *(int *)opt->set = (int)val;
-    }
-
-    if (opt->callback){
-        cb = (void (*)(const char *, char, int))opt->callback;
-        cb(opt->long_name, opt->short_name, (int)val);
-    }
-
-    return 0;
+    _optArgLong(opt, arg, int);
 }
 
-static int optArgFlt(fer_opt_t *opt, const char *arg)
+static int optArgSizeT(fer_opt_t *opt, const char *arg)
+{
+    _optArgLong(opt, arg, size_t);
+}
+
+static int optArgReal(fer_opt_t *opt, const char *arg)
 {
     void (*cb)(const char *, char, fer_real_t);
     fer_real_t val;
@@ -280,10 +284,12 @@ static int optArg(fer_opt_t *opt, const char *arg)
             return optArgLong(opt, arg);
         case FER_OPTS_INT:
             return optArgInt(opt, arg);
-        case FER_OPTS_FLT:
-            return optArgFlt(opt, arg);
+        case FER_OPTS_REAL:
+            return optArgReal(opt, arg);
         case FER_OPTS_STR:
             return optArgStr(opt, arg);
+        case FER_OPTS_SIZE_T:
+            return optArgSizeT(opt, arg);
         default:
             return -1;
     }
