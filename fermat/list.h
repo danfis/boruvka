@@ -104,6 +104,24 @@ typedef struct _fer_list_m_t fer_list_m_t;
 
 
 /**
+ * Static declaration of a list with initialization.
+ * 
+ * Example:
+ * ~~~~~
+ * static FER_LIST(name);
+ * void main()
+ * {
+ *     fer_list_t *item;
+ *
+ *     FER_LIST_FOR_EACH(&name, item){
+ *      ...
+ *     }
+ * }
+ */
+#define FER_LIST(name) \
+    fer_list_t name = { &name, &name }
+
+/**
  * Get the struct for this entry.
  * {ptr}: the &fer_list_t pointer.
  * {type}: the type of the struct this is embedded in.
