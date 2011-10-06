@@ -19,7 +19,15 @@
 
 /**
  * Constants and Macros
- * ---------------------
+ * =====================
+ *
+ * Here are described all constants use throught CD library.
+ */
+
+
+/**
+ * Building modifiers
+ * -------------------
  */
 
 /**

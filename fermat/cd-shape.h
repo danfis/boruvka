@@ -21,6 +21,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
+
+/**
+ * Shapes
+ * =======
+ *
+ */
+
 struct _fer_cd_shape_t;
 
 /**

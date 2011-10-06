@@ -66,6 +66,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                       (fer_cd_collide_fn)ferCDCollideSphereBox);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CAP,
                       (fer_cd_collide_fn)ferCDCollideSphereCap);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CYL,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_TRI,
                       (fer_cd_collide_fn)ferCDCollideSphereTri);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_TRIMESH_TRI,
@@ -73,6 +75,37 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_BOX,
                       (fer_cd_collide_fn)ferCDCollideBoxBox);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_CAP,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_CYL,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_TRIMESH_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CAP,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CYL,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRIMESH_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_CYL,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_TRIMESH_TRI,
+                      (fer_cd_collide_fn)ferCDCollideCCD);
+
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideTriTri);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
+                      (fer_cd_collide_fn)ferCDCollideTriTri);
+    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRI,
+                      (fer_cd_collide_fn)ferCDCollideTriTri);
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_SPHERE,
                       (fer_cd_collide_fn)ferCDCollidePlaneSphere);
@@ -87,12 +120,6 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     ferCDSetCollideFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_TRIMESH_TRI,
                       (fer_cd_collide_fn)ferCDCollidePlaneTri);
 
-    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
-                      (fer_cd_collide_fn)ferCDCollideTriTri);
-    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
-                      (fer_cd_collide_fn)ferCDCollideTriTri);
-    ferCDSetCollideFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRI,
-                      (fer_cd_collide_fn)ferCDCollideTriTri);
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
                       (fer_cd_collide_fn)ferCDCollideOffOff);
@@ -102,14 +129,6 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                               (fer_cd_collide_fn)ferCDCollideOffAny);
     }
 
-    // for the rest set CCD collider
-    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
-        for (j = i; j < FER_CD_SHAPE_LEN; j++){
-            if (!cd->collide[i][j] && !cd->collide[j][i]){
-                ferCDSetCollideFn(cd, i, j, (fer_cd_collide_fn)ferCDCollideCCD);
-            }
-        }
-    }
 
     cd->tasks = NULL;
     if (num_threads > 1){
@@ -135,6 +154,51 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                        (fer_cd_separate_fn)ferCDSeparateSphereSphere);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_BOX,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CYL,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CAP,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_BOX,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_CYL,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_CAP,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_BOX, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_CYL,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_CAP,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CYL, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CAP,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateCCD);
+
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateTriTri);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateTriTri);
+    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
+                       (fer_cd_separate_fn)ferCDSeparateTriTri);
+
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_SPHERE,
                        (fer_cd_separate_fn)ferCDSeparatePlaneSphere);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_BOX,
@@ -147,12 +211,6 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                        (fer_cd_separate_fn)ferCDSeparatePlaneTri);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_PLANE, FER_CD_SHAPE_TRIMESH_TRI,
                        (fer_cd_separate_fn)ferCDSeparatePlaneTri);
-    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRI,
-                       (fer_cd_separate_fn)ferCDSeparateTriTri);
-    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRI, FER_CD_SHAPE_TRIMESH_TRI,
-                       (fer_cd_separate_fn)ferCDSeparateTriTri);
-    ferCDSetSeparateFn(cd, FER_CD_SHAPE_TRIMESH_TRI, FER_CD_SHAPE_TRIMESH_TRI,
-                       (fer_cd_separate_fn)ferCDSeparateTriTri);
 
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, FER_CD_SHAPE_OFF,
@@ -161,15 +219,6 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
         if (i != FER_CD_SHAPE_OFF)
             ferCDSetSeparateFn(cd, FER_CD_SHAPE_OFF, i,
                                (fer_cd_separate_fn)ferCDSeparateOffAny);
-    }
-
-    // for the rest set CCD separator
-    for (i = 0; i < FER_CD_SHAPE_LEN; i++){
-        for (j = i; j < FER_CD_SHAPE_LEN; j++){
-            if (!cd->separate[i][j] && !cd->separate[j][i]){
-                ferCDSetSeparateFn(cd, i, j, ferCDSeparateCCD);
-            }
-        }
     }
 
 

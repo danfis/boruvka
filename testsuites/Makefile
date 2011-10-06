@@ -25,6 +25,8 @@ TARGETS += test-cd-spheres test-cd-trimesh
 TARGETS += test-cd-ode
 ODE_CFLAGS = $(shell ode-config --cflags)
 ODE_LDFLAGS = $(shell ode-config --libs)
+ODE_CFLAGS = $(shell /opt/ode-single/bin/ode-config --cflags)
+ODE_LDFLAGS = $(shell /opt/ode-single/bin/ode-config --libs)
 ODE_DRAWSTUFF = -ldrawstuff -lX11 -lGL -lGLU
 
 

@@ -980,6 +980,31 @@ TEST(cdCollide4)
     ret = ferCDCollide(cd, NULL, NULL);
     assertTrue(ret);
 
+    ferCDGeomSetTr3(cd, g[0], 0, 100, 1);
+    ferCDGeomSetTr3(cd, g[1], 0, 102, 1);
+    ferCDGeomSetTr3(cd, g[2], 0, 104, 1);
+    ferCDGeomSetTr3(cd, g[3], 0, 106, 1);
+    ferCDGeomSetTr3(cd, g[4], 0, 108, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g[1], 0, 0, 1);
+    ferCDGeomSetTr3(cd, g[3], 0, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], -0.055, 0, 1);
+    ferCDGeomSetTr3(cd, g[3], 0, 0, 1);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[1], -0.055, 0, 1);
+    ferCDGeomSetTr3(cd, g[3], 0, 0, 1);
+    ferCDGeomSetRotEuler(cd, g[3], -M_PI_4, -M_PI_4, M_PI_4);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+
     //DBG("ret: %d", ret);
     //ferCDDumpSVT(cd, stdout, "cd");
 
