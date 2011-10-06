@@ -261,6 +261,52 @@ static int optArgReal(fer_opt_t *opt, const char *arg)
     return 0;
 }
 
+static int optArgV2(fer_opt_t *opt, const char *arg)
+{
+    void (*cb)(const char *, char, const fer_vec2_t *);
+    fer_real_t val;
+    fer_vec2_t v2;
+    const char *arg2;
+
+    arg2 = arg;
+    while (*arg2 != 0x0 && *arg2 != ',')
+        ++arg2;
+
+    if (*arg2 != ','){
+        goto optArgV2_err;
+    }
+
+    if (ferParseReal(arg, arg2, &val, NULL) != 0){
+        goto optArgV2_err;
+    }
+    ferVec2SetX(&v2, val);
+
+    ++arg2;
+    if (ferParseReal(arg2, strend(arg2), &val, NULL) != 0){
+        goto optArgV2_err;
+    }
+    ferVec2SetY(&v2, val);
+
+    if (opt->set){
+        ferVec2Copy((fer_vec2_t *)opt->set, &v2);
+    }
+
+    if (opt->callback){
+        cb = (void (*)(const char *, char, const fer_vec2_t *))opt->callback;
+        cb(opt->long_name, opt->short_name, &v2);
+    }
+
+    return 0;
+
+optArgV2_err:
+    if (opt->long_name){
+        fprintf(stderr, "Invalid argument of --%s option.\n", opt->long_name);
+    }else{
+        fprintf(stderr, "Invalid argument of -%c option.\n", opt->short_name);
+    }
+    return -1;
+}
+
 static int optArgStr(fer_opt_t *opt, const char *arg)
 {
     void (*cb)(const char *, char, const char *);
@@ -290,6 +336,8 @@ static int optArg(fer_opt_t *opt, const char *arg)
             return optArgStr(opt, arg);
         case FER_OPTS_SIZE_T:
             return optArgSizeT(opt, arg);
+        case FER_OPTS_V2:
+            return optArgV2(opt, arg);
         default:
             return -1;
     }

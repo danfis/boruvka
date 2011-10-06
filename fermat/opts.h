@@ -137,6 +137,13 @@ extern "C" {
  */
 #define FER_OPTS_SIZE_T 0x05
 
+/**
+ * 2-D vector.
+ *     1. .set - [fer_vec2_t *]
+ *     2. .callback - void (*)(const char *long_name, char short_name, const fer_vec2_t *)
+ */
+#define FER_OPTS_V2 0x06
+
 /** ^^^^ */
 
 /**
