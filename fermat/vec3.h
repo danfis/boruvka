@@ -329,6 +329,18 @@ fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
                                     fer_vec3_t *witness);
 
 /**
+ * Returns distance^2 of two segments ab and cd.
+ * If {witness1} (or {witness2}) is non-NULL it is filled with coordinates of
+ * closes points. If {parallel} is non-NULL it is filled with 1 if the
+ * segments are parallel.
+ */
+fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *a, const fer_vec3_t *b,
+                                      const fer_vec3_t *c, const fer_vec3_t *d,
+                                      fer_vec3_t *witness1,
+                                      fer_vec3_t *witness2,
+                                      int *parallel);
+
+/**
  * Returns distance^2 of point P from triangle formed by triplet a, b, c.
  * If witness vector is provided it is filled with coordinates of point
  * from which was computed distance to point P.

@@ -197,6 +197,113 @@ fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
     return __ferVec3PointSegmentDist2(P, x0, b, witness);
 }
 
+
+_fer_inline fer_real_t __clamp(fer_real_t n, fer_real_t min, fer_real_t max)
+{
+    if (n < min)
+        return min;
+    if (n > max)
+        return max;
+    return n;
+}
+
+fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *A, const fer_vec3_t *B,
+                                      const fer_vec3_t *C, const fer_vec3_t *D,
+                                      fer_vec3_t *witness1,
+                                      fer_vec3_t *witness2,
+                                      int *parallel)
+{
+    /** Taken from "orange" book, 5.1.9 */
+
+    fer_vec3_t d1, d2, r;
+    fer_real_t a, b, c, denom, e, f;
+    fer_real_t s, t;
+
+    // direction vector of segment AB and segment CD
+    ferVec3Sub2(&d1, B, A);
+    ferVec3Sub2(&d2, D, C);
+    ferVec3Sub2(&r, A, C);
+
+    // square lengths
+    a = ferVec3Len2(&d1);
+    e = ferVec3Len2(&d1);
+    f = ferVec3Dot(&d2, &r);
+
+    if (parallel)
+        *parallel = 0;
+
+    // check if either or both segments degenerate into point
+    if (ferIsZero(a) && ferIsZero(e)){
+        // both segments degenerate into points
+        if (witness1)
+            ferVec3Copy(witness1, A);
+        if (witness2)
+            ferVec3Copy(witness2, C);
+
+        return ferVec3Dist2(A, C);
+    }
+
+    if (ferIsZero(a)){
+        // segment AB degenerates into point
+        if (witness1)
+            ferVec3Copy(witness1, A);
+
+        t = f / e;
+        if (witness2){
+            ferVec3Scale(&d2, t);
+            ferVec3Add2(witness2, C, &d2);
+        }
+
+        return __clamp(t, FER_ZERO, FER_ONE);
+    }else{
+        c = ferVec3Dot(&d1, &r);
+        if (ferIsZero(e)){
+            // segment CD degenerates into point
+            t = FER_ZERO;
+            s = __clamp(-c / a, FER_ZERO, FER_ONE);
+        }else{
+            // general non-degenerate case
+            b = ferVec3Dot(&d1, &d2);
+            denom = (a * e) - (b * b);
+
+            if (!ferIsZero(denom)){
+                s = __clamp((b * f) - (c * e), FER_ZERO, FER_ONE);
+            }else{
+                // segments parallel - choose arbitrary s.
+                s = FER_ZERO;
+                if (parallel)
+                    *parallel = 1;
+            }
+
+            t = b * s + f;
+            if (t < FER_ZERO){
+                t = FER_ZERO;
+                s = __clamp(-c / a, FER_ZERO, FER_ONE);
+            }else if (t > FER_ONE){
+                t = FER_ONE;
+                s = __clamp((b - c) / a, FER_ZERO, FER_ONE);
+            }else{
+                t = t / e;
+            }
+        }
+    }
+
+    ferVec3Scale(&d1, s);
+    ferVec3Add(&d1, A);
+    ferVec3Scale(&d2, t);
+    ferVec3Add(&d2, C);
+
+    if (witness1){
+        ferVec3Copy(witness1, &d1);
+    }
+    if (witness2){
+        ferVec3Copy(witness2, &d2);
+    }
+
+    return ferVec3Dist2(&d1, &d2);
+}
+
+
 fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
                               const fer_vec3_t *x0, const fer_vec3_t *B,
                               const fer_vec3_t *C,
