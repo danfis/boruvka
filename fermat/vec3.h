@@ -233,6 +233,11 @@ _fer_inline void ferVec3Add(fer_vec3_t *v, const fer_vec3_t *w);
  */
 _fer_inline void ferVec3Add2(fer_vec3_t *d, const fer_vec3_t *v, const fer_vec3_t *w);
 
+/**
+ * d = f * w
+ */
+_fer_inline void ferVec3AddScaled(fer_vec3_t *d, fer_real_t f, const fer_vec3_t *w);
+
 
 /**
  * Substracts coordinates of vector w from vector v.
@@ -599,6 +604,13 @@ _fer_inline void ferVec3Add2(fer_vec3_t *d, const fer_vec3_t *v, const fer_vec3_
     d->f[1] = v->f[1] + w->f[1];
     d->f[2] = v->f[2] + w->f[2];
 #endif /* FER_SSE */
+}
+
+_fer_inline void ferVec3AddScaled(fer_vec3_t *d, fer_real_t f, const fer_vec3_t *w)
+{
+    d->f[0] += f * w->f[0];
+    d->f[1] += f * w->f[1];
+    d->f[2] += f * w->f[2];
 }
 
 _fer_inline void ferVec3Sub(fer_vec3_t *v, const fer_vec3_t *w)
