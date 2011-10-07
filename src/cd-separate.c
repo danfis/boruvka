@@ -79,6 +79,41 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
     return num;
 }
 
+int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_cap_t *c2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con)
+{
+    fer_vec3_t w, cn, cp1, cp2;
+    fer_real_t dist;
+
+    if (con->size <= con->num)
+        return 0;
+
+    // get normal of capsule
+    ferMat3CopyCol(&cn, rot2, 2);
+    // compute start and end points of capsule
+    ferVec3Scale(&cn, c2->half_height);
+    ferVec3Add2(&cp1, tr2, &cn);
+    ferVec3Sub2(&cp2, tr2, &cn);
+
+    dist = ferVec3PointSegmentDist2(tr1, &cp1, &cp2, &w);
+    if (dist < FER_CUBE(s1->radius + c2->radius)){
+        dist = FER_SQRT(dist);
+        con->depth[con->num] = s1->radius + c2->radius - dist;
+        ferVec3Sub2(&con->dir[con->num], &w, tr1);
+        ferVec3Normalize(&con->dir[con->num]);
+        ferVec3Scale2(&con->pos[con->num], &con->dir[con->num], dist * FER_REAL(0.5));
+        ferVec3Add(&con->pos[con->num], tr1);
+        con->num++;
+        return 1;
+    }
+
+    return 0;
+}
+
 int ferCDSeparateCapCap(struct _fer_cd_t *cd,
                         const fer_cd_cap_t *c1,
                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
@@ -94,7 +129,7 @@ int ferCDSeparateCapCap(struct _fer_cd_t *cd,
     if (con->size <= con->num)
         return 0;
 
-    // get normals of cylinder
+    // get normals of capsules
     ferMat3CopyCol(&cn1, rot1, 2);
     ferMat3CopyCol(&cn2, rot2, 2);
 
@@ -108,11 +143,13 @@ int ferCDSeparateCapCap(struct _fer_cd_t *cd,
 
     dist2 = ferVec3SegmentSegmentDist2(&c11, &c12, &c21, &c22, &p1, &p2, &parallel);
 
-    if (dist2 < FER_CUBE(c1->radius + c2->radius)){
-        con->depth[con->num] = c1->radius + c2->radius - FER_SQRT(dist2);
-        ferVec3Copy(&con->pos[con->num], &p1);
+    if (!ferIsZero(dist2) && dist2 < FER_CUBE(c1->radius + c2->radius)){
+        dist2 = FER_SQRT(dist2);
+        con->depth[con->num] = c1->radius + c2->radius - dist2;
         ferVec3Sub2(&con->dir[con->num], &p2, &p1);
         ferVec3Normalize(&con->dir[con->num]);
+        ferVec3Scale2(&con->pos[con->num], &con->dir[con->num], dist2 * FER_REAL(0.5));
+        ferVec3Add(&con->pos[con->num], &p1);
         con->num++;
         num = 1;
 

@@ -87,6 +87,7 @@ static int show_obb = 0;
 static int use_ode = 0;
 static int grid_level = 1;
 static int paus = 0;
+static int alpha = 1;
 
 static char *cmds = NULL;
 
@@ -151,7 +152,7 @@ static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
     fer_cd_cap_t *cap;
     fer_cd_cyl_t *cyl;
 
-    dsSetColorAlpha (1,1,0,1);
+    dsSetColorAlpha (1,1,0,0.7 + alpha * 0.3);
     dsSetTexture (DS_WOOD);
 
     tr = ferCDGeomTr(cd, g);
@@ -507,6 +508,8 @@ static void command (int cmd)
         fflush(stdout);
     }else if (cmd == 'p'){
         paus ^= 1;
+    }else if (cmd == 'a'){
+        alpha ^= 1;
     }
 }
 
