@@ -79,6 +79,67 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
     return num;
 }
 
+/** Returns distance (and nearest point) between point and OBB.
+ *  See "orange" book, 5.1.4 */
+static fer_real_t ferCDPointBoxDist2(const fer_vec3_t *p,
+                                     const fer_cd_box_t *b,
+                                     const fer_mat3_t *brot,
+                                     const fer_vec3_t *btr,
+                                     fer_vec3_t *w)
+{
+    fer_vec3_t d, a;
+    fer_real_t dist, e;
+    int i;
+
+    ferVec3Sub2(&d, p, btr);
+
+    // start at center of box
+    ferVec3Copy(w, btr);
+
+    // for each axis
+    for (i = 0; i < 3; i++){
+        ferMat3CopyCol(&a, brot, i);
+
+        dist = ferVec3Dot(&d, &a);
+        e = ferVec3Get(b->half_extents, i);
+        if (dist > e)
+            dist = e;
+        if (dist < -e)
+            dist = -e;
+
+        ferVec3AddScaled(w, dist, &a);
+    }
+
+    return ferVec3Dist2(p, w);
+}
+
+int ferCDSeparateSphereBox(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_box_t *b2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con)
+{
+    fer_vec3_t w;
+    fer_real_t dist;
+
+    if (con->size <= con->num)
+        return 0;
+
+    dist = ferCDPointBoxDist2(tr1, b2, rot2, tr2, &w);
+    if (dist < FER_CUBE(s1->radius)){
+        dist = FER_SQRT(dist);
+        con->depth[con->num] = s1->radius - dist;
+        ferVec3Sub2(&con->dir[con->num], &w, tr1);
+        ferVec3Normalize(&con->dir[con->num]);
+        ferVec3Copy(&con->pos[con->num], &w);
+        con->num++;
+        return 1;
+    }
+
+    return 0;
+}
+
 int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
                            const fer_cd_sphere_t *s1,
                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,

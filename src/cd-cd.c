@@ -155,7 +155,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_SPHERE,
                        (fer_cd_separate_fn)ferCDSeparateSphereSphere);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_BOX,
-                       (fer_cd_separate_fn)ferCDSeparateCCD);
+                       (fer_cd_separate_fn)ferCDSeparateSphereBox);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CYL,
                        (fer_cd_separate_fn)ferCDSeparateCCD);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_SPHERE, FER_CD_SHAPE_CAP,

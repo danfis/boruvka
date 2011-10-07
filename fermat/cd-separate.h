@@ -58,7 +58,8 @@ typedef int (*fer_cd_separate_fn)(struct _fer_cd_t *cd,
 
 
 /**
- * Sphere-Sphere separator
+ * Sphere-Sphere separator.
+ * Max 1 contact.
  */
 int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
                               const fer_cd_sphere_t *s1,
@@ -68,7 +69,19 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
                               fer_cd_contacts_t *con);
 
 /**
- * Sphere-Cap separator
+ * Sphere-Box separator.
+ * Max 1 contact.
+ */
+int ferCDSeparateSphereBox(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_box_t *b2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con);
+
+/**
+ * Sphere-Cap separator.
+ * Max 1 contact.
  */
 int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
                            const fer_cd_sphere_t *s1,
@@ -78,7 +91,8 @@ int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
                            fer_cd_contacts_t *con);
 
 /**
- * Sphere-Tri separator
+ * Sphere-Tri separator.
+ * Max 1 contact.
  */
 int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
                            const fer_cd_sphere_t *s1,
@@ -88,7 +102,8 @@ int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
                            fer_cd_contacts_t *con);
 
 /**
- * Cap-Cap separator
+ * Cap-Cap separator.
+ * Max 1 contact.
  */
 int ferCDSeparateCapCap(struct _fer_cd_t *cd,
                         const fer_cd_cap_t *c1,
