@@ -140,30 +140,21 @@ int ferCDSeparateSphereBox(struct _fer_cd_t *cd,
     return 0;
 }
 
-int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
-                           const fer_cd_sphere_t *s1,
-                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                           const fer_cd_cap_t *c2,
-                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
-                           fer_cd_contacts_t *con)
+static int __ferCDSeparateSphereCap(struct _fer_cd_t *cd,
+                                    const fer_cd_sphere_t *s1,
+                                    const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                                    const fer_vec3_t *cp1,
+                                    const fer_vec3_t *cp2,
+                                    fer_real_t radius,
+                                    fer_cd_contacts_t *con)
 {
-    fer_vec3_t w, cn, cp1, cp2;
+    fer_vec3_t w;
     fer_real_t dist;
 
-    if (con->size <= con->num)
-        return 0;
-
-    // get normal of capsule
-    ferMat3CopyCol(&cn, rot2, 2);
-    // compute start and end points of capsule
-    ferVec3Scale(&cn, c2->half_height);
-    ferVec3Add2(&cp1, tr2, &cn);
-    ferVec3Sub2(&cp2, tr2, &cn);
-
-    dist = ferVec3PointSegmentDist2(tr1, &cp1, &cp2, &w);
-    if (dist < FER_CUBE(s1->radius + c2->radius)){
+    dist = ferVec3PointSegmentDist2(tr1, cp1, cp2, &w);
+    if (dist < FER_CUBE(s1->radius + radius)){
         dist = FER_SQRT(dist);
-        con->depth[con->num] = s1->radius + c2->radius - dist;
+        con->depth[con->num] = s1->radius + radius - dist;
         ferVec3Sub2(&con->dir[con->num], &w, tr1);
         ferVec3Normalize(&con->dir[con->num]);
         ferVec3Scale2(&con->pos[con->num], &con->dir[con->num], dist * FER_REAL(0.5));
@@ -175,8 +166,61 @@ int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
     return 0;
 }
 
-/** Ported from ODE's dCollideCylinderSphere() originally written by
- *  Christoph Beyer (boernerb@web.de). */
+int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_cap_t *c2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con)
+{
+    fer_vec3_t cn, cp1, cp2;
+
+    if (con->size <= con->num)
+        return 0;
+
+    // get normal of capsule
+    ferMat3CopyCol(&cn, rot2, 2);
+    // compute start and end points of capsule
+    ferVec3Scale(&cn, c2->half_height);
+    ferVec3Add2(&cp1, tr2, &cn);
+    ferVec3Sub2(&cp2, tr2, &cn);
+
+    return __ferCDSeparateSphereCap(cd, s1, rot1, tr1,
+                                    &cp1, &cp2, c2->radius,
+                                    con);
+}
+
+static int __ferCDSeparateSphereCylDisc(struct _fer_cd_t *cd,
+                                        const fer_cd_sphere_t *s1,
+                                        const fer_vec3_t *tr1,
+                                        const fer_cd_cyl_t *c2,
+                                        const fer_vec3_t *p,
+                                        const fer_vec3_t *n,
+                                        fer_cd_contacts_t *con)
+{
+    fer_vec3_t w;
+    fer_real_t dist;
+
+    ferVec3Sub2(&w, &con->pos[con->num - 1], p);
+    dist = ferVec3Dot(n, &w);
+    if (dist > FER_ZERO){
+        dist = ferVec3ProjToPlane2(tr1, p, n, &con->pos[con->num - 1]);
+        if (dist < s1->radius
+                && ferVec3Dist(&con->pos[con->num - 1], p) < c2->radius){
+            con->depth[con->num - 1] = s1->radius - dist;
+            ferVec3Copy(&con->dir[con->num - 1], n);
+            ferVec3Scale(&con->dir[con->num - 1], -FER_ONE);
+            ferVec3Normalize(&con->dir[con->num - 1]);
+            return 1;
+        }
+
+        con->num--;
+        return 0;
+    }
+
+    return -1;
+}
+
 int ferCDSeparateSphereCyl(struct _fer_cd_t *cd,
                            const fer_cd_sphere_t *s1,
                            const fer_mat3_t *rot1, const fer_vec3_t *tr1,
@@ -184,143 +228,37 @@ int ferCDSeparateSphereCyl(struct _fer_cd_t *cd,
                            const fer_mat3_t *rot2, const fer_vec3_t *tr2,
                            fer_cd_contacts_t *con)
 {
-    // get the data from the geoms
-    fer_real_t radius, length, radius2, s, t;
-    fer_vec3_t g1pos1, g1pos2, vdir1, C;
+    fer_vec3_t cn, cp1, cp2;
+    int num;
 
-    if (con->size <= con->num)
+    // get normal of cylinder
+    ferMat3CopyCol(&cn, rot2, 2);
+    // compute start and end points of capsule
+    ferVec3Scale(&cn, c2->half_height);
+    ferVec3Add2(&cp1, tr2, &cn);
+    ferVec3Sub2(&cp2, tr2, &cn);
+
+    // First use sphere-capsule separator.
+    num = __ferCDSeparateSphereCap(cd, s1, rot1, tr1,
+                                   &cp1, &cp2, c2->radius,
+                                   con);
+    if (num == 0)
         return 0;
 
-    radius  = c2->radius;
-    length  = c2->half_height * FER_REAL(2.);
-    radius2 = s1->radius;
+    // Now check if .pos is in top or bottom half sphere of capsule. If it
+    // is so, we must check collision with top or bottom disc respectively.
 
-    // g1pos1 is the middle of the first disc
-    // g1pos2 is the middle of the second disc
-    // vdir1 is the unit direction of the cylinderaxis
-    ferMat3CopyCol(&vdir1, rot2, 2);
-    s = c2->half_height;
-    ferVec3Scale2(&g1pos2, &vdir1, s);
-    ferVec3Add(&g1pos2, tr2);
-    ferVec3Scale2(&g1pos1, &vdir1, -s);
-    ferVec3Add(&g1pos1, tr2);
+    // 1. Check top disc
+    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp1, &cn, con);
+    if (num == 1 || num == 0)
+        return num;
 
-    // Step 1: compute the two distances 's' and 't'
-    // 's' is the distance from the first disc (in
-    // vDir1-/Zylinderaxis-direction), the disc with G1Pos1 in the middle
-    s = (ferVec3X(tr1) - ferVec3X(&g1pos1)) * ferVec3X(&vdir1)
-            - (ferVec3Y(&g1pos1) - ferVec3Y(tr1)) * ferVec3Y(&vdir1)
-            - (ferVec3Z(&g1pos1) - ferVec3Z(tr1)) * ferVec3Z(&vdir1);
-    if (s < (-radius2) || s > (length + radius2)){
-        // Sphere is too far away from the discs
-        // no collision
-        return 0;
-    }
-
-    // C is the direction from Sphere-middle to the cylinder-axis (vDir1); C is orthogonal to the cylinder-axis
-    ferVec3Scale2(&C, &vdir1, s);
-    ferVec3Add(&C, &g1pos1);
-    ferVec3Sub(&C, tr1);
-
-    // t is the distance from the Sphere-middle to the cylinder-axis!
-    t = ferVec3Len(&C);
-    if (t > (radius + radius2)){
-        // Sphere is too far away from the cylinder axis!
-        // no collision
-        return 0;
-    }
-
-    // decide which kind of collision we have:
-    if (t > radius && (s < 0 || s > length)){
-        // 3. collision
-        if (s <= 0){
-            con->depth[con->num] = radius2 - FER_SQRT(FER_CUBE(s) + FER_CUBE(t - radius));
-            if(con->depth[con->num] < 0){
-                // no collision!
-                return 0;
-            }
-
-            ferVec3Scale2(&con->pos[con->num], &C, -radius * ferRecp(t));
-            ferVec3Add(&con->pos[con->num], &g1pos1);
-            ferVec3Sub2(&con->dir[con->num], &con->pos[con->num], tr1);
-            ferVec3Scale(&con->dir[con->num], ferRecp(radius2 - con->depth[con->num]));
-            con->num++;
-            return 1;
-
-        }else{
-            con->depth[con->num] = radius2 - FER_SQRT(FER_CUBE(s - length) + FER_CUBE(t - radius));
-            if(con->depth[con->num] < 0){
-                // no collision!
-                return 0;
-            }
-            ferVec3Scale2(&con->pos[con->num], &C, -radius * ferRecp(t));
-            ferVec3Add(&con->pos[con->num], &g1pos2);
-            ferVec3Sub2(&con->dir[con->num], &con->pos[con->num], tr1);
-            ferVec3Scale(&con->dir[con->num], ferRecp(radius2 - con->depth[con->num]));
-            con->num++;
-            return 1;
-        }
-    }else if ((radius - t) <= s && (radius - t) <= (length - s)){
-        // 1. collsision
-        if (t > (radius2 + FER_EPS)){
-            // cylinder-axis is outside the sphere
-            con->depth[con->num] = (radius2 + radius) - t;
-            if(con->depth[con->num] < 0){
-                // no collision!
-                return 0;
-            }
-
-            ferVec3Scale(&C, ferRecp(t));
-            ferVec3Scale2(&con->pos[con->num], &C, radius2);
-            ferVec3Add(&con->pos[con->num], tr1);
-            ferVec3Copy(&con->dir[con->num], &C);
-            con->num++;
-            return 1;
-
-        }else{
-            // cylinder-axis is outside of the sphere
-            con->depth[con->num] = (radius2 + radius) - t;
-            if(con->depth[con->num] < 0){
-                // no collision!
-                return 0;
-            }
-            ferVec3Add2(&con->pos[con->num], &C, tr1);
-            ferVec3Scale2(&con->dir[con->num], &C, ferRecp(t));
-            con->num++;
-            return 1;
-        }
-    }else{
-        // 2. collision
-        if (s <= (length * FER_REAL(0.5))){
-            // collsision with the first disc
-            con->depth[con->num] = s + radius2;
-            if(con->depth[con->num] < 0){
-                // should never happen, but just for safeness
-                return 0;
-            }
-
-            ferVec3Scale2(&con->pos[con->num], &vdir1, radius2);
-            ferVec3Add(&con->pos[con->num], tr1);
-            ferVec3Copy(&con->dir[con->num], &vdir1);
-            con->num++;
-            return 1;
-        }else{
-            // collsision with the second disc
-            con->depth[con->num] = radius2 + length - s;
-            if(con->depth[con->num] < 0){
-                // should never happen, but just for safeness
-                return 0;
-            }
-
-            ferVec3Scale2(&con->pos[con->num], &vdir1, -radius2);
-            ferVec3Add(&con->pos[con->num], tr1);
-            ferVec3Scale2(&con->dir[con->num], &vdir1, -FER_ONE);
-            con->num++;
-            return 1;
-        }
-    }
-
-    return 0;
+    // 1. Check bottom disc
+    ferVec3Scale(&cn, -FER_ONE);
+    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp2, &cn, con);
+    if (num == 1 || num == 0)
+        return num;
+    return 1;
 }
 
 int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
