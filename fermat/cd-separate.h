@@ -68,6 +68,16 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
                               fer_cd_contacts_t *con);
 
 /**
+ * Cap-Cap separator
+ */
+int ferCDSeparateCapCap(struct _fer_cd_t *cd,
+                        const fer_cd_cap_t *c1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_cd_cap_t *c2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                        fer_cd_contacts_t *con);
+
+/**
  * Plane-Sphere separator
  */
 int ferCDSeparatePlaneSphere(struct _fer_cd_t *cd,

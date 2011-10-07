@@ -83,9 +83,10 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int no_win = 0;
 static int no_sleep = 0;
 static int show_contacts = 0;
-static int show_aabb = 0;
+static int show_obb = 0;
 static int use_ode = 0;
 static int grid_level = 1;
+static int paus = 0;
 
 static char *cmds = NULL;
 
@@ -134,65 +135,39 @@ static obj_t *objNew(dBodyID body, dGeomID geom, fer_cd_geom_t *g)
     return obj;
 }
 
-
-void drawGeom (dGeomID g, const dReal *pos, const dReal *R, int show_aabb)
+static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
 {
-    int i;
-
-    if (!g)
-        return;
-    if (!pos)
-        pos = dGeomGetPosition (g);
-    if (!R)
-        R = dGeomGetRotation (g);
-
-    int type = dGeomGetClass (g);
-
-    if (type == dBoxClass) {
-        dVector3 sides;
-        dGeomBoxGetLengths (g,sides);
-        dsDrawBox (pos,R,sides);
-
-    }else if (type == dSphereClass) {
-        dsDrawSphere (pos,R,dGeomSphereGetRadius (g));
-
-    }else if (type == dCapsuleClass) {
-        dReal radius,length;
-        dGeomCapsuleGetParams (g,&radius,&length);
-        dsDrawCapsule (pos,R,length,radius);
-
-    }else if (type == dCylinderClass) {
-        dReal radius,length;
-        dGeomCylinderGetParams (g,&radius,&length);
-        dsDrawCylinder (pos,R,length,radius);
-    }
-
-    if (show_aabb) {
-        // draw the bounding box for this geom
-        dReal aabb[6];
-        dGeomGetAABB (g,aabb);
-        dVector3 bbpos;
-
-        for (i=0; i<3; i++)
-            bbpos[i] = 0.5*(aabb[i*2] + aabb[i*2+1]);
-
-        dVector3 bbsides;
-        for (i=0; i<3; i++)
-            bbsides[i] = aabb[i*2+1] - aabb[i*2];
-
-        dMatrix3 RI;
-        dRSetIdentity (RI);
-        dsSetColorAlpha (1,0,0,0.5);
-        dsDrawBox (bbpos,RI,bbsides);
-    }
-}
-
-static void _drawG(fer_cd_obb_t *obb, const dReal *pos, const dReal *rot)
-{
+    dReal pos[4];
+    dReal rot[12];
+    const fer_vec3_t *tr;
+    const fer_mat3_t *r;
+    dVector3 sides;
     fer_list_t *item;
     fer_cd_obb_t *o;
     dReal v[9];
     fer_cd_tri_t *t;
+    fer_cd_box_t *box;
+    fer_cd_sphere_t *sphere;
+    fer_cd_cap_t *cap;
+    fer_cd_cyl_t *cyl;
+
+    dsSetColorAlpha (1,1,0,1);
+    dsSetTexture (DS_WOOD);
+
+    tr = ferCDGeomTr(cd, g);
+    r  = ferCDGeomRot(cd, g);
+    pos[0] = ferVec3X(tr);
+    pos[1] = ferVec3Y(tr);
+    pos[2] = ferVec3Z(tr);
+    rot[0] = ferMat3Get(r, 0, 0);
+    rot[1] = ferMat3Get(r, 0, 1);
+    rot[2] = ferMat3Get(r, 0, 2);
+    rot[4] = ferMat3Get(r, 1, 0);
+    rot[5] = ferMat3Get(r, 1, 1);
+    rot[6] = ferMat3Get(r, 1, 2);
+    rot[8] = ferMat3Get(r, 2, 0);
+    rot[9] = ferMat3Get(r, 2, 1);
+    rot[10] = ferMat3Get(r, 2, 2);
 
     if (ferListEmpty(&obb->obbs)){
         if (obb->shape->cl->type == FER_CD_SHAPE_TRI
@@ -209,23 +184,88 @@ static void _drawG(fer_cd_obb_t *obb, const dReal *pos, const dReal *rot)
             v[8] = ferVec3Z(t->p[2]);
 
             dsDrawTriangle(pos, rot, v, v + 3, v + 6, 0);
+
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_BOX){
+            box = (fer_cd_box_t *)obb->shape;
+            sides[0] = 2. * ferVec3X(box->half_extents);
+            sides[1] = 2. * ferVec3Y(box->half_extents);
+            sides[2] = 2. * ferVec3Z(box->half_extents);
+            dsDrawBox(pos, rot, sides);
+
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_SPHERE){
+            sphere = (fer_cd_sphere_t *)obb->shape;
+            dsDrawSphere(pos, rot, sphere->radius);
+
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_CAP){
+            cap = (fer_cd_cap_t *)obb->shape;
+            dsDrawCapsule(pos, rot, 2 * cap->half_height, cap->radius);
+
+        }else if (obb->shape->cl->type == FER_CD_SHAPE_CYL){
+            cyl = (fer_cd_cyl_t *)obb->shape;
+            dsDrawCylinder(pos, rot, 2 * cyl->half_height, cyl->radius);
+        }
+
+        if (show_obb){
+            dReal x, y, z;
+            dReal pos2[4];
+            dReal rot2[12];
+
+            sides[0] = 2. * ferVec3X(&obb->half_extents);
+            sides[1] = 2. * ferVec3Y(&obb->half_extents);
+            sides[2] = 2. * ferVec3Z(&obb->half_extents);
+            x = ferVec3X(&obb->center);
+            y = ferVec3Y(&obb->center);
+            z = ferVec3Z(&obb->center);
+            pos2[0] = x * rot[0] + y * rot[1] + z * rot[2] + pos[0];
+            pos2[1] = x * rot[4] + y * rot[5] + z * rot[6] + pos[1];
+            pos2[2] = x * rot[8] + y * rot[9] + z * rot[10] + pos[2];
+            rot2[0] = rot[0] * ferVec3X(&obb->axis[0])
+                        + rot[1] * ferVec3Y(&obb->axis[0])
+                        + rot[2] * ferVec3Z(&obb->axis[0]);
+            rot2[1] = rot[0] * ferVec3X(&obb->axis[1])
+                        + rot[1] * ferVec3Y(&obb->axis[1])
+                        + rot[2] * ferVec3Z(&obb->axis[1]);
+            rot2[2] = rot[0] * ferVec3X(&obb->axis[2])
+                        + rot[1] * ferVec3Y(&obb->axis[2])
+                        + rot[2] * ferVec3Z(&obb->axis[2]);
+            rot2[4] = rot[4] * ferVec3X(&obb->axis[0])
+                        + rot[5] * ferVec3Y(&obb->axis[0])
+                        + rot[6] * ferVec3Z(&obb->axis[0]);
+            rot2[5] = rot[4] * ferVec3X(&obb->axis[1])
+                        + rot[5] * ferVec3Y(&obb->axis[1])
+                        + rot[6] * ferVec3Z(&obb->axis[1]);
+            rot2[6] = rot[4] * ferVec3X(&obb->axis[2])
+                        + rot[5] * ferVec3Y(&obb->axis[2])
+                        + rot[6] * ferVec3Z(&obb->axis[2]);
+            rot2[8] = rot[8] * ferVec3X(&obb->axis[0])
+                        + rot[9] * ferVec3Y(&obb->axis[0])
+                        + rot[10] * ferVec3Z(&obb->axis[0]);
+            rot2[9] = rot[8] * ferVec3X(&obb->axis[1])
+                        + rot[9] * ferVec3Y(&obb->axis[1])
+                        + rot[10] * ferVec3Z(&obb->axis[1]);
+            rot2[10] = rot[8] * ferVec3X(&obb->axis[2])
+                        + rot[9] * ferVec3Y(&obb->axis[2])
+                        + rot[10] * ferVec3Z(&obb->axis[2]);
+
+            dsSetColorAlpha (1,0,0,0.3);
+            dsDrawBox(pos2, rot2, sides);
         }
     }else{
         FER_LIST_FOR_EACH(&obb->obbs, item){
             o = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-            _drawG(o, pos, rot);
+            _drawG(g, o);
         }
     }
 }
 
-static void drawTriMesh(fer_cd_geom_t *g, const dReal *pos, const dReal *rot)
+static void drawG(fer_cd_geom_t *g)
 {
     fer_list_t *item;
     fer_cd_obb_t *obb;
 
     FER_LIST_FOR_EACH(&g->obbs, item){
         obb = FER_LIST_ENTRY(item, fer_cd_obb_t, list);
-        _drawG(obb, pos, rot);
+        _drawG(g, obb);
     }
 }
 
@@ -345,24 +385,16 @@ static void start(void)
     printf ("   y for cylinder.\n");
     printf ("   m for bunny.\n");
     printf ("To print xyz, hpr viewpoint, press v.\n");
-    printf ("To toggle showing the geom AABBs, press a.\n");
+    printf ("To toggle showing the geom OBBs, press o.\n");
     printf ("To toggle showing the contact points, press t.\n");
 }
 
 static void command (int cmd);
 
-static void simLoop(int pause)
+static void simLoop(int _pause)
 {
     fer_list_t *item;
     obj_t *obj;
-
-    //static int c = 1;
-    //fprintf(stderr, "c: %d\n", c++);
-
-    if (cmds && *cmds != 0x0){
-        command(*cmds);
-        ++cmds;
-    }
 
     if (!no_sleep)
         usleep(10000);
@@ -370,20 +402,26 @@ static void simLoop(int pause)
     if (!no_win)
         dsSetColor (0,0,2);
 
-    // remove all contact joints
-    dJointGroupEmpty(contactgroup);
+    if (!_pause && !paus){
+        if (cmds && *cmds != 0x0){
+            command(*cmds);
+            ++cmds;
+        }
 
-    ferTimerStart(&loop_timer);
-    if (use_ode){
-        dSpaceCollide(space, 0, &nearCallback);
-    }else{
-        ferCDSeparate(cd, sepCB, NULL);
-    }
-    ferTimerStop(&loop_timer);
-    fprintf(stderr, "%lu us\n", ferTimerElapsedInUs(&loop_timer));
+        // remove all contact joints
+        dJointGroupEmpty(contactgroup);
 
-    if (!pause)
+        ferTimerStart(&loop_timer);
+        if (use_ode){
+            dSpaceCollide(space, 0, &nearCallback);
+        }else{
+            ferCDSeparate(cd, sepCB, NULL);
+        }
+        ferTimerStop(&loop_timer);
+        fprintf(stderr, "%lu us\n", ferTimerElapsedInUs(&loop_timer));
+
         dWorldQuickStep (world,0.02);
+    }
 
 
     if (!no_win){
@@ -392,11 +430,8 @@ static void simLoop(int pause)
 
         FER_LIST_FOR_EACH(&objs, item){
             obj = FER_LIST_ENTRY(item, obj_t, list);
-            if (obj->geom){
-                drawGeom(obj->geom, 0, 0, show_aabb);
-            }else if (obj->g){
-                drawTriMesh(obj->g, dBodyGetPosition(obj->body),
-                                    dBodyGetRotation(obj->body));
+            if (obj->g){
+                drawG(obj->g);
             }
         }
     }
@@ -460,8 +495,8 @@ static void command (int cmd)
     }else if (cmd == 'q'){
         exit(-1);
 
-    }else if (cmd == 'a') {
-        show_aabb ^= 1;
+    }else if (cmd == 'o') {
+        show_obb ^= 1;
     }else if (cmd == 't') {
         show_contacts ^= 1;
     }else if (cmd == 'v'){
@@ -470,6 +505,8 @@ static void command (int cmd)
                xyz[0], xyz[1], xyz[2],
                hpr[0], hpr[1], hpr[2]);
         fflush(stdout);
+    }else if (cmd == 'p'){
+        paus ^= 1;
     }
 }
 
@@ -634,6 +671,7 @@ static void opt(void)
     ferOptsAdd("sphere-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
     ferOptsAdd("cap-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
     ferOptsAdd("cyl-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
+    ferOptsAdd("pause", 0, FER_OPTS_NONE, &paus, NULL);
 
     ferOpts(&pargc, pargv);
 }

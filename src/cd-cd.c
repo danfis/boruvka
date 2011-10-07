@@ -186,7 +186,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                        (fer_cd_separate_fn)ferCDSeparateCCD);
 
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CAP,
-                       (fer_cd_separate_fn)ferCDSeparateCCD);
+                       (fer_cd_separate_fn)ferCDSeparateCapCap);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRI,
                        (fer_cd_separate_fn)ferCDSeparateCCD);
     ferCDSetSeparateFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRIMESH_TRI,

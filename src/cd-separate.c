@@ -79,6 +79,52 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
     return num;
 }
 
+int ferCDSeparateCapCap(struct _fer_cd_t *cd,
+                        const fer_cd_cap_t *c1,
+                        const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                        const fer_cd_cap_t *c2,
+                        const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                        fer_cd_contacts_t *con)
+{
+    fer_vec3_t cn1, cn2, c11, c12, c21, c22;
+    fer_vec3_t p1, p2;
+    fer_real_t dist2;
+    int parallel, num = 0;
+
+    if (con->size <= con->num)
+        return 0;
+
+    // get normals of cylinder
+    ferMat3CopyCol(&cn1, rot1, 2);
+    ferMat3CopyCol(&cn2, rot2, 2);
+
+    // c1 and c2 segments
+    ferVec3Scale(&cn1, c1->half_height);
+    ferVec3Add2(&c11, tr1, &cn1);
+    ferVec3Sub2(&c12, tr1, &cn1);
+    ferVec3Scale(&cn2, c2->half_height);
+    ferVec3Add2(&c21, tr2, &cn2);
+    ferVec3Sub2(&c22, tr2, &cn2);
+
+    dist2 = ferVec3SegmentSegmentDist2(&c11, &c12, &c21, &c22, &p1, &p2, &parallel);
+
+    if (dist2 < FER_CUBE(c1->radius + c2->radius)){
+        con->depth[con->num] = c1->radius + c2->radius - FER_SQRT(dist2);
+        ferVec3Copy(&con->pos[con->num], &p1);
+        ferVec3Sub2(&con->dir[con->num], &p2, &p1);
+        ferVec3Normalize(&con->dir[con->num]);
+        con->num++;
+        num = 1;
+
+        /* TODO:
+           if (parallel && con->size > con->num){
+           }
+         */
+    }
+
+    return num;
+}
+
 
 int ferCDSeparatePlaneSphere(struct _fer_cd_t *cd,
                              const fer_cd_plane_t *s1,
