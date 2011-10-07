@@ -267,7 +267,7 @@ fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *A, const fer_vec3_t *B,
             denom = (a * e) - (b * b);
 
             if (!ferIsZero(denom)){
-                s = __clamp((b * f) - (c * e), FER_ZERO, FER_ONE);
+                s = __clamp((b * f) - (c * e) / denom, FER_ZERO, FER_ONE);
             }else{
                 // segments parallel - choose arbitrary s.
                 s = FER_ZERO;
@@ -279,7 +279,7 @@ fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *A, const fer_vec3_t *B,
             if (t < FER_ZERO){
                 t = FER_ZERO;
                 s = __clamp(-c / a, FER_ZERO, FER_ONE);
-            }else if (t > FER_ONE){
+            }else if (t > e){
                 t = FER_ONE;
                 s = __clamp((b - c) / a, FER_ZERO, FER_ONE);
             }else{
