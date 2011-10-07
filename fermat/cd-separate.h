@@ -77,6 +77,15 @@ int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
                            const fer_mat3_t *rot2, const fer_vec3_t *tr2,
                            fer_cd_contacts_t *con);
 
+/**
+ * Sphere-Tri separator
+ */
+int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_tri_t *t2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con);
 
 /**
  * Cap-Cap separator

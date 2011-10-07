@@ -114,6 +114,39 @@ int ferCDSeparateSphereCap(struct _fer_cd_t *cd,
     return 0;
 }
 
+int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
+                           const fer_cd_sphere_t *s1,
+                           const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                           const fer_cd_tri_t *t2,
+                           const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                           fer_cd_contacts_t *con)
+{
+    fer_vec3_t p[3];
+    fer_real_t dist;
+    int i;
+
+    if (con->size <= con->num)
+        return 0;
+
+    // transform triangle
+    for (i = 0; i < 3; i++){
+        ferMat3MulVec(&p[i], rot2, t2->p[i]);
+        ferVec3Add(&p[i], tr2);
+    }
+
+    dist = ferVec3PointTriDist2(tr1, &p[0], &p[1], &p[2], &con->pos[con->num]);
+    if (dist < FER_CUBE(s1->radius)){
+        dist = FER_SQRT(dist);
+        con->depth[con->num] = s1->radius - dist;
+        ferVec3Sub2(&con->dir[con->num], &con->pos[con->num], tr1);
+        con->num++;
+        return 1;
+    }
+
+
+    return 0;
+}
+
 int ferCDSeparateCapCap(struct _fer_cd_t *cd,
                         const fer_cd_cap_t *c1,
                         const fer_mat3_t *rot1, const fer_vec3_t *tr1,
