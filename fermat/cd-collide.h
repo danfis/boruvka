@@ -80,6 +80,15 @@ int ferCDCollideBoxBox(struct _fer_cd_t *cd,
                        const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
 /**
+ * Cap-Cap collider
+ */
+int ferCDCollideCapCap(struct _fer_cd_t *cd,
+                       const fer_cd_cap_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_cap_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2);
+
+/**
  * Plane-Sphere collider
  */
 int ferCDCollidePlaneSphere(struct _fer_cd_t *cd,

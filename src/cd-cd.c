@@ -85,7 +85,7 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
                       (fer_cd_collide_fn)ferCDCollideCCD);
 
     ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CAP,
-                      (fer_cd_collide_fn)ferCDCollideCCD);
+                      (fer_cd_collide_fn)ferCDCollideCapCap);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_CYL,
                       (fer_cd_collide_fn)ferCDCollideCCD);
     ferCDSetCollideFn(cd, FER_CD_SHAPE_CAP, FER_CD_SHAPE_TRI,

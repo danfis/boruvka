@@ -116,6 +116,36 @@ int ferCDCollideBoxBox(struct _fer_cd_t *cd,
     return !ret;
 }
 
+int ferCDCollideCapCap(struct _fer_cd_t *cd,
+                       const fer_cd_cap_t *s1,
+                       const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                       const fer_cd_cap_t *s2,
+                       const fer_mat3_t *rot2, const fer_vec3_t *tr2)
+{
+    fer_vec3_t cn1, cn2, c11, c12, c21, c22;
+    fer_real_t dist2;
+
+    // get normals of capsules
+    ferMat3CopyCol(&cn1, rot1, 2);
+    ferMat3CopyCol(&cn2, rot2, 2);
+
+    // c1 and c2 segments
+    ferVec3Scale(&cn1, s1->half_height);
+    ferVec3Add2(&c11, tr1, &cn1);
+    ferVec3Sub2(&c12, tr1, &cn1);
+    ferVec3Scale(&cn2, s2->half_height);
+    ferVec3Add2(&c21, tr2, &cn2);
+    ferVec3Sub2(&c22, tr2, &cn2);
+
+    dist2 = ferVec3SegmentSegmentDist2(&c11, &c12, &c21, &c22, NULL, NULL, NULL);
+
+    if (!ferIsZero(dist2) && dist2 < FER_CUBE(s1->radius + s2->radius)){
+        return 1;
+    }
+
+    return 0;
+}
+
 int ferCDCollidePlaneSphere(struct _fer_cd_t *cd,
                             const fer_cd_plane_t *p,
                             const fer_mat3_t *rot1, const fer_vec3_t *tr1,

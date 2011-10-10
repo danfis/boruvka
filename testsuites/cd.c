@@ -1286,6 +1286,35 @@ TEST(cdCollide9)
     ferCDDel(cd);
 }
 
+TEST(cdCollide10)
+{
+    fer_cd_t *cd;
+    fer_cd_geom_t *g[2];
+    int ret;
+
+    cd = ferCDNew(NULL);
+    g[0] = ferCDGeomNew(cd);
+    ferCDGeomAddCap(cd, g[0], 0.1, 0.2);
+    g[1] = ferCDGeomNew(cd);
+    ferCDGeomAddCap(cd, g[1], 0.05, 0.2);
+
+    ferCDGeomSetTr3(cd, g[0], 0, 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 1, 0, 0);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertFalse(ret);
+
+    ferCDGeomSetTr3(cd, g[0], 0, 0, 0);
+    ferCDGeomSetTr3(cd, g[1], 0, 0.06, 0);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+
+    ferCDGeomSetTr3(cd, g[0], 0, 0, 0);
+    ferCDGeomSetRotEuler(cd, g[0], 0, M_PI_2, 0);
+    ferCDGeomSetTr3(cd, g[1], 0, 0.1, 0);
+    ret = ferCDCollide(cd, NULL, NULL);
+    assertTrue(ret);
+}
+
 
 struct _geom_t {
     int id;
