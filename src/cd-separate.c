@@ -196,6 +196,8 @@ static int __ferCDSeparateSphereCylDisc(struct _fer_cd_t *cd,
                                         const fer_cd_cyl_t *c2,
                                         const fer_vec3_t *p,
                                         const fer_vec3_t *n,
+                                        const fer_mat3_t *rot,
+                                        int neg,
                                         fer_cd_contacts_t *con)
 {
     fer_vec3_t w;
@@ -208,9 +210,9 @@ static int __ferCDSeparateSphereCylDisc(struct _fer_cd_t *cd,
         if (dist < s1->radius
                 && ferVec3Dist(&con->pos[con->num - 1], p) < c2->radius){
             con->depth[con->num - 1] = s1->radius - dist;
-            ferVec3Copy(&con->dir[con->num - 1], n);
-            ferVec3Scale(&con->dir[con->num - 1], -FER_ONE);
-            ferVec3Normalize(&con->dir[con->num - 1]);
+            ferMat3CopyCol(&con->dir[con->num - 1], rot, 2);
+            if (neg)
+                ferVec3Scale(&con->dir[con->num - 1], -FER_ONE);
             return 1;
         }
 
@@ -249,13 +251,13 @@ int ferCDSeparateSphereCyl(struct _fer_cd_t *cd,
     // is so, we must check collision with top or bottom disc respectively.
 
     // 1. Check top disc
-    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp1, &cn, con);
+    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp1, &cn, rot2, 1, con);
     if (num == 1 || num == 0)
         return num;
 
     // 1. Check bottom disc
     ferVec3Scale(&cn, -FER_ONE);
-    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp2, &cn, con);
+    num = __ferCDSeparateSphereCylDisc(cd, s1, tr1, c2, &cp2, &cn, rot2, 0, con);
     if (num == 1 || num == 0)
         return num;
     return 1;
