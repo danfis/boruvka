@@ -36,6 +36,8 @@ struct _fer_cd_cp_t {
 
     fer_list_t active;   /*!< List of active contacts */
     fer_list_t unactive; /*!< List of unactive contacts */
+
+    pthread_mutex_t lock; /*!< Global lock */
 };
 typedef struct _fer_cd_cp_t fer_cd_cp_t;
 

@@ -73,6 +73,8 @@ fer_cd_cp_t *ferCDCPNew(size_t hashsize, fer_real_t max_dist)
     ferListInit(&cp->active);
     ferListInit(&cp->unactive);
 
+    pthread_mutex_init(&cp->lock, NULL);
+
     return cp;
 }
 
@@ -89,6 +91,8 @@ void ferCDCPDel(fer_cd_cp_t *cp)
     }
 
     ferHMapDel(cp->cs);
+
+    pthread_mutex_destroy(&cp->lock);
     FER_FREE(cp);
 }
 
@@ -105,7 +109,6 @@ const fer_cd_contacts_t *ferCDCPUpdate(fer_cd_cp_t *cp,
     if (!cp || (g1->cp == 0 && g2->cp == 0))
         return con;
 
-    DBG2("");
     // find out or create contacts between g1 and g2
     c = hashGet(cp->cs, g1, g2);
     if (c == NULL){
@@ -137,8 +140,10 @@ const fer_cd_contacts_t *ferCDCPUpdate(fer_cd_cp_t *cp,
     }
 
     // move contact into active list
+    pthread_mutex_lock(&cp->lock);
     ferListDel(&c->active);
     ferListAppend(&cp->active, &c->active);
+    pthread_mutex_unlock(&cp->lock);
 
     return c->con;
 }
@@ -190,9 +195,10 @@ static fer_cd_cp_contact_t *conNew(fer_cd_cp_t *cp,
     c->relpos[0] = ferVec3ArrNew(max_contacts);
     c->relpos[1] = ferVec3ArrNew(max_contacts);
 
+    pthread_mutex_lock(&cp->lock);
     ferListAppend(&cp->unactive, &c->active);
-
     ferHMapPut(cs, &c->hash);
+    pthread_mutex_unlock(&cp->lock);
 
     return c;
 }

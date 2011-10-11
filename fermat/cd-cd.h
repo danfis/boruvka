@@ -65,7 +65,7 @@ struct _fer_cd_params_t {
 
     int use_cp;         /*!< If set to true, contact persistence is used.
                              Note that contact persistence is used only for
-                             those geoms that were directly enabled by
+                             those geoms that were explicitly enabled by
                              [see ferCDGeomContactPersistence() function].
                              Default: true */
     size_t cp_hashsize; /*!< Size of hash table used as register for

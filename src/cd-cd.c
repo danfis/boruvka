@@ -381,6 +381,7 @@ static void __sepTask(int id, void *data,
     sep_task_t *sep = (sep_task_t *)data;
     fer_cd_t *cd = sep->cd;
     fer_cd_contacts_t *con = cd->contacts[thinfo->id - 1];
+    const fer_cd_contacts_t *con2;
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
 
@@ -391,7 +392,8 @@ static void __sepTask(int id, void *data,
         con->num = 0;
         ferCDGeomSeparate(cd, pair->g[0], pair->g[1], con);
         if (con->num > 0){
-            sep->cb(cd, pair->g[0], pair->g[1], con, sep->data);
+            con2 = ferCDCPUpdate(cd->cp, pair->g[0], pair->g[1], con);
+            sep->cb(cd, pair->g[0], pair->g[1], con2, sep->data);
         }
     }
 }
@@ -402,6 +404,7 @@ static void __sepTaskBruteForce(int id, void *data,
     sep_task_t *sep = (sep_task_t *)data;
     fer_cd_t *cd = sep->cd;
     fer_cd_contacts_t *con = cd->contacts[id];
+    const fer_cd_contacts_t *con2;
     fer_list_t *item1, *item2;
     fer_cd_geom_t *g1, *g2;
     size_t i;
@@ -418,7 +421,8 @@ static void __sepTaskBruteForce(int id, void *data,
             con->num = 0;
             ferCDGeomSeparate(cd, g1, g2, con);
             if (con->num > 0){
-                sep->cb(cd, g1, g2, con, sep->data);
+                con2 = ferCDCPUpdate(cd->cp, g1, g2, con);
+                sep->cb(cd, g1, g2, con2, sep->data);
             }
         }
 
@@ -431,6 +435,7 @@ static void ferCDSeparateBruteForce(fer_cd_t *cd,
 {
     fer_list_t *item1, *item2;
     fer_cd_geom_t *g1, *g2;
+    const fer_cd_contacts_t *con2;
 
     FER_LIST_FOR_EACH(&cd->geoms, item1){
         g1 = FER_LIST_ENTRY(item1, fer_cd_geom_t, list);
@@ -443,10 +448,14 @@ static void ferCDSeparateBruteForce(fer_cd_t *cd,
             cd->contacts[0]->num = 0;
             ferCDGeomSeparate(cd, g1, g2, cd->contacts[0]);
             if (cd->contacts[0]->num > 0){
-                cb(cd, g1, g2, cd->contacts[0], data);
+                con2 = ferCDCPUpdate(cd->cp, g1, g2, cd->contacts[0]);
+                cb(cd, g1, g2, con2, data);
             }
         }
     }
+
+    if (cd->cp)
+        ferCDCPMaintainance(cd->cp);
 }
 
 static void ferCDSeparateBruteForceThreads(fer_cd_t *cd,
@@ -465,6 +474,9 @@ static void ferCDSeparateBruteForceThreads(fer_cd_t *cd,
     }
 
     ferTasksBarrier(cd->tasks);
+
+    if (cd->cp)
+        ferCDCPMaintainance(cd->cp);
 }
 
 static void ferCDSeparateSAP(fer_cd_t *cd,
@@ -523,6 +535,9 @@ static void ferCDSeparateSAPThreads(fer_cd_t *cd,
     }
 
     ferTasksBarrier(cd->tasks);
+
+    if (cd->cp)
+        ferCDCPMaintainance(cd->cp);
 }
 
 void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
