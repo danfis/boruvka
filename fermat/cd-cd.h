@@ -72,9 +72,6 @@ struct _fer_cd_params_t {
                              contact persistence.  If set to 0,
                              {.sap_hashsize} is used instead.
                              Default: 0 */
-    size_t cp_max_contacts; /*!< Maximal number of contacts that can be
-                                 hold in persistent manifold.
-                                 Default: 4  */
     fer_real_t cp_max_dist; /*!< Maximal squared distance a contact point
                                  can move to be considered "still" */
 };

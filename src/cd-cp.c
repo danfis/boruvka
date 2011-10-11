@@ -33,8 +33,7 @@ typedef struct _fer_cd_cp_contact_t fer_cd_cp_contact_t;
 static fer_cd_cp_contact_t *conNew(fer_cd_cp_t *cp,
                                    fer_hmap_t *cs,
                                    const fer_cd_geom_t *g1,
-                                   const fer_cd_geom_t *g2,
-                                   size_t max_contacts);
+                                   const fer_cd_geom_t *g2);
 static void conDel(fer_cd_cp_contact_t *c);
 
 /** Returns true if {id}'s contact pos wasn't changed too much (max_dist
@@ -63,13 +62,12 @@ static fer_cd_cp_contact_t *hashGet(const fer_hmap_t *m,
                                     const fer_cd_geom_t *g1,
                                     const fer_cd_geom_t *g2);
 
-fer_cd_cp_t *ferCDCPNew(size_t hashsize, size_t max_contacts, fer_real_t max_dist)
+fer_cd_cp_t *ferCDCPNew(size_t hashsize, fer_real_t max_dist)
 {
     fer_cd_cp_t *cp;
 
     cp = FER_ALLOC(fer_cd_cp_t);
     cp->cs = ferHMapNew(hashsize, hashKey, hashEq, cp);
-    cp->max_contacts = max_contacts;
     cp->max_dist     = max_dist;
 
     ferListInit(&cp->active);
@@ -104,13 +102,14 @@ const fer_cd_contacts_t *ferCDCPUpdate(fer_cd_cp_t *cp,
     uint8_t swap;
     size_t i, deepest = 0;
 
-    if (!cp)
+    if (!cp || (g1->cp == 0 && g2->cp == 0))
         return con;
 
+    DBG2("");
     // find out or create contacts between g1 and g2
     c = hashGet(cp->cs, g1, g2);
     if (c == NULL){
-        c = conNew(cp, cp->cs, g1, g2, cp->max_contacts);
+        c = conNew(cp, cp->cs, g1, g2);
     }
 
     // remove all incorrect contacts and find the deepest one
@@ -170,10 +169,18 @@ void ferCDCPMaintainance(fer_cd_cp_t *cp)
 static fer_cd_cp_contact_t *conNew(fer_cd_cp_t *cp,
                                    fer_hmap_t *cs,
                                    const fer_cd_geom_t *g1,
-                                   const fer_cd_geom_t *g2,
-                                   size_t max_contacts)
+                                   const fer_cd_geom_t *g2)
 {
     fer_cd_cp_contact_t *c;
+    size_t max_contacts;
+
+    if (g1->cp == 0){
+        max_contacts = g2->cp;
+    }else if (g2->cp == 0){
+        max_contacts = g1->cp;
+    }else{
+        max_contacts = FER_MIN(g1->cp, g2->cp);
+    }
 
     c = FER_ALLOC(fer_cd_cp_contact_t);
     ferListInit(&c->hash);

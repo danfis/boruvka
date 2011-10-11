@@ -631,6 +631,7 @@ static void cylGrid(int x, int y)
         geom = dCreateCylinder(space,sides[0],sides[1]);
         g = ferCDGeomNew(cd);
         ferCDGeomAddCyl(cd, g, sides[0], sides[1]);
+        ferCDGeomContactPersistence(cd, g, 4);
 
 
         objNew(body, geom, g);

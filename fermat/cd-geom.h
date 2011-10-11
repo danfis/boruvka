@@ -38,6 +38,7 @@ struct _fer_cd_geom_t {
     void *data;
 
     int sap;
+    unsigned int cp;
 } fer_aligned(16) fer_packed;
 typedef struct _fer_cd_geom_t fer_cd_geom_t;
 
@@ -101,6 +102,15 @@ _fer_inline void ferCDGeomSetRot(fer_cd_t *cd, fer_cd_geom_t *g,
 _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
                                       fer_real_t xrot, fer_real_t yrot,
                                       fer_real_t zrot);
+
+/**
+ * 1. If {max_contacts} == 0, contact persistence is disabled (which is the
+ *    default behaviour)
+ * 2. Otherwise, contact persistence is enabled and maximal number of
+ *    persisted contacts is set.
+ */
+void ferCDGeomContactPersistence(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 unsigned int max_contacts);
 
 /**
  * Returns true if given geoms do collide.

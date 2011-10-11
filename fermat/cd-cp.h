@@ -31,7 +31,6 @@ extern "C" {
  */
 struct _fer_cd_cp_t {
     fer_hmap_t *cs;      /*!< Hash table of contacts */
-    size_t max_contacts; /*!< Maximal number of contacts in one manifold */
     fer_real_t max_dist; /*!< Maximal squared distance a contact point can
                               move to be considered "still" */
 
@@ -43,7 +42,7 @@ typedef struct _fer_cd_cp_t fer_cd_cp_t;
 /**
  * Creates new contact persistence structure
  */
-fer_cd_cp_t *ferCDCPNew(size_t hashsize, size_t max_contacts, fer_real_t max_dist);
+fer_cd_cp_t *ferCDCPNew(size_t hashsize, fer_real_t max_dist);
 
 /**
  * Deletes the structure
@@ -52,9 +51,9 @@ void ferCDCPDel(fer_cd_cp_t *cp);
 
 /**
  * 1. If {cp} is NULL {con} is returned.
- * 2. If {g1} or {g2} doesn't support contact presistence, {con} is
+ * 2. If both {g1} and {g2} doesn't support contact presistence, {con} is
  *    returned.
- * 3. If both {g1} and {g2} support contact presistence, the contacts
+ * 3. If either {g1} or {g2} support contact presistence, the contacts
  *    between {g1} and {g2} are updated and returned.
  */
 const fer_cd_contacts_t *ferCDCPUpdate(fer_cd_cp_t *cp,

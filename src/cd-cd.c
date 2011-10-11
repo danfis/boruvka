@@ -34,7 +34,6 @@ void ferCDParamsInit(fer_cd_params_t *params)
 
     params->use_cp          = 1;
     params->cp_hashsize     = 0;
-    params->cp_max_contacts = 4;
     params->cp_max_dist     = 1E-6;
 }
 
@@ -247,11 +246,9 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
     if (params->use_cp){
         if (params->cp_hashsize == 0){
             cd->cp = ferCDCPNew(params->sap_hashsize,
-                                params->cp_max_contacts,
                                 params->cp_max_dist);
         }else{
             cd->cp = ferCDCPNew(params->cp_hashsize,
-                                params->cp_max_contacts,
                                 params->cp_max_dist);
         }
     }

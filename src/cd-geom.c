@@ -36,6 +36,7 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd)
     g->data = NULL;
 
     g->sap = -1;
+    g->cp  = 0;
 
     if (cd->sap)
         ferCDSAPAdd(cd->sap, g);
@@ -253,6 +254,11 @@ void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
     ferCDGeomSetDirty(cd, g);
 }
 
+void ferCDGeomContactPersistence(fer_cd_t *cd, fer_cd_geom_t *g,
+                                 unsigned int max_contacts)
+{
+    g->cp = max_contacts;
+}
 
 struct __collide_t {
     fer_cd_t *cd;
