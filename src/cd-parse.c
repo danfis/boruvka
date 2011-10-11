@@ -43,7 +43,7 @@ Shape :=
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <fermat/cd-geom.h>
+#include <fermat/cd.h>
 #include <fermat/parse.h>
 #include <fermat/dbg.h>
 

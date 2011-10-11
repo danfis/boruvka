@@ -43,5 +43,6 @@
 #include <fermat/cd-cd.h>
 #include <fermat/cd-geom.h>
 #include <fermat/cd-sap.h>
+#include <fermat/cd-cp.h>
 
 #endif /* __FER_CD_H__ */

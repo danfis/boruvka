@@ -67,6 +67,7 @@ OBJS += cd-box.o cd-sphere.o cd-cyl.o cd-trimesh.o cd-shape.o cd-cap.o
 OBJS += cd-plane.o
 OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
 OBJS += cd-sphere-grid.o cd-sap.o cd-separate.o cd-ccd.o
+OBJS += cd-cp.o
 OBJS += ccd.o ccd-polytope.o ccd-mpr.o ccd-gjk.o ccd-support.o
 
 ifeq '$(USE_OPENCL)' 'yes'

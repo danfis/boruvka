@@ -25,6 +25,7 @@ extern "C" {
 
 struct _fer_cd_geom_t;
 struct _fer_cd_sap_t;
+struct _fer_cd_cp_t;
 
 /**
  * Collision Detection
@@ -61,8 +62,29 @@ struct _fer_cd_params_t {
                              usign threads will be used whenever possible
                              (if not documented otherwise).
                              Default: 1 */
+
+    int use_cp;         /*!< If set to true, contact persistence is used.
+                             Note that contact persistence is used only for
+                             those geoms that were directly enabled by
+                             [see ferCDGeomContactPersistence() function].
+                             Default: true */
+    size_t cp_hashsize; /*!< Size of hash table used as register for
+                             contact persistence.  If set to 0,
+                             {.sap_hashsize} is used instead.
+                             Default: 0 */
+    size_t cp_max_contacts; /*!< Maximal number of contacts that can be
+                                 hold in persistent manifold.
+                                 Default: 4  */
+    fer_real_t cp_max_dist; /*!< Maximal squared distance a contact point
+                                 can move to be considered "still" */
 };
 typedef struct _fer_cd_params_t fer_cd_params_t;
+
+/**
+ * Initializes parameters to default values.
+ */
+void ferCDParamsInit(fer_cd_params_t *params);
+
 
 struct _fer_cd_t {
     uint32_t build_flags;
@@ -82,13 +104,9 @@ struct _fer_cd_t {
     fer_list_t geoms_dirty;    /*!< List of dirty geoms */
     size_t geoms_dirty_len;    /*!< Size of .geoms_dirty list */
     struct _fer_cd_sap_t *sap; /*!< SAP solver */
+    struct _fer_cd_cp_t *cp;   /*!< Struct for contact persistence */
 };
 typedef struct _fer_cd_t fer_cd_t;
-
-/**
- * Initializes parameters to default values.
- */
-void ferCDParamsInit(fer_cd_params_t *params);
 
 /**
  * New instance of collision detection library.

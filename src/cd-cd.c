@@ -31,6 +31,11 @@ void ferCDParamsInit(fer_cd_params_t *params)
 
     params->max_contacts = 20;
     params->num_threads = 1;
+
+    params->use_cp          = 1;
+    params->cp_hashsize     = 0;
+    params->cp_max_contacts = 4;
+    params->cp_max_dist     = 1E-6;
 }
 
 fer_cd_t *ferCDNew(const fer_cd_params_t *params)
@@ -238,6 +243,19 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
         cd->sap = ferCDSAPNew(cd, sapflags);
     }
 
+    cd->cp = NULL;
+    if (params->use_cp){
+        if (params->cp_hashsize == 0){
+            cd->cp = ferCDCPNew(params->sap_hashsize,
+                                params->cp_max_contacts,
+                                params->cp_max_dist);
+        }else{
+            cd->cp = ferCDCPNew(params->cp_hashsize,
+                                params->cp_max_contacts,
+                                params->cp_max_dist);
+        }
+    }
+
     return cd;
 }
 
@@ -250,7 +268,6 @@ void ferCDDel(fer_cd_t *cd)
     while (!ferListEmpty(&cd->geoms)){
         item = ferListNext(&cd->geoms);
         g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list);
-        DBG("%lx", (long)g);
         ferCDGeomDel(cd, g);
     }
 
@@ -267,6 +284,8 @@ void ferCDDel(fer_cd_t *cd)
 
     if (cd->sap)
         ferCDSAPDel(cd->sap);
+    if (cd->cp)
+        ferCDCPDel(cd->cp);
 
     FER_FREE(cd);
 }
@@ -456,10 +475,16 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
 {
     const fer_list_t *pairs, *item;
     fer_cd_sap_pair_t *pair;
+    fer_cd_contacts_t *con;
+    const fer_cd_contacts_t *con2;
     size_t i, len;
+    int num;
 
     // first of all update all dirty geoms
     updateDirtyGeoms(cd);
+
+    // use first in contacts list
+    con = cd->contacts[0];
 
     // try all pairs
     len = ferCDSAPCollidePairsBuckets(cd->sap);
@@ -468,13 +493,17 @@ static void ferCDSeparateSAP(fer_cd_t *cd,
         FER_LIST_FOR_EACH(pairs, item){
             pair = FER_LIST_ENTRY(item, fer_cd_sap_pair_t, list);
 
-            cd->contacts[0]->num = 0;
-            ferCDGeomSeparate(cd, pair->g[0], pair->g[1], cd->contacts[0]);
-            if (cd->contacts[0]->num > 0){
-                cb(cd, pair->g[0], pair->g[1], cd->contacts[0], data);
+            con->num = 0;
+            num = ferCDGeomSeparate(cd, pair->g[0], pair->g[1], con);
+            if (num > 0){
+                con2 = ferCDCPUpdate(cd->cp, pair->g[0], pair->g[1], con);
+                cb(cd, pair->g[0], pair->g[1], con2, data);
             }
         }
     }
+
+    if (cd->cp)
+        ferCDCPMaintainance(cd->cp);
 }
 
 static void ferCDSeparateSAPThreads(fer_cd_t *cd,
