@@ -542,6 +542,9 @@ static void ferCDSeparateSAPThreads(fer_cd_t *cd,
 
 void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
 {
+#ifdef FER_CD_TIME_MEASURE
+    ferTimerStart(&cd->timer_all);
+#endif /* FER_CD_TIME_MEASURE */
     if (!cd->sap){
         if (cd->tasks){
             ferCDSeparateBruteForceThreads(cd, cb, data);
@@ -555,6 +558,10 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
             ferCDSeparateSAP(cd, cb, data);
         }
     }
+#ifdef FER_CD_TIME_MEASURE
+    ferTimerStop(&cd->timer_all);
+    cd->time_separate = ferTimerElapsedInUs(&cd->timer_all);
+#endif /* FER_CD_TIME_MEASURE */
 }
 
 
@@ -622,22 +629,24 @@ int __ferCDShapeSeparate(struct _fer_cd_t *cd,
     return num;
 }
 
-#include <fermat/timer.h>
 static void updateDirtyGeoms(fer_cd_t *cd)
 {
     fer_list_t *item;
     fer_cd_geom_t *g;
 
-    fer_timer_t timer;
-    ferTimerStart(&timer);
+#ifdef FER_CD_TIME_MEASURE
+    ferTimerStart(&cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
     while (!ferListEmpty(&cd->geoms_dirty)){
         item = ferListNext(&cd->geoms_dirty);
         g    = FER_LIST_ENTRY(item, fer_cd_geom_t, list_dirty);
         ferCDSAPUpdate(cd->sap, g);
         __ferCDGeomResetDirty(cd, g);
     }
-    ferTimerStop(&timer);
-    DBG("%lu us", ferTimerElapsedInUs(&timer));
+#ifdef FER_CD_TIME_MEASURE
+    ferTimerStop(&cd->timer);
+    cd->time_update_dirty = ferTimerElapsedInUs(&cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
 
     ferCDSAPProcess(cd->sap);
 }

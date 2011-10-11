@@ -18,6 +18,9 @@
 #define __FER_CD_CD_H__
 
 #include <fermat/cd.h>
+#ifdef FER_CD_TIME_MEASURE
+# include <fermat/timer.h>
+#endif /* FER_CD_TIME_MEASURE */
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +105,15 @@ struct _fer_cd_t {
     size_t geoms_dirty_len;    /*!< Size of .geoms_dirty list */
     struct _fer_cd_sap_t *sap; /*!< SAP solver */
     struct _fer_cd_cp_t *cp;   /*!< Struct for contact persistence */
+#ifdef FER_CD_TIME_MEASURE
+    fer_timer_t timer;
+    fer_timer_t timer_all;
+    fer_real_t time_radix[3];
+    fer_real_t time_remove_pairs;
+    fer_real_t time_find_pairs;
+    fer_real_t time_update_dirty;
+    fer_real_t time_separate;
+#endif /* FER_CD_TIME_MEASURE */
 };
 typedef struct _fer_cd_t fer_cd_t;
 

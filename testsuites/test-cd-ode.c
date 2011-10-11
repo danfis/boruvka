@@ -21,6 +21,7 @@
  *************************************************************************/
 
 #include <unistd.h>
+#include <limits.h>
 #include <ode/ode.h>
 #include <ode/odemath.h>
 #include <drawstuff/drawstuff.h>
@@ -88,9 +89,13 @@ static int use_ode = 0;
 static int grid_level = 1;
 static int paus = 0;
 static int alpha = 1;
+static long num_steps = LONG_MAX;
 
 static char *cmds = NULL;
 
+#ifdef FER_CD_TIME_MEASURE
+FILE *meas = NULL;
+#endif /* FER_CD_TIME_MEASURE */
 
 static void bodyMoved(dBodyID body)
 {
@@ -396,6 +401,9 @@ static void simLoop(int _pause)
 {
     fer_list_t *item;
     obj_t *obj;
+    static long i = 0;
+
+    fprintf(stderr, "Step: %06ld\n", i++);
 
     if (!no_sleep)
         usleep(10000);
@@ -417,6 +425,29 @@ static void simLoop(int _pause)
             dSpaceCollide(space, 0, &nearCallback);
         }else{
             ferCDSeparate(cd, sepCB, NULL);
+#ifdef FER_CD_TIME_MEASURE
+            fprintf(stderr, "Time (us):\n");
+            fprintf(stderr, "    update dirty: %f\n", (float)cd->time_update_dirty);
+            fprintf(stderr, "    radix sort:   %f [%f + %f + %f]\n",
+                    (float)(cd->time_radix[0] + cd->time_radix[1] + cd->time_radix[2]),
+                    (float)cd->time_radix[0],
+                    (float)cd->time_radix[1],
+                    (float)cd->time_radix[2]);
+            fprintf(stderr, "    remove pairs: %f\n", (float)cd->time_remove_pairs);
+            fprintf(stderr, "    find pairs:   %f\n", (float)cd->time_find_pairs);
+            fprintf(stderr, "    all:          %f\n", (float)cd->time_separate);
+
+            fprintf(meas, "%ld %f %f %f %f %f %f %f\n",
+                    i,
+                    (float)cd->time_update_dirty,
+                    (float)cd->time_radix[0],
+                    (float)cd->time_radix[1],
+                    (float)cd->time_radix[2],
+                    (float)cd->time_remove_pairs,
+                    (float)cd->time_find_pairs,
+                    (float)cd->time_separate);
+            fflush(meas);
+#endif /* FER_CD_TIME_MEASURE */
         }
         ferTimerStop(&loop_timer);
         fprintf(stderr, "%lu us\n", ferTimerElapsedInUs(&loop_timer));
@@ -663,8 +694,10 @@ static void opt(void)
 
     params.use_sap = 1;
     params.sap_hashsize = 1023 * 1023 * 10 + 1;
+    params.use_cp = 1;
 
     ferOptsAdd("use-gpu", 0, FER_OPTS_NONE, &params.sap_gpu, NULL);
+    ferOptsAdd("use-cp", 0, FER_OPTS_NONE, &params.use_cp, NULL);
     ferOptsAdd("threads", 't', FER_OPTS_SIZE_T, &params.num_threads, NULL);
     ferOptsAdd("max-contacts", 0, FER_OPTS_SIZE_T, &params.max_contacts, NULL);
     ferOptsAdd("no-win", 0, FER_OPTS_NONE, &no_win, NULL);
@@ -676,12 +709,14 @@ static void opt(void)
     ferOptsAdd("cap-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
     ferOptsAdd("cyl-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
     ferOptsAdd("pause", 0, FER_OPTS_NONE, &paus, NULL);
+    ferOptsAdd("num-steps", 0, FER_OPTS_LONG, &num_steps, NULL);
 
     ferOpts(&pargc, pargv);
 }
 
 int main (int argc, char **argv)
 {
+    long i;
 
     // setup pointers to drawstuff callback functions
     dsFunctions fn;
@@ -691,6 +726,11 @@ int main (int argc, char **argv)
     fn.command = &command;
     fn.stop = 0;
     fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
+
+#ifdef FER_CD_TIME_MEASURE
+    meas = fopen("test-cd-ode.meas", "w");
+    fprintf(meas, "# update_dirty radix[0] radix[1] radix[2] remove_pairs find_pairs separate\n");
+#endif /* FER_CD_TIME_MEASURE */
 
     // create world
     dInitODE2(0);
@@ -727,7 +767,7 @@ int main (int argc, char **argv)
 
     // run simulation
     if (no_win){
-        while (1){
+        for (i = 0; i < num_steps; i++){
             simLoop(0);
         }
     }else{
@@ -740,6 +780,10 @@ int main (int argc, char **argv)
     dCloseODE();
 
     ferCDDel(cd);
+
+#ifdef FER_CD_TIME_MEASURE
+    fclose(meas);
+#endif /* FER_CD_TIME_MEASURE */
 
     return 0;
 }

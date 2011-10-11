@@ -19,9 +19,6 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-/** TODO **/
-#include <fermat/timer.h>
-
 #define RADIX_SORT_MASK 0xffu
 
 
@@ -155,25 +152,39 @@ void ferCDSAPRemove(fer_cd_sap_t *sap, fer_cd_geom_t *geom)
 void ferCDSAPProcess(fer_cd_sap_t *sap)
 {
     int i;
-    fer_timer_t timer;
 
     if (sap->dirty){
-        ferTimerStart(&timer);
         // do radix sort for all min values
         for (i = 0; i < 3; i++){
+#ifdef FER_CD_TIME_MEASURE
+            ferTimerStart(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
             sap->radix_sort(sap, i);
+#ifdef FER_CD_TIME_MEASURE
+            ferTimerStop(&sap->cd->timer);
+            sap->cd->time_radix[i] = ferTimerElapsedInUs(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
         }
-        ferTimerStop(&timer);
-        fprintf(stderr, "Radix Sort: %lu us\n", ferTimerElapsedInUs(&timer));
 
-        ferTimerStart(&timer);
+#ifdef FER_CD_TIME_MEASURE
+        ferTimerStart(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
         // remove all current pairs - we will reevaluate it all
         pairRemoveAll(sap);
+#ifdef FER_CD_TIME_MEASURE
+        ferTimerStop(&sap->cd->timer);
+        sap->cd->time_remove_pairs = ferTimerElapsedInUs(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
 
+#ifdef FER_CD_TIME_MEASURE
+        ferTimerStart(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
         // obtain all pairs from min-max arrays
         sap->find_pairs(sap);
-        ferTimerStop(&timer);
-        fprintf(stderr, "Find Pairs: %lu us\n", ferTimerElapsedInUs(&timer));
+#ifdef FER_CD_TIME_MEASURE
+        ferTimerStop(&sap->cd->timer);
+        sap->cd->time_find_pairs = ferTimerElapsedInUs(&sap->cd->timer);
+#endif /* FER_CD_TIME_MEASURE */
     }
 
     sap->dirty = 0;

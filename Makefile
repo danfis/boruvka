@@ -220,6 +220,8 @@ help:
 	@echo "    USE_RAPID    'yes'/'no' - Use RAPID library    (=$(USE_RAPID))"
 	@echo "                              By default, auto detection is used."
 	@echo ""
+	@echo "    CD_TIME_MEASURE 'yes'/'no' - Set to 'yes' if time measurement should be used in CD (=$(CD_TIME_MEASURE))"
+	@echo ""
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"
 	@echo "    LIBDIR     - Directory where library will be installed (PREFIX/LIBDIR)          (=$(LIBDIR))"

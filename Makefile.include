@@ -162,6 +162,11 @@ LDFLAGS += $(SYSTEM_LDFLAGS)
 PYTHON_CFLAGS  ?= $(shell $(PYTHON_CONFIG) --includes)
 PYTHON_LDFLAGS ?= $(shell $(PYTHON_CONFIG) --libs)
 
+CD_TIME_MEASURE ?= no
+ifeq '$(CD_TIME_MEASURE)' 'yes'
+  CONFIG_FLAGS += -DCD_TIME_MEASURE
+endif
+
 CHECKTARGETS = 
 check-dep: $(CHECKTARGETS)
 
