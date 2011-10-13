@@ -17,8 +17,6 @@
 #ifndef __FER_CD_COLLIDE_H__
 #define __FER_CD_COLLIDE_H__
 
-#include <fermat/cd.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

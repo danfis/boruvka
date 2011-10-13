@@ -25,6 +25,7 @@
 #include <fermat/chull3.h>
 #include <fermat/hmap.h>
 #include <fermat/tasks.h>
+#include <fermat/barrier.h>
 
 #include <fermat/cd-const.h>
 

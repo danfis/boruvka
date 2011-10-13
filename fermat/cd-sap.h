@@ -17,9 +17,6 @@
 #ifndef __FER_CD_SAP_H__
 #define __FER_CD_SAP_H__
 
-#include <fermat/cd.h>
-#include <fermat/barrier.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

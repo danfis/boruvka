@@ -17,7 +17,6 @@
 #ifndef __FER_CD_CD_H__
 #define __FER_CD_CD_H__
 
-#include <fermat/cd.h>
 #ifdef FER_CD_TIME_MEASURE
 # include <fermat/timer.h>
 #endif /* FER_CD_TIME_MEASURE */

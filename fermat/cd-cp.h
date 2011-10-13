@@ -17,10 +17,6 @@
 #ifndef __FER_CD_CP_H__
 #define __FER_CD_CP_H__
 
-#include <fermat/cd.h>
-#include <fermat/cd-geom.h>
-#include <fermat/hmap.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
