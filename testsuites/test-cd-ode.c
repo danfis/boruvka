@@ -26,6 +26,7 @@
 #include <ode/odemath.h>
 #include <drawstuff/drawstuff.h>
 #include <fermat/cd.h>
+#include <fermat/cd-ode.h>
 #include <fermat/list.h>
 #include <fermat/timer.h>
 #include <fermat/opts.h>
@@ -97,25 +98,6 @@ static char *cmds = NULL;
 FILE *meas = NULL;
 #endif /* FER_CD_TIME_MEASURE */
 
-static void bodyMoved(dBodyID body)
-{
-    obj_t *obj = (obj_t *)dBodyGetData(body);
-    const dReal *pos, *q;
-    fer_mat3_t rot;
-    fer_quat_t quat;
-
-    pos = dBodyGetPosition(body);
-    q = dBodyGetQuaternion(body);
-
-    ferQuatSet(&quat, q[1], q[2], q[3], q[0]);
-    ferQuatToMat3(&quat, &rot);
-
-    if (obj->g){
-        ferCDGeomSetTr3(cd, obj->g, pos[0], pos[1], pos[2]);
-        ferCDGeomSetRot(cd, obj->g, &rot);
-    }
-}
-
 
 static obj_t *objNew(dBodyID body, dGeomID geom, fer_cd_geom_t *g)
 {
@@ -126,19 +108,31 @@ static obj_t *objNew(dBodyID body, dGeomID geom, fer_cd_geom_t *g)
     obj->geom = geom;
     obj->g    = g;
 
-    if (geom)
+    if (geom){
         dGeomSetBody(geom, body);
+    }
 
-    dBodySetData(body, (void *)obj);
-    dBodySetMovedCallback(body, bodyMoved);
-    ferCDGeomSetData(g, (void *)obj);
-
-
-    bodyMoved(body);
+    if (g){
+        ferCDGeomSetData(g, (void *)obj);
+        ferCDGeomSetBody(cd, g, body);
+    }
 
     ferListAppend(&objs, &obj->list);
 
     return obj;
+}
+
+static void objsDel(void)
+{
+    fer_list_t *item;
+    obj_t *obj;
+
+    while (!ferListEmpty(&objs)){
+        item = ferListNext(&objs);
+        ferListDel(item);
+        obj = FER_LIST_ENTRY(item, obj_t, list);
+        free(obj);
+    }
 }
 
 static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
@@ -491,34 +485,47 @@ static void command (int cmd)
         for (i = 0; i < 3; i++)
             sides[i] = dRandReal() * 0.5 + 0.1;
 
-        g = ferCDGeomNew(cd);
+        g = NULL;
         geom = 0;
+        if (!use_ode)
+            g = ferCDGeomNew(cd);
 
         if (cmd == 'b'){
             dMassSetBox(&m, DENSITY, sides[0], sides[1], sides[2]);
-            geom = dCreateBox(space, sides[0], sides[1], sides[2]);
-            ferCDGeomAddBox(cd, g, sides[0], sides[1], sides[2]);
+            if (use_ode){
+                geom = dCreateBox(space, sides[0], sides[1], sides[2]);
+            }else{
+                ferCDGeomAddBox(cd, g, sides[0], sides[1], sides[2]);
+            }
         }else if (cmd == 's'){
             dMassSetSphere(&m, DENSITY, sides[0]);
-            geom = dCreateSphere(space, sides[0]);
-            ferCDGeomAddSphere(cd, g, sides[0]);
+            if (use_ode){
+                geom = dCreateSphere(space, sides[0]);
+            }else{
+                ferCDGeomAddSphere(cd, g, sides[0]);
+            }
         }else if (cmd == 'y'){
             dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
-            geom = dCreateCylinder (space,sides[0],sides[1]);
-            g = ferCDGeomNew(cd);
-            ferCDGeomAddCyl(cd, g, sides[0], sides[1]);
+            if (use_ode){
+                geom = dCreateCylinder (space,sides[0],sides[1]);
+            }else{
+                ferCDGeomAddCyl(cd, g, sides[0], sides[1]);
+            }
         }else if (cmd == 'c'){
             sides[0] *= 0.5;
             dMassSetCapsule(&m,DENSITY,3,sides[0],sides[1]);
-            geom = dCreateCapsule(space,sides[0],sides[1]);
-            g = ferCDGeomNew(cd);
-            ferCDGeomAddCap(cd, g, sides[0], sides[1]);
+            if (use_ode){
+                geom = dCreateCapsule(space,sides[0],sides[1]);
+            }else{
+                ferCDGeomAddCap(cd, g, sides[0], sides[1]);
+            }
         }else if (cmd == 'm'){
             dMassSetCylinder(&m,DENSITY,3,sides[0],sides[1]);
-            geom = 0;
-            //obj[i].geom[1] = dCreateCylinder (space,sides[0],sides[1]);
-            g = ferCDGeomNew(cd);
-            ferCDGeomAddTriMesh(cd, g, bunny_coords, bunny_ids, bunny_tri_len);
+            if (use_ode){
+                geom = 0;
+            }else{
+                ferCDGeomAddTriMesh(cd, g, bunny_coords, bunny_ids, bunny_tri_len);
+            }
         }
 
         dBodySetMass(body, &m);
@@ -662,7 +669,7 @@ static void cylGrid(int x, int y)
         geom = dCreateCylinder(space,sides[0],sides[1]);
         g = ferCDGeomNew(cd);
         ferCDGeomAddCyl(cd, g, sides[0], sides[1]);
-        ferCDGeomContactPersistence(cd, g, 4);
+        //ferCDGeomContactPersistence(cd, g, 4);
 
 
         objNew(body, geom, g);
@@ -736,6 +743,7 @@ int main (int argc, char **argv)
     dInitODE2(0);
     world = dWorldCreate();
     space = dHashSpaceCreate(0);
+    //space = dSimpleSpaceCreate(0);
     contactgroup = dJointGroupCreate(0);
     dWorldSetGravity(world, 0, 0, -GRAVITY);
     dWorldSetCFM(world, 1e-5);
@@ -780,6 +788,8 @@ int main (int argc, char **argv)
     dCloseODE();
 
     ferCDDel(cd);
+
+    ferOptsClear();
 
 #ifdef FER_CD_TIME_MEASURE
     fclose(meas);

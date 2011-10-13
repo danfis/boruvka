@@ -36,6 +36,7 @@ struct _fer_cd_geom_t {
     fer_list_t list_dirty; /*!< Reference to list of dirty geoms */
 
     void *data;
+    void *data2;
 
     int sap;
     unsigned int cp;
@@ -77,6 +78,16 @@ _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
  * Returns user data pointer
  */
 _fer_inline void *ferCDGeomData(fer_cd_geom_t *g);
+
+/**
+ * Sets user data pointer no. 2
+ */
+_fer_inline void ferCDGeomSetData2(fer_cd_geom_t *g, void *data);
+
+/**
+ * Returns user data pointer no. 2
+ */
+_fer_inline void *ferCDGeomData2(fer_cd_geom_t *g);
 
 /**
  * Sets translation.
@@ -283,6 +294,16 @@ _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data)
 _fer_inline void *ferCDGeomData(fer_cd_geom_t *g)
 {
     return g->data;
+}
+
+_fer_inline void ferCDGeomSetData2(fer_cd_geom_t *g, void *data)
+{
+    g->data2 = data;
+}
+
+_fer_inline void *ferCDGeomData2(fer_cd_geom_t *g)
+{
+    return g->data2;
 }
 
 _fer_inline void ferCDGeomSetTr(fer_cd_t *cd, fer_cd_geom_t *g,

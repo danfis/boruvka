@@ -242,6 +242,7 @@ static void ferCDSAPDestroy(fer_cd_sap_t *sap)
             pairDel(pair);
         }
     }
+    FER_FREE(sap->pairs);
 }
 
 
