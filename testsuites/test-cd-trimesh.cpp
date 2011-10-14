@@ -314,7 +314,8 @@ void testCD(int task)
 
     ferTimerStart(&timer);
     if (loading_enabled && data1_geom[task]){
-        g1 = ferCDGeomLoad(cd, data1_geom[task]);
+        g1 = ferCDGeomNew(cd);
+        ferCDGeomLoad(cd, g1, data1_geom[task]);
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: load `%s' g1: %lu\n", task,
                 data1_geom[task], ferTimerElapsedInUs(&timer));
@@ -335,7 +336,8 @@ void testCD(int task)
 
     ferTimerStart(&timer);
     if (loading_enabled && data2_geom[task]){
-        g2 = ferCDGeomLoad(cd, data2_geom[task]);
+        g2 = ferCDGeomNew(cd);
+        ferCDGeomLoad(cd, g2, data2_geom[task]);
         ferTimerStop(&timer);
         fprintf(stdout, "# testCD[%02d] :: load `%s' g2: %lu\n", task,
                 data2_geom[task], ferTimerElapsedInUs(&timer));

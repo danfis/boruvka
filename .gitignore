@@ -13,4 +13,8 @@ src/*-cl.c
 src/cfg-lexer.c
 src/cfg-lexer-gen.h
 Makefile.local
+examples/cd-ode
+examples/cd-sep
+examples/cd-simple-collision
+examples/cd-trimesh-collision
 

@@ -75,7 +75,7 @@ _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
 /**
  * Returns user data pointer
  */
-_fer_inline void *ferCDGeomData(fer_cd_geom_t *g);
+_fer_inline void *ferCDGeomData(const fer_cd_geom_t *g);
 
 /**
  * Sets user data pointer no. 2
@@ -248,7 +248,7 @@ int ferCDGeomSave(fer_cd_t *cd, const fer_cd_geom_t *g,
  * Loads geom from given file.
  * See ferCDGeomSave().
  */
-fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename);
+int ferCDGeomLoad(fer_cd_t *cd, fer_cd_geom_t *g, const char *filename);
 
 /**
  * Set geom as dirty
@@ -289,7 +289,7 @@ _fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data)
     g->data = data;
 }
 
-_fer_inline void *ferCDGeomData(fer_cd_geom_t *g)
+_fer_inline void *ferCDGeomData(const fer_cd_geom_t *g)
 {
     return g->data;
 }

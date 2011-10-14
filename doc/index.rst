@@ -5,9 +5,13 @@
 
 Welcome to Fermat's documentation!
 ==================================
+.. toctree::
+   :maxdepth: 2
+
+   cd.rst
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    core.rst
    vecmat.rst

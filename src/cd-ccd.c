@@ -114,7 +114,7 @@ int ferCDSeparateCCD(struct _fer_cd_t *cd,
     ccdInit(cd, _s1, rot1, tr1, _s2, rot2, tr2, &s1, &s2);
 
     ret = ferCCDMPRPenetration(&ccd, &s1, &s2, &depth, &dir, &pos);
-    if (ret == 0){
+    if (ret == 0 && con->size > con->num){
         con->depth[con->num] = depth;
         ferVec3Copy(&con->dir[con->num], &dir);
         ferVec3Copy(&con->pos[con->num], &pos);

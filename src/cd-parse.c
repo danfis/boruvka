@@ -198,29 +198,28 @@ static void _ferCDGeomSaveObb(fer_cd_obb_t *o, FILE *fout)
 
 
 
-static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size);
+static int _loadGeom(fer_cd_t *cd, fer_cd_geom_t *g, const char *file, size_t size);
 static int _loadOBBs(fer_cd_geom_t *g, char **fstr, char *fend);
 static fer_cd_obb_t *_parseOBB(char **fstr, char *fend);
 
-fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename)
+int ferCDGeomLoad(fer_cd_t *cd, fer_cd_geom_t *g, const char *filename)
 {
-    int fd;
+    int fd, ret;
     size_t size;
     struct stat st;
     void *file;
-    fer_cd_geom_t *geom;
 
     // open file
     if ((fd = open(filename, O_RDONLY)) == -1){
         fprintf(stderr, "CD Error: Can't open file `%s'\n", filename);
-        return NULL;
+        return -1;
     }
 
     // get stats (mainly size of file)
     if (fstat(fd, &st) == -1){
         close(fd);
         fprintf(stderr, "CD Error: Can't get file info of `%s'\n", filename);
-        return NULL;
+        return -1;
     }
 
     // pick up size of file
@@ -232,11 +231,11 @@ fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename)
     if (file == MAP_FAILED){
         close(fd);
         fprintf(stderr, "CD Error: Can't map file `%s' into memory: %s\n", filename, strerror(errno));
-        return NULL;
+        return -1;
     }
 
     // set up char pointers to current char (fstr) and to end of memory (fend)
-    geom = _loadGeom(cd, file, size);
+    ret = _loadGeom(cd, g, file, size);
 
     // unmap mapped memory
     munmap(file, size);
@@ -244,16 +243,15 @@ fer_cd_geom_t *ferCDGeomLoad(fer_cd_t *cd, const char *filename)
     // close file
     close(fd);
 
-    return geom;
+    return ret;
 }
 
 #define NOT_WS(c) \
     ( c != ' ' && c != '\t' && c != '\n')
 
-static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size)
+static int _loadGeom(fer_cd_t *cd, fer_cd_geom_t *geom, const char *file, size_t size)
 {
     char *fstr, *fend, *fnext;
-    fer_cd_geom_t *geom;
     fer_real_t f[9];
     int i;
 
@@ -263,18 +261,18 @@ static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size)
     while (fstr < fend && *fstr != '(')
         ++fstr;
     if (fstr >= fend)
-        return NULL;
+        return -1;
     ++fstr;
 
     // skip whitespace
     while (fstr < fend && !NOT_WS(*fstr))
         ++fstr;
     if (fstr >= fend)
-        return NULL;
+        return -1;
 
     // check it begins with 'geom'
     if (fstr + 4 >= fend || strncmp(fstr, "geom", 4) != 0){
-        return NULL;
+        return -1;
     }
     fstr += 4;
 
@@ -282,15 +280,11 @@ static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size)
     while (fstr < fend && !NOT_WS(*fstr))
         ++fstr;
     if (fstr >= fend)
-        return NULL;
-
-    // we found geom
-    geom = ferCDGeomNew(cd);
+        return -1;
 
     // parse translation
     if (ferParseVec3(fstr, fend, &geom->tr, &fnext) != 0){
-        ferCDGeomDel(cd, geom);
-        return NULL;
+        return -1;
     }
     fstr = fnext;
 
@@ -302,8 +296,7 @@ static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size)
         fstr = fnext;
     }
     if (i != 9){
-        ferCDGeomDel(cd, geom);
-        return NULL;
+        return -1;
     }
     fstr = fnext;
 
@@ -313,11 +306,10 @@ static fer_cd_geom_t *_loadGeom(fer_cd_t *cd, const char *file, size_t size)
 
     // parse OBBs
     if (_loadOBBs(geom, &fstr, fend) != 0){
-        ferCDGeomDel(cd, geom);
-        return NULL;
+        return -1;
     }
 
-    return geom;
+    return 0;
 }
 
 static int _loadOBBs(fer_cd_geom_t *g, char **fstr, char *fend)

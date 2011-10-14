@@ -22,10 +22,9 @@ endif
 
 TARGETS += test-cd-spheres test-cd-trimesh
 
-TARGETS += test-cd-ode
-ODE_CFLAGS = $(shell ode-config --cflags)
-ODE_LDFLAGS = $(shell ode-config --libs)
-ODE_DRAWSTUFF = -ldrawstuff -lX11 -lGL -lGLU
+ifeq '$(USE_ODE)' 'yes'
+  TARGETS += test-cd-ode
+endif
 
 
 USE_OZCOLLIDE = no

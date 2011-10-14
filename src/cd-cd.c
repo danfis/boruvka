@@ -565,6 +565,17 @@ void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data)
 }
 
 
+void ferCDEachGeom(fer_cd_t *cd, fer_cd_each_geom_cb cb, void *data)
+{
+    fer_list_t *item;
+    fer_cd_geom_t *g;
+
+    FER_LIST_FOR_EACH(&cd->geoms, item){
+        g = FER_LIST_ENTRY(item, fer_cd_geom_t, list);
+        cb(cd, g, data);
+    }
+}
+
 
 void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name)
 {

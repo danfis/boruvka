@@ -95,6 +95,11 @@ static void _ferCDGeomAddShape2(fer_cd_t *cd, fer_cd_geom_t *g,
     fer_cd_shape_off_t *off;
     fer_cd_obb_t *obb;
 
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
+
     off = ferCDShapeOffNew((fer_cd_shape_t *)shape, rot, tr);
     obb = ferCDOBBNewShape((fer_cd_shape_t *)off, cd->build_flags);
     ferListAppend(&g->obbs, &obb->list);
@@ -193,6 +198,11 @@ void ferCDGeomAddTriMesh2(fer_cd_t *cd, fer_cd_geom_t *g,
 {
     fer_cd_trimesh_t *t;
     fer_cd_obb_t *obb;
+
+    if (!rot)
+        rot = fer_mat3_identity;
+    if (!tr)
+        tr = fer_vec3_origin;
 
     t   = ferCDTriMeshNew(pts, ids, len, rot, tr);
     obb = ferCDOBBNewTriMesh(t, cd->build_flags);
@@ -353,7 +363,12 @@ int ferCDGeomSeparate(fer_cd_t *cd,
             ferCDOBBOverlapPairsCB(obb1, &g1->rot, &g1->tr,
                                    obb2, &g2->rot, &g2->tr,
                                    __ferCDGeomSeparateCB, (void *)&sep);
+
+            if (con->size == con->num)
+                break;
         }
+        if (con->size == con->num)
+            break;
     }
 
     return con->num - num;

@@ -45,6 +45,7 @@ static fer_opt_t *findOptShort(char arg);
 
 static void optNoArg(fer_opt_t *opt);
 static int optArg(fer_opt_t *opt, const char *arg);
+static void invalidOptErr(const fer_opt_t *opt);
 
 static const char *strend(const char *str);
 
@@ -111,6 +112,7 @@ int ferOpts(int *argc, char **argv)
                     ++i;
                     ok = optArg(opt, argv[i]);
                 }else{
+                    invalidOptErr(opt);
                     ok = -1;
                 }
             }
@@ -196,16 +198,21 @@ static void optNoArg(fer_opt_t *opt)
     }
 }
 
+static void invalidOptErr(const fer_opt_t *opt)
+{
+    if (opt->long_name){
+        fprintf(stderr, "Invalid argument of --%s option.\n", (opt)->long_name);
+    }else{ \
+        fprintf(stderr, "Invalid argument of -%c option.\n", (opt)->short_name);
+    }
+}
+
 #define _optArgLong(opt, arg, type) \
     void (*cb)(const char *, char, type); \
     long val; \
     \
     if (ferParseLong((arg), strend(arg), &val, NULL) != 0){ \
-        if (opt->long_name){ \
-            fprintf(stderr, "Invalid argument of --%s option.\n", (opt)->long_name); \
-        }else{ \
-            fprintf(stderr, "Invalid argument of -%c option.\n", (opt)->short_name); \
-        } \
+        invalidOptErr(opt); \
         return -1; \
     } \
     \

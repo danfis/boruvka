@@ -183,6 +183,23 @@ typedef int (*fer_cd_separate_cb)(const fer_cd_t *cd,
 void ferCDSeparate(fer_cd_t *cd, fer_cd_separate_cb cb, void *data);
 
 
+/**
+ * Callback function for ferCDEachGeom().
+ */
+typedef void (*fer_cd_each_geom_cb)(fer_cd_t *cd, struct _fer_cd_geom_t *g,
+                                   void *data);
+
+/**
+ * Calls {cb} for each geom.
+ */
+void ferCDEachGeom(fer_cd_t *cd, fer_cd_each_geom_cb cb, void *data);
+
+/**
+ * Returns number of geoms
+ */
+_fer_inline size_t ferCDNumGeoms(const fer_cd_t *cd);
+
+
 void ferCDDumpSVT(const fer_cd_t *cd, FILE *out, const char *name);
 
 /** Returns true if two given shapes do collide */
@@ -204,6 +221,11 @@ int __ferCDShapeSeparate(struct _fer_cd_t *cd,
 _fer_inline void ferCDSetBuildFlags(fer_cd_t *cd, uint32_t flags)
 {
     cd->build_flags = flags;
+}
+
+_fer_inline size_t ferCDNumGeoms(const fer_cd_t *cd)
+{
+    return cd->geoms_len;
 }
 
 #ifdef __cplusplus

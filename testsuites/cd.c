@@ -21,8 +21,8 @@ static int checkSaveLoad(fer_cd_t *cd, fer_cd_geom_t *g)
 
     sprintf(name, "regressions/tmp.TSCD.geom.%03d.out", call);
     ferCDGeomSave(cd, g, name);
-    g2 = ferCDGeomLoad(cd, name);
-    if (!g2)
+    g2 = ferCDGeomNew(cd);
+    if (ferCDGeomLoad(cd, g2, name) != 0)
         return -1;
     sprintf(name, "regressions/TSCD.geom.%03d.out", call);
     ferCDGeomSave(cd, g2, name);

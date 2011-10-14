@@ -649,16 +649,17 @@ int ferCDSeparateTriTri(struct _fer_cd_t *cd,
         ferVec3Add(&c, &p2[2]);
         ferVec3Scale(&c, ferRecp(3.));
 
+        ferVec3Add(&s, &t);
+        ferVec3Scale(&s, FER_REAL(0.5));
+        __tritriCon(p2, &s, &c, con);
+        num = 1;
+#if 0
         if (con->size - con->num >= 2){
             __tritriCon(p2, &s, &c, con);
             __tritriCon(p2, &t, &c, con);
             num = 2;
-        }else{
-            ferVec3Add(&s, &t);
-            ferVec3Scale(&s, FER_REAL(0.5));
-            __tritriCon(p2, &s, &c, con);
-            num = 1;
         }
+#endif
     }else if (ret == 2){
     }
 

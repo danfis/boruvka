@@ -75,6 +75,23 @@ ifeq '$(USE_OPENCL)' 'yes'
   OBJS += surf-matching.o
 endif
 
+FERMAT_CD_H  = config.h.m4 core.h
+FERMAT_CD_H += vec3.h mat3.h quat.h chull3.h
+FERMAT_CD_H += list.h hmap.h tasks.h barrier.h alloc.h
+FERMAT_CD_H += cd-const.h cd-shape.h
+FERMAT_CD_H += cd-sphere.h cd-box.h cd-cyl.h cd-cap.h cd-plane.h cd-trimesh.h
+FERMAT_CD_H += cd-obb.h cd-collide.h cd-separate.h cd-ccd.h
+FERMAT_CD_H += cd-cd.h cd-geom.h cd-sap.h cd-cp.h
+FERMAT_CD_C  = vec3.c mat3.c chull3.c
+FERMAT_CD_C += hmap.c tasks.c barrier.c alloc.c
+FERMAT_CD_C += cd-shape.c cd-sphere.c cd-box.c cd-cyl.c cd-cap.c cd-plane.c cd-trimesh.c
+FERMAT_CD_C += cd-obb.c cd-collide.c cd-separate.c cd-ccd.c
+FERMAT_CD_C += cd-cd.c cd-geom.c cd-sap.c cd-cp.c
+
+FERMAT_CD_H := $(foreach file,$(FERMAT_CD_H),fermat/$(file))
+FERMAT_CD_C := $(foreach file,$(FERMAT_CD_C),src/$(file))
+
+
 # header files that must be generated
 HEADERS = cubes2.h cubes3.h
 
@@ -82,6 +99,16 @@ OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
 OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
 HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
+
+
+ifeq '$(EXAMPLES)' 'yes'
+  TARGETS += examples/cd-simple-collision
+  TARGETS += examples/cd-trimesh-collision
+  TARGETS += examples/cd-sep
+  ifeq '$(USE_ODE)' 'yes'
+    TARGETS += examples/cd-ode
+  endif
+endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
@@ -94,6 +121,10 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+examples/%: examples/%.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+examples/cd-ode: examples/cd-ode.c libfermat.a
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF)
 
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
@@ -182,6 +213,15 @@ analyze: clean
 	$(SCAN_BUILD) $(MAKE)
 
 
+
+fermat-cd:
+	rm -rf fermat-cd*/
+	mkdir -p fermat-cd-$(FERMAT_CD_VER)/{fermat,src}
+	@echo "FERMAT_CD_H:" $(FERMAT_CD_H)
+	@echo "FERMAT_CD_C:" $(FERMAT_CD_C)
+	cp $(FERMAT_CD_H) fermat-cd-$(FERMAT_CD_VER)/fermat/
+	cp $(FERMAT_CD_C) fermat-cd-$(FERMAT_CD_VER)/src/
+
 help:
 	@echo "Targets:"
 	@echo "    all            - Build library"
@@ -192,6 +232,8 @@ help:
 	@echo "    clean          - Remove all generated files"
 	@echo "    install        - Install library into system"
 	@echo "    analyze        - Performs static analysis using Clang Static Analyzer"
+	@echo ""
+	@echo "    fermat-cd      - Separate FermatCD library into tarball. See FERMAT_CD_VER option."
 	@echo "Options:"
 	@echo "    CC         - Path to C compiler          (=$(CC))"
 	@echo "    CXX        - Path to C++ compiler        (=$(CXX))"
@@ -202,6 +244,8 @@ help:
 	@echo "    PYTHON3    - Path to python interpret v3 (=$(PYTHON3))"
 	@echo "    CYTHON     - Path to cython              (=$(CYTHON))"
 	@echo "    SCAN_BUILD - Path to scan-build          (=$(SCAN_BUILD))"
+	@echo ""
+	@echo "    EXAMPLES  'yes'/'no' - Set to 'yes' if examples should be build (=$(EXAMPLES))"
 	@echo ""
 	@echo "    CC_NOT_GCC 'yes'/'no' - If set to 'yes' no gcc specific options will be used (=$(CC_NOT_GCC))"
 	@echo ""
@@ -219,12 +263,16 @@ help:
 	@echo "                              This option depends on USE_SINGLE set to 'yes'"
 	@echo "    USE_RAPID    'yes'/'no' - Use RAPID library    (=$(USE_RAPID))"
 	@echo "                              By default, auto detection is used."
+	@echo "    USE_ODE      'yes'/'no' - Use ODE library      (=$(USE_ODE))"
+	@echo "                              By default, auto detection is used."
 	@echo ""
 	@echo "    CD_TIME_MEASURE 'yes'/'no' - Set to 'yes' if time measurement should be used in CD (=$(CD_TIME_MEASURE))"
 	@echo ""
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"
 	@echo "    LIBDIR     - Directory where library will be installed (PREFIX/LIBDIR)          (=$(LIBDIR))"
+	@echo ""
+	@echo "    FERMAT_CD_VER - Stores version that should be used when creating separate fermat-cd tarball. (=$(FERMAT_CD_VER))"
 	@echo ""
 	@echo "Variables:"
 	@echo "  Note that most of can be preset or changed by user"
@@ -237,7 +285,9 @@ help:
 	@echo "    PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
 	@echo "    RAPID_CFLAGS   = $(RAPID_CFLAGS)"
 	@echo "    RAPID_LDFLAGS  = $(RAPID_LDFLAGS)"
+	@echo "    ODE_CFLAGS     = $(ODE_CFLAGS)"
+	@echo "    ODE_LDFLAGS    = $(ODE_LDFLAGS)"
 	@echo "    OPENCL_CFLAGS  = $(OPENCL_CFLAGS)"
 	@echo "    OPENCL_LDFLAGS = $(OPENCL_LDFLAGS)"
 
-.PHONY: all clean check check-valgrind help doc install cython analyze
+.PHONY: all clean check check-valgrind help doc install cython analyze examples

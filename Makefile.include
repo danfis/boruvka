@@ -92,6 +92,7 @@ USE_MEMCHECK ?= no
 USE_SSE    ?= no
 USE_OPENCL ?= auto
 USE_RAPID  ?= auto
+USE_ODE    ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -144,6 +145,19 @@ else
   RAPID_LDFLAGS :=
 endif
 
+ifeq '$(USE_ODE)' 'auto'
+  ifeq '$(ODE_CFLAGS)' ''
+    USE_ODE = $(shell if ode-config --version >/dev/null 2>&1; then echo 'yes'; else echo 'no'; fi)
+  else
+    USE_ODE = yes
+  endif
+ODE_CFLAGS  ?= $(shell ode-config --cflags)
+ODE_LDFLAGS ?= $(shell ode-config --libs)
+ODE_DRAWSTUFF ?= -ldrawstuff -lX11 -lGL -lGLU
+endif
+
+
+EXAMPLES ?= yes
 
 
 # for testing
