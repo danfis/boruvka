@@ -65,6 +65,14 @@ struct _fer_cd_params_t {
                              (if not documented otherwise).
                              Default: 1 */
 
+    unsigned long mpr_max_iterations; /*!< Maximal number of iterations MPR
+                                           algorithm can perform.
+                                           Default: ULONG_MAX */
+    fer_real_t mpr_tolerance;         /*!< Boundary tolerance of MPR
+                                           algorithm.
+                                           Default: 1E-4 */
+
+
     int use_cp;         /*!< If set to true, contact persistence is used.
                              Note that contact persistence is used only for
                              those geoms that were explicitly enabled by
@@ -102,6 +110,10 @@ struct _fer_cd_t {
     size_t geoms_len;          /*!< Size of .geoms list */
     fer_list_t geoms_dirty;    /*!< List of dirty geoms */
     size_t geoms_dirty_len;    /*!< Size of .geoms_dirty list */
+
+    unsigned long mpr_max_iterations;
+    fer_real_t mpr_tolerance;
+
     struct _fer_cd_sap_t *sap; /*!< SAP solver */
     struct _fer_cd_cp_t *cp;   /*!< Struct for contact persistence */
 #ifdef FER_CD_TIME_MEASURE

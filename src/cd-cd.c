@@ -14,6 +14,7 @@
  *  See the License for more information.
  */
 
+#include <limits.h>
 #include <fermat/cd.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
@@ -31,6 +32,9 @@ void ferCDParamsInit(fer_cd_params_t *params)
 
     params->max_contacts = 20;
     params->num_threads = 1;
+
+    params->mpr_max_iterations = ULONG_MAX;
+    params->mpr_tolerance      = 1E-4;
 
     params->use_cp          = 1;
     params->cp_hashsize     = 0;
@@ -56,6 +60,8 @@ fer_cd_t *ferCDNew(const fer_cd_params_t *params)
 
     cd = FER_ALLOC(fer_cd_t);
     cd->build_flags = params->build_flags;
+    cd->mpr_max_iterations = params->mpr_max_iterations;
+    cd->mpr_tolerance      = params->mpr_tolerance;
 
     // Set up collide callbacks
     for (i = 0; i < FER_CD_SHAPE_LEN; i++){

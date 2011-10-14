@@ -83,8 +83,8 @@ int ferCDCollideCCD(struct _fer_cd_t *cd,
     ferCCDInit(&ccd);
     ccd.support1 = ccd.support2 = ccdSupport;
     ccd.center1  = ccd.center2  = ccdCenter;
-    //TODO: ccd.max_iterations = xxx;
-    //TODO: ccd.mpr_tolerance = xxx;
+    ccd.max_iterations = cd->mpr_max_iterations;
+    ccd.mpr_tolerance  = cd->mpr_tolerance;
 
     ccdInit(cd, _s1, rot1, tr1, _s2, rot2, tr2, &s1, &s2);
 
@@ -108,8 +108,8 @@ int ferCDSeparateCCD(struct _fer_cd_t *cd,
     ferCCDInit(&ccd);
     ccd.support1 = ccd.support2 = ccdSupport;
     ccd.center1  = ccd.center2  = ccdCenter;
-    //TODO: ccd.max_iterations = xxx;
-    //TODO: ccd.mpr_tolerance = xxx;
+    ccd.max_iterations = cd->mpr_max_iterations;
+    ccd.mpr_tolerance  = cd->mpr_tolerance;
 
     ccdInit(cd, _s1, rot1, tr1, _s2, rot2, tr2, &s1, &s2);
 
