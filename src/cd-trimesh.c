@@ -326,8 +326,8 @@ void ferCDTriMeshFitOBB(const fer_cd_trimesh_t *t,
                         fer_vec3_t *_axis2,
                         fer_vec3_t *half_extents, int flags)
 {
-    // TODO
-    fprintf(stderr, "ferCDTriMeshFitOBB: Not working\n");
+    fprintf(stderr, "Error: Whole tri-mesh can't be fitted to OBB!\n");
+    exit(-1);
 }
 
 int ferCDTriUpdateCHull(const fer_cd_trimesh_tri_t *tri, fer_chull3_t *chull,

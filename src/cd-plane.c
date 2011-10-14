@@ -48,16 +48,16 @@ void ferCDPlaneDel(fer_cd_plane_t *c)
 void ferCDPlaneSupport(const fer_cd_plane_t *c, const fer_vec3_t *dir,
                        fer_vec3_t *p)
 {
-    // TODO
     fprintf(stderr, "CD Error: Support function is not available for plane shape.\n");
+    exit(-1);
 }
 
 void ferCDPlaneCenter(const fer_cd_plane_t *s,
                       const fer_mat3_t *rot, const fer_vec3_t *tr,
                       fer_vec3_t *center)
 {
-    // TODO
     fprintf(stderr, "CD Error: Center function is not available for plane shape.\n");
+    exit(-1);
 }
 
 void ferCDPlaneFitOBB(const fer_cd_plane_t *c,

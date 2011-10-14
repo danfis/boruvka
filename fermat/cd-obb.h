@@ -62,8 +62,7 @@ fer_cd_obb_t *ferCDOBBNew(void);
 
 /**
  * Creates new oriented bounding box holding given shape.
- *
- * TODO: flags
+ * The {flags} are cd's build flags.
  */
 fer_cd_obb_t *ferCDOBBNewShape(fer_cd_shape_t *shape, uint32_t flags);
 

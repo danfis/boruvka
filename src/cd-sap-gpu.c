@@ -77,7 +77,6 @@ static fer_cd_sap_t *ferCDSAPGPUNew(fer_cd_t *cd, uint64_t flags)
     sap->pairs_reg = ferHMapNew(regsize, pairHash, pairEq, (void *)sap);
 
 
-    // TODO
     // create OpenCL instance
     sap->cl = ferCLNewSimple2(opencl_program_len, opencl_program, "");
 

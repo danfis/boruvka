@@ -221,7 +221,7 @@ int __ferCDShapeCollide(fer_cd_t *cd,
                         const fer_cd_shape_t *s2,
                         const fer_mat3_t *rot2, const fer_vec3_t *tr2);
 
-/** TODO */
+/** Dispatch separator according to shape's type */
 int __ferCDShapeSeparate(struct _fer_cd_t *cd,
                          const fer_cd_shape_t *s1,
                          const fer_mat3_t *rot1, const fer_vec3_t *tr1,
