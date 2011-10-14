@@ -16,11 +16,11 @@ The features of FermatCD are:
     - Its own triangular mesh implementation faster or comparable to `OPCODE <http://www.codercorner.com/Opcode.htm>`_ or `Rapid <http://gamma.cs.unc.edu/OBB/>`_
     - Minkowski Portal Refinement (MPR) algorithm for collision detection between pair of arbitrary convex shapes that is faster than commonly used GJK (Gilbert-Johnson-Keerti) algorithm
     - OBB tree structures are used for each geometry object
-    - Contact persistence for more stable simulations
+    - Contact persistence is available for more stable simulations
     - Sweep And Prune algorithm for broad-phase
     - Parallel collision detection using threads
     - Parallel building of triangular mesh models
-    - Easy integration with ODE
+    - Easy integration with `ODE <http://www.ode.org>`_
 
 
 Build and Install
@@ -70,4 +70,24 @@ FermatCD + ODE
 ~~~~~~~~~~~~~~~
 An example how to integrate FermatCD into `ODE <http://www.ode.org>`_ can
 be found in *examples/cd-ode.c* file.
+
+
+FermatCD API
+-------------
+
+Parameters
+~~~~~~~~~~~
+.. include:: fer-cd-params.h.rst
+
+Main Structure
+~~~~~~~~~~~~~~~
+.. include:: fer-cd-cd.h.rst
+
+Geometry Objects
+~~~~~~~~~~~~~~~~~
+.. include:: fer-cd-geom.h.rst
+
+Integration with ODE
+~~~~~~~~~~~~~~~~~~~~~
+.. include:: fer-cd-ode.h.rst
 

@@ -25,8 +25,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * ODE API For FermatCD
- * =====================
+ * The simple wrappers for easier integration with ODE were made.
+ *
+ * It requires to include additional *fermat/cd-ode.h* header file:
+ * ~~~~
+ * #include <fermat/cd-ode.h>
+ * ~~~~
  */
 
 /**

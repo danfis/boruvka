@@ -9,6 +9,7 @@ pat_typedef       = re.compile(r'^typedef .* ([a-z0-9_]+_t);$')
 pat_struct_start  = re.compile(r'(struct|union) ([a-z_0-9]+_t).*{$')
 pat_struct_end    = re.compile(r'^}.*;$')
 pat_macro         = re.compile(r'^#define ([A-Z_]+\([a-zA-Z_, ]*\) ).*$')
+pat_macro2        = re.compile(r'^#define ([A-Z_]+ ).*$')
 pat_macro_inline  = re.compile(r'^# *define ([A-Z_]+\([a-zA-Z_, ]*\)) .*/\*!< (.*) \*/$')
 pat_macro_inline2 = re.compile(r'^# *define ([A-Z_]+) .*/\*!< (.*) \*/$')
 pat_code_block_start = re.compile(r'^/\*\* v+ \*/$')
@@ -16,7 +17,7 @@ pat_code_block_end   = re.compile(r'^/\*\* \^+ \*/$')
 pat_inline_code_block_start = re.compile(r'^~+$')
 pat_inline_code_block_end   = re.compile(r'^~+$')
 pat_see_struct = re.compile(r'^See ([a-z0-9_]+_t).$')
-pat_monotype = re.compile(r'\{([a-zA-Z0-9_-]+)\}')
+pat_monotype = re.compile(r'\{([a-zA-Z0-9*_-]+\(?\)?)\}')
 
 CONTEXT = None
 STRUCTS = {}
@@ -264,6 +265,10 @@ def parseSection(line, lines_it):
         return parseStruct(comment, line, lines_it)
 
     match = pat_macro.match(line)
+    if match:
+        return parseMacro(comment, match.group(1))
+
+    match = pat_macro2.match(line)
     if match:
         return parseMacro(comment, match.group(1))
 

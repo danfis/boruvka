@@ -41,6 +41,7 @@
 #include <fermat/cd-collide.h>
 #include <fermat/cd-separate.h>
 #include <fermat/cd-ccd.h>
+#include <fermat/cd-params.h>
 #include <fermat/cd-cd.h>
 #include <fermat/cd-geom.h>
 #include <fermat/cd-sap.h>

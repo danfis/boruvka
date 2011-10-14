@@ -22,8 +22,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * CD - Geom - Geometry Objects
- * =============================
+ * {fer_cd_geom_t} structure represents one geometry object that can
+ * consist of several primitives. See {ferCDGeomAdd*()} functions to see
+ * what primitives can be added. Note that each primitive can be added with
+ * an offset (rotation and translation) that is considered to be relative
+ * to origin and zero rotation and it doesn't matter if geom's translation
+ * or rotation was previously set or not ({ferCDGeomSetTr()},
+ * {ferCDGeomSetRot()}).
  */
 struct _fer_cd_geom_t {
     fer_vec3_t tr;   /*!< Translation */
@@ -33,7 +38,7 @@ struct _fer_cd_geom_t {
     fer_list_t list;       /*!< Reference to list of all geoms */
     fer_list_t list_dirty; /*!< Reference to list of dirty geoms */
 
-    void *data;
+    void *data;  /*!< User-defined pointer */
     void *data2;
 
     int sap;
@@ -52,11 +57,6 @@ fer_cd_geom_t *ferCDGeomNew(fer_cd_t *cd);
 void ferCDGeomDel(fer_cd_t *cd, fer_cd_geom_t *g);
 
 /**
- * Builds OBB hierarchy.
- */
-void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g);
-
-/**
  * Returns translation vector.
  */
 _fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g);
@@ -65,27 +65,6 @@ _fer_inline const fer_vec3_t *ferCDGeomTr(fer_cd_t *cd, const fer_cd_geom_t *g);
  * Returns rotation matrix
  */
 _fer_inline const fer_mat3_t *ferCDGeomRot(fer_cd_t *cd, const fer_cd_geom_t *g);
-
-
-/**
- * Sets user data pointer
- */
-_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
-
-/**
- * Returns user data pointer
- */
-_fer_inline void *ferCDGeomData(const fer_cd_geom_t *g);
-
-/**
- * Sets user data pointer no. 2
- */
-_fer_inline void ferCDGeomSetData2(fer_cd_geom_t *g, void *data);
-
-/**
- * Returns user data pointer no. 2
- */
-_fer_inline void *ferCDGeomData2(fer_cd_geom_t *g);
 
 /**
  * Sets translation.
@@ -112,6 +91,27 @@ _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
                                       fer_real_t xrot, fer_real_t yrot,
                                       fer_real_t zrot);
 
+
+/**
+ * Sets user data pointer
+ */
+_fer_inline void ferCDGeomSetData(fer_cd_geom_t *g, void *data);
+
+/**
+ * Returns user data pointer
+ */
+_fer_inline void *ferCDGeomData(const fer_cd_geom_t *g);
+
+/**
+ * Sets user data pointer no. 2
+ */
+_fer_inline void ferCDGeomSetData2(fer_cd_geom_t *g, void *data);
+
+/**
+ * Returns user data pointer no. 2
+ */
+_fer_inline void *ferCDGeomData2(fer_cd_geom_t *g);
+
 /**
  * 1. If {max_contacts} == 0, contact persistence is disabled (which is the
  *    default behaviour)
@@ -120,26 +120,6 @@ _fer_inline void ferCDGeomSetRotEuler(fer_cd_t *cd, fer_cd_geom_t *g,
  */
 void ferCDGeomContactPersistence(fer_cd_t *cd, fer_cd_geom_t *g,
                                  unsigned int max_contacts);
-
-/**
- * Returns true if given geoms do collide.
- */
-int ferCDGeomCollide(fer_cd_t *cd,
-                     const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
-
-
-/**
- * Returns reference to {fer_cd_contacts_t} struct containing contact info.
- */
-int ferCDGeomSeparate(fer_cd_t *cd,
-                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
-                      fer_cd_contacts_t *con);
-
-/**
- * Returns true if top-OBBs of {g1} and {g2} are overlapping
- */
-int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
-
 
 /**
  * Adds sphere to geom.
@@ -202,7 +182,7 @@ void ferCDGeomAddPlane2(fer_cd_t *cd, fer_cd_geom_t *g,
                         const fer_mat3_t *rot, const fer_vec3_t *tr);
 
 /**
- * Adds triangle ti geom.
+ * Adds triangle into geom.
  */
 void ferCDGeomAddTri(fer_cd_t *cd, fer_cd_geom_t *g,
                      const fer_vec3_t *p0, const fer_vec3_t *p1,
@@ -238,15 +218,21 @@ void ferCDGeomAddTrisFromRawScale(fer_cd_t *cd, fer_cd_geom_t *g,
 
 
 /**
+ * Builds OBB hierarchy. Call this function if you call added more than one
+ * primitive into geom.
+ */
+void ferCDGeomBuild(fer_cd_t *cd, fer_cd_geom_t *g);
+
+/**
  * Saves geom in Lisp-like format.
- * See ferCDGeomLoad().
+ * See {ferCDGeomLoad()}.
  */
 int ferCDGeomSave(fer_cd_t *cd, const fer_cd_geom_t *g,
                   const char *filename);
 
 /**
  * Loads geom from given file.
- * See ferCDGeomSave().
+ * See {ferCDGeomSave()}.
  */
 int ferCDGeomLoad(fer_cd_t *cd, fer_cd_geom_t *g, const char *filename);
 
@@ -259,6 +245,26 @@ void ferCDGeomSetDirty(fer_cd_t *cd, fer_cd_geom_t *g);
  * Returns true if geom is dirty
  */
 _fer_inline int ferCDGeomDirty(const fer_cd_t *cd, const fer_cd_geom_t *g);
+
+/**
+ * Returns true if given geoms do collide.
+ */
+int ferCDGeomCollide(fer_cd_t *cd,
+                     const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
+
+
+/**
+ * Returns reference to {fer_cd_contacts_t} struct containing contact info.
+ */
+int ferCDGeomSeparate(fer_cd_t *cd,
+                      const fer_cd_geom_t *g1, const fer_cd_geom_t *g2,
+                      fer_cd_contacts_t *con);
+
+/**
+ * Returns true if top-OBBs of {g1} and {g2} are overlapping
+ */
+int ferCDGeomOBBOverlap(const fer_cd_geom_t *g1, const fer_cd_geom_t *g2);
+
 
 void ferCDGeomDumpSVT(const fer_cd_geom_t *g, FILE *out, const char *name);
 void ferCDGeomDumpOBBSVT(const fer_cd_geom_t *g, FILE *out, const char *name);

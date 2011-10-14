@@ -33,6 +33,8 @@ RSTS += tasks task-pool hmap hfunc barrier
 RSTS += opencl
 RSTS += surf-matching
 
+RSTS += cd-params cd-cd cd-geom cd-ode
+
 RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
 
 
