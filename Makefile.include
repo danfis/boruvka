@@ -157,7 +157,7 @@ ODE_DRAWSTUFF ?= -ldrawstuff -lX11 -lGL -lGLU
 endif
 
 
-EXAMPLES ?= yes
+EXAMPLES ?= no
 
 
 # for testing
