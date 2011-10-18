@@ -112,6 +112,11 @@ _fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q);
  */
 _fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m);
 
+/**
+ * Creates quaternion from 3x3 matrix
+ */
+_fer_inline void ferQuatFromMat3(fer_quat_t *q, const fer_mat3_t *m);
+
 
 /**** INLINES ****/
 _fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
@@ -330,6 +335,21 @@ _fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m)
     ferMat3Set(m, 1.0-yy-zz, xy-zw, xz+yw,
                   xy+zw, 1.0-xx-zz, yz-xw,
                   xz-yw, yz+xw, 1.0-xx-yy);
+}
+
+_fer_inline void ferQuatFromMat3(fer_quat_t *q, const fer_mat3_t *m)
+{
+    fer_real_t w, w4;
+
+    w  = 1 + ferMat3Get(m, 0, 0) + ferMat3Get(m, 1, 1) + ferMat3Get(m, 2, 2);
+    w  = FER_SQRT(w);
+    w4 = ferRecp(FER_REAL(2.) * w);
+    w /= FER_REAL(2.);
+
+    ferQuatSetX(q, (ferMat3Get(m, 2, 1) - ferMat3Get(m, 1, 2)) * w4);
+    ferQuatSetX(q, (ferMat3Get(m, 0, 2) - ferMat3Get(m, 2, 0)) * w4);
+    ferQuatSetX(q, (ferMat3Get(m, 1, 0) - ferMat3Get(m, 0, 1)) * w4);
+    ferQuatSetW(q, w);
 }
 
 #ifdef __cplusplus
