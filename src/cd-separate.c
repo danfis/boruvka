@@ -44,20 +44,17 @@ fer_cd_contacts_t *ferCDContactsNew(size_t size)
 }
 
 
-int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
-                              const fer_cd_sphere_t *s1,
-                              const fer_mat3_t *rot1, const fer_vec3_t *tr1,
-                              const fer_cd_sphere_t *s2,
-                              const fer_mat3_t *rot2, const fer_vec3_t *tr2,
-                              fer_cd_contacts_t *con)
+static int __ferCDSeparateSphereSphere(const fer_vec3_t *p1, fer_real_t r1,
+                                       const fer_vec3_t *p2, fer_real_t r2,
+                                       fer_cd_contacts_t *con)
 {
     fer_vec3_t sep;
     fer_real_t len, len2;
     int num = 0;
 
-    ferVec3Sub2(&sep, tr2, tr1);
+    ferVec3Sub2(&sep, p2, p1);
     len = ferVec3Len(&sep);
-    len2 = s1->radius + s2->radius;
+    len2 = r1 + r2;
 
     if (len < len2 && con->size > con->num){
         con->depth[con->num] = len2 - len;
@@ -65,11 +62,11 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
         if (!ferIsZero(len)){
             ferVec3Scale2(&con->dir[con->num], &sep, ferRecp(len));
             ferVec3Scale2(&con->pos[con->num], &con->dir[con->num],
-                          s1->radius - ((len2 - len) / FER_REAL(2.)));
-            ferVec3Add(&con->pos[con->num], tr1);
+                          r1 - ((len2 - len) / FER_REAL(2.)));
+            ferVec3Add(&con->pos[con->num], p1);
         }else{
             ferVec3Set(&con->dir[con->num], FER_ONE, FER_ZERO, FER_ZERO);
-            ferVec3Copy(&con->pos[con->num], tr1);
+            ferVec3Copy(&con->pos[con->num], p1);
         }
 
         con->num++;
@@ -77,6 +74,16 @@ int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
     }
 
     return num;
+}
+
+int ferCDSeparateSphereSphere(struct _fer_cd_t *cd,
+                              const fer_cd_sphere_t *s1,
+                              const fer_mat3_t *rot1, const fer_vec3_t *tr1,
+                              const fer_cd_sphere_t *s2,
+                              const fer_mat3_t *rot2, const fer_vec3_t *tr2,
+                              fer_cd_contacts_t *con)
+{
+    return __ferCDSeparateSphereSphere(tr1, s1->radius, tr2, s2->radius, con);
 }
 
 /** Returns distance (and nearest point) between point and OBB.
@@ -200,24 +207,42 @@ static int __ferCDSeparateSphereCylDisc(struct _fer_cd_t *cd,
                                         int neg,
                                         fer_cd_contacts_t *con)
 {
-    fer_vec3_t w;
-    fer_real_t dist;
+    fer_vec3_t w, nn;
+    fer_real_t dist, rad;
+    int num;
 
     ferVec3Sub2(&w, &con->pos[con->num - 1], p);
     dist = ferVec3Dot(n, &w);
     if (dist > FER_ZERO){
-        dist = ferVec3ProjToPlane2(tr1, p, n, &con->pos[con->num - 1]);
-        if (dist < s1->radius
-                && ferVec3Dist(&con->pos[con->num - 1], p) < c2->radius){
+        ferVec3Scale2(&nn, n, ferRecp(ferVec3Len(n)));
+
+        // test sphere isn't right above a disc
+        dist = ferVec3ProjToPlane2(tr1, p, &nn, &con->pos[con->num - 1]);
+        if (ferVec3Dist(&con->pos[con->num - 1], p) < c2->radius){
             con->depth[con->num - 1] = s1->radius - dist;
             ferMat3CopyCol(&con->dir[con->num - 1], rot, 2);
             if (neg)
                 ferVec3Scale(&con->dir[con->num - 1], -FER_ONE);
-            return 1;
+            num = 1;
+        }else{
+            ferVec3Sub2(&w, tr1, p);
+            rad = ferVec3Dot(&w, &nn);
+
+            ferVec3Scale2(&w, &nn, -rad);
+            ferVec3Add(&w, tr1);
+            rad = FER_SQRT(FER_CUBE(s1->radius) - FER_CUBE(rad));
+
+            con->num--;
+            num = __ferCDSeparateSphereSphere(&w, rad, p, c2->radius, con);
+            if (num == 1){
+                con->depth[con->num - 1] = s1->radius - ferVec3Dist(&con->pos[con->num - 1], tr1);
+                ferMat3CopyCol(&con->dir[con->num - 1], rot, 2);
+                if (neg)
+                    ferVec3Scale(&con->dir[con->num - 1], -FER_ONE);
+            }
         }
 
-        con->num--;
-        return 0;
+        return num;
     }
 
     return -1;
