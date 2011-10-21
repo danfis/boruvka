@@ -54,6 +54,13 @@
     fflush(stderr); \
     } while (0)
 
+# define DBGV3(vec) do { \
+        fprintf(stderr, DBG_PROLOGUE "%s :: " #vec " = ", __func__); \
+        ferVec3Print((vec), stderr); \
+        fprintf(stderr, "\n"); \
+        fflush(stderr); \
+    } while (0)
+
 # define ERR(format, ...) do { \
     fprintf(stderr, ERR_PROLOGUE format "\n", __VA_ARGS__); \
     fflush(stderr); \

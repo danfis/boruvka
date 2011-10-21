@@ -69,6 +69,7 @@ OBJS += cd-obb.o cd-geom.o cd-collide.o cd-cd.o cd-parse.o
 OBJS += cd-sphere-grid.o cd-sap.o cd-separate.o cd-ccd.o
 OBJS += cd-cp.o
 OBJS += ccd.o ccd-polytope.o ccd-mpr.o ccd-gjk.o ccd-support.o
+OBJS += cd-collide-box-tri.o
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
