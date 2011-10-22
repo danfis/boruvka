@@ -418,9 +418,9 @@ static void radiusVar(fer_vptree_t *vp,
         *radius /= FER_REAL(2.);
     }
 
-    *var = FER_CUBE(dist[0] - *radius);
+    *var = FER_SQ(dist[0] - *radius);
     for (i = 1; i < distlen; i++){
-        *var += FER_CUBE(dist[i] - *radius);
+        *var += FER_SQ(dist[i] - *radius);
     }
     *var /= (fer_real_t)distlen;
 }

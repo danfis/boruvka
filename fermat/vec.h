@@ -234,7 +234,7 @@ _fer_inline fer_real_t ferVecDist2(size_t size, const fer_vec_t *a, const fer_ve
     dot = FER_ZERO;
     for (i = 0; i < size; i++){
         f = a[i] - b[i];
-        dot += FER_CUBE(f);
+        dot += FER_SQ(f);
     }
 
     return dot;

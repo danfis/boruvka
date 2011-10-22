@@ -236,7 +236,7 @@ int ferCDOBBDisjoint(const fer_cd_obb_t *obb1,
 
     // perform bounding sphere test - for early quit
     fer_real_t len = ferVec3Len2(&trtmp);
-    if (len > FER_CUBE(obb1->sphere_radius + obb2->sphere_radius))
+    if (len > FER_SQ(obb1->sphere_radius + obb2->sphere_radius))
         return 100;
 
     // compute rotation in obb1's frame
@@ -1483,13 +1483,13 @@ static void mergeFitPolyhedralMass(fer_cd_obb_t *obb, fer_list_t *obbs)
                         intg[3] * ferRecp(mass));
 
     // inertia tensor relative to center of mass
-    xx = FER_CUBE(ferVec3Y(&center)) + FER_CUBE(ferVec3Z(&center));
+    xx = FER_SQ(ferVec3Y(&center)) + FER_SQ(ferVec3Z(&center));
     xx = xx * mass;
     xx = intg[5] + intg[6] - xx;
-    yy = FER_CUBE(ferVec3Z(&center)) + FER_CUBE(ferVec3X(&center));
+    yy = FER_SQ(ferVec3Z(&center)) + FER_SQ(ferVec3X(&center));
     yy = yy * mass;
     yy = intg[4] + intg[6] - yy;
-    zz = FER_CUBE(ferVec3X(&center)) + FER_CUBE(ferVec3Y(&center));
+    zz = FER_SQ(ferVec3X(&center)) + FER_SQ(ferVec3Y(&center));
     zz = zz * mass;
     zz = intg[4] + intg[5] - zz;
 

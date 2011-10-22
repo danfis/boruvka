@@ -310,13 +310,13 @@ static fer_real_t ferCDSAPMinMaxVariance(const fer_cd_sap_min_t *m,
         if (m->val > tr1 && m->val < tr2){
             avg += m->val;
             len += FER_ONE;
-            var += FER_CUBE(m->val);
+            var += FER_SQ(m->val);
         }
     }
 
     avg /= len;
     var /= len;
-    var -= FER_CUBE(avg);
+    var -= FER_SQ(avg);
 
     return var;
 }

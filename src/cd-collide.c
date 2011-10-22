@@ -45,7 +45,7 @@ int ferCDCollideSphereBox(struct _fer_cd_t *cd,
     ferVec3Sub(&p, tr1);
 
     l1 = ferVec3Len2(&p);
-    l2 = FER_CUBE(s1->radius);
+    l2 = FER_SQ(s1->radius);
     return l1 < l2 || ferEq(l1, l2);
 }
 
@@ -66,7 +66,7 @@ int ferCDCollideSphereCap(struct _fer_cd_t *cd,
     ferVec3Add(&b, tr2);
 
     d1 = ferVec3PointSegmentDist2(tr1, &a, &b, NULL);
-    d2 = FER_CUBE(s1->radius + s2->radius);
+    d2 = FER_SQ(s1->radius + s2->radius);
 
     return d1 < d2 || ferEq(d1, d2);
 }
@@ -88,7 +88,7 @@ int ferCDCollideSphereTri(struct _fer_cd_t *cd,
     ferVec3Add(&c, tr2);
 
     l1 = ferVec3PointTriDist2(tr1, &a, &b, &c, NULL);
-    l2 = FER_CUBE(s->radius);
+    l2 = FER_SQ(s->radius);
 
     return l1 < l2 || ferEq(l1, l2);
 }

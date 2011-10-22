@@ -34,48 +34,48 @@ const fer_vec3_t *fer_vec3_axis[3] = {
 };
 
 static fer_vec3_t points_on_sphere[] = {
-	FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-0.000000), FER_REAL(-1.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL(-0.525725), FER_REAL(-0.447219)),
-	FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL(-0.850649), FER_REAL(-0.447219)),
-	FER_VEC3_STATIC(FER_REAL(-0.894426), FER_REAL(-0.000000), FER_REAL(-0.447216)),
-	FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL( 0.850649), FER_REAL(-0.447220)),
-	FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL( 0.525725), FER_REAL(-0.447219)),
-	FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL(-0.850649), FER_REAL( 0.447220)),
-	FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL(-0.525725), FER_REAL( 0.447219)),
-	FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL( 0.525725), FER_REAL( 0.447219)),
-	FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL( 0.850649), FER_REAL( 0.447219)),
-	FER_VEC3_STATIC(FER_REAL( 0.894426), FER_REAL( 0.000000), FER_REAL( 0.447216)),
-	FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 0.000000), FER_REAL( 1.000000)), 
-	FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL(-0.309011), FER_REAL(-0.850654)),
-	FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL(-0.499995), FER_REAL(-0.850654)),
-	FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL(-0.809012), FER_REAL(-0.525738)),
-	FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL( 0.309011), FER_REAL(-0.850654)),
-	FER_VEC3_STATIC(FER_REAL( 0.850648), FER_REAL(-0.000000), FER_REAL(-0.525736)),
-	FER_VEC3_STATIC(FER_REAL(-0.525730), FER_REAL(-0.000000), FER_REAL(-0.850652)),
-	FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL(-0.499997), FER_REAL(-0.525736)),
-	FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL( 0.499995), FER_REAL(-0.850654)),
-	FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL( 0.499997), FER_REAL(-0.525736)),
-	FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL( 0.809012), FER_REAL(-0.525738)),
-	FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL( 0.309013), FER_REAL( 0.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL(-0.309013), FER_REAL( 0.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-1.000000), FER_REAL( 0.000000)),
-	FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
-	FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL(-0.309013), FER_REAL(-0.000000)),
-	FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL( 0.309013), FER_REAL(-0.000000)),
-	FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
-	FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 1.000000), FER_REAL(-0.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
-	FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL(-0.499997), FER_REAL( 0.525736)),
-	FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL(-0.809012), FER_REAL( 0.525738)),
-	FER_VEC3_STATIC(FER_REAL(-0.850648), FER_REAL( 0.000000), FER_REAL( 0.525736)),
-	FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL( 0.809012), FER_REAL( 0.525738)),
-	FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL( 0.499997), FER_REAL( 0.525736)),
-	FER_VEC3_STATIC(FER_REAL( 0.525730), FER_REAL( 0.000000), FER_REAL( 0.850652)),
-	FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL(-0.499995), FER_REAL( 0.850654)),
-	FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL(-0.309011), FER_REAL( 0.850654)),
-	FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL( 0.309011), FER_REAL( 0.850654)),
-	FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL( 0.499995), FER_REAL( 0.850654))
+    FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-0.000000), FER_REAL(-1.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL(-0.525725), FER_REAL(-0.447219)),
+    FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL(-0.850649), FER_REAL(-0.447219)),
+    FER_VEC3_STATIC(FER_REAL(-0.894426), FER_REAL(-0.000000), FER_REAL(-0.447216)),
+    FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL( 0.850649), FER_REAL(-0.447220)),
+    FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL( 0.525725), FER_REAL(-0.447219)),
+    FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL(-0.850649), FER_REAL( 0.447220)),
+    FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL(-0.525725), FER_REAL( 0.447219)),
+    FER_VEC3_STATIC(FER_REAL(-0.723608), FER_REAL( 0.525725), FER_REAL( 0.447219)),
+    FER_VEC3_STATIC(FER_REAL( 0.276388), FER_REAL( 0.850649), FER_REAL( 0.447219)),
+    FER_VEC3_STATIC(FER_REAL( 0.894426), FER_REAL( 0.000000), FER_REAL( 0.447216)),
+    FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 0.000000), FER_REAL( 1.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL(-0.309011), FER_REAL(-0.850654)),
+    FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL(-0.499995), FER_REAL(-0.850654)),
+    FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL(-0.809012), FER_REAL(-0.525738)),
+    FER_VEC3_STATIC(FER_REAL( 0.425323), FER_REAL( 0.309011), FER_REAL(-0.850654)),
+    FER_VEC3_STATIC(FER_REAL( 0.850648), FER_REAL(-0.000000), FER_REAL(-0.525736)),
+    FER_VEC3_STATIC(FER_REAL(-0.525730), FER_REAL(-0.000000), FER_REAL(-0.850652)),
+    FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL(-0.499997), FER_REAL(-0.525736)),
+    FER_VEC3_STATIC(FER_REAL(-0.162456), FER_REAL( 0.499995), FER_REAL(-0.850654)),
+    FER_VEC3_STATIC(FER_REAL(-0.688190), FER_REAL( 0.499997), FER_REAL(-0.525736)),
+    FER_VEC3_STATIC(FER_REAL( 0.262869), FER_REAL( 0.809012), FER_REAL(-0.525738)),
+    FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL( 0.309013), FER_REAL( 0.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.951058), FER_REAL(-0.309013), FER_REAL( 0.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-1.000000), FER_REAL( 0.000000)),
+    FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL(-0.809017), FER_REAL( 0.000000)),
+    FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL(-0.309013), FER_REAL(-0.000000)),
+    FER_VEC3_STATIC(FER_REAL(-0.951058), FER_REAL( 0.309013), FER_REAL(-0.000000)),
+    FER_VEC3_STATIC(FER_REAL(-0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
+    FER_VEC3_STATIC(FER_REAL(-0.000000), FER_REAL( 1.000000), FER_REAL(-0.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.587786), FER_REAL( 0.809017), FER_REAL(-0.000000)),
+    FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL(-0.499997), FER_REAL( 0.525736)),
+    FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL(-0.809012), FER_REAL( 0.525738)),
+    FER_VEC3_STATIC(FER_REAL(-0.850648), FER_REAL( 0.000000), FER_REAL( 0.525736)),
+    FER_VEC3_STATIC(FER_REAL(-0.262869), FER_REAL( 0.809012), FER_REAL( 0.525738)),
+    FER_VEC3_STATIC(FER_REAL( 0.688190), FER_REAL( 0.499997), FER_REAL( 0.525736)),
+    FER_VEC3_STATIC(FER_REAL( 0.525730), FER_REAL( 0.000000), FER_REAL( 0.850652)),
+    FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL(-0.499995), FER_REAL( 0.850654)),
+    FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL(-0.309011), FER_REAL( 0.850654)),
+    FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL( 0.309011), FER_REAL( 0.850654)),
+    FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL( 0.499995), FER_REAL( 0.850654))
 };
 fer_vec3_t *fer_points_on_sphere = points_on_sphere;
 size_t fer_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(fer_vec3_t);
@@ -143,7 +143,7 @@ _fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,
     //          where - x0 is initial point of segment
     //                - d is direction of segment from x0 (|d| > 0)
     //                - t belongs to <0, 1> interval
-    // 
+    //
     // Than, distance from a segment to some point P can be expressed:
     //      D(t) = |x0 + t.d - P|^2
     //          which is distance from any point on segment. Minimization
@@ -620,190 +620,343 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
 }
 
 
-#define __intersect_construct(p1, q1, r1, p2, q2, r2) { \
-    ferVec3Sub2(&v1, q1, p1); \
-    ferVec3Sub2(&v2, r2, p1); \
-    ferVec3Cross(&N, &v1, &v2); \
-    ferVec3Sub2(&v, p2, p1); \
-    if (ferVec3Dot(&v, &N) > FER_ZERO){ \
-        ferVec3Sub2(&v1, r1, p1); \
-        ferVec3Cross(&N, &v1, &v2); \
-        if (ferVec3Dot(&v, &N) <= FER_ZERO){ \
-            ferVec3Sub2(&v2, q2, p1); \
-            ferVec3Cross(&N, &v1, &v2); \
-            if (ferVec3Dot(&v, &N) > FER_ZERO){ \
-                ferVec3Sub2(&v1, p1, p2); \
-                ferVec3Sub2(&v2, p1, r1); \
-                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(s, p1, &v1); \
-                ferVec3Sub2(&v1, p2, p1); \
-                ferVec3Sub2(&v2, p2, r2); \
-                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(t, p2, &v1); \
-                return 1; \
-            }else{ \
-                ferVec3Sub2(&v1, p2, p1); \
-                ferVec3Sub2(&v2, p2, q2); \
-                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(s, p2, &v1); \
-                ferVec3Sub2(&v1, p2, p1); \
-                ferVec3Sub2(&v2, p2, r2); \
-                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(t, p2, &v1); \
-                return 1; \
-            } \
-        }else{ \
-            return 0; \
-        } \
-    }else{ \
-        ferVec3Sub2(&v2, q2, p1); \
-        ferVec3Cross(&N, &v1, &v2); \
-        if (ferVec3Dot(&v, &N) < FER_ZERO) { \
-            return 0; \
-        }else{ \
-            ferVec3Sub2(&v1, r1, p1); \
-            ferVec3Cross(&N, &v1, &v2); \
-            if (ferVec3Dot(&v, &N) >= FER_ZERO){ \
-                ferVec3Sub2(&v1, p1, p2); \
-                ferVec3Sub2(&v2, p1, r1); \
-                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(s, p1, &v1); \
-                ferVec3Sub2(&v1, p1, p2); \
-                ferVec3Sub2(&v2, p1, q1); \
-                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(t, p1, &v1); \
-                return 1; \
-            }else{ \
-                ferVec3Sub2(&v1, p2, p1); \
-                ferVec3Sub2(&v2, p2, q2); \
-                alpha = ferVec3Dot(&v1, &N1) / ferVec3Dot(&v2, &N1); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(s, p2, &v1); \
-                ferVec3Sub2(&v1, p1, p2); \
-                ferVec3Sub2(&v2, p1, q1); \
-                alpha = ferVec3Dot(&v1, &N2) / ferVec3Dot(&v2, &N2); \
-                ferVec3Scale2(&v1, &v2, alpha); \
-                ferVec3Sub2(t, p1, &v1); \
-                return 1; \
-            } \
-        } \
-    } \
-} 
+/** ferVec3TriTriIntersect() adapted from http://jgt.akpeters.com/papers/Moller97/tritri.html */
+/* if USE_EPSILON_TEST is true then we do a check:
+         if |dv|<EPSILON then dv=0.0;
+   else no check is done (which is less robust)
+*/
+//#define USE_EPSILON_TEST 1
 
-#define __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2) { \
-  if (dp2 > FER_ZERO){ \
-     if (dq2 > FER_ZERO) __intersect_construct(p1, r1, q1, r2, p2, q2) \
-     else if (dr2 > FER_ZERO) __intersect_construct(p1, r1, q1, q2, r2, p2) \
-     else __intersect_construct(p1, q1, r1, p2, q2, r2) \
-  }else if (dp2 < FER_ZERO) { \
-    if (dq2 < FER_ZERO) __intersect_construct(p1, q1, r1, r2, p2, q2) \
-    else if (dr2 < FER_ZERO) __intersect_construct(p1, q1, r1, q2, r2, p2) \
-    else __intersect_construct(p1, r1, q1, p2, q2, r2) \
-  }else{ \
-    if (dq2 < FER_ZERO) { \
-      if (dr2 >= FER_ZERO)  __intersect_construct(p1, r1, q1, q2, r2, p2)\
-      else __intersect_construct(p1, q1, r1, p2, q2, r2)\
-    }else if (dq2 > FER_ZERO) { \
-      if (dr2 > FER_ZERO) __intersect_construct(p1, r1, q1, p2, q2, r2)\
-      else  __intersect_construct(p1, q1, r1, q2, r2, p2)\
-    }else{ \
-      if (dr2 > FER_ZERO) __intersect_construct(p1, q1, r1, r2, p2, q2)\
-      else if (dr2 < FER_ZERO) __intersect_construct(p1, r1, q1, r2, p2, q2)\
-      else { \
-          if (__overlapCoplanar(p1, q1, r1, p2, q2, r2, &N1, &N2)) \
-            return 2; \
-      } \
-    } \
-  } \
+/* sort so that a<=b */
+#define SORT2(a,b,smallest)       \
+             if(a>b)       \
+             {             \
+               float c;    \
+               c=a;        \
+               a=b;        \
+               b=c;        \
+               smallest=1; \
+             }             \
+             else smallest=0;
+
+/* this edge to edge test is based on Franlin Antonio's gem:
+   "Faster Line Segment Intersection", in Graphics Gems III,
+   pp. 199-202 */
+#define EDGE_EDGE_TEST(V0,U0,U1)                      \
+  Bx=ferVec3Get(U0, i0)-ferVec3Get(U1, i0);           \
+  By=ferVec3Get(U0, i1)-ferVec3Get(U1, i1);           \
+  Cx=ferVec3Get(V0, i0)-ferVec3Get(U0, i0);           \
+  Cy=ferVec3Get(V0, i1)-ferVec3Get(U0, i1);           \
+  f=Ay*Bx-Ax*By;                                      \
+  d=By*Cx-Bx*Cy;                                      \
+  if((f>0 && d>=0 && d<=f) || (f<0 && d<=0 && d>=f))  \
+  {                                                   \
+    e=Ax*Cy-Ay*Cx;                                    \
+    if(f>0)                                           \
+    {                                                 \
+      if(e>=0 && e<=f) return 1;                      \
+    }                                                 \
+    else                                              \
+    {                                                 \
+      if(e<=0 && e>=f) return 1;                      \
+    }                                                 \
+  }
+
+#define EDGE_AGAINST_TRI_EDGES(V0,V1,U0,U1,U2) \
+{                                              \
+  fer_real_t Ax,Ay,Bx,By,Cx,Cy,e,d,f;          \
+  Ax=ferVec3Get(V1, i0)-ferVec3Get(V0, i0);    \
+  Ay=ferVec3Get(V1, i1)-ferVec3Get(V0, i1);    \
+  /* test edge U0,U1 against V0,V1 */          \
+  EDGE_EDGE_TEST(V0,U0,U1);                    \
+  /* test edge U1,U2 against V0,V1 */          \
+  EDGE_EDGE_TEST(V0,U1,U2);                    \
+  /* test edge U2,U1 against V0,V1 */          \
+  EDGE_EDGE_TEST(V0,U2,U0);                    \
 }
 
-int ferVec3TriTriIntersect(const fer_vec3_t *p1, const fer_vec3_t *q1,
-                           const fer_vec3_t *r1,
-                           const fer_vec3_t *p2, const fer_vec3_t *q2,
-                           const fer_vec3_t *r2,
-                           fer_vec3_t *s, fer_vec3_t *t)
+#define POINT_IN_TRI(V0,U0,U1,U2)           \
+{                                           \
+  fer_real_t a,b,c,d0,d1,d2;                \
+  /* is T1 completly inside T2? */          \
+  /* check if V0 is inside tri(U0,U1,U2) */ \
+  a=ferVec3Get(U1, i1)-ferVec3Get(U0, i1);                          \
+  b=-(ferVec3Get(U1, i0)-ferVec3Get(U0, i0));                       \
+  c=-a*ferVec3Get(U0, i0)-b*ferVec3Get(U0, i1);                     \
+  d0=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+                                            \
+  a=ferVec3Get(U2, i1)-ferVec3Get(U1, i1);                          \
+  b=-(ferVec3Get(U2, i0)-ferVec3Get(U1, i0));                       \
+  c=-a*ferVec3Get(U1, i0)-b*ferVec3Get(U1, i1);                     \
+  d1=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+                                            \
+  a=ferVec3Get(U0, i1)-ferVec3Get(U2, i1);                          \
+  b=-(ferVec3Get(U0, i0)-ferVec3Get(U2, i0));                       \
+  c=-a*ferVec3Get(U2, i0)-b*ferVec3Get(U2, i1);                     \
+  d2=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+  if(d0*d1>0.0)                             \
+  {                                         \
+    if(d0*d2>0.0) return 1;                 \
+  }                                         \
+}
+
+static int coplanar_tri_tri(const fer_vec3_t *N, const fer_vec3_t *V0, const fer_vec3_t *V1, const fer_vec3_t *V2,
+                            const fer_vec3_t *U0, const fer_vec3_t *U1, const fer_vec3_t *U2)
 {
-    fer_real_t dp1, dq1, dr1, dp2, dq2, dr2;
-    fer_vec3_t v1, v2, v;
-    fer_vec3_t N1, N2, N;
-    fer_real_t alpha;
+    fer_real_t A[3];
+    short i0,i1;
 
-    // Compute distance signs  of p1, q1 and r1 
-    // to the plane of triangle(p2,q2,r2)
-
-
-    ferVec3Sub2(&v1, p2, r2);
-    ferVec3Sub2(&v2, q2, r2);
-    ferVec3Cross(&N2, &v1, &v2);
-
-    ferVec3Sub2(&v1, p1, r2);
-    dp1 = ferVec3Dot(&v1, &N2);
-    ferVec3Sub2(&v1, q1, r2);
-    dq1 = ferVec3Dot(&v1, &N2);
-    ferVec3Sub2(&v1, r1, r2);
-    dr1 = ferVec3Dot(&v1, &N2);
-
-    if ((dp1 * dq1) > FER_ZERO
-            && (dp1 * dr1) > FER_ZERO){
-        return 0;
-    }
-
-    // Compute distance signs  of p2, q2 and r2 
-    // to the plane of triangle(p1,q1,r1)
-
-
-    ferVec3Sub2(&v1, q1, p1);
-    ferVec3Sub2(&v2, r1, p1);
-    ferVec3Cross(&N1, &v1, &v2);
-
-    ferVec3Sub2(&v1, p2, r1);
-    dp2 = ferVec3Dot(&v1, &N1);
-    ferVec3Sub2(&v1, q2, r1);
-    dq2 = ferVec3Dot(&v1, &N1);
-    ferVec3Sub2(&v1, r2, r1);
-    dr2 = ferVec3Dot(&v1, &N1);
-
-    if ((dp2 * dq2) > FER_ZERO
-            && (dp2 * dr2) > FER_ZERO){
-        return 0;
-    }
-
-    // Permutation in a canonical form of T1's vertices
-
-
-    if (dp1 > FER_ZERO) {
-        if (dq1 > FER_ZERO) __intersect(r1, p1, q1, p2, r2, q2, dp2, dr2, dq2)
-        else if (dr1 > FER_ZERO) __intersect(q1, r1, p1, p2, r2, q2, dp2, dr2, dq2)
-        else __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2)
-    } else if (dp1 < FER_ZERO) {
-        if (dq1 < FER_ZERO) __intersect(r1, p1, q1, p2, q2, r2, dp2, dq2, dr2)
-        else if (dr1 < FER_ZERO) __intersect(q1, r1, p1, p2, q2, r2, dp2, dq2, dr2)
-        else __intersect(p1, q1, r1, p2, r2, q2, dp2, dr2, dq2)
-    } else {
-        if (dq1 < FER_ZERO) {
-            if (dr1 >= FER_ZERO) __intersect(q1, r1, p1, p2, r2, q2, dp2, dr2, dq2)
-            else __intersect(p1, q1, r1, p2, q2, r2, dp2, dq2, dr2)
+    /* first project onto an axis-aligned plane, that maximizes the area */
+    /* of the triangles, compute indices: i0,i1. */
+    A[0]=FER_FABS(ferVec3X(N));
+    A[1]=FER_FABS(ferVec3Y(N));
+    A[2]=FER_FABS(ferVec3Z(N));
+    if(A[0]>A[1])
+    {
+        if(A[0]>A[2])
+        {
+            i0=1;      /* A[0] is greatest */
+            i1=2;
         }
-        else if (dq1 > FER_ZERO) {
-            if (dr1 > FER_ZERO) __intersect(p1, q1, r1, p2, r2, q2, dp2, dr2, dq2)
-            else __intersect(q1, r1, p1, p2, q2, r2, dp2, dq2, dr2)
-        }
-        else  {
-            if (dr1 > FER_ZERO) __intersect(r1, p1, q1, p2, q2, r2, dp2, dq2, dr2)
-            else if (dr1 < FER_ZERO) __intersect(r1, p1, q1, p2, r2, q2, dp2, dr2, dq2)
-            else{
-                // triangles are co-planar
-                if (__overlapCoplanar(p1, q1, r1, p2, q2, r2, &N1, &N2))
-                    return 2;
-            }
+        else
+        {
+            i0=0;      /* A[2] is greatest */
+            i1=1;
         }
     }
+    else   /* A[0]<=A[1] */
+    {
+        if(A[2]>A[1])
+        {
+            i0=0;      /* A[2] is greatest */
+            i1=1;
+        }
+        else
+        {
+            i0=0;      /* A[1] is greatest */
+            i1=2;
+        }
+    }
+
+    /* test all edges of triangle 1 against the edges of triangle 2 */
+    EDGE_AGAINST_TRI_EDGES(V0,V1,U0,U1,U2);
+    EDGE_AGAINST_TRI_EDGES(V1,V2,U0,U1,U2);
+    EDGE_AGAINST_TRI_EDGES(V2,V0,U0,U1,U2);
+
+    /* finally, test if tri1 is totally contained in tri2 or vice versa */
+    POINT_IN_TRI(V0,U0,U1,U2);
+    POINT_IN_TRI(U0,V0,V1,V2);
 
     return 0;
+}
+
+_fer_inline void isect2(const fer_vec3_t *VTX0, const fer_vec3_t *VTX1,
+                        const fer_vec3_t *VTX2,
+                        fer_real_t VV0,fer_real_t VV1,fer_real_t VV2,
+                        fer_real_t D0,fer_real_t D1,fer_real_t D2,fer_real_t *isect0,fer_real_t *isect1,
+                        fer_vec3_t *isectpoint0, fer_vec3_t *isectpoint1)
+{
+    float tmp=D0/(D0-D1);
+    fer_vec3_t diff;
+
+    *isect0=VV0+(VV1-VV0)*tmp;
+    ferVec3Sub2(&diff, VTX1, VTX0);
+    ferVec3Scale(&diff, tmp);
+    ferVec3Add2(isectpoint0,&diff,VTX0);
+    tmp=D0/(D0-D2);
+    *isect1=VV0+(VV2-VV0)*tmp;
+    ferVec3Sub2(&diff,VTX2,VTX0);
+    ferVec3Scale(&diff,tmp);
+    ferVec3Add2(isectpoint1,VTX0,&diff);
+}
+_fer_inline int compute_intervals_isectline(const fer_vec3_t *VERT0,
+                                            const fer_vec3_t *VERT1,
+                                            const fer_vec3_t *VERT2,
+                                            fer_real_t VV0, fer_real_t VV1,
+                                            fer_real_t VV2, fer_real_t D0,
+                                            fer_real_t D1, fer_real_t D2,
+                                            fer_real_t D0D1, fer_real_t D0D2,
+                                            fer_real_t *isect0,
+                                            fer_real_t *isect1,
+                                            fer_vec3_t *isectpoint0,
+                                            fer_vec3_t *isectpoint1)
+{
+    if(D0D1>0.0f)
+    {
+        /* here we know that D0D2<=0.0 */
+        /* that is D0, D1 are on the same side, D2 on the other or on the plane */
+        isect2(VERT2,VERT0,VERT1,VV2,VV0,VV1,D2,D0,D1,isect0,isect1,isectpoint0,isectpoint1);
+    }
+    else if(D0D2>0.0f)
+    {
+        /* here we know that d0d1<=0.0 */
+        isect2(VERT1,VERT0,VERT2,VV1,VV0,VV2,D1,D0,D2,isect0,isect1,isectpoint0,isectpoint1);
+    }
+    else if(D1*D2>0.0f || D0!=0.0f)
+    {
+        /* here we know that d0d1<=0.0 or that D0!=0.0 */
+        isect2(VERT0,VERT1,VERT2,VV0,VV1,VV2,D0,D1,D2,isect0,isect1,isectpoint0,isectpoint1);
+    }
+    else if(D1!=0.0f)
+    {
+        isect2(VERT1,VERT0,VERT2,VV1,VV0,VV2,D1,D0,D2,isect0,isect1,isectpoint0,isectpoint1);
+    }
+    else if(D2!=0.0f)
+    {
+        isect2(VERT2,VERT0,VERT1,VV2,VV0,VV1,D2,D0,D1,isect0,isect1,isectpoint0,isectpoint1);
+    }
+    else
+    {
+        /* triangles are coplanar */
+        return 1;
+    }
+    return 0;
+}
+
+int ferVec3TriTriIntersect(const fer_vec3_t *V0, const fer_vec3_t *V1,
+                           const fer_vec3_t *V2,
+                           const fer_vec3_t *U0, const fer_vec3_t *U1,
+                           const fer_vec3_t *U2,
+                           fer_vec3_t *isectpt1, fer_vec3_t *isectpt2)
+{
+    fer_vec3_t E1, E2, N1, N2;
+    fer_real_t d1, d2;
+    fer_real_t du0,du1,du2,dv0,dv1,dv2;
+    fer_vec3_t D;
+    fer_real_t isect1[2], isect2[2];
+    fer_vec3_t isectpointA1,isectpointA2;
+    fer_vec3_t isectpointB1,isectpointB2;
+    fer_real_t du0du1,du0du2,dv0dv1,dv0dv2;
+    short index;
+    fer_real_t vp0,vp1,vp2;
+    fer_real_t up0,up1,up2;
+    fer_real_t b,c,max;
+    int smallest1,smallest2;
+
+    /* compute plane equation of triangle(V0,V1,V2) */
+    ferVec3Sub2(&E1,V1,V0);
+    ferVec3Sub2(&E2,V2,V0);
+    ferVec3Cross(&N1,&E1,&E2);
+    d1=-ferVec3Dot(&N1,V0);
+    /* plane equation 1: N1.X+d1=0 */
+
+    /* put U0,U1,U2 into plane equation 1 to compute signed distances to the plane*/
+    du0=ferVec3Dot(&N1,U0)+d1;
+    du1=ferVec3Dot(&N1,U1)+d1;
+    du2=ferVec3Dot(&N1,U2)+d1;
+
+    /* coplanarity robustness check */
+#ifdef USE_EPSILON_TEST
+    if(ferIsZero(du0)) du0 = FER_ZERO;
+    if(ferIsZero(du1)) du1 = FER_ZERO;
+    if(ferIsZero(du2)) du2 = FER_ZERO;
+#endif
+    du0du1=du0*du1;
+    du0du2=du0*du2;
+
+    if(du0du1>0.0f && du0du2>0.0f) /* same sign on all of them + not equal 0 ? */
+        return 0;                    /* no intersection occurs */
+
+    /* compute plane of triangle (U0,U1,U2) */
+    ferVec3Sub2(&E1,U1,U0);
+    ferVec3Sub2(&E2,U2,U0);
+    ferVec3Cross(&N2,&E1,&E2);
+    d2=-ferVec3Dot(&N2,U0);
+    /* plane equation 2: N2.X+d2=0 */
+
+    /* put V0,V1,V2 into plane equation 2 */
+    dv0=ferVec3Dot(&N2,V0)+d2;
+    dv1=ferVec3Dot(&N2,V1)+d2;
+    dv2=ferVec3Dot(&N2,V2)+d2;
+
+#ifdef USE_EPSILON_TEST
+    if(ferIsZero(dv0)) dv0 = FER_ZERO;
+    if(ferIsZero(dv1)) dv1 = FER_ZERO;
+    if(ferIsZero(dv2)) dv2 = FER_ZERO;
+#endif
+
+    dv0dv1=dv0*dv1;
+    dv0dv2=dv0*dv2;
+
+    if(dv0dv1>0.0f && dv0dv2>0.0f) /* same sign on all of them + not equal 0 ? */
+        return 0;                    /* no intersection occurs */
+
+    /* compute direction of intersection line */
+    ferVec3Cross(&D,&N1,&N2);
+
+    /* compute and index to the largest component of D */
+    max=FER_FABS(ferVec3X(&D));
+    index=0;
+    b=FER_FABS(ferVec3Y(&D));
+    c=FER_FABS(ferVec3Z(&D));
+    if(b>max) max=b,index=1;
+    if(c>max) max=c,index=2;
+
+    /* this is the simplified projection onto L*/
+    vp0=ferVec3Get(V0, index);
+    vp1=ferVec3Get(V1, index);
+    vp2=ferVec3Get(V2, index);
+
+    up0=ferVec3Get(U0, index);
+    up1=ferVec3Get(U1, index);
+    up2=ferVec3Get(U2, index);
+
+    /* compute interval for triangle 1 */
+    if (compute_intervals_isectline(V0,V1,V2,vp0,vp1,vp2,dv0,dv1,dv2,
+            dv0dv1,dv0dv2,&isect1[0],&isect1[1],&isectpointA1,&isectpointA2)){
+        // triangles are coplanar
+
+        if (coplanar_tri_tri(&N1,V0,V1,V2,U0,U1,U2))
+            return 2;
+        return 0;
+    }
+
+
+    /* compute interval for triangle 2 */
+    if (compute_intervals_isectline(U0,U1,U2,up0,up1,up2,du0,du1,du2,
+            du0du1,du0du2,&isect2[0],&isect2[1],&isectpointB1,&isectpointB2)){
+        fprintf(stderr, "Error (vec3.c): this shouldn't report coplanar triangles!\n");
+        return 2;
+    }
+
+    SORT2(isect1[0],isect1[1],smallest1);
+    SORT2(isect2[0],isect2[1],smallest2);
+
+    if(isect1[1]<isect2[0] || isect2[1]<isect1[0]) return 0;
+
+    /* at this point, we know that the triangles intersect */
+
+    if(isect2[0]<isect1[0])
+    {
+        if(smallest1==0) { ferVec3Copy(isectpt1,&isectpointA1); }
+        else { ferVec3Copy(isectpt1,&isectpointA2); }
+
+        if(isect2[1]<isect1[1])
+        {
+            if(smallest2==0) { ferVec3Copy(isectpt2,&isectpointB2); }
+            else { ferVec3Copy(isectpt2,&isectpointB1); }
+        }
+        else
+        {
+            if(smallest1==0) { ferVec3Copy(isectpt2,&isectpointA2); }
+            else { ferVec3Copy(isectpt2,&isectpointA1); }
+        }
+    }
+    else
+    {
+        if(smallest2==0) { ferVec3Copy(isectpt1,&isectpointB1); }
+        else { ferVec3Copy(isectpt1,&isectpointB2); }
+
+        if(isect2[1]>isect1[1])
+        {
+            if(smallest1==0) { ferVec3Copy(isectpt2,&isectpointA2); }
+            else { ferVec3Copy(isectpt2,&isectpointA1); }
+        }
+        else
+        {
+            if(smallest2==0) { ferVec3Copy(isectpt2,&isectpointB2); }
+            else { ferVec3Copy(isectpt2,&isectpointB1); }
+        }
+    }
+    return 1;
 }

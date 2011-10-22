@@ -134,7 +134,7 @@ typedef union _fer_real_uint_t fer_real_uint_t;
 
 #define FER_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
 #define FER_MAX(x, y) ((x) > (y) ? (x) : (y)) /*!< maximum */
-#define FER_CUBE(x)   ((x) * (x))             /*!< cube */
+#define FER_SQ(x)     ((x) * (x))             /*!< square */
 #define FER_POWL(x, y) (powl((x), (y)))       /*!< power function */
 
 #define FER_ONE FER_REAL(1.)  /*!< unit constant */

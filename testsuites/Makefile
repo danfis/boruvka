@@ -16,6 +16,8 @@ CHECK_TS ?=
 TARGETS = libdata.a test bench-heap test-rand-mt test-nn
 ifeq '$(USE_OPENCL)' 'yes'
   TARGETS += test-surf-match
+  LDFLAGS += $(OPENCL_LDFLAGS)
+  CFLAGS  += $(OPENCL_CFLAGS)
 endif
 
 TARGETS += test-cd-spheres test-cd-trimesh
@@ -58,7 +60,7 @@ libdata.a: $(OBJS_DATA)
 	ranlib $@
 
 test: cu libdata.a $(OBJS) main.c
-	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS) $(OPENCL_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ main.c $(OBJS) $(LDFLAGS)
 bench: cu bench.c libdata.a
 	$(CC) $(CFLAGS_BENCH) -o $@ bench.c $(LDFLAGS)
 	$(CC) $(CFLAGS_BENCH) -S -c -o $@.s bench.c
@@ -70,14 +72,14 @@ test-nn: test-nn.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 test-surf-match: test-surf-match.c libdata.a
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 test-cd-spheres: test-cd-spheres.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS) $(OPENCL_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
 test-cd-trimesh: test-cd-trimesh.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS) $(OPENCL_LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
 test-cd-ode: test-cd-ode.c libdata.a
-	$(CC) $(CFLAGS) $(ODE_CFLAGS) $(OPENCL_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++ $(OPENCL_LDFLAGS)
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a

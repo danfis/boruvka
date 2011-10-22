@@ -304,8 +304,8 @@ static int eval3(const fer_vec_t *w, void *data, fer_real_t r)
 
     if (y < -2
             || (y > 0 && x > 3.5)
-            || (x < 3.6 && FER_CUBE(x - 1) + FER_CUBE(y + 1) > 9
-                    && FER_CUBE(x - 1) + FER_CUBE(y + 1) < FER_CUBE(3 + r))){
+            || (x < 3.6 && FER_SQ(x - 1) + FER_SQ(y + 1) > 9
+                    && FER_SQ(x - 1) + FER_SQ(y + 1) < FER_SQ(3 + r))){
         return FER_GNGP_FREE;
     }
     return FER_GNGP_OBST;
@@ -337,20 +337,20 @@ static int eval4(const fer_vec_t *w, void *data, fer_real_t r)
 
     if (y < -2
          || (x > 0.3 && x < 0.6 && y > -0.15 && y < 0.15)
-         || (FER_CUBE(x) + FER_CUBE(y) > FER_CUBE(2.)
-                && FER_CUBE(x) + FER_CUBE(y) < FER_CUBE(2. + r)
+         || (FER_SQ(x) + FER_SQ(y) > FER_SQ(2.)
+                && FER_SQ(x) + FER_SQ(y) < FER_SQ(2. + r)
                 && !(y < 0 && x > 0))
-         || (FER_CUBE(x - 0.5) + FER_CUBE(y) > FER_CUBE(1.5)
-                && FER_CUBE(x - 0.5) + FER_CUBE(y) < FER_CUBE(1.5 + r)
+         || (FER_SQ(x - 0.5) + FER_SQ(y) > FER_SQ(1.5)
+                && FER_SQ(x - 0.5) + FER_SQ(y) < FER_SQ(1.5 + r)
                 && !(y > 0))
-         || (FER_CUBE(x) + FER_CUBE(y) > FER_CUBE(1.)
-                && FER_CUBE(x) + FER_CUBE(y) < FER_CUBE(1. + r)
+         || (FER_SQ(x) + FER_SQ(y) > FER_SQ(1.)
+                && FER_SQ(x) + FER_SQ(y) < FER_SQ(1. + r)
                 && !(y < 0))
-         || (FER_CUBE(x - 0.25) + FER_CUBE(y) > FER_CUBE(.75)
-                && FER_CUBE(x - 0.25) + FER_CUBE(y) < FER_CUBE(.75 + r)
+         || (FER_SQ(x - 0.25) + FER_SQ(y) > FER_SQ(.75)
+                && FER_SQ(x - 0.25) + FER_SQ(y) < FER_SQ(.75 + r)
                 && !(y > 0))
-         || (FER_CUBE(x) + FER_CUBE(y) > FER_CUBE(.5)
-                && FER_CUBE(x) + FER_CUBE(y) < FER_CUBE(.5 + r)
+         || (FER_SQ(x) + FER_SQ(y) > FER_SQ(.5)
+                && FER_SQ(x) + FER_SQ(y) < FER_SQ(.5 + r)
                 && !(y < 0))){
         return FER_GNGP_FREE;
     }

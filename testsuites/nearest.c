@@ -31,7 +31,7 @@ static fer_real_t linearDist(void *item1, fer_list_t *item2, void *_)
     it = FER_LIST_ENTRY(item2, struct linear_t, list);
     r2 = it->num;
 
-    return FER_CUBE(r1 - r2);
+    return FER_SQ(r1 - r2);
 }
 
 /*

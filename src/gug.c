@@ -177,7 +177,7 @@ static size_t __ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p,
     nearestInCell(cs, &cache, cell);
 
     border  = initBorder(cs, p);
-    border2 = FER_CUBE(border);
+    border2 = FER_SQ(border);
 
     radius = 1;
     while (1){
@@ -200,7 +200,7 @@ static size_t __ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p,
         border += cs->edge;
         // border must be squared because internaly are distances managed
         // as squared distances
-        border2 = FER_CUBE(border);
+        border2 = FER_SQ(border);
 
         radius++;
     }
