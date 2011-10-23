@@ -36,6 +36,7 @@ struct _fer_nnbp_layer_t {
                         x[0] = -1 */
     fer_vec_t **w; /*!< Layer weights.
                         w[i] = weight of i'th neuron (~x[i + 1]) */
+    fer_vec_t **prevw;
 };
 typedef struct _fer_nnbp_layer_t fer_nnbp_layer_t;
 
@@ -49,11 +50,18 @@ struct _fer_nnbp_params_t {
 };
 typedef struct _fer_nnbp_params_t fer_nnbp_params_t;
 
+/**
+ * Initialize parameters
+ */
+void ferNNBPParamsInit(fer_nnbp_params_t *params);
+
 struct _fer_nnbp_t {
     size_t layers_num;  /*!< Number of layers */
     fer_real_t alpha, eta, lambda;
 
     fer_nnbp_layer_t *layers; /*!< Array of layers */
+    fer_vec_t *delta[2];
+    fer_vec_t *tmp;
 };
 typedef struct _fer_nnbp_t fer_nnbp_t;
 
@@ -68,11 +76,23 @@ fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params);
 void ferNNBPDel(fer_nnbp_t *nn);
 
 /**
+ * Feeds network with an input.
+ * An output of the network is returned.
+ */
+const fer_vec_t *ferNNBPFeed(fer_nnbp_t *nn, const fer_vec_t *in);
+
+/**
+ * Returns error of feeded network (sum of sqares)
+ */
+fer_real_t ferNNBPErr(const fer_nnbp_t *nn, const fer_vec_t *out);
+
+/**
  * Show one pattern for learning.
  * Returns an error.
- * A length of {in} must be same as set in {params.layer_size[0]).
+ * A length of {in} must equal to {params.layer_size[0]} and
+ * length of {out} must equal to number of neurons in output layer.
  */
-fer_real_t ferNNBPLearn(fer_nnbp_t *nn, const fer_vec_t *in);
+void ferNNBPLearn(fer_nnbp_t *nn, const fer_vec_t *in, const fer_vec_t *out);
 
 
 #ifdef __cplusplus

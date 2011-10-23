@@ -81,6 +81,11 @@ void ferVecDel(fer_vec_t *);
 _fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v);
 
 /**
+ * Returns vector with given offset
+ */
+_fer_inline fer_vec_t *ferVecOff(fer_vec_t *v, size_t off);
+
+/**
  * v = w
  */
 _fer_inline void ferVecCopy(size_t size, fer_vec_t *v, const fer_vec_t *w);
@@ -165,6 +170,11 @@ _fer_inline void ferVecSubConst2(size_t size, fer_vec_t *d, const fer_vec_t *v, 
 _fer_inline void ferVecScale(size_t size, fer_vec_t *d, fer_real_t k);
 
 /**
+ * d = a * k;
+ */
+_fer_inline void ferVecScale2(size_t size, fer_vec_t *d, const fer_vec_t *a, fer_real_t k);
+
+/**
  * Dot product of two vectors.
  */
 _fer_inline fer_real_t ferVecDot(size_t size, const fer_vec_t *a, const fer_vec_t *b);
@@ -190,6 +200,10 @@ _fer_inline void ferVecMulComp2(size_t size, fer_vec_t *a, const fer_vec_t *b, c
 _fer_inline void ferVecPrint(size_t size, const fer_vec_t *v, FILE *out);
 
 
+/**
+ * Returns sum of components
+ */
+_fer_inline fer_real_t ferVecSum(size_t size, const fer_vec_t *v);
 
 /**** INLINES ****/
 _fer_inline fer_vec_t *ferVecFromVec2(fer_vec2_t *v)
@@ -209,6 +223,11 @@ _fer_inline fer_vec_t *ferVecClone(size_t size, const fer_vec_t *v)
     w = ferVecNew(size);
     ferVecCopy(size, w, v);
     return w;
+}
+
+_fer_inline fer_vec_t *ferVecOff(fer_vec_t *v, size_t off)
+{
+    return v + off;
 }
 
 _fer_inline fer_real_t ferVecGet(const fer_vec_t *v, size_t d)
@@ -348,6 +367,14 @@ _fer_inline void ferVecScale(size_t size, fer_vec_t *d, fer_real_t k)
     }
 }
 
+_fer_inline void ferVecScale2(size_t size, fer_vec_t *d, const fer_vec_t *a, fer_real_t k)
+{
+    size_t i;
+    for (i = 0; i < size; i++){
+        d[i] = a[i] * k;
+    }
+}
+
 
 _fer_inline fer_real_t ferVecDot(size_t size, const fer_vec_t *a, const fer_vec_t *b)
 {
@@ -385,6 +412,18 @@ _fer_inline void ferVecPrint(size_t size, const fer_vec_t *v, FILE *out)
     for (i = 1; i < size; i++){
         fprintf(out, " %g", (double)ferVecGet(v, i));
     }
+}
+
+_fer_inline fer_real_t ferVecSum(size_t size, const fer_vec_t *v)
+{
+    size_t i;
+    fer_real_t sum = ferVecGet(v, 0);
+
+    for (i = 1; i < size; i++){
+        sum += ferVecGet(v, i);
+    }
+
+    return sum;
 }
 
 #ifdef __cplusplus

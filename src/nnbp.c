@@ -19,11 +19,23 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
+/** Sigmoid function: 1/(1 + exp(-lambda * x)) */
+static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda);
+/** Computes new weights in network */
+static void newWeights(fer_nnbp_t *nn, const fer_vec_t *out);
+
+void ferNNBPParamsInit(fer_nnbp_params_t *params)
+{
+    params->alpha  = FER_REAL(0.7);
+    params->eta    = FER_REAL(0.3);
+    params->lambda = FER_REAL(1.);
+}
+
 fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params)
 {
     fer_nnbp_t *nn;
     fer_rand_mt_t *rnd;
-    size_t i, j, k;
+    size_t i, j, k, max;
 
     nn = FER_ALLOC(fer_nnbp_t);
 
@@ -35,8 +47,11 @@ fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params)
     //rnd = ferRandMTNewAuto();
     rnd = ferRandMTNew(1111);
 
+    max = 0;
     nn->layers = FER_ALLOC_ARR(fer_nnbp_layer_t, nn->layers_num);
     for (i = 0; i < nn->layers_num; i++){
+        max = FER_MAX(params->layer_size[i], max);
+
         nn->layers[i].size = params->layer_size[i];
         nn->layers[i].x    = ferVecNew(nn->layers[i].size + 1);
         nn->layers[i].w    = NULL;
@@ -45,18 +60,26 @@ fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params)
 
         if (i > 0){
             nn->layers[i].w = FER_ALLOC_ARR(fer_vec_t *, nn->layers[i].size);
+            nn->layers[i].prevw = FER_ALLOC_ARR(fer_vec_t *, nn->layers[i].size);
             for (j = 0; j < nn->layers[i].size; j++){
                 nn->layers[i].w[j] = ferVecNew(nn->layers[i - 1].size + 1);
+                nn->layers[i].prevw[j] = ferVecNew(nn->layers[i - 1].size + 1);
 
                 for (k = 0; k < nn->layers[i - 1].size + 1; k++){
                     // TODO: parameter eps
                     ferVecSet(nn->layers[i].w[j], k, ferRandMT(rnd, -0.3, 0.3));
                 }
+                ferVecSetZero(nn->layers[i - 1].size + 1, nn->layers[i].prevw[j]);
             }
         }
     }
 
     ferRandMTDel(rnd);
+
+
+    nn->delta[0] = ferVecNew(max);
+    nn->delta[1] = ferVecNew(max);
+    nn->tmp      = ferVecNew(max + 1);
 
     return nn;
 }
@@ -70,80 +93,131 @@ void ferNNBPDel(fer_nnbp_t *nn)
         if (i > 0){
             for (j = 0; j < nn->layers[i].size; j++){
                 ferVecDel(nn->layers[i].w[j]);
+                ferVecDel(nn->layers[i].prevw[j]);
             }
             FER_FREE(nn->layers[i].w);
+            FER_FREE(nn->layers[i].prevw);
         }
     }
     FER_FREE(nn->layers);
 
+    ferVecDel(nn->delta[0]);
+    ferVecDel(nn->delta[1]);
+    ferVecDel(nn->tmp);
+
     FER_FREE(nn);
 }
+
+const fer_vec_t *ferNNBPFeed(fer_nnbp_t *nn, const fer_vec_t *in)
+{
+    fer_real_t sum, val;
+    size_t i, n;
+
+    // copy input layer
+    for (i = 0; i < nn->layers[0].size; i++){
+        ferVecSet(nn->layers[0].x, i + 1, ferVecGet(in, i));
+    }
+
+    // for each neuron in each layer
+    for (i = 1; i < nn->layers_num; i++){
+        for (n = 0; n < nn->layers[i].size; n++){
+            sum = ferVecDot(nn->layers[i - 1].size + 1,
+                            nn->layers[i].w[n], nn->layers[i - 1].x);
+            val = sigmoid(sum, nn->lambda);
+            ferVecSet(nn->layers[i].x, n + 1, val);
+        }
+    }
+
+    return ferVecOff(nn->layers[nn->layers_num - 1].x, 1);
+}
+
+fer_real_t ferNNBPErr(const fer_nnbp_t *nn, const fer_vec_t *out)
+{
+    fer_nnbp_layer_t *lr = &nn->layers[nn->layers_num - 1];
+    ferVecSub2(lr->size, nn->tmp, ferVecOff(lr->x, 1), out);
+    return ferVecLen2(lr->size, nn->tmp);
+}
+
+void ferNNBPLearn(fer_nnbp_t *nn, const fer_vec_t *in, const fer_vec_t *out)
+{
+    // feed neural network with the input
+    ferNNBPFeed(nn, in);
+    // compute new weights
+    newWeights(nn, out);
+}
+
+static void makeDelta(fer_nnbp_t *nn, size_t layer,
+                      const fer_vec_t *out,
+                      const fer_vec_t *delta,
+                      fer_vec_t *delta_out)
+{
+    fer_nnbp_layer_t *lr, *lr2;
+    fer_real_t err;
+    size_t i, j;
+
+    lr = &nn->layers[layer];
+
+    if (layer == nn->layers_num - 1){
+        // difference from desired output
+        ferVecSub2(lr->size, nn->tmp, ferVecOff(lr->x, 1), out);
+        //ferVecSub2(lr->size, nn->tmp, out, ferVecOff(lr->x, 1));
+
+        // delta_out = x.*(1 - x).*err
+        ferVecScale2(lr->size, delta_out, ferVecOff(lr->x, 1), -FER_ONE);
+        ferVecAddConst(lr->size, delta_out, FER_ONE);
+        ferVecMulComp(lr->size, delta_out, ferVecOff(lr->x, 1));
+        ferVecMulComp(lr->size, delta_out, nn->tmp);
+
+    }else{
+        lr2 = &nn->layers[layer + 1];
+
+        for (i = 0; i < lr->size; i++){
+            err = FER_ZERO;
+            for (j = 0; j < lr2->size; j++){
+                err += ferVecGet(delta, j) * ferVecGet(lr2->w[j], i + 1);
+            }
+
+            err *= ferVecGet(lr->x, i + 1);
+            err *= (FER_ONE - ferVecGet(lr->x, i + 1));
+            ferVecSet(delta_out, i, err);
+        }
+    }
+}
+
+static void newWeights(fer_nnbp_t *nn, const fer_vec_t *out)
+{
+    fer_real_t wold, w;
+    fer_nnbp_layer_t *lr, *lr2;
+    int layer;
+    size_t i, j;
+    fer_vec_t *din, *delta;
+
+    for (layer = (int)nn->layers_num - 1; layer >= 1; layer--){
+        lr  = &nn->layers[layer];
+        lr2 = &nn->layers[layer - 1];
+        din = nn->delta[layer % 2];
+        delta = nn->delta[(layer + 1) % 2];
+
+        // delta of current layer
+        makeDelta(nn, layer, out, din, delta);
+
+        for (i = 0; i < lr->size; i++){
+            for (j = 0; j < lr2->size + 1; j++){
+                w = wold = ferVecGet(lr->w[i], j);
+                w -= nn->eta * ferVecGet(delta, i) * ferVecGet(lr2->x, j);
+                w += nn->alpha * (ferVecGet(lr->w[i], j) - ferVecGet(lr->prevw[i], j));
+                ferVecSet(lr->w[i], j, w);
+                ferVecSet(lr->prevw[i], j, wold);
+            }
+        }
+    }
+}
+
+
 
 static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda)
 {
     fer_real_t val;
     val = ferRecp(FER_ONE + FER_EXP(-lambda * x));
     return val;
-}
-
-/** Feed NN with input data */
-static void ferNNBPFeed(fer_nnbp_t *nn, const fer_vec_t *in)
-{
-    fer_real_t sum, val;
-    size_t i, n;
-
-    // copy input layer
-    DBG("0, %d, %f", -1, ferVecGet(nn->layers[0].x, 0));
-    for (i = 0; i < nn->layers[0].size; i++){
-        ferVecSet(nn->layers[0].x, i + 1, ferVecGet(in, i));
-        DBG("0, %u, %f", i, ferVecGet(nn->layers[0].x, i + 1));
-    }
-
-    // for each neuron in each layer
-    for (i = 1; i < nn->layers_num; i++){
-        DBG("%u, %d, %f", i, -1, ferVecGet(nn->layers[i].x, 0));
-        for (n = 0; n < nn->layers[i].size; n++){
-            sum = ferVecDot(nn->layers[i - 1].size + 1,
-                            nn->layers[i].w[n], nn->layers[i - 1].x);
-            val = sigmoid(sum, nn->lambda);
-            ferVecSet(nn->layers[i].x, n + 1, val);
-            DBG("%u, %u, %f", i, n, ferVecGet(nn->layers[i].x, n + 1));
-        }
-    }
-}
-
-static fer_real_t ferNNBPErr(const fer_nnbp_t *nn,
-                             const fer_vec_t *in)
-{
-    size_t i;
-    fer_real_t err;
-
-    err = FER_CUBE(ferVecGet(nn->layers[nn->layers_num - 1].x, 1)
-                    - ferVecGet(in, 0));
-    for (i = 1; i < nn->layers[nn->layers_num - 1].size; i++){
-        err += FER_CUBE(ferVecGet(nn->layers[nn->layers_num - 1].x, i + 1)
-                            - ferVecGet(in, i));
-    }
-
-    return err;
-}
-
-static void ferNNBPNewWeights(fer_nnbp_t *nn)
-{
-    // TODO
-}
-
-fer_real_t ferNNBPLearn(fer_nnbp_t *nn, const fer_vec_t *in)
-{
-    fer_real_t err;
-
-    // feed neural network with the input
-    ferNNBPFeed(nn, in);
-
-    // compute error
-    err = ferNNBPErr(nn, in);
-
-    ferNNBPNewWeights(nn);
-
-    return err;
 }
