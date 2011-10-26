@@ -55,6 +55,28 @@ void ferImagePGMFDel(fer_image_pgmf_t *img);
  */
 void ferImagePGMFSave(fer_image_pgmf_t *img, const char *filename);
 
+/**
+ * Returns color from (row, col) position
+ */
+_fer_inline float ferImagePGMFGet(const fer_image_pgmf_t *img, int row, int col);
+
+/**
+ * Set color at (row, col) position
+ */
+_fer_inline void ferImagePGMFSet(const fer_image_pgmf_t *img, int row, int col, float color);
+
+
+/**** INLINES ****/
+_fer_inline float ferImagePGMFGet(const fer_image_pgmf_t *img, int row, int col)
+{
+    return img->data[row * img->width + col];
+}
+
+_fer_inline void ferImagePGMFSet(const fer_image_pgmf_t *img, int row, int col, float color)
+{
+    img->data[row * img->width + col] = color;
+}
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
