@@ -33,6 +33,7 @@ endif
 #BIN_TARGETS += fer-rrt-2d fer-rrt-6d
 #BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 BIN_TARGETS += fer-nnbp
+BIN_TARGETS += fer-nnbp-img
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -95,6 +96,8 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+bin/fer-nnbp-img: bin/nnbp-img-main.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lSDL -lSDL_image
 
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@

@@ -21,6 +21,8 @@
 
 /** Sigmoid function: 1/(1 + exp(-lambda * x)) */
 static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda);
+/** Sigmoid function with output <0, 1> */
+static fer_real_t sigmoid01(fer_real_t x, fer_real_t lambda);
 /** Computes new weights in network */
 static void newWeights(fer_nnbp_t *nn, const fer_vec_t *out);
 
@@ -29,6 +31,8 @@ void ferNNBPParamsInit(fer_nnbp_params_t *params)
     params->alpha  = FER_REAL(0.7);
     params->eta    = FER_REAL(0.3);
     params->lambda = FER_REAL(1.);
+
+    params->func = FER_NNBP_SIGMOID;
 }
 
 fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params)
@@ -43,6 +47,7 @@ fer_nnbp_t *ferNNBPNew(const fer_nnbp_params_t *params)
     nn->eta    = params->eta;
     nn->alpha  = params->alpha;
     nn->lambda = params->lambda;
+    nn->func   = params->func;
 
     //rnd = ferRandMTNewAuto();
     rnd = ferRandMTNew(1111);
@@ -123,7 +128,12 @@ const fer_vec_t *ferNNBPFeed(fer_nnbp_t *nn, const fer_vec_t *in)
         for (n = 0; n < nn->layers[i].size; n++){
             sum = ferVecDot(nn->layers[i - 1].size + 1,
                             nn->layers[i].w[n], nn->layers[i - 1].x);
-            val = sigmoid(sum, nn->lambda);
+            val = FER_ZERO;
+            if (nn->func == FER_NNBP_SIGMOID){
+                val = sigmoid(sum, nn->lambda);
+            }else if (nn->func == FER_NNBP_SIGMOID01){
+                val = sigmoid01(sum, nn->lambda);
+            }
             ferVecSet(nn->layers[i].x, n + 1, val);
         }
     }
@@ -219,5 +229,12 @@ static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda)
 {
     fer_real_t val;
     val = ferRecp(FER_ONE + FER_EXP(-lambda * x));
+    return val;
+}
+
+static fer_real_t sigmoid01(fer_real_t x, fer_real_t lambda)
+{
+    fer_real_t val = sigmoid(x, lambda);
+    val = (val + FER_ONE) * FER_REAL(0.5);
     return val;
 }

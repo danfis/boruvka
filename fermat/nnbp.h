@@ -29,6 +29,10 @@ extern "C" {
  * ==================================
  */
 
+/** Transition Functions */
+#define FER_NNBP_SIGMOID   0  /*!< sigmoid <-1, 1> */
+#define FER_NNBP_SIGMOID01 1  /*!< sigmoid <0, 1> */
+
 struct _fer_nnbp_layer_t {
     size_t size;   /*!< Size of layer */
     fer_vec_t *x;  /*!< Layer output.
@@ -46,7 +50,10 @@ struct _fer_nnbp_params_t {
                              output). Size of array must be {.layers} */
     fer_real_t alpha;   /*!< */
     fer_real_t eta;     /*!< */
-    fer_real_t lambda;  /*!< */
+
+    fer_real_t lambda;  /*!< Sigmoid slope */
+    int func;           /*!< Transition function of single neuron.
+                             Default: FER_NNBP_SIGMOID */
 };
 typedef struct _fer_nnbp_params_t fer_nnbp_params_t;
 
@@ -62,6 +69,8 @@ struct _fer_nnbp_t {
     fer_nnbp_layer_t *layers; /*!< Array of layers */
     fer_vec_t *delta[2];
     fer_vec_t *tmp;
+
+    int func;
 };
 typedef struct _fer_nnbp_t fer_nnbp_t;
 
