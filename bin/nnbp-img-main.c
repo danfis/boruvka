@@ -82,7 +82,7 @@ static float color(float col)
     }
 }
 
-static void imgTiles(img_tile_t *tiles, size_t len, const fer_image_pgmf_t *img)
+static void imgTiles(img_tile_t *tiles, size_t len, const fer_image_pnmf_t *img)
 {
     size_t i;
     int x, y, pos, w, k, l, p;
@@ -100,14 +100,14 @@ static void imgTiles(img_tile_t *tiles, size_t len, const fer_image_pgmf_t *img)
         for (k = 0; k < IMG_TILE_WIDTH; k++){
             pos = tiles[i].start + (k * img->width);
             for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
-                col = img->data[pos];
+                col = ferImagePNMFGetGray2(img, pos);
                 ferVecSet(tiles[i].v, p++, color(col));
             }
         }
     }
 }
 
-static void imgSetTile(fer_image_pgmf_t *img, fer_nnbp_t *nn,
+static void imgSetTile(fer_image_pnmf_t *img, fer_nnbp_t *nn,
                        const img_tile_t *tiles, size_t i)
 {
     int pos, k, l, p;
@@ -121,14 +121,13 @@ static void imgSetTile(fer_image_pgmf_t *img, fer_nnbp_t *nn,
         pos = tiles[i].start + (k * img->width);
         for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
             col = ferVecGet(vout, p++);
-
-            img->data[pos] = color(col);
+            ferImagePNMFSetGray2(img, pos, color(col));
         }
     }
 }
 
 static void imgTilesSave(const img_tile_t *tiles, size_t len,
-                         fer_image_pgmf_t *img, const char *fn)
+                         fer_image_pnmf_t *img, const char *fn)
 {
     size_t i;
     int pos, k, l, p;
@@ -140,12 +139,12 @@ static void imgTilesSave(const img_tile_t *tiles, size_t len,
             pos = tiles[i].start + (k * img->width);
             for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
                 col = ferVecGet(tiles[i].v, p++);
-                img->data[pos] = color(col);
+                ferImagePNMFSetGray2(img, pos, color(col));
             }
         }
     }
 
-    ferImagePGMFSave(img, fn);
+    ferImagePNMFSave(img, fn);
 }
 
 
@@ -158,7 +157,7 @@ static void imgTilesDel(img_tile_t *tiles, size_t len)
 }
 
 static void imgTilesRecascade(fer_nnbp_t *nn, const img_tile_t *tiles, size_t len,
-                              fer_image_pgmf_t *img, const char *fn)
+                              fer_image_pnmf_t *img, const char *fn)
 {
     int tile;
     SDL_Surface *image;
@@ -167,7 +166,7 @@ static void imgTilesRecascade(fer_nnbp_t *nn, const img_tile_t *tiles, size_t le
     for (tile = 0; tile < len; tile++){
         imgSetTile(img, nn, tiles, tile);
     }
-    ferImagePGMFSave(img, fn);
+    ferImagePNMFSave(img, fn);
 
     system("convert in.pgm out.pgm +append in-out.pgm");
 
@@ -194,7 +193,7 @@ int main(int argc, char *argv[])
 {
     fer_nnbp_params_t params;
     fer_nnbp_t *nn;
-    fer_image_pgmf_t *img;
+    fer_image_pnmf_t *img;
     size_t layer_size[] = { IMG_TILE_LEN, IMG_HIDDEN1, IMG_HIDDEN2, IMG_TILE_LEN };
     img_tile_t *tiles;
     size_t tiles_len;
@@ -210,10 +209,10 @@ int main(int argc, char *argv[])
     signal(SIGINT, imgSigint);
 
 
-    img = ferImagePGMF(argv[1]);
+    img = ferImagePNMF(argv[1]);
     if (!img){
         fprintf(stderr, "File `%s' not found\n", argv[1]);
-        ferImagePGMFDel(img);
+        ferImagePNMFDel(img);
         return -1;
     }else{
         printf("File `%s': %dx%d px\n", argv[1], img->width, img->height);
@@ -222,7 +221,7 @@ int main(int argc, char *argv[])
             || img->height % IMG_TILE_HEIGHT != 0){
         fprintf(stderr, "Image is %dx%d pixels, but tile should be %dx%d pixels\n",
                 img->width, img->height, IMG_TILE_WIDTH, IMG_TILE_HEIGHT);
-        ferImagePGMFDel(img);
+        ferImagePNMFDel(img);
         return -1;
     }
 
@@ -296,7 +295,7 @@ int main(int argc, char *argv[])
 
     imgTilesDel(tiles, tiles_len);
     free(tiles);
-    ferImagePGMFDel(img);
+    ferImagePNMFDel(img);
 
 
     SDL_Quit();
