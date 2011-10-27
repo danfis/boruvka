@@ -31,51 +31,64 @@ extern "C" {
  */
 
 /**
- * PGM image stored in floats.
+ * PPM image
  */
-struct _fer_image_pgmf_t {
+struct _fer_image_pnmf_t {
+    uint8_t type;
     int width;
     int height;
     float *data;
 };
-typedef struct _fer_image_pgmf_t fer_image_pgmf_t;
+typedef struct _fer_image_pnmf_t fer_image_pnmf_t;
 
 /**
- * Loads PGM from file.
+ * Loads PPM from file.
  */
-fer_image_pgmf_t *ferImagePGMF(const char *filename);
+fer_image_pnmf_t *ferImagePNMF(const char *filename);
 
 /**
- * Deletes PGM file.
+ * Deletes PPM file.
  */
-void ferImagePGMFDel(fer_image_pgmf_t *img);
+void ferImagePNMFDel(fer_image_pnmf_t *img);
 
 /**
  * Save image as given file
  */
-void ferImagePGMFSave(fer_image_pgmf_t *img, const char *filename);
+void ferImagePNMFSave(fer_image_pnmf_t *img, const char *filename);
 
 /**
  * Returns color from (row, col) position
  */
-_fer_inline float ferImagePGMFGet(const fer_image_pgmf_t *img, int row, int col);
+void ferImagePNMFGetRGB(const fer_image_pnmf_t *img, int row, int col,
+                        float *r, float *g, float *b);
 
 /**
  * Set color at (row, col) position
  */
-_fer_inline void ferImagePGMFSet(const fer_image_pgmf_t *img, int row, int col, float color);
+void ferImagePNMFSetRGB(const fer_image_pnmf_t *img, int row, int col,
+                        float r, float g, float b);
 
+/**
+ * Returns color from position
+ */
+void ferImagePNMFGetRGB2(const fer_image_pnmf_t *img, int pos,
+                         float *r, float *g, float *b);
 
-/**** INLINES ****/
-_fer_inline float ferImagePGMFGet(const fer_image_pgmf_t *img, int row, int col)
-{
-    return img->data[row * img->width + col];
-}
+/**
+ * Set color at position
+ */
+void ferImagePNMFSetRGB2(const fer_image_pnmf_t *img, int pos,
+                         float r, float g, float b);
 
-_fer_inline void ferImagePGMFSet(const fer_image_pgmf_t *img, int row, int col, float color)
-{
-    img->data[row * img->width + col] = color;
-}
+/**
+ * Returns gray from position
+ */
+float ferImagePNMFGetGray2(const fer_image_pnmf_t *img, int pos);
+
+/**
+ * Set gray at position
+ */
+void ferImagePNMFSetGray2(const fer_image_pnmf_t *img, int pos, float gr);
 
 #ifdef __cplusplus
 } /* extern "C" */
