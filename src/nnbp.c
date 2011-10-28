@@ -227,14 +227,14 @@ static void newWeights(fer_nnbp_t *nn, const fer_vec_t *out)
 
 static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda)
 {
-    fer_real_t val;
-    val = ferRecp(FER_ONE + FER_EXP(-lambda * x));
+    fer_real_t val = sigmoid01(x, lambda);
+    val = (val - FER_REAL(0.5)) * FER_REAL(2.);
     return val;
 }
 
 static fer_real_t sigmoid01(fer_real_t x, fer_real_t lambda)
 {
-    fer_real_t val = sigmoid(x, lambda);
-    val = (val + FER_ONE) * FER_REAL(0.5);
+    fer_real_t val;
+    val = ferRecp(FER_ONE + FER_EXP(-lambda * x));
     return val;
 }

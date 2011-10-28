@@ -72,10 +72,21 @@ static void imgSigint(int _)
     }
 }
 
-static float color(float col)
+static float colorToImg(float col)
 {
     //return col;
     if (col < IMG_BW_TRESHOLD){
+    //if (col < 0.){
+        return 0.f;
+    }else{
+        return 1.f;
+    }
+}
+
+static float colorFromImg(float col)
+{
+    if (col < IMG_BW_TRESHOLD){
+        //return -1.f;
         return 0.f;
     }else{
         return 1.f;
@@ -101,7 +112,7 @@ static void imgTiles(img_tile_t *tiles, size_t len, const fer_image_pnmf_t *img)
             pos = tiles[i].start + (k * img->width);
             for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
                 col = ferImagePNMFGetGray2(img, pos);
-                ferVecSet(tiles[i].v, p++, color(col));
+                ferVecSet(tiles[i].v, p++, colorFromImg(col));
             }
         }
     }
@@ -121,7 +132,7 @@ static void imgSetTile(fer_image_pnmf_t *img, fer_nnbp_t *nn,
         pos = tiles[i].start + (k * img->width);
         for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
             col = ferVecGet(vout, p++);
-            ferImagePNMFSetGray2(img, pos, color(col));
+            ferImagePNMFSetGray2(img, pos, colorToImg(col));
         }
     }
 }
@@ -139,7 +150,7 @@ static void imgTilesSave(const img_tile_t *tiles, size_t len,
             pos = tiles[i].start + (k * img->width);
             for (l = 0; l < IMG_TILE_HEIGHT; l++, pos++){
                 col = ferVecGet(tiles[i].v, p++);
-                ferImagePNMFSetGray2(img, pos, color(col));
+                ferImagePNMFSetGray2(img, pos, colorToImg(col));
             }
         }
     }
@@ -167,8 +178,6 @@ static void imgTilesRecascade(fer_nnbp_t *nn, const img_tile_t *tiles, size_t le
         imgSetTile(img, nn, tiles, tile);
     }
     ferImagePNMFSave(img, fn);
-
-    system("convert in.pgm out.pgm +append in-out.pgm");
 
     image = IMG_Load("out.pgm");
     dest.x = img->width;
@@ -252,7 +261,8 @@ int main(int argc, char *argv[])
     params.eta = 0.3;
     params.alpha = 0.7;
     params.lambda = 1.;
-    params.func = FER_NNBP_SIGMOID;
+    //params.func = FER_NNBP_SIGMOID;
+    params.func = FER_NNBP_SIGMOID01;
     printf("Layers: %d", (int)params.layer_size[0]);
     for (i = 1; i < params.layers_num; i++){
         printf(" -> %d", (int)params.layer_size[i]);
