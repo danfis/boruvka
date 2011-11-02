@@ -26,12 +26,13 @@ ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
 endif
 
-BIN_TARGETS  = fer-gsrm fer-qdelaunay
-BIN_TARGETS += fer-gng-eu fer-plan-2d
-BIN_TARGETS += fer-gng-t
-BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
-BIN_TARGETS += fer-rrt-2d fer-rrt-6d
-BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
+#BIN_TARGETS  = fer-gsrm fer-qdelaunay
+#BIN_TARGETS += fer-gng-eu fer-plan-2d
+#BIN_TARGETS += fer-gng-t
+#BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
+#BIN_TARGETS += fer-rrt-2d fer-rrt-6d
+#BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
+BIN_TARGETS  = fer-ga
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -76,6 +77,8 @@ ifeq '$(USE_OPENCL)' 'yes'
   OBJS += surf-matching.o
 endif
 
+OBJS += ga.o
+
 FERMAT_CD_H  = config.h.m4 core.h
 FERMAT_CD_H += vec3.h mat3.h quat.h chull3.h
 FERMAT_CD_H += list.h hmap.h tasks.h barrier.h alloc.h
@@ -91,7 +94,6 @@ FERMAT_CD_C += cd-cd.c cd-geom.c cd-sap.c cd-cp.c
 
 FERMAT_CD_H := $(foreach file,$(FERMAT_CD_H),fermat/$(file))
 FERMAT_CD_C := $(foreach file,$(FERMAT_CD_C),src/$(file))
-
 
 # header files that must be generated
 HEADERS = cubes2.h cubes3.h
