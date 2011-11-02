@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     fer_ga_params_t params;
     fer_ga_t *ga;
 
-    ferGAOpsParamsInt(&ops, &params, 5, 10);
+    ferGAOpsParamsInt(&ops, &params, 5, 11);
     ops.terminate = terminate;
     params.pm = 0.01;
 

@@ -56,13 +56,11 @@ typedef void (*fer_ga_init)(struct _fer_ga_t *ga, void *genotype, void *data);
 typedef size_t (*fer_ga_sel)(struct _fer_ga_t *ga, void *data);
 
 /**
- * Performs a crossover between {ing1} and {ing2} and put the results into
- * {outg1} and {outg2}.
- * Note that {outg2} can be NULL and thus must be avoided.
+ * Performs a crossover.
+ * Note that {outg[i]} can be NULL and thus must be avoided.
  */
 typedef void (*fer_ga_crossover)(struct _fer_ga_t *ga,
-                                 void *ing1, void *ing2, void *outg1, void *outg2,
-                                 void *data);
+                                 void **ing, void **outg, void *data);
 
 /**
  * Performs a mutation on genotype.
@@ -77,15 +75,15 @@ typedef void (*fer_ga_mutate)(struct _fer_ga_t *ga, void *genotype, void *data);
 typedef void (*fer_ga_callback)(struct _fer_ga_t *ga, void *);
 
 struct _fer_ga_ops_t {
-    fer_ga_eval      eval;
-    fer_ga_terminate terminate;
-    fer_ga_init      init;
-    fer_ga_sel       sel;
-    fer_ga_crossover crossover;
-    fer_ga_mutate    mutate;
+    fer_ga_eval      eval;      /*!< Default: NULL */
+    fer_ga_terminate terminate; /*!< Default: NULL */
+    fer_ga_init      init;      /*!< Default: NULL */
+    fer_ga_sel       sel;       /*!< Default: ferGASelTournament2 */
+    fer_ga_crossover crossover; /*!< Default: ferGACrossover2 */
+    fer_ga_mutate    mutate;    /*!< Default: ferGAMutateNone */
 
-    fer_ga_callback callback;
-    unsigned long callback_period;
+    fer_ga_callback callback;      /*!< Default: NULL */
+    unsigned long callback_period; /*!< Default: 0, i.e. never */
 
     void *data; /*!< Data pointer that will be provided to all callbacks if
                      not specified otherwise. */
@@ -109,12 +107,14 @@ void ferGAOpsInit(fer_ga_ops_t *ops);
 
 
 struct _fer_ga_params_t {
-    fer_real_t pc;        /*!< Probability of crossover */
-    fer_real_t pm;        /*!< Probability of mutation */
-    size_t gene_size;     /*!< Size of one gene (in bytes) */
-    size_t genotype_size; /*!< Number of genes in genotype */
-    size_t pop_size;      /*!< Size of population */
-    size_t fitness_size;  /*!< Number of fitness values */
+    fer_real_t pc;        /*!< Probability of crossover. Default: 0.7 */
+    fer_real_t pm;        /*!< Probability of mutation. Default: 0.001 */
+    size_t gene_size;     /*!< Size of one gene (in bytes). Default: 1 */
+    size_t genotype_size; /*!< Number of genes in genotype. Default: 1 */
+    size_t pop_size;      /*!< Size of population. Default: 1 */
+    size_t fitness_size;  /*!< Number of fitness values. Default: 1 */
+    size_t crossover_size; /*!< Number of individuals selected for crossover.
+                                Default: 2 */
 };
 typedef struct _fer_ga_params_t fer_ga_params_t;
 
@@ -137,6 +137,8 @@ struct _fer_ga_t {
 
     void **pop[2];   /*!< Population */
     size_t pop_cur; /*!< Index of current population */
+    void **gt[2];
+    fer_real_t **ft[2];
 
     fer_rand_mt_t *rand;
 };
@@ -158,9 +160,40 @@ void ferGADel(fer_ga_t *ga);
 void ferGARun(fer_ga_t *ga);
 
 
+
+
+/**
+ * Returns pointer to fitness array of the individual
+ */
 _fer_inline fer_real_t *ferGAIndivFitness(fer_ga_t *ga, void *indiv);
+
+/**
+ * Returns pointer to genotype array of the individual
+ */
 _fer_inline void *ferGAIndivGenotype(fer_ga_t *ga, void *indiv);
+
+/**
+ * Returns pointer to specific gene of the individual
+ */
 _fer_inline void *ferGAIndivGene(fer_ga_t *ga, void *indiv, size_t genepos);
+
+
+
+
+/**
+ * Tournament selection of two individuals
+ */
+size_t ferGASelTournament2(fer_ga_t *ga, void *data);
+
+/**
+ * Crossover operator between two individuals
+ */
+void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data);
+
+/**
+ * No mutation
+ */
+void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data);
 
 
 /**** INLINES ****/
