@@ -159,8 +159,16 @@ void ferGADel(fer_ga_t *ga);
  */
 void ferGARun(fer_ga_t *ga);
 
+/**
+ * Returns a random number from range
+ */
+_fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t);
 
 
+/**
+ * Returns i'th individual
+ */
+_fer_inline void *ferGAIndiv(fer_ga_t *ga, size_t i);
 
 /**
  * Returns pointer to fitness array of the individual
@@ -186,9 +194,15 @@ _fer_inline void *ferGAIndivGene(fer_ga_t *ga, void *indiv, size_t genepos);
 size_t ferGASelTournament2(fer_ga_t *ga, void *data);
 
 /**
+ * Tournament selection of three individuals
+ */
+size_t ferGASelTournament3(fer_ga_t *ga, void *data);
+
+/**
  * Crossover operator between two individuals
  */
 void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data);
+
 
 /**
  * No mutation
@@ -197,6 +211,16 @@ void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data);
 
 
 /**** INLINES ****/
+_fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t)
+{
+    return ferRandMT(ga->rand, f, t);
+}
+
+_fer_inline void *ferGAIndiv(fer_ga_t *ga, size_t i)
+{
+    return ga->pop[ga->pop_cur][i];
+}
+
 _fer_inline fer_real_t *ferGAIndivFitness(fer_ga_t *ga, void *indiv)
 {
     return (fer_real_t *)indiv;
