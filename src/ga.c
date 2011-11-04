@@ -59,6 +59,7 @@ void ferGAParamsInit(fer_ga_params_t *p)
     p->pop_size = 1;
     p->fitness_size = 1;
     p->crossover_size = 2;
+    p->threads = 1;
 }
 
 fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
@@ -67,6 +68,7 @@ fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
     size_t i;
 
     ga = FER_ALLOC(fer_ga_t);
+    ga->tid = -1;
     ga->params = *params;
 
     ga->ops = *ops;
@@ -88,12 +90,8 @@ fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
     }
     ga->pop_cur = 0;
 
-
-    ga->gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
-    ga->gt[1] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
-    ga->ft[0] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
-    ga->ft[1] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
-
+    ga->gt[0] = ga->gt[1] = NULL;
+    ga->ft[0] = ga->ft[1] = NULL;
 
     ga->rand = ferRandMTNewAuto();
 
@@ -110,20 +108,61 @@ void ferGADel(fer_ga_t *ga)
     }
     FER_FREE(ga->pop[0]);
     FER_FREE(ga->pop[1]);
-    FER_FREE(ga->gt[0]);
-    FER_FREE(ga->gt[1]);
-    FER_FREE(ga->ft[0]);
-    FER_FREE(ga->ft[1]);
 
     ferRandMTDel(ga->rand);
 
     FER_FREE(ga);
 }
 
-void ferGARun(fer_ga_t *ga)
+static void _ferGAStep(fer_ga_t *ga, size_t from, size_t to)
 {
-    size_t popsize, i, sel;
-    unsigned long cb = 0UL;
+    size_t ind, i, sel;
+
+
+    ind = from;
+    while (ind < to){
+        // selection
+        for (i = 0; i < ga->params.crossover_size; i++){
+            sel = ga->ops.sel(ga, ga->ops.sel_data);
+            ga->gt[0][i] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][sel]);
+            ga->ft[0][i] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][sel]);
+
+            if (ind < to){
+                ga->gt[1][i] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur ^ 1][ind]);
+                ga->ft[1][i] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur ^ 1][ind]);
+                ++ind;
+            }
+            //DBG("[%d] %d", (int)i, (int)sel);
+            //DBG("Sel: %d %d", (int)sel[0], (int)sel[1]);
+        }
+
+        // crossover
+        if (ferGARand01(ga) < ga->params.pc){
+            ga->ops.crossover(ga, ga->gt[0], ga->gt[1], ga->ops.crossover_data);
+        }else{
+            for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
+                memcpy(ga->gt[1][i], ga->gt[0][i],
+                       ga->params.gene_size * ga->params.genotype_size);
+            }
+        }
+
+        // mutation
+        for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
+            if (ferGARand01(ga) < ga->params.pm){
+                ga->ops.mutate(ga, ga->gt[1][i], ga->ops.mutate_data);
+            }
+        }
+
+        // eval
+        for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
+            ga->ops.eval(ga, ga->gt[1][i], ga->ft[1][i], ga->ops.eval_data);
+        }
+    }
+}
+
+static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to)
+{
+    size_t i;
 
     for (i = 0; i < ga->params.pop_size; ++i){
         ga->gt[0][0] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]);
@@ -132,6 +171,20 @@ void ferGARun(fer_ga_t *ga)
         ga->ops.init(ga, ga->gt[0][0], ga->ops.init_data);
         ga->ops.eval(ga, ga->gt[0][0], ga->ft[0][0], ga->ops.eval_data);
     }
+}
+
+void ferGARun(fer_ga_t *ga)
+{
+    unsigned long cb = 0UL;
+
+    // alloc temporary memory
+    ga->gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+    ga->gt[1] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+    ga->ft[0] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+    ga->ft[1] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+
+    // initialize individuals
+    _ferGAInit(ga, 0, ga->params.pop_size);
 
     do {
         cb += 1UL;
@@ -153,47 +206,20 @@ void ferGARun(fer_ga_t *ga)
             cb = 0UL;
         }
 
-        for (popsize = 0; popsize < ga->params.pop_size;){
-            // selection
-            for (i = 0; i < ga->params.crossover_size; i++){
-                sel = ga->ops.sel(ga, ga->ops.sel_data);
-                ga->gt[0][i] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][sel]);
-                ga->ft[0][i] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][sel]);
-
-                if (popsize < ga->params.pop_size){
-                    ga->gt[1][i] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur ^ 1][popsize]);
-                    ga->ft[1][i] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur ^ 1][popsize]);
-                    ++popsize;
-                }
-                //DBG("[%d] %d", (int)i, (int)sel);
-                //DBG("Sel: %d %d", (int)sel[0], (int)sel[1]);
-            }
-
-            // crossover
-            if (ferRandMT01(ga->rand) < ga->params.pc){
-                ga->ops.crossover(ga, ga->gt[0], ga->gt[1], ga->ops.crossover_data);
-            }else{
-                for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
-                    memcpy(ga->gt[1][i], ga->gt[0][i],
-                           ga->params.gene_size * ga->params.genotype_size);
-                }
-            }
-
-            // mutation
-            for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
-                if (ferRandMT01(ga->rand) < ga->params.pm){
-                    ga->ops.mutate(ga, ga->gt[1][i], ga->ops.mutate_data);
-                }
-            }
-
-            // eval
-            for (i = 0; i < ga->params.crossover_size && ga->gt[1][i]; i++){
-                ga->ops.eval(ga, ga->gt[1][i], ga->ft[1][i], ga->ops.eval_data);
-            }
-        }
+        // one step of breeding
+        _ferGAStep(ga, 0, ga->params.pop_size);
 
         ga->pop_cur ^= 1;
     } while (!ga->ops.terminate(ga, ga->ops.terminate_data));
+
+    // free tmp memory
+    FER_FREE(ga->gt[0]);
+    FER_FREE(ga->gt[1]);
+    FER_FREE(ga->ft[0]);
+    FER_FREE(ga->ft[1]);
+
+    ga->gt[0] = ga->gt[1] = NULL;
+    ga->ft[0] = ga->ft[1] = NULL;
 }
 
 
@@ -202,8 +228,8 @@ size_t ferGASelTournament2(fer_ga_t *ga, void *data)
     size_t t[2];
     fer_real_t f[2];
 
-    t[0] = ferRandMT(ga->rand, 0, ga->params.pop_size);
-    t[1] = ferRandMT(ga->rand, 0, ga->params.pop_size);
+    t[0] = ferGARand(ga, 0, ga->params.pop_size);
+    t[1] = ferGARand(ga, 0, ga->params.pop_size);
     f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
     f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
 
@@ -217,9 +243,9 @@ size_t ferGASelTournament3(fer_ga_t *ga, void *data)
     size_t t[3];
     fer_real_t f[3];
 
-    t[0] = ferRandMT(ga->rand, 0, ga->params.pop_size);
-    t[1] = ferRandMT(ga->rand, 0, ga->params.pop_size);
-    t[2] = ferRandMT(ga->rand, 0, ga->params.pop_size);
+    t[0] = ferGARand(ga, 0, ga->params.pop_size);
+    t[1] = ferGARand(ga, 0, ga->params.pop_size);
+    t[2] = ferGARand(ga, 0, ga->params.pop_size);
     f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
     f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
     f[2] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[2]])[0];
@@ -237,7 +263,7 @@ size_t ferGASelTournament3(fer_ga_t *ga, void *data)
 
 void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data)
 {
-    int cross = ferRandMT(ga->rand, 0, ga->params.genotype_size - 1);
+    int cross = ferGARand(ga, 0, ga->params.genotype_size - 1);
     size_t size1, size2;
 
     // size of first and second half

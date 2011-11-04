@@ -115,6 +115,7 @@ struct _fer_ga_params_t {
     size_t fitness_size;  /*!< Number of fitness values. Default: 1 */
     size_t crossover_size; /*!< Number of individuals selected for crossover.
                                 Default: 2 */
+    int threads;           /*!< Number of threads. Default: 1 */
 };
 typedef struct _fer_ga_params_t fer_ga_params_t;
 
@@ -126,6 +127,8 @@ void ferGAParamsInit(fer_ga_params_t *p);
 
 
 struct _fer_ga_t {
+    int tid; /*!< Thread ID, in case threads are used */
+
     fer_ga_params_t params;
     fer_ga_ops_t ops;
 
@@ -137,6 +140,7 @@ struct _fer_ga_t {
     fer_rand_mt_t *rand;
 };
 typedef struct _fer_ga_t fer_ga_t;
+
 
 /**
  * Creates new instance of GA
@@ -154,9 +158,51 @@ void ferGADel(fer_ga_t *ga);
 void ferGARun(fer_ga_t *ga);
 
 /**
- * Returns a random number from range
+ * Returns random number from range
  */
 _fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t);
+
+/**
+ * Returns random number [0, 1>
+ */
+_fer_inline fer_real_t ferGARand01(fer_ga_t *ga);
+
+/**
+ * Returns crossover probability
+ */
+_fer_inline fer_real_t ferGAParamPc(const fer_ga_t *ga);
+
+/**
+ * Returns mutation probability
+ */
+_fer_inline fer_real_t ferGAParamPm(const fer_ga_t *ga);
+
+/**
+ * Returns gene size (in bytes).
+ */
+_fer_inline size_t ferGAParamGeneSize(const fer_ga_t *ga);
+
+/**
+ * Returns genotype size, i.e., number of genes per genotype.
+ */
+_fer_inline size_t ferGAParamGenotypeSize(const fer_ga_t *ga);
+
+/**
+ * Returns population size
+ */
+_fer_inline size_t ferGAParamPopSize(const fer_ga_t *ga);
+
+/**
+ * Returns fitness size, i.e., number of fitness values.
+ */
+_fer_inline size_t ferGAParamFitnessSize(const fer_ga_t *ga);
+
+/**
+ * Returns crossover size, i.e., number of individuals that undergo a
+ * crossover operator.
+ */
+_fer_inline size_t ferGAParamCrossoverSize(const fer_ga_t *ga);
+
 
 
 /**
@@ -207,8 +253,53 @@ void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data);
 /**** INLINES ****/
 _fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t)
 {
-    return ferRandMT(ga->rand, f, t);
+    if (ga->tid == -1)
+        return ferRandMT(ga->rand, f, t);
+    return 0.;
 }
+
+_fer_inline fer_real_t ferGARand01(fer_ga_t *ga)
+{
+    if (ga->tid == -1)
+        return ferRandMT01(ga->rand);
+    return 0.;
+}
+
+_fer_inline fer_real_t ferGAParamPc(const fer_ga_t *ga)
+{
+    return ga->params.pc;
+}
+
+_fer_inline fer_real_t ferGAParamPm(const fer_ga_t *ga)
+{
+    return ga->params.pm;
+}
+
+_fer_inline size_t ferGAParamGeneSize(const fer_ga_t *ga)
+{
+    return ga->params.gene_size;
+}
+
+_fer_inline size_t ferGAParamGenotypeSize(const fer_ga_t *ga)
+{
+    return ga->params.genotype_size;
+}
+
+_fer_inline size_t ferGAParamPopSize(const fer_ga_t *ga)
+{
+    return ga->params.pop_size;
+}
+
+_fer_inline size_t ferGAParamFitnessSize(const fer_ga_t *ga)
+{
+    return ga->params.fitness_size;
+}
+
+_fer_inline size_t ferGAParamCrossoverSize(const fer_ga_t *ga)
+{
+    return ga->params.crossover_size;
+}
+
 
 _fer_inline void *ferGAIndiv(fer_ga_t *ga, size_t i)
 {
