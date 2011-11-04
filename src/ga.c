@@ -26,12 +26,6 @@
 static void *ferGAIndivNew(fer_ga_t *ga);
 static void ferGAIndivDel(fer_ga_t *ga, void *indiv);
 
-
-static void ferGAEvalInt(fer_ga_t *ga, void *gt, fer_real_t *ft, void *data);
-static void ferGAInitInt(fer_ga_t *ga, void *gt, void *data);
-static void ferGAMutateInt(fer_ga_t *ga, void *gt, void *data);
-
-
 #define OPS_DATA(name) \
     if (!ga->ops.name ## _data) \
         ga->ops.name ## _data = ga->ops.data;
@@ -65,23 +59,6 @@ void ferGAParamsInit(fer_ga_params_t *p)
     p->pop_size = 1;
     p->fitness_size = 1;
     p->crossover_size = 2;
-}
-
-void ferGAOpsParamsInt(fer_ga_ops_t *ops, fer_ga_params_t *params,
-                       size_t genotype_size, size_t pop_size)
-{
-    ferGAOpsInit(ops);
-    ferGAParamsInit(params);
-
-    ops->eval      = ferGAEvalInt;
-    ops->init      = ferGAInitInt;
-    ops->mutate    = ferGAMutateInt;
-
-    params->gene_size     = sizeof(int);
-    params->genotype_size = genotype_size;
-    params->pop_size      = pop_size;
-    params->fitness_size  = 1;
-    params->crossover_size = 2;
 }
 
 fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
@@ -299,40 +276,4 @@ static void *ferGAIndivNew(fer_ga_t *ga)
 static void ferGAIndivDel(fer_ga_t *ga, void *indiv)
 {
     FER_FREE(indiv);
-}
-
-
-
-
-static void ferGAEvalInt(fer_ga_t *ga, void *_gt, fer_real_t *ft, void *data)
-{
-    int *gt = (int *)_gt;
-    size_t i;
-
-    ft[0] = gt[0];
-    for (i = 1; i < ga->params.genotype_size; i++){
-        ft[0] += gt[i];
-    }
-}
-
-static void ferGAInitInt(fer_ga_t *ga, void *_gt, void *data)
-{
-    size_t i;
-    int *gt = (int *)_gt;
-
-    for (i = 0; i < ga->params.genotype_size; i++){
-        gt[i] = ferRandMT(ga->rand, -10, 10);
-    }
-}
-
-static void ferGAMutateInt(fer_ga_t *ga, void *_gt, void *data)
-{
-    int *gt = (int *)_gt;
-    size_t i;
-
-    for (i = 0; i < ga->params.genotype_size; i++){
-        if (ferRandMT01(ga->rand) < ga->params.pm){
-            gt[i] = ferRandMT(ga->rand, -10, 10);
-        }
-    }
 }

@@ -125,12 +125,6 @@ typedef struct _fer_ga_params_t fer_ga_params_t;
 void ferGAParamsInit(fer_ga_params_t *p);
 
 
-/**
- * Initialize ops and params to operate on int gene.
- */
-void ferGAOpsParamsInt(fer_ga_ops_t *ops, fer_ga_params_t *params,
-                       size_t genotype_size, size_t pop_size);
-
 struct _fer_ga_t {
     fer_ga_params_t params;
     fer_ga_ops_t ops;
