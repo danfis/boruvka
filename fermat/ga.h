@@ -127,8 +127,6 @@ void ferGAParamsInit(fer_ga_params_t *p);
 
 
 struct _fer_ga_t {
-    int tid; /*!< Thread ID, in case threads are used */
-
     fer_ga_params_t params;
     fer_ga_ops_t ops;
 
@@ -138,6 +136,13 @@ struct _fer_ga_t {
     fer_real_t **ft[2];
 
     fer_rand_mt_t *rand;
+
+
+    int tid; /*!< Thread ID, in case threads are used */
+    int tfrom, tto;
+    pthread_mutex_t tlock;
+    fer_real_t *trand;
+    size_t trand_next, trand_max;
 };
 typedef struct _fer_ga_t fer_ga_t;
 
@@ -163,9 +168,14 @@ void ferGARun(fer_ga_t *ga);
 _fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t);
 
 /**
- * Returns random number [0, 1>
+ * Returns random number [0, 1)
  */
 _fer_inline fer_real_t ferGARand01(fer_ga_t *ga);
+
+/**
+ * Returns random integer number [f, t)
+ */
+_fer_inline int ferGARandInt(fer_ga_t *ga, int f, int t);
 
 /**
  * Returns crossover probability
@@ -250,19 +260,34 @@ void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data);
 void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data);
 
 
+
+void __ferGATRandRefill(fer_ga_t *ga);
+
 /**** INLINES ****/
 _fer_inline fer_real_t ferGARand(fer_ga_t *ga, fer_real_t f, fer_real_t t)
 {
     if (ga->tid == -1)
         return ferRandMT(ga->rand, f, t);
-    return 0.;
+
+    if (ga->trand_next == ga->trand_max)
+        __ferGATRandRefill(ga);
+    return (ga->trand[ga->trand_next++] * (t - f)) + f;
 }
 
 _fer_inline fer_real_t ferGARand01(fer_ga_t *ga)
 {
     if (ga->tid == -1)
         return ferRandMT01(ga->rand);
-    return 0.;
+    if (ga->trand_next == ga->trand_max)
+        __ferGATRandRefill(ga);
+    return ga->trand[ga->trand_next++];
+}
+
+_fer_inline int ferGARandInt(fer_ga_t *ga, int f, int t)
+{
+    int v;
+    v = ferGARand(ga, f, t);
+    return (v < t ? v : t - 1);
 }
 
 _fer_inline fer_real_t ferGAParamPc(const fer_ga_t *ga)

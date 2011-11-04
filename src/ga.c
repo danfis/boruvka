@@ -15,10 +15,27 @@
  */
 
 #include <fermat/ga.h>
+#include <fermat/tasks.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 #include <strings.h>
 #include <string.h>
+#include <limits.h>
+
+/** Performs one breeding step on population in specified range */
+static void _ferGAStep(fer_ga_t *ga, size_t from, size_t to);
+/** Initialize population in specified range */
+static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to);
+
+/** Tasks for parallel version */
+static void __ferGAInitTask(int id, void *data, const fer_tasks_thinfo_t *thinfo);
+static void __ferGAStepTask(int id, void *data, const fer_tasks_thinfo_t *thinfo);
+
+/** Runs GA in threads */
+static void _ferGARunThreads(fer_ga_t *ga);
+/** Runs single-threaded GA */
+static void _ferGARun1(fer_ga_t *ga);
+
 
 /** Invididual is array organized as follows:
  *  (fer_real_t * fitness_size) | (gene_size * genotype_size)
@@ -95,6 +112,8 @@ fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
 
     ga->rand = ferRandMTNewAuto();
 
+    pthread_mutex_init(&ga->tlock, NULL);
+
     return ga;
 }
 
@@ -113,6 +132,94 @@ void ferGADel(fer_ga_t *ga)
 
     FER_FREE(ga);
 }
+
+void ferGARun(fer_ga_t *ga)
+{
+    if (ga->params.threads > 1){
+        _ferGARunThreads(ga);
+    }else{
+        _ferGARun1(ga);
+    }
+}
+
+
+size_t ferGASelTournament2(fer_ga_t *ga, void *data)
+{
+    size_t t[2];
+    fer_real_t f[2];
+
+    t[0] = ferGARandInt(ga, 0, ga->params.pop_size);
+    t[1] = ferGARandInt(ga, 0, ga->params.pop_size);
+    f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
+    f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
+
+    if (f[0] > f[1])
+        return t[0];
+    return t[1];
+}
+
+size_t ferGASelTournament3(fer_ga_t *ga, void *data)
+{
+    size_t t[3];
+    fer_real_t f[3];
+
+    t[0] = ferGARandInt(ga, 0, ga->params.pop_size);
+    t[1] = ferGARandInt(ga, 0, ga->params.pop_size);
+    t[2] = ferGARandInt(ga, 0, ga->params.pop_size);
+    f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
+    f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
+    f[2] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[2]])[0];
+
+    if (f[0] > f[1]){
+        if (f[0] > f[2])
+            return t[0];
+        return t[2];
+    }else{
+        if (f[1] > f[2])
+            return t[1];
+        return t[2];
+    }
+}
+
+void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data)
+{
+    int cross = ferGARandInt(ga, 0, ga->params.genotype_size - 1);
+    size_t size1, size2;
+
+    // size of first and second half
+    size1 = ga->params.gene_size * (cross + 1);
+    size2 = ga->params.gene_size * (ga->params.genotype_size - cross - 1);
+
+    memcpy(outg[0], ing[0], size1);
+    memcpy((char *)outg[0] + size1, (char *)ing[1] + size1, size2);
+
+    if (outg[1]){
+        memcpy(outg[1], ing[1], size1);
+        memcpy((char *)outg[1] + size1, (char *)ing[0] + size1, size2);
+    }
+}
+
+void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data)
+{
+}
+
+
+void __ferGATRandRefill(fer_ga_t *ga)
+{
+    size_t i;
+
+    pthread_mutex_lock(&ga->tlock);
+    for (i = 0; i < ga->trand_max; i++){
+        ga->trand[i] = ferRandMT01(ga->rand);
+    }
+    pthread_mutex_unlock(&ga->tlock);
+
+    ga->trand_next = 0;
+}
+
+
+
+
 
 static void _ferGAStep(fer_ga_t *ga, size_t from, size_t to)
 {
@@ -164,7 +271,7 @@ static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to)
 {
     size_t i;
 
-    for (i = 0; i < ga->params.pop_size; ++i){
+    for (i = from; i < to; ++i){
         ga->gt[0][0] = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]);
         ga->ft[0][0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][i]);
 
@@ -173,7 +280,106 @@ static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to)
     }
 }
 
-void ferGARun(fer_ga_t *ga)
+static void __ferGAInitTask(int id, void *data, const fer_tasks_thinfo_t *thinfo)
+{
+    fer_ga_t *ga = (fer_ga_t *)data;
+    _ferGAInit(ga, ga->tfrom, ga->tto);
+}
+
+static void __ferGAStepTask(int id, void *data, const fer_tasks_thinfo_t *thinfo)
+{
+    fer_ga_t *ga = (fer_ga_t *)data;
+    _ferGAStep(ga, ga->tfrom, ga->tto);
+}
+
+static void _ferGARunThreads(fer_ga_t *ga)
+{
+    unsigned long cb = 0UL;
+
+    fer_tasks_t *tasks;
+    fer_ga_t *gas;
+    int i, len;
+
+    // compute range of population per thread
+    len  = ga->params.pop_size / ga->params.crossover_size;
+    len /= ga->params.threads;
+    len *= ga->params.crossover_size;
+
+    gas = FER_ALLOC_ARR(fer_ga_t, ga->params.threads);
+    for (i = 0; i < ga->params.threads; i++){
+        gas[i] = *ga;
+
+        // set up thread specific data
+        gas[i].tid   = i;
+        gas[i].tfrom = i * len;
+        gas[i].tto   = gas[i].tfrom + len;
+        if (i == ga->params.threads - 1)
+            gas[i].tto = ga->params.pop_size;
+
+        // alloc temporary memory
+        gas[i].gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+        gas[i].gt[1] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+        gas[i].ft[0] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+        gas[i].ft[1] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+
+        // prepare array for random numbers
+        gas[i].trand_max = ga->params.pop_size * 5;
+        gas[i].trand = FER_ALLOC_ARR(fer_real_t, gas[i].trand_max);
+        gas[i].trand_next = 0;
+        __ferGATRandRefill(&gas[i]);
+    }
+
+    // create thread pool
+    tasks = ferTasksNew(ga->params.threads);
+    ferTasksRun(tasks);
+
+
+    // initialize individuals
+    for (i = 0; i < ga->params.threads; i++){
+        ferTasksAdd(tasks, __ferGAInitTask, i, (void *)&gas[i]);
+    }
+    ferTasksBarrier(tasks);
+
+    do {
+        cb += 1UL;
+        if (cb == ga->ops.callback_period && ga->ops.callback){
+            ga->ops.callback(ga, ga->ops.callback_data);
+            cb = 0UL;
+        }
+
+        // one step of breeding
+        for (i = 0; i < ga->params.threads; i++){
+            ferTasksAdd(tasks, __ferGAStepTask, i, (void *)&gas[i]);
+        }
+        ferTasksBarrier(tasks);
+
+        ga->pop_cur ^= 1;
+        for (i = 0; i < ga->params.threads; i++){
+            gas[i].pop_cur ^= 1;
+        }
+    } while (!ga->ops.terminate(ga, ga->ops.terminate_data));
+
+
+    // delete thread pool
+    ferTasksDel(tasks);
+
+    for (i = 0; i < ga->params.threads; i++){
+        // free tmp memory
+        FER_FREE(gas[i].gt[0]);
+        FER_FREE(gas[i].gt[1]);
+        FER_FREE(gas[i].ft[0]);
+        FER_FREE(gas[i].ft[1]);
+
+        gas[i].gt[0] = gas[i].gt[1] = NULL;
+        gas[i].ft[0] = gas[i].ft[1] = NULL;
+
+        FER_FREE(gas[i].trand);
+    }
+
+    FER_FREE(gas);
+}
+
+static void _ferGARun1(fer_ga_t *ga)
 {
     unsigned long cb = 0UL;
 
@@ -188,19 +394,6 @@ void ferGARun(fer_ga_t *ga)
 
     do {
         cb += 1UL;
-
-        /*
-        for (i = 0; i < ga->params.pop_size; i++){
-            DBG("[%d]: %f [%d %d %d %d %d]", (int)i,
-                    (float)(ferGAIndivFitness(ga, ga->pop[ga->pop_cur][i])[0]),
-                    ((int *)ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]))[0],
-                    ((int *)ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]))[1],
-                    ((int *)ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]))[2],
-                    ((int *)ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]))[3],
-                    ((int *)ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][i]))[4]);
-        }
-        */
-
         if (cb == ga->ops.callback_period && ga->ops.callback){
             ga->ops.callback(ga, ga->ops.callback_data);
             cb = 0UL;
@@ -220,67 +413,6 @@ void ferGARun(fer_ga_t *ga)
 
     ga->gt[0] = ga->gt[1] = NULL;
     ga->ft[0] = ga->ft[1] = NULL;
-}
-
-
-size_t ferGASelTournament2(fer_ga_t *ga, void *data)
-{
-    size_t t[2];
-    fer_real_t f[2];
-
-    t[0] = ferGARand(ga, 0, ga->params.pop_size);
-    t[1] = ferGARand(ga, 0, ga->params.pop_size);
-    f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
-    f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
-
-    if (f[0] > f[1])
-        return t[0];
-    return t[1];
-}
-
-size_t ferGASelTournament3(fer_ga_t *ga, void *data)
-{
-    size_t t[3];
-    fer_real_t f[3];
-
-    t[0] = ferGARand(ga, 0, ga->params.pop_size);
-    t[1] = ferGARand(ga, 0, ga->params.pop_size);
-    t[2] = ferGARand(ga, 0, ga->params.pop_size);
-    f[0] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[0]])[0];
-    f[1] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[1]])[0];
-    f[2] = ferGAIndivFitness(ga, ga->pop[ga->pop_cur][t[2]])[0];
-
-    if (f[0] > f[1]){
-        if (f[0] > f[2])
-            return t[0];
-        return t[2];
-    }else{
-        if (f[1] > f[2])
-            return t[1];
-        return t[2];
-    }
-}
-
-void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data)
-{
-    int cross = ferGARand(ga, 0, ga->params.genotype_size - 1);
-    size_t size1, size2;
-
-    // size of first and second half
-    size1 = ga->params.gene_size * (cross + 1);
-    size2 = ga->params.gene_size * (ga->params.genotype_size - cross - 1);
-
-    memcpy(outg[0], ing[0], size1);
-    memcpy((char *)outg[0] + size1, (char *)ing[1] + size1, size2);
-
-    if (outg[1]){
-        memcpy(outg[1], ing[1], size1);
-        memcpy((char *)outg[1] + size1, (char *)ing[0] + size1, size2);
-    }
-}
-
-void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data)
-{
 }
 
 
