@@ -139,7 +139,7 @@ int ferCDCollideCapCap(struct _fer_cd_t *cd,
 
     dist2 = ferVec3SegmentSegmentDist2(&c11, &c12, &c21, &c22, NULL, NULL, NULL);
 
-    if (!ferIsZero(dist2) && dist2 < FER_CUBE(s1->radius + s2->radius)){
+    if (!ferIsZero(dist2) && dist2 < FER_SQ(s1->radius + s2->radius)){
         return 1;
     }
 

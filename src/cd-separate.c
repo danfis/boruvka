@@ -134,7 +134,7 @@ int ferCDSeparateSphereBox(struct _fer_cd_t *cd,
         return 0;
 
     dist = ferCDPointBoxDist2(tr1, b2, rot2, tr2, &w);
-    if (dist < FER_CUBE(s1->radius)){
+    if (dist < FER_SQ(s1->radius)){
         dist = FER_SQRT(dist);
         con->depth[con->num] = s1->radius - dist;
         ferVec3Sub2(&con->dir[con->num], &w, tr1);
@@ -159,7 +159,7 @@ static int __ferCDSeparateSphereCap(struct _fer_cd_t *cd,
     fer_real_t dist;
 
     dist = ferVec3PointSegmentDist2(tr1, cp1, cp2, &w);
-    if (dist < FER_CUBE(s1->radius + radius)){
+    if (dist < FER_SQ(s1->radius + radius)){
         dist = FER_SQRT(dist);
         con->depth[con->num] = s1->radius + radius - dist;
         ferVec3Sub2(&con->dir[con->num], &w, tr1);
@@ -230,7 +230,7 @@ static int __ferCDSeparateSphereCylDisc(struct _fer_cd_t *cd,
 
             ferVec3Scale2(&w, &nn, -rad);
             ferVec3Add(&w, tr1);
-            rad = FER_SQRT(FER_CUBE(s1->radius) - FER_CUBE(rad));
+            rad = FER_SQRT(FER_SQ(s1->radius) - FER_SQ(rad));
 
             con->num--;
             num = __ferCDSeparateSphereSphere(&w, rad, p, c2->radius, con);
@@ -309,7 +309,7 @@ int ferCDSeparateSphereTri(struct _fer_cd_t *cd,
     }
 
     dist = ferVec3PointTriDist2(tr1, &p[0], &p[1], &p[2], &con->pos[con->num]);
-    if (dist < FER_CUBE(s1->radius)){
+    if (dist < FER_SQ(s1->radius)){
         dist = FER_SQRT(dist);
         con->depth[con->num] = s1->radius - dist;
         ferVec3Sub2(&con->dir[con->num], &con->pos[con->num], tr1);
@@ -350,7 +350,7 @@ int ferCDSeparateCapCap(struct _fer_cd_t *cd,
 
     dist2 = ferVec3SegmentSegmentDist2(&c11, &c12, &c21, &c22, &p1, &p2, &parallel);
 
-    if (!ferIsZero(dist2) && dist2 < FER_CUBE(c1->radius + c2->radius)){
+    if (!ferIsZero(dist2) && dist2 < FER_SQ(c1->radius + c2->radius)){
         dist2 = FER_SQRT(dist2);
         con->depth[con->num] = c1->radius + c2->radius - dist2;
         ferVec3Sub2(&con->dir[con->num], &p2, &p1);
