@@ -32,7 +32,6 @@ endif
 #BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
 #BIN_TARGETS += fer-rrt-2d fer-rrt-6d
 #BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
-BIN_TARGETS  = fer-ga
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -79,6 +78,7 @@ endif
 
 OBJS += ga.o
 
+
 FERMAT_CD_H  = config.h.m4 core.h
 FERMAT_CD_H += vec3.h mat3.h quat.h chull3.h
 FERMAT_CD_H += list.h hmap.h tasks.h barrier.h alloc.h
@@ -111,6 +111,8 @@ ifeq '$(EXAMPLES)' 'yes'
   ifeq '$(USE_ODE)' 'yes'
     TARGETS += examples/cd-ode
   endif
+
+  TARGETS += examples/ga-knapsack
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
