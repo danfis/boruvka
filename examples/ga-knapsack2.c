@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
     params.fitness_size   = 1;
     params.crossover_size = 2;
     params.presel_max     = popsize * elite;
-    params.threads        = 1;
+    params.threads        = 8;
 
 
     for (i = 0; i < cycles; i++){

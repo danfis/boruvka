@@ -376,10 +376,10 @@ static void _ferGARunThreads(fer_ga_t *ga)
     // initialize individuals
     _ferGAInit(&gas[0], 0, ga->params.pop_size);
 
-    while (!ga->ops.terminate(ga, ga->ops.terminate_data)){
+    while (!ga->ops.terminate(&gas[0], gas[0].ops.terminate_data)){
         cb += 1UL;
-        if (cb == ga->ops.callback_period && ga->ops.callback){
-            ga->ops.callback(ga, ga->ops.callback_data);
+        if (cb == gas[0].ops.callback_period && gas[0].ops.callback){
+            ga->ops.callback(&gas[0], gas[0].ops.callback_data);
             cb = 0UL;
         }
 
