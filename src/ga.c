@@ -16,6 +16,7 @@
 
 #include <fermat/ga.h>
 #include <fermat/tasks.h>
+#include <fermat/sort.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 #include <strings.h>
@@ -27,11 +28,8 @@ static void _ferGAStep(fer_ga_t *ga, size_t from, size_t to);
 /** Initialize population in specified range */
 static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to);
 
-/** Tasks for parallel version */
-static void __ferGAInitTask(int id, void *data, const fer_tasks_thinfo_t *thinfo);
-static void __ferGAStepTask(int id, void *data, const fer_tasks_thinfo_t *thinfo);
-
 /** Runs GA in threads */
+static void __ferGAStepTask(int id, void *data, const fer_tasks_thinfo_t *thinfo);
 static void _ferGARunThreads(fer_ga_t *ga);
 /** Runs single-threaded GA */
 static void _ferGARun1(fer_ga_t *ga);
@@ -69,14 +67,15 @@ void ferGAOpsInit(fer_ga_ops_t *ops)
 
 void ferGAParamsInit(fer_ga_params_t *p)
 {
-    p->pc = 0.7;
-    p->pm = 0.3;
-    p->gene_size = 1;
-    p->genotype_size = 1;
-    p->pop_size = 1;
-    p->fitness_size = 1;
+    p->pc             = 0.7;
+    p->pm             = 0.3;
+    p->gene_size      = 1;
+    p->genotype_size  = 1;
+    p->pop_size       = 1;
+    p->fitness_size   = 1;
     p->crossover_size = 2;
-    p->threads = 1;
+    p->presel_max     = 10;
+    p->threads        = 1;
 }
 
 fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
@@ -110,6 +109,8 @@ fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
     ga->gt[0] = ga->gt[1] = NULL;
     ga->ft[0] = ga->ft[1] = NULL;
 
+    ga->presel = FER_ALLOC_ARR(size_t, ga->params.presel_max);
+
     ga->rand = ferRandMTNewAuto();
 
     pthread_mutex_init(&ga->tlock, NULL);
@@ -127,6 +128,8 @@ void ferGADel(fer_ga_t *ga)
     }
     FER_FREE(ga->pop[0]);
     FER_FREE(ga->pop[1]);
+
+    FER_FREE(ga->presel);
 
     ferRandMTDel(ga->rand);
 
@@ -203,6 +206,34 @@ void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data)
 {
 }
 
+size_t ferGAPreselElite(fer_ga_t *ga, size_t *sel, void *data)
+{
+    fer_radix_sort_t *rs, *rstmp;
+    void *indiv;
+    size_t i;
+
+    if (ga->params.presel_max == 0)
+        return 0;
+
+    rs = FER_ALLOC_ARR(fer_radix_sort_t, ga->params.pop_size);
+    rstmp = FER_ALLOC_ARR(fer_radix_sort_t, ga->params.pop_size);
+    for (i = 0; i < ga->params.pop_size; i++){
+        indiv = ferGAIndiv(ga, i);
+        rs[i].key = ferGAIndivFitness(ga, indiv)[0];
+        rs[i].val = i;
+    }
+    ferRadixSort(rs, rstmp, ga->params.pop_size);
+
+    for (i = 0; i < ga->params.presel_max; i++){
+        sel[i] = rs[ga->params.pop_size - 1 - i].val;
+    }
+
+    FER_FREE(rs);
+    FER_FREE(rstmp);
+    return ga->params.presel_max;
+}
+
+
 
 void __ferGATRandRefill(fer_ga_t *ga)
 {
@@ -216,6 +247,7 @@ void __ferGATRandRefill(fer_ga_t *ga)
 
     ga->trand_next = 0;
 }
+
 
 
 
@@ -280,10 +312,26 @@ static void _ferGAInit(fer_ga_t *ga, size_t from, size_t to)
     }
 }
 
-static void __ferGAInitTask(int id, void *data, const fer_tasks_thinfo_t *thinfo)
+static size_t _ferGAPreselect(fer_ga_t *ga)
 {
-    fer_ga_t *ga = (fer_ga_t *)data;
-    _ferGAInit(ga, ga->tfrom, ga->tto);
+    size_t i, len;
+    void *f, *t;
+    fer_real_t *ft;
+
+    if (!ga->ops.presel)
+        return 0;
+
+    len = ga->ops.presel(ga, ga->presel, ga->ops.presel_data);
+    for (i = 0; i < len; i++){
+        t  = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur ^ 1][i]);
+        ft = ferGAIndivFitness(ga, ga->pop[ga->pop_cur ^ 1][i]);
+        f = ferGAIndivGenotype(ga, ga->pop[ga->pop_cur][ga->presel[i]]);
+
+        memcpy(t, f, ga->params.gene_size * ga->params.genotype_size);
+        ga->ops.eval(ga, t, ft, ga->ops.eval_data);
+    }
+
+    return len;
 }
 
 static void __ferGAStepTask(int id, void *data, const fer_tasks_thinfo_t *thinfo)
@@ -298,12 +346,7 @@ static void _ferGARunThreads(fer_ga_t *ga)
 
     fer_tasks_t *tasks;
     fer_ga_t *gas;
-    int i, len;
-
-    // compute range of population per thread
-    len  = ga->params.pop_size / ga->params.crossover_size;
-    len /= ga->params.threads;
-    len *= ga->params.crossover_size;
+    int i, poplen, popfrom;
 
     gas = FER_ALLOC_ARR(fer_ga_t, ga->params.threads);
     for (i = 0; i < ga->params.threads; i++){
@@ -311,10 +354,6 @@ static void _ferGARunThreads(fer_ga_t *ga)
 
         // set up thread specific data
         gas[i].tid   = i;
-        gas[i].tfrom = i * len;
-        gas[i].tto   = gas[i].tfrom + len;
-        if (i == ga->params.threads - 1)
-            gas[i].tto = ga->params.pop_size;
 
         // alloc temporary memory
         gas[i].gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
@@ -335,20 +374,30 @@ static void _ferGARunThreads(fer_ga_t *ga)
 
 
     // initialize individuals
-    for (i = 0; i < ga->params.threads; i++){
-        ferTasksAdd(tasks, __ferGAInitTask, i, (void *)&gas[i]);
-    }
-    ferTasksBarrier(tasks);
+    _ferGAInit(&gas[0], 0, ga->params.pop_size);
 
-    do {
+    while (!ga->ops.terminate(ga, ga->ops.terminate_data)){
         cb += 1UL;
         if (cb == ga->ops.callback_period && ga->ops.callback){
             ga->ops.callback(ga, ga->ops.callback_data);
             cb = 0UL;
         }
 
+        // preselect
+        popfrom = _ferGAPreselect(ga);
+
         // one step of breeding
+        poplen  = (ga->params.pop_size - popfrom) / ga->params.crossover_size;
+        poplen /= ga->params.threads;
+        poplen *= ga->params.crossover_size;
+
         for (i = 0; i < ga->params.threads; i++){
+            // set up range for specific thread
+            gas[i].tfrom = (i * poplen) + popfrom;
+            gas[i].tto   = gas[i].tfrom + poplen;
+            if (i == ga->params.threads - 1)
+                gas[i].tto = ga->params.pop_size;
+
             ferTasksAdd(tasks, __ferGAStepTask, i, (void *)&gas[i]);
         }
         ferTasksBarrier(tasks);
@@ -357,7 +406,7 @@ static void _ferGARunThreads(fer_ga_t *ga)
         for (i = 0; i < ga->params.threads; i++){
             gas[i].pop_cur ^= 1;
         }
-    } while (!ga->ops.terminate(ga, ga->ops.terminate_data));
+    }
 
 
     // delete thread pool
@@ -382,6 +431,7 @@ static void _ferGARunThreads(fer_ga_t *ga)
 static void _ferGARun1(fer_ga_t *ga)
 {
     unsigned long cb = 0UL;
+    size_t popfrom;
 
     // alloc temporary memory
     ga->gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
@@ -399,8 +449,11 @@ static void _ferGARun1(fer_ga_t *ga)
             cb = 0UL;
         }
 
+        // preselect
+        popfrom = _ferGAPreselect(ga);
+
         // one step of breeding
-        _ferGAStep(ga, 0, ga->params.pop_size);
+        _ferGAStep(ga, popfrom, ga->params.pop_size);
 
         ga->pop_cur ^= 1;
     } while (!ga->ops.terminate(ga, ga->ops.terminate_data));

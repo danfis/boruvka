@@ -41,6 +41,7 @@ OBJS += opts.o
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
 OBJS += predicates.o
+OBJS += sort.o
 
 OBJS += pc.o pc-internal.o
 
@@ -113,6 +114,7 @@ ifeq '$(EXAMPLES)' 'yes'
   endif
 
   TARGETS += examples/ga-knapsack
+  TARGETS += examples/ga-knapsack2
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)

@@ -18,4 +18,5 @@ examples/cd-sep
 examples/cd-simple-collision
 examples/cd-trimesh-collision
 examples/ga-knapsack
+examples/ga-knapsack2
 

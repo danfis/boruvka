@@ -22,6 +22,7 @@ int input[1000];
 int input_size;
 int bins = 10;
 int popsize = 3000;
+fer_real_t elite = 0.05;
 int maxiter = 10000;
 int cycles = 10;
 FILE *flog;
@@ -43,7 +44,7 @@ void result(fer_ga_t *ga, int c)
         indiv = ferGAIndiv(ga, i);
         ft    = ferGAIndivFitness(ga, indiv);
 
-        f = FER_ONE / ft[0];
+        f = -ft[0];
         if (f < min){
             min = f;
             mini = i;
@@ -66,12 +67,6 @@ int terminate(fer_ga_t *ga, void *data)
     fer_real_t *ft, f;
     static int counter = 0;
 
-    ++counter;
-    if (counter == maxiter){
-        counter = 0;
-        return 1;
-    }
-
     min = INT_MAX;
     max = -1;
     avg = 0;
@@ -79,7 +74,7 @@ int terminate(fer_ga_t *ga, void *data)
         indiv = ferGAIndiv(ga, i);
         ft    = ferGAIndivFitness(ga, indiv);
 
-        f = FER_ONE / ft[0];
+        f = -ft[0];
         avg += f;
         if (f < min)
             min = f;
@@ -88,7 +83,9 @@ int terminate(fer_ga_t *ga, void *data)
     }
     avg /= popsize;
 
-    if (min == 0){
+    ++counter;
+    if (counter == maxiter || min == 0){
+        DBG("[%09d]; min: %d, max: %d, avg: %d", counter, min, max, avg);
         counter = 0;
         return 1;
     }
@@ -97,6 +94,7 @@ int terminate(fer_ga_t *ga, void *data)
         fprintf(flog, "%d %d\n", avg, min);
         DBG("[%09d]; min: %d, max: %d, avg: %d", counter, min, max, avg);
     }
+
     return 0;
 }
 
@@ -125,7 +123,7 @@ void eval(fer_ga_t *ga, void *_gt, fer_real_t *fitness, void *data)
     }
     avg /= popsize;
 
-    fitness[0] = FER_ONE / (max - min);
+    fitness[0] = -(max - min);
 }
 
 void init(fer_ga_t *ga, void *_gt, void *data)
@@ -141,23 +139,34 @@ void init(fer_ga_t *ga, void *_gt, void *data)
 void mutate(fer_ga_t *ga, void *_gt, void *data)
 {
     int *gt = (int *)_gt;
-    int i, val;
+    int i, j, tmp, min;
+    int bin_weights[30];
 
-    i = ferGARandInt(ga, 0, input_size);
-    val = gt[i];
-    if (val == 0){
-        val = 1;
-    }else if (val == bins - 1){
-        val = bins - 2;
-    }else if (ferGARandInt(ga, -1, 1) < 0){
-        val -= 1;
-    }else{
-        val += 1;
+    if (ferGARand01(ga) < 0.5){
+        i = ferGARandInt(ga, 0, input_size);
+        gt[i] = ferGARandInt(ga, 0, bins);
     }
 
-    gt[i] = val;
+    i = ferGARandInt(ga, 0, input_size);
+    j = ferGARandInt(ga, 0, input_size);
+    FER_SWAP(gt[i], gt[j], tmp);
+    return;
 
-    gt[i] = ferGARandInt(ga, 0, bins);
+    for (i = 0; i < bins; i++)
+        bin_weights[i] = 0;
+
+    for (i = 0; i < input_size; i++){
+        bin_weights[gt[i]] += input[i];
+    }
+
+    min = 0;
+    for (i = 1; i < bins; i++){
+        if (bin_weights[i] < bin_weights[min])
+            min = i;
+    }
+
+    i = ferGARandInt(ga, 0, input_size);
+    gt[i] = min;
 }
 
 int main(int argc, char *argv[])
@@ -184,6 +193,7 @@ int main(int argc, char *argv[])
     ops.init      = init;
     ops.mutate    = mutate;
     ops.sel       = ferGASelTournament2;
+    ops.presel    = ferGAPreselElite;
 
     params.pc             = 0.7;
     params.pm             = 0.3;
@@ -192,7 +202,8 @@ int main(int argc, char *argv[])
     params.pop_size       = popsize;
     params.fitness_size   = 1;
     params.crossover_size = 2;
-    params.threads        = 8;
+    params.presel_max     = popsize * elite;
+    params.threads        = 1;
 
 
     for (i = 0; i < cycles; i++){

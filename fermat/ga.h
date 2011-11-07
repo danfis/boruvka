@@ -68,6 +68,13 @@ typedef void (*fer_ga_crossover)(struct _fer_ga_t *ga,
 typedef void (*fer_ga_mutate)(struct _fer_ga_t *ga, void *genotype, void *data);
 
 /**
+ * Fills {sel} array with IDs of selected individuals and returns number of
+ * selected individuals. This number must be maximally
+ * params.presel_max.
+ */
+typedef size_t (*fer_ga_presel)(struct _fer_ga_t *ga, size_t *sel, void *data);
+
+/**
  * Callback that is peridically called from GNG.
  *
  * It is called every .callback_period'th added node.
@@ -81,6 +88,7 @@ struct _fer_ga_ops_t {
     fer_ga_sel       sel;       /*!< Default: ferGASelTournament2 */
     fer_ga_crossover crossover; /*!< Default: ferGACrossover2 */
     fer_ga_mutate    mutate;    /*!< Default: ferGAMutateNone */
+    fer_ga_presel    presel;    /*!< Default: NULL */
 
     fer_ga_callback callback;      /*!< Default: NULL */
     unsigned long callback_period; /*!< Default: 0, i.e. never */
@@ -94,6 +102,7 @@ struct _fer_ga_ops_t {
     void *sel_data;
     void *crossover_data;
     void *mutate_data;
+    void *presel_data;
     void *callback_data;
 };
 typedef struct _fer_ga_ops_t fer_ga_ops_t;
@@ -107,14 +116,16 @@ void ferGAOpsInit(fer_ga_ops_t *ops);
 
 
 struct _fer_ga_params_t {
-    fer_real_t pc;        /*!< Probability of crossover. Default: 0.7 */
-    fer_real_t pm;        /*!< Probability of mutation. Default: 0.001 */
-    size_t gene_size;     /*!< Size of one gene (in bytes). Default: 1 */
-    size_t genotype_size; /*!< Number of genes in genotype. Default: 1 */
-    size_t pop_size;      /*!< Size of population. Default: 1 */
-    size_t fitness_size;  /*!< Number of fitness values. Default: 1 */
+    fer_real_t pc;         /*!< Probability of crossover. Default: 0.7 */
+    fer_real_t pm;         /*!< Probability of mutation. Default: 0.001 */
+    size_t gene_size;      /*!< Size of one gene (in bytes). Default: 1 */
+    size_t genotype_size;  /*!< Number of genes in genotype. Default: 1 */
+    size_t pop_size;       /*!< Size of population. Default: 1 */
+    size_t fitness_size;   /*!< Number of fitness values. Default: 1 */
     size_t crossover_size; /*!< Number of individuals selected for crossover.
                                 Default: 2 */
+    size_t presel_max;     /*!< Maximal number of preselected individuals.
+                                Default: 10 */
     int threads;           /*!< Number of threads. Default: 1 */
 };
 typedef struct _fer_ga_params_t fer_ga_params_t;
@@ -134,6 +145,7 @@ struct _fer_ga_t {
     size_t pop_cur; /*!< Index of current population */
     void **gt[2];
     fer_real_t **ft[2];
+    size_t *presel;
 
     fer_rand_mt_t *rand;
 
@@ -258,6 +270,13 @@ void ferGACrossover2(fer_ga_t *ga, void **ing, void **outg, void *data);
  * No mutation
  */
 void ferGAMutateNone(fer_ga_t *ga, void *gt, void *data);
+
+
+/**
+ * Preselect operator that selects params.presel_max best individuals
+ * (based on first fitness value)
+ */
+size_t ferGAPreselElite(fer_ga_t *ga, size_t *sel, void *data);
 
 
 
