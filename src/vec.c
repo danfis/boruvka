@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <fermat/alloc.h>
 #include <fermat/vec.h>
 #include <fermat/dbg.h>
@@ -29,4 +30,18 @@ fer_vec_t *ferVecNew(size_t size)
 void ferVecDel(fer_vec_t *v)
 {
     FER_FREE(v);
+}
+
+void ferVecSetN(size_t size, fer_vec_t *v, ...)
+{
+    va_list ap;
+    fer_real_t val;
+    size_t i;
+
+    va_start(ap, v);
+    for (i = 0; i < size; i++){
+        val = va_arg(ap, double);
+        ferVecSet(v, i, val);
+    }
+    va_end(ap);
 }

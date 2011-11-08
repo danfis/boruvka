@@ -96,6 +96,12 @@ _fer_inline fer_real_t ferVecGet(const fer_vec_t *v, size_t d);
 _fer_inline void ferVecSet(fer_vec_t *v, size_t d, fer_real_t val);
 
 /**
+ * Set {size} coordinates.
+ * Note that the values should be double.
+ */
+void ferVecSetN(size_t size, fer_vec_t *v, ...);
+
+/**
  * Set all coordinates to given value.
  */
 _fer_inline void ferVecSetAll(size_t size, fer_vec_t *v, fer_real_t val);
