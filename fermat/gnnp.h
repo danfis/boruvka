@@ -34,10 +34,6 @@ struct _fer_gnnp_t;
  * See fer_gnnp_t.
  */
 
-#define FER_GNNP_STATE_UNFIX 0
-#define FER_GNNP_STATE_FREE 1
-#define FER_GNNP_STATE_OBST 2
-
 struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     uint8_t state; /*!< State of node */
@@ -45,6 +41,8 @@ struct _fer_gnnp_node_t {
 
     fer_net_node_t net;
     fer_nn_el_t nn;
+    fer_list_t path;
+    struct _fer_gnnp_node_t *prev;
 };
 typedef struct _fer_gnnp_node_t fer_gnnp_node_t;
 
@@ -68,6 +66,11 @@ typedef const fer_vec_t *(*fer_gnnp_input_signal)(struct _fer_gnnp_t *nn, void *
 typedef int (*fer_gnnp_terminate)(struct _fer_gnnp_t *nn, void *);
 
 /**
+ * Returns true if it {conf} is in free space
+ */
+typedef int (*fer_gnnp_eval)(struct _fer_gnnp_t *nn, const fer_vec_t *conf, void *);
+
+/**
  * Callback that is peridically called from GNG.
  *
  * It is called every .callback_period'th added node.
@@ -79,6 +82,7 @@ typedef void (*fer_gnnp_callback)(struct _fer_gnnp_t *nn, void *);
 struct _fer_gnnp_ops_t {
     fer_gnnp_input_signal input_signal; /*!< Default: NULL */
     fer_gnnp_terminate    terminate;    /*!< Default: NULL */
+    fer_gnnp_eval         eval;         /*!< Default: NULL */
 
     fer_gnnp_callback callback;
     unsigned int callback_period;
@@ -86,6 +90,7 @@ struct _fer_gnnp_ops_t {
     void *data;
     void *input_signal_data;
     void *terminate_data;
+    void *eval_data;
     void *callback_data;
 };
 typedef struct _fer_gnnp_ops_t fer_gnnp_ops_t;
@@ -106,6 +111,8 @@ struct _fer_gnnp_params_t {
     fer_real_t en;     /*!< Winner neighbor's learning rate. Default: 0.0006 */
     unsigned int rmax; /*!< Max rank of node. Default: 4 */
     fer_real_t h;      /*!< Resolution. Default: 0.1 */
+    unsigned int prune_delay; /*!< Number of steps after a path was not
+                                   found to skip prunning. Default: 50 */
 
     fer_nn_params_t nn; /*!< Params of nearest neighbor search */
 };

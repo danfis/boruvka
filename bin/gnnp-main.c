@@ -21,6 +21,7 @@
 fer_rand_mt_t *rnd;
 fer_vec_t *is;
 fer_vec_t *start, *goal;
+unsigned long evals = 0UL;
 
 static int terminate(fer_gnnp_t *nn, void *data)
 {
@@ -39,12 +40,29 @@ static const fer_vec_t *inputSignal(fer_gnnp_t *nn, void *data)
     return is;
 }
 
+static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
+{
+    fer_real_t x, y, r = 0.05;
+    x = ferVecGet(conf, 0);
+    y = ferVecGet(conf, 1);
+
+    evals += 1UL;
+
+    if (y < -2
+            || (y < 4 && y > -2 && x > -r && x < r)
+            || (y > 4 && x > -2 && x < 2)){
+        return 1;
+    }
+    return 0;
+}
+
 static void callback(fer_gnnp_t *nn, void *data)
 {
     static int c = 0;
 
     c++;
-    fprintf(stderr, "step %d, nodes: %d\n", c, (int)nn->nodes_len);
+    fprintf(stderr, "step %d, nodes: %d, evals: %ld\n",
+            c, (int)nn->nodes_len, (long)evals);
     ferGNNPDumpSVT(nn, stdout, NULL);
 }
 
@@ -60,11 +78,15 @@ int main(int argc, char *argv[])
     ferGNNPOpsInit(&ops);
     ops.terminate    = terminate;
     ops.input_signal = inputSignal;
+    ops.eval         = eval;
     ops.callback        = callback;
-    ops.callback_period = 1000;
+    ops.callback_period = 10000;
 
     ferGNNPParamsInit(&params);
+    params.dim  = 2;
     params.rmax = 6;
+    params.h    = 0.025;
+    params.prune_delay = 500;
     params.nn.type = FER_NN_GUG;
     params.nn.gug.max_dens = 1.1;
     params.nn.gug.expand_rate = 1.5;
@@ -84,6 +106,7 @@ int main(int argc, char *argv[])
     ferListInit(&path);
     ret = ferGNNPFindPath(nn, start, goal, &path);
     fprintf(stderr, "ret: %d\n", ret);
+    fprintf(stderr, "evals: %ld\n", (long)evals);
 
     ferGNNPDumpSVT(nn, stdout, NULL);
 
