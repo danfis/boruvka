@@ -152,7 +152,7 @@ struct _fer_ga_t {
 
     int tid; /*!< Thread ID, in case threads are used */
     int tfrom, tto;
-    pthread_mutex_t tlock;
+    pthread_mutex_t *tlock;
     fer_real_t *trand;
     size_t trand_next, trand_max;
 };
@@ -297,6 +297,7 @@ _fer_inline fer_real_t ferGARand01(fer_ga_t *ga)
 {
     if (ga->tid == -1)
         return ferRandMT01(ga->rand);
+
     if (ga->trand_next == ga->trand_max)
         __ferGATRandRefill(ga);
     return ga->trand[ga->trand_next++];

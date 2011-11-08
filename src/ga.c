@@ -113,8 +113,6 @@ fer_ga_t *ferGANew(const fer_ga_ops_t *ops, const fer_ga_params_t *params)
 
     ga->rand = ferRandMTNewAuto();
 
-    pthread_mutex_init(&ga->tlock, NULL);
-
     return ga;
 }
 
@@ -239,11 +237,11 @@ void __ferGATRandRefill(fer_ga_t *ga)
 {
     size_t i;
 
-    pthread_mutex_lock(&ga->tlock);
+    pthread_mutex_lock(ga->tlock);
     for (i = 0; i < ga->trand_max; i++){
         ga->trand[i] = ferRandMT01(ga->rand);
     }
-    pthread_mutex_unlock(&ga->tlock);
+    pthread_mutex_unlock(ga->tlock);
 
     ga->trand_next = 0;
 }
@@ -348,6 +346,15 @@ static void _ferGARunThreads(fer_ga_t *ga)
     fer_ga_t *gas;
     int i, poplen, popfrom;
 
+
+    // alloc temporary memory
+    ga->gt[0] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+    ga->gt[1] = FER_ALLOC_ARR(void *, ga->params.crossover_size);
+    ga->ft[0] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+    ga->ft[1] = FER_ALLOC_ARR(fer_real_t *, ga->params.crossover_size);
+    ga->tlock = FER_ALLOC(pthread_mutex_t);
+    pthread_mutex_init(ga->tlock, NULL);
+
     gas = FER_ALLOC_ARR(fer_ga_t, ga->params.threads);
     for (i = 0; i < ga->params.threads; i++){
         gas[i] = *ga;
@@ -374,12 +381,12 @@ static void _ferGARunThreads(fer_ga_t *ga)
 
 
     // initialize individuals
-    _ferGAInit(&gas[0], 0, ga->params.pop_size);
+    _ferGAInit(ga, 0, ga->params.pop_size);
 
-    while (!ga->ops.terminate(&gas[0], gas[0].ops.terminate_data)){
+    while (!ga->ops.terminate(ga, ga->ops.terminate_data)){
         cb += 1UL;
-        if (cb == gas[0].ops.callback_period && gas[0].ops.callback){
-            ga->ops.callback(&gas[0], gas[0].ops.callback_data);
+        if (cb == ga->ops.callback_period && ga->ops.callback){
+            ga->ops.callback(ga, ga->ops.callback_data);
             cb = 0UL;
         }
 
@@ -426,6 +433,14 @@ static void _ferGARunThreads(fer_ga_t *ga)
     }
 
     FER_FREE(gas);
+
+    pthread_mutex_destroy(ga->tlock);
+    FER_FREE(ga->tlock);
+    // free tmp memory
+    FER_FREE(ga->gt[0]);
+    FER_FREE(ga->gt[1]);
+    FER_FREE(ga->ft[0]);
+    FER_FREE(ga->ft[1]);
 }
 
 static void _ferGARun1(fer_ga_t *ga)
