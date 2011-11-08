@@ -22,8 +22,8 @@ int input[1000];
 int input_size;
 int bins = 10;
 int popsize = 3000;
-fer_real_t elite = 0.05;
-int maxiter = 10000;
+fer_real_t elite = 0.1;
+int maxiter = 5000;
 int cycles = 10;
 FILE *flog;
 
@@ -85,6 +85,7 @@ int terminate(fer_ga_t *ga, void *data)
 
     ++counter;
     if (counter == maxiter || min == 0){
+        fprintf(flog, "%d %d\n", avg, min);
         DBG("[%09d]; min: %d, max: %d, avg: %d", counter, min, max, avg);
         counter = 0;
         return 1;
@@ -139,6 +140,20 @@ void init(fer_ga_t *ga, void *_gt, void *data)
 void mutate(fer_ga_t *ga, void *_gt, void *data)
 {
     int *gt = (int *)_gt;
+    int i, j, tmp;
+
+    if (ferGARand01(ga) < 0.2){
+        i = ferGARandInt(ga, 0, input_size);
+        gt[i] = ferGARandInt(ga, 0, bins);
+        return;
+    }
+
+    i = ferGARandInt(ga, 0, input_size);
+    j = ferGARandInt(ga, 0, input_size);
+    FER_SWAP(gt[i], gt[j], tmp);
+
+    /*
+    int *gt = (int *)_gt;
     int i, j, tmp, min;
     int bin_weights[30];
 
@@ -167,6 +182,14 @@ void mutate(fer_ga_t *ga, void *_gt, void *data)
 
     i = ferGARandInt(ga, 0, input_size);
     gt[i] = min;
+    */
+    /*
+    int *gt = (int *)_gt;
+    int i;
+
+    i = ferGARandInt(ga, 0, input_size);
+    gt[i] = ferGARandInt(ga, 0, bins);
+    */
 }
 
 int main(int argc, char *argv[])
