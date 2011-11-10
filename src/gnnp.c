@@ -30,13 +30,8 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node);
 /** Moves the node towards input signal: w = w + e * (is - w) */
 static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
                                    const fer_vec_t *is, fer_real_t r);
-_fer_inline int ferGNNPNodeState(const fer_gnnp_node_t *n);
-_fer_inline void ferGNNPNodeSetState(fer_gnnp_t *nn, fer_gnnp_node_t *n, int state);
-_fer_inline int ferGNNPNodeIsFree(const fer_gnnp_node_t *n);
 _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n);
-_fer_inline int ferGNNPNodeIsObst(const fer_gnnp_node_t *n);
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n);
-_fer_inline int ferGNNPNodeIsLearn(const fer_gnnp_node_t *n);
 
 static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
                     fer_gnnp_node_t **n1,
@@ -159,7 +154,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         // competitive hebbian learning with removing edges
         hebbianLearning(nn, n[0], n[1]);
 
-        if (ferGNNPNodeIsFree(n[0]) || ferGNNPNodeIsObst(n[0])){
+        if (n[0]->fixed){
             // the nearest node is fixed (free or obstacle)
             // compute distance between input signal and the winner node
             dist = ferVecDist2(nn->params.dim, is, n[0]->w);
@@ -209,7 +204,7 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     for (i = 0; i < nn->nodes.len; i++){
         n = ferGNNPNodesGet(&nn->nodes, i);
-        if (ferGNNPNodeIsFree(n)){
+        if (n->fixed && n->e > 0.5){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
         }
@@ -226,7 +221,7 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     for (i = 0; i < nn->nodes.len; i++){
         n = ferGNNPNodesGet(&nn->nodes, i);
-        if (ferGNNPNodeIsObst(n)){
+        if (n->fixed && n->e < 0.5){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
         }
@@ -287,7 +282,8 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
     fer_gnnp_node_t *n;
 
     n = FER_ALLOC(fer_gnnp_node_t);
-    n->state = FER_GNNP_STATE_LEARN;
+    n->fixed = 0;
+    n->e = 0.5;
     ferGNNPNodesAdd(&nn->nodes, n);
 
     n->w = ferVecClone(nn->params.dim, w);
@@ -348,38 +344,15 @@ static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
     ferNNUpdate(nn->nn, &node->nn);
 }
 
-_fer_inline int ferGNNPNodeState(const fer_gnnp_node_t *n)
-{
-    return (n->state) & 0x3;
-}
-
-_fer_inline void ferGNNPNodeSetState(fer_gnnp_t *nn, fer_gnnp_node_t *n, int state)
-{
-    n->state &= ~0x3;
-    n->state |= (state & 0x3);
-}
-
-_fer_inline int ferGNNPNodeIsFree(const fer_gnnp_node_t *n)
-{
-    return ferGNNPNodeState(n) == FER_GNNP_STATE_FREE;
-}
 _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    ferGNNPNodeSetState(nn, n, FER_GNNP_STATE_FREE);
-}
-
-_fer_inline int ferGNNPNodeIsObst(const fer_gnnp_node_t *n)
-{
-    return ferGNNPNodeState(n) == FER_GNNP_STATE_OBST;
+    n->fixed = 1;
+    n->e     = 1.;
 }
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    ferGNNPNodeSetState(nn, n, FER_GNNP_STATE_OBST);
-}
-
-_fer_inline int ferGNNPNodeIsLearn(const fer_gnnp_node_t *n)
-{
-    return ferGNNPNodeState(n) == FER_GNNP_STATE_LEARN;
+    n->fixed = 1;
+    n->e     = 0.;
 }
 
 
@@ -437,7 +410,8 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
     fer_gnnp_node_t *n;
 
     // move winner node
-    ferGNNPNodeMoveTowards(nn, wn, is, nn->params.ew);
+    if (!wn->fixed)
+        ferGNNPNodeMoveTowards(nn, wn, is, nn->params.ew);
 
     // move neighbor nodes
     list = ferNetNodeEdges(&wn->net);
@@ -446,7 +420,7 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
         netn = ferNetEdgeOtherNode(e, &wn->net);
         n    = fer_container_of(netn, fer_gnnp_node_t, net);
 
-        if (ferGNNPNodeIsLearn(n))
+        if (!n->fixed)
             ferGNNPNodeMoveTowards(nn, n, is, nn->params.en);
     }
 }
@@ -471,7 +445,8 @@ static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
             return 0;
         }
 
-        if (!n->prev && !ferGNNPNodeIsObst(n)){
+        // TODO
+        if (!n->prev && (n->e > 0.01)){
             n->prev = root;
             ret = _findPath(nn, n, goal);
             if (ret == 0)
@@ -512,10 +487,11 @@ static int _pruneEval(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     int eval;
 
-    if (ferGNNPNodeIsFree(n))
-        return 0;
-    if (ferGNNPNodeIsObst(n))
+    if (n->fixed){
+        if (n->e > 0.)
+            return 0;
         return 1;
+    }
 
     eval = nn->ops.eval(nn, n->w, nn->ops.eval_data);
     if (eval){
