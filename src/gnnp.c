@@ -19,10 +19,6 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
-#define FER_GNNP_STATE_LEARN 0
-#define FER_GNNP_STATE_FREE 1
-#define FER_GNNP_STATE_OBST 2
-
 
 static void netNodeDel(fer_net_node_t *n, void *);
 static void netEdgeDel(fer_net_edge_t *e, void *);
@@ -35,13 +31,12 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node);
 static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
                                    const fer_vec_t *is, fer_real_t r);
 _fer_inline int ferGNNPNodeState(const fer_gnnp_node_t *n);
-_fer_inline void ferGNNPNodeSetState(fer_gnnp_node_t *n, int state);
+_fer_inline void ferGNNPNodeSetState(fer_gnnp_t *nn, fer_gnnp_node_t *n, int state);
 _fer_inline int ferGNNPNodeIsFree(const fer_gnnp_node_t *n);
-_fer_inline void ferGNNPNodeSetFree(fer_gnnp_node_t *n);
+_fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n);
 _fer_inline int ferGNNPNodeIsObst(const fer_gnnp_node_t *n);
-_fer_inline void ferGNNPNodeSetObst(fer_gnnp_node_t *n);
+_fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n);
 _fer_inline int ferGNNPNodeIsLearn(const fer_gnnp_node_t *n);
-_fer_inline void ferGNNPNodeSetLearn(fer_gnnp_node_t *n);
 
 static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
                     fer_gnnp_node_t **n1,
@@ -108,9 +103,9 @@ fer_gnnp_t *ferGNNPNew(const fer_gnnp_ops_t *ops, const fer_gnnp_params_t *p)
     nn->net = ferNetNew();
     nn->nn  = ferNNNew(&nn->params.nn);
 
-    nn->nodes_alloc = 100000;
-    nn->nodes_len   = 0;
-    nn->nodes       = FER_ALLOC_ARR(fer_gnnp_node_t, nn->nodes_alloc);
+    ferGNNPNodesInit(&nn->nodes[0], 100);
+    ferGNNPNodesInit(&nn->nodes[1], 100);
+    ferGNNPNodesInit(&nn->nodes[2], 100);
     nn->s = nn->g = NULL;
 
     nn->tmpv = ferVecNew(nn->params.dim);
@@ -122,7 +117,9 @@ void ferGNNPDel(fer_gnnp_t *nn)
 {
     ferNetDel2(nn->net, netNodeDel, (void *)nn, netEdgeDel, (void *)nn);
     ferNNDel(nn->nn);
-    FER_FREE(nn->nodes);
+    ferGNNPNodesDestroy(&nn->nodes[0]);
+    ferGNNPNodesDestroy(&nn->nodes[1]);
+    ferGNNPNodesDestroy(&nn->nodes[2]);
     ferVecDel(nn->tmpv);
     FER_FREE(nn);
 }
@@ -140,9 +137,9 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
 
     // Init
     nn->s = ferGNNPNodeNew(nn, start);
-    ferGNNPNodeSetFree(nn->s);
+    ferGNNPNodeSetFree(nn, nn->s);
     nn->g = ferGNNPNodeNew(nn, goal);
-    ferGNNPNodeSetFree(nn->g);
+    ferGNNPNodeSetFree(nn, nn->g);
 
     while (!nn->ops.terminate(nn, nn->ops.terminate_data)){
         cb += 1U;
@@ -206,13 +203,54 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 
     fprintf(out, "--------\n");
 
+    if (name){
+        fprintf(out, "Name: %s FREE\n", name);
+    }else{
+        fprintf(out, "Name: FREE\n");
+    }
+    fprintf(out, "Point color: 0.1 0.1 0.8\n");
+    fprintf(out, "Point size: 2\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes[FER_GNNP_STATE_FREE].len; i++){
+        n = ferGNNPNodesGet(&nn->nodes[FER_GNNP_STATE_FREE], i);
+        if (ferGNNPNodeIsFree(n)){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+    fprintf(out, "--------\n");
+
+    if (name){
+        fprintf(out, "Name: %s OBST\n", name);
+    }else{
+        fprintf(out, "Name: OBST\n");
+    }
+    fprintf(out, "Point color: 0.8 0.1 0.1\n");
+    fprintf(out, "Point size: 2\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes[FER_GNNP_STATE_OBST].len; i++){
+        n = ferGNNPNodesGet(&nn->nodes[FER_GNNP_STATE_OBST], i);
+        if (ferGNNPNodeIsObst(n)){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+    fprintf(out, "--------\n");
+
+
     if (name)
         fprintf(out, "Name: %s\n", name);
 
+    fprintf(out, "Points off: 1\n");
+    fprintf(out, "Edge color: 0.5 0.5 0.5\n");
     fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes_len; i++){
-        nn->nodes[i]._id = i;
-        ferVecPrint(nn->params.dim, nn->nodes[i].w, out);
+    list = ferNetNodes(nn->net);
+    i = 0;
+    FER_LIST_FOR_EACH(list, item){
+        netn = FER_LIST_ENTRY(item, fer_net_node_t, list);
+        n    = fer_container_of(netn, fer_gnnp_node_t, net);
+        n->_id = i++;
+        ferVecPrint(nn->params.dim, n->w, out);
         fprintf(out, "\n");
     }
 
@@ -233,38 +271,6 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
-
-    if (name){
-        fprintf(out, "Name: %s FREE\n", name);
-    }else{
-        fprintf(out, "Name: FREE\n");
-    }
-    fprintf(out, "Point color: 0.1 0.8 0.1\n");
-    fprintf(out, "Point size: 5\n");
-    fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes_len; i++){
-        if (ferGNNPNodeIsFree(&nn->nodes[i])){
-            ferVecPrint(nn->params.dim, nn->nodes[i].w, out);
-            fprintf(out, "\n");
-        }
-    }
-    fprintf(out, "--------\n");
-
-    if (name){
-        fprintf(out, "Name: %s OBST\n", name);
-    }else{
-        fprintf(out, "Name: OBST\n");
-    }
-    fprintf(out, "Point color: 0.8 0.1 0.1\n");
-    fprintf(out, "Point size: 5\n");
-    fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes_len; i++){
-        if (ferGNNPNodeIsObst(&nn->nodes[i])){
-            ferVecPrint(nn->params.dim, nn->nodes[i].w, out);
-            fprintf(out, "\n");
-        }
-    }
-    fprintf(out, "--------\n");
 }
 
 
@@ -284,16 +290,11 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
 {
     fer_gnnp_node_t *n;
 
-    if (nn->nodes_len == nn->nodes_alloc){
-        nn->nodes_alloc *= 2;
-        nn->nodes = FER_REALLOC_ARR(nn->nodes, fer_gnnp_node_t, nn->nodes_alloc);
-    }
-
-    n = &nn->nodes[nn->nodes_len];
-    nn->nodes_len++;
+    n = FER_ALLOC(fer_gnnp_node_t);
+    n->state = FER_GNNP_STATE_LEARN;
+    n->idx = ferGNNPNodesAdd(&nn->nodes[n->state], n);
 
     n->w = ferVecClone(nn->params.dim, w);
-    ferGNNPNodeSetLearn(n);
 
     ferNetAddNode(nn->net, &n->net);
 
@@ -305,15 +306,13 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
 
 static void ferGNNPNodeDel(fer_gnnp_t *nn, fer_gnnp_node_t *node)
 {
-    size_t i;
-
     ferNetRemoveNode(nn->net, &node->net);
     ferNNRemove(nn->nn, &node->nn);
     ferVecDel(node->w);
+    FER_FREE(node);
 
-    i = (unsigned long)node - (unsigned long)nn->nodes;
-    i /= sizeof(fer_gnnp_node_t);
-    nn->nodes[i] = nn->nodes[nn->nodes_len - 1];
+    /* Nodes are deleted only at the end of the run, so no need to remove
+     * it from nn->nodes[] array */
 }
 
 static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node)
@@ -358,37 +357,38 @@ _fer_inline int ferGNNPNodeState(const fer_gnnp_node_t *n)
     return (n->state) & 0x3;
 }
 
-_fer_inline void ferGNNPNodeSetState(fer_gnnp_node_t *n, int state)
+_fer_inline void ferGNNPNodeSetState(fer_gnnp_t *nn, fer_gnnp_node_t *n, int state)
 {
+    ferGNNPNodesRemove(&nn->nodes[n->state], n->idx);
+    if (n->idx < nn->nodes[n->state].len)
+        ferGNNPNodesGet(&nn->nodes[n->state], n->idx)->idx = n->idx;
+
     n->state &= ~0x3;
     n->state |= (state & 0x3);
+    n->idx = ferGNNPNodesAdd(&nn->nodes[n->state], n);
 }
 
 _fer_inline int ferGNNPNodeIsFree(const fer_gnnp_node_t *n)
 {
     return ferGNNPNodeState(n) == FER_GNNP_STATE_FREE;
 }
-_fer_inline void ferGNNPNodeSetFree(fer_gnnp_node_t *n)
+_fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    ferGNNPNodeSetState(n, FER_GNNP_STATE_FREE);
+    ferGNNPNodeSetState(nn, n, FER_GNNP_STATE_FREE);
 }
 
 _fer_inline int ferGNNPNodeIsObst(const fer_gnnp_node_t *n)
 {
     return ferGNNPNodeState(n) == FER_GNNP_STATE_OBST;
 }
-_fer_inline void ferGNNPNodeSetObst(fer_gnnp_node_t *n)
+_fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    ferGNNPNodeSetState(n, FER_GNNP_STATE_OBST);
+    ferGNNPNodeSetState(nn, n, FER_GNNP_STATE_OBST);
 }
 
 _fer_inline int ferGNNPNodeIsLearn(const fer_gnnp_node_t *n)
 {
     return ferGNNPNodeState(n) == FER_GNNP_STATE_LEARN;
-}
-_fer_inline void ferGNNPNodeSetLearn(fer_gnnp_node_t *n)
-{
-    ferGNNPNodeSetState(n, FER_GNNP_STATE_LEARN);
 }
 
 
@@ -499,8 +499,14 @@ static int findPath(fer_gnnp_t *nn, fer_list_t *path)
 
     ferListInit(path);
 
-    for (i = 0; i < nn->nodes_len; i++){
-        nn->nodes[i].prev = NULL;
+    for (i = 0; i < nn->nodes[0].len; i++){
+        nn->nodes[0].arr[i]->prev = NULL;
+    }
+    for (i = 0; i < nn->nodes[1].len; i++){
+        nn->nodes[1].arr[i]->prev = NULL;
+    }
+    for (i = 0; i < nn->nodes[2].len; i++){
+        nn->nodes[2].arr[i]->prev = NULL;
     }
 
     found = _findPath(nn, nn->s, nn->g);
@@ -528,10 +534,10 @@ static int _pruneEval(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 
     eval = nn->ops.eval(nn, n->w, nn->ops.eval_data);
     if (eval){
-        ferGNNPNodeSetFree(n);
+        ferGNNPNodeSetFree(nn, n);
         return 0;
     }else{
-        ferGNNPNodeSetObst(n);
+        ferGNNPNodeSetObst(nn, n);
         return 1;
     }
 }

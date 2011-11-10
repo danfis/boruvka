@@ -21,12 +21,18 @@
 #include <fermat/core.h>
 #include <fermat/net.h>
 #include <fermat/nn.h>
+#include <fermat/varr.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 struct _fer_gnnp_t;
+
+#define FER_GNNP_STATE_LEARN 0
+#define FER_GNNP_STATE_FREE 1
+#define FER_GNNP_STATE_OBST 2
+
 
 /**
  * Growing Neural Network for Planning
@@ -37,6 +43,7 @@ struct _fer_gnnp_t;
 struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     uint8_t state; /*!< State of node */
+    size_t idx;    /*!< Index in .nodes array */
     int _id;
 
     fer_net_node_t net;
@@ -129,16 +136,17 @@ void ferGNNPParamsInit(fer_gnnp_params_t *p);
  * ----------
  */
 
+FER_VARR_DECL(fer_gnnp_node_t *, fer_gnnp_nodes_t, ferGNNPNodes)
+
 struct _fer_gnnp_t {
     fer_gnnp_ops_t ops;
     fer_gnnp_params_t params;
     fer_net_t *net;
     fer_nn_t *nn;
 
-    fer_gnnp_node_t *nodes; /*!< Array of all nodes */
-    size_t nodes_len;       /*!< Number of nodes in network */
-    size_t nodes_alloc;     /*!< Size of allocated memory for .nodes[] */
-    fer_gnnp_node_t *s, *g; /*!< Start and goal nodes */
+    fer_gnnp_nodes_t nodes[3]; /*!< Array of nodes, each for each type
+                                    (LEARN, FREE, OBST) */
+    fer_gnnp_node_t *s, *g;    /*!< Start and goal nodes */
     fer_vec_t *tmpv;
 };
 typedef struct _fer_gnnp_t fer_gnnp_t;
@@ -168,11 +176,21 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name);
 
 /**
+ * Returns number of nodes in network
+ */
+_fer_inline size_t ferGNNPNodesLen(const fer_gnnp_t *nn);
+
+/**
  * Returns network
  */
 _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn);
 
 /**** INLINES ****/
+_fer_inline size_t ferGNNPNodesLen(const fer_gnnp_t *nn)
+{
+    return nn->nodes[0].len + nn->nodes[1].len + nn->nodes[2].len;
+}
+
 _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn)
 {
     return nn->net;

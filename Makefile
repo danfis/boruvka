@@ -38,6 +38,7 @@ TARGETS = libfermat.a
 OBJS  = alloc.o
 OBJS += cfg.o cfg-lexer.o
 OBJS += opts.o
+OBJS += varr.o
 
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o

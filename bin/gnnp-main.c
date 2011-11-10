@@ -42,7 +42,7 @@ static const fer_vec_t *inputSignal(fer_gnnp_t *nn, void *data)
 
 static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
 {
-    fer_real_t x, y, r = 0.05;
+    fer_real_t x, y, r = 0.03;
     x = ferVecGet(conf, 0);
     y = ferVecGet(conf, 1);
 
@@ -62,7 +62,7 @@ static void callback(fer_gnnp_t *nn, void *data)
 
     c++;
     fprintf(stderr, "step %d, nodes: %d, evals: %ld\n",
-            c, (int)nn->nodes_len, (long)evals);
+            c, (int)ferGNNPNodesLen(nn), (long)evals);
     ferGNNPDumpSVT(nn, stdout, NULL);
 }
 
@@ -85,14 +85,15 @@ int main(int argc, char *argv[])
     ferGNNPParamsInit(&params);
     params.dim  = 2;
     params.rmax = 6;
-    params.h    = 0.025;
+    params.h    = 0.015;
     params.prune_delay = 500;
     params.nn.type = FER_NN_GUG;
-    params.nn.gug.max_dens = 1.1;
-    params.nn.gug.expand_rate = 1.5;
+    params.nn.gug.max_dens = 1.;
+    params.nn.gug.expand_rate = 1.3;
     params.nn.gug.aabb = aabb;
 
-    rnd = ferRandMTNewAuto();
+    //rnd = ferRandMTNewAuto();
+    rnd = ferRandMTNew(1111);
 
     is    = ferVecNew(2);
     start = ferVecNew(2);
