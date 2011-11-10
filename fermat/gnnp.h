@@ -118,6 +118,8 @@ struct _fer_gnnp_params_t {
     fer_real_t en;     /*!< Winner neighbor's learning rate. Default: 0.0006 */
     unsigned int rmax; /*!< Max rank of node. Default: 4 */
     fer_real_t h;      /*!< Resolution. Default: 0.1 */
+    fer_real_t ef;     /*!< Energy flow rate. Default: 0.1 */
+    fer_real_t e0;     /*!< Minimal energy amount. Default: 0.1 */
     unsigned int prune_delay; /*!< Number of steps after a path was not
                                    found to skip prunning. Default: 50 */
 

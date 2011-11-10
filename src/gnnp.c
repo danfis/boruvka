@@ -42,6 +42,8 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
                                 const fer_vec_t *is);
 static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is);
 
+static void energy(fer_gnnp_t *nn, fer_gnnp_node_t *n1, fer_gnnp_node_t *n2);
+
 static int findPath(fer_gnnp_t *nn, fer_list_t *path);
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path);
 
@@ -68,6 +70,8 @@ void ferGNNPParamsInit(fer_gnnp_params_t *p)
     p->en   = 0.0006;
     p->rmax = 4;
     p->h    = 0.1;
+    p->ef   = 0.1;
+    p->e0   = 0.1;
     p->prune_delay = 50;
 
     ferNNParamsInit(&p->nn);
@@ -154,6 +158,9 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         // competitive hebbian learning with removing edges
         hebbianLearning(nn, n[0], n[1]);
 
+        // compute energy flow
+        energy(nn, n[0], n[1]);
+
         if (n[0]->fixed){
             // the nearest node is fixed (free or obstacle)
             // compute distance between input signal and the winner node
@@ -191,6 +198,20 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 
     if (nn->params.dim != 2 && nn->params.dim != 3)
         return;
+
+    static int count = 0;
+    {
+        char fn[100];
+        FILE *fout;
+        snprintf(fn, 100, "e-%06d", count++);
+        fout = fopen(fn, "w");
+        for (i = 0; i < nn->nodes.len; i++){
+            n = ferGNNPNodesGet(&nn->nodes, i);
+            ferVecPrint(nn->params.dim, n->w, fout);
+            fprintf(fout, " %f\n", n->e);
+        }
+        fclose(fout);
+    }
 
     fprintf(out, "--------\n");
 
@@ -351,7 +372,7 @@ _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 }
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    n->fixed = 1;
+    n->fixed = 2;
     n->e     = 0.;
 }
 
@@ -399,6 +420,12 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     e = ferNetEdgeNew();
     ferNetAddEdge(nn->net, e, &wn->net, &n->net);
 
+    if (wn->e > 0.5){
+        n->e = wn->e - nn->params.e0;
+    }else{
+        n->e = nn->params.e0;
+    }
+
     return n;
 }
 
@@ -425,6 +452,40 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
     }
 }
 
+
+static void energy(fer_gnnp_t *nn, fer_gnnp_node_t *n1, fer_gnnp_node_t *n2)
+{
+    fer_real_t flow; // flow from n2 to n1
+
+    if (n1->e > n2->e){
+        flow = FER_MAX(n2->e * nn->params.ef, nn->params.e0);
+        flow = nn->params.e0;
+    }else{
+        flow = FER_MAX(n1->e * nn->params.ef, nn->params.e0);
+        flow = nn->params.e0;
+        flow = -flow;
+    }
+
+    n1->e += flow;
+    n2->e -= flow;
+
+    if (n1->fixed == 1){
+        n1->e = 1.;
+    }else if (n1->fixed == 2){
+        n1->e = 0.;
+    }
+    if (n2->fixed == 1){
+        n2->e = 1.;
+    }else if (n2->fixed == 2){
+        n2->e = 0.;
+    }
+    n1->e = FER_MIN(n1->e, FER_ONE);
+    n1->e = FER_MAX(n1->e, FER_ZERO);
+    n2->e = FER_MIN(n2->e, FER_ONE);
+    n2->e = FER_MAX(n2->e, FER_ZERO);
+}
+
+
 static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
                      fer_gnnp_node_t *goal)
 {
@@ -446,7 +507,7 @@ static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
         }
 
         // TODO
-        if (!n->prev && (n->e > 0.01)){
+        if (!n->prev && (!n->fixed || n->e > 0.5)){
             n->prev = root;
             ret = _findPath(nn, n, goal);
             if (ret == 0)
