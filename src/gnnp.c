@@ -103,9 +103,7 @@ fer_gnnp_t *ferGNNPNew(const fer_gnnp_ops_t *ops, const fer_gnnp_params_t *p)
     nn->net = ferNetNew();
     nn->nn  = ferNNNew(&nn->params.nn);
 
-    ferGNNPNodesInit(&nn->nodes[0], 100);
-    ferGNNPNodesInit(&nn->nodes[1], 100);
-    ferGNNPNodesInit(&nn->nodes[2], 100);
+    ferGNNPNodesInit(&nn->nodes, 50000);
     nn->s = nn->g = NULL;
 
     nn->tmpv = ferVecNew(nn->params.dim);
@@ -117,9 +115,7 @@ void ferGNNPDel(fer_gnnp_t *nn)
 {
     ferNetDel2(nn->net, netNodeDel, (void *)nn, netEdgeDel, (void *)nn);
     ferNNDel(nn->nn);
-    ferGNNPNodesDestroy(&nn->nodes[0]);
-    ferGNNPNodesDestroy(&nn->nodes[1]);
-    ferGNNPNodesDestroy(&nn->nodes[2]);
+    ferGNNPNodesDestroy(&nn->nodes);
     ferVecDel(nn->tmpv);
     FER_FREE(nn);
 }
@@ -147,7 +143,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         if (nextprune == c){
             if (findPath(nn, path) == 0){
                 if (!prunePath(nn, path))
-                    break;
+                    return 0;
                 nextprune++;
             }else{
                 nextprune += nn->params.prune_delay;
@@ -211,8 +207,8 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Point color: 0.1 0.1 0.8\n");
     fprintf(out, "Point size: 2\n");
     fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes[FER_GNNP_STATE_FREE].len; i++){
-        n = ferGNNPNodesGet(&nn->nodes[FER_GNNP_STATE_FREE], i);
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
         if (ferGNNPNodeIsFree(n)){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
@@ -228,8 +224,8 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Point color: 0.8 0.1 0.1\n");
     fprintf(out, "Point size: 2\n");
     fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes[FER_GNNP_STATE_OBST].len; i++){
-        n = ferGNNPNodesGet(&nn->nodes[FER_GNNP_STATE_OBST], i);
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
         if (ferGNNPNodeIsObst(n)){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
@@ -292,7 +288,7 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
 
     n = FER_ALLOC(fer_gnnp_node_t);
     n->state = FER_GNNP_STATE_LEARN;
-    n->idx = ferGNNPNodesAdd(&nn->nodes[n->state], n);
+    ferGNNPNodesAdd(&nn->nodes, n);
 
     n->w = ferVecClone(nn->params.dim, w);
 
@@ -359,13 +355,8 @@ _fer_inline int ferGNNPNodeState(const fer_gnnp_node_t *n)
 
 _fer_inline void ferGNNPNodeSetState(fer_gnnp_t *nn, fer_gnnp_node_t *n, int state)
 {
-    ferGNNPNodesRemove(&nn->nodes[n->state], n->idx);
-    if (n->idx < nn->nodes[n->state].len)
-        ferGNNPNodesGet(&nn->nodes[n->state], n->idx)->idx = n->idx;
-
     n->state &= ~0x3;
     n->state |= (state & 0x3);
-    n->idx = ferGNNPNodesAdd(&nn->nodes[n->state], n);
 }
 
 _fer_inline int ferGNNPNodeIsFree(const fer_gnnp_node_t *n)
@@ -499,14 +490,8 @@ static int findPath(fer_gnnp_t *nn, fer_list_t *path)
 
     ferListInit(path);
 
-    for (i = 0; i < nn->nodes[0].len; i++){
-        nn->nodes[0].arr[i]->prev = NULL;
-    }
-    for (i = 0; i < nn->nodes[1].len; i++){
-        nn->nodes[1].arr[i]->prev = NULL;
-    }
-    for (i = 0; i < nn->nodes[2].len; i++){
-        nn->nodes[2].arr[i]->prev = NULL;
+    for (i = 0; i < nn->nodes.len; i++){
+        nn->nodes.arr[i]->prev = NULL;
     }
 
     found = _findPath(nn, nn->s, nn->g);

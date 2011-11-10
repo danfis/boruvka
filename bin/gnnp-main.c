@@ -42,7 +42,7 @@ static const fer_vec_t *inputSignal(fer_gnnp_t *nn, void *data)
 
 static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
 {
-    fer_real_t x, y, r = 0.03;
+    fer_real_t x, y, r = 0.1;
     x = ferVecGet(conf, 0);
     y = ferVecGet(conf, 1);
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     ferGNNPParamsInit(&params);
     params.dim  = 2;
     params.rmax = 6;
-    params.h    = 0.015;
+    params.h    = 0.05;
     params.prune_delay = 500;
     params.nn.type = FER_NN_GUG;
     params.nn.gug.max_dens = 1.;

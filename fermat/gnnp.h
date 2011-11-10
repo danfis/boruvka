@@ -43,7 +43,6 @@ struct _fer_gnnp_t;
 struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     uint8_t state; /*!< State of node */
-    size_t idx;    /*!< Index in .nodes array */
     int _id;
 
     fer_net_node_t net;
@@ -144,9 +143,8 @@ struct _fer_gnnp_t {
     fer_net_t *net;
     fer_nn_t *nn;
 
-    fer_gnnp_nodes_t nodes[3]; /*!< Array of nodes, each for each type
-                                    (LEARN, FREE, OBST) */
-    fer_gnnp_node_t *s, *g;    /*!< Start and goal nodes */
+    fer_gnnp_nodes_t nodes; /*!< Array of all nodes */
+    fer_gnnp_node_t *s, *g; /*!< Start and goal nodes */
     fer_vec_t *tmpv;
 };
 typedef struct _fer_gnnp_t fer_gnnp_t;
@@ -188,7 +186,7 @@ _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn);
 /**** INLINES ****/
 _fer_inline size_t ferGNNPNodesLen(const fer_gnnp_t *nn)
 {
-    return nn->nodes[0].len + nn->nodes[1].len + nn->nodes[2].len;
+    return nn->nodes.len;
 }
 
 _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn)
