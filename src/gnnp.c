@@ -15,6 +15,7 @@
  *  See the License for more information.
  */
 
+#include <limits.h>
 #include <fermat/gnnp.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
@@ -36,13 +37,12 @@ _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n);
 static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
                     fer_gnnp_node_t **n1,
                     fer_gnnp_node_t **n2);
+static void learnDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n);
 static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
                                             fer_gnnp_node_t *n2);
 static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
                                 const fer_vec_t *is);
 static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is);
-
-static void energy(fer_gnnp_t *nn, fer_gnnp_node_t *n1, fer_gnnp_node_t *n2);
 
 static int findPath(fer_gnnp_t *nn, fer_list_t *path);
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path);
@@ -158,8 +158,8 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         // competitive hebbian learning with removing edges
         hebbianLearning(nn, n[0], n[1]);
 
-        // compute energy flow
-        energy(nn, n[0], n[1]);
+        // learn graph depth
+        learnDepth(nn, n[0]);
 
         if (n[0]->fixed){
             // the nearest node is fixed (free or obstacle)
@@ -187,6 +187,40 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
     return -1;
 }
 
+void __dump(const fer_gnnp_t *nn, FILE *out, int fixed, int depth)
+{
+    size_t i;
+    int num = 0;
+    fer_gnnp_node_t *n;
+
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (n->set == fixed && n->depth == depth){
+            num += 1;
+        }
+    }
+
+    if (num == 0)
+        return;
+
+    fprintf(out, "--------\n");
+
+    fprintf(out, "Name: %d %d\n", fixed, depth);
+    if (fixed == 1)
+        fprintf(out, "Point color: 0.1 0.1 0.8\n");
+    if (fixed == 2)
+        fprintf(out, "Point color: 0.8 0.1 0.1\n");
+    fprintf(out, "Point size: %d\n", 1 + depth);
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (n->set == fixed && n->depth == depth){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+    fprintf(out, "--------\n");
+}
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 {
     fer_list_t *list, *item;
@@ -200,19 +234,12 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
         return;
 
     static int count = 0;
-    {
-        char fn[100];
-        FILE *fout;
-        snprintf(fn, 100, "e-%06d", count++);
-        fout = fopen(fn, "w");
-        for (i = 0; i < nn->nodes.len; i++){
-            n = ferGNNPNodesGet(&nn->nodes, i);
-            ferVecPrint(nn->params.dim, n->w, fout);
-            fprintf(fout, " %f\n", n->e);
-        }
-        fclose(fout);
-    }
+    char fn[100];
 
+    snprintf(fn, 100, "g-%06d", count);
+    out = fopen(fn, "w");
+
+    /*
     fprintf(out, "--------\n");
 
     if (name){
@@ -225,7 +252,7 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     for (i = 0; i < nn->nodes.len; i++){
         n = ferGNNPNodesGet(&nn->nodes, i);
-        if (n->fixed && n->e > 0.5){
+        if (n->fixed == 1){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
         }
@@ -242,13 +269,13 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "Points:\n");
     for (i = 0; i < nn->nodes.len; i++){
         n = ferGNNPNodesGet(&nn->nodes, i);
-        if (n->fixed && n->e < 0.5){
+        if (n->fixed == 2){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
         }
     }
+    */
     fprintf(out, "--------\n");
-
 
     if (name)
         fprintf(out, "Name: %s\n", name);
@@ -283,6 +310,17 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
+
+    for (i = 0; i < 50; i++){
+        __dump(nn, out, 1, i);
+    }
+    for (i = 0; i < 50; i++){
+        __dump(nn, out, 2, i);
+    }
+
+
+    fclose(out);
+    count++;
 }
 
 
@@ -304,7 +342,8 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
 
     n = FER_ALLOC(fer_gnnp_node_t);
     n->fixed = 0;
-    n->e = 0.5;
+    n->depth = -1;
+    n->set = -1;
     ferGNNPNodesAdd(&nn->nodes, n);
 
     n->w = ferVecClone(nn->params.dim, w);
@@ -352,8 +391,14 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node)
         }
     }
 
-    ferNetRemoveEdge(nn->net, maxe);
-    ferNetEdgeDel(maxe);
+    if (maxe){
+        netn = ferNetEdgeOtherNode(maxe, &node->net);
+        n2   = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        ferNetRemoveEdge(nn->net, maxe);
+        ferNetEdgeDel(maxe);
+    }
+
 }
 
 static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
@@ -368,12 +413,14 @@ static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
 _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     n->fixed = 1;
-    n->e     = 1.;
+    n->depth = 0;
+    n->set   = 1;
 }
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     n->fixed = 2;
-    n->e     = 0.;
+    n->depth = 0;
+    n->set   = 2;
 }
 
 
@@ -388,6 +435,38 @@ static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
     *n2 = fer_container_of(els[1], fer_gnnp_node_t, nn);
 }
 
+static void learnDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n)
+{
+    fer_list_t *list, *item;
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    fer_gnnp_node_t *o;
+    int min[2], num[2];
+
+    if (n->fixed)
+        return;
+
+    min[0] = min[1] = INT_MAX - 1;
+    num[0] = num[1] = 0;
+    list = ferNetNodeEdges(&n->net);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferNetEdgeFromNodeList(item);
+        netn = ferNetEdgeOtherNode(e, &n->net);
+        o    = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        num[o->set - 1]++;
+        if (o->depth < min[o->set - 1])
+            min[o->set - 1] = o->depth;
+    }
+
+    if (num[0] > num[1]){
+        n->set = 1;
+    }else if (num[1] > num[0]){
+        n->set = 2;
+    }
+    n->depth = min[n->set - 1] + 1;
+}
+
 static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
                                             fer_gnnp_node_t *n2)
 {
@@ -398,10 +477,12 @@ static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
 
     if (e == NULL){
         // remove longest edge if adding a new edge would exceeds the limit
-        if (ferNetNodeEdgesLen(&n1->net) >= nn->params.rmax)
+        if (ferNetNodeEdgesLen(&n1->net) >= nn->params.rmax){
             ferGNNPNodeRemoveLongestEdge(nn, n1);
-        if (ferNetNodeEdgesLen(&n2->net) >= nn->params.rmax)
+        }
+        if (ferNetNodeEdgesLen(&n2->net) >= nn->params.rmax){
             ferGNNPNodeRemoveLongestEdge(nn, n2);
+        }
 
         // add new edge
         e = ferNetEdgeNew();
@@ -420,11 +501,8 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     e = ferNetEdgeNew();
     ferNetAddEdge(nn->net, e, &wn->net, &n->net);
 
-    if (wn->e > 0.5){
-        n->e = wn->e - nn->params.e0;
-    }else{
-        n->e = nn->params.e0;
-    }
+    n->depth = 1;
+    n->set   = wn->fixed;
 
     return n;
 }
@@ -453,38 +531,6 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
 }
 
 
-static void energy(fer_gnnp_t *nn, fer_gnnp_node_t *n1, fer_gnnp_node_t *n2)
-{
-    fer_real_t flow; // flow from n2 to n1
-
-    if (n1->e > n2->e){
-        flow = FER_MAX(n2->e * nn->params.ef, nn->params.e0);
-        flow = nn->params.e0;
-    }else{
-        flow = FER_MAX(n1->e * nn->params.ef, nn->params.e0);
-        flow = nn->params.e0;
-        flow = -flow;
-    }
-
-    n1->e += flow;
-    n2->e -= flow;
-
-    if (n1->fixed == 1){
-        n1->e = 1.;
-    }else if (n1->fixed == 2){
-        n1->e = 0.;
-    }
-    if (n2->fixed == 1){
-        n2->e = 1.;
-    }else if (n2->fixed == 2){
-        n2->e = 0.;
-    }
-    n1->e = FER_MIN(n1->e, FER_ONE);
-    n1->e = FER_MAX(n1->e, FER_ZERO);
-    n2->e = FER_MIN(n2->e, FER_ONE);
-    n2->e = FER_MAX(n2->e, FER_ZERO);
-}
-
 
 static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
                      fer_gnnp_node_t *goal)
@@ -507,7 +553,7 @@ static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
         }
 
         // TODO
-        if (!n->prev && (!n->fixed || n->e > 0.5)){
+        if (!n->prev && n->fixed < 2){
             n->prev = root;
             ret = _findPath(nn, n, goal);
             if (ret == 0)
@@ -548,9 +594,9 @@ static int _pruneEval(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     int eval;
 
-    if (n->fixed){
-        if (n->e > 0.)
-            return 0;
+    if (n->fixed == 1){
+        return 0;
+    }else if (n->fixed == 2){
         return 1;
     }
 

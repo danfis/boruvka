@@ -43,7 +43,8 @@ struct _fer_gnnp_t;
 struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     uint8_t fixed; /*!< True if node is fixed */
-    fer_real_t e;  /*!< Energy */
+    int depth;
+    uint8_t set;
     int _id;
 
     fer_net_node_t net;
