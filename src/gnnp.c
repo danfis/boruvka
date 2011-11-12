@@ -233,52 +233,19 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     if (nn->params.dim != 2 && nn->params.dim != 3)
         return;
 
-    static int count = 0;
-    char fn[100];
+    if (name)
+        fprintf(out, "Name: %s\n", name);
 
-    snprintf(fn, 100, "g-%06d", count);
-    out = fopen(fn, "w");
-
-    /*
-    fprintf(out, "--------\n");
-
-    if (name){
-        fprintf(out, "Name: %s FREE\n", name);
-    }else{
-        fprintf(out, "Name: FREE\n");
+    for (i = 0; i < 100; i++){
+        __dump(nn, out, 1, i);
     }
-    fprintf(out, "Point color: 0.1 0.1 0.8\n");
-    fprintf(out, "Point size: 2\n");
-    fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes.len; i++){
-        n = ferGNNPNodesGet(&nn->nodes, i);
-        if (n->fixed == 1){
-            ferVecPrint(nn->params.dim, n->w, out);
-            fprintf(out, "\n");
-        }
+    for (i = 0; i < 100; i++){
+        __dump(nn, out, 2, i);
     }
-    fprintf(out, "--------\n");
-
-    if (name){
-        fprintf(out, "Name: %s OBST\n", name);
-    }else{
-        fprintf(out, "Name: OBST\n");
-    }
-    fprintf(out, "Point color: 0.8 0.1 0.1\n");
-    fprintf(out, "Point size: 2\n");
-    fprintf(out, "Points:\n");
-    for (i = 0; i < nn->nodes.len; i++){
-        n = ferGNNPNodesGet(&nn->nodes, i);
-        if (n->fixed == 2){
-            ferVecPrint(nn->params.dim, n->w, out);
-            fprintf(out, "\n");
-        }
-    }
-    */
     fprintf(out, "--------\n");
 
     if (name)
-        fprintf(out, "Name: %s\n", name);
+        fprintf(out, "Name: net\n");
 
     fprintf(out, "Points off: 1\n");
     fprintf(out, "Edge color: 0.5 0.5 0.5\n");
@@ -310,17 +277,6 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
-
-    for (i = 0; i < 50; i++){
-        __dump(nn, out, 1, i);
-    }
-    for (i = 0; i < 50; i++){
-        __dump(nn, out, 2, i);
-    }
-
-
-    fclose(out);
-    count++;
 }
 
 

@@ -59,11 +59,20 @@ static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
 static void callback(fer_gnnp_t *nn, void *data)
 {
     static int c = 0;
+    char fn[100];
+    FILE *fout;
+    //fer_gng_eu_t *gng;
 
-    c++;
+    snprintf(fn, 100, "g-%06d", c);
+    fout = fopen(fn, "w");
+    if (fout){
+        ferGNNPDumpSVT(nn, fout, NULL);
+        fclose(fout);
+    }
+
     fprintf(stderr, "step %d, nodes: %d, evals: %ld\n",
             c, (int)ferGNNPNodesLen(nn), (long)evals);
-    ferGNNPDumpSVT(nn, stdout, NULL);
+    c++;
 }
 
 int main(int argc, char *argv[])
@@ -80,7 +89,7 @@ int main(int argc, char *argv[])
     ops.input_signal = inputSignal;
     ops.eval         = eval;
     ops.callback        = callback;
-    ops.callback_period = 1000;
+    ops.callback_period = 10000;
 
     ferGNNPParamsInit(&params);
     params.dim  = 2;
@@ -106,12 +115,11 @@ int main(int argc, char *argv[])
 
     nn = ferGNNPNew(&ops, &params);
 
-    ferListInit(&path);
     ret = ferGNNPFindPath(nn, start, goal, &path);
+    callback(nn, NULL);
     fprintf(stderr, "ret: %d\n", ret);
     fprintf(stderr, "evals: %ld\n", (long)evals);
 
-    ferGNNPDumpSVT(nn, stdout, NULL);
 
     ferGNNPDel(nn);
 
