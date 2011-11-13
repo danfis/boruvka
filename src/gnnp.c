@@ -33,6 +33,8 @@ static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
                                    const fer_vec_t *is, fer_real_t r);
 _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n);
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n);
+static void ferGNNPNodeSetDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n,
+                                int depth, int fixed);
 
 static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
                     fer_gnnp_node_t **n1,
@@ -70,9 +72,8 @@ void ferGNNPParamsInit(fer_gnnp_params_t *p)
     p->en   = 0.0006;
     p->rmax = 4;
     p->h    = 0.1;
-    p->ef   = 0.1;
-    p->e0   = 0.1;
     p->prune_delay = 50;
+    p->tournament = 3;
 
     ferNNParamsInit(&p->nn);
     p->nn.gug.dim    = 2;
@@ -102,8 +103,14 @@ fer_gnnp_t *ferGNNPNew(const fer_gnnp_ops_t *ops, const fer_gnnp_params_t *p)
     nn->net = ferNetNew();
     nn->nn  = ferNNNew(&nn->params.nn);
 
-    ferGNNPNodesInit(&nn->nodes, 50000);
+    nn->rand = ferRandMTNewAuto();
+
+    ferGNNPNodesInit(&nn->nodes, FER_GNNP_ARR_INIT_SIZE);
     nn->s = nn->g = NULL;
+
+    ferGNNPNodesInit(&nn->nodes_set[0], FER_GNNP_ARR_INIT_SIZE);
+    ferGNNPNodesInit(&nn->nodes_set[1], FER_GNNP_ARR_INIT_SIZE);
+    nn->rand_set = 0;
 
     nn->tmpv = ferVecNew(nn->params.dim);
 
@@ -114,7 +121,13 @@ void ferGNNPDel(fer_gnnp_t *nn)
 {
     ferNetDel2(nn->net, netNodeDel, (void *)nn, netEdgeDel, (void *)nn);
     ferNNDel(nn->nn);
+
     ferGNNPNodesDestroy(&nn->nodes);
+    ferGNNPNodesDestroy(&nn->nodes_set[0]);
+    ferGNNPNodesDestroy(&nn->nodes_set[1]);
+
+    ferRandMTDel(nn->rand);
+
     ferVecDel(nn->tmpv);
     FER_FREE(nn);
 }
@@ -140,7 +153,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         cb += 1U;
 
         if (nextprune == c){
-            if (findPath(nn, path) == 0){
+            if (c == 1UL && findPath(nn, path) == 0){
                 if (!prunePath(nn, path))
                     return 0;
                 nextprune++;
@@ -279,6 +292,28 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     fprintf(out, "--------\n");
 }
 
+const fer_gnnp_node_t *ferGNNPRandNode(fer_gnnp_t *nn)
+{
+    int id, ndepth, mdepth;
+    unsigned int i;
+    fer_gnnp_node_t *n = NULL, *m;
+
+    ndepth = -INT_MAX;
+    for (i = 0; i < nn->params.tournament; i++){
+        id  = ferRandMT(nn->rand, 0, nn->nodes_set[nn->rand_set].len);
+        id  = (id < nn->nodes_set[nn->rand_set].len ? id : nn->nodes_set[nn->rand_set].len - 1);
+        m   = ferGNNPNodesGet(&nn->nodes_set[nn->rand_set], id);
+        mdepth = (nn->rand_set == 0 ? -m->depth : m->depth);
+        if (mdepth > ndepth){
+            ndepth = mdepth;
+            n      = m;
+        }
+    }
+
+    nn->rand_set ^= 1;
+
+    return n;
+}
 
 static void netNodeDel(fer_net_node_t *n, void *_nn)
 {
@@ -300,6 +335,7 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
     n->fixed = 0;
     n->depth = -1;
     n->set = -1;
+    n->arrid = -1;
     ferGNNPNodesAdd(&nn->nodes, n);
 
     n->w = ferVecClone(nn->params.dim, w);
@@ -369,14 +405,35 @@ static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
 _fer_inline void ferGNNPNodeSetFree(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     n->fixed = 1;
-    n->depth = 0;
-    n->set   = 1;
+    ferGNNPNodeSetDepth(nn, n, 0, 1);
 }
 _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     n->fixed = 2;
-    n->depth = 0;
-    n->set   = 2;
+    ferGNNPNodeSetDepth(nn, n, 0, 2);
+}
+
+static void ferGNNPNodeSetDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n,
+                                int depth, int fixed)
+{
+    // remove from old array first
+    if (n->arrid != -1){
+        if ((n->set == 1 && fixed != 1)
+                || (n->set == 2 && (fixed != 2 || depth <= 1))){
+            ferGNNPNodesRemove(&nn->nodes_set[n->set - 1], n->arrid);
+            ferGNNPNodesGet(&nn->nodes_set[n->set - 1], n->arrid)->arrid = n->arrid;
+            n->arrid = -1;
+        }
+    }
+
+    // assign values to the node
+    n->depth = depth;
+    n->set   = fixed;
+
+    // put node into correct array
+    if (n->arrid == -1 && (n->set == 1 || (n->set == 2 && n->depth > 1))){
+        n->arrid = ferGNNPNodesAdd(&nn->nodes_set[n->set - 1], n);
+    }
 }
 
 
@@ -397,7 +454,7 @@ static void learnDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n)
     fer_net_edge_t *e;
     fer_net_node_t *netn;
     fer_gnnp_node_t *o;
-    int min[2], num[2];
+    int min[2], num[2], set;
 
     if (n->fixed)
         return;
@@ -415,12 +472,14 @@ static void learnDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n)
             min[o->set - 1] = o->depth;
     }
 
+    set = n->set;
     if (num[0] > num[1]){
-        n->set = 1;
+        set = 1;
     }else if (num[1] > num[0]){
-        n->set = 2;
+        set = 2;
     }
-    n->depth = min[n->set - 1] + 1;
+
+    ferGNNPNodeSetDepth(nn, n, min[set - 1] + 1, set);
 }
 
 static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
@@ -457,8 +516,7 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     e = ferNetEdgeNew();
     ferNetAddEdge(nn->net, e, &wn->net, &n->net);
 
-    n->depth = 1;
-    n->set   = wn->fixed;
+    ferGNNPNodeSetDepth(nn, n, 1, wn->fixed);
 
     return n;
 }

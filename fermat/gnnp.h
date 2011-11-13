@@ -21,6 +21,7 @@
 #include <fermat/core.h>
 #include <fermat/net.h>
 #include <fermat/nn.h>
+#include <fermat/rand-mt.h>
 #include <fermat/varr.h>
 
 #ifdef __cplusplus
@@ -33,6 +34,8 @@ struct _fer_gnnp_t;
 #define FER_GNNP_STATE_FREE 1
 #define FER_GNNP_STATE_OBST 2
 
+#define FER_GNNP_ARR_INIT_SIZE 20000
+
 
 /**
  * Growing Neural Network for Planning
@@ -44,7 +47,10 @@ struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     uint8_t fixed; /*!< True if node is fixed */
     int depth;
-    uint8_t set;
+    uint8_t set;   /*!< Indicate whether it is in FREE or OBST space */
+
+    int arrid; /*!< Position in set array */
+
     int _id;
 
     fer_net_node_t net;
@@ -119,10 +125,10 @@ struct _fer_gnnp_params_t {
     fer_real_t en;     /*!< Winner neighbor's learning rate. Default: 0.0006 */
     unsigned int rmax; /*!< Max rank of node. Default: 4 */
     fer_real_t h;      /*!< Resolution. Default: 0.1 */
-    fer_real_t ef;     /*!< Energy flow rate. Default: 0.1 */
-    fer_real_t e0;     /*!< Minimal energy amount. Default: 0.1 */
     unsigned int prune_delay; /*!< Number of steps after a path was not
                                    found to skip prunning. Default: 50 */
+    unsigned int tournament; /*!< Number of nodes chosen for tournament.
+                                  Default: 3 */
 
     fer_nn_params_t nn; /*!< Params of nearest neighbor search */
 };
@@ -146,8 +152,11 @@ struct _fer_gnnp_t {
     fer_gnnp_params_t params;
     fer_net_t *net;
     fer_nn_t *nn;
+    fer_rand_mt_t *rand;
 
     fer_gnnp_nodes_t nodes; /*!< Array of all nodes */
+    fer_gnnp_nodes_t nodes_set[2];
+    int rand_set;
     fer_gnnp_node_t *s, *g; /*!< Start and goal nodes */
     fer_vec_t *tmpv;
 };
@@ -176,6 +185,12 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
  * Dumps net (if it is 2-D or 3-D) as SVT object
  */
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name);
+
+/**
+ * Returns random node.
+ * TODO: Explain
+ */
+const fer_gnnp_node_t *ferGNNPRandNode(fer_gnnp_t *nn);
 
 /**
  * Returns number of nodes in network

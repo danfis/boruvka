@@ -17,10 +17,13 @@
 
 #include <fermat/gnnp.h>
 #include <fermat/rand-mt.h>
+#include <fermat/gng-eu.h>
+#include <fermat/dbg.h>
 
 fer_rand_mt_t *rnd;
 fer_vec_t *is;
 fer_vec_t *start, *goal;
+fer_real_t aabb[4] = {-5, 5, -5, 5};
 unsigned long evals = 0UL;
 
 static int terminate(fer_gnnp_t *nn, void *data)
@@ -56,12 +59,68 @@ static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
     return 0;
 }
 
+static int isc = 0;
+static int num[2][100];
+static FILE *gng_fout;
+const fer_vec_t *gngInputSignal(void *data)
+{
+    fer_gnnp_t *nn = (fer_gnnp_t *)data;
+    const fer_gnnp_node_t *wn;
+    int i;
+
+    if (isc == 0){
+        for (i = 0; i < 100; i++){
+            num[0][i] = 0;
+            num[1][i] = 0;
+        }
+    }
+
+    wn = ferGNNPRandNode(nn);
+
+    num[wn->set - 1][wn->depth]++;
+
+    isc++;
+
+    ferVecPrint(2, wn->w, gng_fout);
+    fprintf(gng_fout, "\n");
+    return wn->w;
+}
+
+int gngTerminate(void *data)
+{
+    static int c = 0;
+    int i;
+    c++;
+
+    if (c == 1000){
+        fprintf(stderr, "    -> free:");
+        for (i = 0; i < 100; i++){
+            if (num[0][i] > 0)
+                fprintf(stderr, " %02d:%04d", i, num[0][i]);
+        }
+        fprintf(stderr, "\n");
+
+        fprintf(stderr, "    -> obst:");
+        for (i = 0; i < 100; i++){
+            if (num[1][i] > 0)
+                fprintf(stderr, " %02d:%04d", i, num[1][i]);
+        }
+        fprintf(stderr, "\n");
+
+        c = 0;
+        return 1;
+    }
+    return 0;
+}
+
 static void callback(fer_gnnp_t *nn, void *data)
 {
     static int c = 0;
     char fn[100];
     FILE *fout;
-    //fer_gng_eu_t *gng;
+    fer_gng_eu_ops_t ops;
+    fer_gng_eu_params_t params;
+    fer_gng_eu_t *gng;
 
     snprintf(fn, 100, "g-%06d", c);
     fout = fopen(fn, "w");
@@ -70,8 +129,40 @@ static void callback(fer_gnnp_t *nn, void *data)
         fclose(fout);
     }
 
+
     fprintf(stderr, "step %d, nodes: %d, evals: %ld\n",
             c, (int)ferGNNPNodesLen(nn), (long)evals);
+
+    fprintf(stderr, "    free: %d\n", (int)nn->nodes_set[0].len);
+    fprintf(stderr, "    obst: %d\n", (int)nn->nodes_set[1].len);
+
+
+    ferGNGEuOpsInit(&ops);
+    ops.input_signal = gngInputSignal;
+    ops.terminate    = gngTerminate;
+    ops.data = (void *)nn;
+
+    ferGNGEuParamsInit(&params);
+    params.nn.gug.aabb = aabb;
+
+    gng = ferGNGEuNew(&ops, &params);
+
+    isc = 0;
+    snprintf(fn, 100, "h-%06d", c);
+    gng_fout = fopen(fn, "w");
+    fprintf(gng_fout, "Point size: 1\n");
+    fprintf(gng_fout, "Points:\n");
+
+    ferGNGEuRun(gng);
+    if (gng_fout){
+        ferGNGEuDumpSVT(gng, gng_fout, NULL);
+        fclose(gng_fout);
+    }
+
+    ferGNGEuDel(gng);
+
+
+
     c++;
 }
 
@@ -82,7 +173,6 @@ int main(int argc, char *argv[])
     fer_gnnp_params_t params;
     fer_gnnp_ops_t ops;
     fer_gnnp_t *nn;
-    fer_real_t aabb[4] = {-5, 5, -5, 5};
 
     ferGNNPOpsInit(&ops);
     ops.terminate    = terminate;
@@ -95,9 +185,8 @@ int main(int argc, char *argv[])
     params.dim  = 2;
     params.rmax = 6;
     params.h    = 0.025;
-    params.ef   = 0.005;
-    params.e0   = 0.01;
     params.prune_delay = 500;
+    params.tournament = 3;
     params.nn.type = FER_NN_GUG;
     params.nn.gug.max_dens = 1.;
     params.nn.gug.expand_rate = 1.3;
