@@ -25,6 +25,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+struct _fer_kohonen_t;
+
 /**
  * Kohonen Map
  * ============
@@ -37,6 +39,12 @@ struct _fer_kohonen_node_t {
 
     fer_net_node_t net;
     fer_nn_el_t nn;
+
+    fer_list_t fifo;
+    unsigned int update;
+    unsigned int depth;
+
+    int _id;
 };
 typedef struct _fer_kohonen_node_t fer_kohonen_node_t;
 
@@ -50,25 +58,27 @@ typedef struct _fer_kohonen_node_t fer_kohonen_node_t;
 /**
  * Returns input signal
  */
-typedef fer_vec_t (*fer_kohonen_input_signal)(void *);
+typedef const fer_vec_t *(*fer_kohonen_input_signal)(struct _fer_kohonen_t *k, void *);
 
 /**
- * Returns 0 if {cur} is still part of {center}'s neighborhood and fills
- * {*val} with the value of strength.
+ * Returns 0 if {cur} (which is in {depth} in BFS manner) is still part of
+ * {center}'s neighborhood and fills with the value of strength.
  */
-typedef int (*fer_kohonen_neighborhood)(const fer_kohonen_node_t *center,
+typedef int (*fer_kohonen_neighborhood)(struct _fer_kohonen_t *k,
+                                        const fer_kohonen_node_t *center,
                                         const fer_kohonen_node_t *cur,
+                                        int depth,
                                         fer_real_t *val, void *);
 
 /**
  * Returns true if algorithm should terminate.
  */
-typedef int (*fer_kohonen_terminate)(void *);
+typedef int (*fer_kohonen_terminate)(struct _fer_kohonen_t *k, void *);
 
 /**
  * Callback that is called peridically every .callback_period'th cycle.
  */
-typedef void (*fer_kohonen_callback)(void *);
+typedef void (*fer_kohonen_callback)(struct _fer_kohonen_t *k, void *);
 
 
 struct _fer_kohonen_ops_t {
@@ -115,6 +125,10 @@ struct _fer_kohonen_t {
 
     fer_net_t *net;
     fer_nn_t *nn;
+
+    unsigned int update;
+
+    fer_vec_t *tmpv;
 };
 typedef struct _fer_kohonen_t fer_kohonen_t;
 
@@ -140,6 +154,11 @@ void ferKohonenDel(fer_kohonen_t *k);
  * Runs Kohonen Map algorithm
  */
 void ferKohonenRun(fer_kohonen_t *k);
+
+/**
+ * Dumps 2D and 3D kohonen map in SVT format
+ */
+void ferKohonenDumpSVT(const fer_kohonen_t *k, FILE *out, const char *name);
 
 /**
  * Node functions

@@ -110,6 +110,8 @@ ifeq '$(EXAMPLES)' 'yes'
   ifeq '$(USE_ODE)' 'yes'
     TARGETS += examples/cd-ode
   endif
+
+  TARGETS += examples/kohonen-simple
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
