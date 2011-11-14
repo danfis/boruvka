@@ -89,6 +89,7 @@ typedef uint32_t fer_uint_t;
 # define FER_ATAN2(y, x) (atan2f(y, x))    /*!< arc tangent of y/x */
 # define FER_ATAN(x)     (atanf(x))        /*!< arc tangent of y/x */
 # define FER_POW(x, y)   (powf((x), (y)))  /*!< power function */
+# define FER_EXP(x)      (expf(x))         /*!< e exponential */
 
 #endif /* FER_SINGLE */
 
@@ -122,6 +123,7 @@ typedef uint64_t fer_uint_t;
 # define FER_ATAN2(y, x) (atan2(y, x))
 # define FER_ATAN(x)     (atan(x))
 # define FER_POW(x, y)   (pow((x), (y)))
+# define FER_EXP(x)      (exp(x))
 
 #endif /* FER_DOUBLE */
 

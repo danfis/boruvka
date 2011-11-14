@@ -58,6 +58,7 @@ OBJS += fibo.o pairheap.o dij.o
 OBJS += gng.o gng-eu.o gsrm.o
 OBJS += gng-t.o
 OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
+OBJS += kohonen.o
 OBJS += gnnp.o
 
 OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
@@ -112,6 +113,8 @@ ifeq '$(EXAMPLES)' 'yes'
   ifeq '$(USE_ODE)' 'yes'
     TARGETS += examples/cd-ode
   endif
+
+  TARGETS += examples/kohonen-simple
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
