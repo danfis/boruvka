@@ -294,10 +294,12 @@ static void ferKohonenNodeMoveTowards(fer_kohonen_t *k,
                                       const fer_vec_t *w,
                                       fer_real_t rate)
 {
-    ferVecSub2(k->params.dim, k->tmpv, w, n->w);
-    ferVecScale(k->params.dim, k->tmpv, rate);
-    ferVecAdd(k->params.dim, n->w, k->tmpv);
-    ferNNUpdate(k->nn, &n->nn);
+    if (!ferKohonenNodeFixed(n)){
+        ferVecSub2(k->params.dim, k->tmpv, w, n->w);
+        ferVecScale(k->params.dim, k->tmpv, rate);
+        ferVecAdd(k->params.dim, n->w, k->tmpv);
+        ferNNUpdate(k->nn, &n->nn);
+    }
 }
 
 

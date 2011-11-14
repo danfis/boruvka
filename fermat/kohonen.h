@@ -43,6 +43,7 @@ struct _fer_kohonen_node_t {
     fer_list_t fifo;
     unsigned int update;
     unsigned int depth;
+    int8_t fixed;
 
     int _id;
 };
@@ -181,6 +182,27 @@ void ferKohonenNodeDel(fer_kohonen_t *k, fer_kohonen_node_t *n);
 void ferKohonenNodeConnect(fer_kohonen_t *k,
                            fer_kohonen_node_t *n1,
                            fer_kohonen_node_t *n2);
+
+/**
+ * Returns true if node is fixed.
+ */
+_fer_inline int8_t ferKohonenNodeFixed(const fer_kohonen_node_t *n);
+
+/**
+ * Set a node as fixed
+ */
+_fer_inline void ferKohonenNodeSetFixed(fer_kohonen_node_t *n, int8_t fixed);
+
+/**** INLINES ****/
+_fer_inline int8_t ferKohonenNodeFixed(const fer_kohonen_node_t *n)
+{
+    return n->fixed;
+}
+
+_fer_inline void ferKohonenNodeSetFixed(fer_kohonen_node_t *n, int8_t fixed)
+{
+    n->fixed = fixed;
+}
 
 #ifdef __cplusplus
 }
