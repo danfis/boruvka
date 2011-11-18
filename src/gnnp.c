@@ -17,6 +17,7 @@
 
 #include <limits.h>
 #include <fermat/gnnp.h>
+#include <fermat/sort.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 
@@ -112,6 +113,11 @@ fer_gnnp_t *ferGNNPNew(const fer_gnnp_ops_t *ops, const fer_gnnp_params_t *p)
     ferGNNPNodesInit(&nn->nodes_set[1], FER_GNNP_ARR_INIT_SIZE);
     nn->rand_set = 0;
 
+    nn->depths_alloc = 100;
+    nn->depths = FER_ALLOC_ARR(size_t, nn->depths_alloc);
+    bzero(nn->depths, sizeof(size_t) * nn->depths_alloc);
+    nn->max_depth = 0;
+
     nn->tmpv = ferVecNew(nn->params.dim);
 
     return nn;
@@ -127,6 +133,9 @@ void ferGNNPDel(fer_gnnp_t *nn)
     ferGNNPNodesDestroy(&nn->nodes_set[1]);
 
     ferRandMTDel(nn->rand);
+
+    if (nn->depths)
+        FER_FREE(nn->depths);
 
     ferVecDel(nn->tmpv);
     FER_FREE(nn);
@@ -153,7 +162,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         cb += 1U;
 
         if (nextprune == c){
-            if (c == 1UL && findPath(nn, path) == 0){
+            if (findPath(nn, path) == 0){
                 if (!prunePath(nn, path))
                     return 0;
                 nextprune++;
@@ -416,6 +425,24 @@ _fer_inline void ferGNNPNodeSetObst(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 static void ferGNNPNodeSetDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n,
                                 int depth, int fixed)
 {
+    size_t i;
+
+    // remove from depth counter
+    if (n->depth != -1 && n->set == 2){
+        nn->depths[n->depth]--;
+
+        if (n->depth == nn->max_depth
+                && nn->depths[n->depth] == 0
+                && n->depth != 0){
+            for (i = n->depth - 1; i >= 0; i--){
+                if (nn->depths[i] > 0){
+                    nn->max_depth = i;
+                    break;
+                }
+            }
+        }
+    }
+
     // remove from old array first
     if (n->arrid != -1){
         if ((n->set == 1 && fixed != 1)
@@ -433,6 +460,20 @@ static void ferGNNPNodeSetDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n,
     // put node into correct array
     if (n->arrid == -1 && (n->set == 1 || (n->set == 2 && n->depth > 1))){
         n->arrid = ferGNNPNodesAdd(&nn->nodes_set[n->set - 1], n);
+    }
+
+    // update depth counter
+    if (n->set == 2){
+        if (nn->depths_alloc <= n->depth){
+            i = nn->depths_alloc;
+            nn->depths_alloc *= 2;
+            nn->depths = FER_REALLOC_ARR(nn->depths, size_t, nn->depths_alloc);
+            for (; i < nn->depths_alloc; i++)
+                nn->depths[i] = 0;
+        }
+        nn->depths[n->depth]++;
+        if (n->depth > nn->max_depth)
+            nn->max_depth = n->depth;
     }
 }
 
@@ -546,8 +587,45 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
 
 
 
-static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
-                     fer_gnnp_node_t *goal)
+struct sort_desc_t {
+    fer_gnnp_node_t *root;
+    fer_gnnp_t *nn;
+};
+
+static int sortDescendantsLT(fer_list_t *l1, fer_list_t *l2, void *data)
+{
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    struct sort_desc_t *d = (struct sort_desc_t *)data;
+    fer_gnnp_node_t *n1, *n2;
+    int v1, v2;
+
+    e    = ferNetEdgeFromNodeList(l1);
+    netn = ferNetEdgeOtherNode(e, &d->root->net);
+    n1   = fer_container_of(netn, fer_gnnp_node_t, net);
+    e    = ferNetEdgeFromNodeList(l2);
+    netn = ferNetEdgeOtherNode(e, &d->root->net);
+    n2   = fer_container_of(netn, fer_gnnp_node_t, net);
+
+    if (!n1->prev && n2->prev)
+        return 1;
+
+    v1 = (n1->set == 2 ? n1->depth : d->nn->max_depth - n1->depth);
+    v2 = (n2->set == 2 ? n2->depth : d->nn->max_depth - n2->depth);
+
+    return v1 > v2 && !n1->prev;
+}
+
+static void sortDescendants(fer_gnnp_t *nn, fer_gnnp_node_t *n)
+{
+    struct sort_desc_t desc;
+    desc.root = n;
+    desc.nn   = nn;
+    ferInsertSortList(&n->net.edges, sortDescendantsLT, (void *)&desc);
+}
+
+static int _findPathDFS(fer_gnnp_t *nn, fer_gnnp_node_t *root,
+                        fer_gnnp_node_t *goal, int sort)
 {
     fer_list_t *list, *item;
     fer_net_edge_t *e;
@@ -566,10 +644,11 @@ static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
             return 0;
         }
 
-        // TODO
-        if (!n->prev && n->fixed < 2){
+        if (!n->prev && (n->set == 1 || (n->set == 2 && n->depth > 0))){
             n->prev = root;
-            ret = _findPath(nn, n, goal);
+            if (sort)
+                sortDescendants(nn, n);
+            ret = _findPathDFS(nn, n, goal, sort);
             if (ret == 0)
                 return 0;
         }
@@ -577,8 +656,7 @@ static int _findPath(fer_gnnp_t *nn, fer_gnnp_node_t *root,
 
     return -1;
 }
-
-static int findPath(fer_gnnp_t *nn, fer_list_t *path)
+static int findPathDFS(fer_gnnp_t *nn, fer_list_t *path, int sort)
 {
     size_t i;
     int found;
@@ -590,7 +668,9 @@ static int findPath(fer_gnnp_t *nn, fer_list_t *path)
         nn->nodes.arr[i]->prev = NULL;
     }
 
-    found = _findPath(nn, nn->s, nn->g);
+    if (sort)
+        sortDescendants(nn, nn->s);
+    found = _findPathDFS(nn, nn->s, nn->g, sort);
     if (found != 0)
         return -1;
 
@@ -602,6 +682,11 @@ static int findPath(fer_gnnp_t *nn, fer_list_t *path)
     ferListPrepend(path, &nn->s->path);
 
     return 0;
+}
+
+static int findPath(fer_gnnp_t *nn, fer_list_t *path)
+{
+    return findPathDFS(nn, path, 1);
 }
 
 static int _pruneEval(fer_gnnp_t *nn, fer_gnnp_node_t *n)

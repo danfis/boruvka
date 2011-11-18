@@ -55,6 +55,7 @@ struct _fer_gnnp_node_t {
 
     fer_net_node_t net;
     fer_nn_el_t nn;
+
     fer_list_t path;
     struct _fer_gnnp_node_t *prev;
 };
@@ -157,6 +158,10 @@ struct _fer_gnnp_t {
     fer_gnnp_nodes_t nodes; /*!< Array of all nodes */
     fer_gnnp_nodes_t nodes_set[2];
     int rand_set;
+    size_t *depths;
+    size_t depths_alloc;
+    size_t max_depth;
+
     fer_gnnp_node_t *s, *g; /*!< Start and goal nodes */
     fer_vec_t *tmpv;
 };
