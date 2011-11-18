@@ -684,8 +684,75 @@ static int findPathDFS(fer_gnnp_t *nn, fer_list_t *path, int sort)
     return 0;
 }
 
+
+static void findPathDijExpand(fer_dij_node_t *_n,
+                              fer_list_t *expand, void *data)
+{
+    fer_gnnp_t *nn = (fer_gnnp_t *)data;
+    fer_list_t *list, *item;
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    fer_gnnp_node_t *n, *root;
+    fer_real_t dist;
+
+    root = fer_container_of(_n, fer_gnnp_node_t, dij);
+    list = ferNetNodeEdges(&root->net);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferNetEdgeFromNodeList(item);
+        netn = ferNetEdgeOtherNode(e, &root->net);
+        n    = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        if (!ferDijNodeClosed(&n->dij) && (n->set == 1 || n->depth > 0)){
+            dist = ferVecDist(nn->params.dim, root->w, n->w);
+            ferDijNodeAdd(&n->dij, expand, dist);
+        }
+    }
+}
+
+static int findPathDij(fer_gnnp_t *nn, fer_list_t *path)
+{
+    fer_dij_ops_t ops;
+    fer_dij_t *dij;
+    size_t i;
+    int found;
+    fer_gnnp_node_t *n;
+    fer_dij_node_t *dn;
+
+    ferListInit(path);
+
+    for (i = 0; i < nn->nodes.len; i++){
+        ferDijNodeInit(&nn->nodes.arr[i]->dij);
+        nn->nodes.arr[i]->prev = NULL;
+    }
+
+    // initialize operators
+    ferDijOpsInit(&ops);
+    ops.expand = findPathDijExpand;
+    ops.data   = (void *)nn;
+
+    // create dijkstra algorithm
+    dij = ferDijNew(&ops);
+
+    // run dijkstra
+    found = ferDijRun(dij, &nn->s->dij, &nn->g->dij);
+    if (found != 0)
+        return -1;
+
+    dn = &nn->g->dij;
+    while (dn != &nn->s->dij){
+        n = fer_container_of(dn, fer_gnnp_node_t, dij);
+        ferListPrepend(path, &n->path);
+
+        dn = dn->prev;
+    }
+    ferListPrepend(path, &nn->s->path);
+
+    return 0;
+}
+
 static int findPath(fer_gnnp_t *nn, fer_list_t *path)
 {
+    return findPathDij(nn, path);
     return findPathDFS(nn, path, 1);
 }
 

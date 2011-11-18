@@ -23,6 +23,7 @@
 #include <fermat/nn.h>
 #include <fermat/rand-mt.h>
 #include <fermat/varr.h>
+#include <fermat/dij.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +58,7 @@ struct _fer_gnnp_node_t {
     fer_nn_el_t nn;
 
     fer_list_t path;
+    fer_dij_node_t dij;
     struct _fer_gnnp_node_t *prev;
 };
 typedef struct _fer_gnnp_node_t fer_gnnp_node_t;
