@@ -140,7 +140,7 @@ src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
 	touch $@
 
 src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
-	$(FLEX) --header-file=src/cfg-lexer-gen.h -o $@ $<
+	$(FLEX) -o $@ $<
 .objs/cfg.o: src/cfg.c fermat/cfg.h fermat/config.h src/cfg-lexer.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/%.h fermat/config.h

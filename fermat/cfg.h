@@ -45,6 +45,7 @@ extern "C" {
  * val2:s  = 'a123g'
  * vec2:v2 = 10 12.1
  * vec3:v3 = 10 12.1 11.1
+ * vint:i  = 12
  *
  * # arrays
  * flts:f[4] = 1 2 3 4
@@ -64,77 +65,6 @@ struct _fer_cfg_t {
     fer_hmap_t *params;
 };
 typedef struct _fer_cfg_t fer_cfg_t;
-
-
-
-#define FER_CFG_PARAM \
-    char *name; \
-    uint8_t type; \
-    fer_list_t hmap
-struct _fer_cfg_param_t {
-    FER_CFG_PARAM;
-};
-typedef struct _fer_cfg_param_t fer_cfg_param_t;
-
-struct _fer_cfg_param_str_t {
-    FER_CFG_PARAM;
-    char *val;
-};
-typedef struct _fer_cfg_param_str_t fer_cfg_param_str_t;
-
-struct _fer_cfg_param_flt_t {
-    FER_CFG_PARAM;
-    fer_real_t val;
-};
-typedef struct _fer_cfg_param_flt_t fer_cfg_param_flt_t;
-
-struct _fer_cfg_param_v2_t {
-    FER_CFG_PARAM;
-    fer_vec2_t val;
-};
-typedef struct _fer_cfg_param_v2_t fer_cfg_param_v2_t;
-
-struct _fer_cfg_param_v3_t {
-    FER_CFG_PARAM;
-    fer_vec3_t val;
-};
-typedef struct _fer_cfg_param_v3_t fer_cfg_param_v3_t;
-
-
-struct _fer_cfg_param_arr_t {
-    FER_CFG_PARAM;
-    void *val;
-    size_t len;
-};
-typedef struct _fer_cfg_param_arr_t fer_cfg_param_arr_t;
-
-struct _fer_cfg_param_str_arr_t {
-    FER_CFG_PARAM;
-    char **val;
-    size_t len;
-};
-typedef struct _fer_cfg_param_str_arr_t fer_cfg_param_str_arr_t;
-
-struct _fer_cfg_param_flt_arr_t {
-    FER_CFG_PARAM;
-    fer_real_t *val;
-    size_t len;
-};
-typedef struct _fer_cfg_param_flt_arr_t fer_cfg_param_flt_arr_t;
-
-struct _fer_cfg_param_v2_arr_t {
-    FER_CFG_PARAM;
-    fer_vec2_t *val;
-    size_t len;
-};
-typedef struct _fer_cfg_param_v2_arr_t fer_cfg_param_v2_arr_t;
-
-struct _fer_cfg_param_v3_arr_t {
-    FER_CFG_PARAM;
-    fer_vec3_t *val;
-    size_t len;
-};
-typedef struct _fer_cfg_param_v3_arr_t fer_cfg_param_v3_arr_t;
 
 /**
  * Parameter Types
@@ -172,7 +102,7 @@ void ferCfgDel(fer_cfg_t *c);
 int ferCfgHaveParam(const fer_cfg_t *c, const char *name);
 
 /**
- * Returns type of param or FER_CFG_NONE if no such parameter exists.
+ * Returns type of param or FER_CFG_PARAM_NONE if no such parameter exists.
  */
 uint8_t ferCfgParamType(const fer_cfg_t *c, const char *name);
 
@@ -190,6 +120,11 @@ int ferCfgParamIsStr(const fer_cfg_t *c, const char *name);
  * Returns true if the param is a floating point number.
  */
 int ferCfgParamIsFlt(const fer_cfg_t *c, const char *name);
+
+/**
+ * Returns true if the param is a integer.
+ */
+int ferCfgParamIsInt(const fer_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is 2-D vector (vec2).
@@ -212,6 +147,12 @@ int ferCfgParamStr(const fer_cfg_t *c, const char *name, const char **val);
  * Return 0 on success.
  */
 int ferCfgParamFlt(const fer_cfg_t *c, const char *name, fer_real_t *val);
+
+/**
+ * Returns (via {val}) a value of speficied parameter.
+ * Return 0 on success.
+ */
+int ferCfgParamInt(const fer_cfg_t *c, const char *name, int *val);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
@@ -243,6 +184,13 @@ int ferCfgParamFltArr(const fer_cfg_t *c, const char *name,
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
+int ferCfgParamIntArr(const fer_cfg_t *c, const char *name,
+                      const int **val, size_t *len);
+
+/**
+ * Returns (via {val} and {len}) a value of speficied parameter.
+ * Return 0 on success.
+ */
 int ferCfgParamV2Arr(const fer_cfg_t *c, const char *name,
                      const fer_vec2_t **val, size_t *len);
 
@@ -262,9 +210,9 @@ int ferCfgParamV3Arr(const fer_cfg_t *c, const char *name,
  * Parameter specifier has following form:
  *     name_of_param:type
  * where type can be:
- *     1. f, s, v2 or v3 for single value parameters
- *     2. f[], s[], v2[] or v3[] for array pointers
- *     3. f#, s#, v2# or v3# for array lengths of type size_t
+ *     1. f, i, s, v2 or v3 for single value parameters
+ *     2. f[], i[], s[], v2[] or v3[] for array pointers
+ *     3. f#, i#, s#, v2# or v3# for array lengths of type size_t
  *
  * Example 1:
  * ~~~~~~~~

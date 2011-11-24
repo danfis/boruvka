@@ -20,16 +20,65 @@
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
 #include <fermat/hfunc.h>
+#include <fermat/vec.h>
 #include "src/cfg-lexer.h"
-#include "src/cfg-lexer-gen.h"
+
+typedef void *yyscan_t;
+extern uint16_t yylex(yyscan_t s);
+extern int yylex_init_extra(fer_cfg_lex_t *extra, yyscan_t *s);
+extern void yyset_in(FILE * in_str, yyscan_t s);
+extern int yylex_destroy(yyscan_t s);
 
 struct _fer_cfg_parser_t {
     yyscan_t scanner;
     fer_cfg_lex_t val;
-    int tok;
+    uint16_t tok;
     char *name;
 };
 typedef struct _fer_cfg_parser_t fer_cfg_parser_t;
+
+
+#define FER_CFG_PARAM \
+    char *name; \
+    uint8_t type; \
+    fer_list_t hmap
+struct _fer_cfg_param_t {
+    FER_CFG_PARAM;
+};
+typedef struct _fer_cfg_param_t fer_cfg_param_t;
+
+#define CFG_PARAM(type, ctype) \
+    struct _fer_cfg_param_ ## type ## _t { \
+        FER_CFG_PARAM; \
+        ctype val; \
+    }; \
+    typedef struct _fer_cfg_param_ ## type ## _t fer_cfg_param_ ## type ## _t
+CFG_PARAM(str, char *);
+CFG_PARAM(flt, fer_real_t);
+CFG_PARAM(int, int);
+CFG_PARAM(v2, fer_vec2_t);
+CFG_PARAM(v3, fer_vec3_t);
+
+
+struct _fer_cfg_param_arr_t {
+    FER_CFG_PARAM;
+    void *val;
+    size_t len;
+};
+typedef struct _fer_cfg_param_arr_t fer_cfg_param_arr_t;
+#define CFG_PARAM_ARR(type, ctype) \
+    struct _fer_cfg_param_ ## type ## _arr_t { \
+        FER_CFG_PARAM; \
+        ctype *val; \
+        size_t len; \
+    }; \
+    typedef struct _fer_cfg_param_ ## type ## _arr_t fer_cfg_param_ ## type ## _arr_t
+CFG_PARAM_ARR(str, char *);
+CFG_PARAM_ARR(flt, fer_real_t);
+CFG_PARAM_ARR(int, int);
+CFG_PARAM_ARR(v2, fer_vec2_t);
+CFG_PARAM_ARR(v3, fer_vec3_t);
+
 
 
 static uint32_t hmapHash(fer_list_t *key, void *data);
@@ -184,138 +233,71 @@ uint8_t ferCfgParamType(const fer_cfg_t *c, const char *name)
     return p->type;
 }
 
+
 int ferCfgParamIsArr(const fer_cfg_t *c, const char *name)
 {
     return (ferCfgParamType(c, name) & FER_CFG_PARAM_ARR) == FER_CFG_PARAM_ARR;
 }
 
-int ferCfgParamIsStr(const fer_cfg_t *c, const char *name)
-{
-    return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_STR;
-}
+#define PARAM_IS_FN(Type, TYPE) \
+    int ferCfgParamIs ## Type(const fer_cfg_t *c, const char *name) \
+    { \
+        return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_ ## TYPE; \
+    }
+PARAM_IS_FN(Str, STR)
+PARAM_IS_FN(Flt, FLT)
+PARAM_IS_FN(Int, INT)
+PARAM_IS_FN(V2, V2)
+PARAM_IS_FN(V3, V3)
 
-int ferCfgParamIsFlt(const fer_cfg_t *c, const char *name)
-{
-    return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_FLT;
-}
 
-int ferCfgParamIsV2(const fer_cfg_t *c, const char *name)
-{
-    return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_V2;
-}
+#define PARAM_FN_CP(Type, type, TYPE, ctype, CP) \
+    int ferCfgParam ## Type(const fer_cfg_t *c, \
+                            const char *name, \
+                            ctype *val) \
+    { \
+        fer_cfg_param_ ## type ## _t *v; \
+        \
+        v = (fer_cfg_param_ ## type ## _t *)ferCfgParamByType(c, name, FER_CFG_PARAM_ ## TYPE); \
+        if (!v) \
+            return -1; \
+        \
+        CP; \
+        return 0; \
+    }
 
-int ferCfgParamIsV3(const fer_cfg_t *c, const char *name)
-{
-    return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_V3;
-}
+#define PARAM_FN(Type, type, TYPE, ctype) \
+    PARAM_FN_CP(Type, type, TYPE, ctype, *val = v->val)
 
-int ferCfgParamStr(const fer_cfg_t *c, const char *name, const char **val)
-{
-    fer_cfg_param_str_t *v;
+#define PARAM_FN_ARR(Type, type, TYPE, ctype) \
+    int ferCfgParam ## Type ## Arr(const fer_cfg_t *c, \
+                                   const char *name, \
+                                   ctype **val, size_t *len) \
+    { \
+        fer_cfg_param_ ## type ## _arr_t *v; \
+        \
+        v = (fer_cfg_param_ ## type ## _arr_t *)ferCfgParamByType(c, name, \
+                                        FER_CFG_PARAM_ ## TYPE | FER_CFG_PARAM_ARR); \
+        if (!v) \
+            return -1; \
+        \
+        *val = v->val; \
+        *len = v->len; \
+        return 0; \
+    }
 
-    v = (fer_cfg_param_str_t *)ferCfgParamByType(c, name, FER_CFG_PARAM_STR);
-    if (!v)
-        return -1;
+PARAM_FN(Str, str, STR, const char *)
+PARAM_FN(Flt, flt, FLT, fer_real_t)
+PARAM_FN(Int, int, INT, int)
+PARAM_FN_CP(V2, v2, V2, fer_vec2_t, ferVec2Copy(val, &v->val))
+PARAM_FN_CP(V3, v3, V3, fer_vec3_t, ferVec3Copy(val, &v->val))
 
-    *val = v->val;
-    return 0;
-}
+PARAM_FN_ARR(Str, str, STR, char *)
+PARAM_FN_ARR(Flt, flt, FLT, const fer_real_t)
+PARAM_FN_ARR(Int, int, INT, const int)
+PARAM_FN_ARR(V2, v2, V2, const fer_vec2_t)
+PARAM_FN_ARR(V3, v3, V3, const fer_vec3_t)
 
-int ferCfgParamFlt(const fer_cfg_t *c, const char *name, fer_real_t *val)
-{
-    fer_cfg_param_flt_t *v;
-
-    v = (fer_cfg_param_flt_t *)ferCfgParamByType(c, name, FER_CFG_PARAM_FLT);
-    if (!v)
-        return -1;
-
-    *val = v->val;
-    return 0;
-}
-
-int ferCfgParamV2(const fer_cfg_t *c, const char *name, fer_vec2_t *val)
-{
-    fer_cfg_param_v2_t *v;
-
-    v = (fer_cfg_param_v2_t *)ferCfgParamByType(c, name, FER_CFG_PARAM_V2);
-    if (!v)
-        return -1;
-
-    ferVec2Copy(val, &v->val);
-    return 0;
-}
-
-int ferCfgParamV3(const fer_cfg_t *c, const char *name, fer_vec3_t *val)
-{
-    fer_cfg_param_v3_t *v;
-
-    v = (fer_cfg_param_v3_t *)ferCfgParamByType(c, name, FER_CFG_PARAM_V3);
-    if (!v)
-        return -1;
-
-    ferVec3Copy(val, &v->val);
-    return 0;
-}
-
-int ferCfgParamStrArr(const fer_cfg_t *c, const char *name,
-                      char ***val, size_t *len)
-{
-    fer_cfg_param_str_arr_t *v;
-
-    v = (fer_cfg_param_str_arr_t *)ferCfgParamByType(c, name,
-                                    FER_CFG_PARAM_STR | FER_CFG_PARAM_ARR);
-    if (!v)
-        return -1;
-
-    *val = v->val;
-    *len = v->len;
-    return 0;
-}
-
-int ferCfgParamFltArr(const fer_cfg_t *c, const char *name,
-                      const fer_real_t **val, size_t *len)
-{
-    fer_cfg_param_flt_arr_t *v;
-
-    v = (fer_cfg_param_flt_arr_t *)ferCfgParamByType(c, name,
-                                    FER_CFG_PARAM_FLT | FER_CFG_PARAM_ARR);
-    if (!v)
-        return -1;
-
-    *val = v->val;
-    *len = v->len;
-    return 0;
-}
-
-int ferCfgParamV2Arr(const fer_cfg_t *c, const char *name,
-                     const fer_vec2_t **val, size_t *len)
-{
-    fer_cfg_param_v2_arr_t *v;
-
-    v = (fer_cfg_param_v2_arr_t *)ferCfgParamByType(c, name,
-                                    FER_CFG_PARAM_V2 | FER_CFG_PARAM_ARR);
-    if (!v)
-        return -1;
-
-    *val = v->val;
-    *len = v->len;
-    return 0;
-}
-
-int ferCfgParamV3Arr(const fer_cfg_t *c, const char *name,
-                     const fer_vec3_t **val, size_t *len)
-{
-    fer_cfg_param_v3_arr_t *v;
-
-    v = (fer_cfg_param_v3_arr_t *)ferCfgParamByType(c, name,
-                                    FER_CFG_PARAM_V3 | FER_CFG_PARAM_ARR);
-    if (!v)
-        return -1;
-
-    *val = v->val;
-    *len = v->len;
-    return 0;
-}
 
 
 static const char *_ferCfgScanNext(const char *format, char *name, char *type);
@@ -327,7 +309,9 @@ int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
     int store;
     va_list ap;
     fer_real_t *vf;
+    int *vi;
     const fer_real_t **vfa;
+    const int **via;
     const char **vs;
     char ***vsa;
     fer_vec2_t *v2;
@@ -350,6 +334,9 @@ int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
         if (strcmp(type, "f") == 0){
             vf = va_arg(ap, fer_real_t *);
             store = ferCfgParamFlt(c, name, vf);
+        }else if (strcmp(type, "i") == 0){
+            vi = va_arg(ap, int *);
+            store = ferCfgParamInt(c, name, vi);
         }else if (strcmp(type, "s") == 0){
             vs = va_arg(ap, const char **);
             store = ferCfgParamStr(c, name, vs);
@@ -363,6 +350,9 @@ int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
         }else if (strcmp(type, "f[]") == 0){
             vfa = va_arg(ap, const fer_real_t **);
             store = ferCfgParamFltArr(c, name, vfa, &len);
+        }else if (strcmp(type, "i[]") == 0){
+            via = va_arg(ap, const int **);
+            store = ferCfgParamIntArr(c, name, via, &len);
         }else if (strcmp(type, "s[]") == 0){
             vsa = va_arg(ap, char ***);
             store = ferCfgParamStrArr(c, name, vsa, &len);
@@ -376,6 +366,9 @@ int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
         }else if (strcmp(type, "f#") == 0){
             vlen = va_arg(ap, size_t *);
             store = ferCfgParamFltArr(c, name, (const fer_real_t **)&vf, vlen);
+        }else if (strcmp(type, "i#") == 0){
+            vlen = va_arg(ap, size_t *);
+            store = ferCfgParamIntArr(c, name, (const int **)&vf, vlen);
         }else if (strcmp(type, "s#") == 0){
             vlen = va_arg(ap, size_t *);
             store = ferCfgParamStrArr(c, name, (char ***)&vs, vlen);
@@ -511,10 +504,12 @@ static void ferCfgParamInsert(fer_cfg_t *c, fer_cfg_param_t *p)
 static void parseName(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseStr(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseFlt(fer_cfg_t *c, fer_cfg_parser_t *parser);
+static void parseInt(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseV2(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseV3(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseStrArr(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseFltArr(fer_cfg_t *c, fer_cfg_parser_t *parser);
+static void parseIntArr(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseV2Arr(fer_cfg_t *c, fer_cfg_parser_t *parser);
 static void parseV3Arr(fer_cfg_t *c, fer_cfg_parser_t *parser);
 
@@ -546,6 +541,10 @@ static void parseName(fer_cfg_t *c, fer_cfg_parser_t *parser)
                 NEXT(parser);
                 parseFlt(c, parser);
                 break;
+            case T_TYPE_INT:
+                NEXT(parser);
+                parseInt(c, parser);
+                break;
             case T_TYPE_VV:
                 NEXT(parser);
                 parseV2(c, parser);
@@ -562,6 +561,10 @@ static void parseName(fer_cfg_t *c, fer_cfg_parser_t *parser)
                 NEXT(parser);
                 parseFltArr(c, parser);
                 break;
+            case T_TYPE_INT_ARR:
+                NEXT(parser);
+                parseIntArr(c, parser);
+                break;
             case T_TYPE_VV_ARR:
                 NEXT(parser);
                 parseV2Arr(c, parser);
@@ -577,6 +580,8 @@ static void parseName(fer_cfg_t *c, fer_cfg_parser_t *parser)
             parseStr(c, parser);
         }else if (parser->tok == T_FLT){
             parseFlt(c, parser);
+        }else if (parser->tok == T_INT){
+            parseInt(c, parser);
         }
     }
 
@@ -584,201 +589,122 @@ static void parseName(fer_cfg_t *c, fer_cfg_parser_t *parser)
         free(parser->name);
 }
 
-static void parseStr(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_str_t *p;
 
-    if (parser->tok != T_STR){
-        fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-    }else{
-        p = FER_ALLOC(fer_cfg_param_str_t);
-        SET_NAME(p, parser);
-        p->type = FER_CFG_PARAM_STR;
-        p->val  = strndup(parser->val.str + 1, parser->val.strlen - 2);
-        ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-        NEXT(parser);
+#define PARSE_FN(Type, ttype, TYPE, CP) \
+    static void parse ## Type(fer_cfg_t *c, fer_cfg_parser_t *parser) \
+    { \
+        fer_cfg_param_ ## ttype ## _t *p; \
+        \
+        if (parser->tok != T_ ## TYPE){ \
+            fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno); \
+        }else{ \
+            p = FER_ALLOC(fer_cfg_param_ ## ttype ## _t); \
+            SET_NAME(p, parser); \
+            p->type = FER_CFG_PARAM_ ## TYPE; \
+            CP; \
+            ferCfgParamInsert(c, (fer_cfg_param_t *)p); \
+            NEXT(parser); \
+        } \
     }
-}
+PARSE_FN(Str, str, STR,
+         p->val = strndup(parser->val.str + 1, parser->val.strlen - 2))
+PARSE_FN(Flt, flt, FLT, p->val = parser->val.flt)
+PARSE_FN(Int, int, INT, p->val = parser->val.integer)
 
-static void parseFlt(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_flt_t *p;
 
-    if (parser->tok != T_FLT){
-        fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-    }else{
-        p = FER_ALLOC(fer_cfg_param_flt_t);
-        SET_NAME(p, parser);
-        p->type = FER_CFG_PARAM_FLT;
-        p->val  = parser->val.flt;
-        ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-        NEXT(parser);
+#define PARSE_FN_VEC(SIZE) \
+    static void parseV ## SIZE(fer_cfg_t *c, fer_cfg_parser_t *parser) \
+    { \
+        fer_cfg_param_v ## SIZE ## _t *p; \
+        int i; \
+        \
+        p = FER_ALLOC(fer_cfg_param_v ## SIZE ## _t); \
+        SET_NAME(p, parser); \
+        p->type = FER_CFG_PARAM_V ## SIZE; \
+        ferCfgParamInsert(c, (fer_cfg_param_t *)p); \
+        \
+        for (i = 0; i < SIZE; i++){ \
+            if (parser->tok != T_FLT){ \
+                fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno); \
+                break; \
+            }else{ \
+                ferVecSet((fer_vec_t *)&p->val, i, parser->val.flt); \
+            } \
+            NEXT(parser); \
+        } \
+        \
+        for (; i < SIZE; i++){ \
+            ferVecSet((fer_vec_t *)&p->val, i, FER_ZERO); \
+        } \
     }
-}
+PARSE_FN_VEC(2)
+PARSE_FN_VEC(3)
 
-static void parseV2(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_v2_t *p;
-    int i;
 
-    p = FER_ALLOC(fer_cfg_param_v2_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_V2;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    for (i = 0; i < 2; i++){
-        if (parser->tok != T_FLT){
-            fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-            break;
-        }else{
-            ferVec2SetCoord(&p->val, i, parser->val.flt);
-        }
-        NEXT(parser);
+#define PARSE_FN_ARR(Type, ttype, TYPE, ctype, CP, DEFAULT) \
+    static void parse ## Type ##Arr(fer_cfg_t *c, fer_cfg_parser_t *parser) \
+    { \
+        fer_cfg_param_ ## ttype ## _arr_t *p; \
+        int i, len; \
+        \
+        p = FER_ALLOC(fer_cfg_param_ ## ttype ## _arr_t); \
+        SET_NAME(p, parser); \
+        p->type = FER_CFG_PARAM_ ## TYPE | FER_CFG_PARAM_ARR; \
+        ferCfgParamInsert(c, (fer_cfg_param_t *)p); \
+        \
+        len = atoi(parser->val.type + 3); \
+        p->val = FER_ALLOC_ARR(ctype, len); \
+        p->len = len; \
+        \
+        for (i = 0; i < len; i++){ \
+            if (parser->tok != T_ ## TYPE){ \
+                fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno); \
+                break; \
+            }else{ \
+                CP; \
+            } \
+            NEXT(parser); \
+        } \
+        \
+        for (; i < len; i++){ \
+            p->val[i] = DEFAULT; \
+        } \
     }
+PARSE_FN_ARR(Str, str, STR, char *, 
+             p->val[i] = strndup(parser->val.str + 1, parser->val.strlen - 2),
+             NULL)
+PARSE_FN_ARR(Flt, flt, FLT, fer_real_t, p->val[i] = parser->val.flt, FER_ZERO)
+PARSE_FN_ARR(Int, int, INT, int, p->val[i] = parser->val.integer, 0)
 
-    for (; i < 2; i++){
-        ferVec2SetCoord(&p->val, i, FER_ZERO);
+
+#define PARSE_FN_VEC_ARR(SIZE) \
+    static void parseV ## SIZE ## Arr(fer_cfg_t *c, fer_cfg_parser_t *parser) \
+    { \
+        fer_cfg_param_v ## SIZE ## _arr_t *p; \
+        int i, j, len, ok; \
+        \
+        p = FER_ALLOC(fer_cfg_param_v ## SIZE ## _arr_t); \
+        SET_NAME(p, parser); \
+        p->type = FER_CFG_PARAM_V ## SIZE | FER_CFG_PARAM_ARR; \
+        ferCfgParamInsert(c, (fer_cfg_param_t *)p); \
+        \
+        len = atoi(parser->val.type + 4); \
+        p->val = FER_ALLOC_ARR(fer_vec ## SIZE ## _t, len); \
+        p->len = len; \
+        \
+        ok = 1; \
+        for (i = 0; i < len && ok; i++){ \
+            for (j = 0; j < SIZE; j++){ \
+                if (parser->tok != T_FLT){ \
+                    fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno); \
+                    ok = 0; \
+                    break; \
+                }else{ \
+                    ferVecSet((fer_vec_t *)&p->val[i], j, parser->val.flt); \
+                } \
+                NEXT(parser); \
+            } \
+        } \
     }
-}
-
-static void parseV3(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_v3_t *p;
-    int i;
-
-    p = FER_ALLOC(fer_cfg_param_v3_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_V3;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    for (i = 0; i < 3; i++){
-        if (parser->tok != T_FLT){
-            fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-            break;
-        }else{
-            ferVec3SetCoord(&p->val, i, parser->val.flt);
-        }
-        NEXT(parser);
-    }
-
-    for (; i < 3; i++){
-        ferVec3SetCoord(&p->val, i, FER_ZERO);
-    }
-}
-
-static void parseStrArr(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_str_arr_t *p;
-    int i, len;
-
-    p = FER_ALLOC(fer_cfg_param_str_arr_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_STR | FER_CFG_PARAM_ARR;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    len = atoi(parser->val.type + 3);
-    p->val = FER_ALLOC_ARR(char *, len);
-    p->len = len;
-
-    for (i = 0; i < len; i++){
-        if (parser->tok != T_STR){
-            fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-            break;
-        }else{
-            p->val[i] = strndup(parser->val.str + 1, parser->val.strlen - 2);
-        }
-        NEXT(parser);
-    }
-
-    for (; i < len; i++){
-        p->val[i] = NULL;
-    }
-}
-
-static void parseFltArr(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_flt_arr_t *p;
-    int i, len;
-
-    p = FER_ALLOC(fer_cfg_param_flt_arr_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_FLT | FER_CFG_PARAM_ARR;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    len = atoi(parser->val.type + 3);
-    p->val = FER_ALLOC_ARR(fer_real_t, len);
-    p->len = len;
-
-    for (i = 0; i < len; i++){
-        if (parser->tok != T_FLT){
-            fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-            break;
-        }else{
-            p->val[i] = parser->val.flt;
-        }
-        NEXT(parser);
-    }
-
-    for (; i < len; i++){
-        p->val[i] = FER_ZERO;
-    }
-}
-
-static void parseV2Arr(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_v2_arr_t *p;
-    int i, j, len, ok;
-
-    p = FER_ALLOC(fer_cfg_param_v2_arr_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_V2 | FER_CFG_PARAM_ARR;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    len = atoi(parser->val.type + 4);
-    p->val = FER_ALLOC_ARR(fer_vec2_t, len);
-    p->len = len;
-
-    ok = 1;
-    for (i = 0; i < len && ok; i++){
-        for (j = 0; j < 2; j++){
-            if (parser->tok != T_FLT){
-                fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-                ok = 0;
-                break;
-            }else{
-                ferVec2SetCoord(&p->val[i], j, parser->val.flt);
-            }
-            NEXT(parser);
-        }
-    }
-}
-
-static void parseV3Arr(fer_cfg_t *c, fer_cfg_parser_t *parser)
-{
-    fer_cfg_param_v3_arr_t *p;
-    int i, j, len, ok;
-
-    p = FER_ALLOC(fer_cfg_param_v3_arr_t);
-    SET_NAME(p, parser);
-    p->type = FER_CFG_PARAM_V3 | FER_CFG_PARAM_ARR;
-    ferCfgParamInsert(c, (fer_cfg_param_t *)p);
-
-    len = atoi(parser->val.type + 4);
-    p->val = FER_ALLOC_ARR(fer_vec3_t, len);
-    p->len = len;
-
-    ok = 1;
-    for (i = 0; i < len && ok; i++){
-        for (j = 0; j < 3; j++){
-            if (parser->tok != T_FLT){
-                fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno);
-                ok = 0;
-                break;
-            }else{
-                ferVec3SetCoord(&p->val[i], j, parser->val.flt);
-            }
-            NEXT(parser);
-        }
-    }
-}
-
+PARSE_FN_VEC_ARR(2)
+PARSE_FN_VEC_ARR(3)
