@@ -245,12 +245,14 @@ void __dump(const fer_gnnp_t *nn, FILE *out, int fixed, int depth)
 }
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 {
-    fer_list_t *list, *item;
+    //fer_list_t *list, *item;
     size_t i;
+    /*
     fer_net_node_t *netn;
     fer_gnnp_node_t *n;
     fer_net_edge_t *e;
     size_t id1, id2;
+    */
 
     if (nn->params.dim != 2 && nn->params.dim != 3)
         return;
@@ -266,6 +268,7 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
     fprintf(out, "--------\n");
 
+    /*
     if (name)
         fprintf(out, "Name: net\n");
 
@@ -299,6 +302,7 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
+    */
 }
 
 const fer_gnnp_node_t *ferGNNPRandNode(fer_gnnp_t *nn)

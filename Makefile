@@ -129,6 +129,11 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+bin/fer-gnnp: bin/gnnp-main.o bin/cfg-2d-map.o libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< bin/cfg-2d-map.o $(LDFLAGS)
+bin/%.o: bin/%.c bin/%.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 examples/%: examples/%.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 examples/cd-ode: examples/cd-ode.c libfermat.a

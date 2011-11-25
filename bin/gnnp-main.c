@@ -20,201 +20,31 @@
 #include <fermat/timer.h>
 #include <fermat/cd.h>
 #include <fermat/cfg.h>
+#include <fermat/opts.h>
 #include <fermat/dbg.h>
 #include <fermat/alloc.h>
+#include "cfg-2d-map.h"
 
 
 fer_rand_mt_t *rnd;
 fer_vec_t *is;
 fer_vec_t *start, *goal;
-//fer_real_t aabb[4] = {-5, 5, -5, 5};
 unsigned long evals = 0UL;
-
-static fer_cd_params_t cd_params;
-static fer_cd_t *cd = NULL;
-static fer_cd_geom_t *map = NULL;
-static fer_cd_geom_t *robot = NULL;
-
-static fer_cfg_t *cfg = NULL;
-static fer_vec2_t minit, mgoal;
-static fer_real_t aabb[4];
-static fer_vec2_t *map_pts = NULL;
-size_t pts_len;
-static int *ids;
-size_t ids_len;
-static fer_vec3_t *robot_pts = NULL;
-size_t robot_pts_len;
-static unsigned int *robot_ids = NULL;
-size_t robot_ids_len;
-
-static int mapLoad(const char *fn)
-{
-    const char *name;
-    size_t i;
-    int ret;
-    fer_vec3_t p[3];
-    fer_real_t scale;
-    fer_vec3_t m;
-    const fer_real_t *_aabb;
-    static fer_vec2_t *pts;
-
-    cfg = ferCfgRead(fn);
-    if (!cfg){
-        fprintf(stderr, "Can't read cfg file `%s'\n", fn);
-        return -1;
-    }
-
-    ret = ferCfgScan(cfg, "name:s aabb:f[] pts:v2[] pts:v2# ids:i[] ids:i# init:v2 goal:v2",
-                     &name, &_aabb, &pts, &pts_len, &ids, &ids_len, &minit, &mgoal);
-    if (ret != 0){
-        ferCfgDel(cfg);
-        fprintf(stderr, "Invalid format of cfg file.\n");
-        return -1;
-    }
-
-    cd_params.build_flags = FER_CD_TOP_DOWN
-                                | FER_CD_FIT_NAIVE
-                                | FER_CD_FIT_NAIVE_NUM_ROT(5);
-    ferCDParamsInit(&cd_params);
-    cd_params.use_sap = 0;
-    cd_params.num_threads = 1;
-    cd = ferCDNew(&cd_params);
-
-    ferVec3Set(&m, (_aabb[0] + _aabb[1]) / 2., (_aabb[2] + _aabb[3]) / 2., FER_ZERO);
-    scale = FER_MAX(_aabb[1] - _aabb[0], _aabb[3] - _aabb[2]);
-    scale = 10. / scale;
-    aabb[0] = (_aabb[0] - ferVec3X(&m)) * scale;
-    aabb[1] = (_aabb[1] - ferVec3X(&m)) * scale;
-    aabb[2] = (_aabb[2] - ferVec3Y(&m)) * scale;
-    aabb[3] = (_aabb[3] - ferVec3Y(&m)) * scale;
-
-    ferVec2Sub(&minit, (const fer_vec2_t *)&m);
-    ferVec2Scale(&minit, scale);
-    ferVec2Sub(&mgoal, (const fer_vec2_t *)&m);
-    ferVec2Scale(&mgoal, scale);
-
-    map_pts = FER_ALLOC_ARR(fer_vec2_t, pts_len);
-    for (i = 0; i < pts_len; i++){
-        ferVec2Sub2(&map_pts[i], &pts[i], (fer_vec2_t *)&m);
-        ferVec2Scale(&map_pts[i], scale);
-    }
-
-    map = ferCDGeomNew(cd);
-    for (i = 0; (i + 2) < ids_len; i += 3){
-        ferVec3Set(&p[0], ferVec2X(&pts[ids[i]]), ferVec2Y(&pts[ids[i]]), FER_ZERO);
-        ferVec3Set(&p[1], ferVec2X(&pts[ids[i+1]]), ferVec2Y(&pts[ids[i+1]]), FER_ZERO);
-        ferVec3Set(&p[2], ferVec2X(&pts[ids[i+2]]), ferVec2Y(&pts[ids[i+2]]), FER_ZERO);
-        ferVec3Sub(&p[0], &m);
-        ferVec3Sub(&p[1], &m);
-        ferVec3Sub(&p[2], &m);
-        ferVec3Scale(&p[0], scale);
-        ferVec3Scale(&p[1], scale);
-        ferVec3Scale(&p[2], scale);
-        ferCDGeomAddTri(cd, map, &p[0], &p[1], &p[2]);
-    }
-    ferCDGeomBuild(cd, map);
+static const fer_real_t *aabb;
 
 
-    fprintf(stderr, "AABB: %f %f %f %f\n", (float)aabb[0], (float)aabb[1], (float)aabb[2], (float)aabb[3]);
-    fprintf(stderr, "Init: %f %f\n", (float)ferVec2X(&minit), (float)ferVec2Y(&minit));
-    fprintf(stderr, "Goal: %f %f\n", (float)ferVec2X(&mgoal), (float)ferVec2Y(&mgoal));
-
-    return 0;
-}
-
-static void mapRobotSquare(fer_real_t he)
-{
-    robot_pts = ferVec3ArrNew(4);
-    robot_pts_len = 4;
-    robot_ids = FER_ALLOC_ARR(unsigned int, 6);
-    robot_ids_len = 6;
-
-    ferVec3Set(&robot_pts[0], -he, -he, FER_ZERO);
-    ferVec3Set(&robot_pts[1],  he, -he, FER_ZERO);
-    ferVec3Set(&robot_pts[2],  he,  he, FER_ZERO);
-    ferVec3Set(&robot_pts[3], -he,  he, FER_ZERO);
-    robot_ids[0] = 0;
-    robot_ids[1] = 1;
-    robot_ids[2] = 2;
-    robot_ids[3] = 0;
-    robot_ids[4] = 2;
-    robot_ids[5] = 3;
-
-    robot = ferCDGeomNew(cd);
-    ferCDGeomAddTriMesh(cd, robot, robot_pts, robot_ids, robot_ids_len / 3);
-    ferCDGeomBuild(cd, robot);
-}
-
-static void mapDel(void)
-{
-    if (cd)
-        ferCDDel(cd);
-    if (cfg)
-        ferCfgDel(cfg);
-    if (map_pts)
-        FER_FREE(map_pts);
-    if (robot_pts)
-        FER_FREE(robot_pts);
-    if (robot_ids)
-        FER_FREE(robot_ids);
-}
-
-_fer_inline int mapCD(void)
-{
-    if (!cd || !map || !robot)
-        return 0;
-    return ferCDGeomCollide(cd, map, robot);
-}
-
-_fer_inline int mapCDConf(int dim, const fer_vec_t *conf)
-{
-    if (!robot)
-        return 0;
-
-    //DBG("%f %f", ferVecGet(conf, 0), ferVecGet(conf, 1));
-    if (dim == 2){
-        ferCDGeomSetTr3(cd, robot, ferVecGet(conf, 0), ferVecGet(conf, 1), FER_ZERO);
-    }
-
-    return mapCD();
-}
-
-static void mapDumpSVT(FILE *out, const char *name)
-{
-    size_t i;
-
-    fprintf(out, "----\n");
-    if (name){
-        fprintf(out, "Name: %s\n", name);
-    }else{
-        fprintf(out, "Name: Map\n");
-    }
-
-    fprintf(out, "Points off: 1\n");
-    fprintf(out, "Face color: 0.8 0.8 0.8\n");
-    fprintf(out, "Points2d:\n");
-    for (i = 0; i < pts_len; i++){
-        ferVec2Print(&map_pts[i], out);
-        fprintf(out, "\n");
-    }
-
-    fprintf(out, "Faces:\n");
-    for (i = 0; (i + 2) < ids_len; i += 3){
-        fprintf(out, "%d %d %d\n", (int)ids[i], (int)ids[i + 1], (int)ids[i + 2]);
-    }
-
-    fprintf(out, "----\n");
-}
-
-
+int list_robots;
+const char *robot_name = NULL;
+long callback_period = 10000;
+long max_steps = 1000000;
 
 
 static int terminate(fer_gnnp_t *nn, void *data)
 {
-    static int count = 0;
+    static long count = 0;
 
     ++count;
-    if (count == 10000000)
+    if (count == max_steps)
         return 1;
     return 0;
 }
@@ -229,19 +59,7 @@ static const fer_vec_t *inputSignal(fer_gnnp_t *nn, void *data)
 static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
 {
     evals += 1UL;
-    return !mapCDConf(2, conf);
-    fer_real_t x, y, r = 0.05;
-    x = ferVecGet(conf, 0);
-    y = ferVecGet(conf, 1);
-
-    evals += 1UL;
-
-    if (y < -2
-            || (y < 4 && y > -2 && x > -r && x < r)
-            || (y > 4 && x > -2 && x < 2)){
-        return 1;
-    }
-    return 0;
+    return !ferCfg2DMapCollide(conf);
 }
 
 static void callback(fer_gnnp_t *nn, void *data)
@@ -255,7 +73,7 @@ static void callback(fer_gnnp_t *nn, void *data)
     fout = fopen(fn, "w");
     if (fout){
         ferGNNPDumpSVT(nn, fout, NULL);
-        mapDumpSVT(fout, NULL);
+        ferCfg2DMapDumpSVT(fout, NULL);
         fclose(fout);
     }
 
@@ -307,6 +125,24 @@ static void printPath(fer_gnnp_t *nn, fer_list_t *path)
     printf("----\n");
 }
 
+int opts(int *argc, char *argv[])
+{
+    ferOptsAdd("robots", 0x0, FER_OPTS_NONE, (void *)&list_robots, NULL);
+    ferOptsAdd("robot", 'r', FER_OPTS_STR, (void *)&robot_name, NULL);
+    ferOptsAdd("cb-period", 0x0, FER_OPTS_LONG, (void *)&callback_period, NULL);
+    ferOptsAdd("max-steps", 0x0, FER_OPTS_LONG, (void *)&max_steps, NULL);
+
+    if (ferOpts(argc, argv) != 0)
+        return -1;
+
+    if (*argc != 2 || robot_name == NULL){
+        fprintf(stderr, "Usage: %s [ OPTIONTS ] cfg_file\n", argv[0]);
+        return -1;
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     fer_list_t path;
@@ -316,54 +152,54 @@ int main(int argc, char *argv[])
     fer_gnnp_t *nn;
     fer_timer_t timer;
 
-    if (argc != 2){
-        fprintf(stderr, "Usage: %s cfg_file\n", argv[0]);
+    if (opts(&argc, argv) != 0)
         return -1;
+
+    if (ferCfg2DMapInit(argv[1]) != 0)
+        return -1;
+
+    if (list_robots){
+        ferCfg2DMapListRobots(stderr);
+        ferCfg2DMapDestroy();
+        return 0;
     }
 
-    if (mapLoad(argv[1]) != 0)
-        return -1;
-    //mapRobotSquare(0.5);
-    mapRobotSquare(0.08);
+    aabb = ferCfg2DMapAABB();
 
     ferGNNPOpsInit(&ops);
     ops.terminate    = terminate;
     ops.input_signal = inputSignal;
     ops.eval         = eval;
     ops.callback        = callback;
-    ops.callback_period = 10000;
+    ops.callback_period = callback_period;
 
     ferGNNPParamsInit(&params);
     params.dim  = 2;
     params.rmax = 6;
     params.h    = 0.25;
-    params.h    = 0.05;
     params.prune_delay = 500;
     params.tournament = 3;
     params.nn.type = FER_NN_GUG;
     params.nn.gug.max_dens = 1.;
     params.nn.gug.expand_rate = 1.3;
-    params.nn.gug.aabb = aabb;
-
-    //rnd = ferRandMTNewAuto();
-    rnd = ferRandMTNew(1111);
+    params.nn.gug.aabb = (fer_real_t *)aabb;
 
     is    = ferVecNew(2);
     start = ferVecNew(2);
     goal  = ferVecNew(2);
-    //ferVecSetN(2, start, -4., -4.);
-    //ferVecSetN(2, goal, 1.5, 4.5);
-    ferVecSetN(2, start, ferVec2X(&minit), ferVec2Y(&minit));
-    ferVecSetN(2, goal, ferVec2X(&mgoal), ferVec2Y(&mgoal));
-    /*
-    mapDumpSVT(stdout, NULL);
-    mapCDConf(2, start);
-    ferCDGeomDumpSVT(robot, stdout, NULL);
-    mapCDConf(2, goal);
-    ferCDGeomDumpSVT(robot, stdout, NULL);
-    return 0;
-    */
 
+    // load robot with parameters
+    if (ferCfg2DMapRobot(robot_name, &params.h, start, goal) != 0){
+        ferVecDel(is);
+        ferVecDel(start);
+        ferVecDel(goal);
+        ferCfg2DMapDestroy();
+        return -1;
+    }
+
+
+    //rnd = ferRandMTNewAuto();
+    rnd = ferRandMTNew(1111);
 
     nn = ferGNNPNew(&ops, &params);
 
@@ -377,7 +213,9 @@ int main(int argc, char *argv[])
     if (ret == 0){
         printPath(nn, &path);
     }
-    mapDumpSVT(stdout, NULL);
+    ferCfg2DMapDumpSVT(stdout, NULL);
+    ferCfg2DMapRobotDumpSVT(start, stdout, "Init");
+    ferCfg2DMapRobotDumpSVT(goal, stdout, "Goal");
 
     fprintf(stderr, "Time: %lu us\n", ferTimerElapsedInUs(&timer));
 
@@ -391,7 +229,7 @@ int main(int argc, char *argv[])
 
     ferRandMTDel(rnd);
 
-    mapDel();
+    ferCfg2DMapDestroy();
 
     return 0;
 }
