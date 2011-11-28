@@ -67,7 +67,6 @@ static void callback(fer_gnnp_t *nn, void *data)
     static int c = 0;
     char fn[100];
     FILE *fout;
-    size_t i;
 
     snprintf(fn, 100, "g-%06d", c);
     fout = fopen(fn, "w");
@@ -78,19 +77,8 @@ static void callback(fer_gnnp_t *nn, void *data)
     }
 
 
-    fprintf(stderr, "step %d, nodes: %d, evals: %ld, max_depth: %d\n",
-            c, (int)ferGNNPNodesLen(nn), (long)evals, (int)nn->max_depth);
-
-    fprintf(stderr, "    depth:");
-    for (i = 0; i < nn->depths_alloc; i++){
-        if (nn->depths[i] != 0)
-            fprintf(stderr, " %02d:%04d", (int)i, (int)nn->depths[i]);
-    }
-    fprintf(stderr, "\n");
-
-    
-    fprintf(stderr, "    free: %d\n", (int)nn->nodes_set[0].len);
-    fprintf(stderr, "    obst: %d\n", (int)nn->nodes_set[1].len);
+    fprintf(stderr, "step %d, nodes: %d, evals: %ld\n",
+            c, (int)ferGNNPNodesLen(nn), (long)evals);
 
     c++;
 }

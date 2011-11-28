@@ -21,8 +21,6 @@
 #include <fermat/core.h>
 #include <fermat/net.h>
 #include <fermat/nn.h>
-#include <fermat/rand-mt.h>
-#include <fermat/varr.h>
 #include <fermat/dij.h>
 
 #ifdef __cplusplus
@@ -30,13 +28,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 struct _fer_gnnp_t;
-
-#define FER_GNNP_STATE_LEARN 0
-#define FER_GNNP_STATE_FREE 1
-#define FER_GNNP_STATE_OBST 2
-
-#define FER_GNNP_ARR_INIT_SIZE 20000
-
 
 /**
  * Growing Neural Network for Planning
@@ -46,26 +37,19 @@ struct _fer_gnnp_t;
 
 struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
-    uint8_t fixed; /*!< True if node is fixed */
-    int depth;
-    uint8_t set;   /*!< Indicate whether it is in FREE or OBST space */
-
-    int arrid; /*!< Position in set array */
-
-    int _id;
-
     fer_net_node_t net;
     fer_nn_el_t nn;
 
-    fer_list_t path;
-    fer_dij_node_t dij;
-    struct _fer_gnnp_node_t *prev;
+    uint8_t fixed; /*!< True if node is fixed (1 - FREE, 2 - OBST) */
 
-    struct _fer_gnnp_node_t *comp; /*!< Component representant */
-    struct {
-        struct _fer_gnnp_node_t *prev;
-        int type;
-    } p;
+    fer_list_t path;
+    struct _fer_gnnp_node_t *prev; /*!< Learned path from node towards
+                                        init or goal node */
+    uint8_t prev_type;             /*!< prev is: 1 -> init, 2 -> goal */
+
+    fer_dij_node_t dij;
+
+    int _id;
 };
 typedef struct _fer_gnnp_node_t fer_gnnp_node_t;
 
@@ -154,23 +138,13 @@ void ferGNNPParamsInit(fer_gnnp_params_t *p);
  * ----------
  */
 
-FER_VARR_DECL(fer_gnnp_node_t *, fer_gnnp_nodes_t, ferGNNPNodes)
-
 struct _fer_gnnp_t {
     fer_gnnp_ops_t ops;
     fer_gnnp_params_t params;
     fer_net_t *net;
     fer_nn_t *nn;
-    fer_rand_mt_t *rand;
 
-    fer_gnnp_nodes_t nodes; /*!< Array of all nodes */
-    fer_gnnp_nodes_t nodes_set[2];
-    int rand_set;
-    size_t *depths;
-    size_t depths_alloc;
-    size_t max_depth;
-
-    fer_gnnp_node_t *s, *g; /*!< Start and goal nodes */
+    fer_gnnp_node_t *init, *goal; /*!< Init and goal nodes */
     fer_vec_t *tmpv;
 };
 typedef struct _fer_gnnp_t fer_gnnp_t;
@@ -200,12 +174,6 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name);
 
 /**
- * Returns random node.
- * TODO: Explain
- */
-const fer_gnnp_node_t *ferGNNPRandNode(fer_gnnp_t *nn);
-
-/**
  * Returns number of nodes in network
  */
 _fer_inline size_t ferGNNPNodesLen(const fer_gnnp_t *nn);
@@ -218,7 +186,7 @@ _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn);
 /**** INLINES ****/
 _fer_inline size_t ferGNNPNodesLen(const fer_gnnp_t *nn)
 {
-    return nn->nodes.len;
+    return ferNetNodesLen(nn->net);
 }
 
 _fer_inline fer_net_t *ferGNNPNet(fer_gnnp_t *nn)
