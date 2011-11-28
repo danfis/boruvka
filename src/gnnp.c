@@ -147,6 +147,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
 {
     const fer_vec_t *is;
     fer_gnnp_node_t *n[2];
+    fer_net_edge_t *e;
     fer_real_t dist;
     unsigned int cb = 0U;
     unsigned long c = 0UL;
@@ -157,6 +158,15 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
     ferGNNPNodeSetFree(nn, nn->s);
     nn->g = ferGNNPNodeNew(nn, goal);
     ferGNNPNodeSetFree(nn, nn->g);
+
+    e = ferNetEdgeNew();
+    ferNetAddEdge(nn->net, e, &nn->s->net, &nn->g->net);
+
+    ferListInit(path);
+    ferListAppend(path, &nn->s->path);
+    ferListAppend(path, &nn->g->path);
+    if (!prunePath(nn, path))
+        return 0;
 
     while (!nn->ops.terminate(nn, nn->ops.terminate_data)){
         cb += 1U;
@@ -781,7 +791,8 @@ static int _pruneEval(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 }
 
 static int _pruneBetween(fer_gnnp_t *nn,
-                         fer_gnnp_node_t *n1, fer_gnnp_node_t *n2)
+                         fer_gnnp_node_t *n1, fer_gnnp_node_t *n2,
+                         fer_list_t *path)
 {
     fer_gnnp_node_t *n;
     fer_net_edge_t *e;
@@ -820,24 +831,35 @@ static int _pruneBetween(fer_gnnp_t *nn,
     */
     ret |= _pruneEval(nn, n);
 
-    if (dist * FER_REAL(0.5) < nn->params.h)
+    if (dist * FER_REAL(0.5) < nn->params.h){
+        ferListAppend(path, &n->path);
         return ret;
+    }
 
-    ret |= _pruneBetween(nn, n1, n);
-    ret |= _pruneBetween(nn, n, n2);
+    ret |= _pruneBetween(nn, n1, n, path);
+    ferListAppend(path, &n->path);
+    ret |= _pruneBetween(nn, n, n2, path);
     return ret;
 }
 
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 {
-    fer_list_t *item;
+    fer_list_t *item, prune_path;
     fer_gnnp_node_t *n1, *n2;
     int ret = 0;
 
+    prune_path = *path;
+    prune_path.next->prev = &prune_path;
+    prune_path.prev->next = &prune_path;
+
+    ferListInit(path);
+
     n2 = NULL;
     n1 = NULL;
-    FER_LIST_FOR_EACH(path, item){
+    while (!ferListEmpty(&prune_path)){
         n1 = n2;
+        item = ferListNext(&prune_path);
+        ferListDel(item);
         n2 = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
 
         /*
@@ -852,8 +874,10 @@ static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
         ret |= _pruneEval(nn, n2);
 
         if (n1 && n2){
-            ret |= _pruneBetween(nn, n1, n2);
+            ret |= _pruneBetween(nn, n1, n2, path);
         }
+
+        ferListAppend(path, &n2->path);
     }
 
     //return 0;
