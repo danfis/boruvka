@@ -50,6 +50,14 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is);
 static int findPath(fer_gnnp_t *nn, fer_list_t *path);
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path);
 
+_fer_inline fer_gnnp_node_t *comp(fer_gnnp_node_t *n)
+{
+    fer_gnnp_node_t *c;
+    c = n->comp;
+    while (c && c->comp != c)
+        c = c->comp;
+    return c;
+}
 
 #define OPS_DATA(name) \
     if (!nn->ops.name ## _data) \
@@ -191,7 +199,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         hebbianLearning(nn, n[0], n[1]);
 
         // learn graph depth
-        learnDepth(nn, n[0]);
+        //learnDepth(nn, n[0]);
 
         if (n[0]->fixed){
             // the nearest node is fixed (free or obstacle)
@@ -219,6 +227,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
     return -1;
 }
 
+/*
 void __dump(const fer_gnnp_t *nn, FILE *out, int fixed, int depth)
 {
     size_t i;
@@ -253,10 +262,96 @@ void __dump(const fer_gnnp_t *nn, FILE *out, int fixed, int depth)
     }
     fprintf(out, "--------\n");
 }
+*/
+
+void __dump(const fer_gnnp_t *nn, FILE *out, int fixed)
+{
+    size_t i;
+    int num = 0;
+    fer_gnnp_node_t *n;
+
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (n->set == fixed){
+            num += 1;
+        }
+    }
+
+    if (num == 0)
+        return;
+
+    fprintf(out, "--------\n");
+
+    fprintf(out, "Name: %d\n", fixed);
+    if (fixed == 1)
+        fprintf(out, "Point color: 0.1 0.1 0.8\n");
+    if (fixed == 2)
+        fprintf(out, "Point color: 0.8 0.1 0.1\n");
+    fprintf(out, "Point size: 1\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (n->set == fixed){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+    fprintf(out, "--------\n");
+}
+
+void __dumpRepr2(const fer_gnnp_t *nn, FILE *out, fer_gnnp_node_t *r,
+                 fer_real_t b)
+{
+    size_t i;
+    int num = 0;
+    fer_gnnp_node_t *n;
+
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (comp(n) == r){
+            num += 1;
+        }
+    }
+
+    if (num == 0)
+        return;
+
+    fprintf(out, "--------\n");
+
+    fprintf(out, "Name: Repr %f\n", b);
+    fprintf(out, "Point color: 0.1 0.1 %f\n", b);
+    fprintf(out, "Point size: 2\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (comp(n) == r){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+}
+
+void __dumpRepr(const fer_gnnp_t *nn, FILE *out)
+{
+    size_t i;
+    fer_gnnp_node_t *n;
+    fer_real_t b = 0.1;
+
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if (n->comp == n){
+            __dumpRepr2(nn, out, n, b);
+            b += 0.1;
+            if (b > 1.)
+                b = 0.1;
+        }
+    }
+}
+
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 {
     //fer_list_t *list, *item;
-    size_t i;
+    //size_t i;
     /*
     fer_net_node_t *netn;
     fer_gnnp_node_t *n;
@@ -270,12 +365,17 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     if (name)
         fprintf(out, "Name: %s\n", name);
 
+    /*
     for (i = 0; i < 100; i++){
         __dump(nn, out, 1, i);
     }
     for (i = 0; i < 100; i++){
         __dump(nn, out, 2, i);
     }
+    */
+    __dump(nn, out, 1);
+    __dump(nn, out, 2);
+    __dumpRepr(nn, out);
     fprintf(out, "--------\n");
 
     /*
@@ -367,6 +467,8 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
 
     ferNNElInit(nn->nn, &n->nn, n->w);
     ferNNAdd(nn->nn, &n->nn);
+
+    n->comp = NULL;
 
     return n;
 }
@@ -842,6 +944,33 @@ static int _pruneBetween(fer_gnnp_t *nn,
     return ret;
 }
 
+static void _pruneComp(fer_gnnp_t *nn, fer_list_t *path)
+{
+    fer_list_t *item;
+    fer_gnnp_node_t *n, *p;
+
+    n = NULL;
+    FER_LIST_FOR_EACH(path, item){
+        p = n;
+        n = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
+
+        if (n->fixed == 1){
+            if (!p || p->fixed != 1){
+                if (!n->comp){
+                    n->comp = n;
+                }else{
+                    n->comp = comp(n->comp);
+                }
+            }else{
+                if (n->comp){
+                    comp(n)->comp = p->comp;
+                }
+                n->comp = p->comp;
+            }
+        }
+    }
+}
+
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 {
     fer_list_t *item, prune_path;
@@ -878,6 +1007,10 @@ static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
         }
 
         ferListAppend(path, &n2->path);
+    }
+
+    if (ret){
+        _pruneComp(nn, path);
     }
 
     //return 0;
