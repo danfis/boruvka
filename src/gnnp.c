@@ -50,6 +50,10 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is);
 static int findPath(fer_gnnp_t *nn, fer_list_t *path);
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path);
 
+static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
+                                     fer_gnnp_node_t *n2,
+                                     fer_list_t *path);
+
 _fer_inline fer_gnnp_node_t *comp(fer_gnnp_node_t *n)
 {
     fer_gnnp_node_t *c;
@@ -179,6 +183,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
     while (!nn->ops.terminate(nn, nn->ops.terminate_data)){
         cb += 1U;
 
+        /*
         if (nextprune == c){
             if (findPath(nn, path) == 0){
                 if (!prunePath(nn, path))
@@ -188,6 +193,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
                 nextprune += nn->params.prune_delay;
             }
         }
+        */
 
         // get input signal
         is = nn->ops.input_signal(nn, nn->ops.input_signal_data);
@@ -198,6 +204,17 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         // competitive hebbian learning with removing edges
         hebbianLearning(nn, n[0], n[1]);
 
+
+        if (learnPath(nn, n[0], n[1], path) == 0){
+            if (!prunePath(nn, path))
+                return 0;
+        }
+        /*
+        if (learnPath(nn, n[1], n[0], path) == 0){
+            if (!prunePath(nn, path))
+                return 0;
+        }
+        */
         // learn graph depth
         //learnDepth(nn, n[0]);
 
@@ -348,16 +365,48 @@ void __dumpRepr(const fer_gnnp_t *nn, FILE *out)
     }
 }
 
+void __dumpPath(const fer_gnnp_t *nn, FILE *out)
+{
+    size_t i;
+    fer_gnnp_node_t *n;
+
+    fprintf(out, "--------\n");
+
+    fprintf(out, "Name: paths\n");
+    fprintf(out, "Point color: 0.8 0.1 0.8\n");
+    fprintf(out, "Point size: 5\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if ((n->p.prev || n == nn->s) && n->p.type == 1){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+
+    fprintf(out, "--------\n");
+
+    fprintf(out, "Name: paths goal\n");
+    fprintf(out, "Point color: 0.1 0.8 0.8\n");
+    fprintf(out, "Point size: 5\n");
+    fprintf(out, "Points:\n");
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        if ((n->p.prev || n == nn->s) && n->p.type == 2){
+            ferVecPrint(nn->params.dim, n->w, out);
+            fprintf(out, "\n");
+        }
+    }
+}
+
 void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
 {
-    //fer_list_t *list, *item;
-    //size_t i;
-    /*
+    fer_list_t *list, *item;
+    size_t i;
     fer_net_node_t *netn;
     fer_gnnp_node_t *n;
     fer_net_edge_t *e;
     size_t id1, id2;
-    */
 
     if (nn->params.dim != 2 && nn->params.dim != 3)
         return;
@@ -375,15 +424,16 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     */
     __dump(nn, out, 1);
     __dump(nn, out, 2);
-    __dumpRepr(nn, out);
+    //__dumpRepr(nn, out);
+    __dumpPath(nn, out);
     fprintf(out, "--------\n");
 
-    /*
     if (name)
         fprintf(out, "Name: net\n");
 
     fprintf(out, "Points off: 1\n");
     fprintf(out, "Edge color: 0.5 0.5 0.5\n");
+    fprintf(out, "Edge width: 1\n");
     fprintf(out, "Points:\n");
     list = ferNetNodes(nn->net);
     i = 0;
@@ -412,7 +462,6 @@ void ferGNNPDumpSVT(const fer_gnnp_t *nn, FILE *out, const char *name)
     }
 
     fprintf(out, "--------\n");
-    */
 }
 
 const fer_gnnp_node_t *ferGNNPRandNode(fer_gnnp_t *nn)
@@ -469,6 +518,8 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
     ferNNAdd(nn->nn, &n->nn);
 
     n->comp = NULL;
+    n->p.prev = NULL;
+    n->p.type = 0;
 
     return n;
 }
@@ -482,6 +533,27 @@ static void ferGNNPNodeDel(fer_gnnp_t *nn, fer_gnnp_node_t *node)
 
     /* Nodes are deleted only at the end of the run, so no need to remove
      * it from nn->nodes[] array */
+}
+
+static void resetSubpath(fer_gnnp_t *nn, fer_gnnp_node_t *root)
+{
+    fer_list_t *list, *item;
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    fer_gnnp_node_t *n2;
+
+    list = ferNetNodeEdges(&root->net);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferNetEdgeFromNodeList(item);
+        netn = ferNetEdgeOtherNode(e, &root->net);
+        n2   = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        if (n2->p.prev == root)
+            resetSubpath(nn, n2);
+    }
+
+    root->p.prev = NULL;
+    root->p.type = 0;
 }
 
 static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node)
@@ -501,6 +573,9 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node)
         netn = ferNetEdgeOtherNode(e, &node->net);
         n2   = fer_container_of(netn, fer_gnnp_node_t, net);
 
+        if (node->p.prev == n2 || n2->p.prev == node)
+            continue;
+
         len = ferVecDist2(nn->params.dim, node->w, n2->w);
         if (len > max){
             max  = len;
@@ -511,6 +586,15 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node)
     if (maxe){
         netn = ferNetEdgeOtherNode(maxe, &node->net);
         n2   = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        if (node->p.prev == n2){
+            DBG2("n1");
+            resetSubpath(nn, node);
+        }
+        if (n2->p.prev == node){
+            DBG2("n2");
+            resetSubpath(nn, n2);
+        }
 
         ferNetRemoveEdge(nn->net, maxe);
         ferNetEdgeDel(maxe);
@@ -639,6 +723,94 @@ static void learnDepth(fer_gnnp_t *nn, fer_gnnp_node_t *n)
     ferGNNPNodeSetDepth(nn, n, min[set - 1] + 1, set);
 }
 
+static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
+                                     fer_gnnp_node_t *n2,
+                                     fer_list_t *path)
+{
+    fer_list_t *list, *item;
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    fer_gnnp_node_t *o;
+    fer_gnnp_node_t *foundpath = NULL;
+
+    if (!n1->p.prev)
+        return -1;
+    if (n1->fixed == 2)
+        return -1;
+
+
+    list = ferNetNodeEdges(&n1->net);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferNetEdgeFromNodeList(item);
+        netn = ferNetEdgeOtherNode(e, &n1->net);
+        o    = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        if (o->fixed == 2)
+            continue;
+
+        if (!o->p.prev){
+            o->p.prev = n1;
+            o->p.type = n1->p.type;
+        }else if (o->p.type != n1->p.type){
+            foundpath = o;
+        }
+    }
+
+    if (foundpath){
+        n2 = foundpath;
+        if (n1->p.type == 2){
+            n2 = n1;
+            n1 = foundpath;
+        }
+
+        if (n1->p.type == 1 && n2->p.type == 2){
+            ferListInit(path);
+            while (n1 != nn->s){
+                ferListPrepend(path, &n1->path);
+                n1 = n1->p.prev;
+            }
+            ferListPrepend(path, &nn->s->path);
+
+            while (n2 != nn->g){
+                ferListAppend(path, &n2->path);
+                n2 = n2->p.prev;
+            }
+            ferListAppend(path, &nn->g->path);
+
+            return 0;
+        }
+    }
+
+    return -1;
+#if 0
+    if (n1 == nn->s || n1 == nn->g)
+        return -1;
+
+    if (n1->p.prev == NULL && (n2->p.prev != NULL || n2 == nn->s || n2 == nn->g)){
+        n1->p.prev = n2;
+        n1->p.type = n2->p.type;
+    }
+
+    if (n1->p.type == 1 && n2->p.type == 2){
+        ferListInit(path);
+        while (n1 != nn->s){
+            ferListPrepend(path, &n1->path);
+            n1 = n1->p.prev;
+        }
+        ferListPrepend(path, &nn->s->path);
+        while (n2 != nn->g){
+            ferListAppend(path, &n2->path);
+            n2 = n2->p.prev;
+        }
+        ferListAppend(path, &nn->g->path);
+
+        return 0;
+    }
+
+    return -1;
+#endif
+}
+
 static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
                                             fer_gnnp_node_t *n2)
 {
@@ -674,6 +846,11 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     ferNetAddEdge(nn->net, e, &wn->net, &n->net);
 
     ferGNNPNodeSetDepth(nn, n, 1, wn->fixed);
+
+    if (wn->p.prev){
+        n->p.prev = wn;
+        n->p.type = wn->p.type;
+    }
 
     return n;
 }
@@ -971,6 +1148,97 @@ static void _pruneComp(fer_gnnp_t *nn, fer_list_t *path)
     }
 }
 
+static void retypeSubpath(fer_gnnp_t *nn, fer_gnnp_node_t *root)
+{
+    fer_list_t *list, *item;
+    fer_net_edge_t *e;
+    fer_net_node_t *netn;
+    fer_gnnp_node_t *n2;
+
+    list = ferNetNodeEdges(&root->net);
+    FER_LIST_FOR_EACH(list, item){
+        e = ferNetEdgeFromNodeList(item);
+        netn = ferNetEdgeOtherNode(e, &root->net);
+        n2   = fer_container_of(netn, fer_gnnp_node_t, net);
+
+        if (n2->p.prev == root){
+            n2->p.type = root->p.type;
+            retypeSubpath(nn, n2);
+        }
+    }
+}
+static void _prunePath(fer_gnnp_t *nn, fer_list_t *path)
+{
+    fer_list_t *item;
+    fer_gnnp_node_t *n, *p;
+    fer_gnnp_node_t *reset_f = NULL, *reset_t = NULL;
+
+    /*
+    size_t i;
+    for (i = 0; i < nn->nodes.len; i++){
+        n = ferGNNPNodesGet(&nn->nodes, i);
+        n->p.prev = NULL;
+        n->p.type = 0;
+    }
+    */
+
+    DBG2("");
+    n = NULL;
+    FER_LIST_FOR_EACH(path, item){
+        p = n;
+        n = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
+
+        if (n->fixed != 1){
+            reset_f = n;
+            break;
+        }
+
+        if (p){
+            n->p.prev = p;
+            n->p.type = 1;
+        }else{
+            n->p.prev = NULL;
+            n->p.type = 1;
+        }
+        retypeSubpath(nn, n);
+    }
+
+
+    n = NULL;
+    item = ferListPrev(path);
+    while (item != path){
+        p = n;
+        n = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
+
+        if (n->fixed != 1){
+            reset_t = n;
+            break;
+        }
+
+        if (p){
+            n->p.prev = p;
+            n->p.type = 2;
+        }else{
+            n->p.prev = NULL;
+            n->p.type = 2;
+        }
+        retypeSubpath(nn, n);
+
+        item = ferListPrev(item);
+    }
+
+    if (reset_t == NULL)
+        return;
+
+    DBG2("");
+    while (reset_f != reset_t){
+        resetSubpath(nn, reset_f);
+        item = ferListNext(&reset_f->path);
+        reset_f = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
+    }
+    resetSubpath(nn, reset_f);
+}
+
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 {
     fer_list_t *item, prune_path;
@@ -1011,6 +1279,7 @@ static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 
     if (ret){
         _pruneComp(nn, path);
+        _prunePath(nn, path);
     }
 
     //return 0;

@@ -62,6 +62,10 @@ struct _fer_gnnp_node_t {
     struct _fer_gnnp_node_t *prev;
 
     struct _fer_gnnp_node_t *comp; /*!< Component representant */
+    struct {
+        struct _fer_gnnp_node_t *prev;
+        int type;
+    } p;
 };
 typedef struct _fer_gnnp_node_t fer_gnnp_node_t;
 
