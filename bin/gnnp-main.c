@@ -73,6 +73,8 @@ static void callback(fer_gnnp_t *nn, void *data)
     if (fout){
         ferGNNPDumpSVT(nn, fout, NULL);
         ferCfg2DMapDumpSVT(fout, NULL);
+        ferCfg2DMapRobotDumpSVT(start, fout, "Init");
+        ferCfg2DMapRobotDumpSVT(goal, fout, "Goal");
         fclose(fout);
     }
 
@@ -186,8 +188,8 @@ int main(int argc, char *argv[])
     }
 
 
-    //rnd = ferRandMTNewAuto();
-    rnd = ferRandMTNew(1111);
+    rnd = ferRandMTNewAuto();
+    //rnd = ferRandMTNew(1111);
 
     nn = ferGNNPNew(&ops, &params);
 
@@ -197,10 +199,10 @@ int main(int argc, char *argv[])
     callback(nn, NULL);
     fprintf(stderr, "ret: %d\n", ret);
     fprintf(stderr, "evals: %ld\n", (long)evals);
-    ferGNNPDumpSVT(nn, stdout, NULL);
     if (ret == 0){
         printPath(nn, &path);
     }
+    ferGNNPDumpSVT(nn, stdout, NULL);
     ferCfg2DMapDumpSVT(stdout, NULL);
     ferCfg2DMapRobotDumpSVT(start, stdout, "Init");
     ferCfg2DMapRobotDumpSVT(goal, stdout, "Goal");

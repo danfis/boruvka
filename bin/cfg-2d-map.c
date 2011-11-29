@@ -215,6 +215,9 @@ void ferCfg2DMapRobotDumpSVT(const fer_vec_t *conf, FILE *out, const char *name)
     size_t i;
     fer_vec2_t w;
 
+    if (!robot)
+        return;
+
     snprintf(format, 500, "%s_pts:v2[] %s_pts:v2# %s_ids:i[] %s_ids:i#",
              robot_name, robot_name, robot_name, robot_name);
     ferCfgScan(cfg, format, &pts, &pts_len, &ids, &ids_len);
