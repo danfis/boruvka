@@ -304,7 +304,7 @@ static const char *_ferCfgScanNext(const char *format, char *name, char *type);
 int ferCfgScan(const fer_cfg_t *c, const char *format, ...)
 {
     char name[1024];
-    char type[4];
+    char type[5];
     const char *s;
     int store;
     va_list ap;
