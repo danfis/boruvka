@@ -115,13 +115,9 @@ void ferGNNPOpsInit(fer_gnnp_ops_t *ops);
 struct _fer_gnnp_params_t {
     int dim;           /*!< Dimension. Default: 2 */
     fer_real_t ew;     /*!< Winner node's learning rate. Default: 0.05 */
-    fer_real_t en;     /*!< Winner neighbor's learning rate. Default: 0.0006 */
+    fer_real_t en;     /*!< Winner neighbor's learning rate. Default: 0.0005 */
     unsigned int rmax; /*!< Max rank of node. Default: 4 */
     fer_real_t h;      /*!< Resolution. Default: 0.1 */
-    unsigned int prune_delay; /*!< Number of steps after a path was not
-                                   found to skip prunning. Default: 50 */
-    unsigned int tournament; /*!< Number of nodes chosen for tournament.
-                                  Default: 3 */
 
     fer_nn_params_t nn; /*!< Params of nearest neighbor search */
 };

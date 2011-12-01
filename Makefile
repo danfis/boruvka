@@ -33,6 +33,7 @@ endif
 #BIN_TARGETS += fer-rrt-2d fer-rrt-6d
 #BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 BIN_TARGETS += fer-gnnp
+BIN_TARGETS += fer-cfg-scale
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -129,8 +130,8 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-bin/fer-gnnp: bin/gnnp-main.o bin/cfg-2d-map.o libfermat.a
-	$(CC) $(CFLAGS) -o $@ $< bin/cfg-2d-map.o $(LDFLAGS)
+bin/fer-gnnp: bin/gnnp-main.o bin/cfg-map.o libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
 bin/%.o: bin/%.c bin/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 

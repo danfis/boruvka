@@ -88,11 +88,9 @@ void ferGNNPParamsInit(fer_gnnp_params_t *p)
 {
     p->dim  = 2;
     p->ew   = 0.05;
-    p->en   = 0.0006;
+    p->en   = 0.0005;
     p->rmax = 4;
     p->h    = 0.1;
-    p->prune_delay = 50;
-    p->tournament = 3;
 
     ferNNParamsInit(&p->nn);
     p->nn.gug.dim    = 2;
