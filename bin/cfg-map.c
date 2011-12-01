@@ -212,7 +212,7 @@ int ferCfgMapCollide(const fer_vec_t *conf)
     return ferCDGeomCollide(cd, map, robot);
 }
 
-const fer_vec_t *ferCfgConf(void)
+const fer_vec_t *ferCfgMapConf(void)
 {
     int i;
     for (i = 0; i < conf_dim; i++){
@@ -226,17 +226,17 @@ const fer_real_t *ferCfgMapAABB(void)
 {
     return aabb;
 }
-int ferCfgDim(void)
+int ferCfgMapDim(void)
 {
     return dim;
 }
 
-int ferCfgConfDim(void)
+int ferCfgMapConfDim(void)
 {
     return conf_dim;
 }
 
-void ferCfgUseRot(void)
+void ferCfgMapUseRot(void)
 {
     if (dim == 2){
         conf_dim = 3;

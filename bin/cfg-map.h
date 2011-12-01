@@ -28,12 +28,12 @@ int ferCfgMapRobot(const char *name, fer_real_t *h,
                    fer_vec_t *init, fer_vec_t *goal);
 void ferCfgMapListRobots(FILE *out);
 int ferCfgMapCollide(const fer_vec_t *conf);
-const fer_vec_t *ferCfgConf(void);
+const fer_vec_t *ferCfgMapConf(void);
 
 const fer_real_t *ferCfgMapAABB(void);
-int ferCfgDim(void);
-int ferCfgConfDim(void);
-void ferCfgUseRot(void);
+int ferCfgMapDim(void);
+int ferCfgMapConfDim(void);
+void ferCfgMapUseRot(void);
 
 void ferCfgMapDumpSVT(FILE *out, const char *name);
 void ferCfgMapRobotDumpSVT(const fer_vec_t *conf, FILE *out, const char *name);

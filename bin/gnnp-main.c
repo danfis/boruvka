@@ -53,7 +53,7 @@ static int terminate(fer_gnnp_t *nn, void *data)
 
 static const fer_vec_t *inputSignal(fer_gnnp_t *nn, void *data)
 {
-    return ferCfgConf();
+    return ferCfgMapConf();
 }
 
 static int eval(fer_gnnp_t *nn, const fer_vec_t *conf, void *data)
@@ -97,7 +97,7 @@ static void printPath(fer_gnnp_t *nn, fer_list_t *path)
     fer_gnnp_node_t *n;
     int i, len;
 
-    if (ferCfgConfDim() > 3)
+    if (ferCfgMapConfDim() > 3)
         return;
 
     printf("----\n");
@@ -110,7 +110,7 @@ static void printPath(fer_gnnp_t *nn, fer_list_t *path)
     len = 0;
     FER_LIST_FOR_EACH(path, item){
         n = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
-        ferVecPrint(ferCfgConfDim(), n->w, stdout);
+        ferVecPrint(ferCfgMapConfDim(), n->w, stdout);
         printf("\n");
         len++;
     }
@@ -234,11 +234,11 @@ int main(int argc, char *argv[])
         return -1;
 
     if (use_rot){
-        ferCfgUseRot();
+        ferCfgMapUseRot();
     }
 
     if (rmax == 0){
-        rmax = powl(2, ferCfgConfDim() + 1);
+        rmax = powl(2, ferCfgMapConfDim() + 1);
         fprintf(stderr, "rmax set to %d\n", rmax);
     }
 
@@ -258,11 +258,11 @@ int main(int argc, char *argv[])
     ops.callback_period = callback_period;
 
     ferGNNPParamsInit(&params);
-    params.dim  = ferCfgConfDim();
+    params.dim  = ferCfgMapConfDim();
     params.rmax = rmax;
     params.h    = 0.25;
     params.nn.type = FER_NN_GUG;
-    params.nn.gug.dim = ferCfgConfDim();
+    params.nn.gug.dim = ferCfgMapConfDim();
     params.nn.gug.max_dens = 1.;
     params.nn.gug.expand_rate = 1.3;
     params.nn.gug.aabb = (fer_real_t *)aabb;
