@@ -61,6 +61,11 @@ typedef struct _fer_nn_params_t fer_nn_params_t;
  */
 _fer_inline void ferNNParamsInit(fer_nn_params_t *params);
 
+/**
+ * Set dimensionality for all algorithms.
+ */
+_fer_inline void ferNNParamsSetDim(fer_nn_params_t *params, int dim);
+
 
 /**
  * Types of Algorithms
@@ -152,6 +157,13 @@ _fer_inline void ferNNParamsInit(fer_nn_params_t *params)
     ferGUGParamsInit(&params->gug);
     ferVPTreeParamsInit(&params->vptree);
     ferNNLinearParamsInit(&params->linear);
+}
+
+_fer_inline void ferNNParamsSetDim(fer_nn_params_t *params, int dim)
+{
+    params->gug.dim = dim;
+    params->vptree.dim = dim;
+    params->linear.dim = dim;
 }
 
 _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
