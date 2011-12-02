@@ -27,7 +27,6 @@
 fer_vec_t *is;
 fer_vec_t *init, *goal;
 unsigned long evals = 0UL;
-static const fer_real_t *aabb;
 
 
 int list_robots;
@@ -41,6 +40,9 @@ int use_rot = 0;
 int dbg_dump = 0;
 
 
+static void setUpNN(fer_nn_params_t *nn);
+
+
 static fer_gnnp_t *gnnp = NULL;
 static int gnnpTerminate(fer_gnnp_t *nn, void *data);
 static const fer_vec_t *gnnpInputSignal(fer_gnnp_t *nn, void *data);
@@ -52,6 +54,42 @@ static int gnnpRun(fer_list_t *path);
 static void gnnpDump(int ret, fer_list_t *path);
 static long gnnpNodesLen(void);
 
+
+static fer_rrt_t *rrt = NULL;
+static int rrtTerminate(const fer_rrt_t *rrt, void *data);
+static const fer_vec_t *rrtExpand(const fer_rrt_t *rrt,
+                                  const fer_rrt_node_t *n,
+                                  const fer_vec_t *rand, void *data);
+static const fer_vec_t *rrtConf(const fer_rrt_t *rrt, void *data);
+static void rrtCallback(const fer_rrt_t *rrt, void *data);
+static void rrtInit(void);
+static void rrtDestroy(void);
+static int rrtRun(fer_list_t *path);
+static void rrtDump(int ret, fer_list_t *path);
+static long rrtNodesLen(void);
+
+
+struct alg_t {
+    void (*init)(void);
+    void (*destroy)(void);
+    int (*run)(fer_list_t *path);
+    void (*dump)(int ret, fer_list_t *path);
+    long (*nodes_len)(void);
+};
+#define ALG_GNNP 0
+#define ALG_RRT  1
+#define ALG_LEN  2
+
+#define ALG_DEF(name) \
+    { .init      = name ## Init, \
+      .destroy   = name ## Destroy, \
+      .run       = name ## Run, \
+      .dump      = name ## Dump, \
+      .nodes_len = name ## NodesLen }
+struct alg_t algs[ALG_LEN] = {
+    ALG_DEF(gnnp),
+    ALG_DEF(rrt)
+};
 
 int opts(int *argc, char *argv[])
 {
@@ -94,7 +132,7 @@ int main(int argc, char *argv[])
     fer_list_t path;
     int ret = 0;
     fer_timer_t timer;
-    long nodes_len = 0;
+    int alg_num = 0;
 
     if (opts(&argc, argv) != 0)
         return -1;
@@ -116,8 +154,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    aabb = ferCfgMapAABB();
-
     is   = ferVecNew(6);
     init = ferVecNew(6);
     goal = ferVecNew(6);
@@ -134,28 +170,27 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-
     if (strcmp(method_name, "gnnp") == 0){
-        gnnpInit();
+        alg_num = ALG_GNNP;
+    }else if (strcmp(method_name, "rrt") == 0){
+        alg_num = ALG_RRT;
     }
 
-    if (strcmp(method_name, "gnnp") == 0){
-        ferTimerStart(&timer);
-        ret = gnnpRun(&path);
-        ferTimerStop(&timer);
+    algs[alg_num].init();
 
-        nodes_len = gnnpNodesLen();
-    }
+    ferListInit(&path);
+    ferTimerStart(&timer);
+    ret = algs[alg_num].run(&path);
+    ferTimerStop(&timer);
+
     fprintf(stderr, "ret: %d\n", ret);
-    fprintf(stderr, "nodes: %ld\n", nodes_len);
+    fprintf(stderr, "nodes: %ld\n", algs[alg_num].nodes_len());
     fprintf(stderr, "evals: %ld\n", (long)evals);
     fprintf(stderr, "Time: %lu us\n", ferTimerElapsedInUs(&timer));
     fflush(stderr);
 
-    if (strcmp(method_name, "gnnp") == 0){
-        gnnpDump(ret, &path);
-        gnnpDestroy();
-    }
+    algs[alg_num].dump(ret, &path);
+    algs[alg_num].destroy();
 
 
     ferVecDel(is);
@@ -165,6 +200,15 @@ int main(int argc, char *argv[])
     ferCfgMapDestroy();
 
     return 0;
+}
+
+static void setUpNN(fer_nn_params_t *nn)
+{
+    nn->type = FER_NN_GUG;
+    nn->gug.dim = ferCfgMapConfDim();
+    nn->gug.max_dens = 1.;
+    nn->gug.expand_rate = 1.3;
+    nn->gug.aabb = (fer_real_t *)ferCfgMapAABB();
 }
 
 
@@ -328,11 +372,7 @@ static void gnnpInit(void)
     params.dim  = ferCfgMapConfDim();
     params.rmax = rmax;
     params.h    = h;
-    params.nn.type = FER_NN_GUG;
-    params.nn.gug.dim = ferCfgMapConfDim();
-    params.nn.gug.max_dens = 1.;
-    params.nn.gug.expand_rate = 1.3;
-    params.nn.gug.aabb = (fer_real_t *)aabb;
+    setUpNN(&params.nn);
 
     gnnp = ferGNNPNew(&ops, &params);
 }
@@ -364,3 +404,173 @@ static long gnnpNodesLen(void)
     return ferGNNPNodesLen(gnnp);
 }
 /*** GNNP END ***/
+
+
+/*** RRT ***/
+static const fer_rrt_node_t *rrt_last = NULL;
+static fer_real_t h2 = 0.;
+static FER_VEC(rrt_move, 6);
+static FER_VEC(rrt_new_conf, 6);
+static int rrtTerminate(const fer_rrt_t *rrt, void *data)
+{
+    const fer_vec_t *lconf;
+
+    if (ferRRTNodesLen(rrt) >= max_steps)
+        return 1;
+
+    rrt_last = ferRRTNodeLast(rrt);
+    lconf = ferRRTNodeConf(rrt_last);
+    if (ferVecDist2(ferCfgMapConfDim(), lconf, goal) < h2)
+        return 1;
+
+    return 0;
+}
+
+static const fer_vec_t *rrtExpand(const fer_rrt_t *rrt,
+                                  const fer_rrt_node_t *n,
+                                  const fer_vec_t *rand, void *data)
+{
+    const fer_vec_t *near;
+    fer_real_t len;
+
+    near = ferRRTNodeConf(n);
+
+    ferVecSub2(rrt->params.dim, rrt_move, rand, near);
+    len = ferVecLen(rrt->params.dim, rrt_move);
+    ferVecScale(rrt->params.dim, rrt_move, h * ferRecp(len));
+
+    ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move);
+
+    evals += 1UL;
+    if (ferCfgMapCollide(rrt_new_conf))
+        return NULL;
+    return rrt_new_conf;
+}
+
+static const fer_vec_t *rrtConf(const fer_rrt_t *rrt, void *data)
+{
+    return ferCfgMapConf();
+}
+
+static void rrtDumpDBG(int c)
+{
+    char fn[100];
+    FILE *fout;
+
+    snprintf(fn, 100, "dbg/map-%06d", c);
+    fout = fopen(fn, "w");
+    if (fout){
+        ferRRTDumpSVT(rrt, fout, NULL);
+        ferCfgMapDumpSVT(fout, NULL);
+        ferCfgMapRobotDumpSVT(init, fout, "Init");
+        ferCfgMapRobotDumpSVT(goal, fout, "Goal");
+        fclose(fout);
+    }
+}
+
+static void rrtCallback(const fer_rrt_t *r, void *data)
+{
+    static unsigned long c = 0UL;
+
+    if (dbg_dump){
+        rrtDumpDBG(c);
+    }
+
+    fprintf(stderr, "step %lu, nodes: %d, evals: %ld\n",
+            c, (int)ferRRTNodesLen(rrt), (long)evals);
+    c++;
+}
+
+static void rrtInit(void)
+{
+    fer_rrt_ops_t ops;
+    fer_rrt_params_t params;
+
+    ferRRTOpsInit(&ops);
+    ops.terminate = rrtTerminate;
+    ops.expand    = rrtExpand;
+    ops.random    = rrtConf;
+    ops.callback  = rrtCallback;
+    ops.callback_period = callback_period;
+
+    ferRRTParamsInit(&params);
+    params.dim = ferCfgMapConfDim();
+    setUpNN(&params.nn);
+
+    rrt = ferRRTNew(&ops, &params);
+
+    h2 = h * h;
+}
+
+static void rrtDestroy(void)
+{
+    ferRRTDel(rrt);
+}
+
+static int rrtRun(fer_list_t *path)
+{
+    int ret;
+    const fer_rrt_node_t *init_node;
+
+    ferRRTRunBasic(rrt, init);
+    init_node = ferRRTNodeInitial(rrt);
+    ferListInit(path);
+    ret = ferRRTFindPath(rrt, init_node, rrt_last, path);
+    return ret;
+}
+
+static void rrtPrintPath(fer_list_t *path, FILE *out)
+{
+    fer_list_t *item;
+    const fer_rrt_node_t *last_node;
+    fer_rrt_node_t *n;
+    size_t id;
+
+    if (ferCfgMapConfDim() > 3)
+        return;
+
+    last_node = ferRRTNodeLast(rrt);
+    ferRRTNodeNew(rrt, goal, last_node);
+
+    fprintf(out, "------\n");
+    fprintf(out, "Name: PATH\n");
+    fprintf(out, "Edge width: 3\n");
+    fprintf(out, "Edge color: 0.8 0 0\n");
+
+    fprintf(out, "Points:\n");
+    FER_LIST_FOR_EACH(path, item){
+        n = FER_LIST_ENTRY(item, fer_rrt_node_t, path);
+        ferVecPrint(rrt->params.dim, n->conf, out);
+        fprintf(out, "\n");
+    }
+
+    fprintf(out, "Edges:\n");
+    id = 0;
+    FER_LIST_FOR_EACH(path, item){
+        if (ferListNext(item) == path)
+            break;
+
+        fprintf(out, "%d %d\n", (int)id, (int)id + 1);
+        id++;
+    }
+
+    fprintf(out, "------\n");
+}
+
+static void rrtDump(int ret, fer_list_t *path)
+{
+    if (ret == 0){
+        rrtPrintPath(path, stdout);
+    }
+    ferRRTDumpSVT(rrt, stdout, NULL);
+    ferCfgMapDumpSVT(stdout, NULL);
+    ferCfgMapRobotDumpSVT(init, stdout, "Init");
+    ferCfgMapRobotDumpSVT(goal, stdout, "Goal");
+}
+
+static long rrtNodesLen(void)
+{
+    return ferRRTNodesLen(rrt);
+}
+
+/*** RRT END ***/
