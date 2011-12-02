@@ -35,6 +35,7 @@ static const char *robot_name = NULL;
 static fer_real_t aabb[12];
 static int dim;
 static int conf_dim;
+static int use_rot = 0;
 static FER_VEC(conf, 6);
 
 
@@ -103,9 +104,9 @@ int ferCfgMapInit(const char *fn)
         return -1;
 
     ferCDParamsInit(&cd_params);
-    cd_params.build_flags = FER_CD_TOP_DOWN
-                                | FER_CD_FIT_NAIVE
-                                | FER_CD_FIT_NAIVE_NUM_ROT(5);
+    //cd_params.build_flags = FER_CD_TOP_DOWN
+    //                            | FER_CD_FIT_NAIVE
+    //                            | FER_CD_FIT_NAIVE_NUM_ROT(5);
     cd_params.use_sap = 0;
     cd_params.num_threads = 1;
     cd = ferCDNew(&cd_params);
@@ -149,6 +150,7 @@ int ferCfgMapRobot(const char *name, fer_real_t *h,
     const fer_vec3_t *pts;
     const int *ids;
     size_t ids_len;
+    fer_vec3_t rot;
 
     snprintf(pname, 300, "%s_pts", name);
     CHECK_PARAM(pname, FER_CFG_PARAM_V3 | FER_CFG_PARAM_ARR)
@@ -176,6 +178,24 @@ int ferCfgMapRobot(const char *name, fer_real_t *h,
     ferVecSet(goal, 3, FER_ZERO);
     ferVecSet(goal, 4, FER_ZERO);
     ferVecSet(goal, 5, FER_ZERO);
+
+    if (use_rot && conf_dim == 6){
+        snprintf(format, 500, "%s_init_rot", name);
+        if (ferCfgParamIsV3(cfg, format)){
+            ferCfgParamV3(cfg, format, &rot);
+            ferVecSet(init, 3, ferVec3X(&rot));
+            ferVecSet(init, 4, ferVec3Y(&rot));
+            ferVecSet(init, 5, ferVec3Z(&rot));
+        }
+
+        snprintf(format, 500, "%s_goal_rot", name);
+        if (ferCfgParamIsV3(cfg, format)){
+            ferCfgParamV3(cfg, format, &rot);
+            ferVecSet(goal, 3, ferVec3X(&rot));
+            ferVecSet(goal, 4, ferVec3Y(&rot));
+            ferVecSet(goal, 5, ferVec3Z(&rot));
+        }
+    }
     return 0;
 }
 
@@ -238,6 +258,7 @@ int ferCfgMapConfDim(void)
 
 void ferCfgMapUseRot(void)
 {
+    use_rot = 1;
     if (dim == 2){
         conf_dim = 3;
     }else{
