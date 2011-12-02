@@ -68,6 +68,9 @@ static int rrtRun(fer_list_t *path);
 static void rrtDump(int ret, fer_list_t *path);
 static long rrtNodesLen(void);
 
+static void rrtConnectInit(void);
+static int rrtConnectRun(fer_list_t *path);
+
 
 struct alg_t {
     void (*init)(void);
@@ -76,9 +79,10 @@ struct alg_t {
     void (*dump)(int ret, fer_list_t *path);
     long (*nodes_len)(void);
 };
-#define ALG_GNNP 0
-#define ALG_RRT  1
-#define ALG_LEN  2
+#define ALG_GNNP        0
+#define ALG_RRT         1
+#define ALG_RRT_CONNECT 2
+#define ALG_LEN         3
 
 #define ALG_DEF(name) \
     { .init      = name ## Init, \
@@ -86,9 +90,15 @@ struct alg_t {
       .run       = name ## Run, \
       .dump      = name ## Dump, \
       .nodes_len = name ## NodesLen }
+const char *methods[ALG_LEN] = { "gnnp", "rrt", "rrt-connect" };
 struct alg_t algs[ALG_LEN] = {
     ALG_DEF(gnnp),
-    ALG_DEF(rrt)
+    ALG_DEF(rrt),
+    { .init      = rrtConnectInit, \
+      .destroy   = rrtDestroy, \
+      .run       = rrtConnectRun, \
+      .dump      = rrtDump, \
+      .nodes_len = rrtNodesLen }
 };
 
 int opts(int *argc, char *argv[])
@@ -130,7 +140,7 @@ int opts(int *argc, char *argv[])
 int main(int argc, char *argv[])
 {
     fer_list_t path;
-    int ret = 0;
+    int ret = 0, i;
     fer_timer_t timer;
     int alg_num = 0;
 
@@ -170,10 +180,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (strcmp(method_name, "gnnp") == 0){
-        alg_num = ALG_GNNP;
-    }else if (strcmp(method_name, "rrt") == 0){
-        alg_num = ALG_RRT;
+    for (i = 0; i < ALG_LEN; i++){
+        if (strcmp(method_name, methods[i]) == 0){
+            alg_num = i;
+            break;
+        }
     }
 
     algs[alg_num].init();
@@ -574,3 +585,54 @@ static long rrtNodesLen(void)
 }
 
 /*** RRT END ***/
+
+/*** RRT CONNECT ***/
+static int rrtConnectTerminateExpand(const fer_rrt_t *rrt,
+                                     const fer_rrt_node_t *start,
+                                     const fer_rrt_node_t *last,
+                                     const fer_vec_t *rand,
+                                     void *data)
+{
+    const fer_vec_t *n;
+    fer_real_t dist;
+
+    n = ferRRTNodeConf(last);
+    dist = ferVecDist2(rrt->params.dim, n, rand);
+
+    return dist <= h2;
+}
+
+static void rrtConnectInit(void)
+{
+    fer_rrt_ops_t ops;
+    fer_rrt_params_t params;
+
+    ferRRTOpsInit(&ops);
+    ops.terminate = rrtTerminate;
+    ops.terminate_expand = rrtConnectTerminateExpand;
+    ops.expand    = rrtExpand;
+    ops.random    = rrtConf;
+    ops.callback  = rrtCallback;
+    ops.callback_period = callback_period;
+
+    ferRRTParamsInit(&params);
+    params.dim = ferCfgMapConfDim();
+    setUpNN(&params.nn);
+
+    rrt = ferRRTNew(&ops, &params);
+
+    h2 = h * h;
+}
+
+static int rrtConnectRun(fer_list_t *path)
+{
+    int ret;
+    const fer_rrt_node_t *init_node;
+
+    ferRRTRunConnect(rrt, init);
+    init_node = ferRRTNodeInitial(rrt);
+    ferListInit(path);
+    ret = ferRRTFindPath(rrt, init_node, rrt_last, path);
+    return ret;
+}
+/*** RRT CONNECT END ***/
