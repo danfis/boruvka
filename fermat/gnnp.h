@@ -39,6 +39,7 @@ struct _fer_gnnp_node_t {
     fer_vec_t *w;  /*!< Weight vector */
     fer_net_node_t net;
     fer_nn_el_t nn;
+    fer_nn_el_t nn_path;
 
     uint8_t fixed; /*!< True if node is fixed (1 - FREE, 2 - OBST) */
 
@@ -139,6 +140,7 @@ struct _fer_gnnp_t {
     fer_gnnp_params_t params;
     fer_net_t *net;
     fer_nn_t *nn;
+    fer_nn_t *nn_path;
 
     fer_gnnp_node_t *init, *goal; /*!< Init and goal nodes */
     fer_vec_t *tmpv;
