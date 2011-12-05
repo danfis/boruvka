@@ -474,28 +474,6 @@ static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
 
 static fer_gnnp_node_t *nearestPath(fer_gnnp_t *nn, const fer_vec_t *is)
 {
-#if 0
-    {
-        fer_list_t *list, *item;
-        fer_net_node_t *netn;
-        fer_gnnp_node_t *n;
-        int num = 0;
-
-        list = ferNetNodes(nn->net);
-        FER_LIST_FOR_EACH(list, item){
-            netn = FER_LIST_ENTRY(item, fer_net_node_t, list);
-            n    = fer_container_of(netn, fer_gnnp_node_t, net);
-            if (!PATH_IS_NONE(n))
-                num++;
-        }
-
-        DBG("%d %d", num, (int)ferGUGSize((const fer_gug_t *)nn->nn_path));
-        if (num != (int)ferGUGSize((const fer_gug_t *)nn->nn_path)){
-            exit(-1);
-        }
-    }
-#endif
-
     fer_nn_el_t *els;
     fer_gnnp_node_t *np;
 
@@ -625,86 +603,6 @@ static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is)
         if (!IS_FIXED(n))
             ferGNNPNodeMoveTowards(nn, n, is, nn->params.en);
     }
-}
-
-
-static void findPathDijExpand(fer_dij_node_t *_n,
-                              fer_list_t *expand, void *data)
-{
-    fer_gnnp_t *nn = (fer_gnnp_t *)data;
-    fer_list_t *list, *item;
-    fer_net_edge_t *e;
-    fer_net_node_t *netn;
-    fer_gnnp_node_t *n, *root;
-    fer_real_t dist;
-
-    root = fer_container_of(_n, fer_gnnp_node_t, dij);
-    list = ferNetNodeEdges(&root->net);
-    FER_LIST_FOR_EACH(list, item){
-        e = ferNetEdgeFromNodeList(item);
-        netn = ferNetEdgeOtherNode(e, &root->net);
-        n    = fer_container_of(netn, fer_gnnp_node_t, net);
-
-        if (!ferDijNodeClosed(&n->dij) && !IS_OBST(n)){
-            dist = ferVecDist(nn->params.dim, root->w, n->w);
-            ferDijNodeAdd(&n->dij, expand, dist);
-        }
-    }
-}
-
-static void findPathDijInit(fer_gnnp_t *nn)
-{
-    fer_list_t *list, *item;
-    fer_net_node_t *netn;
-    fer_gnnp_node_t *n;
-
-    list = ferNetNodes(nn->net);
-    FER_LIST_FOR_EACH(list, item){
-        netn = FER_LIST_ENTRY(item, fer_net_node_t, list);
-        n    = fer_container_of(netn, fer_gnnp_node_t, net);
-        ferDijNodeInit(&n->dij);
-    }
-}
-
-static int findPathDij(fer_gnnp_t *nn, fer_list_t *path)
-{
-    fer_dij_ops_t ops;
-    fer_dij_t *dij;
-    int found;
-    fer_gnnp_node_t *n;
-    fer_dij_node_t *dn;
-
-    ferListInit(path);
-    findPathDijInit(nn);
-
-    // initialize operators
-    ferDijOpsInit(&ops);
-    ops.expand = findPathDijExpand;
-    ops.data   = (void *)nn;
-
-    // create dijkstra algorithm
-    dij = ferDijNew(&ops);
-
-    // run dijkstra
-    found = ferDijRun(dij, &nn->init->dij, &nn->goal->dij);
-    if (found != 0)
-        return -1;
-
-    dn = &nn->goal->dij;
-    while (dn != &nn->init->dij){
-        n = fer_container_of(dn, fer_gnnp_node_t, dij);
-        ferListPrepend(path, &n->path);
-
-        dn = dn->prev;
-    }
-    ferListPrepend(path, &nn->init->path);
-
-    return 0;
-}
-
-static int findPath(fer_gnnp_t *nn, fer_list_t *path)
-{
-    return findPathDij(nn, path);
 }
 
 

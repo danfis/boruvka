@@ -48,8 +48,6 @@ struct _fer_gnnp_node_t {
                                         init or goal node */
     uint8_t prev_type;             /*!< prev is: 1 -> init, 2 -> goal */
 
-    fer_dij_node_t dij;
-
     int _id;
 };
 typedef struct _fer_gnnp_node_t fer_gnnp_node_t;
