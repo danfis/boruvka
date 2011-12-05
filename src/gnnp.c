@@ -33,8 +33,17 @@
 #define PATH_GOAL 2
 
 #define PATH_IS_NONE(n) ((n)->prev_type == PATH_NONE)
+#define PATH_IS_NONE_TYPE(type) ((type) == PATH_NONE)
 #define PATH_IS_INIT(n) ((n)->prev_type == PATH_INIT)
 #define PATH_IS_GOAL(n) ((n)->prev_type == PATH_GOAL)
+#define PATH_EQ(n1, n2) ((n1)->prev_type == (n2)->prev_type)
+#define PATH_EQ2(n1, type) ((n1)->prev_type == type)
+#define PATH_SET_NONE(nn, n) ferGNNPNodeSetPathType((nn), (n), PATH_NONE)
+#define PATH_SET_INIT(nn, n) ferGNNPNodeSetPathType((nn), (n), PATH_INIT)
+#define PATH_SET_GOAL(nn, n) ferGNNPNodeSetPathType((nn), (n), PATH_GOAL)
+#define PATH_COPY(nn, dst, src) ferGNNPNodeSetPathType((nn), (dst), (src)->prev_type)
+
+#define __PATH_SET(n, type) (n)->prev_type = type
 
 static void netNodeDel(fer_net_node_t *n, void *);
 static void netEdgeDel(fer_net_edge_t *e, void *);
@@ -46,6 +55,9 @@ static void ferGNNPNodeRemoveLongestEdge(fer_gnnp_t *nn, fer_gnnp_node_t *node);
 /** Moves the node towards input signal: w = w + e * (is - w) */
 static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
                                    const fer_vec_t *is, fer_real_t r);
+/** Changes node's path type */
+_fer_inline void ferGNNPNodeSetPathType(fer_gnnp_t *nn, fer_gnnp_node_t *n,
+                                        int type);
 
 static int init(fer_gnnp_t *nn, const fer_vec_t *init, const fer_vec_t *goal,
                 fer_list_t *path);
@@ -247,7 +259,7 @@ static void dumpPath(const fer_gnnp_t *nn, FILE *out, int type)
     FER_LIST_FOR_EACH(list, item){
         netn = FER_LIST_ENTRY(item, fer_net_node_t, list);
         n    = fer_container_of(netn, fer_gnnp_node_t, net);
-        if (n->prev_type == type){
+        if (PATH_EQ2(n, type)){
             ferVecPrint(nn->params.dim, n->w, out);
             fprintf(out, "\n");
         }
@@ -335,15 +347,16 @@ static fer_gnnp_node_t *ferGNNPNodeNew(fer_gnnp_t *nn, const fer_vec_t *w)
     n->fixed = 0;
     ferListInit(&n->path);
     n->prev = NULL;
-    n->prev_type = PATH_NONE;
 
     n->w = ferVecClone(nn->params.dim, w);
 
     ferNetAddNode(nn->net, &n->net);
 
     ferNNElInit(nn->nn, &n->nn, n->w);
-    ferNNElInit(nn->nn_path, &n->nn_path, n->w);
     ferNNAdd(nn->nn, &n->nn);
+
+    n->prev_type = PATH_NONE;
+    ferNNElInit(nn->nn_path, &n->nn_path, n->w);
 
     return n;
 }
@@ -407,10 +420,22 @@ static void ferGNNPNodeMoveTowards(fer_gnnp_t *nn, fer_gnnp_node_t *node,
     ferVecScale(nn->params.dim, nn->tmpv, r);
     ferVecAdd(nn->params.dim, node->w, nn->tmpv);
     ferNNUpdate(nn->nn, &node->nn);
-    if (node->prev_type != PATH_NONE)
+    if (!PATH_IS_NONE(node))
         ferNNUpdate(nn->nn_path, &node->nn_path);
 }
 
+_fer_inline void ferGNNPNodeSetPathType(fer_gnnp_t *nn, fer_gnnp_node_t *n,
+                                        int type)
+{
+    if (!PATH_EQ2(n, type)){
+        if (PATH_IS_NONE(n)){
+            ferNNAdd(nn->nn_path, &n->nn_path);
+        }else if (PATH_IS_NONE_TYPE(type)){
+            ferNNRemove(nn->nn_path, &n->nn_path);
+        }
+        __PATH_SET(n, type);
+    }
+}
 
 static int init(fer_gnnp_t *nn, const fer_vec_t *init, const fer_vec_t *goal,
                 fer_list_t *path)
@@ -421,10 +446,9 @@ static int init(fer_gnnp_t *nn, const fer_vec_t *init, const fer_vec_t *goal,
     SET_FREE(nn->init);
     nn->goal = ferGNNPNodeNew(nn, goal);
     SET_FREE(nn->goal);
-    nn->init->prev_type = PATH_INIT;
-    ferNNAdd(nn->nn_path, &nn->init->nn_path);
-    nn->goal->prev_type = PATH_GOAL;
-    ferNNAdd(nn->nn_path, &nn->goal->nn_path);
+
+    PATH_SET_INIT(nn, nn->init);
+    PATH_SET_GOAL(nn, nn->goal);
 
     e = ferNetEdgeNew();
     ferNetAddEdge(nn->net, e, &nn->init->net, &nn->goal->net);
@@ -450,6 +474,28 @@ static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
 
 static fer_gnnp_node_t *nearestPath(fer_gnnp_t *nn, const fer_vec_t *is)
 {
+#if 0
+    {
+        fer_list_t *list, *item;
+        fer_net_node_t *netn;
+        fer_gnnp_node_t *n;
+        int num = 0;
+
+        list = ferNetNodes(nn->net);
+        FER_LIST_FOR_EACH(list, item){
+            netn = FER_LIST_ENTRY(item, fer_net_node_t, list);
+            n    = fer_container_of(netn, fer_gnnp_node_t, net);
+            if (!PATH_IS_NONE(n))
+                num++;
+        }
+
+        DBG("%d %d", num, (int)ferGUGSize((const fer_gug_t *)nn->nn_path));
+        if (num != (int)ferGUGSize((const fer_gug_t *)nn->nn_path)){
+            exit(-1);
+        }
+    }
+#endif
+
     fer_nn_el_t *els;
     fer_gnnp_node_t *np;
 
@@ -483,7 +529,7 @@ static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
         if (PATH_IS_NONE(o)){
             // {o} is not connected init neither to goal node
             pathConnect(nn, o, wn);
-        }else if (o->prev_type != wn->prev_type){
+        }else if (!PATH_EQ(o, wn)){
             // we found a connection between init and goal node
             foundpath = o;
         }
@@ -835,22 +881,15 @@ static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 
 _fer_inline void pathSetNone(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
-    if (n->prev_type != PATH_NONE)
-        ferNNRemove(nn->nn_path, &n->nn_path);
-    n->prev_type = PATH_NONE;
+    PATH_SET_NONE(nn, n);
     pathRetype(nn, n);
 }
 
 _fer_inline void pathConnect(fer_gnnp_t *nn, fer_gnnp_node_t *from,
                                              fer_gnnp_node_t *to)
 {
-    if (from->prev_type != PATH_NONE && to->prev_type == PATH_NONE){
-        ferNNRemove(nn->nn_path, &from->nn_path);
-    }else if (from->prev_type == PATH_NONE && to->prev_type != PATH_NONE){
-        ferNNAdd(nn->nn_path, &from->nn_path);
-    }
     from->prev = to;
-    from->prev_type = to->prev_type;
+    PATH_COPY(nn, from, to);
     pathRetype(nn, from);
 }
 
@@ -867,13 +906,8 @@ static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root)
         netn = ferNetEdgeOtherNode(e, &root->net);
         n2   = fer_container_of(netn, fer_gnnp_node_t, net);
 
-        if (n2->prev == root && n2->prev_type != root->prev_type){
-            if (n2->prev_type != PATH_NONE && root->prev_type == PATH_NONE){
-                ferNNRemove(nn->nn_path, &n2->nn_path);
-            }else if (n2->prev_type == PATH_NONE && root->prev_type != PATH_NONE){
-                ferNNAdd(nn->nn_path, &n2->nn_path);
-            }
-            n2->prev_type = root->prev_type;
+        if (n2->prev == root && !PATH_EQ(n2, root)){
+            PATH_COPY(nn, n2, root);
             pathRetype(nn, n2);
         }
     }
