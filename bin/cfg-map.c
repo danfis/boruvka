@@ -225,7 +225,7 @@ int ferCfgMapCollide(const fer_vec_t *conf)
         ferCDGeomSetTr3(cd, robot, ferVecGet(conf, 0), ferVecGet(conf, 1), FER_ZERO);
         ferCDGeomSetRotEuler(cd, robot, FER_ZERO, FER_ZERO, ferVecGet(conf, 2));
     }else if (conf_dim == 6){
-        ferCDGeomSetTr(cd, robot, (const fer_vec3_t *)conf);
+        ferCDGeomSetTr3(cd, robot, ferVecGet(conf, 0), ferVecGet(conf, 1), ferVecGet(conf, 2));
         ferCDGeomSetRotEuler(cd, robot, ferVecGet(conf, 3), ferVecGet(conf, 4), ferVecGet(conf, 5));
     }
     //ferCDGeomSetRotEuler(cd, robot, FER_ZERO, FER_ZERO, ferVecGet(conf, 2));
