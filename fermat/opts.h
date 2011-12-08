@@ -174,6 +174,14 @@ int ferOptsAdd(const char *long_name, char short_name,
                 uint32_t type, void *set, void (*callback)(void));
 
 /**
+ * Same as {ferOptsAdd()} but has additional parameter {desc} where can be
+ * passed string description of the option
+ */
+int ferOptsAddDesc(const char *long_name, char short_name,
+                   uint32_t type, void *set, void (*callback)(void),
+                   const char *desc);
+
+/**
  * Clears all options previously added
  */
 void ferOptsClear(void);
@@ -187,6 +195,11 @@ void ferOptsClear(void);
  */
 int ferOpts(int *argc, char **argv);
 
+
+/**
+ * Print list of all options
+ */
+void ferOptsPrint(FILE *out, const char *lineprefix);
 
 #ifdef __cplusplus
 }

@@ -32,6 +32,7 @@ struct _fer_opt_t {
     void (*callback)(void);/*!< Callback called (if non-NULL) when option
                                 detected. The type of the callback depends
                                 on the {.type} */
+    char *desc;            /*!< Description of the option */
 };
 typedef struct _fer_opt_t fer_opt_t;
 
@@ -50,7 +51,7 @@ static void invalidOptErr(const fer_opt_t *opt);
 static const char *strend(const char *str);
 
 int ferOptsAdd(const char *long_name, char short_name,
-                uint32_t type, void *set, void (*callback)(void))
+               uint32_t type, void *set, void (*callback)(void))
 {
     size_t i;
 
@@ -68,11 +69,33 @@ int ferOptsAdd(const char *long_name, char short_name,
     opts[i]->type       = type;
     opts[i]->set        = set;
     opts[i]->callback   = callback;
+    opts[i]->desc       = NULL;
 
     if (opts[i]->type == FER_OPTS_NONE && opts[i]->set)
         *(int *)opts[i]->set = 0;
 
     return i;
+}
+
+int ferOptsAddDesc(const char *long_name, char short_name,
+                   uint32_t type, void *set, void (*callback)(void),
+                   const char *desc)
+{
+    size_t id, desclen;
+    fer_opt_t *opt;
+   
+    id = ferOptsAdd(long_name, short_name, type, set, callback);
+    if (id < 0)
+        return -1;
+
+    opt = opts[id];
+    if (desc){
+        desclen = strlen(desc);
+        opt->desc = FER_ALLOC_ARR(char, desclen + 1);
+        strcpy(opt->desc, desc);
+    }
+
+    return id;
 }
 
 void ferOptsClear(void)
@@ -81,6 +104,8 @@ void ferOptsClear(void)
 
     for (i = 0; i < opts_len; i++){
         FER_FREE(opts[i]);
+        if (opts[i]->desc)
+            FER_FREE(opts[i]->desc);
     }
     FER_FREE(opts);
     opts = NULL;
@@ -358,4 +383,113 @@ static const char *strend(const char *str)
     while (*s != 0x0)
         ++s;
     return s;
+}
+
+
+/** Returns maximal length of name parts */
+static size_t optsNameLen(void)
+{
+    size_t i, len, name_len;
+
+    name_len = 0;
+    for (i = 0; i < opts_len; i++){
+        len = 0;
+        if (opts[i]->long_name && opts[i]->short_name){
+            // e.g., "-h / --help"
+            len = 7; // "-h / --"
+            len += strlen(opts[i]->long_name);
+        }else if (opts[i]->long_name){
+            // e.g., --help
+            len = 2 + strlen(opts[i]->long_name);
+        }else if (opts[i]->short_name){
+            // e.g., -h
+            len = 2;
+        }
+
+        if (len > name_len)
+            name_len = len;
+    }
+
+    return name_len;
+}
+
+static void printName(fer_opt_t *opt, size_t len, FILE *out)
+{
+    size_t l = 0;
+
+    if (opt->short_name){
+        fprintf(out, "-%c / ", opt->short_name);
+        l = 5;
+    }
+
+    if (opt->long_name){
+        fprintf(out, "--%s", opt->long_name);
+        l += 2 + strlen(opt->long_name);
+    }
+
+    for (; l < len; l++){
+        fprintf(out, " ");
+    }
+}
+
+static void printType(fer_opt_t *opt, FILE *out)
+{
+    switch(opt->type){
+        case FER_OPTS_NONE:
+            fprintf(out, "    ");
+            break;
+        case FER_OPTS_LONG:
+            fprintf(out, "long");
+            break;
+        case FER_OPTS_INT:
+            fprintf(out, "int ");
+            break;
+        case FER_OPTS_REAL:
+            fprintf(out, "flt ");
+            break;
+        case FER_OPTS_STR:
+            fprintf(out, "str ");
+            break;
+        case FER_OPTS_SIZE_T:
+            fprintf(out, "uint");
+            break;
+        case FER_OPTS_V2:
+            fprintf(out, "vec2");
+            break;
+    }
+}
+
+static void printDesc(fer_opt_t *opt, FILE *out)
+{
+    if (!opt->desc)
+        return;
+
+    fprintf(out, opt->desc);
+}
+
+void ferOptsPrint(FILE *out, const char *lineprefix)
+{
+    size_t i;
+    size_t name_len;
+
+    name_len = optsNameLen();
+
+    // print option descriptions
+    for (i = 0; i < opts_len; i++){
+        // print line prefix first
+        fprintf(out, "%s", lineprefix);
+
+        // then print name
+        printName(opts[i], name_len, out);
+        fprintf(out, "  ");
+
+        // print type
+        printType(opts[i], out);
+        fprintf(out, "  ");
+
+        // print description
+        printDesc(opts[i], out);
+
+        fprintf(out, "\n");
+    }
 }
