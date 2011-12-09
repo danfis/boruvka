@@ -40,10 +40,12 @@ fer_real_t h = 0.25;
 int use_rot = 0;
 int dbg_dump = 0;
 int alg_num = 0;
+int rrt_goal_conf = 1000;
 fer_timer_t timer;
 
 
 static void setUpNN(fer_nn_params_t *nn);
+_fer_inline void updateTimer(void);
 
 
 static fer_gnnp_t *gnnp = NULL;
@@ -111,26 +113,40 @@ struct alg_t algs[ALG_LEN] = {
 
 int opts(int *argc, char *argv[])
 {
-    int i;
+    int i, help;
     int ok = 1;
 
-    ferOptsAdd("robots", 0x0, FER_OPTS_NONE, (void *)&list_robots, NULL);
-    ferOptsAdd("robot", 'r', FER_OPTS_STR, (void *)&robot_name, NULL);
-    ferOptsAdd("method", 'm', FER_OPTS_STR, (void *)&method_name, NULL);
-    ferOptsAdd("cb-period", 0x0, FER_OPTS_LONG, (void *)&callback_period, NULL);
-    ferOptsAdd("dbg-dump", 0x0, FER_OPTS_NONE, (void *)&dbg_dump, NULL);
-    ferOptsAdd("max-time", 0x0, FER_OPTS_REAL, (void *)&max_time, NULL);
-    ferOptsAdd("rmax", 0x0, FER_OPTS_INT, (void *)&rmax, NULL);
-    ferOptsAdd("rot", 0x0, FER_OPTS_NONE, (void *)&use_rot, NULL);
+    ferOptsAddDesc("help", 0x0, FER_OPTS_NONE, (void *)&help, NULL,
+                   "Print this help");
+    ferOptsAddDesc("robot", 'r', FER_OPTS_STR, (void *)&robot_name, NULL,
+                   "The robot with the specified name will be used (default: none)");
+    ferOptsAddDesc("method", 'm', FER_OPTS_STR, (void *)&method_name, NULL,
+                   "Choose the planning method: gnnp, rrt, rrt-connect (default: gnnp)");
+    ferOptsAddDesc("max-time", 0x0, FER_OPTS_REAL, (void *)&max_time, NULL,
+                   "Maximal time in seconds (default: 3600)");
+    ferOptsAddDesc("rmax", 0x0, FER_OPTS_INT, (void *)&rmax, NULL,
+                   "Rmax parameter (default: 2^(dim + 1))");
+    ferOptsAddDesc("rot", 0x0, FER_OPTS_NONE, (void *)&use_rot, NULL,
+                   "Also rotation is considered");
+    ferOptsAddDesc("robots", 0x0, FER_OPTS_NONE, (void *)&list_robots, NULL,
+                   "Print list of available robots");
+    ferOptsAddDesc("cb-period", 0x0, FER_OPTS_LONG, (void *)&callback_period, NULL,
+                   "Callback period");
+    ferOptsAddDesc("dbg-dump", 0x0, FER_OPTS_NONE, (void *)&dbg_dump, NULL,
+                   "Enables debug dumps into dbg/ directory in each callback");
+    ferOptsAddDesc("rrt-goal-conf", 0x0, FER_OPTS_INT, (void *)&rrt_goal_conf, NULL,
+                   "How often should be goal configuration presented to the algorithm (default 1000)");
 
 
     if (ferOpts(argc, argv) != 0)
         ok = 0;
 
-    for (i = 0; i < ALG_LEN; i++){
-        if (strcmp(method_name, methods[i]) == 0){
-            alg_num = i;
-            break;
+    if (method_name){
+        for (i = 0; i < ALG_LEN; i++){
+            if (strcmp(method_name, methods[i]) == 0){
+                alg_num = i;
+                break;
+            }
         }
     }
 
@@ -142,17 +158,11 @@ int opts(int *argc, char *argv[])
         }
     }
 
-    if (!ok || *argc != 2 || (!list_robots && (robot_name == NULL || method_name == NULL))){
+
+    if (help || !ok || *argc != 2 || (!list_robots && (robot_name == NULL || method_name == NULL))){
         fprintf(stderr, "Usage: %s [ OPTIONS ] [-r robot | --robots] -m method cfg_file\n", argv[0]);
         fprintf(stderr, "  OPTIONS:\n");
-        fprintf(stderr, "    -m/--method  str  Choose the planning method (gnnp,rrt)\n");
-        fprintf(stderr, "    -r/--robot   str  The robot with specified name will be used\n");
-        fprintf(stderr, "    --robots          Print list of available robots\n");
-        fprintf(stderr, "    --cb-period  int  Callback period\n");
-        fprintf(stderr, "    --dbg-dump        Enables debug dumps in each callback (dbg/*)\n");
-        fprintf(stderr, "    --max-time   flt  Maximal time (in seconds)\n");
-        fprintf(stderr, "    --rmax       flt  Rmax parameter\n");
-        fprintf(stderr, "    --rot             Also rotation is considered\n");
+        ferOptsPrint(stderr, "    ");
         return -1;
     }
 
@@ -202,6 +212,26 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    if (ferCfgMapCollide(init)
+            || ferCfgMapCollide(goal)){
+        if (ferCfgMapCollide(init))
+            fprintf(stderr, "Error: init configuration is OBST.\n");
+        if (ferCfgMapCollide(goal))
+            fprintf(stderr, "Error: goal configuration is OBST.\n");
+
+        if (dbg_dump){
+            ferCfgMapDumpSVT(stdout, NULL);
+            ferCfgMapRobotDumpSVT(init, stdout, "Init");
+            ferCfgMapRobotDumpSVT(goal, stdout, "Goal");
+        }
+
+        ferVecDel(is);
+        ferVecDel(init);
+        ferVecDel(goal);
+        ferCfgMapDestroy();
+        return -1;
+    }
+
     algs[alg_num].init();
 
     ferListInit(&path);
@@ -242,14 +272,17 @@ static void setUpNN(fer_nn_params_t *nn)
         nn->type = FER_NN_VPTREE;
 }
 
-
-/*** GNNP ***/
-static int gnnpTerminate(fer_gnnp_t *nn, void *data)
+_fer_inline void updateTimer(void)
 {
     ferTimerStop(&timer);
     elapsed_time += ferTimerElapsedInSF(&timer);
     ferTimerStart(&timer);
+}
 
+/*** GNNP ***/
+static int gnnpTerminate(fer_gnnp_t *nn, void *data)
+{
+    //updateTimer();
     if (elapsed_time > max_time)
         return 1;
     return 0;
@@ -271,7 +304,7 @@ static void gnnpDumpDBG(fer_gnnp_t *nn, int c)
     char fn[100];
     FILE *fout;
 
-    snprintf(fn, 100, "dbg/map-%06d", c);
+    snprintf(fn, 100, "dbg/map-%06d.svt", c);
     fout = fopen(fn, "w");
     if (fout){
         ferGNNPDumpSVT(nn, fout, NULL);
@@ -289,9 +322,7 @@ static void gnnpCallback(fer_gnnp_t *nn, void *data)
     if (dbg_dump)
         gnnpDumpDBG(nn, c);
 
-    ferTimerStop(&timer);
-    elapsed_time += ferTimerElapsedInSF(&timer);
-    ferTimerStart(&timer);
+    updateTimer();
     fprintf(stderr, "step %d, nodes: %d, evals: %ld  [%f s]\n",
             c, (int)ferGNNPNodesLen(nn), (long)evals,
             (float)elapsed_time);
@@ -387,7 +418,7 @@ static void gnnpPrintSolutionVideo(fer_gnnp_t *nn, fer_list_t *path)
     i = 0;
     FER_LIST_FOR_EACH(path, item){
         n = FER_LIST_ENTRY(item, fer_gnnp_node_t, path);
-        snprintf(fn, 300, "gen-video/map-%06d", i);
+        snprintf(fn, 300, "gen-video/map-%06d.svt", i);
         out = fopen(fn, "w");
         if (out){
             ferCfgMapDumpSVT(out, "Map");
@@ -461,14 +492,9 @@ static int rrtTerminate(const fer_rrt_t *rrt, void *data)
     const fer_vec_t *lconf;
     fer_real_t dist;
 
-    ferTimerStop(&timer);
-    elapsed_time += ferTimerElapsedInSF(&timer);
-    ferTimerStart(&timer);
+    //updateTimer();
     if (elapsed_time > max_time)
         return 1;
-
-    //if (ferRRTNodesLen(rrt) >= max_steps)
-    //    return 1;
 
     rrt_last = ferRRTNodeLast(rrt);
     lconf = ferRRTNodeConf(rrt_last);
@@ -506,6 +532,11 @@ static const fer_vec_t *rrtExpand(const fer_rrt_t *rrt,
 
 static const fer_vec_t *rrtConf(const fer_rrt_t *rrt, void *data)
 {
+    static int counter = 0;
+    if (counter++ == rrt_goal_conf){
+        counter = 0;
+        return goal;
+    }
     return ferCfgMapConf();
 }
 
@@ -514,7 +545,7 @@ static void rrtDumpDBG(int c)
     char fn[100];
     FILE *fout;
 
-    snprintf(fn, 100, "dbg/map-%06d", c);
+    snprintf(fn, 100, "dbg/map-%06d.svt", c);
     fout = fopen(fn, "w");
     if (fout){
         ferRRTDumpSVT(rrt, fout, NULL);
@@ -533,9 +564,7 @@ static void rrtCallback(const fer_rrt_t *r, void *data)
         rrtDumpDBG(c);
     }
 
-    ferTimerStop(&timer);
-    elapsed_time += ferTimerElapsedInSF(&timer);
-    ferTimerStart(&timer);
+    updateTimer();
     fprintf(stderr, "step %ld, nodes: %d, evals: %ld, nearest: %f  [%f s]\n",
             c, (int)ferRRTNodesLen(rrt), (long)evals, FER_SQRT(near_dist),
             (float)elapsed_time);
@@ -640,7 +669,7 @@ static void rrtPrintSolutionVideo(fer_list_t *path)
     i = 0;
     FER_LIST_FOR_EACH(path, item){
         n = FER_LIST_ENTRY(item, fer_rrt_node_t, path);
-        snprintf(fn, 300, "rrt-gen-video/map-%06d", i);
+        snprintf(fn, 300, "rrt-gen-video/map-%06d.svt", i);
         out = fopen(fn, "w");
         if (out){
             ferCfgMapDumpSVT(out, "Map");
@@ -678,12 +707,6 @@ static int rrtConnectTerminateExpand(const fer_rrt_t *rrt,
 {
     const fer_vec_t *n;
     fer_real_t dist;
-
-    ferTimerStop(&timer);
-    elapsed_time += ferTimerElapsedInSF(&timer);
-    ferTimerStart(&timer);
-    if (elapsed_time > max_time)
-        return 1;
 
     n = ferRRTNodeConf(last);
     dist = ferVecDist2(rrt->params.dim, n, rand);

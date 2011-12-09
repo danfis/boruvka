@@ -65,21 +65,30 @@ static void nearest(fer_gnnp_t *nn, const fer_vec_t *is,
                     fer_gnnp_node_t **n1,
                     fer_gnnp_node_t **n2);
 static fer_gnnp_node_t *nearestPath(fer_gnnp_t *nn, const fer_vec_t *is);
-static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
-                                            fer_gnnp_node_t *n2);
+static int hebbianLearning(fer_gnnp_t *nn,
+                           fer_gnnp_node_t *n1, fer_gnnp_node_t *n2,
+                           fer_list_t *path);
 static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
                                 const fer_vec_t *is);
 static void move(fer_gnnp_t *nn, fer_gnnp_node_t *wn, const fer_vec_t *is);
 
 static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
                                      fer_list_t *path);
+static void obtainPath(fer_gnnp_t *nn,
+                       fer_gnnp_node_t *n1, fer_gnnp_node_t *n2,
+                       fer_list_t *path);
 static int prunePath(fer_gnnp_t *nn, fer_list_t *path);
 
 
 _fer_inline void pathSetNone(fer_gnnp_t *nn, fer_gnnp_node_t *n);
-_fer_inline void pathConnect(fer_gnnp_t *nn, fer_gnnp_node_t *from,
-                                             fer_gnnp_node_t *to);
-static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root);
+_fer_inline void pathConnect(fer_gnnp_t *nn,
+                             fer_gnnp_node_t *from,
+                             fer_gnnp_node_t *to,
+                             fer_gnnp_node_t **ig1,
+                             fer_gnnp_node_t **ig2);
+static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root,
+                       fer_gnnp_node_t **ig1,
+                       fer_gnnp_node_t **ig2);
 
 
 #define OPS_DATA(name) \
@@ -174,7 +183,10 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
         nearest(nn, is, &n[0], &n[1]);
 
         // competitive hebbian learning with removing edges
-        hebbianLearning(nn, n[0], n[1]);
+        if (hebbianLearning(nn, n[0], n[1], path) == 0){
+            if (!prunePath(nn, path))
+                return 0;
+        }
 
         // learn path
         np = nearestPath(nn, is);
@@ -184,7 +196,7 @@ int ferGNNPFindPath(fer_gnnp_t *nn,
                 return 0;
         }
 
-        if (IS_FIXED(n[0])){
+        if (IS_FREE(n[0])){
             // the nearest node is fixed (free or obstacle)
             // compute distance between input signal and the winner node
             dist = ferVecDist2(nn->params.dim, is, n[0]->w);
@@ -483,6 +495,36 @@ static fer_gnnp_node_t *nearestPath(fer_gnnp_t *nn, const fer_vec_t *is)
     return np;
 }
 
+static void obtainPath(fer_gnnp_t *nn,
+                       fer_gnnp_node_t *n1, fer_gnnp_node_t *n2,
+                       fer_list_t *path)
+{
+    fer_gnnp_node_t *o;
+
+    // obtain path
+    ferListInit(path);
+
+    // first init node
+    o = n2;
+    if (PATH_IS_INIT(n1))
+        o = n1;
+    while (o != nn->init){
+        ferListPrepend(path, &o->path);
+        o = o->prev;
+    }
+    ferListPrepend(path, &nn->init->path);
+
+    // goal node
+    o = n2;
+    if (PATH_IS_GOAL(n1))
+        o = n1;
+    while (o != nn->goal){
+        ferListAppend(path, &o->path);
+        o = o->prev;
+    }
+    ferListAppend(path, &nn->goal->path);
+}
+
 static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
                                      fer_list_t *path)
 {
@@ -490,8 +532,10 @@ static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     fer_net_edge_t *e;
     fer_net_node_t *netn;
     fer_gnnp_node_t *o;
-    fer_gnnp_node_t *foundpath = NULL;
+    fer_gnnp_node_t *ig[2];
 
+
+    ig[0] = ig[1] = NULL;
 
     /** wn is not OBST and also non-PATH_NONE */
 
@@ -504,47 +548,30 @@ static int learnPath(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
         if (IS_OBST(o))
             continue;
 
-        if (PATH_IS_NONE(o)){
+        if (PATH_IS_NONE(o)
+                || (o != nn->init && o != nn->goal && o->prev == NULL)){
             // {o} is not connected init neither to goal node
-            pathConnect(nn, o, wn);
+            pathConnect(nn, o, wn, &ig[0], &ig[1]);
         }else if (!PATH_EQ(o, wn)){
             // we found a connection between init and goal node
-            foundpath = o;
+            ig[0] = wn;
+            ig[1] = o;
         }
     }
 
-    if (foundpath){
-        // obtain path
-        ferListInit(path);
-
-        // first init node
-        o = foundpath;
-        if (PATH_IS_INIT(wn))
-            o = wn;
-        while (o != nn->init){
-            ferListPrepend(path, &o->path);
-            o = o->prev;
-        }
-        ferListPrepend(path, &nn->init->path);
-
-        // goal node
-        o = foundpath;
-        if (PATH_IS_GOAL(wn))
-            o = wn;
-        while (o != nn->goal){
-            ferListAppend(path, &o->path);
-            o = o->prev;
-        }
-        ferListAppend(path, &nn->goal->path);
-
+    // it is enough to check ig[0] because ig[1] is always non-NULL iff
+    // ig[0] is non-NULL
+    if (ig[0]){
+        obtainPath(nn, ig[0], ig[1], path);
         return 0;
     }
 
     return -1;
 }
 
-static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
-                                            fer_gnnp_node_t *n2)
+static int hebbianLearning(fer_gnnp_t *nn,
+                           fer_gnnp_node_t *n1, fer_gnnp_node_t *n2,
+                           fer_list_t *path)
 {
     fer_net_edge_t *e;
 
@@ -564,6 +591,13 @@ static void hebbianLearning(fer_gnnp_t *nn, fer_gnnp_node_t *n1,
         e = ferNetEdgeNew();
         ferNetAddEdge(nn->net, e, &n1->net, &n2->net);
     }
+
+    if (!PATH_IS_NONE(n1) && !PATH_IS_NONE(n2) && !PATH_EQ(n1, n2)){
+        obtainPath(nn, n1, n2, path);
+        return 0;
+    }
+
+    return 1;
 }
 
 static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
@@ -577,7 +611,8 @@ static fer_gnnp_node_t *newNode(fer_gnnp_t *nn, fer_gnnp_node_t *wn,
     e = ferNetEdgeNew();
     ferNetAddEdge(nn->net, e, &wn->net, &n->net);
 
-    pathConnect(nn, n, wn);
+    if (IS_FREE(wn))
+        pathConnect(nn, n, wn, NULL, NULL);
 
     return n;
 }
@@ -695,7 +730,7 @@ static void _prunePath(fer_gnnp_t *nn, fer_list_t *path)
         }
 
         if (p){
-            pathConnect(nn, n, p);
+            pathConnect(nn, n, p, NULL, NULL);
         }
     }
 
@@ -712,7 +747,7 @@ static void _prunePath(fer_gnnp_t *nn, fer_list_t *path)
         }
 
         if (p){
-            pathConnect(nn, n, p);
+            pathConnect(nn, n, p, NULL, NULL);
         }
 
         item = ferListPrev(item);
@@ -780,18 +815,23 @@ static int prunePath(fer_gnnp_t *nn, fer_list_t *path)
 _fer_inline void pathSetNone(fer_gnnp_t *nn, fer_gnnp_node_t *n)
 {
     PATH_SET_NONE(nn, n);
-    pathRetype(nn, n);
+    pathRetype(nn, n, NULL, NULL);
 }
 
-_fer_inline void pathConnect(fer_gnnp_t *nn, fer_gnnp_node_t *from,
-                                             fer_gnnp_node_t *to)
+_fer_inline void pathConnect(fer_gnnp_t *nn,
+                             fer_gnnp_node_t *from,
+                             fer_gnnp_node_t *to,
+                             fer_gnnp_node_t **ig1,
+                             fer_gnnp_node_t **ig2)
 {
     from->prev = to;
     PATH_COPY(nn, from, to);
-    pathRetype(nn, from);
+    pathRetype(nn, from, ig1, ig2);
 }
 
-static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root)
+static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root,
+                       fer_gnnp_node_t **ig1,
+                       fer_gnnp_node_t **ig2)
 {
     fer_list_t *list, *item;
     fer_net_edge_t *e;
@@ -806,7 +846,15 @@ static void pathRetype(fer_gnnp_t *nn, fer_gnnp_node_t *root)
 
         if (n2->prev == root && !PATH_EQ(n2, root)){
             PATH_COPY(nn, n2, root);
-            pathRetype(nn, n2);
+            pathRetype(nn, n2, ig1, ig2);
+        }
+
+        if (ig1 && ig2
+                && !PATH_IS_NONE(root)
+                && !PATH_IS_NONE(n2)
+                && n2->prev_type != root->prev_type){
+            *ig1 = root;
+            *ig2 = n2;
         }
     }
 }
