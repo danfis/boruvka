@@ -165,8 +165,6 @@ extern "C" {
  *        to it. The type of pointer must correspond to the {type}.
  *     5. {callback}: Callback called (if non-NULL) when option detected.
  *        The type of the callback depends on the {type}.
- *     6. {desc}: Description of the option. May be NULL.
- *     7. {group}: Group name. May be NULL.
  *
  * Returns ID of the added option.
  */
