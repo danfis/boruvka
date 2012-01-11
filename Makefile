@@ -1,7 +1,7 @@
 ###
 # fermat
 # -------
-# Copyright (c)2010-2011 Daniel Fiser <danfis@danfis.cz>
+# Copyright (c)2010-2012 Daniel Fiser <danfis@danfis.cz>
 #
 #  This file is part of fermat.
 #
@@ -25,18 +25,6 @@ ifeq '$(USE_OPENCL)' 'yes'
   CFLAGS += $(OPENCL_CFLAGS)
   LDFLAGS += $(OPENCL_LDFLAGS)
 endif
-
-#BIN_TARGETS  = fer-gsrm fer-qdelaunay
-#BIN_TARGETS += fer-gng-eu fer-plan-2d
-#BIN_TARGETS += fer-gng-t
-#BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
-#BIN_TARGETS += fer-rrt-2d fer-rrt-6d
-#BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
-BIN_TARGETS += fer-nnbp
-BIN_TARGETS += fer-nnbp-img
-BIN_TARGETS += fer-gnnp
-BIN_TARGETS += fer-plan
-BIN_TARGETS += fer-cfg-scale
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -109,29 +97,53 @@ FERMAT_CD_C := $(foreach file,$(FERMAT_CD_C),src/$(file))
 # header files that must be generated
 HEADERS = cubes2.h cubes3.h
 
-OBJS 		:= $(foreach obj,$(OBJS),.objs/$(obj))
-OBJSPP 		:= $(foreach obj,$(OBJSPP),.objs/$(obj))
-HEADERS     := $(foreach h,$(HEADERS),fermat/$(h))
-BIN_TARGETS := $(foreach target,$(BIN_TARGETS),bin/$(target))
+
+
+BIN_TARGETS  = fer-gsrm
+BIN_TARGETS += fer-qdelaunay
+BIN_TARGETS += fer-plan
+
+
+EXAMPLE_TARGETS += cd-simple-collision
+EXAMPLE_TARGETS += cd-trimesh-collision
+EXAMPLE_TARGETS += cd-sep
+ifeq '$(USE_ODE)' 'yes'
+  EXAMPLE_TARGETS += cd-ode
+endif
+
+EXAMPLE_TARGETS += nnbp-simple
+ifeq '$(USE_SDL)' 'yes'
+  ifeq '$(USE_SDL_IMAGE)' 'yes'
+    EXAMPLE_TARGETS += nnbp-img
+  endif
+endif
+
+EXAMPLE_TARGETS += ga-knapsack
+EXAMPLE_TARGETS += ga-knapsack2
+EXAMPLE_TARGETS += kohonen-simple
+EXAMPLE_TARGETS += gng-eu
+EXAMPLE_TARGETS += gng-t
+EXAMPLE_TARGETS += prm-6d
+
+
+OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj))
+HEADERS         := $(foreach h,$(HEADERS),fermat/$(h))
+BIN_TARGETS     := $(foreach target,$(BIN_TARGETS),bin/$(target))
+EXAMPLE_TARGETS := $(foreach target,$(EXAMPLE_TARGETS),examples/$(target))
 
 
 ifeq '$(EXAMPLES)' 'yes'
-  TARGETS += examples/cd-simple-collision
-  TARGETS += examples/cd-trimesh-collision
-  TARGETS += examples/cd-sep
-  ifeq '$(USE_ODE)' 'yes'
-    TARGETS += examples/cd-ode
-  endif
-
-  TARGETS += examples/ga-knapsack
-  TARGETS += examples/ga-knapsack2
-  TARGETS += examples/kohonen-simple
+  TARGETS += $(EXAMPLE_TARGETS)
+endif
+ifeq '$(BINS)' 'yes'
+  TARGETS += $(BIN_TARGETS)
 endif
 
-all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
 
-libfermat.a: $(OBJS) $(OBJSPP)
-	ar cr $@ $(OBJS) $(OBJSPP)
+all: $(TARGETS) $(HEADERS)
+
+libfermat.a: $(OBJS)
+	ar cr $@ $(OBJS)
 	ranlib $@
 
 fermat/config.h: fermat/config.h.m4
@@ -139,8 +151,6 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-bin/fer-nnbp-img: bin/nnbp-img-main.c libfermat.a
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lSDL -lSDL_image
 bin/fer-gnnp: bin/gnnp-main.o bin/cfg-map.o libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
 bin/fer-plan: bin/plan-main.o bin/cfg-map.o libfermat.a
@@ -151,7 +161,9 @@ bin/%.o: bin/%.c bin/%.h
 examples/%: examples/%.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 examples/cd-ode: examples/cd-ode.c libfermat.a
-	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF)
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
+examples/nnbp-img: examples/nnbp-img.c libfermat.a
+	$(CC) $(CFLAGS) $(SDL_CFLAGS) $(SDL_IMAGE_CFLAGS) -o $@ $< $(LDFLAGS) $(SDL_LDFLAGS) $(SDL_IMAGE_LDFLAGS)
 
 src/surf-matching.c: src/surf-matching-cl.c
 	touch $@
@@ -273,6 +285,7 @@ help:
 	@echo "    SCAN_BUILD - Path to scan-build          (=$(SCAN_BUILD))"
 	@echo ""
 	@echo "    EXAMPLES  'yes'/'no' - Set to 'yes' if examples should be build (=$(EXAMPLES))"
+	@echo "    BINS      'yes'/'no' - Set to 'yes' if binaries should be build (=$(BINS))"
 	@echo ""
 	@echo "    CC_NOT_GCC 'yes'/'no' - If set to 'yes' no gcc specific options will be used (=$(CC_NOT_GCC))"
 	@echo ""
@@ -281,17 +294,21 @@ help:
 	@echo "    NOWALL     'yes'/'no' - Turns off -Wall gcc option     (=$(NOWALL))"
 	@echo "    NOPEDANTIC 'yes'/'no' - Turns off -pedantic gcc option (=$(NOPEDANTIC))"
 	@echo ""
-	@echo "    USE_SINGLE   'yes'      - Use single precision (=$(USE_SINGLE))"
-	@echo "    USE_DOUBLE   'yes'      - Use double precision (=$(USE_DOUBLE))"
-	@echo "    USE_MEMCHECK 'yes'/'no' - Use memory checking during allocation (=$(USE_MEMCHECK))"
-	@echo "    USE_SSE      'yes'/'no' - Use SSE instructions (=$(USE_SSE))"
-	@echo "    USE_OPENCL   'yes'/'no' - Use OpenCL library   (=$(USE_OPENCL))"
-	@echo "                              By default, auto detection is used."
-	@echo "                              This option depends on USE_SINGLE set to 'yes'"
-	@echo "    USE_RAPID    'yes'/'no' - Use RAPID library    (=$(USE_RAPID))"
-	@echo "                              By default, auto detection is used."
-	@echo "    USE_ODE      'yes'/'no' - Use ODE library      (=$(USE_ODE))"
-	@echo "                              By default, auto detection is used."
+	@echo "    USE_SINGLE   'yes'       - Use single precision  (=$(USE_SINGLE))"
+	@echo "    USE_DOUBLE   'yes'       - Use double precision  (=$(USE_DOUBLE))"
+	@echo "    USE_MEMCHECK 'yes'/'no'  - Use memory checking during allocation (=$(USE_MEMCHECK))"
+	@echo "    USE_SSE      'yes'/'no'  - Use SSE instructions  (=$(USE_SSE))"
+	@echo "    USE_OPENCL   'yes'/'no'  - Use OpenCL library    (=$(USE_OPENCL))"
+	@echo "                               By default, auto detection is used."
+	@echo "                               This option depends on USE_SINGLE set to 'yes'"
+	@echo "    USE_RAPID    'yes'/'no'  - Use RAPID library     (=$(USE_RAPID))"
+	@echo "                               By default, auto detection is used."
+	@echo "    USE_ODE      'yes'/'no'  - Use ODE library       (=$(USE_ODE))"
+	@echo "                               By default, auto detection is used."
+	@echo "    USE_SDL      'yes'/'no'  - Use SDL library       (=$(USE_SDL))"
+	@echo "                               By default, auto detection is used."
+	@echo "    USE_SDL_IMAGE 'yes'/'no' - Use SDL_image library (=$(USE_SDL_IMAGE))"
+	@echo "                               By default, auto detection is used."
 	@echo ""
 	@echo "    CD_TIME_MEASURE 'yes'/'no' - Set to 'yes' if time measurement should be used in CD (=$(CD_TIME_MEASURE))"
 	@echo ""
@@ -303,18 +320,22 @@ help:
 	@echo ""
 	@echo "Variables:"
 	@echo "  Note that most of can be preset or changed by user"
-	@echo "    SYSTEM         = "$(SYSTEM)
-	@echo "    CFLAGS         = $(CFLAGS)"
-	@echo "    CXXFLAGS       = $(CXXFLAGS)"
-	@echo "    LDFLAGS        = $(LDFLAGS)"
-	@echo "    CONFIG_FLAGS   = $(CONFIG_FLAGS)"
-	@echo "    PYTHON_CFLAGS  = $(PYTHON_CFLAGS)"
-	@echo "    PYTHON_LDFLAGS = $(PYTHON_LDFLAGS)"
-	@echo "    RAPID_CFLAGS   = $(RAPID_CFLAGS)"
-	@echo "    RAPID_LDFLAGS  = $(RAPID_LDFLAGS)"
-	@echo "    ODE_CFLAGS     = $(ODE_CFLAGS)"
-	@echo "    ODE_LDFLAGS    = $(ODE_LDFLAGS)"
-	@echo "    OPENCL_CFLAGS  = $(OPENCL_CFLAGS)"
-	@echo "    OPENCL_LDFLAGS = $(OPENCL_LDFLAGS)"
+	@echo "    SYSTEM            = $(SYSTEM)"
+	@echo "    CFLAGS            = $(CFLAGS)"
+	@echo "    CXXFLAGS          = $(CXXFLAGS)"
+	@echo "    LDFLAGS           = $(LDFLAGS)"
+	@echo "    CONFIG_FLAGS      = $(CONFIG_FLAGS)"
+	@echo "    PYTHON_CFLAGS     = $(PYTHON_CFLAGS)"
+	@echo "    PYTHON_LDFLAGS    = $(PYTHON_LDFLAGS)"
+	@echo "    RAPID_CFLAGS      = $(RAPID_CFLAGS)"
+	@echo "    RAPID_LDFLAGS     = $(RAPID_LDFLAGS)"
+	@echo "    ODE_CFLAGS        = $(ODE_CFLAGS)"
+	@echo "    ODE_LDFLAGS       = $(ODE_LDFLAGS)"
+	@echo "    OPENCL_CFLAGS     = $(OPENCL_CFLAGS)"
+	@echo "    OPENCL_LDFLAGS    = $(OPENCL_LDFLAGS)"
+	@echo "    SDL_CFLAGS        = $(SDL_CFLAGS)"
+	@echo "    SDL_LDFLAGS       = $(SDL_LDFLAGS)"
+	@echo "    SDL_IMAGE_CFLAGS  = $(SDL_IMAGE_CFLAGS)"
+	@echo "    SDL_IMAGE_LDFLAGS = $(SDL_IMAGE_LDFLAGS)"
 
 .PHONY: all clean check check-valgrind help doc install cython analyze examples

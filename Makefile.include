@@ -89,10 +89,13 @@ endif
 endif
 
 USE_MEMCHECK ?= no
+
 USE_SSE    ?= no
 USE_OPENCL ?= auto
 USE_RAPID  ?= auto
 USE_ODE    ?= auto
+USE_SDL    ?= auto
+USE_SDL_IMAGE ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -156,8 +159,42 @@ ODE_LDFLAGS ?= $(shell ode-config --libs)
 ODE_DRAWSTUFF ?= -ldrawstuff -lX11 -lGL -lGLU
 endif
 
+ifeq '$(USE_SDL)' 'auto'
+  ifeq '$(SDL_CFLAGS)' ''
+    USE_SDL = $(shell if pkg-config sdl --exists; then echo 'yes'; else echo 'no'; fi)
+  else
+    USE_SDL = yes
+  endif
+
+SDL_CFLAGS  ?= $(shell pkg-config sdl --cflags)
+SDL_LDFLAGS ?= $(shell pkg-config sdl --libs)
+endif
+
+ifeq '$(USE_SDL)' 'auto'
+  ifeq '$(SDL_CFLAGS)' ''
+    USE_SDL = $(shell if pkg-config sdl --exists; then echo 'yes'; else echo 'no'; fi)
+  else
+    USE_SDL = yes
+  endif
+
+SDL_CFLAGS  ?= $(shell pkg-config sdl --cflags)
+SDL_LDFLAGS ?= $(shell pkg-config sdl --libs)
+endif
+
+ifeq '$(USE_SDL_IMAGE)' 'auto'
+  ifeq '$(SDL_IMAGE_CFLAGS)' ''
+    USE_SDL_IMAGE = $(shell if pkg-config SDL_image --exists; then echo 'yes'; else echo 'no'; fi)
+  else
+    USE_SDL_IMAGE = yes
+  endif
+
+SDL_IMAGE_CFLAGS  ?= $(shell pkg-config SDL_image --cflags)
+SDL_IMAGE_LDFLAGS ?= $(shell pkg-config SDL_image --libs)
+endif
+
 
 EXAMPLES ?= no
+BINS     ?= yes
 
 
 # for testing
