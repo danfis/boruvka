@@ -26,12 +26,14 @@ ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
 endif
 
-BIN_TARGETS  = fer-gsrm fer-qdelaunay
-BIN_TARGETS += fer-gng-eu fer-plan-2d
-BIN_TARGETS += fer-gng-t
-BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
-BIN_TARGETS += fer-rrt-2d fer-rrt-6d
-BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
+#BIN_TARGETS  = fer-gsrm fer-qdelaunay
+#BIN_TARGETS += fer-gng-eu fer-plan-2d
+#BIN_TARGETS += fer-gng-t
+#BIN_TARGETS += fer-gngp2 fer-gngp3 fer-prm-2d fer-prm-6d
+#BIN_TARGETS += fer-rrt-2d fer-rrt-6d
+#BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
+BIN_TARGETS += fer-nnbp
+BIN_TARGETS += fer-nnbp-img
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
@@ -56,6 +58,7 @@ OBJS += fibo.o pairheap.o dij.o
 OBJS += gng.o gng-eu.o gsrm.o
 OBJS += gng-t.o
 OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
+OBJS += nnbp.o
 
 OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
 
@@ -122,6 +125,8 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+bin/fer-nnbp-img: bin/nnbp-img-main.c libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lSDL -lSDL_image
 examples/%: examples/%.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 examples/cd-ode: examples/cd-ode.c libfermat.a
