@@ -153,3 +153,42 @@ void ferRadixSort(fer_radix_sort_t *rs, fer_radix_sort_t *rs_tmp, size_t rslen)
 }
 
 /**** RADIX SORT END ****/
+
+
+/**** INSERT SORT LIST ****/
+void ferInsertSortList(fer_list_t *list, fer_list_sort_lt cb, void *data)
+{
+    fer_list_t out;
+    fer_list_t *cur, *item;
+
+    // empty list - no need to sort
+    if (ferListEmpty(list))
+        return;
+
+    // list with one item - no need to sort
+    if (ferListNext(list) == ferListPrev(list))
+        return;
+
+    ferListInit(&out);
+    while (!ferListEmpty(list)){
+        // pick up next item from list
+        cur = ferListNext(list);
+        ferListDel(cur);
+
+        // find the place where to put it
+        item = ferListPrev(&out);
+        while (item != &out && cb(cur, item, data)){
+            item = ferListPrev(item);
+        }
+
+        // put it after the item
+        ferListPrepend(item, cur);
+    }
+
+    // and finally store sorted
+    *list = out;
+    list->next->prev = list;
+    list->prev->next = list;
+}
+
+/**** INSERT SORT LIST END ****/

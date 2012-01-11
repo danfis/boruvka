@@ -165,13 +165,19 @@ extern "C" {
  *        to it. The type of pointer must correspond to the {type}.
  *     5. {callback}: Callback called (if non-NULL) when option detected.
  *        The type of the callback depends on the {type}.
- *     6. {desc}: Description of the option. May be NULL.
- *     7. {group}: Group name. May be NULL.
  *
  * Returns ID of the added option.
  */
 int ferOptsAdd(const char *long_name, char short_name,
                 uint32_t type, void *set, void (*callback)(void));
+
+/**
+ * Same as {ferOptsAdd()} but has additional parameter {desc} where can be
+ * passed string description of the option
+ */
+int ferOptsAddDesc(const char *long_name, char short_name,
+                   uint32_t type, void *set, void (*callback)(void),
+                   const char *desc);
 
 /**
  * Clears all options previously added
@@ -187,6 +193,11 @@ void ferOptsClear(void);
  */
 int ferOpts(int *argc, char **argv);
 
+
+/**
+ * Print list of all options
+ */
+void ferOptsPrint(FILE *out, const char *lineprefix);
 
 #ifdef __cplusplus
 }

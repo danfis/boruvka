@@ -19,7 +19,7 @@
 
 #include <fermat/vec.h>
 #include <fermat/net.h>
-#include <fermat/gug.h>
+#include <fermat/nn.h>
 #include <fermat/dij.h>
 
 #ifdef __cplusplus
@@ -158,10 +158,9 @@ void ferRRTExpandAdd(int dim, const fer_vec_t *conf, fer_list_t *list);
  * ---------------
  */
 struct _fer_rrt_params_t {
-    int d; /*!< Dimension of problem */
+    int dim; /*!< Dimension of problem */
 
-    int use_gug;
-    fer_gug_params_t gug;
+    fer_nn_params_t nn;
 };
 typedef struct _fer_rrt_params_t fer_rrt_params_t;
 
@@ -181,7 +180,7 @@ void ferRRTParamsInit(fer_rrt_params_t *params);
 struct _fer_rrt_node_t {
     fer_vec_t *conf;
     fer_net_node_t node;
-    fer_gug_el_t gug;
+    fer_nn_el_t nn;
 
     fer_dij_node_t dij;
     fer_list_t path;
@@ -195,7 +194,7 @@ struct _fer_rrt_t {
     fer_rrt_params_t params;
 
     fer_net_t *net;
-    fer_gug_t *gug;
+    fer_nn_t *nn;
 
     fer_rrt_node_t *node_init; /*!< Initial node */
     fer_rrt_node_t *node_last; /*!< Last generated node */
@@ -282,8 +281,6 @@ const fer_rrt_node_t *ferRRTNodeNew(fer_rrt_t *rrt, const fer_vec_t *conf,
  * Returns nearest node to given configuration {c}. Nearest node is
  * meassured in euclidean distance metric.
  * This function is used if ops.nearest is set to NULL.
- *
- * Use this functin _only_ if you set param.use_gug to true.
  */
 const fer_rrt_node_t *ferRRTNearest(const fer_rrt_t *rrt, const fer_vec_t *c);
 

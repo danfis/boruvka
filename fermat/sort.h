@@ -18,6 +18,7 @@
 #define __FER_SORT_H__
 
 #include <fermat/core.h>
+#include <fermat/list.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,19 @@ typedef struct _fer_radix_sort_t fer_radix_sort_t;
  * Sorts array {rs} using radix sort by key.
  */
 void ferRadixSort(fer_radix_sort_t *rs, fer_radix_sort_t *tmp, size_t len);
+
+
+/**
+ * Callback for list sorts.
+ * Returns true if l1 < l2
+ */
+typedef int (*fer_list_sort_lt)(fer_list_t *l1, fer_list_t *l2, void *data);
+
+/**
+ * Insertion sort for lists.
+ * It sorts the list in ascending order
+ */
+void ferInsertSortList(fer_list_t *list, fer_list_sort_lt cb, void *data);
 
 #ifdef __cplusplus
 } /* extern "C" */

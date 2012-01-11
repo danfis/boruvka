@@ -141,6 +141,10 @@ _fer_inline unsigned long ferTimerElapsedInM(const fer_timer_t *t);
 _fer_inline unsigned long ferTimerElapsedInH(const fer_timer_t *t);
 
 
+/**
+ * Returns elapsed time in s as float number
+ */
+_fer_inline fer_real_t ferTimerElapsedInSF(const fer_timer_t *t);
 
 /**** INLINES ****/
 _fer_inline void ferTimerStart(fer_timer_t *t)
@@ -240,6 +244,14 @@ _fer_inline unsigned long ferTimerElapsedInM(const fer_timer_t *t)
 _fer_inline unsigned long ferTimerElapsedInH(const fer_timer_t *t)
 {
     return t->t_elapsed.tv_sec / 3600L;
+}
+
+_fer_inline fer_real_t ferTimerElapsedInSF(const fer_timer_t *t)
+{
+    fer_real_t time;
+    time  = t->t_elapsed.tv_nsec / FER_REAL(1000000000.);
+    time += t->t_elapsed.tv_sec;
+    return time;
 }
 
 #ifdef __cplusplus

@@ -6,11 +6,13 @@ TEST(cfg1)
 {
     fer_cfg_t *cfg;
     fer_real_t vf;
+    int vi;
     const char *vs;
     fer_vec2_t v2;
     fer_vec3_t v3;
     char **vss;
     const fer_real_t *vfs;
+    const int *vis;
     const fer_vec2_t *v2s;
     const fer_vec3_t *v3s;
     size_t len;
@@ -31,6 +33,8 @@ TEST(cfg1)
     assertTrue(ferCfgHaveParam(cfg, "var6"));
     assertTrue(ferCfgHaveParam(cfg, "var_v2_arr"));
     assertTrue(ferCfgHaveParam(cfg, "var_v3_arr"));
+    assertTrue(ferCfgHaveParam(cfg, "var_i"));
+    assertTrue(ferCfgHaveParam(cfg, "var_i_arr"));
 
     assertFalse(ferCfgParamIsArr(cfg, "var1"));
     assertFalse(ferCfgParamIsArr(cfg, "var2"));
@@ -39,10 +43,12 @@ TEST(cfg1)
     assertFalse(ferCfgParamIsArr(cfg, "var_v3"));
     assertFalse(ferCfgParamIsArr(cfg, "var4"));
     assertFalse(ferCfgParamIsArr(cfg, "var5"));
+    assertFalse(ferCfgParamIsArr(cfg, "var_i"));
     assertTrue(ferCfgParamIsArr(cfg, "var_s"));
     assertTrue(ferCfgParamIsArr(cfg, "var6"));
     assertTrue(ferCfgParamIsArr(cfg, "var_v2_arr"));
     assertTrue(ferCfgParamIsArr(cfg, "var_v3_arr"));
+    assertTrue(ferCfgParamIsArr(cfg, "var_i_arr"));
 
     assertTrue(ferCfgParamIsFlt(cfg, "var1"));
     assertTrue(ferCfgParamIsFlt(cfg, "var2"));
@@ -55,6 +61,8 @@ TEST(cfg1)
     assertTrue(ferCfgParamIsFlt(cfg, "var6"));
     assertTrue(ferCfgParamIsV2(cfg, "var_v2_arr"));
     assertTrue(ferCfgParamIsV3(cfg, "var_v3_arr"));
+    assertTrue(ferCfgParamIsInt(cfg, "var_i"));
+    assertFalse(ferCfgParamIsFlt(cfg, "var_i"));
 
 
     assertEquals(ferCfgParamFlt(cfg, "var1", &vf), 0);
@@ -75,6 +83,9 @@ TEST(cfg1)
     assertTrue(ferEq(vf, 11.2e2));
     assertEquals(ferCfgParamStr(cfg, "var5", &vs), 0);
     assertEquals(strcmp(vs, "aa"), 0);
+    assertEquals(ferCfgParamInt(cfg, "var_i", &vi), 0);
+    assertEquals(vi, 10);
+    assertNotEquals(ferCfgParamFlt(cfg, "var_i", &vf), 0);
 
     assertEquals(ferCfgParamStrArr(cfg, "var_s", &vss, &len), 0);
     assertEquals(len, 3);
@@ -111,6 +122,12 @@ TEST(cfg1)
     assertTrue(ferEq(ferVec3Get(&v3s[3], 1), 0));
     assertTrue(ferEq(ferVec3Get(&v3s[3], 2), 3));
 
+    assertEquals(ferCfgParamIntArr(cfg, "var_i_arr", &vis, &len), 0);
+    assertEquals(len, 3);
+    assertEquals(vis[0], 1);
+    assertEquals(vis[1], 4);
+    assertEquals(vis[2], 8);
+
     ferCfgDel(cfg);
 }
 
@@ -120,6 +137,9 @@ struct _cfg1_format_t {
     fer_vec3_t v3;
     fer_real_t *var6;
     size_t var6len;
+    int i;
+    const int *is;
+    size_t ilen;
 };
 typedef struct _cfg1_format_t cfg1_format_t;
 
@@ -143,6 +163,22 @@ TEST(cfg1format)
     assertEquals(f.var6len, 2);
     assertTrue(ferEq(f.var6[0], 1));
     assertTrue(ferEq(f.var6[1], 2));
+
+    ferCfgScan(cfg, "var1:f var_i:i var2:f   var_i_arr:i[] var_i_arr:i# var_v3:v3 var6:f[] var6:f#",
+               &f.var1, &f.i, &f.var2, &f.is, &f.ilen, &f.v3, &f.var6, &f.var6len);
+    assertTrue(ferEq(f.var1, 10));
+    assertTrue(ferEq(f.var2, 12));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 0), 2));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 1), 3));
+    assertTrue(ferEq(ferVec3Get(&f.v3, 2), 4));
+    assertEquals(f.var6len, 2);
+    assertTrue(ferEq(f.var6[0], 1));
+    assertTrue(ferEq(f.var6[1], 2));
+    assertEquals(f.i, 10);
+    assertEquals(f.ilen, 3);
+    assertEquals(f.is[0], 1);
+    assertEquals(f.is[1], 4);
+    assertEquals(f.is[2], 8);
 
     ferCfgDel(cfg);
 }

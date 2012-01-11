@@ -34,11 +34,16 @@ endif
 #BIN_TARGETS += fer-gngp fer-gngp-2-3 fer-gngp-6d
 BIN_TARGETS += fer-nnbp
 BIN_TARGETS += fer-nnbp-img
+BIN_TARGETS += fer-gnnp
+BIN_TARGETS += fer-plan
+BIN_TARGETS += fer-cfg-scale
 
 TARGETS = libfermat.a
 OBJS  = alloc.o
 OBJS += cfg.o cfg-lexer.o
 OBJS += opts.o
+OBJS += varr.o
+OBJS += sort.o
 
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
@@ -60,6 +65,8 @@ OBJS += gng.o gng-eu.o gsrm.o
 OBJS += gng-t.o
 OBJS += gng-plan.o gng-plan2.o prm.o rrt.o
 OBJS += nnbp.o
+OBJS += kohonen.o
+OBJS += gnnp.o
 
 OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
 
@@ -118,6 +125,7 @@ ifeq '$(EXAMPLES)' 'yes'
 
   TARGETS += examples/ga-knapsack
   TARGETS += examples/ga-knapsack2
+  TARGETS += examples/kohonen-simple
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
@@ -133,6 +141,13 @@ bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 bin/fer-nnbp-img: bin/nnbp-img-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS) -lSDL -lSDL_image
+bin/fer-gnnp: bin/gnnp-main.o bin/cfg-map.o libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
+bin/fer-plan: bin/plan-main.o bin/cfg-map.o libfermat.a
+	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
+bin/%.o: bin/%.c bin/%.h
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 examples/%: examples/%.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 examples/cd-ode: examples/cd-ode.c libfermat.a
@@ -144,7 +159,7 @@ src/cd-sap-gpu.c: src/cd-sap-gpu-cl.c
 	touch $@
 
 src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
-	$(FLEX) --header-file=src/cfg-lexer-gen.h -o $@ $<
+	$(FLEX) -o $@ $<
 .objs/cfg.o: src/cfg.c fermat/cfg.h fermat/config.h src/cfg-lexer.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c fermat/%.h fermat/config.h
