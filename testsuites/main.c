@@ -8,8 +8,6 @@
 #include "pc.h"
 #include "mat3.h"
 #include "mat4.h"
-#include "cubes3.h"
-#include "cubes2.h"
 #include "gug.h"
 #include "mesh3.h"
 #include "nearest.h"
@@ -37,8 +35,6 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
 
-    TEST_SUITE_ADD(TSCubes3),
-    TEST_SUITE_ADD(TSCubes2),
     TEST_SUITE_ADD(TSGUG),
     TEST_SUITE_ADD(TSVPTree),
     TEST_SUITE_ADD(TSNN),

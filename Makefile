@@ -21,11 +21,6 @@ CFLAGS += -I.
 CXXFLAGS += -I.
 LDFLAGS += -L. -lfermat -lm -lrt
 
-ifeq '$(USE_OPENCL)' 'yes'
-  CFLAGS += $(OPENCL_CFLAGS)
-  LDFLAGS += $(OPENCL_LDFLAGS)
-endif
-
 TARGETS = libfermat.a
 OBJS  = alloc.o
 OBJS += cfg.o cfg-lexer.o
@@ -41,7 +36,6 @@ OBJS += sort.o
 OBJS += pc.o pc-internal.o
 
 OBJS += gug.o nearest-linear.o
-OBJS += cubes2.o cubes3.o
 OBJS += vptree.o
 OBJS += nn-linear.o
 
@@ -78,27 +72,6 @@ endif
 OBJS += ga.o
 
 
-FERMAT_CD_H  = config.h.m4 core.h
-FERMAT_CD_H += vec3.h mat3.h quat.h chull3.h
-FERMAT_CD_H += list.h hmap.h tasks.h barrier.h alloc.h
-FERMAT_CD_H += cd-const.h cd-shape.h
-FERMAT_CD_H += cd-sphere.h cd-box.h cd-cyl.h cd-cap.h cd-plane.h cd-trimesh.h
-FERMAT_CD_H += cd-obb.h cd-collide.h cd-separate.h cd-ccd.h
-FERMAT_CD_H += cd-cd.h cd-geom.h cd-sap.h cd-cp.h
-FERMAT_CD_C  = vec3.c mat3.c chull3.c
-FERMAT_CD_C += hmap.c tasks.c barrier.c alloc.c
-FERMAT_CD_C += cd-shape.c cd-sphere.c cd-box.c cd-cyl.c cd-cap.c cd-plane.c cd-trimesh.c
-FERMAT_CD_C += cd-obb.c cd-collide.c cd-separate.c cd-ccd.c
-FERMAT_CD_C += cd-cd.c cd-geom.c cd-sap.c cd-cp.c
-
-FERMAT_CD_H := $(foreach file,$(FERMAT_CD_H),fermat/$(file))
-FERMAT_CD_C := $(foreach file,$(FERMAT_CD_C),src/$(file))
-
-# header files that must be generated
-HEADERS = cubes2.h cubes3.h
-
-
-
 BIN_TARGETS  = fer-gsrm
 BIN_TARGETS += fer-qdelaunay
 BIN_TARGETS += fer-plan
@@ -127,7 +100,6 @@ EXAMPLE_TARGETS += prm-6d
 
 
 OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj))
-HEADERS         := $(foreach h,$(HEADERS),fermat/$(h))
 BIN_TARGETS     := $(foreach target,$(BIN_TARGETS),bin/$(target))
 EXAMPLE_TARGETS := $(foreach target,$(EXAMPLE_TARGETS),examples/$(target))
 
@@ -140,7 +112,7 @@ ifeq '$(BINS)' 'yes'
 endif
 
 
-all: $(TARGETS) $(HEADERS)
+all: $(TARGETS)
 
 libfermat.a: $(OBJS)
 	ar cr $@ $(OBJS)
@@ -151,17 +123,17 @@ fermat/config.h: fermat/config.h.m4
 
 bin/fer-%: bin/%-main.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-bin/fer-gnnp: bin/gnnp-main.o bin/cfg-map.o libfermat.a
-	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
 bin/fer-plan: bin/plan-main.o bin/cfg-map.o libfermat.a
-	$(CC) $(CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OPENCL_CFLAGS) -o $@ $< bin/cfg-map.o $(LDFLAGS) $(OPENCL_LDFLAGS)
 bin/%.o: bin/%.c bin/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 examples/%: examples/%.c libfermat.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+examples/cd-%: examples/cd-%.c libfermat.a
+	$(CC) $(CFLAGS) $(OPENCL_CFLAGS) -o $@ $< $(LDFLAGS) $(OPENCL_LDFLAGS)
 examples/cd-ode: examples/cd-ode.c libfermat.a
-	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
+	$(CC) $(CFLAGS) $(ODE_CFLAGS) $(OPENCL_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) $(OPENCL_LDFLAGS) -lstdc++
 examples/nnbp-img: examples/nnbp-img.c libfermat.a
 	$(CC) $(CFLAGS) $(SDL_CFLAGS) $(SDL_IMAGE_CFLAGS) -o $@ $< $(LDFLAGS) $(SDL_LDFLAGS) $(SDL_IMAGE_LDFLAGS)
 
@@ -186,25 +158,6 @@ src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 .objs/%.cpp.o: src/%.c fermat/config.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-
-%2.c: %N.c
-	$(SED) 's|`N`|2|g' <$< >$@
-%3.c: %N.c
-	$(SED) 's|`N`|3|g' <$< >$@
-%4.c: %N.c
-	$(SED) 's|`N`|4|g' <$< >$@
-
-%2.h: %N.h
-	$(SED) 's|`N`|2|g' <$< >$@
-%3.h: %N.h
-	$(SED) 's|`N`|3|g' <$< >$@
-%4.h: %N.h
-	$(SED) 's|`N`|4|g' <$< >$@
-
-%2d-main.c: %Nd-main.c
-	$(SED) 's|`N`|2|g' <$< >$@
-%3d-main.c: %Nd-main.c
-	$(SED) 's|`N`|3|g' <$< >$@
 
 %.h: fermat/config.h
 %.c: fermat/config.h
@@ -250,16 +203,6 @@ cython:
 
 analyze: clean
 	$(SCAN_BUILD) $(MAKE)
-
-
-
-fermat-cd:
-	rm -rf fermat-cd*/
-	mkdir -p fermat-cd-$(FERMAT_CD_VER)/{fermat,src}
-	@echo "FERMAT_CD_H:" $(FERMAT_CD_H)
-	@echo "FERMAT_CD_C:" $(FERMAT_CD_C)
-	cp $(FERMAT_CD_H) fermat-cd-$(FERMAT_CD_VER)/fermat/
-	cp $(FERMAT_CD_C) fermat-cd-$(FERMAT_CD_VER)/src/
 
 help:
 	@echo "Targets:"
