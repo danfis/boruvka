@@ -91,6 +91,7 @@ static int grid_level = 1;
 static int paus = 0;
 static int alpha = 1;
 static long num_steps = LONG_MAX;
+static int no_plane = 0;
 
 static char *cmds = NULL;
 
@@ -108,13 +109,14 @@ static obj_t *objNew(dBodyID body, dGeomID geom, fer_cd_geom_t *g)
     obj->geom = geom;
     obj->g    = g;
 
-    if (geom){
+    if (geom && body){
         dGeomSetBody(geom, body);
     }
 
     if (g){
         ferCDGeomSetData(g, (void *)obj);
-        ferCDGeomSetBody(cd, g, body);
+        if (body)
+            ferCDGeomSetBody(cd, g, body);
     }
 
     ferListAppend(&objs, &obj->list);
@@ -135,24 +137,92 @@ static void objsDel(void)
     }
 }
 
-static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
+static void _drawShape(fer_cd_geom_t *g, fer_cd_shape_t *shape,
+                       const fer_mat3_t *rot2, const fer_vec3_t *pos2)
 {
+    dVector3 sides;
     dReal pos[4];
     dReal rot[12];
-    const fer_vec3_t *tr;
-    const fer_mat3_t *r;
-    dVector3 sides;
-    fer_list_t *item;
-    fer_cd_obb_t *o;
+    fer_vec3_t tr;
+    fer_mat3_t r;
     dReal v[9];
     fer_cd_tri_t *t;
     fer_cd_box_t *box;
     fer_cd_sphere_t *sphere;
     fer_cd_cap_t *cap;
     fer_cd_cyl_t *cyl;
+    fer_cd_shape_off_t *off;
 
     dsSetColorAlpha (1,1,0,0.7 + alpha * 0.3);
     dsSetTexture (DS_WOOD);
+
+    ferMat3Mul2(&r, ferCDGeomRot(cd, g), rot2);
+    ferMat3MulVec(&tr, ferCDGeomRot(cd, g), pos2);
+    ferVec3Add(&tr, ferCDGeomTr(cd, g));
+    //tr = ferCDGeomTr(cd, g);
+    //r  = ferCDGeomRot(cd, g);
+    pos[0] = ferVec3X(&tr);
+    pos[1] = ferVec3Y(&tr);
+    pos[2] = ferVec3Z(&tr);
+    rot[0] = ferMat3Get(&r, 0, 0);
+    rot[1] = ferMat3Get(&r, 0, 1);
+    rot[2] = ferMat3Get(&r, 0, 2);
+    rot[4] = ferMat3Get(&r, 1, 0);
+    rot[5] = ferMat3Get(&r, 1, 1);
+    rot[6] = ferMat3Get(&r, 1, 2);
+    rot[8] = ferMat3Get(&r, 2, 0);
+    rot[9] = ferMat3Get(&r, 2, 1);
+    rot[10] = ferMat3Get(&r, 2, 2);
+
+    if (shape->cl->type == FER_CD_SHAPE_TRI
+            || shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI){
+        t = (fer_cd_tri_t *)shape;
+        v[0] = ferVec3X(t->p[0]);
+        v[1] = ferVec3Y(t->p[0]);
+        v[2] = ferVec3Z(t->p[0]);
+        v[3] = ferVec3X(t->p[1]);
+        v[4] = ferVec3Y(t->p[1]);
+        v[5] = ferVec3Z(t->p[1]);
+        v[6] = ferVec3X(t->p[2]);
+        v[7] = ferVec3Y(t->p[2]);
+        v[8] = ferVec3Z(t->p[2]);
+
+        dsDrawTriangle(pos, rot, v, v + 3, v + 6, 0);
+
+    }else if (shape->cl->type == FER_CD_SHAPE_BOX){
+        box = (fer_cd_box_t *)shape;
+        sides[0] = 2. * ferVec3X(box->half_extents);
+        sides[1] = 2. * ferVec3Y(box->half_extents);
+        sides[2] = 2. * ferVec3Z(box->half_extents);
+        dsDrawBox(pos, rot, sides);
+
+    }else if (shape->cl->type == FER_CD_SHAPE_SPHERE){
+        sphere = (fer_cd_sphere_t *)shape;
+        dsDrawSphere(pos, rot, sphere->radius);
+
+    }else if (shape->cl->type == FER_CD_SHAPE_CAP){
+        cap = (fer_cd_cap_t *)shape;
+        dsDrawCapsule(pos, rot, 2 * cap->half_height, cap->radius);
+
+    }else if (shape->cl->type == FER_CD_SHAPE_CYL){
+        cyl = (fer_cd_cyl_t *)shape;
+        dsDrawCylinder(pos, rot, 2 * cyl->half_height, cyl->radius);
+
+    }else if (shape->cl->type == FER_CD_SHAPE_OFF){
+        off = (fer_cd_shape_off_t *)shape;
+        _drawShape(g, off->shape, off->rot, off->tr);
+    }
+}
+
+static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
+{
+    dReal pos[4];
+    dReal rot[12];
+    dVector3 sides;
+    fer_list_t *item;
+    fer_cd_obb_t *o;
+    const fer_vec3_t *tr;
+    const fer_mat3_t *r;
 
     tr = ferCDGeomTr(cd, g);
     r  = ferCDGeomRot(cd, g);
@@ -170,40 +240,7 @@ static void _drawG(fer_cd_geom_t *g, fer_cd_obb_t *obb)
     rot[10] = ferMat3Get(r, 2, 2);
 
     if (ferListEmpty(&obb->obbs)){
-        if (obb->shape->cl->type == FER_CD_SHAPE_TRI
-                || obb->shape->cl->type == FER_CD_SHAPE_TRIMESH_TRI){
-            t = (fer_cd_tri_t *)obb->shape;
-            v[0] = ferVec3X(t->p[0]);
-            v[1] = ferVec3Y(t->p[0]);
-            v[2] = ferVec3Z(t->p[0]);
-            v[3] = ferVec3X(t->p[1]);
-            v[4] = ferVec3Y(t->p[1]);
-            v[5] = ferVec3Z(t->p[1]);
-            v[6] = ferVec3X(t->p[2]);
-            v[7] = ferVec3Y(t->p[2]);
-            v[8] = ferVec3Z(t->p[2]);
-
-            dsDrawTriangle(pos, rot, v, v + 3, v + 6, 0);
-
-        }else if (obb->shape->cl->type == FER_CD_SHAPE_BOX){
-            box = (fer_cd_box_t *)obb->shape;
-            sides[0] = 2. * ferVec3X(box->half_extents);
-            sides[1] = 2. * ferVec3Y(box->half_extents);
-            sides[2] = 2. * ferVec3Z(box->half_extents);
-            dsDrawBox(pos, rot, sides);
-
-        }else if (obb->shape->cl->type == FER_CD_SHAPE_SPHERE){
-            sphere = (fer_cd_sphere_t *)obb->shape;
-            dsDrawSphere(pos, rot, sphere->radius);
-
-        }else if (obb->shape->cl->type == FER_CD_SHAPE_CAP){
-            cap = (fer_cd_cap_t *)obb->shape;
-            dsDrawCapsule(pos, rot, 2 * cap->half_height, cap->radius);
-
-        }else if (obb->shape->cl->type == FER_CD_SHAPE_CYL){
-            cyl = (fer_cd_cyl_t *)obb->shape;
-            dsDrawCylinder(pos, rot, 2 * cyl->half_height, cyl->radius);
-        }
+        _drawShape(g, obb->shape, fer_mat3_identity, fer_vec3_origin);
 
         if (show_obb){
             dReal x, y, z;
@@ -286,13 +323,11 @@ static int sepCB(const fer_cd_t *cd,
     b2 = (obj2 ? obj2->body : 0);
 
     for (i = 0; i < con->num; i++){
-        /*
         fprintf(stdout, "# [%02d] %lx-%lx dir: <%f %f %f>, pos: <%f %f %f>, depth: %f\n",
                 (int)i, (long)b1, (long)b2,
                 ferVec3X(&con->dir[i]), ferVec3Y(&con->dir[i]), ferVec3Z(&con->dir[i]),
                 ferVec3X(&con->pos[i]), ferVec3Y(&con->pos[i]), ferVec3Z(&con->pos[i]),
                 con->depth[i]);
-        */
 
         if (con->depth[i] < FER_ZERO)
             continue;
@@ -306,11 +341,17 @@ static int sepCB(const fer_cd_t *cd,
         contact.geom.depth = con->depth[i];
         contact.geom.g1 = 0;
         contact.geom.g2 = 0;
+        /*
         contact.surface.mode = dContactBounce | dContactSoftCFM;
         contact.surface.mu = dInfinity;
         contact.surface.mu2 = 0;
         contact.surface.bounce = 0.1;
         contact.surface.bounce_vel = 0.1;
+        contact.surface.soft_cfm = 0.01;
+        */
+   
+        contact.surface.mu = dInfinity;
+        contact.surface.mode = dContactSoftCFM | dContactApprox1_1 | dContactApprox1_2;
         contact.surface.soft_cfm = 0.01;
 
         pthread_mutex_lock(&lock);
@@ -397,7 +438,8 @@ static void simLoop(int _pause)
     obj_t *obj;
     static long i = 0;
 
-    fprintf(stderr, "Step: %06ld\n", i++);
+    if (!_pause && !paus)
+        fprintf(stderr, "Step: %06ld\n", i++);
 
     if (!no_sleep)
         usleep(10000);
@@ -695,6 +737,34 @@ static void optGrid(const char *l, char s, const fer_vec2_t *v)
     grid_level++;
 }
 
+static void optNoPlane(const char *l, char s)
+{
+    static fer_vec3_t plane_pts[] = {
+        FER_VEC3_STATIC(-5, -5, 0.2),
+        FER_VEC3_STATIC(5, -5, 0.2),
+        FER_VEC3_STATIC(5, 5, 0.2),
+        FER_VEC3_STATIC(-5, 5, 0.2)
+    };
+    static unsigned int plane_ids[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+    static size_t plane_num_tris = 2;
+
+    fer_cd_geom_t *g;
+
+    no_plane = 1;
+
+    if (!cd)
+        cd = ferCDNew(&params);
+
+    g = ferCDGeomNew(cd);
+    ferCDGeomAddTriMesh(cd, g, plane_pts, plane_ids, plane_num_tris);
+    ferCDGeomContactPersistence(cd, g, 10);
+
+    objNew(0, 0, g);
+}
+
 static void opt(void)
 {
     ferCDParamsInit(&params);
@@ -717,6 +787,7 @@ static void opt(void)
     ferOptsAdd("cyl-grid", 0, FER_OPTS_V2, NULL, FER_OPTS_CB(optGrid));
     ferOptsAdd("pause", 0, FER_OPTS_NONE, &paus, NULL);
     ferOptsAdd("num-steps", 0, FER_OPTS_LONG, &num_steps, NULL);
+    ferOptsAdd("no-plane", 0, FER_OPTS_NONE, NULL, FER_OPTS_CB(optNoPlane));
 
     ferOpts(&pargc, pargv);
 }
@@ -746,6 +817,7 @@ int main (int argc, char **argv)
     //space = dSimpleSpaceCreate(0);
     contactgroup = dJointGroupCreate(0);
     dWorldSetGravity(world, 0, 0, -GRAVITY);
+    /*
     dWorldSetCFM(world, 1e-5);
     dWorldSetAutoDisableFlag(world, 1);
     dWorldSetAutoDisableAverageSamplesCount(world, 10);
@@ -756,6 +828,13 @@ int main (int argc, char **argv)
 
     dWorldSetContactMaxCorrectingVel(world, 0.1);
     dWorldSetContactSurfaceLayer(world, 0.001);
+    */
+
+    dWorldSetERP(world, 0.2);
+    dWorldSetCFM(world, 1e-5);
+    //dWorldSetERP(_world, 0.5);
+    //dWorldSetCFM(_world, 0.001);
+    //dWorldSetCFM(_world, 0.01);
 
     pargc = argc;
     pargv = argv;
@@ -765,12 +844,21 @@ int main (int argc, char **argv)
     if (!cd)
         cd = ferCDNew(&params);
 
-
-    plane.g = ferCDGeomNew(cd);
-    ferCDGeomAddPlane(cd, plane.g);
-    ferCDGeomSetData(plane.g, (void *)&plane);
-    plane.geom = dCreatePlane(space, 0, 0, 1, 0);
-    plane.body = NULL;
+    if (!no_plane){
+        plane.g = ferCDGeomNew(cd);
+        ferCDGeomAddPlane(cd, plane.g);
+        ferCDGeomSetData(plane.g, (void *)&plane);
+        plane.geom = dCreatePlane(space, 0, 0, 1, 0);
+        plane.body = NULL;
+        /*
+        fer_cd_geom_t *g;
+        g = ferCDGeomNew(cd);
+        ferCDGeomAddBox(cd, g, 20, 20, 0.2);
+        //ferCDGeomAddBox(cd, g, 0.2, 20, 20);
+        //ferCDGeomSetRotEuler(cd, g, 0, M_PI_2, 0);
+        objNew(0, 0, g);
+        */
+    }
 
 
     // run simulation
