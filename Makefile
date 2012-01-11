@@ -43,6 +43,7 @@ OBJS += opts.o
 OBJS += vec4.o vec3.o vec2.o vec.o
 OBJS += mat4.o mat3.o
 OBJS += predicates.o
+OBJS += sort.o
 
 OBJS += pc.o pc-internal.o
 
@@ -79,6 +80,9 @@ ifeq '$(USE_OPENCL)' 'yes'
   OBJS += surf-matching.o
 endif
 
+OBJS += ga.o
+
+
 FERMAT_CD_H  = config.h.m4 core.h
 FERMAT_CD_H += vec3.h mat3.h quat.h chull3.h
 FERMAT_CD_H += list.h hmap.h tasks.h barrier.h alloc.h
@@ -94,7 +98,6 @@ FERMAT_CD_C += cd-cd.c cd-geom.c cd-sap.c cd-cp.c
 
 FERMAT_CD_H := $(foreach file,$(FERMAT_CD_H),fermat/$(file))
 FERMAT_CD_C := $(foreach file,$(FERMAT_CD_C),src/$(file))
-
 
 # header files that must be generated
 HEADERS = cubes2.h cubes3.h
@@ -112,6 +115,9 @@ ifeq '$(EXAMPLES)' 'yes'
   ifeq '$(USE_ODE)' 'yes'
     TARGETS += examples/cd-ode
   endif
+
+  TARGETS += examples/ga-knapsack
+  TARGETS += examples/ga-knapsack2
 endif
 
 all: $(TARGETS) $(BIN_TARGETS) $(HEADERS)
