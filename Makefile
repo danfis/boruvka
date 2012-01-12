@@ -188,7 +188,6 @@ clean:
 	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
-	if [ -d cython ]; then $(MAKE) -C cython clean; fi;
 	
 check:
 	$(MAKE) -C testsuites check
@@ -198,16 +197,12 @@ check-valgrind:
 doc:
 	$(MAKE) -C doc
 
-cython:
-	$(MAKE) -C cython
-
 analyze: clean
 	$(SCAN_BUILD) $(MAKE)
 
 help:
 	@echo "Targets:"
 	@echo "    all            - Build library"
-	@echo "    cython         - Build python bindings using cython"
 	@echo "    doc            - Build documentation"
 	@echo "    check          - Build & Run automated tests"
 	@echo "    check-valgrind - Build & Run automated tests in valgrind(1)"
@@ -224,7 +219,6 @@ help:
 	@echo "    PYTHON     - Path to python interpret    (=$(PYTHON))"
 	@echo "    PYTHON2    - Path to python interpret v2 (=$(PYTHON2))"
 	@echo "    PYTHON3    - Path to python interpret v3 (=$(PYTHON3))"
-	@echo "    CYTHON     - Path to cython              (=$(CYTHON))"
 	@echo "    SCAN_BUILD - Path to scan-build          (=$(SCAN_BUILD))"
 	@echo ""
 	@echo "    EXAMPLES  'yes'/'no' - Set to 'yes' if examples should be build (=$(EXAMPLES))"
@@ -281,4 +275,4 @@ help:
 	@echo "    SDL_IMAGE_CFLAGS  = $(SDL_IMAGE_CFLAGS)"
 	@echo "    SDL_IMAGE_LDFLAGS = $(SDL_IMAGE_LDFLAGS)"
 
-.PHONY: all clean check check-valgrind help doc install cython analyze examples
+.PHONY: all clean check check-valgrind help doc install analyze examples
