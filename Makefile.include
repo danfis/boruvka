@@ -124,9 +124,9 @@ ifeq '$(USE_OPENCL)' 'auto'
   endif
 endif
 
-OPENCL_CFLAGS  ?=
-OPENCL_LDFLAGS ?= -lOpenCL
 ifeq '$(USE_OPENCL)' 'yes'
+  OPENCL_CFLAGS  ?=
+  OPENCL_LDFLAGS ?= -lOpenCL
   CONFIG_FLAGS += -DUSE_OPENCL
 endif
 
