@@ -153,11 +153,6 @@ src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 .objs/cd-sap.o: src/cd-sap.c src/cd-sap-1.c src/cd-sap-threads.c src/cd-sap-gpu.c fermat/cd-sap.h fermat/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-.objs/%.cpp.o: src/%.c fermat/%.h fermat/config.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-.objs/%.cpp.o: src/%.c fermat/config.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
 
 %.h: fermat/config.h
 %.c: fermat/config.h
