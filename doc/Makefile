@@ -19,14 +19,16 @@ RSTS += predicates
 RSTS += pc
 
 RSTS += nn gug nearest-linear vptree nn-linear
-RSTS += cubes2 cubes3
 
 RSTS += mesh3 net qhull chull3
 
 RSTS += fibo pairheap dij
 
 RSTS += gng gng-eu gsrm
-RSTS += gng-plan gng-plan2 prm rrt
+RSTS += prm rrt gnnp
+
+RSTS += ga
+RSTS += nnbp
 
 RSTS += tasks task-pool hmap hfunc barrier
 

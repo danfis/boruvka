@@ -14,3 +14,11 @@ Various Algorithms
    :maxdepth: 1
 
    fer-surf-matching.h.rst
+
+
+
+.. toctree::
+   :maxdepth: 1
+
+   fer-ga.h.rst
+   fer-nnbp.h.rst

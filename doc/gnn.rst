@@ -1,5 +1,5 @@
-Growing Neural Gas
-===================
+Growing Neural Networks
+========================
 
 .. toctree::
    :maxdepth: 1

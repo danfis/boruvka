@@ -25,13 +25,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Neural Networks - Backpropagation
- * ==================================
+ * Backpropagation Neural Networks
+ * =================================
  */
 
-/** Transition Functions */
-#define FER_NNBP_SIGMOID   0  /*!< sigmoid <-1, 1> */
-#define FER_NNBP_SIGMOID01 1  /*!< sigmoid <0, 1> */
 
 struct _fer_nnbp_layer_t {
     size_t size;   /*!< Size of layer */
@@ -44,6 +41,10 @@ struct _fer_nnbp_layer_t {
 };
 typedef struct _fer_nnbp_layer_t fer_nnbp_layer_t;
 
+/**
+ * Parameters
+ * -----------
+ */
 struct _fer_nnbp_params_t {
     size_t layers_num;  /*!< Number of layers */
     size_t *layer_size; /*!< Number of neurons in layer (from input to
@@ -62,6 +63,14 @@ typedef struct _fer_nnbp_params_t fer_nnbp_params_t;
  */
 void ferNNBPParamsInit(fer_nnbp_params_t *params);
 
+/** Transition Functions */
+#define FER_NNBP_SIGMOID   0  /*!< sigmoid <-1, 1> */
+#define FER_NNBP_SIGMOID01 1  /*!< sigmoid <0, 1> */
+
+/**
+ * Algorithm
+ * ----------
+ */
 struct _fer_nnbp_t {
     size_t layers_num;  /*!< Number of layers */
     fer_real_t alpha, eta, lambda;

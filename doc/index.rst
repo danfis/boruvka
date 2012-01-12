@@ -18,8 +18,7 @@ Welcome to Fermat's documentation!
    geom.rst
    nearest.rst
    par.rst
-   gng.rst
+   gnn.rst
    plan.rst
    various.rst
-
 

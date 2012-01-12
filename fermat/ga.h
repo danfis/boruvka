@@ -35,6 +35,14 @@ struct _fer_ga_t;
 
 
 /**
+ * Operators
+ * ----------
+ *
+ * See fer_ga_ops_t.
+ */
+
+/** vvvv */
+/**
  * Returns true if algorithm should terminate.
  */
 typedef int (*fer_ga_terminate)(struct _fer_ga_t *ga, void *);
@@ -80,6 +88,7 @@ typedef size_t (*fer_ga_presel)(struct _fer_ga_t *ga, size_t *sel, void *data);
  * It is called every .callback_period'th added node.
  */
 typedef void (*fer_ga_callback)(struct _fer_ga_t *ga, void *);
+/** ^^^^ */
 
 struct _fer_ga_ops_t {
     fer_ga_eval      eval;      /*!< Default: NULL */
@@ -114,7 +123,10 @@ typedef struct _fer_ga_ops_t fer_ga_ops_t;
 void ferGAOpsInit(fer_ga_ops_t *ops);
 
 
-
+/**
+ * Parameters
+ * -----------
+ */
 struct _fer_ga_params_t {
     fer_real_t pc;         /*!< Probability of crossover. Default: 0.7 */
     fer_real_t pm;         /*!< Probability of mutation. Default: 0.001 */
@@ -137,6 +149,10 @@ typedef struct _fer_ga_params_t fer_ga_params_t;
 void ferGAParamsInit(fer_ga_params_t *p);
 
 
+/**
+ * GA Algorithm
+ * -------------
+ */
 struct _fer_ga_t {
     fer_ga_params_t params;
     fer_ga_ops_t ops;
