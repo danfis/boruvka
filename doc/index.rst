@@ -6,12 +6,7 @@
 Welcome to Fermat's documentation!
 ==================================
 .. toctree::
-   :maxdepth: 2
-
-   cd.rst
-
-.. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    core.rst
    vecmat.rst
@@ -21,4 +16,9 @@ Welcome to Fermat's documentation!
    gnn.rst
    plan.rst
    various.rst
+
+.. toctree::
+   :maxdepth: 1
+
+   cd.rst
 
