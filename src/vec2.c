@@ -48,6 +48,31 @@ void ferVec2Del(fer_vec2_t *v)
     FER_FREE(v);
 }
 
+_fer_inline void _ferVec2Rot(const fer_vec2_t *v, fer_real_t angle,
+                             fer_real_t *x, fer_real_t *y)
+{
+    fer_real_t cosa, sina;
+    cosa = FER_COS(angle);
+    sina = FER_SIN(angle);
+
+    *x = ferVec2X(v) * cosa - ferVec2Y(v) * sina;
+    *y = ferVec2X(v) * sina + ferVec2Y(v) * cosa;
+}
+
+void ferVec2Rot(fer_vec2_t *v, fer_real_t angle)
+{
+    fer_real_t x, y;
+    _ferVec2Rot(v, angle, &x, &y);
+    ferVec2Set(v, x, y);
+}
+
+void ferVec2Rot2(fer_vec2_t *w, const fer_vec2_t *v, fer_real_t angle)
+{
+    fer_real_t x, y;
+    _ferVec2Rot(v, angle, &x, &y);
+    ferVec2Set(w, x, y);
+}
+
 /*
 fer_real_t __ferVec2Area2(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c)
 {

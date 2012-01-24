@@ -267,6 +267,16 @@ _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k);
 
 
 /**
+ * Rotates vector by given angle (counterclockwise).
+ */
+void ferVec2Rot(fer_vec2_t *v, fer_real_t angle);
+
+/**
+ * Rotates vector {v} by given angle and stores the result in {w}.
+ */
+void ferVec2Rot2(fer_vec2_t *w, const fer_vec2_t *v, fer_real_t angle);
+
+/**
  * Prints vector to *out* in form "x y".
  */
 _fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out);
