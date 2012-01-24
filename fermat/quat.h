@@ -83,6 +83,12 @@ _fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
                                      fer_real_t angle, const fer_vec3_t *axis);
 
 /**
+ * Sets quaternion in euler angles (yaw, pitch, roll) or (heading,
+ * elevation, bank) or rotation about (z, y, x)
+ */
+void ferQuatSetEuler(fer_quat_t *q, fer_real_t yaw, fer_real_t pitch, fer_real_t roll);
+
+/**
  * Composition of two quaternions.
  * q = q * q2
  */
