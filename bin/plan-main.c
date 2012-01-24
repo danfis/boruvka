@@ -21,6 +21,7 @@
 #include <fermat/cfg.h>
 #include <fermat/opts.h>
 #include <fermat/dbg.h>
+#include <fermat/rand-mt.h>
 #include "cfg-map.h"
 
 
@@ -42,6 +43,7 @@ int dbg_dump = 0;
 int alg_num = 0;
 int rrt_goal_conf = 1000;
 fer_timer_t timer;
+fer_rand_mt_t *rnd;
 
 
 static void setUpNN(fer_nn_params_t *nn);
@@ -82,6 +84,21 @@ static void rrtConnectInit(void);
 static int rrtConnectRun(fer_list_t *path);
 
 
+static void rrtBlossomExpandAll(const fer_rrt_t *rrt,
+                                const fer_rrt_node_t *n,
+                                const fer_vec_t *conf,
+                                void *data,
+                                fer_list_t *list_out);
+static void rrtBlossomInit(void);
+static int rrtBlossomRun(fer_list_t *path);
+
+static int rrtBlossomFilter(const fer_rrt_t *rrt,
+                            const fer_vec_t *candidate,
+                            const fer_rrt_node_t *src,
+                            const fer_rrt_node_t *nearest,
+                            void *data);
+static void rrtBlossomFilterInit(void);
+
 struct alg_t {
     void (*init)(void);
     void (*destroy)(void);
@@ -92,7 +109,9 @@ struct alg_t {
 #define ALG_GNNP        0
 #define ALG_RRT         1
 #define ALG_RRT_CONNECT 2
-#define ALG_LEN         3
+#define ALG_RRT_BLOSSOM 3
+#define ALG_RRT_BLOSSOM_FILTER 4
+#define ALG_LEN         5
 
 #define ALG_DEF(name) \
     { .init      = name ## Init, \
@@ -100,13 +119,26 @@ struct alg_t {
       .run       = name ## Run, \
       .dump      = name ## Dump, \
       .nodes_len = name ## NodesLen }
-const char *methods[ALG_LEN] = { "gnnp", "rrt", "rrt-connect" };
+const char *methods[ALG_LEN] = { "gnnp", "rrt", "rrt-connect", "rrt-blossom", "rrt-blossom-filter" };
 struct alg_t algs[ALG_LEN] = {
     ALG_DEF(gnnp),
     ALG_DEF(rrt),
+
     { .init      = rrtConnectInit, \
       .destroy   = rrtDestroy, \
       .run       = rrtConnectRun, \
+      .dump      = rrtDump, \
+      .nodes_len = rrtNodesLen },
+
+    { .init      = rrtBlossomInit, \
+      .destroy   = rrtDestroy, \
+      .run       = rrtBlossomRun, \
+      .dump      = rrtDump, \
+      .nodes_len = rrtNodesLen },
+
+    { .init      = rrtBlossomFilterInit, \
+      .destroy   = rrtDestroy, \
+      .run       = rrtBlossomRun, \
       .dump      = rrtDump, \
       .nodes_len = rrtNodesLen }
 };
@@ -232,6 +264,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    rnd = ferRandMTNewAuto();
+
+
     algs[alg_num].init();
 
     ferListInit(&path);
@@ -253,6 +288,8 @@ int main(int argc, char *argv[])
     ferVecDel(is);
     ferVecDel(init);
     ferVecDel(goal);
+
+    ferRandMTDel(rnd);
 
     ferCfgMapDestroy();
 
@@ -748,3 +785,115 @@ static int rrtConnectRun(fer_list_t *path)
     return ret;
 }
 /*** RRT CONNECT END ***/
+
+
+/*** RRT BLOSSOM ***/
+FER_VEC(rrt_move2, 6);
+static void rrtBlossomExpandAll(const fer_rrt_t *rrt,
+                                const fer_rrt_node_t *n,
+                                const fer_vec_t *c,
+                                void *data,
+                                fer_list_t *list_out)
+{
+    const fer_vec_t *near;
+    fer_real_t len, angle;
+    int i;
+
+    near = ferRRTNodeConf(n);
+
+    ferVecSub2(rrt->params.dim, rrt_move, c, near);
+    len = ferVecLen(rrt->params.dim, rrt_move);
+    ferVecScale(rrt->params.dim, rrt_move, h * ferRecp(len));
+
+    /*
+    ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move);
+    evals += 1UL;
+    if (!ferCfgMapCollide(rrt_new_conf))
+        ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
+    */
+
+    for (i = 0; i < 3; i++){
+        //angle = 0.05;
+        angle = ferRandMT(rnd, -M_PI_2, M_PI_2);
+        ferVec2Rot2((fer_vec2_t *)rrt_move2, (const fer_vec2_t *)rrt_move, angle);
+        ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move2);
+        evals += 1UL;
+        if (!ferCfgMapCollide(rrt_new_conf))
+            ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
+    }
+}
+
+
+static void rrtBlossomInit(void)
+{
+    fer_rrt_ops_t ops;
+    fer_rrt_params_t params;
+
+    ferRRTOpsInit(&ops);
+    ops.terminate  = rrtTerminate;
+    ops.expand_all = rrtBlossomExpandAll;
+    ops.random     = rrtConf;
+    ops.filter_blossom = NULL;
+    ops.callback   = rrtCallback;
+    ops.callback_period = callback_period;
+
+    ferRRTParamsInit(&params);
+    params.dim = ferCfgMapConfDim();
+    setUpNN(&params.nn);
+
+    rrt = ferRRTNew(&ops, &params);
+
+    h2 = h * h;
+}
+
+static int rrtBlossomRun(fer_list_t *path)
+{
+    int ret;
+    const fer_rrt_node_t *init_node;
+
+    ferRRTRunBlossom(rrt, init);
+    init_node = ferRRTNodeInitial(rrt);
+    ferListInit(path);
+    ret = ferRRTFindPath(rrt, init_node, rrt_last, path);
+    return ret;
+}
+
+/*** RRT BLOSSOM END ***/
+
+/*** RRT BLOSSOM WITH FILTER ***/
+static int rrtBlossomFilter(const fer_rrt_t *rrt,
+                            const fer_vec_t *c,
+                            const fer_rrt_node_t *src,
+                            const fer_rrt_node_t *near,
+                            void *data)
+{
+    const fer_vec_t *s, *n;
+
+    s = ferRRTNodeConf(src);
+    n = ferRRTNodeConf(near);
+
+    return s == n || ferVecDist(rrt->params.dim, c, n) > ferVecDist(rrt->params.dim, c, s);
+}
+
+static void rrtBlossomFilterInit(void)
+{
+    fer_rrt_ops_t ops;
+    fer_rrt_params_t params;
+
+    ferRRTOpsInit(&ops);
+    ops.terminate  = rrtTerminate;
+    ops.expand_all = rrtBlossomExpandAll;
+    ops.random     = rrtConf;
+    ops.filter_blossom = rrtBlossomFilter;
+    ops.callback   = rrtCallback;
+    ops.callback_period = callback_period;
+
+    ferRRTParamsInit(&params);
+    params.dim = ferCfgMapConfDim();
+    setUpNN(&params.nn);
+
+    rrt = ferRRTNew(&ops, &params);
+
+    h2 = h * h;
+}
+/*** RRT BLOSSOM WITH FILTER END ***/
