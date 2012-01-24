@@ -179,55 +179,77 @@ void ferRRTRunBlossom(fer_rrt_t *rrt, const fer_vec_t *init)
     const fer_rrt_node_t *cnear, *cnear2;
     const fer_vec_t *rand;
     unsigned long counter;
-    fer_list_t expand, *item;
+    fer_list_t expand, *item, *item_tmp;
     conf_item_t *conf;
 
     // create inital node
     n = nodeNew(rrt, init);
     rrt->node_init = rrt->node_last = n;
 
+    // clear expand list
+    ferListInit(&expand);
+    cnear = NULL;
+
     counter = 1;
     while (!rrt->ops.terminate(rrt, rrt->ops.terminate_data)){
-        // get random configuration
-        rand = rrt->ops.random(rrt, rrt->ops.random_data);
+        // expand if expand list is empty
+        if (ferListEmpty(&expand)){
+            // get random configuration
+            rand = rrt->ops.random(rrt, rrt->ops.random_data);
 
-        // get nearest node from net
-        if (rrt->ops.nearest){
-            cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
-        }else{
-            cnear = ferRRTNearest(rrt, rand);
+            // get nearest node from tree
+            if (rrt->ops.nearest){
+                cnear = rrt->ops.nearest(rrt, rand, rrt->ops.nearest_data);
+            }else{
+                cnear = ferRRTNearest(rrt, rand);
+            }
+
+            // expand cnear
+            ferListInit(&expand);
+            rrt->ops.expand_all(rrt, cnear, rand, rrt->ops.expand_all_data, &expand);
+
+            // filter configurations if callback is set
+            if (rrt->ops.filter_blossom){
+                FER_LIST_FOR_EACH_SAFE(&expand, item, item_tmp){
+                    conf = FER_LIST_ENTRY(item, conf_item_t, list);
+
+                    // find nearest node to expansion
+                    cnear2 = NULL;
+                    if (rrt->ops.nearest){
+                        cnear2 = rrt->ops.nearest(rrt, conf->conf,
+                                                  rrt->ops.nearest_data);
+                    }else{
+                        cnear2 = ferRRTNearest(rrt, conf->conf);
+                    }
+
+                    // check configuration by the callback
+                    if (!rrt->ops.filter_blossom(rrt, conf->conf, cnear, cnear2,
+                                                 rrt->ops.filter_blossom_data)){
+                        ferListDel(item);
+                        confItemDel(conf);
+                    }
+                }
+            }
         }
 
-        // expand cnear
-        ferListInit(&expand);
-        rrt->ops.expand_all(rrt, cnear, rand, rrt->ops.expand_all_data, &expand);
-
-        // iterate over all expansions
-        while (!ferListEmpty(&expand)){
+        // all nodes in expand list are always expanded from cnear node
+        if (cnear && !ferListEmpty(&expand)){
+            // get next configuration
             item = ferListNext(&expand);
-            ferListDel(item);
             conf = FER_LIST_ENTRY(item, conf_item_t, list);
 
-            // find nearest node to expansion
-            cnear2 = NULL;
-            if (rrt->ops.nearest){
-                cnear2 = rrt->ops.nearest(rrt, conf->conf, rrt->ops.nearest_data);
-            }else{
-                cnear2 = ferRRTNearest(rrt, conf->conf);
-            }
+            // add node to net
+            new = nodeNew(rrt, conf->conf);
+            rrt->node_last = new;
 
-            if (rrt->ops.filter_blossom(rrt, conf->conf, cnear, cnear2,
-                                        rrt->ops.filter_blossom_data)){
-                // add node to net
-                new = nodeNew(rrt, conf->conf);
-                rrt->node_last = new;
+            // and connect in with nearest node
+            edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
 
-                // and connect in with nearest node
-                edgeNew(rrt, (fer_rrt_node_t *)cnear, new);
-            }
-
+            // remove configuration
+            ferListDel(item);
             confItemDel(conf);
         }
+
 
         if (rrt->ops.callback && counter == rrt->ops.callback_period){
             rrt->ops.callback(rrt, rrt->ops.callback_data);
