@@ -22,6 +22,7 @@
 #include <fermat/opts.h>
 #include <fermat/dbg.h>
 #include <fermat/rand-mt.h>
+#include <fermat/quat.h>
 #include "cfg-map.h"
 
 
@@ -183,10 +184,9 @@ int opts(int *argc, char *argv[])
     }
 
     if (callback_period == 0){
+        callback_period = 10000;
         if (alg_num == ALG_GNNP){
             callback_period = 100000;
-        }else if (alg_num == ALG_RRT || alg_num == ALG_RRT_CONNECT){
-            callback_period = 10000;
         }
     }
 
@@ -796,7 +796,8 @@ static void rrtBlossomExpandAll(const fer_rrt_t *rrt,
                                 fer_list_t *list_out)
 {
     const fer_vec_t *near;
-    fer_real_t len, angle;
+    fer_real_t len, angle[3];
+    fer_quat_t rot3d;
     int i;
 
     near = ferRRTNodeConf(n);
@@ -812,14 +813,30 @@ static void rrtBlossomExpandAll(const fer_rrt_t *rrt,
         ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
     */
 
-    for (i = 0; i < 3; i++){
-        //angle = 0.05;
-        angle = ferRandMT(rnd, -M_PI_2, M_PI_2);
-        ferVec2Rot2((fer_vec2_t *)rrt_move2, (const fer_vec2_t *)rrt_move, angle);
-        ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move2);
-        evals += 1UL;
-        if (!ferCfgMapCollide(rrt_new_conf))
-            ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
+    if (ferCfgMapConfDim() == 2){
+        for (i = 0; i < 3; i++){
+            //angle = 0.05;
+            angle[0] = ferRandMT(rnd, -M_PI_2, M_PI_2);
+            ferVec2Rot2((fer_vec2_t *)rrt_move2, (const fer_vec2_t *)rrt_move, angle[0]);
+            ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move2);
+            evals += 1UL;
+            if (!ferCfgMapCollide(rrt_new_conf))
+                ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
+        }
+    }else if (ferCfgMapConfDim() == 3){
+        for (i = 0; i < 5; i++){
+            //angle = 0.05;
+            angle[0] = ferRandMT(rnd, -M_PI_2, M_PI_2);
+            angle[1] = ferRandMT(rnd, -M_PI_2, M_PI_2);
+            angle[2] = ferRandMT(rnd, -M_PI_2, M_PI_2);
+            ferQuatSetEuler(&rot3d, angle[0], angle[1], angle[2]);
+            ferVecCopy(rrt->params.dim, rrt_move2, rrt_move);
+            ferQuatRotVec((fer_vec3_t *)rrt_move2, &rot3d);
+            ferVecAdd2(rrt->params.dim, rrt_new_conf, near, rrt_move2);
+            evals += 1UL;
+            if (!ferCfgMapCollide(rrt_new_conf))
+                ferRRTExpandAdd(rrt->params.dim, rrt_new_conf, list_out);
+        }
     }
 }
 
