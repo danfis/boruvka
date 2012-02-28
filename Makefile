@@ -64,6 +64,9 @@ OBJS += cd-cp.o
 OBJS += ccd.o ccd-polytope.o ccd-mpr.o ccd-gjk.o ccd-support.o
 OBJS += cd-collide-box-tri.o
 
+
+OBJS += gpc.o gpc-tree.o
+
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl.o
   OBJS += surf-matching.o
@@ -111,6 +114,7 @@ ifeq '$(BINS)' 'yes'
   TARGETS += $(BIN_TARGETS)
 endif
 
+TARGETS += examples/gpc
 
 all: $(TARGETS)
 
