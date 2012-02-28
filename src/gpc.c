@@ -65,11 +65,15 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops)
 
 void ferGPCParamsInit(fer_gpc_params_t *params)
 {
-    params->pc        = 0.7;
-    params->pm        = 0.001;
     params->pop_size  = 1;
     params->max_depth = 5;
     params->data_rows = 0;
+
+    params->tournament_size = 5;
+
+    params->pr        = 14;
+    params->pc        = 85;
+    params->pm        = 1;
 }
 
 
@@ -77,10 +81,15 @@ void ferGPCParamsInit(fer_gpc_params_t *params)
 fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
 {
     fer_gpc_t *gpc;
+    fer_real_t prob;
 
     gpc = FER_ALLOC(fer_gpc_t);
 
     gpc->params = *params;
+    prob = gpc->params.pr + gpc->params.pc + gpc->params.pm;
+    gpc->params.pr = gpc->params.pr / prob;
+    gpc->params.pc = gpc->params.pc / prob;
+    gpc->params.pm = gpc->params.pm / prob;
 
     gpc->ops = *ops;
     OPS_CHECK_DATA(fitness);
@@ -162,6 +171,10 @@ int ferGPCAddClass(fer_gpc_t *gpc, int class_id)
     return 0;
 }
 
+size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx)
+{
+    return gpc->pred[idx].memsize;
+}
 
 
 /** Randomly generate a node with its subtree */
@@ -207,16 +220,24 @@ static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_dept
 }
 
 
-/** Create randomly generated initial population in gpc->pop[0] */
-static void createInitPop(fer_gpc_t *gpc)
+/** Create randomly generated initial population in gpc->pop[pop] */
+static void createInitPop(fer_gpc_t *gpc, int pop)
 {
     size_t i, len;
+    size_t pop_other;
+
+    pop_other = (pop + 1) % 2;
+
+    gpc->pop_size[pop] = 0;
+    gpc->pop_size[pop_other] = 0;
 
     len = gpc->params.pop_size;
     for (i = 0; i < len; i++){
-        gpc->pop[0][i] = ferGPCTreeNew();
-        gpc->pop[0][i]->root = genRandTree(gpc, 0, gpc->params.max_depth);
-        gpc->pop[1][i] = NULL;
+        gpc->pop[pop][i] = ferGPCTreeNew();
+        gpc->pop[pop][i]->root = genRandTree(gpc, 0, gpc->params.max_depth);
+        gpc->pop_size[pop]++;
+
+        gpc->pop[pop_other][i] = NULL;
 
         //ferGPCTreePrint(gpc->pop[0][i], stdout);
     }
@@ -277,29 +298,109 @@ static fer_real_t evalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 }
 
 /** Evaluate whole population of decision trees */
-static void evalPop(fer_gpc_t *gpc, fer_gpc_tree_t **pop)
+static void evalPop(fer_gpc_t *gpc, int pop)
 {
     size_t i;
     fer_real_t overall_fitness;
 
     overall_fitness = FER_ZERO;
-    for (i = 0; i < gpc->params.pop_size; i++){
-        overall_fitness += evalTree(gpc, pop[i]);
+    for (i = 0; i < gpc->pop_size[pop]; i++){
+        overall_fitness += evalTree(gpc, gpc->pop[pop][i]);
     }
 
     DBG("overall_fitness: %f", overall_fitness);
 }
 
+/** Tournament selection */
+static size_t ferGPCSelectionTournament(fer_gpc_t *gpc, size_t tour_size,
+                                        fer_gpc_tree_t **pop, size_t pop_size)
+{
+    fer_real_t best_fitness;
+    size_t i, sel, best = 0;
+
+    best_fitness = -FER_REAL_MAX;
+    for (i = 0; i < tour_size; i++){
+        sel = ferGPCRandInt(gpc, 0, pop_size);
+        if (pop[sel]->fitness > best_fitness){
+            best = sel;
+        }
+    }
+
+    return best;
+}
+
+static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop)
+{
+    size_t idx;
+
+    // select an individual from population
+    idx = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
+                                    gpc->pop[from_pop], gpc->pop_size[from_pop]);
+
+    // and copy the individual to other population
+    gpc->pop[to_pop][gpc->pop_size[to_pop]] = ferGPCTreeClone(gpc, gpc->pop[from_pop][idx]);
+    gpc->pop_size[to_pop]++;
+}
+
+static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop)
+{
+}
+
+
+static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
+{
+}
+
 int ferGPCRun(fer_gpc_t *gpc)
 {
+    int step, i;
+    fer_real_t action;
+    int pop_cur, pop_other;
+
+    // early exit if we don't have any classes
     if (gpc->class_len == 0)
         return -1;
 
+    pop_cur = 0;
+    pop_other = (pop_cur + 1) % 2;
+
     // create initial population
-    createInitPop(gpc);
+    createInitPop(gpc, pop_cur);
 
     // evaluate initial population
-    evalPop(gpc, gpc->pop[0]);
+    evalPop(gpc, pop_cur);
+
+    for (step = 0; step < 10; step++){
+        DBG("Step: %d", step);
+
+        while (gpc->pop_size[pop_other] < gpc->params.pop_size){
+            // choose action
+            action = ferGPCRand01(gpc);
+
+            if (action < gpc->params.pr){
+                // reproduction
+                ferGPCReproduction(gpc, pop_cur, pop_other);
+            }else if (action < gpc->params.pr + gpc->params.pc){
+                // crossover
+                ferGPCCrossover(gpc, pop_cur, pop_other);
+            }else{
+                // mutation
+                ferGPCMutation(gpc, pop_cur, pop_other);
+            }
+        }
+
+        // reset the old population
+        for (i = 0; i < gpc->pop_size[pop_cur]; i++){
+            ferGPCTreeDel(gpc->pop[pop_cur][i]);
+            gpc->pop[pop_cur][i] = NULL;
+        }
+        gpc->pop_size[pop_cur] = 0;
+
+
+        pop_cur   = (pop_cur + 1) % 2;
+        pop_other = (pop_cur + 1) % 2;
+    }
+    DBG("%f %f %f", gpc->params.pr, gpc->params.pc, gpc->params.pm);
 
     return 0;
 }

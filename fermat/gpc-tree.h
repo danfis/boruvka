@@ -66,6 +66,7 @@ fer_gpc_node_t *ferGPCNodeNew(unsigned int idx, uint8_t ndesc, size_t memsize);
  */
 void ferGPCNodeDel(fer_gpc_node_t *node);
 
+fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node);
 
 
 /**
@@ -80,6 +81,7 @@ typedef struct _fer_gpc_tree_t fer_gpc_tree_t;
 
 fer_gpc_tree_t *ferGPCTreeNew(void);
 void ferGPCTreeDel(fer_gpc_tree_t *tree);
+fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree);
 
 void ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout);
 

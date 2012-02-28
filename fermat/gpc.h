@@ -19,7 +19,6 @@
 
 #include <fermat/core.h>
 #include <fermat/rand-mt.h>
-#include <fermat/gpc-data.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,11 +90,18 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops);
  * -----------
  */
 struct _fer_gpc_params_t {
-    fer_real_t pc;         /*!< Probability of crossover. Default: 0.7 */
-    fer_real_t pm;         /*!< Probability of mutation. Default: 0.001 */
     size_t pop_size;       /*!< Size of population. Default: 1 */
     size_t max_depth;      /*!< Maximal depth of a tree. Default: 5 */
     size_t data_rows;      /*!< Number of data rows. Default: 0 */
+
+    size_t tournament_size; /*!< Number of individuals that enter
+                                 tournament selection. Default: 5 */
+
+    /* Probabilities of undergone actions. Any numbers can be used because
+     * all will be normized to (pr + pc + pm) = 1 */
+    fer_real_t pr; /*!< Probability of reproduction. Default: 14 */
+    fer_real_t pc; /*!< Probability of crossover. Default: 85 */
+    fer_real_t pm; /*!< Probability of mutation. Default: 1 */
 };
 typedef struct _fer_gpc_params_t fer_gpc_params_t;
 
@@ -121,7 +127,7 @@ struct _fer_gpc_t {
     fer_rand_mt_t *rand;
 
     struct _fer_gpc_tree_t **pop[2]; /*!< Population (actual and tmp) */
-    size_t pop_cur;                  /*!< 0/1 - actual population */
+    size_t pop_size[2];              /*!< Current size of populations */
 
     struct _fer_gpc_pred_t *pred;    /*!< List of predicates */
     size_t pred_size, pred_len;
@@ -182,6 +188,10 @@ _fer_inline fer_real_t ferGPCRand01(fer_gpc_t *gpc);
  */
 _fer_inline int ferGPCRandInt(fer_gpc_t *gpc, int f, int t);
 
+
+
+
+size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx);
 
 /**** INLINES ****/
 _fer_inline fer_real_t ferGPCRand(fer_gpc_t *gpc, fer_real_t f, fer_real_t t)

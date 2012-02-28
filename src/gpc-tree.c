@@ -14,6 +14,7 @@
  *  See the License for more information.
  */
 
+#include <string.h>
 #include <fermat/alloc.h>
 #include <fermat/gpc-tree.h>
 
@@ -65,6 +66,31 @@ void ferGPCNodeDel(fer_gpc_node_t *node)
     FER_FREE(node);
 }
 
+fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node)
+{
+    fer_gpc_node_t *nnode;
+    fer_gpc_node_t **ndesc, **desc;
+    size_t size, i;
+
+    size  = sizeof(fer_gpc_node_t);
+    if (node->ndesc > 0){
+        size += node->ndesc * sizeof(fer_gpc_node_t *);
+        size += __ferGPCPredMemsize(gpc, node->idx);
+    }
+
+    // copy all data
+    nnode = ferRealloc(NULL, size);
+    memcpy(nnode, node, size);
+
+    // clone also subtree
+    desc  = FER_GPC_NODE_DESC(node);
+    ndesc = FER_GPC_NODE_DESC(nnode);
+    for (i = 0; i < node->ndesc; i++){
+        ndesc[i] = ferGPCNodeClone(gpc, desc[i]);
+    }
+
+    return nnode;
+}
 
 
 
@@ -101,6 +127,17 @@ static void ferGPCNodePrint(const fer_gpc_node_t *node, FILE *fout, int depth)
     for (i = 0; i < node->ndesc; i++){
         ferGPCNodePrint(desc[i], fout, depth + 1);
     }
+}
+
+fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
+{
+    fer_gpc_tree_t *ntree;
+
+    ntree = ferGPCTreeNew();
+    ntree->fitness = tree->fitness;
+    ntree->root = ferGPCNodeClone(gpc, tree->root);
+
+    return ntree;
 }
 
 void ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout)
