@@ -28,6 +28,7 @@
 struct _fer_gpc_pred_t {
     fer_gpc_pred pred;      /*!< Predicate callback */
     fer_gpc_pred_init init; /*!< Initialization callback */
+    fer_gpc_pred_format format; /*!< Format callback */
     size_t memsize;         /*!< Size of allocated memory per predicate instance */
     unsigned int ndesc;     /*!< Number of descendants */
     void *data;             /*!< User data */
@@ -166,7 +167,9 @@ void ferGPCDel(fer_gpc_t *gpc)
 }
 
 int ferGPCAddPred(fer_gpc_t *gpc,
-                  fer_gpc_pred pred, fer_gpc_pred_init init,
+                  fer_gpc_pred pred,
+                  fer_gpc_pred_init init,
+                  fer_gpc_pred_format format,
                   unsigned int num_descendants, size_t memsize,
                   void *data)
 {
@@ -177,6 +180,7 @@ int ferGPCAddPred(fer_gpc_t *gpc,
 
     gpc->pred[gpc->pred_len].pred    = pred;
     gpc->pred[gpc->pred_len].init    = init;
+    gpc->pred[gpc->pred_len].format  = format;
     gpc->pred[gpc->pred_len].memsize = memsize;
     gpc->pred[gpc->pred_len].ndesc   = num_descendants;
     gpc->pred[gpc->pred_len].data    = data;
@@ -293,6 +297,54 @@ fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc)
     return -FER_REAL_MAX;
 }
 
+static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
+                      char *str, size_t str_maxlen, int depth)
+{
+    fer_gpc_node_t **desc;
+    int i;
+
+    str[0] = 0x0;
+
+    for (i = 0; i < depth; i++){
+        fprintf(fout, "  ");
+    }
+
+    fprintf(fout, "(");
+
+    if (node->ndesc == 0){
+        // TODO
+        fprintf(fout, "%d", gpc->class[node->idx].class);
+    }else{
+        if (gpc->pred[node->idx].format){
+            gpc->pred[node->idx].format(gpc, FER_GPC_NODE_MEM(node),
+                                        gpc->pred[node->idx].data,
+                                        str, str_maxlen);
+            fprintf(fout, "%s", str);
+        }else{
+            fprintf(fout, "PRED");
+        }
+
+        desc = FER_GPC_NODE_DESC(node);
+        for (i = 0; i < node->ndesc; i++){
+            fprintf(fout, "\n");
+            printBest(gpc, desc[i], fout, str, str_maxlen, depth + 1);
+        }
+
+    }
+
+    fprintf(fout, ")");
+}
+void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout)
+{
+    char str[1024];
+
+    if (!gpc->best)
+        return;
+
+    printBest(gpc, gpc->best->root, fout, str, 1024, 0);
+    fprintf(fout, "\n");
+}
+
 void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
 {
     int i, pop;
@@ -325,6 +377,10 @@ static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_dept
     fer_gpc_node_t *node;
     fer_gpc_node_t **desc;
     uint8_t i;
+
+    if (max_depth > 10){
+        *((int *)0x0) = 10;
+    }
 
     // Randomly choose a predicate or a class.
     // If max_depth is reached, generate only a class.
@@ -560,11 +616,15 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
                                     gpc->pop[from_pop], gpc->pop_size[from_pop]);
     tree = gpc->pop[from_pop][idx];
 
-    // choose a node that will undergo a mutation
-    node_idx = ferGPCRandInt(gpc, 0, tree->num_nodes);
+    do {
+        // choose a node that will undergo a mutation
+        node_idx = ferGPCRandInt(gpc, 0, tree->num_nodes);
 
-    // get a node from the tree
-    node = ferGPCTreeNodeById(tree, node_idx, &desc, &depth);
+        // get a node from the tree
+        node = ferGPCTreeNodeById(tree, node_idx, &desc, &depth);
+
+    } while (gpc->params.max_depth < depth);
+
     // delete an old subtree and generate a new one
     ferGPCNodeDel(node);
     *desc = genRandTree(gpc, 0, gpc->params.max_depth - depth);

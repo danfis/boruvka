@@ -65,6 +65,19 @@ unsigned int predIntLT(fer_gpc_t *gpc, void *mem, void *data, void *ud)
     }
 }
 
+void formatIntLT(fer_gpc_t *gpc, void *mem, void *ud,
+                 char *str, size_t str_maxlen)
+{
+    unsigned int i;
+    int val;
+
+    i = *(unsigned int *)mem;
+    val = *((int *)mem + 1);
+
+    snprintf(str, str_maxlen, "intLT({%d} < %d)", (int)i, val);
+}
+
+
 unsigned int predStrIsInt(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     data_row_t *row;
@@ -79,6 +92,12 @@ unsigned int predStrIsInt(fer_gpc_t *gpc, void *mem, void *data, void *ud)
     }
 
     return 0;
+}
+
+void formatStrIsInt(fer_gpc_t *gpc, void *mem, void *ud,
+                    char *str, size_t str_maxlen)
+{
+    snprintf(str, str_maxlen, "strIsInt");
 }
 
 
@@ -108,10 +127,10 @@ int main(int argc, char *argv[])
 
     ferGPCParamsInit(&params);
     params.pop_size  = 1000;
-    params.max_depth = 30;
+    params.max_depth = 5;
     params.data_rows = 10;
     params.keep_best = 1;
-    params.max_steps = 10000;
+    params.max_steps = 1000;
     params.tournament_size = 10;
     params.pr = 10;
     params.pc = 40;
@@ -121,12 +140,16 @@ int main(int argc, char *argv[])
 
     ferGPCAddClass(gpc, 1);
     ferGPCAddClass(gpc, 0);
-    ferGPCAddPred(gpc, predIntLT, initIntLT, 2, sizeof(int) * 2, NULL);
-    ferGPCAddPred(gpc, predStrIsInt, NULL, 2, 0, NULL);
+    ferGPCAddPred(gpc, predIntLT, initIntLT, formatIntLT, 2, sizeof(int) * 2, NULL);
+    ferGPCAddPred(gpc, predIntLT, initIntLT, formatIntLT, 2, sizeof(int) * 2, NULL);
+    ferGPCAddPred(gpc, predStrIsInt, NULL, formatStrIsInt, 2, 0, NULL);
 
     res = ferGPCRun(gpc);
     fprintf(stderr, "\n");
     printf("res: %d\n", res);
+
+    ferGPCPrintBest(gpc, stdout);
+    fprintf(stdout, "Best fitness: %f\n", ferGPCBestFitness(gpc));
 
     ferGPCDel(gpc);
 

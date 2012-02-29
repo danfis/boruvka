@@ -159,15 +159,32 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params);
 void ferGPCDel(fer_gpc_t *gpc);
 
 
+/**
+ * Predicate callback.
+ * Should return the number of next descendant node in evaluating a
+ * decision tree.
+ */
 typedef unsigned int (*fer_gpc_pred)(fer_gpc_t *gpc, void *mem, void *data, void *userdata);
+
+/**
+ * Initialize callback a predicate data
+ */
 typedef void (*fer_gpc_pred_init)(fer_gpc_t *gpc, void *mem, void *userdata);
+
+/**
+ * Format a callback into given string.
+ */
+typedef void (*fer_gpc_pred_format)(fer_gpc_t *gpc, void *mem, void *userdata,
+                                    char *str, size_t str_maxlen);
 
 /**
  * Adds a new predicate.
  * TODO
  */
 int ferGPCAddPred(fer_gpc_t *gpc,
-                  fer_gpc_pred pred, fer_gpc_pred_init init,
+                  fer_gpc_pred pred,
+                  fer_gpc_pred_init init,
+                  fer_gpc_pred_format format,
                   unsigned int num_descendants, size_t memsize,
                   void *userdata);
 
@@ -187,6 +204,8 @@ int ferGPCRun(fer_gpc_t *gpc);
  * Returns fitness of the best individual
  */
 fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc);
+
+void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout);
 
 /**
  * Returns random number from range
