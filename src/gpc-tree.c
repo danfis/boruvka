@@ -158,8 +158,6 @@ static int nodeById(fer_gpc_node_t *node, size_t idx, size_t cur,
     size_t i;
     int ret;
 
-    DBG("node: %lx, idx: %d, cur: %d", (long)node, (int)idx, (int)cur);
-
     if (cur == idx){
         // we reached the correct node, record the node and its depth
         if (*rnode == NULL){

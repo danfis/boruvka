@@ -346,7 +346,65 @@ static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop)
 
 static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
+    size_t idx[2];
+    size_t node_idx[2];
+    size_t depth[2];
+    int i;
+    fer_gpc_node_t *node[2];
+    fer_gpc_node_t **desc[2];
+    fer_gpc_tree_t *tree[2];
+
+    if (gpc->pop_size[from_pop] < 2)
+        return;
+
     DBG2("");
+
+    // select two individuals from population
+    idx[0] = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
+                                       gpc->pop[from_pop], gpc->pop_size[from_pop]);
+    do {
+        idx[1] = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
+                                           gpc->pop[from_pop], gpc->pop_size[from_pop]);
+    } while (idx[0] == idx[1]);
+
+    for (i = 0; i < 2; i++){
+        tree[i] = gpc->pop[from_pop][idx[i]];
+
+        // choose crossover nodes
+        node_idx[i] = ferGPCRandInt(gpc, 0, tree[i]->num_nodes);
+
+        // obtain those nodes
+        node[i] = ferGPCTreeNodeById(tree[i], node_idx[i], &desc[i], &depth[i]);
+    }
+
+    // switch the subtrees
+    *desc[0] = node[1];
+    *desc[1] = node[0];
+    ferGPCTreeFix(tree[0]);
+    ferGPCTreeFix(tree[1]);
+
+
+    if (idx[0] < idx[1]){
+        FER_SWAP(idx[0], idx[1], i);
+    }
+
+
+    // move the trees to destination population
+    for (i = 0; i < 2; i++){
+        if (gpc->pop_size[to_pop] >= gpc->params.pop_size){
+            // delete a tree if the population is full
+            ferGPCTreeDel(tree[i]);
+        }else{
+            //ferGPCTreePrint(tree[i], stderr);
+            gpc->pop[to_pop][gpc->pop_size[to_pop]] = tree[i];
+            gpc->pop_size[to_pop]++;
+        }
+
+        gpc->pop[from_pop][idx[i]] = gpc->pop[from_pop][gpc->pop_size[from_pop] - 1];
+        gpc->pop[from_pop][gpc->pop_size[from_pop] - 1] = NULL;
+        gpc->pop_size[from_pop]--;
+    }
+        
 }
 
 
@@ -376,7 +434,6 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 
     // copy the tree to destination array
     gpc->pop[to_pop][gpc->pop_size[to_pop]] = tree;
-    ferGPCTreePrint(tree, stderr);
     gpc->pop_size[to_pop]++;
 
     // remove the tree from source array
@@ -404,10 +461,10 @@ int ferGPCRun(fer_gpc_t *gpc)
     // evaluate initial population
     evalPop(gpc, pop_cur);
 
-    for (i = 0; i < gpc->pop_size[pop_cur]; i++){
-        ferGPCTreePrint(gpc->pop[pop_cur][i], stderr);
-    }
-    DBG("pr, pc, pm: %f %f %f", gpc->params.pr, gpc->params.pc, gpc->params.pm);
+    //for (i = 0; i < gpc->pop_size[pop_cur]; i++){
+    //    ferGPCTreePrint(gpc->pop[pop_cur][i], stderr);
+    //}
+    //DBG("pr, pc, pm: %f %f %f", gpc->params.pr, gpc->params.pc, gpc->params.pm);
     for (step = 0; step < 10; step++){
         DBG("Step: %d", step);
 
@@ -434,10 +491,14 @@ int ferGPCRun(fer_gpc_t *gpc)
         }
         gpc->pop_size[pop_cur] = 0;
 
-        DBG2("=====");
         for (i = 0; i < gpc->pop_size[pop_other]; i++){
-            ferGPCTreePrint(gpc->pop[pop_other][i], stderr);
+            fprintf(stderr, " %lx", (long)gpc->pop[pop_other][i]);
         }
+        fprintf(stderr, "\n");
+        //DBG2("=====");
+        //for (i = 0; i < gpc->pop_size[pop_other]; i++){
+        //    ferGPCTreePrint(gpc->pop[pop_other][i], stderr);
+        //}
 
         pop_cur   = (pop_cur + 1) % 2;
         pop_other = (pop_cur + 1) % 2;
