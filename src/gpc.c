@@ -235,6 +235,7 @@ static void createInitPop(fer_gpc_t *gpc, int pop)
     for (i = 0; i < len; i++){
         gpc->pop[pop][i] = ferGPCTreeNew();
         gpc->pop[pop][i]->root = genRandTree(gpc, 0, gpc->params.max_depth);
+        ferGPCTreeFix(gpc->pop[pop][i]);
         gpc->pop_size[pop]++;
 
         gpc->pop[pop_other][i] = NULL;
@@ -333,6 +334,7 @@ static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
     size_t idx;
 
+    DBG2("");
     // select an individual from population
     idx = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
                                     gpc->pop[from_pop], gpc->pop_size[from_pop]);
@@ -344,11 +346,43 @@ static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop)
 
 static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
+    DBG2("");
 }
 
 
 static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
+    size_t idx, node_idx;
+    size_t depth;
+    fer_gpc_tree_t *tree;
+    fer_gpc_node_t *node, **desc;
+
+    DBG2("");
+
+    // select an individual from population
+    idx = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
+                                    gpc->pop[from_pop], gpc->pop_size[from_pop]);
+    tree = gpc->pop[from_pop][idx];
+
+    // choose a node that will undergo a mutation
+    node_idx = ferGPCRandInt(gpc, 0, tree->num_nodes);
+
+    // get a node from the tree
+    node = ferGPCTreeNodeById(tree, node_idx, &desc, &depth);
+    // delete an old subtree and generate a new one
+    ferGPCNodeDel(node);
+    *desc = genRandTree(gpc, 0, gpc->params.max_depth - depth);
+    ferGPCTreeFix(tree);
+
+    // copy the tree to destination array
+    gpc->pop[to_pop][gpc->pop_size[to_pop]] = tree;
+    ferGPCTreePrint(tree, stderr);
+    gpc->pop_size[to_pop]++;
+
+    // remove the tree from source array
+    gpc->pop[from_pop][idx] = gpc->pop[from_pop][gpc->pop_size[from_pop] - 1];
+    gpc->pop[from_pop][gpc->pop_size[from_pop] - 1] = NULL;
+    gpc->pop_size[from_pop]--;
 }
 
 int ferGPCRun(fer_gpc_t *gpc)
@@ -370,6 +404,10 @@ int ferGPCRun(fer_gpc_t *gpc)
     // evaluate initial population
     evalPop(gpc, pop_cur);
 
+    for (i = 0; i < gpc->pop_size[pop_cur]; i++){
+        ferGPCTreePrint(gpc->pop[pop_cur][i], stderr);
+    }
+    DBG("pr, pc, pm: %f %f %f", gpc->params.pr, gpc->params.pc, gpc->params.pm);
     for (step = 0; step < 10; step++){
         DBG("Step: %d", step);
 
@@ -396,6 +434,10 @@ int ferGPCRun(fer_gpc_t *gpc)
         }
         gpc->pop_size[pop_cur] = 0;
 
+        DBG2("=====");
+        for (i = 0; i < gpc->pop_size[pop_other]; i++){
+            ferGPCTreePrint(gpc->pop[pop_other][i], stderr);
+        }
 
         pop_cur   = (pop_cur + 1) % 2;
         pop_other = (pop_cur + 1) % 2;

@@ -66,7 +66,12 @@ fer_gpc_node_t *ferGPCNodeNew(unsigned int idx, uint8_t ndesc, size_t memsize);
  */
 void ferGPCNodeDel(fer_gpc_node_t *node);
 
+/**
+ * Recursively clones a node tree
+ */
 fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node);
+
+
 
 
 /**
@@ -75,14 +80,43 @@ fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node);
 struct _fer_gpc_tree_t {
     fer_real_t fitness;   /*!< Fitness of individual represented by a tree */
     fer_gpc_node_t *root; /*!< Root node of a tree */
+    size_t num_nodes;     /*!< Number of nodes in a tree */
 };
 typedef struct _fer_gpc_tree_t fer_gpc_tree_t;
 
 
+/**
+ * Creates a new tree structure
+ */
 fer_gpc_tree_t *ferGPCTreeNew(void);
+
+/**
+ * Deletes a tree
+ */
 void ferGPCTreeDel(fer_gpc_tree_t *tree);
+
+/**
+ * Clones a whole tree.
+ */
 fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree);
 
+/**
+ * Fixes info about a tree.
+ * If the tree was changed, this function should be called to fix an info
+ * about it stored in the structre.
+ */
+void ferGPCTreeFix(fer_gpc_tree_t *tree);
+
+/**
+ * Returns a idx'th node from a tree along with of its storage in desc
+ * array and its depth.
+ */
+fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, size_t idx,
+                                   fer_gpc_node_t ***desc, size_t *depth);
+
+/**
+ * Pretty print of a tree. For debug purposes.
+ */
 void ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout);
 
 #ifdef __cplusplus

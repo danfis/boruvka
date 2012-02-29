@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
     params.pop_size  = 10;
     params.max_depth = 3;
     params.data_rows = 10;
+    params.pm = 20;
 
     gpc = ferGPCNew(&ops, &params);
 
