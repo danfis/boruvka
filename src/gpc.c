@@ -245,7 +245,8 @@ int ferGPCRun(fer_gpc_t *gpc)
         }
 
         // create a new population
-        while (gpc->pop_size[pop_other] < gpc->params.pop_size){
+        while (gpc->pop_size[pop_other] < gpc->params.pop_size
+                && gpc->pop_size[pop_cur] > 0){
             // choose action
             action = ferGPCRand01(gpc);
 
@@ -377,10 +378,6 @@ static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_dept
     fer_gpc_node_t *node;
     fer_gpc_node_t **desc;
     uint8_t i;
-
-    if (max_depth > 10){
-        *((int *)0x0) = 10;
-    }
 
     // Randomly choose a predicate or a class.
     // If max_depth is reached, generate only a class.

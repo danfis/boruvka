@@ -1,31 +1,20 @@
 #include <stdio.h>
 #include <fermat/gpc.h>
 #include <fermat/dbg.h>
+#include <fermat/alloc.h>
 
-struct _data_row_t {
-    int a, b, c;
-    const char *str;
-    int class;
-};
-typedef struct _data_row_t data_row_t;
+fer_real_t **data;
+size_t num_rows;
+size_t num_cols;
+int *data_cl;
+size_t num_cl;
 
-data_row_t data[10] = {
-    { 1, 2, 3, "aaa", 1 },
-    { 1, 4, 3, "aca", 1 },
-    { 1, 12, 3, "abg", 1 },
-    { 1, 20, 5, "qqq", 1 },
-    { 11, 2, 3, "asd", 1 },
-    { 1, 2, 3, "alk", 0 },
-    { 1, 40, 3, "laa", 0 },
-    { 1, 2, 3, "aala", 0 },
-    { 1, 10, 3, "12.1", 0 },
-    { 1, 2, 13, "120",  0 },
-};
-
+static int readData(const char *fn, fer_real_t ***data, int **cl,
+                    size_t *num_rows, size_t *num_cols, size_t *num_cl);
 
 void *dataRow(fer_gpc_t *gpc, int i, void *_)
 {
-    return &data[i];
+    return (void *)data[i];
 }
 
 fer_real_t fitness(fer_gpc_t *gpc, int *class, void *_)
@@ -33,73 +22,12 @@ fer_real_t fitness(fer_gpc_t *gpc, int *class, void *_)
     int i, ft;
 
     ft = 0;
-    for (i = 0; i < 10; i++){
-        ft += (class[i] == data[i].class);
+    for (i = 0; i < num_rows; i++){
+        ft += (class[i] == data_cl[i]);
     }
 
-    return ft;
+    return ((fer_real_t)ft) / num_rows;
 }
-
-void initIntLT(fer_gpc_t *gpc, void *mem, void *ud)
-{
-    *(unsigned int *)mem = ferGPCRandInt(gpc, 0, 3);
-    *((int *)mem + 1) = ferGPCRandInt(gpc, 0, 14);
-}
-
-unsigned int predIntLT(fer_gpc_t *gpc, void *mem, void *data, void *ud)
-{
-    data_row_t *row;
-    unsigned int i;
-    int val;
-
-    i = *(unsigned int *)mem;
-    val = *((int *)mem + 1);
-    row = (data_row_t *)data;
-
-    if (i == 0){
-        return row->a < val;
-    }else if (i == 1){
-        return row->b < val;
-    }else{
-        return row->c < val;
-    }
-}
-
-void formatIntLT(fer_gpc_t *gpc, void *mem, void *ud,
-                 char *str, size_t str_maxlen)
-{
-    unsigned int i;
-    int val;
-
-    i = *(unsigned int *)mem;
-    val = *((int *)mem + 1);
-
-    snprintf(str, str_maxlen, "intLT({%d} < %d)", (int)i, val);
-}
-
-
-unsigned int predStrIsInt(fer_gpc_t *gpc, void *mem, void *data, void *ud)
-{
-    data_row_t *row;
-    const char *str;
-
-    row = (data_row_t *)data;
-    str = row->str;
-    while (*str){
-        if (*str < '0' || *str > '9')
-            return 1;
-        ++str;
-    }
-
-    return 0;
-}
-
-void formatStrIsInt(fer_gpc_t *gpc, void *mem, void *ud,
-                    char *str, size_t str_maxlen)
-{
-    snprintf(str, str_maxlen, "strIsInt");
-}
-
 
 void callback(fer_gpc_t *gpc, void *_)
 {
@@ -111,9 +39,60 @@ void callback(fer_gpc_t *gpc, void *_)
     fflush(stderr);
 }
 
+
+struct cmp_t {
+    int idx;
+    fer_real_t val;
+};
+
+void cmpInit(fer_gpc_t *gpc, void *mem, void *ud)
+{
+    struct cmp_t *m = (struct cmp_t *)mem;
+    m->idx = ferGPCRandInt(gpc, 0, num_cols);
+    m->val = ferGPCRand(gpc, -1., 1.);
+}
+
+unsigned int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp_t *m = (struct cmp_t *)mem;
+    fer_real_t *d = (fer_real_t *)data;
+    return d[m->idx] < m->val;
+}
+
+void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp_t *m = (struct cmp_t *)mem;
+    snprintf(str, max, "lt[%d] < %f", (int)m->idx, m->val);
+}
+
+unsigned int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp_t *m = (struct cmp_t *)mem;
+    fer_real_t *d = (fer_real_t *)data;
+    return d[m->idx] > m->val;
+}
+
+void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp_t *m = (struct cmp_t *)mem;
+    snprintf(str, max, "gt[%d] > %f", (int)m->idx, m->val);
+}
+
+
 int main(int argc, char *argv[])
 {
     int res;
+    size_t i;
+
+    if (argc != 2){
+        fprintf(stderr, "Usage: %s data.train\n", argv[0]);
+        return -1;
+    }
+
+    if (readData(argv[1], &data, &data_cl, &num_rows, &num_cols, &num_cl) != 0){
+        fprintf(stderr, "Invalid input file `%s'\n", argv[1]);
+        return -1;
+    }
 
     fer_gpc_ops_t ops;
     fer_gpc_params_t params;
@@ -123,28 +102,32 @@ int main(int argc, char *argv[])
     ops.fitness  = fitness;
     ops.data_row = dataRow;
     ops.callback = callback;
-    ops.callback_period = 100;
+    ops.callback_period = 30;
 
     ferGPCParamsInit(&params);
-    params.pop_size  = 1000;
-    params.max_depth = 5;
-    params.data_rows = 10;
+    params.pop_size  = 100;
+    params.max_depth = 20;
+    params.data_rows = num_rows;
     params.keep_best = 1;
-    params.max_steps = 1000;
-    params.tournament_size = 10;
+    params.max_steps = 10000;
+    params.tournament_size = 5;
     params.pr = 10;
-    params.pc = 40;
-    params.pm = 20;
+    params.pc = 10;
+    params.pm = 10;
 
     gpc = ferGPCNew(&ops, &params);
 
-    ferGPCAddClass(gpc, 1);
-    ferGPCAddClass(gpc, 0);
-    ferGPCAddPred(gpc, predIntLT, initIntLT, formatIntLT, 2, sizeof(int) * 2, NULL);
-    ferGPCAddPred(gpc, predIntLT, initIntLT, formatIntLT, 2, sizeof(int) * 2, NULL);
-    ferGPCAddPred(gpc, predStrIsInt, NULL, formatStrIsInt, 2, 0, NULL);
+    for (i = 0; i < num_cl; i++){
+        ferGPCAddClass(gpc, i);
+    }
+
+    for (i = 0; i < num_cl; i++){
+        ferGPCAddPred(gpc, ltPred, cmpInit, ltFormat, 2, sizeof(struct cmp_t), NULL);
+        ferGPCAddPred(gpc, gtPred, cmpInit, gtFormat, 2, sizeof(struct cmp_t), NULL);
+    }
 
     res = ferGPCRun(gpc);
+    callback(gpc, NULL);
     fprintf(stderr, "\n");
     printf("res: %d\n", res);
 
@@ -152,6 +135,41 @@ int main(int argc, char *argv[])
     fprintf(stdout, "Best fitness: %f\n", ferGPCBestFitness(gpc));
 
     ferGPCDel(gpc);
+
+    return 0;
+}
+
+
+static int readData(const char *fn, fer_real_t ***data, int **cl,
+                    size_t *num_rows, size_t *num_cols, size_t *num_cl)
+{
+    FILE *fin;
+    int len, num_preds, i, j, ncl;
+
+    fin = fopen(fn, "r");
+    if (!fin)
+        return -1;
+
+    fscanf(fin, "%d %d %d", &len, &num_preds, &ncl);
+    *num_rows = len;
+    *num_cols = num_preds;
+    *num_cl   = ncl;
+
+    *data = FER_ALLOC_ARR(fer_real_t *, len);
+    *cl   = FER_ALLOC_ARR(int, len);
+
+    for (i = 0; i < len; i++){
+        // class
+        fscanf(fin, "%d", &(*cl)[i]);
+
+        (*data)[i] = FER_ALLOC_ARR(fer_real_t, num_preds);
+        for (j = 0; j < num_preds; j++){
+            fscanf(fin, "%f", &(*data)[i][j]);
+        }
+    }
+
+
+    fclose(fin);
 
     return 0;
 }
