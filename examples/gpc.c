@@ -81,6 +81,17 @@ unsigned int predStrIsInt(fer_gpc_t *gpc, void *mem, void *data, void *ud)
     return 0;
 }
 
+
+void callback(fer_gpc_t *gpc, void *_)
+{
+    fer_gpc_stats_t stats;
+
+    ferGPCStats(gpc, &stats);
+    fprintf(stderr, "[%06ld] min: %.2f, max: %.2f, avg: %.2f\r",
+            stats.elapsed, stats.min_fitness, stats.max_fitness, stats.avg_fitness);
+    fflush(stderr);
+}
+
 int main(int argc, char *argv[])
 {
     int res;
@@ -92,11 +103,18 @@ int main(int argc, char *argv[])
     ferGPCOpsInit(&ops);
     ops.fitness  = fitness;
     ops.data_row = dataRow;
+    ops.callback = callback;
+    ops.callback_period = 100;
 
     ferGPCParamsInit(&params);
-    params.pop_size  = 10;
-    params.max_depth = 3;
+    params.pop_size  = 1000;
+    params.max_depth = 30;
     params.data_rows = 10;
+    params.keep_best = 1;
+    params.max_steps = 10000;
+    params.tournament_size = 10;
+    params.pr = 10;
+    params.pc = 40;
     params.pm = 20;
 
     gpc = ferGPCNew(&ops, &params);
@@ -107,6 +125,7 @@ int main(int argc, char *argv[])
     ferGPCAddPred(gpc, predStrIsInt, NULL, 2, 0, NULL);
 
     res = ferGPCRun(gpc);
+    fprintf(stderr, "\n");
     printf("res: %d\n", res);
 
     ferGPCDel(gpc);

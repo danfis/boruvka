@@ -90,12 +90,16 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops);
  * -----------
  */
 struct _fer_gpc_params_t {
-    size_t pop_size;       /*!< Size of population. Default: 1 */
-    size_t max_depth;      /*!< Maximal depth of a tree. Default: 5 */
-    size_t data_rows;      /*!< Number of data rows. Default: 0 */
+    size_t pop_size;         /*!< Size of population. Default: 1 */
+    size_t max_depth;        /*!< Maximal depth of a tree. Default: 5 */
+    int keep_best;           /*!< 1 if the best individual should be
+                                  reproduced to next population. Default: 1 */
+    unsigned long max_steps; /*!< Maximal number of steps of algorithm.
+                                  Default: 10 */
+    size_t data_rows;        /*!< Number of data rows. Default: 0 */
 
-    size_t tournament_size; /*!< Number of individuals that enter
-                                 tournament selection. Default: 5 */
+    size_t tournament_size;  /*!< Number of individuals that enter
+                                  tournament selection. Default: 5 */
 
     /* Probabilities of undergone actions. Any numbers can be used because
      * all will be normized to (pr + pc + pm) = 1 */
@@ -128,6 +132,8 @@ struct _fer_gpc_t {
 
     struct _fer_gpc_tree_t **pop[2]; /*!< Population (actual and tmp) */
     size_t pop_size[2];              /*!< Current size of populations */
+    int pop_cur;                     /*!< Idx of current population array */
+    struct _fer_gpc_tree_t *best;    /*!< Best individual from population */
 
     struct _fer_gpc_pred_t *pred;    /*!< List of predicates */
     size_t pred_size, pred_len;
@@ -135,6 +141,10 @@ struct _fer_gpc_t {
     size_t class_size, class_len;
 
     int *eval_results; /*!< Array of results from evaluation */
+
+    struct {
+        unsigned long elapsed; /*!< Number of elapsed steps */
+    } stats;
 };
 typedef struct _fer_gpc_t fer_gpc_t;
 
@@ -174,6 +184,11 @@ int ferGPCAddClass(fer_gpc_t *gpc, int class_id);
 int ferGPCRun(fer_gpc_t *gpc);
 
 /**
+ * Returns fitness of the best individual
+ */
+fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc);
+
+/**
  * Returns random number from range
  */
 _fer_inline fer_real_t ferGPCRand(fer_gpc_t *gpc, fer_real_t f, fer_real_t t);
@@ -188,6 +203,24 @@ _fer_inline fer_real_t ferGPCRand01(fer_gpc_t *gpc);
  */
 _fer_inline int ferGPCRandInt(fer_gpc_t *gpc, int f, int t);
 
+
+/**
+ * Statistics
+ * -----------
+ */
+struct _fer_gpc_stats_t {
+    fer_real_t min_fitness;
+    fer_real_t max_fitness;
+    fer_real_t avg_fitness;
+
+    unsigned long elapsed; /*!< Number of elapsed steps */
+};
+typedef struct _fer_gpc_stats_t fer_gpc_stats_t;
+
+/**
+ * Fills given structure with statistics about from current population
+ */
+void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats);
 
 
 
@@ -206,7 +239,7 @@ _fer_inline fer_real_t ferGPCRand01(fer_gpc_t *gpc)
 
 _fer_inline int ferGPCRandInt(fer_gpc_t *gpc, int f, int t)
 {
-    return ferRandMT(gpc->rand, f, t);
+    return FER_MIN(ferRandMT(gpc->rand, f, t), t - 1);
 }
 
 #ifdef __cplusplus
