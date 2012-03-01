@@ -127,15 +127,19 @@ fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
     return ntree;
 }
 
-static size_t fixNumNodes(fer_gpc_node_t *node)
+static size_t fixNumNodes(fer_gpc_node_t *node,
+                          unsigned int depth, unsigned int *rdepth)
 {
     fer_gpc_node_t **desc;
     size_t i, num = 1;
 
+    if (depth > *rdepth)
+        *rdepth = depth;
+
     if (node->ndesc > 0){
         desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            num += fixNumNodes(desc[i]);
+            num += fixNumNodes(desc[i], depth + 1, rdepth);
         }
     }
 
@@ -144,8 +148,12 @@ static size_t fixNumNodes(fer_gpc_node_t *node)
 
 void ferGPCTreeFix(fer_gpc_tree_t *tree)
 {
-    if (tree->root)
-        tree->num_nodes = fixNumNodes(tree->root);
+    unsigned int depth = 0;
+
+    if (tree->root){
+        tree->num_nodes = fixNumNodes(tree->root, 0, &depth);
+        tree->depth = depth;
+    }
 }
 
 

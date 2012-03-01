@@ -34,9 +34,13 @@ void callback(fer_gpc_t *gpc, void *_)
     fer_gpc_stats_t stats;
 
     ferGPCStats(gpc, &stats);
-    fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f\r",
+    fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f "
+                    "| nodes - min: % 2d, max: % 5d, avg: % 7.2f"
+                    "| depth - min: % 2d, max: % 5d, avg: % 7.2f\n",
             stats.elapsed, stats.min_fitness, stats.max_fitness,
-            stats.avg_fitness, stats.med_fitness);
+            stats.avg_fitness, stats.med_fitness,
+            (int)stats.min_nodes, (int)stats.max_nodes, stats.avg_nodes,
+            (int)stats.min_depth, (int)stats.max_depth, stats.avg_depth);
     fflush(stderr);
 }
 
@@ -142,15 +146,15 @@ int main(int argc, char *argv[])
     ops.fitness  = fitness;
     ops.data_row = dataRow;
     ops.callback = callback;
-    ops.callback_period = 30;
+    ops.callback_period = 20;
 
     ferGPCParamsInit(&params);
-    params.pop_size  = 1000;
-    params.max_depth = 5;
-    params.data_rows = num_rows;
-    params.keep_best = 20;
-    params.throw_worst = 20;
-    params.max_steps = 2001;
+    params.pop_size    = 1000;
+    params.max_depth   = 5;
+    params.data_rows   = num_rows;
+    params.keep_best   = params.pop_size * 0.1;
+    params.throw_worst = params.pop_size * 0.1;
+    params.max_steps   = 5001;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;

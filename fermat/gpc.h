@@ -241,6 +241,14 @@ struct _fer_gpc_stats_t {
     fer_real_t avg_fitness;
     fer_real_t med_fitness; /*!< median */
 
+    unsigned int min_nodes;
+    unsigned int max_nodes;
+    fer_real_t avg_nodes;
+
+    unsigned int min_depth;
+    unsigned int max_depth;
+    fer_real_t avg_depth;
+
     unsigned long elapsed; /*!< Number of elapsed steps */
 };
 typedef struct _fer_gpc_stats_t fer_gpc_stats_t;

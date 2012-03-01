@@ -78,9 +78,10 @@ fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node);
  * Struct representing a whole tree (an individual)
  */
 struct _fer_gpc_tree_t {
-    fer_real_t fitness;   /*!< Fitness of individual represented by a tree */
-    fer_gpc_node_t *root; /*!< Root node of a tree */
-    size_t num_nodes;     /*!< Number of nodes in a tree */
+    fer_real_t fitness;   /*!< Fitness of individual represented by the tree */
+    fer_gpc_node_t *root; /*!< Root node of the tree */
+    size_t num_nodes;     /*!< Number of nodes in the tree */
+    unsigned int depth;   /*!< Depth of the tree */
 };
 typedef struct _fer_gpc_tree_t fer_gpc_tree_t;
 

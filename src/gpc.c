@@ -14,6 +14,7 @@
  *  See the License for more information.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <fermat/alloc.h>
@@ -373,6 +374,12 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
     stats->min_fitness = FER_REAL_MAX;
     stats->max_fitness = -FER_REAL_MAX;
     stats->avg_fitness = FER_ZERO;
+    stats->min_nodes = UINT_MAX;
+    stats->max_nodes = 0;
+    stats->avg_nodes = 0;
+    stats->min_depth = UINT_MAX;
+    stats->max_depth = 0;
+    stats->avg_depth = 0;
     for (i = 0; i < gpc->pop_size[pop]; i++){
         tree = gpc->pop[pop][i];
 
@@ -382,8 +389,22 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
             stats->min_fitness = tree->fitness;
         stats->avg_fitness += tree->fitness;
 
+        if (tree->num_nodes < stats->min_nodes)
+            stats->min_nodes = tree->num_nodes;
+        if (tree->num_nodes > stats->max_nodes)
+            stats->max_nodes = tree->num_nodes;
+        stats->avg_nodes += tree->num_nodes;
+
+        if (tree->depth < stats->min_depth)
+            stats->min_depth = tree->depth;
+        if (tree->depth > stats->max_depth)
+            stats->max_depth = tree->depth;
+        stats->avg_depth += tree->depth;
+
     }
     stats->avg_fitness /= gpc->pop_size[pop];
+    stats->avg_nodes /= gpc->pop_size[pop];
+    stats->avg_depth /= gpc->pop_size[pop];
 
     stats->med_fitness = gpc->pop[pop][gpc->pop_size[pop] / 2 + 1]->fitness;
     if (gpc->pop_size[pop] % 2 == 0){
