@@ -34,8 +34,9 @@ void callback(fer_gpc_t *gpc, void *_)
     fer_gpc_stats_t stats;
 
     ferGPCStats(gpc, &stats);
-    fprintf(stderr, "[%06ld] min: %.2f, max: %.2f, avg: %.2f\r",
-            stats.elapsed, stats.min_fitness, stats.max_fitness, stats.avg_fitness);
+    fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f\r",
+            stats.elapsed, stats.min_fitness, stats.max_fitness,
+            stats.avg_fitness, stats.med_fitness);
     fflush(stderr);
 }
 
@@ -78,6 +79,45 @@ void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
     snprintf(str, max, "gt[%d] > %f", (int)m->idx, m->val);
 }
 
+struct cmp2_t {
+    int idx1, idx2;
+};
+
+void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud)
+{
+    struct cmp2_t *m = (struct cmp2_t *)mem;
+    m->idx1 = ferGPCRandInt(gpc, 0, num_cols);
+    do {
+        m->idx2 = ferGPCRandInt(gpc, 0, num_cols);
+    } while (m->idx2 == m->idx1);
+}
+
+unsigned int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp2_t *m = (struct cmp2_t *)mem;
+    fer_real_t *d = (fer_real_t *)data;
+    return d[m->idx1] < d[m->idx2];
+}
+
+void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp2_t *m = (struct cmp2_t *)mem;
+    snprintf(str, max, "[%d] < [%d]", m->idx1, m->idx2);
+}
+
+unsigned int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp2_t *m = (struct cmp2_t *)mem;
+    fer_real_t *d = (fer_real_t *)data;
+    return d[m->idx1] > d[m->idx2];
+}
+
+void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp2_t *m = (struct cmp2_t *)mem;
+    snprintf(str, max, "[%d] > [%d]", m->idx1, m->idx2);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -105,16 +145,17 @@ int main(int argc, char *argv[])
     ops.callback_period = 30;
 
     ferGPCParamsInit(&params);
-    params.pop_size  = 100;
-    params.max_depth = 20;
+    params.pop_size  = 1000;
+    params.max_depth = 10;
     params.data_rows = num_rows;
-    params.keep_best = 1;
-    params.throw_worst = 1;
+    params.keep_best = 20;
+    params.throw_worst = 20;
     params.max_steps = 1000;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;
     params.pm = 10;
+    params.simplify = 100UL;
 
     gpc = ferGPCNew(&ops, &params);
 
@@ -122,10 +163,10 @@ int main(int argc, char *argv[])
         ferGPCAddClass(gpc, i);
     }
 
-    for (i = 0; i < num_cl; i++){
-        ferGPCAddPred(gpc, ltPred, cmpInit, ltFormat, 2, sizeof(struct cmp_t), NULL);
-        ferGPCAddPred(gpc, gtPred, cmpInit, gtFormat, 2, sizeof(struct cmp_t), NULL);
-    }
+    ferGPCAddPred(gpc, ltPred, cmpInit, ltFormat, 2, sizeof(struct cmp_t), NULL);
+    ferGPCAddPred(gpc, gtPred, cmpInit, gtFormat, 2, sizeof(struct cmp_t), NULL);
+    ferGPCAddPred(gpc, lt2Pred, cmp2Init, lt2Format, 2, sizeof(struct cmp_t), NULL);
+    ferGPCAddPred(gpc, gt2Pred, cmp2Init, gt2Format, 2, sizeof(struct cmp_t), NULL);
 
     res = ferGPCRun(gpc);
     callback(gpc, NULL);

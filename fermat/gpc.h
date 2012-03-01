@@ -109,6 +109,10 @@ struct _fer_gpc_params_t {
     fer_real_t pr; /*!< Probability of reproduction. Default: 14 */
     fer_real_t pc; /*!< Probability of crossover. Default: 85 */
     fer_real_t pm; /*!< Probability of mutation. Default: 1 */
+
+    unsigned long simplify; /*!< A simplification of the trees will be
+                                 executed every {simplify} step.
+                                 Default: 0 (i.e., never) */
 };
 typedef struct _fer_gpc_params_t fer_gpc_params_t;
 
@@ -233,6 +237,7 @@ struct _fer_gpc_stats_t {
     fer_real_t min_fitness;
     fer_real_t max_fitness;
     fer_real_t avg_fitness;
+    fer_real_t med_fitness; /*!< median */
 
     unsigned long elapsed; /*!< Number of elapsed steps */
 };

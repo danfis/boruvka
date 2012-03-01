@@ -76,6 +76,9 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop);
 /** Reproduce a particular tree */
 static void ferGPCReproduction2(fer_gpc_t *gpc, int to_pop, fer_gpc_tree_t *tree);
 
+/** Simplifies all trees in speficied population */
+static void ferGPCSimplify(fer_gpc_t *gpc, int pop);
+
 
 #define OPS_DATA(name) \
     if (!gpc->ops.name ## _data) \
@@ -111,6 +114,8 @@ void ferGPCParamsInit(fer_gpc_params_t *params)
     params->pr        = 14;
     params->pc        = 85;
     params->pm        = 1;
+
+    params->simplify = 0UL;
 }
 
 
@@ -222,7 +227,7 @@ size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx)
 
 int ferGPCRun(fer_gpc_t *gpc)
 {
-    unsigned long step, cb;
+    unsigned long step, cb, simplify;
     int pop_cur, pop_other, pop_tmp;
 
     // early exit if we don't have any classes
@@ -248,6 +253,7 @@ int ferGPCRun(fer_gpc_t *gpc)
     }
 
     cb = 0UL;
+    simplify = 0UL;
     for (step = 0UL; step < gpc->params.max_steps; step += 1UL){
         // perform elitism and the opposite
         ferGPCKeepBest(gpc, pop_cur, pop_other);
@@ -261,6 +267,13 @@ int ferGPCRun(fer_gpc_t *gpc)
 
         // reset the old population
         ferGPCResetPop(gpc, pop_cur);
+
+        // simplify a new population
+        simplify += 1UL;
+        if (simplify == gpc->params.simplify){
+            ferGPCSimplify(gpc, pop_other);
+            simplify = 0UL;
+        }
 
         // switch old and new population
         FER_SWAP(pop_cur, pop_other, pop_tmp);
@@ -276,6 +289,10 @@ int ferGPCRun(fer_gpc_t *gpc)
             cb = 0UL;
         }
     }
+
+    // simplify resulting population
+    ferGPCSimplify(gpc, gpc->pop_cur);
+    ferGPCEvalTree(gpc, gpc->pop[gpc->pop_cur][0]);
 
     return 0;
 }
@@ -356,6 +373,12 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
 
     }
     stats->avg_fitness /= gpc->pop_size[pop];
+
+    stats->med_fitness = gpc->pop[pop][gpc->pop_size[pop] / 2 + 1]->fitness;
+    if (gpc->pop_size[pop] % 2 == 0){
+        stats->med_fitness += gpc->pop[pop][gpc->pop_size[pop] / 2]->fitness;
+        stats->med_fitness /= FER_REAL(2.);
+    }
 
     stats->elapsed = gpc->stats.elapsed;
 }
@@ -683,4 +706,50 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
     gpc->pop[from_pop][idx] = gpc->pop[from_pop][gpc->pop_size[from_pop] - 1];
     gpc->pop[from_pop][gpc->pop_size[from_pop] - 1] = NULL;
     gpc->pop_size[from_pop]--;
+}
+
+
+static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *node)
+{
+    uint8_t i;
+    unsigned int idx;
+    fer_gpc_node_t **desc, *rnode;
+
+    if (node->ndesc == 0)
+        return node;
+
+    desc = FER_GPC_NODE_DESC(node);
+
+
+    // first dive down in tree
+    for (i = 0; i < node->ndesc; i++){
+        if (desc[i]->ndesc > 0)
+            desc[i] = ferGPCSimplifySubtree(gpc, desc[i]);
+    }
+
+    // check if all descendants are terminals and compare all their idx
+    idx = desc[0]->idx;
+    for (i = 0; i < node->ndesc; i++){
+        if (desc[i]->ndesc != 0 || idx != desc[i]->idx)
+            break;
+    }
+
+    if (i == node->ndesc){
+        rnode = desc[0];
+        desc[0] = NULL;
+        ferGPCNodeDel(node);
+        return rnode;
+    }
+
+    return node;
+}
+
+static void ferGPCSimplify(fer_gpc_t *gpc, int pop)
+{
+    size_t i;
+
+    for (i = 0; i < gpc->pop_size[pop]; i++){
+        gpc->pop[pop][i]->root = ferGPCSimplifySubtree(gpc, gpc->pop[pop][i]->root);
+        ferGPCTreeFix(gpc->pop[pop][i]);
+    }
 }
