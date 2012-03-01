@@ -213,6 +213,17 @@ int ferGPCRun(fer_gpc_t *gpc);
  */
 fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc);
 
+/**
+ * Returns i'th best tree from the current population
+ */
+void *ferGPCTree(const fer_gpc_t *gpc, int i);
+
+/**
+ * Evaluates a tree using the specified data and returns a resulting class.
+ */
+int ferGPCTreeEval(fer_gpc_t *gpc, void *tree, void *data);
+
+
 void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout);
 
 /**

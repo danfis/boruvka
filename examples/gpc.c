@@ -19,6 +19,7 @@ const int *test_y;
 size_t test_len;
 
 static int readCfg(const char *fn);
+static void evalTestData(fer_gpc_t *gpc);
 
 void *dataRow(fer_gpc_t *gpc, int i, void *_)
 {
@@ -160,9 +161,9 @@ int main(int argc, char *argv[])
     params.pop_size    = 2000;
     params.max_depth   = 10;
     params.data_rows   = train_rows;
-    params.keep_best   = params.pop_size * 0.05;
-    params.throw_worst = params.pop_size * 0.05;
-    params.max_steps   = 10040;
+    params.keep_best   = 1;//params.pop_size * 0.02;
+    params.throw_worst = params.pop_size * 0.02;
+    params.max_steps   = 2040;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;
@@ -188,6 +189,7 @@ int main(int argc, char *argv[])
 
     ferGPCPrintBest(gpc, stdout);
     fprintf(stdout, "Best fitness: %f\n", ferGPCBestFitness(gpc));
+    evalTestData(gpc);
 
     ferGPCDel(gpc);
 
@@ -246,4 +248,34 @@ static int readCfg(const char *fn)
     }
 
     return 0;
+}
+
+static float correct(fer_gpc_t *gpc, int id,
+                     const fer_real_t *x, const int *y, int len)
+{
+    int i, class;
+    void *tree, *data;
+    int correct;
+
+    tree = ferGPCTree(gpc, id);
+
+    correct = 0;
+    for (i = 0; i < len; i++){
+        data = (void *)(x + (i * cols));
+        class = ferGPCTreeEval(gpc, tree, data);
+        if (class == y[i])
+            correct++;
+    }
+
+    return (float)correct / (float)len;
+}
+
+static void evalTestData(fer_gpc_t *gpc)
+{
+    int i;
+
+    for (i = 0; i < 30; i++){
+        fprintf(stdout, "Train data[%02d]: %f\n", i, correct(gpc, i, train_x, train_y, train_rows));
+        fprintf(stdout, "Test data[%02d]:  %f\n", i, correct(gpc, i, test_x, test_y, test_rows));
+    }
 }

@@ -316,6 +316,19 @@ fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc)
     return -FER_REAL_MAX;
 }
 
+void *ferGPCTree(const fer_gpc_t *gpc, int i)
+{
+    i = FER_MIN(i, gpc->pop_size[gpc->pop_cur] - 1);
+    return (void *)gpc->pop[gpc->pop_cur][i];
+}
+
+int ferGPCTreeEval(fer_gpc_t *gpc, void *tree, void *data)
+{
+    return ferGPCEvalTreeClass(gpc, (fer_gpc_tree_t *)tree, data);
+}
+
+
+
 static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
                       char *str, size_t str_maxlen, int depth)
 {
