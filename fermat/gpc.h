@@ -92,8 +92,11 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops);
 struct _fer_gpc_params_t {
     size_t pop_size;         /*!< Size of population. Default: 1 */
     size_t max_depth;        /*!< Maximal depth of a tree. Default: 5 */
-    int keep_best;           /*!< 1 if the best individual should be
-                                  reproduced to next population. Default: 1 */
+    size_t keep_best;        /*!< Number of best individuals that ought to
+                                  be reproduced to next population
+                                  preferentialy. Default: 1 */
+    size_t throw_worst;      /*!< Number of best individuals that are
+                                  thrown away preferentialy. Default: 1 */
     unsigned long max_steps; /*!< Maximal number of steps of algorithm.
                                   Default: 10 */
     size_t data_rows;        /*!< Number of data rows. Default: 0 */
@@ -130,10 +133,9 @@ struct _fer_gpc_t {
 
     fer_rand_mt_t *rand;
 
-    struct _fer_gpc_tree_t **pop[2]; /*!< Population (actual and tmp) */
+    struct _fer_gpc_tree_t **pop[3]; /*!< Population (actual and two tmps) */
     size_t pop_size[2];              /*!< Current size of populations */
     int pop_cur;                     /*!< Idx of current population array */
-    struct _fer_gpc_tree_t *best;    /*!< Best individual from population */
 
     struct _fer_gpc_pred_t *pred;    /*!< List of predicates */
     size_t pred_size, pred_len;

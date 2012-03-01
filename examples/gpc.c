@@ -109,7 +109,8 @@ int main(int argc, char *argv[])
     params.max_depth = 20;
     params.data_rows = num_rows;
     params.keep_best = 1;
-    params.max_steps = 10000;
+    params.throw_worst = 1;
+    params.max_steps = 1000;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;

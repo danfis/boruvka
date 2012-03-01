@@ -18,6 +18,7 @@
 #include <string.h>
 #include <fermat/alloc.h>
 #include <fermat/dbg.h>
+#include <fermat/sort.h>
 #include <fermat/gpc.h>
 #include <fermat/gpc-tree.h>
 
@@ -89,11 +90,12 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops)
 
 void ferGPCParamsInit(fer_gpc_params_t *params)
 {
-    params->pop_size  = 1;
-    params->max_depth = 5;
-    params->keep_best = 1;
-    params->max_steps = 10UL;
-    params->data_rows = 0;
+    params->pop_size    = 1;
+    params->max_depth   = 5;
+    params->keep_best   = 1;
+    params->throw_worst = 1;
+    params->max_steps   = 10UL;
+    params->data_rows   = 0;
 
     params->tournament_size = 5;
 
@@ -127,10 +129,9 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
 
     gpc->pop[0] = FER_ALLOC_ARR(fer_gpc_tree_t *, gpc->params.pop_size);
     gpc->pop[1] = FER_ALLOC_ARR(fer_gpc_tree_t *, gpc->params.pop_size);
+    gpc->pop[2] = FER_ALLOC_ARR(fer_gpc_tree_t *, gpc->params.pop_size);
     memset(gpc->pop[0], 0, sizeof(fer_gpc_tree_t *) * gpc->params.pop_size);
     memset(gpc->pop[1], 0, sizeof(fer_gpc_tree_t *) * gpc->params.pop_size);
-
-    gpc->best = NULL;
 
     gpc->pred_size = FER_GPC_PRED_INIT_SIZE;
     gpc->pred_len  = 0;
@@ -159,6 +160,7 @@ void ferGPCDel(fer_gpc_t *gpc)
     }
     FER_FREE(gpc->pop[0]);
     FER_FREE(gpc->pop[1]);
+    FER_FREE(gpc->pop[2]);
 
     FER_FREE(gpc->pred);
     FER_FREE(gpc->class);
@@ -215,6 +217,7 @@ int ferGPCRun(fer_gpc_t *gpc)
     int i;
     fer_real_t action;
     int pop_cur, pop_other;
+    size_t j;
 
     // early exit if we don't have any classes
     if (gpc->class_len == 0)
@@ -239,10 +242,19 @@ int ferGPCRun(fer_gpc_t *gpc)
 
     cb = 0UL;
     for (step = 0UL; step < gpc->params.max_steps; step += 1UL){
-        // copy the best individual
-        if (gpc->params.keep_best){
-            ferGPCReproduction2(gpc, pop_other, gpc->best);
+        // copy the best individuals
+        for (j = 0; j < gpc->params.keep_best; j++){
+            ferGPCReproduction2(gpc, pop_other, gpc->pop[pop_cur][j]);
         }
+
+        // throw the worst
+        for (j = 0; j < gpc->params.throw_worst; j++){
+            if (gpc->pop[pop_cur][gpc->pop_size[pop_cur] - j - 1] != NULL)
+                ferGPCTreeDel(gpc->pop[pop_cur][gpc->pop_size[pop_cur] - j - 1]);
+            gpc->pop[pop_cur][gpc->pop_size[pop_cur] - j - 1] = NULL;
+        }
+        gpc->pop_size[pop_cur] -= gpc->params.throw_worst;
+
 
         // create a new population
         while (gpc->pop_size[pop_other] < gpc->params.pop_size
@@ -293,8 +305,8 @@ int ferGPCRun(fer_gpc_t *gpc)
 
 fer_real_t ferGPCBestFitness(const fer_gpc_t *gpc)
 {
-    if (gpc->best)
-        return gpc->best->fitness;
+    if (gpc->pop[gpc->pop_cur][0])
+        return gpc->pop[gpc->pop_cur][0]->fitness;
     return -FER_REAL_MAX;
 }
 
@@ -339,10 +351,10 @@ void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout)
 {
     char str[1024];
 
-    if (!gpc->best)
+    if (!gpc->pop[gpc->pop_cur][0])
         return;
 
-    printBest(gpc, gpc->best->root, fout, str, 1024, 0);
+    printBest(gpc, gpc->pop[gpc->pop_cur][0]->root, fout, str, 1024, 0);
     fprintf(fout, "\n");
 }
 
@@ -490,17 +502,15 @@ static fer_real_t evalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 static void ferGPCEvalPop(fer_gpc_t *gpc, int pop)
 {
     size_t i;
-    fer_real_t fitness, best_fitness;
 
-    best_fitness = -FER_REAL_MAX;
     for (i = 0; i < gpc->pop_size[pop]; i++){
-        fitness = evalTree(gpc, gpc->pop[pop][i]);
-
-        if (fitness > best_fitness){
-            best_fitness = fitness;
-            gpc->best = gpc->pop[pop][i];
-        }
+        evalTree(gpc, gpc->pop[pop][i]);
     }
+
+    // sort based on fitness
+    ferRadixSortPtr((void **)gpc->pop[pop], (void **)gpc->pop[2],
+                    gpc->pop_size[pop],
+                    fer_offsetof(fer_gpc_tree_t, fitness), 1);
 }
 
 static size_t ferGPCSelectionTournament(fer_gpc_t *gpc, size_t tour_size,
