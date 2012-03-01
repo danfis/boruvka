@@ -113,6 +113,8 @@ struct _fer_gpc_params_t {
     unsigned long simplify; /*!< A simplification of the trees will be
                                  executed every {simplify} step.
                                  Default: 0 (i.e., never) */
+    unsigned long prune_deep; /*!< Prunes all trees that exceeds max_depth
+                                   every specified step. Default: 0 */
 };
 typedef struct _fer_gpc_params_t fer_gpc_params_t;
 

@@ -46,7 +46,8 @@ typedef struct _fer_gpc_class_t fer_gpc_class_t;
 
 
 /** Randomly generate a node with its subtree */
-static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_depth);
+static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, size_t depth, size_t max_depth);
+static fer_gpc_node_t *ferGPCGenClass(fer_gpc_t *gpc);
 /** Create randomly generated initial population in gpc->pop[pop] */
 static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop);
 /** Evals a tree with one data row. Returns resulting class as defined by
@@ -78,6 +79,7 @@ static void ferGPCReproduction2(fer_gpc_t *gpc, int to_pop, fer_gpc_tree_t *tree
 
 /** Simplifies all trees in speficied population */
 static void ferGPCSimplify(fer_gpc_t *gpc, int pop);
+static void ferGPCPruneDeep(fer_gpc_t *gpc, int pop);
 
 
 #define OPS_DATA(name) \
@@ -116,6 +118,7 @@ void ferGPCParamsInit(fer_gpc_params_t *params)
     params->pm        = 1;
 
     params->simplify = 0UL;
+    params->prune_deep = 0UL;
 }
 
 
@@ -227,7 +230,7 @@ size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx)
 
 int ferGPCRun(fer_gpc_t *gpc)
 {
-    unsigned long step, cb, simplify;
+    unsigned long step, cb, simplify, prune_deep;
     int pop_cur, pop_other, pop_tmp;
 
     // early exit if we don't have any classes
@@ -254,6 +257,7 @@ int ferGPCRun(fer_gpc_t *gpc)
 
     cb = 0UL;
     simplify = 0UL;
+    prune_deep = 0UL;
     for (step = 0UL; step < gpc->params.max_steps; step += 1UL){
         // perform elitism and the opposite
         ferGPCKeepBest(gpc, pop_cur, pop_other);
@@ -262,11 +266,15 @@ int ferGPCRun(fer_gpc_t *gpc)
         // create a new population
         ferGPCCreateNewPop(gpc, pop_cur, pop_other);
 
-        // evaluate a new population
-        ferGPCEvalPop(gpc, pop_other);
-
         // reset the old population
         ferGPCResetPop(gpc, pop_cur);
+
+        // prune deep trees
+        prune_deep += 1UL;
+        if (prune_deep == gpc->params.prune_deep){
+            ferGPCPruneDeep(gpc, pop_other);
+            prune_deep = 0UL;
+        }
 
         // simplify a new population
         simplify += 1UL;
@@ -274,6 +282,9 @@ int ferGPCRun(fer_gpc_t *gpc)
             ferGPCSimplify(gpc, pop_other);
             simplify = 0UL;
         }
+
+        // evaluate a new population
+        ferGPCEvalPop(gpc, pop_other);
 
         // switch old and new population
         FER_SWAP(pop_cur, pop_other, pop_tmp);
@@ -384,7 +395,7 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
 }
 
 
-static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_depth)
+static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, size_t depth, size_t max_depth)
 {
     unsigned int idx;
     fer_gpc_node_t *node;
@@ -418,11 +429,18 @@ static fer_gpc_node_t *genRandTree(fer_gpc_t *gpc, size_t depth, size_t max_dept
         // and fill descendants
         desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            desc[i] = genRandTree(gpc, depth + 1, max_depth);
+            desc[i] = ferGPCGenTree(gpc, depth + 1, max_depth);
         }
     }
 
     return node;
+}
+static fer_gpc_node_t *ferGPCGenClass(fer_gpc_t *gpc)
+{
+    unsigned int idx;
+
+    idx = ferGPCRandInt(gpc, 0, gpc->class_len);
+    return ferGPCNodeNew(idx, 0, 0);
 }
 
 
@@ -439,7 +457,7 @@ static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop)
     len = gpc->params.pop_size;
     for (i = 0; i < len; i++){
         gpc->pop[pop][i] = ferGPCTreeNew();
-        gpc->pop[pop][i]->root = genRandTree(gpc, 0, gpc->params.max_depth);
+        gpc->pop[pop][i]->root = ferGPCGenTree(gpc, 0, gpc->params.max_depth);
         ferGPCTreeFix(gpc->pop[pop][i]);
         gpc->pop_size[pop]++;
 
@@ -695,7 +713,7 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 
     // delete an old subtree and generate a new one
     ferGPCNodeDel(node);
-    *desc = genRandTree(gpc, 0, gpc->params.max_depth - depth);
+    *desc = ferGPCGenTree(gpc, 0, gpc->params.max_depth - depth);
     ferGPCTreeFix(tree);
 
     // copy the tree to destination array
@@ -750,6 +768,44 @@ static void ferGPCSimplify(fer_gpc_t *gpc, int pop)
 
     for (i = 0; i < gpc->pop_size[pop]; i++){
         gpc->pop[pop][i]->root = ferGPCSimplifySubtree(gpc, gpc->pop[pop][i]->root);
+        ferGPCTreeFix(gpc->pop[pop][i]);
+    }
+}
+
+
+static void ferGPCPruneDeepSubtree(fer_gpc_t *gpc, fer_gpc_node_t *node,
+                                   int depth)
+{
+    fer_gpc_node_t **desc;
+    uint8_t i;
+
+    if (node->ndesc == 0)
+        return;
+
+    desc = FER_GPC_NODE_DESC(node);
+
+    if (depth == gpc->params.max_depth - 1){
+        for (i = 0; i < node->ndesc; i++){
+            if (desc[i]->ndesc != 0){
+                ferGPCNodeDel(desc[i]);
+                desc[i] = ferGPCGenClass(gpc);
+            }
+        }
+    }else{
+        for (i = 0; i < node->ndesc; i++){
+            if (desc[i]->ndesc != 0){
+                ferGPCPruneDeepSubtree(gpc, desc[i], depth + 1);
+            }
+        }
+    }
+}
+
+static void ferGPCPruneDeep(fer_gpc_t *gpc, int pop)
+{
+    size_t i;
+
+    for (i = 0; i < gpc->pop_size[pop]; i++){
+        ferGPCPruneDeepSubtree(gpc, gpc->pop[pop][i]->root, 0);
         ferGPCTreeFix(gpc->pop[pop][i]);
     }
 }

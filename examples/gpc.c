@@ -146,16 +146,17 @@ int main(int argc, char *argv[])
 
     ferGPCParamsInit(&params);
     params.pop_size  = 1000;
-    params.max_depth = 10;
+    params.max_depth = 5;
     params.data_rows = num_rows;
     params.keep_best = 20;
     params.throw_worst = 20;
-    params.max_steps = 1000;
+    params.max_steps = 2001;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;
     params.pm = 10;
     params.simplify = 100UL;
+    params.prune_deep = 100UL;
 
     gpc = ferGPCNew(&ops, &params);
 
