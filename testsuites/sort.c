@@ -25,10 +25,18 @@ TEST(sortRadixPtr)
         arr[i]->key = ferRand(&rnd, -10., 10.);
     }
 
-    ferRadixSortPtr((void **)arr, (void **)tmp, len, fer_offsetof(struct rs_t, key));
-
+    ferRadixSortPtr((void **)arr, (void **)tmp, len, fer_offsetof(struct rs_t, key), 0);
     for (i = 1; i < len; i++){
         assertTrue(arr[i]->key > arr[i - 1]->key);
+    }
+
+
+    for (i = 0; i < len; i++){
+        arr[i]->key = ferRand(&rnd, -10., 10.);
+    }
+    ferRadixSortPtr((void **)arr, (void **)tmp, len, fer_offsetof(struct rs_t, key), 1);
+    for (i = 1; i < len; i++){
+        assertTrue(arr[i]->key < arr[i - 1]->key);
     }
 
     for (i = 0; i < len; i++){

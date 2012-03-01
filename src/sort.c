@@ -247,7 +247,8 @@ static void radixSortPtrSortFinal(void **src, uint32_t srclen,
                                   size_t offset,
                                   uint32_t *counter,
                                   uint32_t negative,
-                                  uint32_t shift)
+                                  uint32_t shift,
+                                  int reverse)
 {
     uint32_t i;
     fer_uint_t val, pos;
@@ -261,13 +262,18 @@ static void radixSortPtrSortFinal(void **src, uint32_t srclen,
             pos = negative + pos;
         }
 
+        if (reverse){
+            pos = dstlen - 1 - pos;
+        }
+
         dst[pos] = src[i];
 
         ++counter[val];
     }
 }
 
-void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen, size_t offset)
+void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
+                     size_t offset, int desc)
 {
     void **src, **dst, **tmp;
     uint32_t shift, i, len;
@@ -290,7 +296,7 @@ void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen, size_t offset)
 
     radixSortPtrCountFinal(src, arrlen, offset, counter, &negative, shift);
     radixSortPtrFixCounter(counter);
-    radixSortPtrSortFinal(src, arrlen, dst, arrlen, offset, counter, negative, shift);
+    radixSortPtrSortFinal(src, arrlen, dst, arrlen, offset, counter, negative, shift, desc);
 }
 /**** RADIX SORT PTR END ****/
 

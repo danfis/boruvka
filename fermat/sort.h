@@ -44,8 +44,10 @@ void ferRadixSort(fer_radix_sort_t *rs, fer_radix_sort_t *tmp, size_t len);
  * Sorts an array {arr} using radix sort algorithm.
  * Each element of the array is considered as pointer to a struct and an
  * {offset} is offset of fer_real_t key inside that struct.
+ * If {descending} is set to true, elements are sorted in descending order.
  */
-void ferRadixSortPtr(void **arr, void **tmp, size_t len, size_t offset);
+void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
+                     size_t offset, int descending);
 
 /**
  * Callback for list sorts.
