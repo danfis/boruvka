@@ -23,6 +23,7 @@
 #include "nn.h"
 #include "cfg.h"
 #include "opts.h"
+#include "sort.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -56,6 +57,8 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSCfg),
     TEST_SUITE_ADD(TSOpts),
+
+    TEST_SUITE_ADD(TSSort),
 
     TEST_SUITES_CLOSURE
 };

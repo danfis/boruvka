@@ -155,6 +155,145 @@ void ferRadixSort(fer_radix_sort_t *rs, fer_radix_sort_t *rs_tmp, size_t rslen)
 /**** RADIX SORT END ****/
 
 
+/**** RADIX SORT PTR ****/
+_fer_inline fer_real_t radixSortPtrKey(const void *el, size_t offset)
+{
+    return *(fer_real_t *)((char *)el + offset);
+}
+
+_fer_inline uint32_t radixSortPtrVal(const void *el, size_t offset,
+                                     uint32_t shift)
+{
+    fer_uint_t val;
+
+    val = ferRealAsUInt(radixSortPtrKey(el, offset));
+    val = (val >> shift) & RADIX_SORT_MASK;
+
+    return val;
+}
+
+_fer_inline void radixSortPtrZeroizeCounter(uint32_t *counter)
+{
+    int i;
+    for (i = 0; i < 256; i++)
+        counter[i] = 0;
+}
+
+static void radixSortPtrCount(void * const*m,
+                              uint32_t len, size_t offset,
+                              uint32_t *counter, uint32_t shift)
+{
+    uint32_t i;
+    fer_uint_t val;
+
+    radixSortPtrZeroizeCounter(counter);
+    for (i = 0; i < len; i++){
+        val = radixSortPtrVal(m[i], offset, shift);
+        ++counter[val];
+    }
+}
+
+static void radixSortPtrCountFinal(void * const*m,
+                                   uint32_t len,
+                                   size_t offset,
+                                   uint32_t *counter,
+                                   uint32_t *negative,
+                                   uint32_t shift)
+{
+    uint32_t i;
+    fer_uint_t val;
+
+    radixSortPtrZeroizeCounter(counter);
+    *negative = 0;
+    for (i = 0; i < len; i++){
+        val = radixSortPtrVal(m[i], offset, shift);
+        ++counter[val];
+
+        if (radixSortPtrKey(m[i], offset) < FER_ZERO)
+            ++(*negative);
+    }
+}
+
+static void radixSortPtrFixCounter(uint32_t *counter)
+{
+    uint32_t i, val, t;
+
+    val = 0;
+    for (i = 0; i < 256; i++){
+        t = counter[i];
+        counter[i] = val;
+        val += t;
+    }
+}
+
+static void radixSortPtrSort(void **src, void **dst,
+                             uint32_t len,
+                             size_t offset,
+                             uint32_t *counter,
+                             uint32_t shift)
+{
+    uint32_t i;
+    fer_uint_t val;
+
+    for (i = 0; i < len; i++){
+        val = radixSortPtrVal(src[i], offset, shift);
+        dst[counter[val]] = src[i];
+        ++counter[val];
+    }
+}
+
+static void radixSortPtrSortFinal(void **src, uint32_t srclen,
+                                  void **dst, uint32_t dstlen,
+                                  size_t offset,
+                                  uint32_t *counter,
+                                  uint32_t negative,
+                                  uint32_t shift)
+{
+    uint32_t i;
+    fer_uint_t val, pos;
+
+    for (i = 0; i < srclen; i++){
+        val = radixSortPtrVal(src[i], offset, shift);
+        pos = counter[val];
+        if (pos >= dstlen - negative){
+            pos = dstlen - pos - 1;
+        }else{
+            pos = negative + pos;
+        }
+
+        dst[pos] = src[i];
+
+        ++counter[val];
+    }
+}
+
+void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen, size_t offset)
+{
+    void **src, **dst, **tmp;
+    uint32_t shift, i, len;
+    uint32_t counter[RADIX_SORT_MASK], negative;
+
+
+    len = (fer_uint_t)sizeof(fer_real_t) - 1;
+    shift = 0;
+    src = arr;
+    dst = tmp_arr;
+    for (i = 0; i < len; i++){
+        radixSortPtrCount(src, arrlen, offset, counter, shift);
+        radixSortPtrCount(src, arrlen, offset, counter, shift);
+        radixSortPtrFixCounter(counter);
+        radixSortPtrSort(src, dst, arrlen, offset, counter, shift);
+
+        shift += 8;
+        FER_SWAP(src, dst, tmp);
+    }
+
+    radixSortPtrCountFinal(src, arrlen, offset, counter, &negative, shift);
+    radixSortPtrFixCounter(counter);
+    radixSortPtrSortFinal(src, arrlen, dst, arrlen, offset, counter, negative, shift);
+}
+/**** RADIX SORT PTR END ****/
+
 /**** INSERT SORT LIST ****/
 void ferInsertSortList(fer_list_t *list, fer_list_sort_lt cb, void *data)
 {

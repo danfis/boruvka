@@ -4,6 +4,7 @@ ifneq '$(DEBUG)' 'no'
 endif
 
 -include ../Makefile.include
+-include ../Makefile.local
 
 CFLAGS += -I./ -I../ -Icu/
 CXXFLAGS += -I./ -I../ -Icu/
@@ -45,7 +46,7 @@ BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        mat3.o mat4.o gug.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o \
-       tasks.o task-pool.o vptree.o nn.o cfg.o opts.o
+       tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o \
 			data-protein-big.o data-protein-small.o
