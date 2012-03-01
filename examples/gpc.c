@@ -2,19 +2,27 @@
 #include <fermat/gpc.h>
 #include <fermat/dbg.h>
 #include <fermat/alloc.h>
+#include <fermat/cfg.h>
 
-fer_real_t **data;
-size_t num_rows;
-size_t num_cols;
-int *data_cl;
-size_t num_cl;
+fer_cfg_t *cfg = NULL;
 
-static int readData(const char *fn, fer_real_t ***data, int **cl,
-                    size_t *num_rows, size_t *num_cols, size_t *num_cl);
+int classes, cols;
+
+int train_rows;
+const fer_real_t *train_x;
+const int *train_y;
+size_t train_len;
+
+int test_rows;
+const fer_real_t *test_x;
+const int *test_y;
+size_t test_len;
+
+static int readCfg(const char *fn);
 
 void *dataRow(fer_gpc_t *gpc, int i, void *_)
 {
-    return (void *)data[i];
+    return (void *)(train_x + (i * cols));
 }
 
 fer_real_t fitness(fer_gpc_t *gpc, int *class, void *_)
@@ -22,11 +30,11 @@ fer_real_t fitness(fer_gpc_t *gpc, int *class, void *_)
     int i, ft;
 
     ft = 0;
-    for (i = 0; i < num_rows; i++){
-        ft += (class[i] == data_cl[i]);
+    for (i = 0; i < train_rows; i++){
+        ft += (class[i] == train_y[i]);
     }
 
-    return ((fer_real_t)ft) / num_rows;
+    return ((fer_real_t)ft) / train_rows;
 }
 
 void callback(fer_gpc_t *gpc, void *_)
@@ -35,8 +43,8 @@ void callback(fer_gpc_t *gpc, void *_)
 
     ferGPCStats(gpc, &stats);
     fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f "
-                    "| nodes - min: % 2d, max: % 5d, avg: % 7.2f"
-                    "| depth - min: % 2d, max: % 5d, avg: % 7.2f\n",
+                    "| nodes - min: % 2d, max: % 5d, avg: % 7.2f "
+                    "| depth - min: % 2d, max: % 5d, avg: % 7.2f\r",
             stats.elapsed, stats.min_fitness, stats.max_fitness,
             stats.avg_fitness, stats.med_fitness,
             (int)stats.min_nodes, (int)stats.max_nodes, stats.avg_nodes,
@@ -53,7 +61,7 @@ struct cmp_t {
 void cmpInit(fer_gpc_t *gpc, void *mem, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
-    m->idx = ferGPCRandInt(gpc, 0, num_cols);
+    m->idx = ferGPCRandInt(gpc, 0, cols);
     m->val = ferGPCRand(gpc, -1., 1.);
 }
 
@@ -90,9 +98,9 @@ struct cmp2_t {
 void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
-    m->idx1 = ferGPCRandInt(gpc, 0, num_cols);
+    m->idx1 = ferGPCRandInt(gpc, 0, cols);
     do {
-        m->idx2 = ferGPCRandInt(gpc, 0, num_cols);
+        m->idx2 = ferGPCRandInt(gpc, 0, cols);
     } while (m->idx2 == m->idx1);
 }
 
@@ -127,20 +135,20 @@ int main(int argc, char *argv[])
 {
     int res;
     size_t i;
+    fer_gpc_ops_t ops;
+    fer_gpc_params_t params;
+    fer_gpc_t *gpc;
+
 
     if (argc != 2){
         fprintf(stderr, "Usage: %s data.train\n", argv[0]);
         return -1;
     }
 
-    if (readData(argv[1], &data, &data_cl, &num_rows, &num_cols, &num_cl) != 0){
+    if (readCfg(argv[1]) != 0){
         fprintf(stderr, "Invalid input file `%s'\n", argv[1]);
         return -1;
     }
-
-    fer_gpc_ops_t ops;
-    fer_gpc_params_t params;
-    fer_gpc_t *gpc;
 
     ferGPCOpsInit(&ops);
     ops.fitness  = fitness;
@@ -149,22 +157,22 @@ int main(int argc, char *argv[])
     ops.callback_period = 20;
 
     ferGPCParamsInit(&params);
-    params.pop_size    = 1000;
-    params.max_depth   = 5;
-    params.data_rows   = num_rows;
-    params.keep_best   = params.pop_size * 0.1;
-    params.throw_worst = params.pop_size * 0.1;
-    params.max_steps   = 5001;
+    params.pop_size    = 2000;
+    params.max_depth   = 10;
+    params.data_rows   = train_rows;
+    params.keep_best   = params.pop_size * 0.05;
+    params.throw_worst = params.pop_size * 0.05;
+    params.max_steps   = 10040;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;
     params.pm = 10;
     params.simplify = 100UL;
-    params.prune_deep = 100UL;
+    params.prune_deep = 50UL;
 
     gpc = ferGPCNew(&ops, &params);
 
-    for (i = 0; i < num_cl; i++){
+    for (i = 0; i < classes; i++){
         ferGPCAddClass(gpc, i);
     }
 
@@ -183,40 +191,59 @@ int main(int argc, char *argv[])
 
     ferGPCDel(gpc);
 
+    if (cfg)
+        ferCfgDel(cfg);
+
     return 0;
 }
 
 
-static int readData(const char *fn, fer_real_t ***data, int **cl,
-                    size_t *num_rows, size_t *num_cols, size_t *num_cl)
+static int readCfg(const char *fn)
 {
-    FILE *fin;
-    int len, num_preds, i, j, ncl;
+    size_t len;
 
-    fin = fopen(fn, "r");
-    if (!fin)
+    if ((cfg = ferCfgRead(fn)) == NULL)
         return -1;
 
-    fscanf(fin, "%d %d %d", &len, &num_preds, &ncl);
-    *num_rows = len;
-    *num_cols = num_preds;
-    *num_cl   = ncl;
-
-    *data = FER_ALLOC_ARR(fer_real_t *, len);
-    *cl   = FER_ALLOC_ARR(int, len);
-
-    for (i = 0; i < len; i++){
-        // class
-        fscanf(fin, "%d", &(*cl)[i]);
-
-        (*data)[i] = FER_ALLOC_ARR(fer_real_t, num_preds);
-        for (j = 0; j < num_preds; j++){
-            fscanf(fin, "%f", &(*data)[i][j]);
-        }
+    if (!ferCfgParamIsInt(cfg, "classes")
+            || !ferCfgParamIsInt(cfg, "cols")
+            || !ferCfgParamIsInt(cfg, "train_rows")
+            || !ferCfgParamIsInt(cfg, "test_rows")
+            || !ferCfgParamIsFlt(cfg, "train_x")
+            || !ferCfgParamIsArr(cfg, "train_x")
+            || !ferCfgParamIsInt(cfg, "train_y")
+            || !ferCfgParamIsArr(cfg, "train_y")
+            || !ferCfgParamIsFlt(cfg, "test_x")
+            || !ferCfgParamIsArr(cfg, "test_x")
+            || !ferCfgParamIsInt(cfg, "test_y")
+            || !ferCfgParamIsArr(cfg, "test_y")
+       ){
+        ferCfgDel(cfg);
+        return -1;
     }
 
+    ferCfgParamInt(cfg, "classes", &classes);
+    ferCfgParamInt(cfg, "cols", &cols);
 
-    fclose(fin);
+    ferCfgParamInt(cfg, "train_rows", &train_rows);
+    ferCfgParamFltArr(cfg, "train_x", &train_x, &len);
+    ferCfgParamIntArr(cfg, "train_y", &train_y, &train_len);
+    if (len / cols != train_len){
+        fprintf(stderr, "Error: len(train_x) != len(train_y) [%d != %d]\n",
+                (int)train_len, (int)(len / cols));
+        ferCfgDel(cfg);
+        return -1;
+    }
+
+    ferCfgParamInt(cfg, "test_rows", &test_rows);
+    ferCfgParamFltArr(cfg, "test_x", &test_x, &len);
+    ferCfgParamIntArr(cfg, "test_y", &test_y, &test_len);
+    if (len / cols != test_len){
+        fprintf(stderr, "Error: len(test_x) != len(test_y) [%d != %d]\n",
+                (int)test_len, (int)(len / cols));
+        ferCfgDel(cfg);
+        return -1;
+    }
 
     return 0;
 }
