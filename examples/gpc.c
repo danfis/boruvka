@@ -23,10 +23,11 @@ fer_gpc_ops_t ops;
 fer_gpc_params_t params;
 int help = 0;
 int verbose = 0;
+int output_results = 1;
+const char *output_prefix = "result";
 
 
 static int readCfg(const char *fn);
-static void evalTestData(fer_gpc_t *gpc);
 
 static void *dataRow(fer_gpc_t *gpc, int i, void *_);
 static fer_real_t fitness(fer_gpc_t *gpc, int *class, void *_);
@@ -51,6 +52,7 @@ static void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max
 static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
 static void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
 
+static void outputResults(fer_gpc_t *gpc);
 
 
 static int opts(int *argc, char *argv[])
@@ -79,8 +81,15 @@ static int opts(int *argc, char *argv[])
 
     ferOptsAddDesc("help", 0x0, FER_OPTS_NONE, (void *)&help, NULL,
                    "Print this help");
+    ferOptsAddDesc("verbose", 'v', FER_OPTS_NONE, &verbose, NULL,
+                   "Turn on verbose mode.");
     ferOptsAddDesc("progress-period", 0x0, FER_OPTS_LONG, (long *)&ops.callback_period, NULL,
                    "Set up period of progress refreshing.");
+
+    ferOptsAddDesc("output-results", 'o', FER_OPTS_INT, &output_results, NULL,
+                   "Print specified number of best individuals. Default: 1");
+    ferOptsAddDesc("output-prefix", 'p', FER_OPTS_STR, &output_prefix, NULL,
+                   "Set up prefix of output file. Default: `result'");
 
     ferOptsAddDesc("pop-size", 0x0, FER_OPTS_INT, &params.pop_size, NULL,
                    "Population size. Default: 200");
@@ -105,8 +114,6 @@ static int opts(int *argc, char *argv[])
                    "All individuals are simplified every specified step.  Default: 100");
     ferOptsAddDesc("prune-deep", 0x0, FER_OPTS_LONG, (long *)&params.prune_deep, NULL,
                    "Prune all deep trees every specified step. Default: 100");
-    ferOptsAddDesc("verbose", 'v', FER_OPTS_NONE, &verbose, NULL,
-                   "Turn on verbose mode.");
 
 
     if (ferOpts(argc, argv) != 0)
@@ -185,10 +192,9 @@ int main(int argc, char *argv[])
     res = ferGPCRun(gpc);
     callback(gpc, NULL);
     fprintf(stderr, "\n");
-
-    ferGPCPrintBest(gpc, stdout);
     fprintf(stdout, "Best fitness: %f\n", ferGPCBestFitness(gpc));
-    evalTestData(gpc);
+
+    outputResults(gpc);
 
     ferGPCDel(gpc);
 
@@ -251,37 +257,6 @@ static int readCfg(const char *fn)
     return 0;
 }
 
-static float correct(fer_gpc_t *gpc, int id,
-                     const fer_real_t *x, const int *y, int len)
-{
-    int i, class;
-    void *tree, *data;
-    int correct;
-
-    tree = ferGPCTree(gpc, id);
-
-    correct = 0;
-    for (i = 0; i < len; i++){
-        data = (void *)(x + (i * cols));
-        class = ferGPCTreeEval(gpc, tree, data);
-        if (class == y[i])
-            correct++;
-    }
-
-    return (float)correct / (float)len;
-}
-
-static void evalTestData(fer_gpc_t *gpc)
-{
-    int i;
-
-    for (i = 0; i < 30; i++){
-        fprintf(stdout, "Train data[%02d]: %f\n", i, correct(gpc, i, train_x, train_y, train_rows));
-        fprintf(stdout, "Test data[%02d]:  %f\n", i, correct(gpc, i, test_x, test_y, test_rows));
-    }
-}
-
-
 static void *dataRow(fer_gpc_t *gpc, int i, void *_)
 {
     return (void *)(train_x + (i * cols));
@@ -305,12 +280,12 @@ static void callback(fer_gpc_t *gpc, void *_)
 
     ferGPCStats(gpc, &stats);
     fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f "
-                    "| nodes - min: % 2d, max: % 5d, avg: % 7.2f "
-                    "| depth - min: % 2d, max: % 5d, avg: % 7.2f\r",
+                    "| depth: %.2f (%3d) "
+                    "| nodes: %.2f (%4d)\r",
             stats.elapsed, stats.min_fitness, stats.max_fitness,
             stats.avg_fitness, stats.med_fitness,
-            (int)stats.min_nodes, (int)stats.max_nodes, stats.avg_nodes,
-            (int)stats.min_depth, (int)stats.max_depth, stats.avg_depth);
+            stats.avg_depth, stats.max_depth,
+            stats.avg_nodes, stats.max_nodes);
     fflush(stderr);
 }
 
@@ -332,7 +307,7 @@ static int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 static void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
-    snprintf(str, max, "lt[%d] < %f", (int)m->idx, m->val);
+    snprintf(str, max, "data[%d] < %f", (int)m->idx, m->val);
 }
 
 static int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
@@ -345,7 +320,7 @@ static int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 static void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
-    snprintf(str, max, "gt[%d] > %f", (int)m->idx, m->val);
+    snprintf(str, max, "data[%d] > %f", (int)m->idx, m->val);
 }
 
 
@@ -370,7 +345,7 @@ static int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 static void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
-    snprintf(str, max, "[%d] < [%d]", m->idx1, m->idx2);
+    snprintf(str, max, "data[%d] < data[%d]", m->idx1, m->idx2);
 }
 
 static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
@@ -383,5 +358,55 @@ static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 static void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
-    snprintf(str, max, "[%d] > [%d]", m->idx1, m->idx2);
+    snprintf(str, max, "data[%d] > data[%d]", m->idx1, m->idx2);
 }
+
+
+static float correct(fer_gpc_t *gpc, int id,
+                     const fer_real_t *x, const int *y, int len)
+{
+    int i, class;
+    void *tree, *data;
+    int correct;
+
+    tree = ferGPCTree(gpc, id);
+
+    correct = 0;
+    for (i = 0; i < len; i++){
+        data = (void *)(x + (i * cols));
+        class = ferGPCTreeEval(gpc, tree, data);
+        if (class == y[i])
+            correct++;
+    }
+
+    return (float)correct / (float)len;
+}
+
+static void outputResults(fer_gpc_t *gpc)
+{
+    int i;
+    void *tree;
+    char fn[1024];
+    FILE *fout;
+
+    for (i = 0; i < output_results; i++){
+        tree = ferGPCTree(gpc, i);
+        if (!tree)
+            break;
+
+        snprintf(fn, 1024, "%s%04d", output_prefix, i);
+        fout = fopen(fn, "w");
+        if (!fout){
+            fprintf(stderr, "Error: Can't open the file `%s'\n", fn);
+            continue;
+        }
+
+        fprintf(fout, "// Train accuracy: %f\n", correct(gpc, i, train_x, train_y, train_rows));
+        fprintf(fout, "// Test accuracy: %f\n", correct(gpc, i, test_x, test_y, test_rows));
+        ferGPCTreePrintC(gpc, tree, "predict", fout);
+        fclose(fout);
+    }
+    //evalTestData(gpc);
+}
+
+

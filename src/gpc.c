@@ -334,48 +334,56 @@ static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
                       char *str, size_t str_maxlen, int depth)
 {
     fer_gpc_node_t **desc;
-    int i;
+    int i, j;
 
     str[0] = 0x0;
 
     for (i = 0; i < depth; i++){
-        fprintf(fout, "  ");
+        fprintf(fout, "    ");
     }
 
-    fprintf(fout, "(");
-
     if (node->ndesc == 0){
-        // TODO
-        fprintf(fout, "%d", gpc->class[node->idx].class);
+        fprintf(fout, "return %d;\n", gpc->class[node->idx].class);
     }else{
+        fprintf(fout, "if (");
         if (gpc->pred[node->idx].format){
             gpc->pred[node->idx].format(gpc, FER_GPC_NODE_MEM(node),
                                         gpc->pred[node->idx].data,
                                         str, str_maxlen);
             fprintf(fout, "%s", str);
         }else{
-            fprintf(fout, "PRED");
+            fprintf(fout, "UNKOWN PREDICATE");
         }
+        fprintf(fout, "){\n");
 
         desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            fprintf(fout, "\n");
             printBest(gpc, desc[i], fout, str, str_maxlen, depth + 1);
+            if (i < node->ndesc - 1){
+                for (j = 0; j < depth; j++)
+                    fprintf(fout, "    ");
+                fprintf(fout, "}else{\n");
+            }
         }
 
+        for (i = 0; i < depth; i++)
+            fprintf(fout, "    ");
+        fprintf(fout, "}\n");
     }
 
-    fprintf(fout, ")");
 }
-void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout)
+
+void ferGPCTreePrintC(fer_gpc_t *gpc, void *_tree, const char *func_name, FILE *fout)
 {
+    fer_gpc_tree_t *tree = (fer_gpc_tree_t *)_tree;
     char str[1024];
 
-    if (!gpc->pop[gpc->pop_cur][0])
+    if (!tree)
         return;
 
-    printBest(gpc, gpc->pop[gpc->pop_cur][0]->root, fout, str, 1024, 0);
-    fprintf(fout, "\n");
+    fprintf(fout, "int %s(fer_real_t *data)\n{\n", func_name);
+    printBest(gpc, tree->root, fout, str, 1024, 1);
+    fprintf(fout, "}\n");
 }
 
 void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)

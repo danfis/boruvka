@@ -235,7 +235,7 @@ static void ferGPCNodePrint(const fer_gpc_node_t *node, FILE *fout, int depth)
     }
 }
 
-void ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout)
+void __ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout)
 {
     fprintf(fout, "fitness: %f, num_nodes: %d [%lx]\n",
             tree->fitness, (int)tree->num_nodes, (long)tree);

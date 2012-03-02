@@ -223,8 +223,10 @@ void *ferGPCTree(const fer_gpc_t *gpc, int i);
  */
 int ferGPCTreeEval(fer_gpc_t *gpc, void *tree, void *data);
 
-
-void ferGPCPrintBest(fer_gpc_t *gpc, FILE *fout);
+/**
+ * Prints formated tree in form of C function to specified file.
+ */
+void ferGPCTreePrintC(fer_gpc_t *gpc, void *tree, const char *func_name, FILE *out);
 
 /**
  * Returns random number from range

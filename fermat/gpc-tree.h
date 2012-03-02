@@ -118,7 +118,7 @@ fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, int idx,
 /**
  * Pretty print of a tree. For debug purposes.
  */
-void ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout);
+void __ferGPCTreePrint(const fer_gpc_tree_t *tree, FILE *fout);
 
 #ifdef __cplusplus
 } /* extern "C" */
