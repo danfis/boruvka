@@ -32,7 +32,7 @@ struct _fer_gpc_pred_t {
     fer_gpc_pred_init init; /*!< Initialization callback */
     fer_gpc_pred_format format; /*!< Format callback */
     size_t memsize;         /*!< Size of allocated memory per predicate instance */
-    unsigned int ndesc;     /*!< Number of descendants */
+    int ndesc;              /*!< Number of descendants */
     void *data;             /*!< User data */
 };
 typedef struct _fer_gpc_pred_t fer_gpc_pred_t;
@@ -47,7 +47,7 @@ typedef struct _fer_gpc_class_t fer_gpc_class_t;
 
 
 /** Randomly generate a node with its subtree */
-static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, size_t depth, size_t max_depth);
+static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, int depth, int max_depth);
 static fer_gpc_node_t *ferGPCGenClass(fer_gpc_t *gpc);
 /** Create randomly generated initial population in gpc->pop[pop] */
 static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop);
@@ -69,8 +69,8 @@ static void ferGPCCreateNewPop(fer_gpc_t *gpc, int from_pop, int to_pop);
  *  truncate it to zero length. */
 static void ferGPCResetPop(fer_gpc_t *gpc, int pop);
 /** Tournament selection */
-static size_t ferGPCSelectionTournament(fer_gpc_t *gpc, size_t tour_size,
-                                        fer_gpc_tree_t **pop, size_t pop_size);
+static int ferGPCSelectionTournament(fer_gpc_t *gpc, int tour_size,
+                                     fer_gpc_tree_t **pop, int pop_size);
 /** Genetic operators: */
 static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop);
 static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop);
@@ -150,6 +150,7 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
     gpc->pop[2] = FER_ALLOC_ARR(fer_gpc_tree_t *, gpc->params.pop_size);
     memset(gpc->pop[0], 0, sizeof(fer_gpc_tree_t *) * gpc->params.pop_size);
     memset(gpc->pop[1], 0, sizeof(fer_gpc_tree_t *) * gpc->params.pop_size);
+    gpc->pop_size[0] = gpc->pop_size[2] = 0;
 
     gpc->pred_size = FER_GPC_PRED_INIT_SIZE;
     gpc->pred_len  = 0;
@@ -166,7 +167,7 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
 
 void ferGPCDel(fer_gpc_t *gpc)
 {
-    size_t i;
+    int i;
 
     ferRandMTDel(gpc->rand);
 
@@ -190,7 +191,7 @@ int ferGPCAddPred(fer_gpc_t *gpc,
                   fer_gpc_pred pred,
                   fer_gpc_pred_init init,
                   fer_gpc_pred_format format,
-                  unsigned int num_descendants, size_t memsize,
+                  int num_descendants, size_t memsize,
                   void *data)
 {
     if (gpc->pred_len >= gpc->pred_size){
@@ -222,7 +223,7 @@ int ferGPCAddClass(fer_gpc_t *gpc, int class_id)
     return 0;
 }
 
-size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx)
+int __ferGPCPredMemsize(const fer_gpc_t *gpc, int idx)
 {
     return gpc->pred[idx].memsize;
 }
@@ -387,10 +388,10 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
     stats->min_fitness = FER_REAL_MAX;
     stats->max_fitness = -FER_REAL_MAX;
     stats->avg_fitness = FER_ZERO;
-    stats->min_nodes = UINT_MAX;
+    stats->min_nodes = INT_MAX;
     stats->max_nodes = 0;
     stats->avg_nodes = 0;
-    stats->min_depth = UINT_MAX;
+    stats->min_depth = INT_MAX;
     stats->max_depth = 0;
     stats->avg_depth = 0;
     for (i = 0; i < gpc->pop_size[pop]; i++){
@@ -429,12 +430,11 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
 }
 
 
-static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, size_t depth, size_t max_depth)
+static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, int depth, int max_depth)
 {
-    unsigned int idx;
     fer_gpc_node_t *node;
     fer_gpc_node_t **desc;
-    uint8_t i;
+    int idx, i;
 
     // Randomly choose a predicate or a class.
     // If max_depth is reached, generate only a class.
@@ -471,8 +471,7 @@ static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, size_t depth, size_t max_de
 }
 static fer_gpc_node_t *ferGPCGenClass(fer_gpc_t *gpc)
 {
-    unsigned int idx;
-
+    int idx;
     idx = ferGPCRandInt(gpc, 0, gpc->class_len);
     return ferGPCNodeNew(idx, 0, 0);
 }
@@ -480,8 +479,8 @@ static fer_gpc_node_t *ferGPCGenClass(fer_gpc_t *gpc)
 
 static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop)
 {
-    size_t i, len;
-    size_t pop_other;
+    int i, len;
+    int pop_other;
 
     pop_other = (pop + 1) % 2;
 
@@ -507,7 +506,7 @@ static int ferGPCEvalTreeClass(fer_gpc_t *gpc, fer_gpc_tree_t *tree, void *data)
     fer_gpc_node_t **desc;
     fer_gpc_pred pred;
     void *mem;
-    unsigned int dispatch;
+    int dispatch;
 
     // traverse the decision tree
     node = tree->root;
@@ -529,8 +528,7 @@ static int ferGPCEvalTreeClass(fer_gpc_t *gpc, fer_gpc_tree_t *tree, void *data)
 
 static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 {
-    size_t i;
-    int class;
+    int i, class;
     void *data;
 
     for (i = 0; i < gpc->params.data_rows; i++){
@@ -553,7 +551,7 @@ static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 
 static void ferGPCEvalPop(fer_gpc_t *gpc, int pop)
 {
-    size_t i;
+    int i;
 
     for (i = 0; i < gpc->pop_size[pop]; i++){
         ferGPCEvalTree(gpc, gpc->pop[pop][i]);
@@ -567,7 +565,7 @@ static void ferGPCEvalPop(fer_gpc_t *gpc, int pop)
 
 static void ferGPCKeepBest(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
-    size_t i;
+    int i;
 
     // copy the best individuals
     for (i = 0; i < gpc->params.keep_best; i++){
@@ -579,7 +577,7 @@ static void ferGPCKeepBest(fer_gpc_t *gpc, int from_pop, int to_pop)
 static void ferGPCThrowWorst(fer_gpc_t *gpc, int pop)
 {
     fer_gpc_tree_t *tree;
-    size_t i;
+    int i;
 
     // throw the worst
     for (i = 0; i < gpc->params.throw_worst; i++){
@@ -616,7 +614,7 @@ static void ferGPCCreateNewPop(fer_gpc_t *gpc, int from_pop, int to_pop)
 
 static void ferGPCResetPop(fer_gpc_t *gpc, int pop)
 {
-    size_t i;
+    int i;
 
     for (i = 0; i < gpc->pop_size[pop]; i++){
         if (gpc->pop[pop][i])
@@ -626,11 +624,11 @@ static void ferGPCResetPop(fer_gpc_t *gpc, int pop)
     gpc->pop_size[pop] = 0;
 }
 
-static size_t ferGPCSelectionTournament(fer_gpc_t *gpc, size_t tour_size,
-                                        fer_gpc_tree_t **pop, size_t pop_size)
+static int ferGPCSelectionTournament(fer_gpc_t *gpc, int tour_size,
+                                     fer_gpc_tree_t **pop, int pop_size)
 {
     fer_real_t best_fitness;
-    size_t i, sel, best = 0;
+    int i, sel, best = 0;
 
     best_fitness = -FER_REAL_MAX;
     for (i = 0; i < tour_size; i++){
@@ -645,7 +643,7 @@ static size_t ferGPCSelectionTournament(fer_gpc_t *gpc, size_t tour_size,
 
 static void ferGPCReproduction(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
-    size_t idx;
+    int idx;
 
     // select an individual from population
     idx = ferGPCSelectionTournament(gpc, gpc->params.tournament_size,
@@ -664,9 +662,8 @@ static void ferGPCReproduction2(fer_gpc_t *gpc, int to_pop, fer_gpc_tree_t *tree
 
 static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
-    size_t idx[2];
-    size_t node_idx[2];
-    size_t depth[2];
+    int idx[2], node_idx[2];
+    int depth[2];
     int i;
     fer_gpc_node_t *node[2];
     fer_gpc_node_t **desc[2];
@@ -726,8 +723,8 @@ static void ferGPCCrossover(fer_gpc_t *gpc, int from_pop, int to_pop)
 
 static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 {
-    size_t idx, node_idx;
-    size_t depth;
+    int idx, node_idx;
+    int depth;
     fer_gpc_tree_t *tree;
     fer_gpc_node_t *node, **desc;
 
@@ -763,8 +760,7 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 
 static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *node)
 {
-    uint8_t i;
-    unsigned int idx;
+    int i, idx;
     fer_gpc_node_t **desc, *rnode;
 
     if (node->ndesc == 0)
@@ -798,7 +794,7 @@ static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *nod
 
 static void ferGPCSimplify(fer_gpc_t *gpc, int pop)
 {
-    size_t i;
+    int i;
 
     for (i = 0; i < gpc->pop_size[pop]; i++){
         gpc->pop[pop][i]->root = ferGPCSimplifySubtree(gpc, gpc->pop[pop][i]->root);
@@ -811,7 +807,7 @@ static void ferGPCPruneDeepSubtree(fer_gpc_t *gpc, fer_gpc_node_t *node,
                                    int depth)
 {
     fer_gpc_node_t **desc;
-    uint8_t i;
+    int i;
 
     if (node->ndesc == 0)
         return;
@@ -836,7 +832,7 @@ static void ferGPCPruneDeepSubtree(fer_gpc_t *gpc, fer_gpc_node_t *node,
 
 static void ferGPCPruneDeep(fer_gpc_t *gpc, int pop)
 {
-    size_t i;
+    int i;
 
     for (i = 0; i < gpc->pop_size[pop]; i++){
         ferGPCPruneDeepSubtree(gpc, gpc->pop[pop][i]->root, 0);

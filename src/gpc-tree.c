@@ -20,13 +20,13 @@
 #include <fermat/gpc-tree.h>
 
 
-fer_gpc_node_t *ferGPCNodeNew(unsigned int idx, uint8_t ndesc, size_t memsize)
+fer_gpc_node_t *ferGPCNodeNew(int idx, int ndesc, size_t memsize)
 {
     fer_gpc_node_t *node;
     fer_gpc_node_t **desc;
     void *mem;
     size_t size;
-    uint8_t i;
+    int i;
 
     size  = sizeof(fer_gpc_node_t);
     size += ndesc * sizeof(fer_gpc_node_t *);
@@ -54,7 +54,7 @@ fer_gpc_node_t *ferGPCNodeNew(unsigned int idx, uint8_t ndesc, size_t memsize)
 void ferGPCNodeDel(fer_gpc_node_t *node)
 {
     fer_gpc_node_t **desc;
-    uint8_t i;
+    int i;
 
     if (node->ndesc > 0){
         desc = FER_GPC_NODE_DESC(node);
@@ -71,7 +71,8 @@ fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node)
 {
     fer_gpc_node_t *nnode;
     fer_gpc_node_t **ndesc, **desc;
-    size_t size, i;
+    size_t size;
+    int i;
 
     size  = sizeof(fer_gpc_node_t);
     if (node->ndesc > 0){
@@ -127,11 +128,10 @@ fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
     return ntree;
 }
 
-static size_t fixNumNodes(fer_gpc_node_t *node,
-                          unsigned int depth, unsigned int *rdepth)
+static int fixNumNodes(fer_gpc_node_t *node, int depth, int *rdepth)
 {
     fer_gpc_node_t **desc;
-    size_t i, num = 1;
+    int i, num = 1;
 
     if (depth > *rdepth)
         *rdepth = depth;
@@ -148,7 +148,7 @@ static size_t fixNumNodes(fer_gpc_node_t *node,
 
 void ferGPCTreeFix(fer_gpc_tree_t *tree)
 {
-    unsigned int depth = 0;
+    int depth = 0;
 
     if (tree->root){
         tree->num_nodes = fixNumNodes(tree->root, 0, &depth);
@@ -157,14 +157,12 @@ void ferGPCTreeFix(fer_gpc_tree_t *tree)
 }
 
 
-static int nodeById(fer_gpc_node_t *node, size_t idx, size_t cur,
-                    size_t depth,
+static int nodeById(fer_gpc_node_t *node, int idx, int cur, int depth,
                     fer_gpc_node_t **rnode, fer_gpc_node_t ***rdesc,
-                    size_t *rdepth)
+                    int *rdepth)
 {
     fer_gpc_node_t **desc;
-    size_t i;
-    int ret;
+    int i, ret;
 
     if (cur == idx){
         // we reached the correct node, record the node and its depth
@@ -195,8 +193,8 @@ static int nodeById(fer_gpc_node_t *node, size_t idx, size_t cur,
     return cur;
 }
 
-fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, size_t idx,
-                                   fer_gpc_node_t ***desc, size_t *depth)
+fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, int idx,
+                                   fer_gpc_node_t ***desc, int *depth)
 {
     fer_gpc_node_t *node;
 

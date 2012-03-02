@@ -90,18 +90,18 @@ void ferGPCOpsInit(fer_gpc_ops_t *ops);
  * -----------
  */
 struct _fer_gpc_params_t {
-    size_t pop_size;         /*!< Size of population. Default: 1 */
-    size_t max_depth;        /*!< Maximal depth of a tree. Default: 5 */
-    size_t keep_best;        /*!< Number of best individuals that ought to
+    int pop_size;            /*!< Size of population. Default: 1 */
+    int max_depth;           /*!< Maximal depth of a tree. Default: 5 */
+    int keep_best;           /*!< Number of best individuals that ought to
                                   be reproduced to next population
                                   preferentialy. Default: 1 */
-    size_t throw_worst;      /*!< Number of best individuals that are
+    int throw_worst;         /*!< Number of best individuals that are
                                   thrown away preferentialy. Default: 1 */
     unsigned long max_steps; /*!< Maximal number of steps of algorithm.
                                   Default: 10 */
-    size_t data_rows;        /*!< Number of data rows. Default: 0 */
+    int data_rows;           /*!< Number of data rows. Default: 0 */
 
-    size_t tournament_size;  /*!< Number of individuals that enter
+    int tournament_size;     /*!< Number of individuals that enter
                                   tournament selection. Default: 5 */
 
     /* Probabilities of undergone actions. Any numbers can be used because
@@ -140,13 +140,13 @@ struct _fer_gpc_t {
     fer_rand_mt_t *rand;
 
     struct _fer_gpc_tree_t **pop[3]; /*!< Population (actual and two tmps) */
-    size_t pop_size[2];              /*!< Current size of populations */
+    int pop_size[2];                 /*!< Current size of populations */
     int pop_cur;                     /*!< Idx of current population array */
 
     struct _fer_gpc_pred_t *pred;    /*!< List of predicates */
-    size_t pred_size, pred_len;
+    int pred_size, pred_len;
     struct _fer_gpc_class_t *class;  /*!< List of classes */
-    size_t class_size, class_len;
+    int class_size, class_len;
 
     int *eval_results; /*!< Array of results from evaluation */
 
@@ -172,7 +172,7 @@ void ferGPCDel(fer_gpc_t *gpc);
  * Should return the number of next descendant node in evaluating a
  * decision tree.
  */
-typedef unsigned int (*fer_gpc_pred)(fer_gpc_t *gpc, void *mem, void *data, void *userdata);
+typedef int (*fer_gpc_pred)(fer_gpc_t *gpc, void *mem, void *data, void *userdata);
 
 /**
  * Initialize callback a predicate data
@@ -193,7 +193,7 @@ int ferGPCAddPred(fer_gpc_t *gpc,
                   fer_gpc_pred pred,
                   fer_gpc_pred_init init,
                   fer_gpc_pred_format format,
-                  unsigned int num_descendants, size_t memsize,
+                  int num_descendants, size_t memsize,
                   void *userdata);
 
 /**
@@ -247,18 +247,18 @@ _fer_inline int ferGPCRandInt(fer_gpc_t *gpc, int f, int t);
  * -----------
  */
 struct _fer_gpc_stats_t {
-    fer_real_t min_fitness;
-    fer_real_t max_fitness;
-    fer_real_t avg_fitness;
-    fer_real_t med_fitness; /*!< median */
+    float min_fitness;
+    float max_fitness;
+    float avg_fitness;
+    float med_fitness; /*!< median */
 
-    unsigned int min_nodes;
-    unsigned int max_nodes;
-    fer_real_t avg_nodes;
+    int min_nodes;
+    int max_nodes;
+    float avg_nodes;
 
-    unsigned int min_depth;
-    unsigned int max_depth;
-    fer_real_t avg_depth;
+    int min_depth;
+    int max_depth;
+    float avg_depth;
 
     unsigned long elapsed; /*!< Number of elapsed steps */
 };
@@ -271,7 +271,7 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats);
 
 
 
-size_t __ferGPCPredMemsize(const fer_gpc_t *gpc, unsigned int idx);
+int __ferGPCPredMemsize(const fer_gpc_t *gpc, int idx);
 
 /**** INLINES ****/
 _fer_inline fer_real_t ferGPCRand(fer_gpc_t *gpc, fer_real_t f, fer_real_t t)

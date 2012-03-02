@@ -49,9 +49,9 @@ extern "C" {
  * Base struct for tree's node
  */
 struct _fer_gpc_node_t {
-    unsigned int idx; /*!< Index of predicate/class */
-    uint8_t ndesc;    /*!< Number of descendants.
-                           If 0, this is a terminal node */
+    int idx;   /*!< Index of predicate/class */
+    int ndesc; /*!< Number of descendants.
+                    If 0, this is a terminal (class) node */
 } fer_packed;
 typedef struct _fer_gpc_node_t fer_gpc_node_t;
 
@@ -59,7 +59,7 @@ typedef struct _fer_gpc_node_t fer_gpc_node_t;
 /**
  * Contructs a new node
  */
-fer_gpc_node_t *ferGPCNodeNew(unsigned int idx, uint8_t ndesc, size_t memsize);
+fer_gpc_node_t *ferGPCNodeNew(int idx, int ndesc, size_t memsize);
 
 /**
  * Recursively deletes a node and its subtree
@@ -80,8 +80,8 @@ fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node);
 struct _fer_gpc_tree_t {
     fer_real_t fitness;   /*!< Fitness of individual represented by the tree */
     fer_gpc_node_t *root; /*!< Root node of the tree */
-    size_t num_nodes;     /*!< Number of nodes in the tree */
-    unsigned int depth;   /*!< Depth of the tree */
+    int num_nodes;        /*!< Number of nodes in the tree */
+    int depth;            /*!< Depth of the tree */
 };
 typedef struct _fer_gpc_tree_t fer_gpc_tree_t;
 
@@ -112,8 +112,8 @@ void ferGPCTreeFix(fer_gpc_tree_t *tree);
  * Returns a idx'th node from a tree along with of its storage in desc
  * array and its depth.
  */
-fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, size_t idx,
-                                   fer_gpc_node_t ***desc, size_t *depth);
+fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, int idx,
+                                   fer_gpc_node_t ***desc, int *depth);
 
 /**
  * Pretty print of a tree. For debug purposes.

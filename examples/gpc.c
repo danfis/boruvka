@@ -66,7 +66,7 @@ void cmpInit(fer_gpc_t *gpc, void *mem, void *ud)
     m->val = ferGPCRand(gpc, -1., 1.);
 }
 
-unsigned int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
@@ -79,7 +79,7 @@ void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
     snprintf(str, max, "lt[%d] < %f", (int)m->idx, m->val);
 }
 
-unsigned int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
@@ -105,7 +105,7 @@ void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud)
     } while (m->idx2 == m->idx1);
 }
 
-unsigned int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
@@ -118,7 +118,7 @@ void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
     snprintf(str, max, "[%d] < [%d]", m->idx1, m->idx2);
 }
 
-unsigned int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
@@ -134,8 +134,7 @@ void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 
 int main(int argc, char *argv[])
 {
-    int res;
-    size_t i;
+    int res, i;
     fer_gpc_ops_t ops;
     fer_gpc_params_t params;
     fer_gpc_t *gpc;
@@ -155,15 +154,15 @@ int main(int argc, char *argv[])
     ops.fitness  = fitness;
     ops.data_row = dataRow;
     ops.callback = callback;
-    ops.callback_period = 20;
+    ops.callback_period = 1;
 
     ferGPCParamsInit(&params);
     params.pop_size    = 2000;
-    params.max_depth   = 10;
+    params.max_depth   = 20;
     params.data_rows   = train_rows;
     params.keep_best   = 1;//params.pop_size * 0.02;
-    params.throw_worst = params.pop_size * 0.02;
-    params.max_steps   = 2040;
+    params.throw_worst = params.pop_size * 0.005;
+    params.max_steps   = 3040;
     params.tournament_size = 5;
     params.pr = 10;
     params.pc = 10;
