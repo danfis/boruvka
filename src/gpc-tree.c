@@ -104,6 +104,7 @@ fer_gpc_tree_t *ferGPCTreeNew(void)
     tree->fitness = FER_ZERO;
     tree->root    = NULL;
     tree->num_nodes = 0;
+    tree->depth     = 0;
 
     return tree;
 }

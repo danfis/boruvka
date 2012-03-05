@@ -784,6 +784,28 @@ static void ferGPCMutation(fer_gpc_t *gpc, int from_pop, int to_pop)
 }
 
 
+static void ferGPCSimplifyDuplicatePred(fer_gpc_t *gpc, fer_gpc_node_t *node,
+                                        fer_gpc_node_t **desc, int desc_i)
+{
+    void *b1, *b2;
+    fer_gpc_node_t *rm;
+    fer_gpc_node_t **rm_desc;
+    size_t memsize;
+
+    b1 = FER_GPC_NODE_MEM(node);
+    b2 = FER_GPC_NODE_MEM(desc[desc_i]);
+
+    memsize = gpc->pred[node->idx].memsize;
+    if (memsize == 0 || memcmp(b1, b2, memsize) == 0){
+        rm      = desc[desc_i];
+        rm_desc = FER_GPC_NODE_DESC(rm);
+
+        desc[desc_i]    = rm_desc[desc_i];
+        rm_desc[desc_i] = NULL;
+        ferGPCNodeDel(rm);
+    }
+}
+
 static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *node)
 {
     int i, idx;
@@ -802,8 +824,14 @@ static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *nod
     }
 
     // check if all descendants are terminals and compare all their idx
+    // also check if there isn't a duplicate predicate
     idx = desc[0]->idx;
     for (i = 0; i < node->ndesc; i++){
+        if (desc[i]->idx == node->idx
+                && desc[i]->ndesc == node->ndesc){
+            ferGPCSimplifyDuplicatePred(gpc, node, desc, i);
+        }
+
         if (desc[i]->ndesc != 0 || idx != desc[i]->idx)
             break;
     }
@@ -866,20 +894,9 @@ static void ferGPCPruneDeep(fer_gpc_t *gpc, int pop)
     }
 }
 
-static int eqBytes(char *b1, char *b2, size_t size)
-{
-    size_t i;
-    for (i = 0; i < size; i++){
-        if (b1[i] != b2[i])
-            return 0;
-    }
-
-    return 1;
-}
-
 static int eqTrees(fer_gpc_t *gpc, fer_gpc_node_t *n1, fer_gpc_node_t *n2)
 {
-    char *b1, *b2;
+    void *b1, *b2;
     fer_gpc_node_t **desc1, **desc2;
     int i;
 
@@ -887,9 +904,9 @@ static int eqTrees(fer_gpc_t *gpc, fer_gpc_node_t *n1, fer_gpc_node_t *n2)
         return 0;
 
     if (n1->ndesc > 0){
-        b1 = (char *)FER_GPC_NODE_MEM(n1);
-        b2 = (char *)FER_GPC_NODE_MEM(n2);
-        if (!eqBytes(b1, b2, gpc->pred[n1->idx].memsize))
+        b1 = FER_GPC_NODE_MEM(n1);
+        b2 = FER_GPC_NODE_MEM(n2);
+        if (memcmp(b1, b2, gpc->pred[n1->idx].memsize) != 0)
             return 0;
 
         desc1 = FER_GPC_NODE_DESC(n1);
