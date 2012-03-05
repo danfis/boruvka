@@ -122,9 +122,11 @@ void ferGPCParamsInit(fer_gpc_params_t *params)
     params->pc        = 85;
     params->pm        = 1;
 
-    params->simplify = 0UL;
-    params->prune_deep = 0UL;
-    params->remove_duplicates = 0UL;
+    params->simplify      = 0UL;
+    params->prune_deep    = 0UL;
+    params->rm_duplicates = 0UL;
+    params->inc_max_depth = 0UL;
+    params->inc_max_depth_step = 1;
 
     params->parallel = 0;
 }
@@ -215,6 +217,11 @@ void ferGPCDel(fer_gpc_t *gpc)
     FER_FREE(gpc);
 }
 
+int ferGPCMaxDepth(const fer_gpc_t *gpc)
+{
+    return gpc->params.max_depth;
+}
+
 int ferGPCAddPred(fer_gpc_t *gpc,
                   fer_gpc_pred pred,
                   fer_gpc_pred_init init,
@@ -258,9 +265,17 @@ int __ferGPCPredMemsize(const fer_gpc_t *gpc, int idx)
 
 
 
+#define CALLBACK_OP(varname, call) \
+    varname += 1UL; \
+    if (varname == gpc->params.varname){ \
+        call; \
+        varname = 0UL; \
+    }
+
 int ferGPCRun(fer_gpc_t *gpc)
 {
-    unsigned long step, cb, simplify, prune_deep, remove_duplicates;
+    unsigned long step, cb, simplify, prune_deep, rm_duplicates;
+    unsigned long inc_max_depth;
     int pop_cur, pop_other, pop_tmp;
 
     // early exit if we don't have any classes
@@ -286,9 +301,10 @@ int ferGPCRun(fer_gpc_t *gpc)
     }
 
     cb = 0UL;
-    simplify = 0UL;
-    prune_deep = 0UL;
-    remove_duplicates = 0UL;
+    simplify      = 0UL;
+    prune_deep    = 0UL;
+    rm_duplicates = 0UL;
+    inc_max_depth = 0UL;
     for (step = 0UL; step < gpc->params.max_steps; step += 1UL){
         // perform elitism and the opposite
         ferGPCKeepBest(gpc, pop_cur, pop_other);
@@ -301,28 +317,20 @@ int ferGPCRun(fer_gpc_t *gpc)
         ferGPCResetPop(gpc, pop_cur);
 
         // prune deep trees
-        prune_deep += 1UL;
-        if (prune_deep == gpc->params.prune_deep){
-            ferGPCPruneDeep(gpc, pop_other);
-            prune_deep = 0UL;
-        }
+        CALLBACK_OP(prune_deep, ferGPCPruneDeep(gpc, pop_other));
 
         // simplify a new population
-        simplify += 1UL;
-        if (simplify == gpc->params.simplify){
-            ferGPCSimplify(gpc, pop_other);
-            simplify = 0UL;
-        }
+        CALLBACK_OP(simplify, ferGPCSimplify(gpc, pop_other));
 
         // evaluate a new population
         ferGPCEvalPop(gpc, pop_other);
 
         // remove duplicates
-        remove_duplicates += 1UL;
-        if (remove_duplicates == gpc->params.remove_duplicates){
-            ferGPCRemoveDuplicates(gpc, pop_other);
-            remove_duplicates = 0UL;
-        }
+        CALLBACK_OP(rm_duplicates, ferGPCRemoveDuplicates(gpc, pop_other));
+
+        // increase max depth
+        CALLBACK_OP(inc_max_depth,
+                    gpc->params.max_depth += gpc->params.inc_max_depth_step);
 
 
         // switch old and new population

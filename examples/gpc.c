@@ -87,12 +87,17 @@ static int opts(int *argc, char *argv[])
     params.throw_worst = 1;//params.pop_size * 0.005;
     params.max_steps   = 2000;
     params.tournament_size = 3;
+
     params.pr = 10;
     params.pc = 30;
     params.pm = 10;
-    params.simplify = 100UL;
-    params.prune_deep = 100UL;
-    params.remove_duplicates = 100UL;
+
+    params.simplify      = 100UL;
+    params.prune_deep    = 100UL;
+    params.rm_duplicates = 100UL;
+    params.inc_max_depth = 0UL;
+    params.inc_max_depth_step = 1;
+
     params.parallel = 0;
 
 
@@ -120,6 +125,7 @@ static int opts(int *argc, char *argv[])
                    "Maximal number of steps. Default: 2000");
     ferOptsAddDesc("tour-size", 0x0, FER_OPTS_INT, &params.tournament_size, NULL,
                    "Size of tournament selection. Default: 3");
+
     ferOptsAddDesc("pr", 0x0, FER_OPTS_REAL, &params.pr, NULL,
                    "Probability of reproduction. The number is considered "
                    "in comparison with --pc and --pm. Default: 10");
@@ -127,12 +133,18 @@ static int opts(int *argc, char *argv[])
                    "Probability of crossover. Default: 30");
     ferOptsAddDesc("pm", 0x0, FER_OPTS_REAL, &params.pm, NULL,
                    "Probability of mutation. Default: 10");
+
     ferOptsAddDesc("simplify", 0x0, FER_OPTS_LONG, (long *)&params.simplify, NULL,
                    "All individuals are simplified every specified step.  Default: 100");
     ferOptsAddDesc("prune-deep", 0x0, FER_OPTS_LONG, (long *)&params.prune_deep, NULL,
                    "Prune all deep trees every specified step. Default: 100");
-    ferOptsAddDesc("rm-dupl", 0x0, FER_OPTS_LONG, (long *)&params.remove_duplicates, NULL,
+    ferOptsAddDesc("rm-dupl", 0x0, FER_OPTS_LONG, (long *)&params.rm_duplicates, NULL,
                    "Remove duplicates every specified step. Default: 100");
+    ferOptsAddDesc("inc-max-depth", 0x0, FER_OPTS_LONG, (long *)&params.inc_max_depth, NULL,
+                   "Increase a max. depth by --inc-max-depth-step value"
+                   " every specified step. Default: 0");
+    ferOptsAddDesc("inc-max-depth-step", 0x0, FER_OPTS_INT, (int *)&params.inc_max_depth_step, NULL,
+                   "See --inc-max-depth. Default: 1");
 
     ferOptsAddDesc("parallel", 0x0, FER_OPTS_INT, &params.parallel, NULL,
                    "Set up number of parallel threads. Default: 0");
@@ -178,7 +190,9 @@ static int opts(int *argc, char *argv[])
         fprintf(stderr, "\n");
         fprintf(stderr, "    Simplify every:    %ld\n", params.simplify);
         fprintf(stderr, "    Prune every:       %ld\n", params.prune_deep);
-        fprintf(stderr, "    Remove duplicates: %ld\n", params.remove_duplicates);
+        fprintf(stderr, "    Remove duplicates: %ld\n", params.rm_duplicates);
+        fprintf(stderr, "    Inc. max. depth:   %ld by %d\n",
+                params.inc_max_depth, params.inc_max_depth_step);
         fprintf(stderr, "\n");
         fprintf(stderr, "    Classes:    %d\n", classes);
         fprintf(stderr, "    Predictors: %d\n", cols);
@@ -306,11 +320,14 @@ static void callback(fer_gpc_t *gpc, void *_)
     ferGPCStats(gpc, &stats);
     fprintf(stderr, "[%06ld] min: %f, max: %f, avg: %f, med: %f "
                     "| depth: %.2f (%3d) "
-                    "| nodes: %.2f (%4d)\r",
+                    "| nodes: %.2f (%4d) "
+                    "| max. depth: %d "
+                    "          \r",
             stats.elapsed, stats.min_fitness, stats.max_fitness,
             stats.avg_fitness, stats.med_fitness,
             stats.avg_depth, stats.max_depth,
-            stats.avg_nodes, stats.max_nodes);
+            stats.avg_nodes, stats.max_nodes,
+            ferGPCMaxDepth(gpc));
     fflush(stderr);
 }
 

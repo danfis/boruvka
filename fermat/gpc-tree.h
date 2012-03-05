@@ -25,12 +25,6 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * True, if a node is a class (terminal) node
- */
-#define FER_GPC_NODE_IS_CLASS(node) \
-    (((fer_gpc_node_t *)(node))->type == 0)
-
-/**
  * Returns pointer to (fer_gpc_node_t *[]) array of pointers to descendants
  * of a node.
  * This is always stored after a fer_gpc_node_t struct.

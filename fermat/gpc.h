@@ -111,12 +111,15 @@ struct _fer_gpc_params_t {
     fer_real_t pc; /*!< Probability of crossover. Default: 85 */
     fer_real_t pm; /*!< Probability of mutation. Default: 1 */
 
-    unsigned long simplify; /*!< A simplification of the trees will be
-                                 executed every {simplify} step.
-                                 Default: 0 (i.e., never) */
-    unsigned long prune_deep; /*!< Prunes all trees that exceeds max_depth
-                                   every specified step. Default: 0 */
-    unsigned long remove_duplicates; /*!< Freq of removing duplicates. Default: 0 */
+    unsigned long simplify;      /*!< A simplification of the trees will be
+                                      executed every {simplify} step.
+                                      Default: 0 (i.e., never) */
+    unsigned long prune_deep;    /*!< Prunes all trees that exceeds max_depth
+                                      every specified step. Default: 0 */
+    unsigned long rm_duplicates; /*!< Freq of removing duplicates. Default: 0 */
+    unsigned long inc_max_depth; /*!< Freq of increasing a max. depth by
+                                      .inc_max_depth_step. Default: 0 */
+    int inc_max_depth_step;      /*!< Default: 1 */
 
     int parallel; /*!< Number of parallel threads that will be used.
                        Default: 0 */
@@ -174,6 +177,10 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params);
  */
 void ferGPCDel(fer_gpc_t *gpc);
 
+/**
+ * Returns current max. depth of a tree individual.
+ */
+int ferGPCMaxDepth(const fer_gpc_t *gpc);
 
 /**
  * Predicate callback.
