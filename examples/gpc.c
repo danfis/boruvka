@@ -77,6 +77,7 @@ static int opts(int *argc, char *argv[])
     params.pm = 10;
     params.simplify = 100UL;
     params.prune_deep = 100UL;
+    params.remove_duplicates = 0UL;
 
 
     ferOptsAddDesc("help", 0x0, FER_OPTS_NONE, (void *)&help, NULL,
@@ -114,6 +115,8 @@ static int opts(int *argc, char *argv[])
                    "All individuals are simplified every specified step.  Default: 100");
     ferOptsAddDesc("prune-deep", 0x0, FER_OPTS_LONG, (long *)&params.prune_deep, NULL,
                    "Prune all deep trees every specified step. Default: 100");
+    ferOptsAddDesc("rm-dupl", 0x0, FER_OPTS_LONG, (long *)&params.remove_duplicates, NULL,
+                   "Remove duplicates every specified step. Default: 0");
 
 
     if (ferOpts(argc, argv) != 0)
@@ -151,11 +154,12 @@ static int opts(int *argc, char *argv[])
         fprintf(stderr, "    Tournament size: %d\n", params.tournament_size);
         fprintf(stderr, "\n");
         fprintf(stderr, "    Reproduction: %f\n", params.pr);
-        fprintf(stderr, "    Crossover:    %f\n", params.pr);
-        fprintf(stderr, "    Mutation:     %f\n", params.pr);
+        fprintf(stderr, "    Crossover:    %f\n", params.pc);
+        fprintf(stderr, "    Mutation:     %f\n", params.pm);
         fprintf(stderr, "\n");
-        fprintf(stderr, "    Simplify every: %ld\n", params.simplify);
-        fprintf(stderr, "    Prune every:    %ld\n", params.prune_deep);
+        fprintf(stderr, "    Simplify every:    %ld\n", params.simplify);
+        fprintf(stderr, "    Prune every:       %ld\n", params.prune_deep);
+        fprintf(stderr, "    Remove duplicates: %ld\n", params.remove_duplicates);
         fprintf(stderr, "\n");
         fprintf(stderr, "    Classes:    %d\n", classes);
         fprintf(stderr, "    Predictors: %d\n", cols);
@@ -287,6 +291,10 @@ static void callback(fer_gpc_t *gpc, void *_)
             stats.avg_depth, stats.max_depth,
             stats.avg_nodes, stats.max_nodes);
     fflush(stderr);
+
+    if (stats.elapsed != 0 && stats.elapsed % 200 == 0){
+        gpc->params.max_depth += params.max_depth;
+    }
 }
 
 
@@ -301,7 +309,7 @@ static int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return d[m->idx] < m->val;
+    return (d[m->idx] < m->val ? 0 : 1);
 }
 
 static void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
@@ -314,7 +322,7 @@ static int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return d[m->idx] > m->val;
+    return (d[m->idx] > m->val ? 0 : 1);
 }
 
 static void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
@@ -339,7 +347,7 @@ static int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return d[m->idx1] < d[m->idx2];
+    return (d[m->idx1] < d[m->idx2] ? 0 : 1);
 }
 
 static void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
@@ -352,7 +360,7 @@ static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return d[m->idx1] > d[m->idx2];
+    return (d[m->idx1] > d[m->idx2] ? 0 : 1);
 }
 
 static void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
