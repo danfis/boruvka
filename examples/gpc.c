@@ -78,6 +78,7 @@ static int opts(int *argc, char *argv[])
     params.simplify = 100UL;
     params.prune_deep = 100UL;
     params.remove_duplicates = 0UL;
+    params.parallel = 0;
 
 
     ferOptsAddDesc("help", 0x0, FER_OPTS_NONE, (void *)&help, NULL,
@@ -117,6 +118,9 @@ static int opts(int *argc, char *argv[])
                    "Prune all deep trees every specified step. Default: 100");
     ferOptsAddDesc("rm-dupl", 0x0, FER_OPTS_LONG, (long *)&params.remove_duplicates, NULL,
                    "Remove duplicates every specified step. Default: 0");
+
+    ferOptsAddDesc("parallel", 0x0, FER_OPTS_INT, &params.parallel, NULL,
+                   "Set up number of parallel threads. Default: 0");
 
 
     if (ferOpts(argc, argv) != 0)
@@ -165,6 +169,8 @@ static int opts(int *argc, char *argv[])
         fprintf(stderr, "    Predictors: %d\n", cols);
         fprintf(stderr, "    Train rows: %d\n", train_rows);
         fprintf(stderr, "    Test rows:  %d\n", test_rows);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "    Parallel: %d\n", params.parallel);
         fprintf(stderr, "\n");
     }
 

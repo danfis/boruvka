@@ -56,7 +56,8 @@ static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop);
 static int ferGPCEvalTreeClass(fer_gpc_t *gpc, fer_gpc_tree_t *tree, void *data);
 /** Evaluate a tree on all data rows and records a new fitness that is also
  *  returned */
-static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree);
+static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree,
+                                 int res_arr);
 /** Evaluate whole population of decision trees */
 static void ferGPCEvalPop(fer_gpc_t *gpc, int pop);
 /** Sort whole population in descending order */
@@ -124,6 +125,8 @@ void ferGPCParamsInit(fer_gpc_params_t *params)
     params->simplify = 0UL;
     params->prune_deep = 0UL;
     params->remove_duplicates = 0UL;
+
+    params->parallel = 0;
 }
 
 
@@ -132,6 +135,7 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
 {
     fer_gpc_t *gpc;
     fer_real_t prob;
+    int i;
 
     gpc = FER_ALLOC(fer_gpc_t);
 
@@ -164,7 +168,19 @@ fer_gpc_t *ferGPCNew(const fer_gpc_ops_t *ops, const fer_gpc_params_t *params)
     gpc->class_len  = 0;
     gpc->class      = FER_ALLOC_ARR(fer_gpc_class_t, gpc->class_size);
 
-    gpc->eval_results = FER_ALLOC_ARR(int, gpc->params.data_rows);
+
+    gpc->threads = (params->parallel > 1 ? params->parallel : 1);
+
+    gpc->eval_results = FER_ALLOC_ARR(int *, gpc->threads);
+    for (i = 0; i < gpc->threads; i++){
+        gpc->eval_results[i] = FER_ALLOC_ARR(int, gpc->params.data_rows);
+    }
+
+    gpc->tasks = 0;
+    if (gpc->threads > 1){
+        gpc->tasks = ferTasksNew(gpc->threads);
+        ferTasksRun(gpc->tasks);
+    }
 
     return gpc;
 }
@@ -187,7 +203,15 @@ void ferGPCDel(fer_gpc_t *gpc)
 
     FER_FREE(gpc->pred);
     FER_FREE(gpc->class);
+
+    for (i = 0; i < gpc->threads; i++){
+        FER_FREE(gpc->eval_results[i]);
+    }
     FER_FREE(gpc->eval_results);
+
+    if (gpc->tasks)
+        ferTasksDel(gpc->tasks);
+
     FER_FREE(gpc);
 }
 
@@ -549,7 +573,8 @@ static int ferGPCEvalTreeClass(fer_gpc_t *gpc, fer_gpc_tree_t *tree, void *data)
     return gpc->class[node->idx].class;
 }
 
-static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
+static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree,
+                                 int res_arr)
 {
     int i, class;
     void *data;
@@ -560,11 +585,11 @@ static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 
         // eval the tree on the data row
         class = ferGPCEvalTreeClass(gpc, tree, data);
-        gpc->eval_results[i] = class;
+        gpc->eval_results[res_arr][i] = class;
     }
 
     // compute a fitness value
-    tree->fitness = gpc->ops.fitness(gpc, gpc->eval_results,
+    tree->fitness = gpc->ops.fitness(gpc, gpc->eval_results[res_arr],
                                      gpc->ops.fitness_data);
 
     //ferGPCTreePrint(tree, stdout);
@@ -572,13 +597,48 @@ static fer_real_t ferGPCEvalTree(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
     return tree->fitness;
 }
 
+struct eval_pop_t {
+    fer_gpc_t *gpc;
+    int pop;
+};
+static void ferGPCEvalPopTask(int id, void *data, const fer_tasks_thinfo_t *thinfo)
+{
+    struct eval_pop_t *ev = (struct eval_pop_t *)data;
+    fer_gpc_t *gpc = ev->gpc;
+    int pop = ev->pop;
+    int len, from, to, i;
+
+    len = gpc->pop_size[pop] / gpc->threads;
+    from = id * len;
+    to   = from + len;
+    if (id == gpc->threads - 1)
+        to = gpc->pop_size[pop];
+    len = to - from;
+
+    for (i = from; i < to; i++){
+        ferGPCEvalTree(gpc, gpc->pop[pop][i], id);
+    }
+}
+
 static void ferGPCEvalPop(fer_gpc_t *gpc, int pop)
 {
     int i;
+    struct eval_pop_t ev;
 
-    for (i = 0; i < gpc->pop_size[pop]; i++){
-        ferGPCEvalTree(gpc, gpc->pop[pop][i]);
+    if (gpc->threads > 1){
+        ev.gpc = gpc;
+        ev.pop = pop;
+
+        for (i = 0; i < gpc->threads; i++){
+            ferTasksAdd(gpc->tasks, ferGPCEvalPopTask, i, (void *)&ev);
+        }
+        ferTasksBarrier(gpc->tasks);
+    }else{
+        for (i = 0; i < gpc->pop_size[pop]; i++){
+            ferGPCEvalTree(gpc, gpc->pop[pop][i], 0);
+        }
     }
+
     ferGPCSortPop(gpc, pop);
 }
 

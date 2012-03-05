@@ -19,6 +19,7 @@
 
 #include <fermat/core.h>
 #include <fermat/rand-mt.h>
+#include <fermat/tasks.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,6 +117,9 @@ struct _fer_gpc_params_t {
     unsigned long prune_deep; /*!< Prunes all trees that exceeds max_depth
                                    every specified step. Default: 0 */
     unsigned long remove_duplicates; /*!< Freq of removing duplicates. Default: 0 */
+
+    int parallel; /*!< Number of parallel threads that will be used.
+                       Default: 0 */
 };
 typedef struct _fer_gpc_params_t fer_gpc_params_t;
 
@@ -149,7 +153,10 @@ struct _fer_gpc_t {
     struct _fer_gpc_class_t *class;  /*!< List of classes */
     int class_size, class_len;
 
-    int *eval_results; /*!< Array of results from evaluation */
+    int threads;
+    fer_tasks_t *tasks;
+    int **eval_results; /*!< Array of results from evaluation */
+
 
     struct {
         unsigned long elapsed; /*!< Number of elapsed steps */
