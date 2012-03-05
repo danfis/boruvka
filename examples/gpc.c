@@ -36,21 +36,36 @@ static void callback(fer_gpc_t *gpc, void *_);
 struct cmp_t {
     int idx;
     fer_real_t val;
+    int op; // 0 - '<', 1 - '>'
 };
 static void cmpInit(fer_gpc_t *gpc, void *mem, void *ud);
-static int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
-static void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
-static int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
-static void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
+static int cmpPred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
+static void cmpFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
 
 struct cmp2_t {
     int idx1, idx2;
+    int op; // 0 - '<', 1 - '>'
 };
 static void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud);
-static int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
-static void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
-static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
-static void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
+static int cmp2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
+static void cmp2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
+
+struct cmp3_t {
+    int idx1, idx2;
+    fer_real_t val;
+    int op; // X0 - '<', X1 - '>' | 00X - '+', 01X - '-', 10X - '*', 11X - '/'
+};
+static void cmp3Init(fer_gpc_t *gpc, void *mem, void *ud);
+static int cmp3Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
+static void cmp3Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
+
+struct cmp4_t {
+    int idx1, idx2, idx3;
+    int op; // X0 - '<', X1 - '>' | 00X - '+', 01X - '-', 10X - '*', 11X - '/'
+};
+static void cmp4Init(fer_gpc_t *gpc, void *mem, void *ud);
+static int cmp4Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud);
+static void cmp4Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max);
 
 static void outputResults(fer_gpc_t *gpc);
 
@@ -77,7 +92,7 @@ static int opts(int *argc, char *argv[])
     params.pm = 10;
     params.simplify = 100UL;
     params.prune_deep = 100UL;
-    params.remove_duplicates = 0UL;
+    params.remove_duplicates = 100UL;
     params.parallel = 0;
 
 
@@ -117,7 +132,7 @@ static int opts(int *argc, char *argv[])
     ferOptsAddDesc("prune-deep", 0x0, FER_OPTS_LONG, (long *)&params.prune_deep, NULL,
                    "Prune all deep trees every specified step. Default: 100");
     ferOptsAddDesc("rm-dupl", 0x0, FER_OPTS_LONG, (long *)&params.remove_duplicates, NULL,
-                   "Remove duplicates every specified step. Default: 0");
+                   "Remove duplicates every specified step. Default: 100");
 
     ferOptsAddDesc("parallel", 0x0, FER_OPTS_INT, &params.parallel, NULL,
                    "Set up number of parallel threads. Default: 0");
@@ -194,10 +209,10 @@ int main(int argc, char *argv[])
         ferGPCAddClass(gpc, i);
     }
 
-    ferGPCAddPred(gpc, ltPred, cmpInit, ltFormat, 2, sizeof(struct cmp_t), NULL);
-    ferGPCAddPred(gpc, gtPred, cmpInit, gtFormat, 2, sizeof(struct cmp_t), NULL);
-    ferGPCAddPred(gpc, lt2Pred, cmp2Init, lt2Format, 2, sizeof(struct cmp2_t), NULL);
-    ferGPCAddPred(gpc, gt2Pred, cmp2Init, gt2Format, 2, sizeof(struct cmp2_t), NULL);
+    ferGPCAddPred(gpc, cmpPred, cmpInit, cmpFormat, 2, sizeof(struct cmp_t), NULL);
+    ferGPCAddPred(gpc, cmp2Pred, cmp2Init, cmp2Format, 2, sizeof(struct cmp2_t), NULL);
+    ferGPCAddPred(gpc, cmp3Pred, cmp3Init, cmp3Format, 2, sizeof(struct cmp3_t), NULL);
+    ferGPCAddPred(gpc, cmp4Pred, cmp4Init, cmp4Format, 2, sizeof(struct cmp4_t), NULL);
 
     res = ferGPCRun(gpc);
     callback(gpc, NULL);
@@ -297,10 +312,6 @@ static void callback(fer_gpc_t *gpc, void *_)
             stats.avg_depth, stats.max_depth,
             stats.avg_nodes, stats.max_nodes);
     fflush(stderr);
-
-    if (stats.elapsed != 0 && stats.elapsed % 200 == 0){
-        gpc->params.max_depth += params.max_depth;
-    }
 }
 
 
@@ -309,36 +320,29 @@ static void cmpInit(fer_gpc_t *gpc, void *mem, void *ud)
     struct cmp_t *m = (struct cmp_t *)mem;
     m->idx = ferGPCRandInt(gpc, 0, cols);
     m->val = ferGPCRand(gpc, -1., 1.);
+    m->op  = ferGPCRandInt(gpc, 0, 2);
 }
 
-static int ltPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+static int cmpPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return (d[m->idx] < m->val ? 0 : 1);
+    if (m->op == 0){
+        return (d[m->idx] < m->val ? 0 : 1);
+    }else{
+        return (d[m->idx] > m->val ? 0 : 1);
+    }
 }
 
-static void ltFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+static void cmpFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp_t *m = (struct cmp_t *)mem;
-    snprintf(str, max, "data[%d] < %f", (int)m->idx, m->val);
+    if (m->op == 0){
+        snprintf(str, max, "data[%d] < %f", (int)m->idx, m->val);
+    }else{
+        snprintf(str, max, "data[%d] > %f", (int)m->idx, m->val);
+    }
 }
-
-static int gtPred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
-{
-    struct cmp_t *m = (struct cmp_t *)mem;
-    fer_real_t *d = (fer_real_t *)data;
-    return (d[m->idx] > m->val ? 0 : 1);
-}
-
-static void gtFormat(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
-{
-    struct cmp_t *m = (struct cmp_t *)mem;
-    snprintf(str, max, "data[%d] > %f", (int)m->idx, m->val);
-}
-
-
-
 
 static void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud)
 {
@@ -347,32 +351,161 @@ static void cmp2Init(fer_gpc_t *gpc, void *mem, void *ud)
     do {
         m->idx2 = ferGPCRandInt(gpc, 0, cols);
     } while (m->idx2 == m->idx1);
+    m->op  = ferGPCRandInt(gpc, 0, 2);
 }
 
-static int lt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+static int cmp2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return (d[m->idx1] < d[m->idx2] ? 0 : 1);
+    if (m->op == 0){
+        return (d[m->idx1] < d[m->idx2] ? 0 : 1);
+    }else{
+        return (d[m->idx1] > d[m->idx2] ? 0 : 1);
+    }
 }
 
-static void lt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+static void cmp2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
 {
     struct cmp2_t *m = (struct cmp2_t *)mem;
-    snprintf(str, max, "data[%d] < data[%d]", m->idx1, m->idx2);
+    if (m->op == 0){
+        snprintf(str, max, "data[%d] < data[%d]", m->idx1, m->idx2);
+    }else{
+        snprintf(str, max, "data[%d] > data[%d]", m->idx1, m->idx2);
+    }
 }
 
-static int gt2Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+
+static void cmp3Init(fer_gpc_t *gpc, void *mem, void *ud)
 {
-    struct cmp2_t *m = (struct cmp2_t *)mem;
+    struct cmp3_t *m = (struct cmp3_t *)mem;
+    int op2;
+    m->idx1 = ferGPCRandInt(gpc, 0, cols);
+    do {
+        m->idx2 = ferGPCRandInt(gpc, 0, cols);
+    } while (m->idx2 == m->idx1);
+    m->val = ferGPCRand(gpc, -1., 1.);
+
+    m->op  = ferGPCRandInt(gpc, 0, 2);
+    op2    = ferGPCRandInt(gpc, 0, 4);
+    m->op |= (op2 << 1);
+}
+
+static int cmp3Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp3_t *m = (struct cmp3_t *)mem;
     fer_real_t *d = (fer_real_t *)data;
-    return (d[m->idx1] > d[m->idx2] ? 0 : 1);
+    fer_real_t v1;
+    int op2;
+
+    op2 = (m->op >> 1);
+    if (op2 == 0){
+        v1 = d[m->idx1] + d[m->idx2];
+    }else if (op2 == 1){
+        v1 = d[m->idx1] - d[m->idx2];
+    }else if (op2 == 2){
+        v1 = d[m->idx1] * d[m->idx2];
+    }else{
+        v1 = d[m->idx1] / d[m->idx2];
+    }
+
+    if ((m->op & 0x1) == 0){
+        return (v1 < m->val ? 0 : 1);
+    }else{
+        return (v1 > m->val ? 0 : 1);
+    }
+}
+static void cmp3Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp3_t *m = (struct cmp3_t *)mem;
+    char cop, cop2;
+    int op2;
+
+    if ((m->op & 0x1) == 0){
+        cop = '<';
+    }else{
+        cop = '>';
+    }
+
+    op2 = (m->op >> 1);
+    if (op2 == 0){
+        cop2 = '+';
+    }else if (op2 == 1){
+        cop2 = '-';
+    }else if (op2 == 2){
+        cop2 = '*';
+    }else{
+        cop2 = '/';
+    }
+
+    snprintf(str, max, "data[%d] %c data[%d] %c %f", m->idx1, cop2, m->idx2, cop, m->val);
 }
 
-static void gt2Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+static void cmp4Init(fer_gpc_t *gpc, void *mem, void *ud)
 {
-    struct cmp2_t *m = (struct cmp2_t *)mem;
-    snprintf(str, max, "data[%d] > data[%d]", m->idx1, m->idx2);
+    struct cmp4_t *m = (struct cmp4_t *)mem;
+    int op2;
+    m->idx1 = ferGPCRandInt(gpc, 0, cols);
+    do {
+        m->idx2 = ferGPCRandInt(gpc, 0, cols);
+    } while (m->idx2 == m->idx1);
+    do {
+        m->idx3 = ferGPCRandInt(gpc, 0, cols);
+    } while (m->idx3 == m->idx1 || m->idx3 == m->idx2);
+
+    m->op  = ferGPCRandInt(gpc, 0, 2);
+    op2    = ferGPCRandInt(gpc, 0, 4);
+    m->op |= (op2 << 1);
+}
+
+static int cmp4Pred(fer_gpc_t *gpc, void *mem, void *data, void *ud)
+{
+    struct cmp4_t *m = (struct cmp4_t *)mem;
+    fer_real_t *d = (fer_real_t *)data;
+    fer_real_t v1;
+    int op2;
+
+    op2 = (m->op >> 1);
+    if (op2 == 0){
+        v1 = d[m->idx1] + d[m->idx2];
+    }else if (op2 == 1){
+        v1 = d[m->idx1] - d[m->idx2];
+    }else if (op2 == 2){
+        v1 = d[m->idx1] * d[m->idx2];
+    }else{
+        v1 = d[m->idx1] / d[m->idx2];
+    }
+
+    if ((m->op & 0x1) == 0){
+        return (v1 < d[m->idx3] ? 0 : 1);
+    }else{
+        return (v1 > d[m->idx3] ? 0 : 1);
+    }
+}
+static void cmp4Format(fer_gpc_t *gpc, void *mem, void *ud, char *str, size_t max)
+{
+    struct cmp4_t *m = (struct cmp4_t *)mem;
+    char cop, cop2;
+    int op2;
+
+    if ((m->op & 0x1) == 0){
+        cop = '<';
+    }else{
+        cop = '>';
+    }
+
+    op2 = (m->op >> 1);
+    if (op2 == 0){
+        cop2 = '+';
+    }else if (op2 == 1){
+        cop2 = '-';
+    }else if (op2 == 2){
+        cop2 = '*';
+    }else{
+        cop2 = '/';
+    }
+
+    snprintf(str, max, "data[%d] %c data[%d] %c data[%d]", m->idx1, cop2, m->idx2, cop, m->idx3);
 }
 
 
@@ -417,6 +550,7 @@ static void outputResults(fer_gpc_t *gpc)
 
         fprintf(fout, "// Train accuracy: %f\n", correct(gpc, i, train_x, train_y, train_rows));
         fprintf(fout, "// Test accuracy: %f\n", correct(gpc, i, test_x, test_y, test_rows));
+        fprintf(fout, "// Depth: %d\n", ferGPCTreeDepth(gpc, tree));
         ferGPCTreePrintC(gpc, tree, "predict", fout);
         fclose(fout);
     }

@@ -232,6 +232,11 @@ void *ferGPCTree(const fer_gpc_t *gpc, int i);
 int ferGPCTreeEval(fer_gpc_t *gpc, void *tree, void *data);
 
 /**
+ * Returns a depth of the tree
+ */
+int ferGPCTreeDepth(fer_gpc_t *gpc, void *tree);
+
+/**
  * Prints formated tree in form of C function to specified file.
  */
 void ferGPCTreePrintC(fer_gpc_t *gpc, void *tree, const char *func_name, FILE *out);

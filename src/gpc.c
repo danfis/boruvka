@@ -367,6 +367,10 @@ int ferGPCTreeEval(fer_gpc_t *gpc, void *tree, void *data)
     return ferGPCEvalTreeClass(gpc, (fer_gpc_tree_t *)tree, data);
 }
 
+int ferGPCTreeDepth(fer_gpc_t *gpc, void *tree)
+{
+    return ((fer_gpc_tree_t *)tree)->depth;
+}
 
 
 static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
