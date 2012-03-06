@@ -265,7 +265,7 @@ int __ferGPCPredMemsize(const fer_gpc_t *gpc, int idx)
 
 
 
-#define CALLBACK_OP(varname, call) \
+#define PERIODIC_OP(varname, call) \
     varname += 1UL; \
     if (varname == gpc->params.varname){ \
         call; \
@@ -317,19 +317,19 @@ int ferGPCRun(fer_gpc_t *gpc)
         ferGPCResetPop(gpc, pop_cur);
 
         // prune deep trees
-        CALLBACK_OP(prune_deep, ferGPCPruneDeep(gpc, pop_other));
+        PERIODIC_OP(prune_deep, ferGPCPruneDeep(gpc, pop_other));
 
         // simplify a new population
-        CALLBACK_OP(simplify, ferGPCSimplify(gpc, pop_other));
+        PERIODIC_OP(simplify, ferGPCSimplify(gpc, pop_other));
 
         // evaluate a new population
         ferGPCEvalPop(gpc, pop_other);
 
         // remove duplicates
-        CALLBACK_OP(rm_duplicates, ferGPCRemoveDuplicates(gpc, pop_other));
+        PERIODIC_OP(rm_duplicates, ferGPCRemoveDuplicates(gpc, pop_other));
 
         // increase max depth
-        CALLBACK_OP(inc_max_depth,
+        PERIODIC_OP(inc_max_depth,
                     gpc->params.max_depth += gpc->params.inc_max_depth_step);
 
 

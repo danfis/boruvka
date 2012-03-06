@@ -25,6 +25,8 @@ int help = 0;
 int verbose = 0;
 int output_results = 1;
 const char *output_prefix = "result";
+const char *log_fn = NULL;
+FILE *log_fout = NULL;
 
 
 static int readCfg(const char *fn);
@@ -112,6 +114,8 @@ static int opts(int *argc, char *argv[])
                    "Print specified number of best individuals. Default: 1");
     ferOptsAddDesc("output-prefix", 'p', FER_OPTS_STR, &output_prefix, NULL,
                    "Set up prefix of output file. Default: `result'");
+    ferOptsAddDesc("log", 'l', FER_OPTS_STR, &log_fn, NULL,
+                   "Set up name of the log file. Default: none");
 
     ferOptsAddDesc("pop-size", 0x0, FER_OPTS_INT, &params.pop_size, NULL,
                    "Population size. Default: 200");
@@ -170,6 +174,15 @@ static int opts(int *argc, char *argv[])
         fprintf(stderr, "  OPTIONS:\n");
         ferOptsPrint(stderr, "    ");
         return -1;
+    }
+
+    if (log_fn != NULL){
+        log_fout = fopen(log_fn, "w");
+        if (log_fout){
+            fprintf(log_fout, "# avg_fitness med_fitness max_fitness avg_depth max_depth avg_node\n");
+        }else{
+            fprintf(stderr, "Can't open a file `%s' for logging.\n", log_fn);
+        }
     }
 
 
@@ -241,6 +254,9 @@ int main(int argc, char *argv[])
         ferCfgDel(cfg);
 
     ferOptsClear();
+
+    if (log_fout)
+        fclose(log_fout);
 
     return res;
 }
@@ -329,6 +345,15 @@ static void callback(fer_gpc_t *gpc, void *_)
             stats.avg_nodes, stats.max_nodes,
             ferGPCMaxDepth(gpc));
     fflush(stderr);
+
+    if (log_fout){
+        fprintf(log_fout, "%f %f %f %f %f %f\n",
+                stats.avg_fitness, stats.med_fitness,
+                stats.max_fitness,
+                stats.avg_depth, (float)ferGPCMaxDepth(gpc),
+                stats.avg_nodes);
+        fflush(log_fout);
+    }
 }
 
 

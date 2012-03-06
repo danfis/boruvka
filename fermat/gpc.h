@@ -107,9 +107,9 @@ struct _fer_gpc_params_t {
 
     /* Probabilities of undergone actions. Any numbers can be used because
      * all will be normized to (pr + pc + pm) = 1 */
-    fer_real_t pr; /*!< Probability of reproduction. Default: 14 */
-    fer_real_t pc; /*!< Probability of crossover. Default: 85 */
-    fer_real_t pm; /*!< Probability of mutation. Default: 1 */
+    fer_real_t pr;  /*!< Probability of reproduction. Default: 14 */
+    fer_real_t pc;  /*!< Probability of crossover. Default: 85 */
+    fer_real_t pm;  /*!< Probability of mutation. Default: 1 */
 
     unsigned long simplify;      /*!< A simplification of the trees will be
                                       executed every {simplify} step.
