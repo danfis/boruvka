@@ -384,7 +384,6 @@ int ferGPCTreeDepth(fer_gpc_t *gpc, void *tree)
 static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
                       char *str, size_t str_maxlen, int depth)
 {
-    fer_gpc_node_t **desc;
     int i, j;
 
     str[0] = 0x0;
@@ -398,7 +397,7 @@ static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
     }else{
         fprintf(fout, "if (");
         if (gpc->pred[node->idx].format){
-            gpc->pred[node->idx].format(gpc, FER_GPC_NODE_MEM(node),
+            gpc->pred[node->idx].format(gpc, node->mem,
                                         gpc->pred[node->idx].data,
                                         str, str_maxlen);
             fprintf(fout, "%s", str);
@@ -407,9 +406,8 @@ static void printBest(fer_gpc_t *gpc, fer_gpc_node_t *node, FILE *fout,
         }
         fprintf(fout, "){\n");
 
-        desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            printBest(gpc, desc[i], fout, str, str_maxlen, depth + 1);
+            printBest(gpc, node->desc[i], fout, str, str_maxlen, depth + 1);
             if (i < node->ndesc - 1){
                 for (j = 0; j < depth; j++)
                     fprintf(fout, "    ");
@@ -492,7 +490,6 @@ void ferGPCStats(const fer_gpc_t *gpc, fer_gpc_stats_t *stats)
 static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, int depth, int max_depth)
 {
     fer_gpc_node_t *node;
-    fer_gpc_node_t **desc;
     int idx, i;
 
     // Randomly choose a predicate or a class.
@@ -515,14 +512,13 @@ static fer_gpc_node_t *ferGPCGenTree(fer_gpc_t *gpc, int depth, int max_depth)
                              gpc->pred[idx].memsize);
         // initialize it
         if (gpc->pred[idx].init){
-            gpc->pred[idx].init(gpc, FER_GPC_NODE_MEM(node),
+            gpc->pred[idx].init(gpc, node->mem,
                                 gpc->pred[idx].data);
         }
 
         // and fill descendants
-        desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            desc[i] = ferGPCGenTree(gpc, depth + 1, max_depth);
+            node->desc[i] = ferGPCGenTree(gpc, depth + 1, max_depth);
         }
     }
 
@@ -562,24 +558,20 @@ static void ferGPCCreateInitPop(fer_gpc_t *gpc, int pop)
 static int ferGPCEvalTreeClass(fer_gpc_t *gpc, fer_gpc_tree_t *tree, void *data)
 {
     fer_gpc_node_t *node;
-    fer_gpc_node_t **desc;
     fer_gpc_pred pred;
-    void *mem;
     int dispatch;
 
     // traverse the decision tree
     node = tree->root;
     while (node->ndesc != 0){
         pred = gpc->pred[node->idx].pred;
-        mem  = FER_GPC_NODE_MEM(node);
 
         // find which descendant is used
-        dispatch = pred(gpc, mem, data, gpc->pred[node->idx].data);
+        dispatch = pred(gpc, node->mem, data, gpc->pred[node->idx].data);
         dispatch = FER_MIN(dispatch, node->ndesc - 1);
 
         // descent to next node
-        desc = FER_GPC_NODE_DESC(node);
-        node = desc[dispatch];
+        node = node->desc[dispatch];
     }
 
     return gpc->class[node->idx].class;
@@ -861,19 +853,17 @@ static void ferGPCSimplifyDuplicatePred(fer_gpc_t *gpc, fer_gpc_node_t *node,
 {
     void *b1, *b2;
     fer_gpc_node_t *rm;
-    fer_gpc_node_t **rm_desc;
     size_t memsize;
 
-    b1 = FER_GPC_NODE_MEM(node);
-    b2 = FER_GPC_NODE_MEM(desc[desc_i]);
+    b1 = node->mem;
+    b2 = desc[desc_i]->mem;
 
     memsize = gpc->pred[node->idx].memsize;
     if (memsize == 0 || memcmp(b1, b2, memsize) == 0){
         rm      = desc[desc_i];
-        rm_desc = FER_GPC_NODE_DESC(rm);
 
-        desc[desc_i]    = rm_desc[desc_i];
-        rm_desc[desc_i] = NULL;
+        desc[desc_i]    = rm->desc[desc_i];
+        rm->desc[desc_i] = NULL;
         ferGPCNodeDel(rm);
     }
 }
@@ -881,36 +871,34 @@ static void ferGPCSimplifyDuplicatePred(fer_gpc_t *gpc, fer_gpc_node_t *node,
 static fer_gpc_node_t *ferGPCSimplifySubtree(fer_gpc_t *gpc, fer_gpc_node_t *node)
 {
     int i, idx;
-    fer_gpc_node_t **desc, *rnode;
+    fer_gpc_node_t *rnode;
 
     if (node->ndesc == 0)
         return node;
 
-    desc = FER_GPC_NODE_DESC(node);
-
 
     // first dive down in tree
     for (i = 0; i < node->ndesc; i++){
-        if (desc[i]->ndesc > 0)
-            desc[i] = ferGPCSimplifySubtree(gpc, desc[i]);
+        if (node->desc[i]->ndesc > 0)
+            node->desc[i] = ferGPCSimplifySubtree(gpc, node->desc[i]);
     }
 
     // check if all descendants are terminals and compare all their idx
     // also check if there isn't a duplicate predicate
-    idx = desc[0]->idx;
+    idx = node->desc[0]->idx;
     for (i = 0; i < node->ndesc; i++){
-        if (desc[i]->idx == node->idx
-                && desc[i]->ndesc == node->ndesc){
-            ferGPCSimplifyDuplicatePred(gpc, node, desc, i);
+        if (node->desc[i]->idx == node->idx
+                && node->desc[i]->ndesc == node->ndesc){
+            ferGPCSimplifyDuplicatePred(gpc, node, node->desc, i);
         }
 
-        if (desc[i]->ndesc != 0 || idx != desc[i]->idx)
+        if (node->desc[i]->ndesc != 0 || idx != node->desc[i]->idx)
             break;
     }
 
     if (i == node->ndesc){
-        rnode = desc[0];
-        desc[0] = NULL;
+        rnode = node->desc[0];
+        node->desc[0] = NULL;
         ferGPCNodeDel(node);
         return rnode;
     }
@@ -932,25 +920,22 @@ static void ferGPCSimplify(fer_gpc_t *gpc, int pop)
 static void ferGPCPruneDeepSubtree(fer_gpc_t *gpc, fer_gpc_node_t *node,
                                    int depth)
 {
-    fer_gpc_node_t **desc;
     int i;
 
     if (node->ndesc == 0)
         return;
 
-    desc = FER_GPC_NODE_DESC(node);
-
     if (depth == gpc->params.max_depth - 1){
         for (i = 0; i < node->ndesc; i++){
-            if (desc[i]->ndesc != 0){
-                ferGPCNodeDel(desc[i]);
-                desc[i] = ferGPCGenClass(gpc);
+            if (node->desc[i]->ndesc != 0){
+                ferGPCNodeDel(node->desc[i]);
+                node->desc[i] = ferGPCGenClass(gpc);
             }
         }
     }else{
         for (i = 0; i < node->ndesc; i++){
-            if (desc[i]->ndesc != 0){
-                ferGPCPruneDeepSubtree(gpc, desc[i], depth + 1);
+            if (node->desc[i]->ndesc != 0){
+                ferGPCPruneDeepSubtree(gpc, node->desc[i], depth + 1);
             }
         }
     }
@@ -968,23 +953,17 @@ static void ferGPCPruneDeep(fer_gpc_t *gpc, int pop)
 
 static int eqTrees(fer_gpc_t *gpc, fer_gpc_node_t *n1, fer_gpc_node_t *n2)
 {
-    void *b1, *b2;
-    fer_gpc_node_t **desc1, **desc2;
     int i;
 
     if (n1->idx != n2->idx)
         return 0;
 
     if (n1->ndesc > 0){
-        b1 = FER_GPC_NODE_MEM(n1);
-        b2 = FER_GPC_NODE_MEM(n2);
-        if (memcmp(b1, b2, gpc->pred[n1->idx].memsize) != 0)
+        if (memcmp(n1->mem, n2->mem, gpc->pred[n1->idx].memsize) != 0)
             return 0;
 
-        desc1 = FER_GPC_NODE_DESC(n1);
-        desc2 = FER_GPC_NODE_DESC(n2);
         for (i = 0; i < n1->ndesc; i++){
-            if (!eqTrees(gpc, desc1[i], desc2[i]))
+            if (!eqTrees(gpc, n1->desc[i], n2->desc[i]))
                 return 0;
         }
     }

@@ -23,75 +23,58 @@
 fer_gpc_node_t *ferGPCNodeNew(int idx, int ndesc, size_t memsize)
 {
     fer_gpc_node_t *node;
-    fer_gpc_node_t **desc;
-    void *mem;
-    size_t size;
-    int i;
 
-    size  = sizeof(fer_gpc_node_t);
-    size += ndesc * sizeof(fer_gpc_node_t *);
-    size += memsize;
-
-    node = ferRealloc(NULL, size);
+    node = FER_ALLOC(fer_gpc_node_t);
     node->idx   = idx;
     node->ndesc = ndesc;
 
+    node->desc = NULL;
     if (ndesc > 0){
-        desc = FER_GPC_NODE_DESC(node);
-        for (i = 0; i < ndesc; i++){
-            desc[i] = NULL;
-        }
+        node->desc = FER_ALLOC_ARR(fer_gpc_node_t *, ndesc);
     }
 
-    if (memsize > 0){
-        mem = FER_GPC_NODE_MEM(node);
-        memset(mem, 0, memsize);
-    }
+    node->mem = NULL;
+    if (memsize > 0)
+        node->mem = ferRealloc(NULL, memsize);
 
     return node;
 }
 
 void ferGPCNodeDel(fer_gpc_node_t *node)
 {
-    fer_gpc_node_t **desc;
     int i;
 
-    if (node->ndesc > 0){
-        desc = FER_GPC_NODE_DESC(node);
-        for (i = 0; i < node->ndesc; i++){
-            if (desc[i])
-                ferGPCNodeDel(desc[i]);
-        }
+    for (i = 0; i < node->ndesc; i++){
+        if (node->desc[i] != NULL)
+            ferGPCNodeDel(node->desc[i]);
     }
 
+    if (node->desc != NULL)
+        FER_FREE(node->desc);
+    if (node->mem != NULL)
+        FER_FREE(node->mem);
     FER_FREE(node);
 }
 
 fer_gpc_node_t *ferGPCNodeClone(fer_gpc_t *gpc, fer_gpc_node_t *node)
 {
-    fer_gpc_node_t *nnode;
-    fer_gpc_node_t **ndesc, **desc;
-    size_t size;
+    fer_gpc_node_t *n;
+    size_t memsize;
     int i;
 
-    size  = sizeof(fer_gpc_node_t);
-    if (node->ndesc > 0){
-        size += node->ndesc * sizeof(fer_gpc_node_t *);
-        size += __ferGPCPredMemsize(gpc, node->idx);
+    memsize = 0;
+    if (node->ndesc > 0)
+        memsize = __ferGPCPredMemsize(gpc, node->idx);
+
+    n = ferGPCNodeNew(node->idx, node->ndesc, memsize);
+
+    memcpy(n->mem, node->mem, memsize);
+
+    for (i = 0; i < n->ndesc; i++){
+        n->desc[i] = ferGPCNodeClone(gpc, node->desc[i]);
     }
 
-    // copy all data
-    nnode = ferRealloc(NULL, size);
-    memcpy(nnode, node, size);
-
-    // clone also subtree
-    desc  = FER_GPC_NODE_DESC(node);
-    ndesc = FER_GPC_NODE_DESC(nnode);
-    for (i = 0; i < node->ndesc; i++){
-        ndesc[i] = ferGPCNodeClone(gpc, desc[i]);
-    }
-
-    return nnode;
+    return n;
 }
 
 
@@ -131,16 +114,14 @@ fer_gpc_tree_t *ferGPCTreeClone(fer_gpc_t *gpc, fer_gpc_tree_t *tree)
 
 static int fixNumNodes(fer_gpc_node_t *node, int depth, int *rdepth)
 {
-    fer_gpc_node_t **desc;
     int i, num = 1;
 
     if (depth > *rdepth)
         *rdepth = depth;
 
     if (node->ndesc > 0){
-        desc = FER_GPC_NODE_DESC(node);
         for (i = 0; i < node->ndesc; i++){
-            num += fixNumNodes(desc[i], depth + 1, rdepth);
+            num += fixNumNodes(node->desc[i], depth + 1, rdepth);
         }
     }
 
@@ -162,7 +143,6 @@ static int nodeById(fer_gpc_node_t *node, int idx, int cur, int depth,
                     fer_gpc_node_t **rnode, fer_gpc_node_t ***rdesc,
                     int *rdepth)
 {
-    fer_gpc_node_t **desc;
     int i, ret;
 
     if (cur == idx){
@@ -177,14 +157,13 @@ static int nodeById(fer_gpc_node_t *node, int idx, int cur, int depth,
     if (node->ndesc == 0)
         return cur;
 
-    desc = FER_GPC_NODE_DESC(node);
     for (i = 0; i < node->ndesc; i++){
-        ret = nodeById(desc[i], idx, cur + 1, depth + 1,
+        ret = nodeById(node->desc[i], idx, cur + 1, depth + 1,
                        rnode, rdesc, rdepth);
         if (ret == -1){
             // a correct node was reached, record its storage in desc array
             if (*rdesc == NULL)
-                *rdesc = &desc[i];
+                *rdesc = &node->desc[i];
             return -1;
         }else{
             cur = ret;
@@ -217,7 +196,6 @@ fer_gpc_node_t *ferGPCTreeNodeById(fer_gpc_tree_t *tree, int idx,
 static void ferGPCNodePrint(const fer_gpc_node_t *node, FILE *fout, int depth)
 {
     int i;
-    fer_gpc_node_t **desc;
 
     for (i = 0; i < depth; i++)
         fprintf(fout, "  ");
@@ -225,14 +203,13 @@ static void ferGPCNodePrint(const fer_gpc_node_t *node, FILE *fout, int depth)
     fprintf(fout, "idx: %d, ndesc: %d [%lx]",
             (int)node->idx, (int)node->ndesc, (long)node);
 
-    desc = FER_GPC_NODE_DESC(node);
     for (i = 0; i < node->ndesc; i++){
-        fprintf(fout, " %lx", (long)&desc[i]);
+        fprintf(fout, " %lx", (long)&node->desc[i]);
     }
     fprintf(fout, "\n");
 
     for (i = 0; i < node->ndesc; i++){
-        ferGPCNodePrint(desc[i], fout, depth + 1);
+        ferGPCNodePrint(node->desc[i], fout, depth + 1);
     }
 }
 

@@ -25,27 +25,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * Returns pointer to (fer_gpc_node_t *[]) array of pointers to descendants
- * of a node.
- * This is always stored after a fer_gpc_node_t struct.
- */
-#define FER_GPC_NODE_DESC(node) \
-    ((fer_gpc_node_t **)(((char *)(node)) + sizeof(fer_gpc_node_t)))
-
-/**
- * Returns pointer (void *) to predicate memory
- */
-#define FER_GPC_NODE_MEM(node) \
-    ((void *)(((char*)(node)) + sizeof(fer_gpc_node_t) + sizeof(fer_gpc_node_t *) * (node)->ndesc))
-
-
-/**
  * Base struct for tree's node
  */
 struct _fer_gpc_node_t {
     int idx;   /*!< Index of predicate/class */
     int ndesc; /*!< Number of descendants.
                     If 0, this is a terminal (class) node */
+    struct _fer_gpc_node_t **desc; /*!< Array of descendants */
+    void *mem; /*!< User defined memory */
 } fer_packed;
 typedef struct _fer_gpc_node_t fer_gpc_node_t;
 
