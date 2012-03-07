@@ -103,9 +103,9 @@ void ferOptsClear(void)
     size_t i;
 
     for (i = 0; i < opts_len; i++){
-        FER_FREE(opts[i]);
         if (opts[i]->desc)
             FER_FREE(opts[i]->desc);
+        FER_FREE(opts[i]);
     }
     FER_FREE(opts);
     opts = NULL;
