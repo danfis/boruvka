@@ -100,6 +100,7 @@ EXAMPLE_TARGETS += kohonen-simple
 EXAMPLE_TARGETS += gng-eu
 EXAMPLE_TARGETS += gng-t
 EXAMPLE_TARGETS += prm-6d
+EXAMPLE_TARGETS += gpc
 
 
 OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj))
@@ -113,8 +114,6 @@ endif
 ifeq '$(BINS)' 'yes'
   TARGETS += $(BIN_TARGETS)
 endif
-
-TARGETS += examples/gpc
 
 all: $(TARGETS)
 
