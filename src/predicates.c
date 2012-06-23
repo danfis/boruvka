@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -17,15 +17,15 @@
 
 /**
  * This is copy of Jonathan Shewchuk's predicates.c as available at
- * http://www.cs.cmu.edu/~quake/robust.html ported to fermat library's Vec2
+ * http://www.cs.cmu.edu/~quake/robust.html ported to Boruvka library's Vec2
  * and Vec3 vectors.
- * The public functions were renamed to conform with fermat's namespace,
+ * The public functions were renamed to conform with Boruvka's namespace,
  * all variables and functions that shouldn't be public were declared as
  * static, inputs were changed to vectors and all unneeded code was
  * removed.
  */
 
-#include <fermat/predicates.h>
+#include <boruvka/predicates.h>
 
 /*****************************************************************************/
 /*                                                                           */

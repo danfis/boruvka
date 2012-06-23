@@ -1,6 +1,6 @@
 #include <cu/cu.h>
-#include <fermat/chull3.h>
-#include <fermat/dbg.h>
+#include <boruvka/chull3.h>
+#include <boruvka/dbg.h>
 #include "data.h"
 
 TEST(testCHull)

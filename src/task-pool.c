@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,8 +15,8 @@
  */
 
 #include <limits.h>
-#include <fermat/task-pool.h>
-#include <fermat/alloc.h>
+#include <boruvka/task-pool.h>
+#include <boruvka/alloc.h>
 
 /** Maximal queue size */
 #define QUEUE_SIZE SEM_VALUE_MAX

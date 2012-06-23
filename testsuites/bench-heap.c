@@ -1,6 +1,6 @@
-#include <fermat/rand.h>
-#include <fermat/timer.h>
-#include <fermat/alloc.h>
+#include <boruvka/rand.h>
+#include <boruvka/timer.h>
+#include <boruvka/alloc.h>
 
 struct _el_t {
     fer_real_t val;

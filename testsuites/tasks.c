@@ -1,7 +1,7 @@
 #include <cu/cu.h>
-#include <fermat/tasks.h>
-#include <fermat/vec3.h>
-#include <fermat/dbg.h>
+#include <boruvka/tasks.h>
+#include <boruvka/vec3.h>
+#include <boruvka/dbg.h>
 
 static void taskV(int id, void *data, const fer_tasks_thinfo_t *info)
 {

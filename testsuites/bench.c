@@ -5,7 +5,7 @@
 #include <fcntl.h>
 
 #include <cu/cu.h>
-#include <fermat/vec3.h>
+#include <boruvka/vec3.h>
 #include "data.h"
 
 

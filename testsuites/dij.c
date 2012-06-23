@@ -1,6 +1,6 @@
 #include <cu/cu.h>
-#include <fermat/dij.h>
-#include <fermat/vec2.h>
+#include <boruvka/dij.h>
+#include <boruvka/vec2.h>
 
 #define NUM_NODES 20
 

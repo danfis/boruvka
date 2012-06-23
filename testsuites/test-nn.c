@@ -1,11 +1,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <fermat/nn.h>
-#include <fermat/alloc.h>
-#include <fermat/rand.h>
-#include <fermat/timer.h>
-#include <fermat/dbg.h>
+#include <boruvka/nn.h>
+#include <boruvka/alloc.h>
+#include <boruvka/rand.h>
+#include <boruvka/timer.h>
+#include <boruvka/dbg.h>
 
 struct _el_t {
     fer_vec2_t v;

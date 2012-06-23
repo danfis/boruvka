@@ -1,7 +1,7 @@
 #include <cu/cu.h>
-#include <fermat/task-pool.h>
-#include <fermat/vec3.h>
-#include <fermat/dbg.h>
+#include <boruvka/task-pool.h>
+#include <boruvka/vec3.h>
+#include <boruvka/dbg.h>
 
 static void taskV(int id, void *data, const fer_task_pool_thinfo_t *info)
 {

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/vec3.h>
-#include <fermat/dbg.h>
+#include <boruvka/vec3.h>
+#include <boruvka/dbg.h>
 #include "data.h"
 
 static void projToPlanePrint(fer_vec3_t *vs, int num);

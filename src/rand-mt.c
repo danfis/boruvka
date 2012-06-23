@@ -1,6 +1,6 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Based on code by Makoto Matsumoto, Takuji Nishimura, and Shawn Cokus
  * Based on code by Richard J. Wagner - v1.1
  *      (http://www-personal.umich.edu/~wagnerr/MersenneTwister.html)
@@ -9,7 +9,7 @@
  * Copyright (c)2000 - 2009, Richard J. Wagner
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -23,8 +23,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <limits.h>
-#include <fermat/rand-mt.h>
-#include <fermat/alloc.h>
+#include <boruvka/rand-mt.h>
+#include <boruvka/alloc.h>
 
 _fer_inline void ferRandMTInit(fer_rand_mt_t *r, uint32_t seed);
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/mat4.h>
-#include <fermat/dbg.h>
+#include <boruvka/mat4.h>
+#include <boruvka/dbg.h>
 #include "data.h"
 
 TEST(mat4SetUp)

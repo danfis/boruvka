@@ -1,9 +1,9 @@
 #include <cu/cu.h>
-#include <fermat/nn.h>
-#include <fermat/rand-mt.h>
-#include <fermat/nearest-linear.h>
-#include <fermat/vec3.h>
-#include <fermat/dbg.h>
+#include <boruvka/nn.h>
+#include <boruvka/rand-mt.h>
+#include <boruvka/nearest-linear.h>
+#include <boruvka/vec3.h>
+#include <boruvka/dbg.h>
 
 #define BUILD_ELS_LEN 10000
 #define BUILD_NUM_TESTS 1000

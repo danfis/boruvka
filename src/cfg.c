@@ -1,10 +1,10 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -16,11 +16,11 @@
  */
 
 #include <stdarg.h>
-#include <fermat/cfg.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
-#include <fermat/hfunc.h>
-#include <fermat/vec.h>
+#include <boruvka/cfg.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
+#include <boruvka/hfunc.h>
+#include <boruvka/vec.h>
 #include "src/cfg-lexer.h"
 
 typedef void *yyscan_t;

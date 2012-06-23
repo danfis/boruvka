@@ -1,5 +1,5 @@
 #include <cu/cu.h>
-#include <fermat/mesh3.h>
+#include <boruvka/mesh3.h>
 
 FILE *pov, *tri;
 

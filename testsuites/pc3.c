@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/vec3.h>
-#include <fermat/pc.h>
-#include <fermat/dbg.h>
+#include <boruvka/vec3.h>
+#include <boruvka/pc.h>
+#include <boruvka/dbg.h>
 
 TEST(pcSetUp)
 {

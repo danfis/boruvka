@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#include "fermat/parse.h"
-#include "fermat/dbg.h"
+#include "boruvka/parse.h"
+#include "boruvka/dbg.h"
 
 #define NOT_WS(c) \
     ( c != ' ' && c != '\t' && c != '\n')

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/sort.h>
-#include <fermat/rand.h>
-#include <fermat/alloc.h>
+#include <boruvka/sort.h>
+#include <boruvka/rand.h>
+#include <boruvka/alloc.h>
 
 struct rs_t {
     int i;

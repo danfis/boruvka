@@ -1,12 +1,12 @@
 #ifndef _DATA_H_
 #define _DATA_H_
 
-#include <fermat/vec2.h>
-#include <fermat/vec3.h>
-#include <fermat/vec4.h>
-#include <fermat/quat.h>
-#include <fermat/mat3.h>
-#include <fermat/mat4.h>
+#include <boruvka/vec2.h>
+#include <boruvka/vec3.h>
+#include <boruvka/vec4.h>
+#include <boruvka/quat.h>
+#include <boruvka/mat3.h>
+#include <boruvka/mat4.h>
 
 extern fer_vec2_t vecs2[];
 extern size_t vecs2_len;

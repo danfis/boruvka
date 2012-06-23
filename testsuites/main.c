@@ -1,4 +1,4 @@
-#include <fermat/config.h>
+#include <boruvka/config.h>
 #include "vec4.h"
 #include "vec3.h"
 #include "vec2.h"

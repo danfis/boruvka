@@ -1,6 +1,6 @@
 #include <cu/cu.h>
-#include <fermat/cfg.h>
-#include <fermat/dbg.h>
+#include <boruvka/cfg.h>
+#include <boruvka/dbg.h>
 
 TEST(cfg1)
 {

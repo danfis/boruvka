@@ -1,5 +1,5 @@
 #include <cu/cu.h>
-#include <fermat/opts.h>
+#include <boruvka/opts.h>
 
 static void opts1_help(const char *long_name, char short_name)
 {

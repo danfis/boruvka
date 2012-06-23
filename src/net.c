@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -14,9 +14,9 @@
  *  See the License for more information.
  */
 
-#include <fermat/net.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
+#include <boruvka/net.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
 
 fer_net_node_t *ferNetNodeNew(void)
 {

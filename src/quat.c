@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2012 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -14,7 +14,7 @@
  *  See the License for more information.
  */
 
-#include <fermat/quat.h>
+#include <boruvka/quat.h>
 
 void ferQuatSetEuler(fer_quat_t *q, fer_real_t yaw, fer_real_t pitch, fer_real_t roll)
 {

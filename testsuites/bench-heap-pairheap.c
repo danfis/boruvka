@@ -1,4 +1,4 @@
-#include <fermat/pairheap.h>
+#include <boruvka/pairheap.h>
 
 #define HHEAP fer_pairheap_t
 #define HNODE fer_pairheap_node_t

@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -14,10 +14,10 @@
  *  See the License for more information.
  */
 
-#include <fermat/nnbp.h>
-#include <fermat/rand-mt.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
+#include <boruvka/nnbp.h>
+#include <boruvka/rand-mt.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
 
 /** Sigmoid function: 1/(1 + exp(-lambda * x)) */
 static fer_real_t sigmoid(fer_real_t x, fer_real_t lambda);

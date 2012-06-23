@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -18,9 +18,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <fermat/opencl.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
+#include <boruvka/opencl.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
 
 const char *__ferCLErrorStr(cl_int err);
 _fer_inline int __ferCLErrorCheck(cl_int err, const char *errstr);

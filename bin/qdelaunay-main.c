@@ -1,5 +1,5 @@
-#include <fermat/qhull.h>
-#include <fermat/timer.h>
+#include <boruvka/qhull.h>
+#include <boruvka/timer.h>
 
 int main(int argc, char *argv[])
 {

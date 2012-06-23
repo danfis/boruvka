@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -16,10 +16,10 @@
 
 #include <unistd.h>
 #include <sys/mman.h>
-#include <fermat/pc-internal.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
-#include <fermat/alloc.h>
+#include <boruvka/pc-internal.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
+#include <boruvka/alloc.h>
 
 static size_t __fer_page_size = 0;
 

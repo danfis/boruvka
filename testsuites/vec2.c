@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "cu.h"
 
-#include <fermat/vec2.h>
-#include <fermat/mat3.h>
+#include <boruvka/vec2.h>
+#include <boruvka/mat3.h>
 #include "data.h"
 
 static fer_vec2_t *v[4];

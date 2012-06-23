@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -15,10 +15,10 @@
  */
 
 #include <stdio.h>
-#include <fermat/alloc.h>
-#include <fermat/vec3.h>
-#include <fermat/vec2.h>
-#include <fermat/dbg.h>
+#include <boruvka/alloc.h>
+#include <boruvka/vec3.h>
+#include <boruvka/vec2.h>
+#include <boruvka/dbg.h>
 
 static FER_VEC3(__fer_vec3_origin, FER_ZERO, FER_ZERO, FER_ZERO);
 const fer_vec3_t *fer_vec3_origin = &__fer_vec3_origin;

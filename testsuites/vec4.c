@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/vec4.h>
-#include <fermat/dbg.h>
+#include <boruvka/vec4.h>
+#include <boruvka/dbg.h>
 #include "data.h"
 
 TEST(vec4SetUp)

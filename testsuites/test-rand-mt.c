@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <fermat/rand-mt.h>
+#include <boruvka/rand-mt.h>
 
 void test(fer_rand_mt_t *r)
 {

@@ -1,9 +1,9 @@
 ###
-# fermat
-# -------
+# Boruvka
+# --------
 # Copyright (c)2010-2012 Daniel Fiser <danfis@danfis.cz>
 #
-#  This file is part of fermat.
+#  This file is part of boruvka.
 #
 #  Distributed under the OSI-approved BSD License (the "License");
 #  see accompanying file BDS-LICENSE for details or see
@@ -19,9 +19,9 @@
 
 CFLAGS += -I.
 CXXFLAGS += -I.
-LDFLAGS += -L. -lfermat -lm -lrt
+LDFLAGS += -L. -lboruvka -lm -lrt
 
-TARGETS = libfermat.a
+TARGETS = libboruvka.a
 OBJS  = alloc.o
 OBJS += cfg.o cfg-lexer.o
 OBJS += opts.o
@@ -67,33 +67,33 @@ endif
 
 all: $(TARGETS)
 
-libfermat.a: $(OBJS)
+libboruvka.a: $(OBJS)
 	ar cr $@ $(OBJS)
 	ranlib $@
 
-fermat/config.h: fermat/config.h.m4
+boruvka/config.h: boruvka/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
-bin/fer-%: bin/%-main.c libfermat.a
+bin/fer-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 bin/%.o: bin/%.c bin/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-examples/%: examples/%.c libfermat.a
+examples/%: examples/%.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 	$(FLEX) -f -t $< >$@
-.objs/cfg.o: src/cfg.c fermat/cfg.h fermat/config.h src/cfg-lexer.c
+.objs/cfg.o: src/cfg.c boruvka/cfg.h boruvka/config.h src/cfg-lexer.c
 	$(CC) $(CFLAGS) -c -o $@ $<
-.objs/%.o: src/%.c fermat/%.h fermat/config.h
+.objs/%.o: src/%.c boruvka/%.h boruvka/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
-.objs/%.o: src/%.c fermat/config.h
+.objs/%.o: src/%.c boruvka/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 
-%.h: fermat/config.h
-%.c: fermat/config.h
+%.h: boruvka/config.h
+%.c: boruvka/config.h
 
 %-cl.c: %.cl
 	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
@@ -102,10 +102,10 @@ src/cd-sap-gpu-cl.c: src/cd-sap-gpu.cl
 
 
 install:
-	mkdir -p $(PREFIX)/$(INCLUDEDIR)/fermat
+	mkdir -p $(PREFIX)/$(INCLUDEDIR)/boruvka
 	mkdir -p $(PREFIX)/$(LIBDIR)
-	cp -r fermat/* $(PREFIX)/$(INCLUDEDIR)/fermat/
-	cp libfermat.a $(PREFIX)/$(LIBDIR)
+	cp -r boruvka/* $(PREFIX)/$(INCLUDEDIR)/boruvka/
+	cp libboruvka.a $(PREFIX)/$(LIBDIR)
 
 clean:
 	rm -f $(OBJS)
@@ -113,7 +113,7 @@ clean:
 	rm -f .objs/*.o
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
-	rm -f fermat/config.h
+	rm -f boruvka/config.h
 	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
@@ -139,7 +139,6 @@ help:
 	@echo "    install        - Install library into system"
 	@echo "    analyze        - Performs static analysis using Clang Static Analyzer"
 	@echo ""
-	@echo "    fermat-cd      - Separate FermatCD library into tarball. See FERMAT_CD_VER option."
 	@echo "Options:"
 	@echo "    CC         - Path to C compiler          (=$(CC))"
 	@echo "    CXX        - Path to C++ compiler        (=$(CXX))"

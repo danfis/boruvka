@@ -11,7 +11,7 @@ for i in range(0, LEN):
     mat4s.append(m)
 
 
-print('#include <fermat/mat4.h>')
+print('#include <boruvka/mat4.h>')
 print('')
 
 print('fer_mat4_t mat4s[] = {')

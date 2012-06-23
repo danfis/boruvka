@@ -29,5 +29,5 @@ if sys.argv[1] == 'html':
 
 
 s.add_node(nodes.Text, html=(visit_Text, None))
-s.add_stylesheet('fermat.css')
+s.add_stylesheet('boruvka.css')
 s.build()

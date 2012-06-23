@@ -1,9 +1,9 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2010 Daniel Fiser <danfis@danfis.cz>
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -16,9 +16,9 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <fermat/alloc.h>
-#include <fermat/vec.h>
-#include <fermat/dbg.h>
+#include <boruvka/alloc.h>
+#include <boruvka/vec.h>
+#include <boruvka/dbg.h>
 
 fer_vec_t *ferVecNew(size_t size)
 {

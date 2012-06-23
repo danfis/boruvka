@@ -1,10 +1,10 @@
 /***
- * fermat
- * -------
+ * Boruvka
+ * --------
  * Copyright (c)2011 Daniel Fiser <danfis@danfis.cz>
  *
  *
- *  This file is part of fermat.
+ *  This file is part of Boruvka.
  *
  *  Distributed under the OSI-approved BSD License (the "License");
  *  see accompanying file BDS-LICENSE for details or see
@@ -16,8 +16,8 @@
  */
 
 %{
-#include <fermat/cfg.h>
-#include <fermat/parse.h>
+#include <boruvka/cfg.h>
+#include <boruvka/parse.h>
 #include "src/cfg-lexer.h"
 
 #define YY_DECL uint16_t yylex(yyscan_t yyscanner)

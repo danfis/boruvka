@@ -1,9 +1,9 @@
 #include <cu/cu.h>
-#include <fermat/gug.h>
-#include <fermat/vec2.h>
-#include <fermat/rand.h>
-#include <fermat/nearest-linear.h>
-#include <fermat/dbg.h>
+#include <boruvka/gug.h>
+#include <boruvka/vec2.h>
+#include <boruvka/rand.h>
+#include <boruvka/nearest-linear.h>
+#include <boruvka/dbg.h>
 
 static fer_rand_t r;
 

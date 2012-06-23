@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <cu/cu.h>
-#include <fermat/pc.h>
-#include <fermat/dbg.h>
+#include <boruvka/pc.h>
+#include <boruvka/dbg.h>
 
 TEST(ppcSetUp)
 {

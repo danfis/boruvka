@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "cu.h"
-#include <fermat/pairheap.h>
-#include <fermat/rand.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
+#include <boruvka/pairheap.h>
+#include <boruvka/rand.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
 
 struct _el_t {
     int val;

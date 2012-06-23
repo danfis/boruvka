@@ -1,9 +1,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <fermat/qhull.h>
-#include <fermat/alloc.h>
-#include <fermat/dbg.h>
+#include <boruvka/qhull.h>
+#include <boruvka/alloc.h>
+#include <boruvka/dbg.h>
 
 
 /** Maximal length of line  */

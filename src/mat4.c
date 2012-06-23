@@ -1,7 +1,23 @@
-#include "fermat/mat4.h"
-#include "fermat/mat3.h"
-#include "fermat/alloc.h"
-#include "fermat/dbg.h"
+/***
+ * Boruvka
+ * --------
+ * Copyright (c)2010-2012 Daniel Fiser <danfis@danfis.cz>
+ *
+ *  This file is part of Boruvka.
+ *
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
+ *
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
+ */
+
+#include "boruvka/mat4.h"
+#include "boruvka/mat3.h"
+#include "boruvka/alloc.h"
+#include "boruvka/dbg.h"
 
 
 /** Returns subdeterminant */

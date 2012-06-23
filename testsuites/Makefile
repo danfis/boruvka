@@ -8,7 +8,7 @@ endif
 
 CFLAGS += -I./ -I../ -Icu/
 CXXFLAGS += -I./ -I../ -Icu/
-LDFLAGS += -L./ -ldata -Lcu/ -lcu -lrt -lm -L../ -lfermat -pthread
+LDFLAGS += -L./ -ldata -Lcu/ -lcu -lrt -lm -L../ -lboruvka -pthread
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
 CHECK_REG=cu/check-regressions

@@ -1,7 +1,7 @@
 #include <cu/cu.h>
-#include <fermat/nearest-linear.h>
-#include <fermat/rand.h>
-#include <fermat/dbg.h>
+#include <boruvka/nearest-linear.h>
+#include <boruvka/rand.h>
+#include <boruvka/dbg.h>
 
 #define LINEAR_LEN 20
 

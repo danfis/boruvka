@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "cu.h"
-#include <fermat/fibo.h>
-#include <fermat/rand.h>
-#include <fermat/alloc.h>
+#include <boruvka/fibo.h>
+#include <boruvka/rand.h>
+#include <boruvka/alloc.h>
 
 /*
 static void treeDump(fer_list_t *fl, size_t spaces)

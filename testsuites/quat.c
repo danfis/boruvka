@@ -1,6 +1,6 @@
 #include <cu/cu.h>
-#include <fermat/quat.h>
-#include <fermat/dbg.h>
+#include <boruvka/quat.h>
+#include <boruvka/dbg.h>
 
 #include "data.h"
 
