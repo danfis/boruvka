@@ -6,14 +6,14 @@
 #define LINEAR_LEN 20
 
 struct linear_t {
-    fer_real_t num;
-    fer_list_t list;
+    bor_real_t num;
+    bor_list_t list;
 };
 
-static fer_rand_t r;
-static void randList(fer_list_t *head)
+static bor_rand_t r;
+static void randList(bor_list_t *head)
 {
-    fer_list_t *item;
+    bor_list_t *item;
     struct linear_t *it;
 
     FER_LIST_FOR_EACH(head, item){
@@ -22,12 +22,12 @@ static void randList(fer_list_t *head)
     }
 }
 
-static fer_real_t linearDist(void *item1, fer_list_t *item2, void *_)
+static bor_real_t linearDist(void *item1, bor_list_t *item2, void *_)
 {
-    fer_real_t r1, r2;
+    bor_real_t r1, r2;
     struct linear_t *it;
 
-    r1 = *(fer_real_t *)item1;
+    r1 = *(bor_real_t *)item1;
     it = FER_LIST_ENTRY(item2, struct linear_t, list);
     r2 = it->num;
 
@@ -35,9 +35,9 @@ static fer_real_t linearDist(void *item1, fer_list_t *item2, void *_)
 }
 
 /*
-static void prList(fer_list_t *head)
+static void prList(bor_list_t *head)
 {
-    fer_list_t *item;
+    bor_list_t *item;
     struct linear_t *it;
 
     fprintf(stdout, "#");
@@ -48,7 +48,7 @@ static void prList(fer_list_t *head)
     fprintf(stdout, "\n");
 }
 
-static void prNearest(fer_list_t **nearest, size_t len)
+static void prNearest(bor_list_t **nearest, size_t len)
 {
     struct linear_t *it;
     size_t i;
@@ -66,8 +66,8 @@ TEST(nearestLinear)
 {
     struct linear_t list, items[LINEAR_LEN];
     size_t i;
-    fer_list_t *nearest[10];
-    fer_real_t p;
+    bor_list_t *nearest[10];
+    bor_real_t p;
 
     ferRandInit(&r);
 

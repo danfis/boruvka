@@ -30,11 +30,11 @@ extern "C" {
  * ===================
  *
  *
- * .. c:type:: fer_quat_t
+ * .. c:type:: bor_quat_t
  */
 
 /** vvvvv */
-typedef fer_vec4_t fer_quat_t;
+typedef bor_vec4_t bor_quat_t;
 /** ^^^^^ */
 
 /**
@@ -45,7 +45,7 @@ typedef fer_vec4_t fer_quat_t;
 /** vvvvv */
 #define FER_QUAT_STATIC FER_VEC4_STATIC
 #define FER_QUAT(name, x, y, z, w) \
-    fer_quat_t name = FER_QUAT_STATIC((x), (y), (z), (w))
+    bor_quat_t name = FER_QUAT_STATIC((x), (y), (z), (w))
 
 #define ferQuatNew   ferVec4New
 #define ferQuatDel   ferVec4Del
@@ -79,57 +79,57 @@ typedef fer_vec4_t fer_quat_t;
 /**
  * Sets quaternion as rotation of given angle around given axis.
  */
-_fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
-                                     fer_real_t angle, const fer_vec3_t *axis);
+_fer_inline void ferQuatSetAngleAxis(bor_quat_t *q,
+                                     bor_real_t angle, const bor_vec3_t *axis);
 
 /**
  * Sets quaternion in euler angles (yaw, pitch, roll) or (heading,
  * elevation, bank) or rotation about (z, y, x)
  */
-void ferQuatSetEuler(fer_quat_t *q, fer_real_t yaw, fer_real_t pitch, fer_real_t roll);
+void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll);
 
 /**
  * Composition of two quaternions.
  * q = q * q2
  */
-_fer_inline void ferQuatMul(fer_quat_t *q, const fer_quat_t *q2);
+_fer_inline void ferQuatMul(bor_quat_t *q, const bor_quat_t *q2);
 
 /**
  * q = a * b
  */
-_fer_inline void ferQuatMul2(fer_quat_t *q,
-                           const fer_quat_t *a, const fer_quat_t *b);
+_fer_inline void ferQuatMul2(bor_quat_t *q,
+                           const bor_quat_t *a, const bor_quat_t *b);
 
 /**
  * Inverts quaternion.
  * Returns 0 on success.
  */
-_fer_inline int ferQuatInvert(fer_quat_t *q);
-_fer_inline int ferQuatInvert2(fer_quat_t *dest, const fer_quat_t *src);
+_fer_inline int ferQuatInvert(bor_quat_t *q);
+_fer_inline int ferQuatInvert2(bor_quat_t *dest, const bor_quat_t *src);
 
 
 /**
  * Rotate vector v by quaternion q.
  */
-_fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q);
+_fer_inline void ferQuatRotVec(bor_vec3_t *v, const bor_quat_t *q);
 
 /**
  * Transforms quaternion into Mat3 rotation matrix.
  */
-_fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m);
+_fer_inline void ferQuatToMat3(const bor_quat_t *q, bor_mat3_t *m);
 
 /**
  * Creates quaternion from 3x3 matrix
  */
-_fer_inline void ferQuatFromMat3(fer_quat_t *q, const fer_mat3_t *m);
+_fer_inline void ferQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m);
 
 
 /**** INLINES ****/
-_fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
-                                   fer_real_t angle, const fer_vec3_t *axis)
+_fer_inline void ferQuatSetAngleAxis(bor_quat_t *q,
+                                   bor_real_t angle, const bor_vec3_t *axis)
 {
-    fer_vec3_t xyz;
-    fer_real_t a, s, n;
+    bor_vec3_t xyz;
+    bor_real_t a, s, n;
 
     ferVec3Copy(&xyz, axis);
     n = ferVec3Len(&xyz);
@@ -146,15 +146,15 @@ _fer_inline void ferQuatSetAngleAxis(fer_quat_t *q,
 }
 
 
-_fer_inline void ferQuatMul(fer_quat_t *q, const fer_quat_t *q2)
+_fer_inline void ferQuatMul(bor_quat_t *q, const bor_quat_t *q2)
 {
-    fer_quat_t a;
+    bor_quat_t a;
     ferQuatCopy(&a, q);
     ferQuatMul2(q, &a, q2);
 }
 
-_fer_inline void ferQuatMul2(fer_quat_t *q,
-                           const fer_quat_t *a, const fer_quat_t *b)
+_fer_inline void ferQuatMul2(bor_quat_t *q,
+                           const bor_quat_t *a, const bor_quat_t *b)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -243,9 +243,9 @@ _fer_inline void ferQuatMul2(fer_quat_t *q,
 #endif /* FER_SSE */
 }
 
-_fer_inline int ferQuatInvert(fer_quat_t *q)
+_fer_inline int ferQuatInvert(bor_quat_t *q)
 {
-    fer_real_t len2 = ferQuatLen2(q);
+    bor_real_t len2 = ferQuatLen2(q);
     if (len2 < FER_EPS)
         return -1;
 
@@ -272,16 +272,16 @@ _fer_inline int ferQuatInvert(fer_quat_t *q)
 
     return 0;
 }
-_fer_inline int ferQuatInvert2(fer_quat_t *dest, const fer_quat_t *src)
+_fer_inline int ferQuatInvert2(bor_quat_t *dest, const bor_quat_t *src)
 {
     ferQuatCopy(dest, src);
     return ferQuatInvert(dest);
 }
 
-_fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q)
+_fer_inline void ferQuatRotVec(bor_vec3_t *v, const bor_quat_t *q)
 {
-    fer_real_t w, x, y, z, ww, xx, yy, zz, wx, wy, wz, xy, xz, yz;
-    fer_real_t vx, vy, vz;
+    bor_real_t w, x, y, z, ww, xx, yy, zz, wx, wy, wz, xy, xz, yz;
+    bor_real_t vx, vy, vz;
 
     w = q->f[3];
     x = q->f[0];
@@ -319,10 +319,10 @@ _fer_inline void ferQuatRotVec(fer_vec3_t *v, const fer_quat_t *q)
     ferVec3Set(v, vx, vy, vz);
 }
 
-_fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m)
+_fer_inline void ferQuatToMat3(const bor_quat_t *q, bor_mat3_t *m)
 {
-    fer_real_t x, y, z, w;
-    fer_real_t xx, yy, zz, xy, zw, xz, yw, yz, xw;
+    bor_real_t x, y, z, w;
+    bor_real_t xx, yy, zz, xy, zw, xz, yw, yz, xw;
 
     x = ferQuatX(q);
     y = ferQuatY(q);
@@ -343,9 +343,9 @@ _fer_inline void ferQuatToMat3(const fer_quat_t *q, fer_mat3_t *m)
                   xz-yw, yz+xw, 1.0-xx-yy);
 }
 
-_fer_inline void ferQuatFromMat3(fer_quat_t *q, const fer_mat3_t *m)
+_fer_inline void ferQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m)
 {
-    fer_real_t w, w4;
+    bor_real_t w, w4;
 
     w  = 1 + ferMat3Get(m, 0, 0) + ferMat3Get(m, 1, 1) + ferMat3Get(m, 2, 2);
     w  = FER_SQRT(w);

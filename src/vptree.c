@@ -22,72 +22,72 @@
 
 
 /** Finds out radius and variance */
-static void radiusVar(fer_vptree_t *vp,
-                      const fer_vec_t *p,
-                      fer_vptree_el_t **els,
-                      fer_real_t *dist,
+static void radiusVar(bor_vptree_t *vp,
+                      const bor_vec_t *p,
+                      bor_vptree_el_t **els,
+                      bor_real_t *dist,
                       size_t len,
-                      fer_real_t *radius, fer_real_t *var);
+                      bor_real_t *radius, bor_real_t *var);
 /** Choose best vantage point */
-static void bestVP(fer_vptree_t *vp,
-                   fer_vptree_el_t **candidates, size_t clen,
-                   fer_vptree_el_t **data, size_t dlen,
-                   fer_real_t *dist,
-                   fer_vec_t *vp_out, fer_real_t *radius_out);
+static void bestVP(bor_vptree_t *vp,
+                   bor_vptree_el_t **candidates, size_t clen,
+                   bor_vptree_el_t **data, size_t dlen,
+                   bor_real_t *dist,
+                   bor_vec_t *vp_out, bor_real_t *radius_out);
 /** Reorganize els[] to have first all elements nearer to {p} than {radius}.
  *  Number of elements in first part is returned */
-static int reorganizeEls(fer_vptree_t *vp,
-                         const fer_vec_t *p, fer_real_t radius,
-                         fer_vptree_el_t **els, int els_len);
+static int reorganizeEls(bor_vptree_t *vp,
+                         const bor_vec_t *p, bor_real_t radius,
+                         bor_vptree_el_t **els, int els_len);
 
 /** Node **/
 /** Creates new empty node */
-static _fer_vptree_node_t *nodeNew(fer_vptree_t *vp);
+static _bor_vptree_node_t *nodeNew(bor_vptree_t *vp);
 /** Deletes node */
-static void nodeDel(fer_vptree_t *vp, _fer_vptree_node_t *n);
+static void nodeDel(bor_vptree_t *vp, _bor_vptree_node_t *n);
 /** Adds element to node - no check is performed */
-static void nodeAdd(fer_vptree_t *vp, _fer_vptree_node_t *n,
-                    fer_vptree_el_t *el);
+static void nodeAdd(bor_vptree_t *vp, _bor_vptree_node_t *n,
+                    bor_vptree_el_t *el);
 /** Returns best matching leaf node for given element */
-static _fer_vptree_node_t *nodeFindLeaf(fer_vptree_t *vp,
-                                        _fer_vptree_node_t *n,
-                                        const fer_vptree_el_t *el);
+static _bor_vptree_node_t *nodeFindLeaf(bor_vptree_t *vp,
+                                        _bor_vptree_node_t *n,
+                                        const bor_vptree_el_t *el);
 /** Split given node and add given element */
-static void nodeAddSplit(fer_vptree_t *vp,
-                         _fer_vptree_node_t *n,
-                         fer_vptree_el_t *el);
+static void nodeAddSplit(bor_vptree_t *vp,
+                         _bor_vptree_node_t *n,
+                         bor_vptree_el_t *el);
 
 /** Build **/
 struct _build_t {
-    fer_vptree_t *vp;
-    fer_rand_mt_t *rand;
-    fer_real_t *dist;
-    fer_vptree_el_t **els;
-    fer_vptree_el_t **ps;
-    fer_vptree_el_t **ds;
+    bor_vptree_t *vp;
+    bor_rand_mt_t *rand;
+    bor_real_t *dist;
+    bor_vptree_el_t **els;
+    bor_vptree_el_t **ps;
+    bor_vptree_el_t **ds;
 };
 typedef struct _build_t build_t;
 
 /** Adds all elements from els to node */
-static void buildAddEls(fer_vptree_t *vp,
-                        _fer_vptree_node_t *node,
-                        fer_vptree_el_t **els, size_t els_len);
+static void buildAddEls(bor_vptree_t *vp,
+                        _bor_vptree_node_t *node,
+                        bor_vptree_el_t **els, size_t els_len);
 /** Fills {els} with len samples from {els_in} */
-static void buildSampleEls(build_t *build, fer_vptree_el_t **els_in, size_t els_len,
-                           fer_vptree_el_t **els, size_t len);
+static void buildSampleEls(build_t *build, bor_vptree_el_t **els_in, size_t els_len,
+                           bor_vptree_el_t **els, size_t len);
 /** Builds one level of vp-tree */
-static _fer_vptree_node_t *buildNode(build_t *build,
-                                     fer_vptree_el_t **els, size_t els_len);
+static _bor_vptree_node_t *buildNode(build_t *build,
+                                     bor_vptree_el_t **els, size_t els_len);
 
 
 /** Returns distance between v1 and v2 */
-_fer_inline fer_real_t ferVPTreeDist(const fer_vptree_t *vp,
-                                     const fer_vec_t *v1, const fer_vec_t *v2);
+_fer_inline bor_real_t ferVPTreeDist(const bor_vptree_t *vp,
+                                     const bor_vec_t *v1, const bor_vec_t *v2);
 /** Euclidean distance callback */
-static fer_real_t ferVPTreeDistCB(int d, const fer_vec_t *v1,
-                                  const fer_vec_t *v2, void *data);
+static bor_real_t ferVPTreeDistCB(int d, const bor_vec_t *v1,
+                                  const bor_vec_t *v2, void *data);
 
-void ferVPTreeParamsInit(fer_vptree_params_t *params)
+void ferVPTreeParamsInit(bor_vptree_params_t *params)
 {
     params->dim = 2;
     params->dist = ferVPTreeDistCB;
@@ -99,18 +99,18 @@ void ferVPTreeParamsInit(fer_vptree_params_t *params)
     params->samplesize = 5;
 }
 
-void ferVPTreeElInit(fer_vptree_el_t *el, const fer_vec_t *p)
+void ferVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p)
 {
     ferListInit(&el->list);
     el->p = p;
     el->node = NULL;
 }
 
-fer_vptree_t *ferVPTreeNew(const fer_vptree_params_t *params)
+bor_vptree_t *ferVPTreeNew(const bor_vptree_params_t *params)
 {
-    fer_vptree_t *vp;
+    bor_vptree_t *vp;
 
-    vp = FER_ALLOC(fer_vptree_t);
+    vp = FER_ALLOC(bor_vptree_t);
     vp->type = FER_NN_VPTREE;
 
     vp->params = *params;
@@ -118,12 +118,12 @@ fer_vptree_t *ferVPTreeNew(const fer_vptree_params_t *params)
     vp->root = NULL;
 
     vp->els_size = vp->params.maxsize + 1;
-    vp->els = FER_ALLOC_ARR(fer_vptree_el_t *, vp->els_size);
+    vp->els = FER_ALLOC_ARR(bor_vptree_el_t *, vp->els_size);
 
     return vp;
 }
 
-void ferVPTreeDel(fer_vptree_t *vp)
+void ferVPTreeDel(bor_vptree_t *vp)
 {
     if (vp->root)
         nodeDel(vp, vp->root);
@@ -133,9 +133,9 @@ void ferVPTreeDel(fer_vptree_t *vp)
 }
 
 
-void ferVPTreeAdd(fer_vptree_t *vp, fer_vptree_el_t *el)
+void ferVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
-    _fer_vptree_node_t *node;
+    _bor_vptree_node_t *node;
 
     if (!vp->root){
         vp->root = nodeNew(vp);
@@ -153,9 +153,9 @@ void ferVPTreeAdd(fer_vptree_t *vp, fer_vptree_el_t *el)
     }
 }
 
-void ferVPTreeRemove(fer_vptree_t *vp, fer_vptree_el_t *el)
+void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
-    _fer_vptree_node_t *node, *par, *other;
+    _bor_vptree_node_t *node, *par, *other;
 
     // get parent node
     node = el->node;
@@ -209,7 +209,7 @@ void ferVPTreeRemove(fer_vptree_t *vp, fer_vptree_el_t *el)
     }
 }
 
-void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el)
+void ferVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
     ferVPTreeRemove(vp, el);
     ferVPTreeAdd(vp, el);
@@ -218,21 +218,21 @@ void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el)
 
 /** Nearest */
 struct _nearest_t {
-    const fer_vptree_t *vp;
-    const fer_vec_t *p;
+    const bor_vptree_t *vp;
+    const bor_vec_t *p;
     size_t num;
 
-    fer_real_t radius;
-    fer_vptree_el_t **els;
-    fer_real_t *dist;
+    bor_real_t radius;
+    bor_vptree_el_t **els;
+    bor_real_t *dist;
     size_t els_len;
 };
 typedef struct _nearest_t nearest_t;
 
-static void nearestAdd(nearest_t *n, fer_vptree_el_t *el, fer_real_t dist)
+static void nearestAdd(nearest_t *n, bor_vptree_el_t *el, bor_real_t dist)
 {
-    fer_real_t tmpdist;
-    fer_vptree_el_t *tmpels;
+    bor_real_t tmpdist;
+    bor_vptree_el_t *tmpels;
     int pos;
 
     if (n->els_len < n->num){
@@ -258,17 +258,17 @@ static void nearestAdd(nearest_t *n, fer_vptree_el_t *el, fer_real_t dist)
     }
 }
 
-static void nearest(nearest_t *n, const _fer_vptree_node_t *node)
+static void nearest(nearest_t *n, const _bor_vptree_node_t *node)
 {
-    fer_real_t d, d2;
-    fer_list_t *item;
-    fer_vptree_el_t *el;
-    fer_real_t dist;
+    bor_real_t d, d2;
+    bor_list_t *item;
+    bor_vptree_el_t *el;
+    bor_real_t dist;
 
     if (!node->left && !node->right){
         // node is leaf node, try to add all elements
         FER_LIST_FOR_EACH(&node->els, item){
-            el = FER_LIST_ENTRY(item, fer_vptree_el_t, list);
+            el = FER_LIST_ENTRY(item, bor_vptree_el_t, list);
             dist = ferVPTreeDist(n->vp, n->p, el->p);
             if (dist < n->radius){
                 nearestAdd(n, el, dist);
@@ -295,8 +295,8 @@ static void nearest(nearest_t *n, const _fer_vptree_node_t *node)
     }
 }
 
-size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
-                        fer_vptree_el_t **els)
+size_t ferVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
+                        bor_vptree_el_t **els)
 {
     nearest_t n;
     size_t i;
@@ -309,7 +309,7 @@ size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
     n.els     = els;
     n.els_len = 0;
 
-    n.dist    = FER_ALLOC_ARR(fer_real_t, num);
+    n.dist    = FER_ALLOC_ARR(bor_real_t, num);
     for (i = 0; i < num; i++)
         n.dist[i] = FER_REAL_MAX;
 
@@ -321,11 +321,11 @@ size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
 }
 
 
-static void dump(fer_vptree_t *vp, _fer_vptree_node_t *n, _fer_vptree_node_t *par,
+static void dump(bor_vptree_t *vp, _bor_vptree_node_t *n, _bor_vptree_node_t *par,
                  int level, FILE *out)
 {
-    fer_list_t *item;
-    fer_vptree_el_t *el;
+    bor_list_t *item;
+    bor_vptree_el_t *el;
     int i;
 
 
@@ -343,7 +343,7 @@ static void dump(fer_vptree_t *vp, _fer_vptree_node_t *n, _fer_vptree_node_t *pa
         dump(vp, n->right, n, level + 1, out);
     }else{
         FER_LIST_FOR_EACH(&n->els, item){
-            el = FER_LIST_ENTRY(item, fer_vptree_el_t, list);
+            el = FER_LIST_ENTRY(item, bor_vptree_el_t, list);
             fprintf(out, "(");
             ferVecPrint(vp->params.dim, el->p, out);
             fprintf(out, ") ");
@@ -352,22 +352,22 @@ static void dump(fer_vptree_t *vp, _fer_vptree_node_t *n, _fer_vptree_node_t *pa
     }
 
 }
-void ferVPTreeDump(fer_vptree_t *vp, FILE *out)
+void ferVPTreeDump(bor_vptree_t *vp, FILE *out)
 {
     if (vp->root)
         dump(vp, vp->root, NULL, 0, out);
 }
 
 
-_fer_inline fer_real_t ferVPTreeDist(const fer_vptree_t *vp,
-                                     const fer_vec_t *v1, const fer_vec_t *v2)
+_fer_inline bor_real_t ferVPTreeDist(const bor_vptree_t *vp,
+                                     const bor_vec_t *v1, const bor_vec_t *v2)
 {
     return vp->params.dist(vp->params.dim, v1, v2,
                            vp->params.dist_data);
 }
 
-static fer_real_t ferVPTreeDistCB(int d, const fer_vec_t *v1,
-                                  const fer_vec_t *v2, void *data)
+static bor_real_t ferVPTreeDistCB(int d, const bor_vec_t *v1,
+                                  const bor_vec_t *v2, void *data)
 {
     return ferVecDist(d, v1, v2);
 }
@@ -376,8 +376,8 @@ static fer_real_t ferVPTreeDistCB(int d, const fer_vec_t *v1,
 
 static int radiusVarCmp(const void *a, const void *b)
 {
-    fer_real_t f1 = *(fer_real_t *)a;
-    fer_real_t f2 = *(fer_real_t *)b;
+    bor_real_t f1 = *(bor_real_t *)a;
+    bor_real_t f2 = *(bor_real_t *)b;
 
     if (ferEq(f1, f2))
         return 0;
@@ -385,12 +385,12 @@ static int radiusVarCmp(const void *a, const void *b)
         return -1;
     return 1;
 }
-static void radiusVar(fer_vptree_t *vp,
-                      const fer_vec_t *p,
-                      fer_vptree_el_t **els,
-                      fer_real_t *dist,
+static void radiusVar(bor_vptree_t *vp,
+                      const bor_vec_t *p,
+                      bor_vptree_el_t **els,
+                      bor_real_t *dist,
                       size_t len,
-                      fer_real_t *radius, fer_real_t *var)
+                      bor_real_t *radius, bor_real_t *var)
 {
     size_t i, j, distlen;
 
@@ -410,7 +410,7 @@ static void radiusVar(fer_vptree_t *vp,
     }
 
 
-    qsort(dist, distlen, sizeof(fer_real_t), radiusVarCmp);
+    qsort(dist, distlen, sizeof(bor_real_t), radiusVarCmp);
 
     *radius = dist[distlen / 2];
     if (distlen % 2 == 0 && distlen > 0){
@@ -422,17 +422,17 @@ static void radiusVar(fer_vptree_t *vp,
     for (i = 1; i < distlen; i++){
         *var += FER_SQ(dist[i] - *radius);
     }
-    *var /= (fer_real_t)distlen;
+    *var /= (bor_real_t)distlen;
 }
 
-static void bestVP(fer_vptree_t *vp,
-                   fer_vptree_el_t **candidates, size_t clen,
-                   fer_vptree_el_t **data, size_t dlen,
-                   fer_real_t *dist,
-                   fer_vec_t *vp_out, fer_real_t *radius_out)
+static void bestVP(bor_vptree_t *vp,
+                   bor_vptree_el_t **candidates, size_t clen,
+                   bor_vptree_el_t **data, size_t dlen,
+                   bor_real_t *dist,
+                   bor_vec_t *vp_out, bor_real_t *radius_out)
 {
-    fer_real_t var, radius, best_var;
-    const fer_vec_t *best_vp;
+    bor_real_t var, radius, best_var;
+    const bor_vec_t *best_vp;
     size_t i;
 
     best_var = -FER_REAL_MAX;
@@ -448,13 +448,13 @@ static void bestVP(fer_vptree_t *vp,
     ferVecCopy(vp->params.dim, vp_out, best_vp);
 }
 
-static int reorganizeEls(fer_vptree_t *vp,
-                         const fer_vec_t *p, fer_real_t radius,
-                         fer_vptree_el_t **els, int els_len)
+static int reorganizeEls(bor_vptree_t *vp,
+                         const bor_vec_t *p, bor_real_t radius,
+                         bor_vptree_el_t **els, int els_len)
 {
     int i, cur;
-    fer_real_t d;
-    fer_vptree_el_t *tmpel;
+    bor_real_t d;
+    bor_vptree_el_t *tmpel;
 
     do {
         for (i = 0, cur = 0; i < els_len; i++){
@@ -476,11 +476,11 @@ static int reorganizeEls(fer_vptree_t *vp,
                          
 
 /** Node **/
-static _fer_vptree_node_t *nodeNew(fer_vptree_t *vp)
+static _bor_vptree_node_t *nodeNew(bor_vptree_t *vp)
 {
-    _fer_vptree_node_t *node;
+    _bor_vptree_node_t *node;
 
-    node = FER_ALLOC(_fer_vptree_node_t);
+    node = FER_ALLOC(_bor_vptree_node_t);
     node->vp   = NULL;
     node->radius = FER_ZERO;
     node->parent = node->left = node->right = NULL;
@@ -490,7 +490,7 @@ static _fer_vptree_node_t *nodeNew(fer_vptree_t *vp)
     return node;
 }
 
-static void nodeDel(fer_vptree_t *vp, _fer_vptree_node_t *n)
+static void nodeDel(bor_vptree_t *vp, _bor_vptree_node_t *n)
 {
     if (n->left && n->right){
         nodeDel(vp, n->left);
@@ -501,19 +501,19 @@ static void nodeDel(fer_vptree_t *vp, _fer_vptree_node_t *n)
     FER_FREE(n);
 }
 
-static void nodeAdd(fer_vptree_t *vp, _fer_vptree_node_t *n,
-                    fer_vptree_el_t *el)
+static void nodeAdd(bor_vptree_t *vp, _bor_vptree_node_t *n,
+                    bor_vptree_el_t *el)
 {
     ferListAppend(&n->els, &el->list);
     n->size++;
     el->node = n;
 }
 
-static _fer_vptree_node_t *nodeFindLeaf(fer_vptree_t *vp,
-                                        _fer_vptree_node_t *n,
-                                        const fer_vptree_el_t *el)
+static _bor_vptree_node_t *nodeFindLeaf(bor_vptree_t *vp,
+                                        _bor_vptree_node_t *n,
+                                        const bor_vptree_el_t *el)
 {
-    fer_real_t dist;
+    bor_real_t dist;
 
     if (!n->left && !n->right){
         // we are at leaf node
@@ -526,28 +526,28 @@ static _fer_vptree_node_t *nodeFindLeaf(fer_vptree_t *vp,
     }
 }
 
-static void nodeAddSplit(fer_vptree_t *vp,
-                         _fer_vptree_node_t *n,
-                         fer_vptree_el_t *el)
+static void nodeAddSplit(bor_vptree_t *vp,
+                         _bor_vptree_node_t *n,
+                         bor_vptree_el_t *el)
 {
     size_t i;
     int cur;
-    fer_vptree_el_t *e;
-    fer_list_t *item;
-    fer_real_t *dist;
+    bor_vptree_el_t *e;
+    bor_list_t *item;
+    bor_real_t *dist;
 
     // allocate array if necessary
     if (vp->els_size < n->size + 1){
         FER_FREE(vp->els);
         vp->els_size = n->size + 1;
-        vp->els = FER_ALLOC_ARR(fer_vptree_el_t *, vp->els_size);
+        vp->els = FER_ALLOC_ARR(bor_vptree_el_t *, vp->els_size);
     }
 
     // copy all elements to array
     vp->els[0] = el;
     i = 1;
     FER_LIST_FOR_EACH(&n->els, item){
-        e = FER_LIST_ENTRY(item, fer_vptree_el_t, list);
+        e = FER_LIST_ENTRY(item, bor_vptree_el_t, list);
         vp->els[i++] = e;
     }
 
@@ -558,7 +558,7 @@ static void nodeAddSplit(fer_vptree_t *vp,
     n->vp = ferVecNew(vp->params.dim);
 
     // set the best vantage point
-    dist = FER_ALLOC_ARR(fer_real_t, n->size + 1);
+    dist = FER_ALLOC_ARR(bor_real_t, n->size + 1);
     bestVP(vp, vp->els, n->size + 1, vp->els, n->size + 1, dist, n->vp, &n->radius);
     FER_FREE(dist);
 
@@ -589,10 +589,10 @@ static void nodeAddSplit(fer_vptree_t *vp,
 
 
 
-fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
-                             fer_vptree_el_t *_els, size_t els_len, size_t stride)
+bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
+                             bor_vptree_el_t *_els, size_t els_len, size_t stride)
 {
-    fer_vptree_t *vp;
+    bor_vptree_t *vp;
     build_t build;
     size_t i;
 
@@ -600,14 +600,14 @@ fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
     vp->type = FER_NN_VPTREE;
 
     build.vp   = vp;
-    build.els  = FER_ALLOC_ARR(fer_vptree_el_t *, els_len);
-    build.ps   = FER_ALLOC_ARR(fer_vptree_el_t *, vp->params.samplesize);
-    build.ds   = FER_ALLOC_ARR(fer_vptree_el_t *, vp->params.samplesize);
-    build.dist = FER_ALLOC_ARR(fer_real_t, els_len);
+    build.els  = FER_ALLOC_ARR(bor_vptree_el_t *, els_len);
+    build.ps   = FER_ALLOC_ARR(bor_vptree_el_t *, vp->params.samplesize);
+    build.ds   = FER_ALLOC_ARR(bor_vptree_el_t *, vp->params.samplesize);
+    build.dist = FER_ALLOC_ARR(bor_real_t, els_len);
     build.rand = ferRandMTNewAuto();
     for (i = 0; i < els_len; i++){
         build.els[i] = _els;
-        _els = (fer_vptree_el_t *)((char *)_els + stride);
+        _els = (bor_vptree_el_t *)((char *)_els + stride);
     }
 
     vp->root = buildNode(&build, build.els, els_len);
@@ -621,9 +621,9 @@ fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
     return vp;
 }
 
-static void buildAddEls(fer_vptree_t *vp,
-                        _fer_vptree_node_t *node,
-                        fer_vptree_el_t **els,
+static void buildAddEls(bor_vptree_t *vp,
+                        _bor_vptree_node_t *node,
+                        bor_vptree_el_t **els,
                         size_t els_len)
 {
     size_t i;
@@ -633,8 +633,8 @@ static void buildAddEls(fer_vptree_t *vp,
     }
 }
 
-static void buildSampleEls(build_t *build, fer_vptree_el_t **els_in, size_t els_len,
-                           fer_vptree_el_t **els, size_t len)
+static void buildSampleEls(build_t *build, bor_vptree_el_t **els_in, size_t els_len,
+                           bor_vptree_el_t **els, size_t len)
 {
     size_t i, p;
 
@@ -645,10 +645,10 @@ static void buildSampleEls(build_t *build, fer_vptree_el_t **els_in, size_t els_
 }
 
 
-static _fer_vptree_node_t *buildNode(build_t *build,
-                                     fer_vptree_el_t **els, size_t els_len)
+static _bor_vptree_node_t *buildNode(build_t *build,
+                                     bor_vptree_el_t **els, size_t els_len)
 {
-    _fer_vptree_node_t *node;
+    _bor_vptree_node_t *node;
     size_t i, cur, len;
 
     node = nodeNew(build->vp);

@@ -8,7 +8,7 @@ static void opts1_help(const char *long_name, char short_name)
 
 TEST(opts1)
 {
-    fer_real_t opt1 = 0.;
+    bor_real_t opt1 = 0.;
     int help = -1;
     static int argc = 5;
     static char *argv[] = { "program", "--opt1", "11.1", "-h", "filename" };

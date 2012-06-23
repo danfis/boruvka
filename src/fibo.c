@@ -19,29 +19,29 @@
 #include <boruvka/dbg.h>
 
 /** Consolidates heap. */
-_fer_inline void __ferFiboConsolidate(fer_fibo_t *f);
+_fer_inline void __ferFiboConsolidate(bor_fibo_t *f);
 
 /** Links subtrees n1 and n2, n1 and n2 must be (!) both root nodes.
  *  It is also assumed n2 is smaller than n1.
  *  After this n1 becomes child of n2. */
-_fer_inline void __ferFiboLink(fer_fibo_t *f, fer_fibo_node_t *n1,
-                                              fer_fibo_node_t *n2);
+_fer_inline void __ferFiboLink(bor_fibo_t *f, bor_fibo_node_t *n1,
+                                              bor_fibo_node_t *n2);
 
 /** Cuts x from y's list of children */
-_fer_inline void __ferFiboCut(fer_fibo_t *f, fer_fibo_node_t *x,
-                                             fer_fibo_node_t *y);
+_fer_inline void __ferFiboCut(bor_fibo_t *f, bor_fibo_node_t *x,
+                                             bor_fibo_node_t *y);
 
 /** Cuts n from heap and cascadely the same with parents */
-_fer_inline void __ferFiboCutCascade(fer_fibo_t *f, fer_fibo_node_t *n);
+_fer_inline void __ferFiboCutCascade(bor_fibo_t *f, bor_fibo_node_t *n);
 
 
-fer_fibo_t *ferFiboNew(fer_fibo_lt lt, void *data)
+bor_fibo_t *ferFiboNew(fer_fibo_lt lt, void *data)
 {
-    fer_fibo_t *fibo;
+    bor_fibo_t *fibo;
 
-    fibo = FER_ALLOC(fer_fibo_t);
+    fibo = FER_ALLOC(bor_fibo_t);
 
-    bzero(fibo, sizeof(fer_fibo_t));
+    bzero(fibo, sizeof(bor_fibo_t));
     ferListInit(&fibo->root);
 
     fibo->max_degree = 0;
@@ -52,15 +52,15 @@ fer_fibo_t *ferFiboNew(fer_fibo_lt lt, void *data)
     return fibo;
 }
 
-void ferFiboDel(fer_fibo_t *fibo)
+void ferFiboDel(bor_fibo_t *fibo)
 {
     FER_FREE(fibo);
 }
 
-fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f)
+bor_fibo_node_t *ferFiboExtractMin(bor_fibo_t *f)
 {
-    fer_list_t *item;
-    fer_fibo_node_t *min, *n;
+    bor_list_t *item;
+    bor_fibo_node_t *min, *n;
 
     if (!f->min)
         return NULL;
@@ -70,7 +70,7 @@ fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f)
     // put all children to root list
     while (!ferListEmpty(&min->children)){
         item = ferListNext(&min->children);
-        n    = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
+        n    = FER_LIST_ENTRY(item, bor_fibo_node_t, list);
 
         ferListDel(item);
         ferListAppend(&f->root, item);
@@ -85,7 +85,7 @@ fer_fibo_node_t *ferFiboExtractMin(fer_fibo_t *f)
     return min;
 }
 
-void ferFiboDecreaseKey(fer_fibo_t *f, fer_fibo_node_t *n)
+void ferFiboDecreaseKey(bor_fibo_t *f, bor_fibo_node_t *n)
 {
     __ferFiboCutCascade(f, n);
 
@@ -93,17 +93,17 @@ void ferFiboDecreaseKey(fer_fibo_t *f, fer_fibo_node_t *n)
         f->min = n;
 }
 
-void ferFiboRemove(fer_fibo_t *f, fer_fibo_node_t *n)
+void ferFiboRemove(bor_fibo_t *f, bor_fibo_node_t *n)
 {
-    fer_list_t *list, *item, *item_tmp;
-    fer_fibo_node_t *c;
+    bor_list_t *list, *item, *item_tmp;
+    bor_fibo_node_t *c;
 
     __ferFiboCutCascade(f, n);
 
     // remove all its children
     list = &n->children;
     FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
-        c = fer_container_of(item, fer_fibo_node_t, list);
+        c = fer_container_of(item, bor_fibo_node_t, list);
         __ferFiboCut(f, c, n);
     }
 
@@ -114,10 +114,10 @@ void ferFiboRemove(fer_fibo_t *f, fer_fibo_node_t *n)
 }
 
 
-_fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
+_fer_inline void __ferFiboConsolidate(bor_fibo_t *f)
 {
-    fer_list_t *list, *item, *tmp_item;
-    fer_fibo_node_t *n;
+    bor_list_t *list, *item, *tmp_item;
+    bor_fibo_node_t *n;
     unsigned int degree;
     size_t i;
 
@@ -129,7 +129,7 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
 
     list = &f->root;
     FER_LIST_FOR_EACH_SAFE(list, item, tmp_item){
-        n = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
+        n = FER_LIST_ENTRY(item, bor_fibo_node_t, list);
 
         degree = n->degree;
         while (f->cons[degree] != NULL){
@@ -158,8 +158,8 @@ _fer_inline void __ferFiboConsolidate(fer_fibo_t *f)
     }
 }
 
-_fer_inline void __ferFiboLink(fer_fibo_t *f, fer_fibo_node_t *n1,
-                                              fer_fibo_node_t *n2)
+_fer_inline void __ferFiboLink(bor_fibo_t *f, bor_fibo_node_t *n1,
+                                              bor_fibo_node_t *n2)
 {
     ferListDel(&n1->list);
     ferListAppend(&n2->children, &n1->list);
@@ -168,8 +168,8 @@ _fer_inline void __ferFiboLink(fer_fibo_t *f, fer_fibo_node_t *n1,
     n1->mark = 0;
 }
 
-_fer_inline void __ferFiboCut(fer_fibo_t *f, fer_fibo_node_t *x,
-                                             fer_fibo_node_t *y)
+_fer_inline void __ferFiboCut(bor_fibo_t *f, bor_fibo_node_t *x,
+                                             bor_fibo_node_t *y)
 {
     ferListDel(&x->list);
     y->degree--;
@@ -178,9 +178,9 @@ _fer_inline void __ferFiboCut(fer_fibo_t *f, fer_fibo_node_t *x,
     x->mark = 0;
 }
 
-_fer_inline void __ferFiboCutCascade(fer_fibo_t *f, fer_fibo_node_t *n)
+_fer_inline void __ferFiboCutCascade(bor_fibo_t *f, bor_fibo_node_t *n)
 {
-    fer_fibo_node_t *p;
+    bor_fibo_node_t *p;
 
     p = n->parent;
 

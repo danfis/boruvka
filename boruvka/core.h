@@ -45,13 +45,13 @@ extern "C" {
 #endif /* FER_SINGLE */
 
 #ifdef FER_SSE
-union _fer_sse_t {
+union _bor_sse_t {
     __m128 m;
     __m128d md;
     float f[4];
     double d[2];
 } fer_aligned(16) fer_packed;
-typedef union _fer_sse_t fer_sse_t;
+typedef union _bor_sse_t bor_sse_t;
 #endif /* FER_SSE */
 
 
@@ -60,8 +60,8 @@ typedef union _fer_sse_t fer_sse_t;
 #  error You can define either FER_SINGLE or FER_DOUBLE, not both!
 # endif /* FER_DOUBLE */
 
-typedef float fer_real_t;
-typedef uint32_t fer_uint_t;
+typedef float bor_real_t;
+typedef uint32_t bor_uint_t;
 
 /*# define FER_EPS 1E-6 */
 # define FER_EPS FLT_EPSILON  /*!< epsilon */
@@ -94,8 +94,8 @@ typedef uint32_t fer_uint_t;
 #endif /* FER_SINGLE */
 
 #ifdef FER_DOUBLE
-typedef double fer_real_t;
-typedef uint64_t fer_uint_t;
+typedef double bor_real_t;
+typedef uint64_t bor_uint_t;
 
 /*# define FER_EPS 1E-10*/
 # define FER_EPS DBL_EPSILON
@@ -127,11 +127,11 @@ typedef uint64_t fer_uint_t;
 
 #endif /* FER_DOUBLE */
 
-union _fer_real_uint_t {
-    fer_real_t f;
-    fer_uint_t i;
+union _bor_real_uint_t {
+    bor_real_t f;
+    bor_uint_t i;
 };
-typedef union _fer_real_uint_t fer_real_uint_t;
+typedef union _bor_real_uint_t bor_real_uint_t;
 
 
 #define FER_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
@@ -153,38 +153,38 @@ typedef union _fer_real_uint_t fer_real_uint_t;
 
 
 #ifdef FER_SSE
-_fer_inline fer_real_t __ferSqrt(fer_real_t val);
+_fer_inline bor_real_t __ferSqrt(bor_real_t val);
 #endif /* FER_SSE */
 
 /**
  * Returns sign of value.
  */
-_fer_inline int ferSign(fer_real_t val);
+_fer_inline int ferSign(bor_real_t val);
 
 /**
  * Returns true if val is zero.
  */
-_fer_inline int ferIsZero(fer_real_t val);
+_fer_inline int ferIsZero(bor_real_t val);
 
 /**
  * Returns true if a and b equal.
  */
-_fer_inline int ferEq(fer_real_t a, fer_real_t b);
+_fer_inline int ferEq(bor_real_t a, bor_real_t b);
 
 /**
  * Returns true if a and b not equal.
  */
-_fer_inline int ferNEq(fer_real_t a, fer_real_t b);
+_fer_inline int ferNEq(bor_real_t a, bor_real_t b);
 
 /**
  * Returns 1 / d.
  */
-_fer_inline fer_real_t ferRecp(fer_real_t v);
+_fer_inline bor_real_t ferRecp(bor_real_t v);
 
 /**
  * Returns 1 / sqrt(v)
  */
-_fer_inline fer_real_t ferRsqrt(fer_real_t v);
+_fer_inline bor_real_t ferRsqrt(bor_real_t v);
 
 
 /**
@@ -195,13 +195,13 @@ _fer_inline void *ferAlign(void *mem, int alignment);
 /**
  * Returns integer representation of real number
  */
-_fer_inline fer_uint_t ferRealAsUInt(fer_real_t x);
+_fer_inline bor_uint_t ferRealAsUInt(bor_real_t x);
 
 /***** INLINES *****/
 #ifdef FER_SSE
-_fer_inline fer_real_t __ferSqrt(fer_real_t val)
+_fer_inline bor_real_t __ferSqrt(bor_real_t val)
 {
-    fer_sse_t m;
+    bor_sse_t m;
 
 #ifdef FER_SSE_SINGLE
     m.m = _mm_set1_ps(val);
@@ -215,7 +215,7 @@ _fer_inline fer_real_t __ferSqrt(fer_real_t val)
 }
 #endif /* FER_SSE */
 
-_fer_inline int ferSign(fer_real_t val)
+_fer_inline int ferSign(bor_real_t val)
 {
     if (ferIsZero(val)){
         return 0;
@@ -225,20 +225,20 @@ _fer_inline int ferSign(fer_real_t val)
     return 1;
 }
 
-_fer_inline int ferIsZero(fer_real_t val)
+_fer_inline int ferIsZero(bor_real_t val)
 {
     return FER_FABS(val) < FER_EPS;
 }
 
-_fer_inline int ferEq(fer_real_t _a, fer_real_t _b)
+_fer_inline int ferEq(bor_real_t _a, bor_real_t _b)
 {
-    fer_real_t ab;
+    bor_real_t ab;
 
     ab = FER_FABS(_a - _b);
     if (ab < FER_EPS)
         return 1;
 
-    fer_real_t a, b;
+    bor_real_t a, b;
     a = FER_FABS(_a);
     b = FER_FABS(_b);
     if (b > a){
@@ -248,15 +248,15 @@ _fer_inline int ferEq(fer_real_t _a, fer_real_t _b)
     }
 }
 
-_fer_inline int ferNEq(fer_real_t a, fer_real_t b)
+_fer_inline int ferNEq(bor_real_t a, bor_real_t b)
 {
     return !ferEq(a, b);
 }
 
-_fer_inline fer_real_t ferRecp(fer_real_t v)
+_fer_inline bor_real_t ferRecp(bor_real_t v)
 {
 #ifdef FER_SSE_SINGLE
-    fer_sse_t m;
+    bor_sse_t m;
     m.m = _mm_set1_ps(v);
     m.m = _mm_rcp_ps(m.m);
     return m.f[0];
@@ -265,10 +265,10 @@ _fer_inline fer_real_t ferRecp(fer_real_t v)
 #endif /* FER_SSE_SINGLE */
 }
 
-_fer_inline fer_real_t ferRsqrt(fer_real_t v)
+_fer_inline bor_real_t ferRsqrt(bor_real_t v)
 {
 #ifdef FER_SSE_SINGLE
-    fer_sse_t m;
+    bor_sse_t m;
     m.m = _mm_set1_ps(v);
     m.m = _mm_rsqrt_ps(m.m);
     return m.f[0];
@@ -288,9 +288,9 @@ _fer_inline void *ferAlign(void *mem, int align)
     return (void *)((long)mem + padding);
 }
 
-_fer_inline fer_uint_t ferRealAsUInt(fer_real_t x)
+_fer_inline bor_uint_t ferRealAsUInt(bor_real_t x)
 {
-    fer_real_uint_t v;
+    bor_real_uint_t v;
     v.f = x;
     return v.i;
 }

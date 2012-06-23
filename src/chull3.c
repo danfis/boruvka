@@ -19,98 +19,98 @@
 #include <boruvka/dbg.h>
 #include <boruvka/predicates.h>
 
-struct _fer_chull3_vert_t {
-    fer_vec3_t v;
-    fer_mesh3_vertex_t m;
-    fer_list_t list;
+struct _bor_chull3_vert_t {
+    bor_vec3_t v;
+    bor_mesh3_vertex_t m;
+    bor_list_t list;
     int border_edges;
 } fer_aligned(16) fer_packed;
-typedef struct _fer_chull3_vert_t fer_chull3_vert_t;
+typedef struct _bor_chull3_vert_t bor_chull3_vert_t;
 
-struct _fer_chull3_edge_t {
-    fer_mesh3_edge_t m;
-    fer_list_t list;
+struct _bor_chull3_edge_t {
+    bor_mesh3_edge_t m;
+    bor_list_t list;
     int swap;
     unsigned int onedge;
 };
-typedef struct _fer_chull3_edge_t fer_chull3_edge_t;
+typedef struct _bor_chull3_edge_t bor_chull3_edge_t;
 
-struct _fer_chull3_face_t {
-    fer_mesh3_face_t m;
-    fer_chull3_vert_t *v[3];
-    fer_list_t list;
+struct _bor_chull3_face_t {
+    bor_mesh3_face_t m;
+    bor_chull3_vert_t *v[3];
+    bor_list_t list;
 };
-typedef struct _fer_chull3_face_t fer_chull3_face_t;
+typedef struct _bor_chull3_face_t bor_chull3_face_t;
 
 /** Predicate that returns true if f is visible from v */
-_fer_inline int isVisible(const fer_chull3_t *h,
-                          const fer_vec3_t *v,
-                          const fer_chull3_face_t *f);
-_fer_inline int isVisible2(const fer_chull3_t *h,
-                           const fer_vec3_t *v,
-                           const fer_vec3_t *f1, const fer_vec3_t *f2,
-                           const fer_vec3_t *f3);
-_fer_inline fer_real_t orient3d(const fer_chull3_t *h,
-                                const fer_vec3_t *v,
-                                const fer_chull3_face_t *f);
-_fer_inline fer_real_t orient3d2(const fer_chull3_t *h,
-                                 const fer_vec3_t *v,
-                                 const fer_vec3_t *f1, const fer_vec3_t *f2,
-                                 const fer_vec3_t *f3);
+_fer_inline int isVisible(const bor_chull3_t *h,
+                          const bor_vec3_t *v,
+                          const bor_chull3_face_t *f);
+_fer_inline int isVisible2(const bor_chull3_t *h,
+                           const bor_vec3_t *v,
+                           const bor_vec3_t *f1, const bor_vec3_t *f2,
+                           const bor_vec3_t *f3);
+_fer_inline bor_real_t orient3d(const bor_chull3_t *h,
+                                const bor_vec3_t *v,
+                                const bor_chull3_face_t *f);
+_fer_inline bor_real_t orient3d2(const bor_chull3_t *h,
+                                 const bor_vec3_t *v,
+                                 const bor_vec3_t *f1, const bor_vec3_t *f2,
+                                 const bor_vec3_t *f3);
 /** Predicate that returns true if f is coplanar with v */
-_fer_inline int isCoplanar(const fer_chull3_t *h,
-                           const fer_vec3_t *v,
-                           const fer_chull3_face_t *f);
+_fer_inline int isCoplanar(const bor_chull3_t *h,
+                           const bor_vec3_t *v,
+                           const bor_chull3_face_t *f);
 
 /** Create new vertex */
-static fer_chull3_vert_t *vertNew(fer_chull3_t *h, const fer_vec3_t *v);
+static bor_chull3_vert_t *vertNew(bor_chull3_t *h, const bor_vec3_t *v);
 /** Delete vertex */
-static void vertDel(fer_chull3_t *h, fer_chull3_vert_t *v);
-static void vertDelMesh(fer_mesh3_vertex_t *, void *);
+static void vertDel(bor_chull3_t *h, bor_chull3_vert_t *v);
+static void vertDelMesh(bor_mesh3_vertex_t *, void *);
 
 /** Create new edge */
-static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
-                                  fer_chull3_vert_t *v1, fer_chull3_vert_t *v2);
+static bor_chull3_edge_t *edgeNew(bor_chull3_t *h,
+                                  bor_chull3_vert_t *v1, bor_chull3_vert_t *v2);
 /** Delete edge */
-static void edgeDel(fer_chull3_t *h, fer_chull3_edge_t *e);
-static void edgeDelMesh(fer_mesh3_edge_t *, void *);
+static void edgeDel(bor_chull3_t *h, bor_chull3_edge_t *e);
+static void edgeDelMesh(bor_mesh3_edge_t *, void *);
 /** Fills v[] with vertices incidenting with edge */
-static void edgeVertices(fer_chull3_edge_t *e, fer_chull3_vert_t **v);
+static void edgeVertices(bor_chull3_edge_t *e, bor_chull3_vert_t **v);
 
 /** Create new face */
-static fer_chull3_face_t *faceNew(fer_chull3_t *h,
-                                  fer_chull3_edge_t *e1, fer_chull3_edge_t *e2,
-                                  fer_chull3_edge_t *e3);
+static bor_chull3_face_t *faceNew(bor_chull3_t *h,
+                                  bor_chull3_edge_t *e1, bor_chull3_edge_t *e2,
+                                  bor_chull3_edge_t *e3);
 /** Delete face */
-static void faceDel(fer_chull3_t *h, fer_chull3_face_t *f);
-static void faceDelMesh(fer_mesh3_face_t *, void *);
+static void faceDel(bor_chull3_t *h, bor_chull3_face_t *f);
+static void faceDelMesh(bor_mesh3_face_t *, void *);
 /** Set triplet of bounding vertices in specified order */
-static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,
-                            fer_chull3_vert_t *v1, fer_chull3_vert_t *v2,
-                            fer_chull3_vert_t *v3);
+static void faceSetVertices(bor_chull3_t *h, bor_chull3_face_t *f,
+                            bor_chull3_vert_t *v1, bor_chull3_vert_t *v2,
+                            bor_chull3_vert_t *v3);
 /** Fills e[] with edges incidenting with face */
-static void faceEdges(fer_chull3_face_t *f, fer_chull3_edge_t **e);
+static void faceEdges(bor_chull3_face_t *f, bor_chull3_edge_t **e);
 
 
 /** Returns true if hull and given point are coplanar */
-static int isCoplanarWithHull(fer_chull3_t *h, const fer_vec3_t *v);
+static int isCoplanarWithHull(bor_chull3_t *h, const bor_vec3_t *v);
 /** Returns true if given point lies on current coplanar patch (hull) */
-static int liesOnCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
+static int liesOnCoplanar(bor_chull3_t *h, const bor_vec3_t *v);
 /** Adds coplanar point */
-static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
+static void addCoplanar(bor_chull3_t *h, const bor_vec3_t *v);
 /** Adds first non-coplanar point on hull */
-static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *v);
+static void firstNonCoplanar(bor_chull3_t *h, const bor_vec3_t *v);
 /** Obtain border edges */
-static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *v,
-                            fer_list_t *edges);
+static void findBorderEdges(bor_chull3_t *h, const bor_vec3_t *v,
+                            bor_list_t *edges);
 /** Makes new cone connecting new point {v} with border edges */
-static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *v);
+static void makeCone(bor_chull3_t *h, bor_list_t *edges, const bor_vec3_t *v);
 
-fer_chull3_t *ferCHull3New(void)
+bor_chull3_t *ferCHull3New(void)
 {
-    fer_chull3_t *h;
+    bor_chull3_t *h;
 
-    h = FER_ALLOC(fer_chull3_t);
+    h = FER_ALLOC(bor_chull3_t);
     h->mesh = ferMesh3New();
     h->coplanar = 1;
 
@@ -120,7 +120,7 @@ fer_chull3_t *ferCHull3New(void)
 }
 
 
-void ferCHull3Del(fer_chull3_t *h)
+void ferCHull3Del(bor_chull3_t *h)
 {
     ferMesh3Del2(h->mesh,
                  vertDelMesh, NULL,
@@ -130,9 +130,9 @@ void ferCHull3Del(fer_chull3_t *h)
     FER_FREE(h);
 }
 
-void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point)
+void ferCHull3Add(bor_chull3_t *h, const bor_vec3_t *point)
 {
-    fer_list_t border_edges;
+    bor_list_t border_edges;
 
     if (h->coplanar && isCoplanarWithHull(h, point)){
         if (!liesOnCoplanar(h, point))
@@ -153,65 +153,65 @@ void ferCHull3Add(fer_chull3_t *h, const fer_vec3_t *point)
     makeCone(h, &border_edges, point);
 }
 
-void ferCHull3DumpSVT(fer_chull3_t *h, FILE *out, const char *name)
+void ferCHull3DumpSVT(bor_chull3_t *h, FILE *out, const char *name)
 {
     ferMesh3DumpSVT(h->mesh, out, name);
 }
 
 
-_fer_inline int isVisible(const fer_chull3_t *h,
-                          const fer_vec3_t *v,
-                          const fer_chull3_face_t *f)
+_fer_inline int isVisible(const bor_chull3_t *h,
+                          const bor_vec3_t *v,
+                          const bor_chull3_face_t *f)
 {
-    fer_real_t orient;
+    bor_real_t orient;
     orient = orient3d(h, v, f);
     return orient > FER_ZERO;
 }
 
-_fer_inline int isVisible2(const fer_chull3_t *h,
-                           const fer_vec3_t *v,
-                           const fer_vec3_t *f1, const fer_vec3_t *f2,
-                           const fer_vec3_t *f3)
+_fer_inline int isVisible2(const bor_chull3_t *h,
+                           const bor_vec3_t *v,
+                           const bor_vec3_t *f1, const bor_vec3_t *f2,
+                           const bor_vec3_t *f3)
 {
-    fer_real_t orient;
+    bor_real_t orient;
     orient = orient3d2(h, v, f1, f2, f3);
     return orient > FER_ZERO;
 }
 
 
-_fer_inline fer_real_t orient3d(const fer_chull3_t *h,
-                                const fer_vec3_t *v,
-                                const fer_chull3_face_t *f)
+_fer_inline bor_real_t orient3d(const bor_chull3_t *h,
+                                const bor_vec3_t *v,
+                                const bor_chull3_face_t *f)
 {
     return ferVec3Volume6(&f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
     //return ferPredOrient3d(&h->pred, &f->v[0]->v, &f->v[1]->v, &f->v[2]->v, v);
 }
 
-_fer_inline fer_real_t orient3d2(const fer_chull3_t *h,
-                                 const fer_vec3_t *v,
-                                 const fer_vec3_t *f1, const fer_vec3_t *f2,
-                                 const fer_vec3_t *f3)
+_fer_inline bor_real_t orient3d2(const bor_chull3_t *h,
+                                 const bor_vec3_t *v,
+                                 const bor_vec3_t *f1, const bor_vec3_t *f2,
+                                 const bor_vec3_t *f3)
 {
     return ferVec3Volume6(f1, f2, f3, v);
     //return ferPredOrient3d(&h->pred, f1, f2, f3, v);
 }
 
-_fer_inline int isCoplanar(const fer_chull3_t *h,
-                           const fer_vec3_t *v,
-                           const fer_chull3_face_t *f)
+_fer_inline int isCoplanar(const bor_chull3_t *h,
+                           const bor_vec3_t *v,
+                           const bor_chull3_face_t *f)
 {
-    fer_real_t orient;
+    bor_real_t orient;
     orient = orient3d(h, v, f);
 
     return ferIsZero(orient);
 }
 
 
-static fer_chull3_vert_t *vertNew(fer_chull3_t *h, const fer_vec3_t *v)
+static bor_chull3_vert_t *vertNew(bor_chull3_t *h, const bor_vec3_t *v)
 {
-    fer_chull3_vert_t *vert;
+    bor_chull3_vert_t *vert;
 
-    vert = FER_ALLOC_ALIGN(fer_chull3_vert_t, 16);
+    vert = FER_ALLOC_ALIGN(bor_chull3_vert_t, 16);
 
     // copy coordinates
     ferVec3Copy(&vert->v, v);
@@ -227,26 +227,26 @@ static fer_chull3_vert_t *vertNew(fer_chull3_t *h, const fer_vec3_t *v)
     return vert;
 }
 
-static void vertDel(fer_chull3_t *h, fer_chull3_vert_t *v)
+static void vertDel(bor_chull3_t *h, bor_chull3_vert_t *v)
 {
     ferMesh3RemoveVertex(h->mesh, &v->m);
     FER_FREE(v);
 }
-static void vertDelMesh(fer_mesh3_vertex_t *_v, void *_)
+static void vertDelMesh(bor_mesh3_vertex_t *_v, void *_)
 {
-    fer_chull3_vert_t *v;
+    bor_chull3_vert_t *v;
 
-    v = fer_container_of(_v, fer_chull3_vert_t, m);
+    v = fer_container_of(_v, bor_chull3_vert_t, m);
     FER_FREE(v);
 }
 
 
-static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
-                                  fer_chull3_vert_t *v1, fer_chull3_vert_t *v2)
+static bor_chull3_edge_t *edgeNew(bor_chull3_t *h,
+                                  bor_chull3_vert_t *v1, bor_chull3_vert_t *v2)
 {
-    fer_chull3_edge_t *e;
+    bor_chull3_edge_t *e;
 
-    e = FER_ALLOC(fer_chull3_edge_t);
+    e = FER_ALLOC(bor_chull3_edge_t);
     ferMesh3AddEdge(h->mesh, &e->m, &v1->m, &v2->m);
     e->swap = 0;
     e->onedge = 0;
@@ -254,40 +254,40 @@ static fer_chull3_edge_t *edgeNew(fer_chull3_t *h,
     return e;
 }
 
-static void edgeDel(fer_chull3_t *h, fer_chull3_edge_t *e)
+static void edgeDel(bor_chull3_t *h, bor_chull3_edge_t *e)
 {
     ferMesh3RemoveEdge(h->mesh, &e->m);
     FER_FREE(e);
 }
 
-static void edgeDelMesh(fer_mesh3_edge_t *_e, void *_)
+static void edgeDelMesh(bor_mesh3_edge_t *_e, void *_)
 {
-    fer_chull3_edge_t *e;
+    bor_chull3_edge_t *e;
 
-    e = fer_container_of(_e, fer_chull3_edge_t, m);
+    e = fer_container_of(_e, bor_chull3_edge_t, m);
     FER_FREE(e);
 }
 
-static void edgeVertices(fer_chull3_edge_t *e, fer_chull3_vert_t **v)
+static void edgeVertices(bor_chull3_edge_t *e, bor_chull3_vert_t **v)
 {
-    fer_mesh3_vertex_t *mv;
+    bor_mesh3_vertex_t *mv;
     int i;
 
     for (i = 0; i < 2; i++){
         mv = ferMesh3EdgeVertex(&e->m, i);
-        v[i] = fer_container_of(mv, fer_chull3_vert_t, m);
+        v[i] = fer_container_of(mv, bor_chull3_vert_t, m);
     }
 }
 
 
 
-static fer_chull3_face_t *faceNew(fer_chull3_t *h,
-                                  fer_chull3_edge_t *e1, fer_chull3_edge_t *e2,
-                                  fer_chull3_edge_t *e3)
+static bor_chull3_face_t *faceNew(bor_chull3_t *h,
+                                  bor_chull3_edge_t *e1, bor_chull3_edge_t *e2,
+                                  bor_chull3_edge_t *e3)
 {
-    fer_chull3_face_t *f;
+    bor_chull3_face_t *f;
 
-    f = FER_ALLOC(fer_chull3_face_t);
+    f = FER_ALLOC(bor_chull3_face_t);
     if (ferMesh3AddFace(h->mesh, &f->m, &e1->m, &e2->m, &e3->m) != 0){
         DBG("Can't add face, %d", (int)ferMesh3VerticesLen(h->mesh));
         // ferCHull3DumpSVT(h, stdout, "Can't face");
@@ -298,54 +298,54 @@ static fer_chull3_face_t *faceNew(fer_chull3_t *h,
     return f;
 }
 
-static void faceDel(fer_chull3_t *h, fer_chull3_face_t *f)
+static void faceDel(bor_chull3_t *h, bor_chull3_face_t *f)
 {
     ferMesh3RemoveFace(h->mesh, &f->m);
     FER_FREE(f);
 }
 
-static void faceDelMesh(fer_mesh3_face_t *_f, void *_)
+static void faceDelMesh(bor_mesh3_face_t *_f, void *_)
 {
-    fer_chull3_face_t *f;
+    bor_chull3_face_t *f;
 
-    f = fer_container_of(_f, fer_chull3_face_t, m);
+    f = fer_container_of(_f, bor_chull3_face_t, m);
     FER_FREE(f);
 }
 
-static void faceSetVertices(fer_chull3_t *h, fer_chull3_face_t *f,
-                            fer_chull3_vert_t *v1, fer_chull3_vert_t *v2,
-                            fer_chull3_vert_t *v3)
+static void faceSetVertices(bor_chull3_t *h, bor_chull3_face_t *f,
+                            bor_chull3_vert_t *v1, bor_chull3_vert_t *v2,
+                            bor_chull3_vert_t *v3)
 {
     f->v[0] = v1;
     f->v[1] = v2;
     f->v[2] = v3;
 }
 
-static void faceEdges(fer_chull3_face_t *f, fer_chull3_edge_t **e)
+static void faceEdges(bor_chull3_face_t *f, bor_chull3_edge_t **e)
 {
-    fer_mesh3_edge_t *me;
+    bor_mesh3_edge_t *me;
     int i;
 
     for (i = 0; i < 3; i++){
         me = ferMesh3FaceEdge(&f->m, i);
-        e[i] = fer_container_of(me, fer_chull3_edge_t, m);
+        e[i] = fer_container_of(me, bor_chull3_edge_t, m);
     }
 }
 
 
-static int isCoplanarWithHull(fer_chull3_t *h, const fer_vec3_t *v)
+static int isCoplanarWithHull(bor_chull3_t *h, const bor_vec3_t *v)
 {
-    fer_list_t *list, *item;
-    fer_mesh3_face_t *mf;
-    fer_chull3_face_t *f;
+    bor_list_t *list, *item;
+    bor_mesh3_face_t *mf;
+    bor_chull3_face_t *f;
 
     if (ferMesh3VerticesLen(h->mesh) < 3)
         return 1;
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
-        mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-        f  = fer_container_of(mf, fer_chull3_face_t, m);
+        mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+        f  = fer_container_of(mf, bor_chull3_face_t, m);
 
         if (!isCoplanar(h, v, f))
             return 0;
@@ -354,19 +354,19 @@ static int isCoplanarWithHull(fer_chull3_t *h, const fer_vec3_t *v)
     return 1;
 }
 
-static int liesOnCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
+static int liesOnCoplanar(bor_chull3_t *h, const bor_vec3_t *v)
 {
-    fer_list_t *list, *item;
-    fer_mesh3_face_t *mf;
-    fer_chull3_face_t *f;
+    bor_list_t *list, *item;
+    bor_mesh3_face_t *mf;
+    bor_chull3_face_t *f;
 
     if (ferMesh3VerticesLen(h->mesh) < 3)
         return 0;
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
-        mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-        f  = fer_container_of(mf, fer_chull3_face_t, m);
+        mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+        f  = fer_container_of(mf, bor_chull3_face_t, m);
 
         if (!ferVec3PointInTri(v, &f->v[0]->v, &f->v[1]->v, &f->v[2]->v))
             return 0;
@@ -375,16 +375,16 @@ static int liesOnCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
     return 1;
 }
 
-static void addCoplanarGrow(fer_chull3_t *h, fer_chull3_vert_t *v,
-                            fer_chull3_edge_t *e, const fer_vec3_t *topv,
+static void addCoplanarGrow(bor_chull3_t *h, bor_chull3_vert_t *v,
+                            bor_chull3_edge_t *e, const bor_vec3_t *topv,
                             int inv)
 {
-    fer_list_t *list, *item;
-    fer_mesh3_vertex_t *mv1, *mv2;
-    fer_mesh3_edge_t *me;
-    fer_chull3_vert_t *v2, *v3;
-    fer_chull3_edge_t *e2, *e3;
-    fer_chull3_face_t *f;
+    bor_list_t *list, *item;
+    bor_mesh3_vertex_t *mv1, *mv2;
+    bor_mesh3_edge_t *me;
+    bor_chull3_vert_t *v2, *v3;
+    bor_chull3_edge_t *e2, *e3;
+    bor_chull3_face_t *f;
 
     while (e){
         mv1 = ferMesh3EdgeOtherVertex(&e->m, &v->m);
@@ -396,9 +396,9 @@ static void addCoplanarGrow(fer_chull3_t *h, fer_chull3_vert_t *v,
                 mv2 = ferMesh3EdgeOtherVertex(me, mv1);
 
                 if (isVisible2(h, topv, &v->v, mv1->v, mv2->v)){
-                    v2 = fer_container_of(mv1, fer_chull3_vert_t, m);
-                    v3 = fer_container_of(mv2, fer_chull3_vert_t, m);
-                    e2 = fer_container_of(me, fer_chull3_edge_t, m);
+                    v2 = fer_container_of(mv1, bor_chull3_vert_t, m);
+                    v3 = fer_container_of(mv2, bor_chull3_vert_t, m);
+                    e2 = fer_container_of(me, bor_chull3_edge_t, m);
 
                     e3 = edgeNew(h, v, v3);
 
@@ -422,24 +422,24 @@ static void addCoplanarGrow(fer_chull3_t *h, fer_chull3_vert_t *v,
     }
 }
 
-static void addCoplanar3(fer_chull3_t *h, const fer_vec3_t *v)
+static void addCoplanar3(bor_chull3_t *h, const bor_vec3_t *v)
 {
-    fer_list_t *list, *item;
-    fer_mesh3_vertex_t *mv;
-    fer_chull3_vert_t *v1, *v2, *vert;
-    fer_chull3_edge_t *e1, *e2, *e3;
-    fer_chull3_face_t *f;
-    fer_real_t dist1, dist2, dist3;
+    bor_list_t *list, *item;
+    bor_mesh3_vertex_t *mv;
+    bor_chull3_vert_t *v1, *v2, *vert;
+    bor_chull3_edge_t *e1, *e2, *e3;
+    bor_chull3_face_t *f;
+    bor_real_t dist1, dist2, dist3;
 
     // first check if new vertex isn't collinear with the two already
     // in mesh
     list = ferMesh3Vertices(h->mesh);
     item = ferListNext(list);
-    mv   = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-    v1   = fer_container_of(mv, fer_chull3_vert_t, m);
+    mv   = FER_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
+    v1   = fer_container_of(mv, bor_chull3_vert_t, m);
     item = ferListPrev(list);
-    mv   = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
-    v2   = fer_container_of(mv, fer_chull3_vert_t, m);
+    mv   = FER_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
+    v2   = fer_container_of(mv, bor_chull3_vert_t, m);
 
     if (ferVec3Collinear(v, &v1->v, &v2->v)){
         // vertices are collinear, find out pair with longest distance
@@ -472,16 +472,16 @@ static void addCoplanar3(fer_chull3_t *h, const fer_vec3_t *v)
     }
 }
 
-static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
+static void addCoplanar4(bor_chull3_t *h, const bor_vec3_t *point)
 {
-    fer_list_t *list, *item;
-    fer_chull3_vert_t *v[4];
-    fer_chull3_edge_t *e[3];
-    fer_chull3_face_t *f, *f2;
-    fer_mesh3_face_t *mf;
-    fer_mesh3_edge_t *me;
-    fer_real_t dist1, dist2;
-    fer_vec3_t cross, p01, p02, topv;
+    bor_list_t *list, *item;
+    bor_chull3_vert_t *v[4];
+    bor_chull3_edge_t *e[3];
+    bor_chull3_face_t *f, *f2;
+    bor_mesh3_face_t *mf;
+    bor_mesh3_edge_t *me;
+    bor_real_t dist1, dist2;
+    bor_vec3_t cross, p01, p02, topv;
     int inv;
 
 
@@ -494,11 +494,11 @@ static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
     dist2 = FER_REAL_MAX;
     list = ferMesh3Edges(h->mesh);
     FER_LIST_FOR_EACH(list, item){
-        me = FER_LIST_ENTRY(item, fer_mesh3_edge_t, list);
+        me = FER_LIST_ENTRY(item, bor_mesh3_edge_t, list);
         if (ferMesh3EdgeFacesLen(me) != 1)
             continue;
 
-        e[1] = fer_container_of(me, fer_chull3_edge_t, m);
+        e[1] = fer_container_of(me, bor_chull3_edge_t, m);
         edgeVertices(e[1], v + 2);
 
         dist1 = ferVec3PointSegmentDist2(point, &v[2]->v, &v[3]->v, NULL);
@@ -535,7 +535,7 @@ static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
 
     // 5. get other face that newly created one
     mf = ferMesh3EdgeOtherFace(&e[0]->m, &f->m);
-    f2 = fer_container_of(mf, fer_chull3_face_t, m);
+    f2 = fer_container_of(mf, bor_chull3_face_t, m);
 
     // 6. orient vertices in new face
     faceSetVertices(h, f, v[2], v[0], v[1]);
@@ -561,7 +561,7 @@ static void addCoplanar4(fer_chull3_t *h, const fer_vec3_t *point)
 }
 
 
-static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
+static void addCoplanar(bor_chull3_t *h, const bor_vec3_t *v)
 {
     if (ferMesh3VerticesLen(h->mesh) < 2){
         vertNew(h, v);
@@ -572,22 +572,22 @@ static void addCoplanar(fer_chull3_t *h, const fer_vec3_t *v)
     }
 }
 
-static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
+static void firstNonCoplanar(bor_chull3_t *h, const bor_vec3_t *point)
 {
-    fer_list_t *list, *item;
-    fer_list_t border_edges;
-    fer_mesh3_face_t *mf;
-    fer_chull3_face_t *f;
-    fer_chull3_edge_t *e[3];
-    fer_chull3_vert_t *v[2];
+    bor_list_t *list, *item;
+    bor_list_t border_edges;
+    bor_mesh3_face_t *mf;
+    bor_chull3_face_t *f;
+    bor_chull3_edge_t *e[3];
+    bor_chull3_vert_t *v[2];
     int reorient, i;
 
     // first find out if we need to reorient faces
     reorient = 0;
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
-        mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-        f  = fer_container_of(mf, fer_chull3_face_t, m);
+        mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+        f  = fer_container_of(mf, bor_chull3_face_t, m);
 
         if (isVisible(h, point, f)){
             reorient = 1;
@@ -598,8 +598,8 @@ static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
     if (reorient){
         list = ferMesh3Faces(h->mesh);
         FER_LIST_FOR_EACH(list, item){
-            mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-            f  = fer_container_of(mf, fer_chull3_face_t, m);
+            mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+            f  = fer_container_of(mf, bor_chull3_face_t, m);
 
             faceSetVertices(h, f, f->v[0], f->v[2], f->v[1]);
         }
@@ -608,8 +608,8 @@ static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
     ferListInit(&border_edges);
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH(list, item){
-        mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-        f  = fer_container_of(mf, fer_chull3_face_t, m);
+        mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+        f  = fer_container_of(mf, bor_chull3_face_t, m);
 
         // obtain border edges
         faceEdges(f, e);
@@ -637,11 +637,11 @@ static void firstNonCoplanar(fer_chull3_t *h, const fer_vec3_t *point)
     makeCone(h, &border_edges, point);
 }
 
-static void updateBorderEdges(fer_chull3_t *h, fer_chull3_face_t *f,
-                              fer_list_t *edges, fer_list_t *wrong_vertices)
+static void updateBorderEdges(bor_chull3_t *h, bor_chull3_face_t *f,
+                              bor_list_t *edges, bor_list_t *wrong_vertices)
 {
-    fer_chull3_edge_t *e[3];
-    fer_chull3_vert_t *v[2];
+    bor_chull3_edge_t *e[3];
+    bor_chull3_vert_t *v[2];
     int i;
 
     faceEdges(f, e);
@@ -700,16 +700,16 @@ static void updateBorderEdges(fer_chull3_t *h, fer_chull3_face_t *f,
     }
 }
 
-static void correctBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
-                               fer_chull3_vert_t *v,
-                               fer_list_t *edges,
-                               fer_list_t *wrong_vertices)
+static void correctBorderEdges(bor_chull3_t *h, const bor_vec3_t *point,
+                               bor_chull3_vert_t *v,
+                               bor_list_t *edges,
+                               bor_list_t *wrong_vertices)
 {
-    fer_list_t *list, *item;
-    fer_mesh3_edge_t *me;
-    fer_mesh3_face_t *mf;
-    fer_real_t orient, best_orient;
-    fer_chull3_face_t *f, *best_f;
+    bor_list_t *list, *item;
+    bor_mesh3_edge_t *me;
+    bor_mesh3_face_t *mf;
+    bor_real_t orient, best_orient;
+    bor_chull3_face_t *f, *best_f;
     int i;
 
     best_orient = -FER_REAL_MAX;
@@ -722,7 +722,7 @@ static void correctBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
         for (i = 0; i < 2; i++){
             mf = ferMesh3EdgeFace(me, i);
             if (mf && (!best_f || &best_f->m != mf)){
-                f = fer_container_of(mf, fer_chull3_face_t, m);
+                f = fer_container_of(mf, bor_chull3_face_t, m);
 
                 orient = orient3d(h, point, f);
                 if (orient > best_orient){
@@ -736,21 +736,21 @@ static void correctBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
     updateBorderEdges(h, best_f, edges, wrong_vertices);
 }
 
-static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
-                            fer_list_t *edges)
+static void findBorderEdges(bor_chull3_t *h, const bor_vec3_t *point,
+                            bor_list_t *edges)
 {
-    fer_list_t *list, *item, *itemtmp, wrong_vertices, faces;
-    fer_mesh3_face_t *mf;
-    fer_chull3_face_t *f;
-    fer_chull3_vert_t *v;
+    bor_list_t *list, *item, *itemtmp, wrong_vertices, faces;
+    bor_mesh3_face_t *mf;
+    bor_chull3_face_t *f;
+    bor_chull3_vert_t *v;
 
     ferListInit(&wrong_vertices);
     ferListInit(&faces);
 
     list = ferMesh3Faces(h->mesh);
     FER_LIST_FOR_EACH_SAFE(list, item, itemtmp){
-        mf = FER_LIST_ENTRY(item, fer_mesh3_face_t, list);
-        f  = fer_container_of(mf, fer_chull3_face_t, m);
+        mf = FER_LIST_ENTRY(item, bor_mesh3_face_t, list);
+        f  = fer_container_of(mf, bor_chull3_face_t, m);
 
         if (isVisible(h, point, f)){
             ferListAppend(&faces, &f->list);
@@ -768,32 +768,32 @@ static void findBorderEdges(fer_chull3_t *h, const fer_vec3_t *point,
     while (!ferListEmpty(&faces)){
         item = ferListNext(&faces);
         ferListDel(item);
-        f = FER_LIST_ENTRY(item, fer_chull3_face_t, list);
+        f = FER_LIST_ENTRY(item, bor_chull3_face_t, list);
 
         updateBorderEdges(h, f, edges, &wrong_vertices);
     }
 
     while (!ferListEmpty(&wrong_vertices)){
         item = ferListNext(&wrong_vertices);
-        v = FER_LIST_ENTRY(item, fer_chull3_vert_t, list);
+        v = FER_LIST_ENTRY(item, bor_chull3_vert_t, list);
 
         correctBorderEdges(h, point, v, edges, &wrong_vertices);
     }
 }
 
 
-static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *point)
+static void makeCone(bor_chull3_t *h, bor_list_t *edges, const bor_vec3_t *point)
 {
-    fer_chull3_edge_t *e1, *e2, *e3;
-    fer_chull3_vert_t *v[3];
-    fer_chull3_face_t *f;
-    fer_mesh3_edge_t *me;
-    fer_list_t *item;
+    bor_chull3_edge_t *e1, *e2, *e3;
+    bor_chull3_vert_t *v[3];
+    bor_chull3_face_t *f;
+    bor_mesh3_edge_t *me;
+    bor_list_t *item;
 
     v[0] = vertNew(h, point);
 
     FER_LIST_FOR_EACH(edges, item){
-        e1 = FER_LIST_ENTRY(item, fer_chull3_edge_t, list);
+        e1 = FER_LIST_ENTRY(item, bor_chull3_edge_t, list);
         e1->onedge = 0;
 
         edgeVertices(e1, v + 1);
@@ -804,14 +804,14 @@ static void makeCone(fer_chull3_t *h, fer_list_t *edges, const fer_vec3_t *point
         if (me == NULL){
             e2 = edgeNew(h, v[0], v[1]);
         }else{
-            e2 = fer_container_of(me, fer_chull3_edge_t, m);
+            e2 = fer_container_of(me, bor_chull3_edge_t, m);
         }
 
         me = ferMesh3VertexCommonEdge(&v[0]->m, &v[2]->m);
         if (me == NULL){
             e3 = edgeNew(h, v[0], v[2]);
         }else{
-            e3 = fer_container_of(me, fer_chull3_edge_t, m);
+            e3 = fer_container_of(me, bor_chull3_edge_t, m);
         }
 
         // create new face

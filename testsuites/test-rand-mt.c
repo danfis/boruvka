@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <boruvka/rand-mt.h>
 
-void test(fer_rand_mt_t *r)
+void test(bor_rand_mt_t *r)
 {
     size_t i;
 
@@ -43,7 +43,7 @@ void test(fer_rand_mt_t *r)
 
 int main(int argc, char *argv[])
 {
-    fer_rand_mt_t *r;
+    bor_rand_mt_t *r;
 
     printf("Auto:\n");
     r = ferRandMTNewAuto();

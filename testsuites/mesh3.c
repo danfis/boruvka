@@ -16,11 +16,11 @@ TEST(testMesh3TearDown)
 }
 
 TEST(testMesh){
-    fer_mesh3_t *mesh;
-    fer_vec3_t vcoords[4];
-    fer_mesh3_vertex_t v[4];
-    fer_mesh3_edge_t e[5];
-    fer_mesh3_face_t f[2], f2;
+    bor_mesh3_t *mesh;
+    bor_vec3_t vcoords[4];
+    bor_mesh3_vertex_t v[4];
+    bor_mesh3_edge_t e[5];
+    bor_mesh3_face_t f[2], f2;
     size_t i;
 
     mesh = ferMesh3New();
@@ -135,18 +135,18 @@ TEST(testMesh){
 }
 
 
-static void testMesh2DelV(fer_mesh3_vertex_t *v, void *data)
+static void testMesh2DelV(bor_mesh3_vertex_t *v, void *data)
 {
     ferVec3Del(ferMesh3VertexCoordsW(v));
     ferMesh3VertexDel(v);
     assertEquals(*(long *)data, 123);
 }
-static void testMesh2DelE(fer_mesh3_edge_t *e, void *data)
+static void testMesh2DelE(bor_mesh3_edge_t *e, void *data)
 {
     ferMesh3EdgeDel(e);
     assertEquals(*(long *)data, 345);
 }
-static void testMesh2DelF(fer_mesh3_face_t *f, void *data)
+static void testMesh2DelF(bor_mesh3_face_t *f, void *data)
 {
     ferMesh3FaceDel(f);
     assertEquals(*(long *)data, 456);
@@ -154,11 +154,11 @@ static void testMesh2DelF(fer_mesh3_face_t *f, void *data)
 
 TEST(testMesh2)
 {
-    fer_mesh3_t *mesh;
-    fer_vec3_t *vcoords[4];
-    fer_mesh3_vertex_t *v[4];
-    fer_mesh3_edge_t *e[5];
-    fer_mesh3_face_t *f[2], f2;
+    bor_mesh3_t *mesh;
+    bor_vec3_t *vcoords[4];
+    bor_mesh3_vertex_t *v[4];
+    bor_mesh3_edge_t *e[5];
+    bor_mesh3_face_t *f[2], f2;
     size_t i;
     long vdata = 123, edata = 345, fdata = 456;
 

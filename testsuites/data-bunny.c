@@ -1,6 +1,6 @@
 #include <boruvka/vec3.h>
 
-static fer_vec3_t _bunny_coords[] = {
+static bor_vec3_t _bunny_coords[] = {
     FER_VEC3_STATIC(-0.334392f, 0.133007f, 0.062259f),
     FER_VEC3_STATIC(-0.350189f, 0.150354f, -0.147769f),
     FER_VEC3_STATIC(-0.234201f, 0.343811f, -0.174307f),
@@ -455,8 +455,8 @@ static fer_vec3_t _bunny_coords[] = {
     FER_VEC3_STATIC(0.356076f, 0.149288f, -0.143443f),
     FER_VEC3_STATIC(0.337656f, 0.131992f, 0.066374f)
 };
-fer_vec3_t *bunny_coords = _bunny_coords;
-size_t bunny_coords_len = sizeof(_bunny_coords) / sizeof(fer_vec3_t);
+bor_vec3_t *bunny_coords = _bunny_coords;
+size_t bunny_coords_len = sizeof(_bunny_coords) / sizeof(bor_vec3_t);
 
 
 unsigned int _bunny_ids[] = {

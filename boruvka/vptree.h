@@ -25,7 +25,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct _fer_vptree_el_t;
+struct _bor_vptree_el_t;
 
 /**
  * Vantage Point Tree
@@ -39,7 +39,7 @@ struct _fer_vptree_el_t;
  *     vp-tree indexing for n-nearest neighbor search given pairwise
  *     distances, The VLDB Journal 9 (2000) 154-173.
  * 
- * See fer_vptree_t.
+ * See bor_vptree_t.
  */
 
 
@@ -47,7 +47,7 @@ struct _fer_vptree_el_t;
  * Parameters
  * -----------
  *
- * See fer_vptree_params_t.
+ * See bor_vptree_params_t.
  */
 
 /** vvvv */
@@ -55,13 +55,13 @@ struct _fer_vptree_el_t;
 /**
  * Returns distance between two {d}-dimensional vectors
  */
-typedef fer_real_t (*fer_vptree_dist)(int d,
-                                      const fer_vec_t *v1,
-                                      const fer_vec_t *v2, void *data);
+typedef bor_real_t (*fer_vptree_dist)(int d,
+                                      const bor_vec_t *v1,
+                                      const bor_vec_t *v2, void *data);
 
 /** ^^^^ */
 
-struct _fer_vptree_params_t {
+struct _bor_vptree_params_t {
     int dim;              /*!< Dimension of space. Default: 2 */
     fer_vptree_dist dist; /*!< Callback for distance measurement.
                                Default: L2 norm distance */
@@ -71,35 +71,35 @@ struct _fer_vptree_params_t {
     int samplesize;       /*!< Size of the samples used in *Build()
                                function. Default: 5 */
 };
-typedef struct _fer_vptree_params_t fer_vptree_params_t;
+typedef struct _bor_vptree_params_t bor_vptree_params_t;
 
 /**
  * Initializes params struct
  */
-void ferVPTreeParamsInit(fer_vptree_params_t *params);
+void ferVPTreeParamsInit(bor_vptree_params_t *params);
 
 
 
-struct __fer_vptree_node_t {
-    fer_vec_t *vp;     /*!< Vantage point */
-    fer_real_t radius;
-    struct __fer_vptree_node_t *left, *right; /*!< Left and right subtree */
-    struct __fer_vptree_node_t *parent;
-    fer_list_t els;    /*!< List of elements */
+struct __bor_vptree_node_t {
+    bor_vec_t *vp;     /*!< Vantage point */
+    bor_real_t radius;
+    struct __bor_vptree_node_t *left, *right; /*!< Left and right subtree */
+    struct __bor_vptree_node_t *parent;
+    bor_list_t els;    /*!< List of elements */
     size_t size;       /*!< Number of elements */
 };
-typedef struct __fer_vptree_node_t _fer_vptree_node_t;
+typedef struct __bor_vptree_node_t _bor_vptree_node_t;
 
-struct _fer_vptree_t {
+struct _bor_vptree_t {
     uint8_t type; /*!< Type of NN search algorithm. See boruvka/nn.h */
 
-    fer_vptree_params_t params;
-    _fer_vptree_node_t *root;
+    bor_vptree_params_t params;
+    _bor_vptree_node_t *root;
 
-    struct _fer_vptree_el_t **els; /*!< Tmp array for elements */
+    struct _bor_vptree_el_t **els; /*!< Tmp array for elements */
     size_t els_size;               /*!< Size of .els array */
 };
-typedef struct _fer_vptree_t fer_vptree_t;
+typedef struct _bor_vptree_t bor_vptree_t;
 
 
 
@@ -109,18 +109,18 @@ typedef struct _fer_vptree_t fer_vptree_t;
  *
  * TODO: Example
  */
-struct _fer_vptree_el_t {
-    const fer_vec_t *p; /*!< Pointer to user-defined point vector */
-    fer_list_t list;    /*!< Connection into node's list of elements */
-    _fer_vptree_node_t *node; /*!< Back reference to owner of this element */
+struct _bor_vptree_el_t {
+    const bor_vec_t *p; /*!< Pointer to user-defined point vector */
+    bor_list_t list;    /*!< Connection into node's list of elements */
+    _bor_vptree_node_t *node; /*!< Back reference to owner of this element */
 };
-typedef struct _fer_vptree_el_t fer_vptree_el_t;
+typedef struct _bor_vptree_el_t bor_vptree_el_t;
 
 /**
  * Initialize element struct.
  * This must be called before added to vp-tree
  */
-void ferVPTreeElInit(fer_vptree_el_t *el, const fer_vec_t *p);
+void ferVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p);
 
 
 
@@ -132,34 +132,34 @@ void ferVPTreeElInit(fer_vptree_el_t *el, const fer_vec_t *p);
 /**
  * Creates new empty vp-tree
  */
-fer_vptree_t *ferVPTreeNew(const fer_vptree_params_t *params);
+bor_vptree_t *ferVPTreeNew(const bor_vptree_params_t *params);
 
 /**
  * Builds vp-tree from array of elements
  * TODO: Example
  */
-fer_vptree_t *ferVPTreeBuild(const fer_vptree_params_t *params,
-                             fer_vptree_el_t *els, size_t els_len, size_t stride);
+bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
+                             bor_vptree_el_t *els, size_t els_len, size_t stride);
 
 /**
  * Deletes vp-tree
  */
-void ferVPTreeDel(fer_vptree_t *vp);
+void ferVPTreeDel(bor_vptree_t *vp);
 
 /**
  * Adds element to the vp-tree
  */
-void ferVPTreeAdd(fer_vptree_t *vp, fer_vptree_el_t *el);
+void ferVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Removes element from vp-tree
  */
-void ferVPTreeRemove(fer_vptree_t *vp, fer_vptree_el_t *el);
+void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Updates position of element in vp-tree.
  */
-void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el);
+void ferVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -168,11 +168,11 @@ void ferVPTreeUpdate(fer_vptree_t *vp, fer_vptree_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferVPTreeNearest(const fer_vptree_t *vp, const fer_vec_t *p, size_t num,
-                        fer_vptree_el_t **els);
+size_t ferVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
+                        bor_vptree_el_t **els);
 
 
-void ferVPTreeDump(fer_vptree_t *vp, FILE *out);
+void ferVPTreeDump(bor_vptree_t *vp, FILE *out);
 
 #ifdef __cplusplus
 } /* extern "C" */

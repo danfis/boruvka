@@ -26,13 +26,13 @@ extern "C" {
 /**
  * One memory chunk used for storing points.
  */
-struct _fer_pc_mem_t {
+struct _bor_pc_mem_t {
     void *data;
     size_t len;  /*! actual number of points in data array */
     size_t size; /*! number of points that can be stored in data array */
-    fer_list_t list;
+    bor_list_t list;
 };
-typedef struct _fer_pc_mem_t fer_pc_mem_t;
+typedef struct _bor_pc_mem_t bor_pc_mem_t;
 
 /**
  * Creates new memory chunk.
@@ -40,13 +40,13 @@ typedef struct _fer_pc_mem_t fer_pc_mem_t;
  * should be able to hold. It is also base number from which will be
  * estimated amount of allocated memory.
  */
-fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align);
-void ferPCMemDel(fer_pc_mem_t *m);
+bor_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align);
+void ferPCMemDel(bor_pc_mem_t *m);
 
 /**
  * Returns true if chunk is full.
  */
-_fer_inline int ferPCMemFull(const fer_pc_mem_t *m);
+_fer_inline int ferPCMemFull(const bor_pc_mem_t *m);
 
 /**
  * Returns element (of given type) stored on pos'th position.
@@ -80,7 +80,7 @@ _fer_inline int ferPCMemFull(const fer_pc_mem_t *m);
 
 
 /**** INLINES ****/
-_fer_inline int ferPCMemFull(const fer_pc_mem_t *m)
+_fer_inline int ferPCMemFull(const bor_pc_mem_t *m)
 {
     return m->len >= m->size;
 }

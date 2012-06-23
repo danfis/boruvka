@@ -5,8 +5,8 @@
 #include <boruvka/mat3.h>
 #include "data.h"
 
-static fer_vec2_t *v[4];
-static fer_vec2_t *t, *p;
+static bor_vec2_t *v[4];
+static bor_vec2_t *t, *p;
 
 TEST(vec2SetUp)
 {
@@ -63,7 +63,7 @@ TEST(vec2Init)
 
 TEST(vec2Clone)
 {
-    fer_vec2_t *vc = ferVec2Clone(v[0]);
+    bor_vec2_t *vc = ferVec2Clone(v[0]);
     assertTrue(ferVec2Eq(vc, v[0]));
     ferVec2Del(vc);
 }
@@ -167,7 +167,7 @@ TEST(vec2Intersect)
 
 TEST(vec2SegmentInRect)
 {
-    fer_vec2_t *s[2], *l[2];
+    bor_vec2_t *s[2], *l[2];
 
     s[0] = ferVec2New(0., 0.);
     s[1] = ferVec2New(0., 0.);
@@ -287,9 +287,9 @@ TEST(vec2Projection)
 
 TEST(vec2AngleSameDir)
 {
-    fer_real_t angle;
-    fer_mat3_t *tr = ferMat3New();
-    fer_vec2_t w;
+    bor_real_t angle;
+    bor_mat3_t *tr = ferMat3New();
+    bor_vec2_t w;
 
     ferVec2Set(v[0], 1., 1.);
     ferVec2Set(v[1], 2., 2.);
@@ -464,7 +464,7 @@ TEST(vec2AngleSameDir)
 TEST(vec2Add)
 {
     size_t i;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- add ----\n");
     ferVec2Set(&v, FER_ZERO, FER_ZERO);
@@ -478,7 +478,7 @@ TEST(vec2Add)
 TEST(vec2Sub)
 {
     size_t i;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- sub ----\n");
     ferVec2Set(&v, FER_ZERO, FER_ZERO);
@@ -492,7 +492,7 @@ TEST(vec2Sub)
 TEST(vec2Scale)
 {
     size_t i;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- scale ----\n");
     ferVec2Copy(&v, &vecs2[0]);
@@ -506,7 +506,7 @@ TEST(vec2Scale)
 TEST(vec2Normalize)
 {
     size_t i;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < vecs2_len; i++){
@@ -522,7 +522,7 @@ TEST(vec2Normalize)
 TEST(vec2Dot)
 {
     size_t i;
-    fer_real_t dot;
+    bor_real_t dot;
 
     printf("# ---- dot ----\n");
     for (i = 0; i < vecs2_len - 1; i++){
@@ -535,7 +535,7 @@ TEST(vec2Dot)
 TEST(vec2Mul)
 {
     size_t i;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- mul ----\n");
     for (i = 0; i < vecs2_len - 1; i++){
@@ -548,7 +548,7 @@ TEST(vec2Mul)
 TEST(vec2Len)
 {
     size_t i;
-    fer_real_t len, len2;
+    bor_real_t len, len2;
 
     printf("# ---- len ----\n");
     for (i = 0; i < vecs2_len; i++){
@@ -562,7 +562,7 @@ TEST(vec2Len)
 TEST(vec2Dist)
 {
     size_t i;
-    fer_real_t d, d2;
+    bor_real_t d, d2;
 
     printf("# ---- dist ----\n");
     for (i = 0; i < vecs2_len - 1; i++){
@@ -576,7 +576,7 @@ TEST(vec2Dist)
 TEST(vec2Area)
 {
     size_t i;
-    fer_real_t d;
+    bor_real_t d;
 
     printf("# ---- area ----\n");
     for (i = 0; i < vecs2_len - 2; i++){
@@ -589,7 +589,7 @@ TEST(vec2Area)
 TEST(vec2Angle)
 {
     size_t i;
-    fer_real_t d, d2;
+    bor_real_t d, d2;
 
     printf("# ---- angle ----\n");
     for (i = 0; i < vecs2_len - 2; i++){
@@ -604,7 +604,7 @@ TEST(vec2ProjSeg)
 {
     size_t i;
     int ret;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- proj seg ----\n");
     for (i = 0; i < vecs2_len - 2; i++){
@@ -676,7 +676,7 @@ TEST(vec2Inter)
 {
     size_t i;
     int ret, ret2, ret3;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
     printf("# ---- inter ----\n");
     for (i = 0; i < vecs2_len - 3; i++){
@@ -709,7 +709,7 @@ TEST(vec2SegInRect)
 {
     size_t i;
     int ret;
-    fer_vec2_t s1, s2;
+    bor_vec2_t s1, s2;
 
     printf("# ---- seg in rect ----\n");
     for (i = 0; i < vecs2_len - 5; i++){
@@ -731,8 +731,8 @@ TEST(vec2SegInRect)
 
 TEST(vec2BoxBoxOverlap)
 {
-    fer_vec2_t he[2], pos[2];
-    fer_real_t rot[2];
+    bor_vec2_t he[2], pos[2];
+    bor_real_t rot[2];
     int ret;
 
 

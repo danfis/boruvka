@@ -30,9 +30,9 @@ extern "C" {
  * Tasks - Abstraction for Paralelization Using Threads
  * =====================================================
  */
-struct _fer_tasks_t {
-    fer_list_t tasks;     /*!< List of tasks */
-    fer_list_t threads;   /*!< List of all threads */
+struct _bor_tasks_t {
+    bor_list_t tasks;     /*!< List of tasks */
+    bor_list_t threads;   /*!< List of all threads */
     size_t threads_len;   /*!< Number of threads in list */
     int next_id;          /*!< Next unique ID for threads */
 
@@ -44,27 +44,27 @@ struct _fer_tasks_t {
                                        code to wait until all tasks are
                                        finished */
 };
-typedef struct _fer_tasks_t fer_tasks_t;
+typedef struct _bor_tasks_t bor_tasks_t;
 
 /**
  * Info about thread.
  */
-struct _fer_tasks_thinfo_t {
+struct _bor_tasks_thinfo_t {
     int id; /*!< Unique ID of thread */
 };
-typedef struct _fer_tasks_thinfo_t fer_tasks_thinfo_t;
+typedef struct _bor_tasks_thinfo_t bor_tasks_thinfo_t;
 
 
 /**
  * Callback used as task
  */
 typedef void (*fer_tasks_fn)(int id, void *data,
-                             const fer_tasks_thinfo_t *thinfo);
+                             const bor_tasks_thinfo_t *thinfo);
 
 /**
  * Creates empty task queue with {num_threads} threads waiting.
  */
-fer_tasks_t *ferTasksNew(size_t num_threads);
+bor_tasks_t *ferTasksNew(size_t num_threads);
 
 /**
  * Waits for all tasks to be processed and then deletes task queue.
@@ -72,17 +72,17 @@ fer_tasks_t *ferTasksNew(size_t num_threads);
  *
  * Note that ferTasksRun() must be called before this!
  */
-void ferTasksDel(fer_tasks_t *t);
+void ferTasksDel(bor_tasks_t *t);
 
 /**
  * Returns number of threads.
  */
-_fer_inline size_t ferTasksNumThreads(const fer_tasks_t *t);
+_fer_inline size_t ferTasksNumThreads(const bor_tasks_t *t);
 
 /**
  * Returns number of threads.
  */
-_fer_inline size_t ferTasksSize(const fer_tasks_t *t);
+_fer_inline size_t ferTasksSize(const bor_tasks_t *t);
 
 /**
  * Waits for current tasks to be processed, empty task queue and then
@@ -90,44 +90,44 @@ _fer_inline size_t ferTasksSize(const fer_tasks_t *t);
  *
  * Note that ferTasksRun() must be called before this!
  */
-void ferTasksCancelDel(fer_tasks_t *t);
+void ferTasksCancelDel(bor_tasks_t *t);
 
 /**
  * Adds task to an end of queue.
  * Returns 0 on success.
  */
-void ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, int id, void *data);
+void ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, int id, void *data);
 
 /**
  * Run tasks
  */
-void ferTasksRun(fer_tasks_t *t);
+void ferTasksRun(bor_tasks_t *t);
 
 /**
  * Returns number of pending tasks
  */
-int ferTasksPending(fer_tasks_t *t);
+int ferTasksPending(bor_tasks_t *t);
 
 
 /**
  * Runs all tasks and blocks until all are finished
  */
-void ferTasksRunBlock(fer_tasks_t *t);
+void ferTasksRunBlock(bor_tasks_t *t);
 
 /**
  * Blocks until all tasks in queue aren't finished
  */
-void ferTasksBarrier(fer_tasks_t *t);
+void ferTasksBarrier(bor_tasks_t *t);
 
 // TODO: AddThreads()/RemoveThreads()
 
 /**** INLINES ****/
-_fer_inline size_t ferTasksNumThreads(const fer_tasks_t *t)
+_fer_inline size_t ferTasksNumThreads(const bor_tasks_t *t)
 {
     return t->threads_len;
 }
 
-_fer_inline size_t ferTasksSize(const fer_tasks_t *t)
+_fer_inline size_t ferTasksSize(const bor_tasks_t *t)
 {
     return t->threads_len;
 }

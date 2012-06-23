@@ -30,26 +30,26 @@ extern "C" {
  * Task Pool - Pool of Threads
  * ============================
  *
- * See fer_task_pool_t.
+ * See bor_task_pool_t.
  */
 
-struct _fer_task_pool_t;
+struct _bor_task_pool_t;
 
 /**
  * Info about thread.
  */
-struct _fer_task_pool_thinfo_t {
+struct _bor_task_pool_thinfo_t {
     int id; /*!< ID of thread - is same as index in .threads[] member of
-                 fer_task_pool_t struct */
+                 bor_task_pool_t struct */
 };
-typedef struct _fer_task_pool_thinfo_t fer_task_pool_thinfo_t;
+typedef struct _bor_task_pool_thinfo_t bor_task_pool_thinfo_t;
 
 
-struct _fer_task_pool_thread_t {
-    fer_task_pool_thinfo_t info; /*!< Thread info */
-    struct _fer_task_pool_t *task_pool; /*!< Back reference to main struct */
+struct _bor_task_pool_thread_t {
+    bor_task_pool_thinfo_t info; /*!< Thread info */
+    struct _bor_task_pool_t *task_pool; /*!< Back reference to main struct */
     pthread_t th;                /*!< POSIX thread */
-    fer_list_t tasks;            /*!< List of pending tasks */
+    bor_list_t tasks;            /*!< List of pending tasks */
 
     pthread_mutex_t lock;        /*!< Global lock for thread synchronization */
     sem_t full, empty;           /*!< Full/Empty semaphores for pending tasks */
@@ -59,16 +59,16 @@ struct _fer_task_pool_thread_t {
                                       code to wait until all tasks are
                                       finished */
 };
-typedef struct _fer_task_pool_thread_t fer_task_pool_thread_t;
+typedef struct _bor_task_pool_thread_t bor_task_pool_thread_t;
 
 
-struct _fer_task_pool_t {
-    fer_task_pool_thread_t **threads; /*!< Array of threads */
+struct _bor_task_pool_t {
+    bor_task_pool_thread_t **threads; /*!< Array of threads */
     size_t threads_len;               /*!< Number of .threads array */
     int started;                      /*!< Set to 1 if all threads were
                                            started */
 };
-typedef struct _fer_task_pool_t fer_task_pool_t;
+typedef struct _bor_task_pool_t bor_task_pool_t;
 
 
 
@@ -76,49 +76,49 @@ typedef struct _fer_task_pool_t fer_task_pool_t;
  * Callback used as task
  */
 typedef void (*fer_task_pool_fn)(int id, void *data,
-                                 const fer_task_pool_thinfo_t *thinfo);
+                                 const bor_task_pool_thinfo_t *thinfo);
 
 /**
  * Creates task pool containing {num_threads} threads.
  * Note that ferTaskPoolRun() must be called in order to actually start the
  * threads.
  */
-fer_task_pool_t *ferTaskPoolNew(size_t num_threads);
+bor_task_pool_t *ferTaskPoolNew(size_t num_threads);
 
 /**
  * Waits for all tasks to be processed and then deletes task pool.
  */
-void ferTaskPoolDel(fer_task_pool_t *t);
+void ferTaskPoolDel(bor_task_pool_t *t);
 
 /**
  * Returns number of threads in task pool.
  */
-_fer_inline size_t ferTaskPoolSize(const fer_task_pool_t *t);
+_fer_inline size_t ferTaskPoolSize(const bor_task_pool_t *t);
 
 /**
  * Adds task to {tid}'th thread in pool.
  * Returns 0 on success.
  */
-void ferTaskPoolAdd(fer_task_pool_t *t, int tid,
+void ferTaskPoolAdd(bor_task_pool_t *t, int tid,
                     fer_task_pool_fn fn, int id, void *data);
 
 /**
  * Start all threads in pool.
  */
-void ferTaskPoolRun(fer_task_pool_t *t);
+void ferTaskPoolRun(bor_task_pool_t *t);
 
 /**
  * Returns number of pending tasks of {id}'th thread.
  */
-int ferTaskPoolPending(fer_task_pool_t *t, int id);
+int ferTaskPoolPending(bor_task_pool_t *t, int id);
 
 /**
  * Blocks until all tasks of {id}'th thread aren't finished
  */
-void ferTaskPoolBarrier(fer_task_pool_t *t, int id);
+void ferTaskPoolBarrier(bor_task_pool_t *t, int id);
 
 /**** INLINES ****/
-_fer_inline size_t ferTaskPoolSize(const fer_task_pool_t *t)
+_fer_inline size_t ferTaskPoolSize(const bor_task_pool_t *t)
 {
     return t->threads_len;
 }

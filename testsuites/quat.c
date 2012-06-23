@@ -6,8 +6,8 @@
 
 TEST(quatCore)
 {
-    fer_quat_t *a, b;
-    fer_vec3_t v1, v2;
+    bor_quat_t *a, b;
+    bor_vec3_t v1, v2;
 
     a = ferQuatNew(0., 1., 3., 1.);
     assertTrue(ferEq(ferQuatX(a), 0.));
@@ -96,7 +96,7 @@ TEST(quatCore)
 TEST(quatLen2)
 {
     size_t i;
-    fer_real_t l;
+    bor_real_t l;
 
     printf("# ---- len2 ----\n");
     for (i = 0; i < quats_len; i++){
@@ -109,7 +109,7 @@ TEST(quatLen2)
 TEST(quatLen)
 {
     size_t i;
-    fer_real_t l;
+    bor_real_t l;
 
     printf("# ---- len ----\n");
     for (i = 0; i < quats_len; i++){
@@ -122,7 +122,7 @@ TEST(quatLen)
 TEST(quatNormalize)
 {
     size_t i;
-    fer_quat_t q;
+    bor_quat_t q;
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < quats_len; i++){
@@ -136,7 +136,7 @@ TEST(quatNormalize)
 TEST(quatScale)
 {
     size_t i;
-    fer_quat_t q;
+    bor_quat_t q;
 
     printf("# ---- scale ----\n");
     for (i = 0; i < quats_len; i++){
@@ -150,7 +150,7 @@ TEST(quatScale)
 TEST(quatMul)
 {
     size_t i;
-    fer_quat_t q, q2;
+    bor_quat_t q, q2;
 
     printf("# ---- mul ----\n");
     for (i = 0; i < quats_len - 1; i++){
@@ -167,7 +167,7 @@ TEST(quatMul)
 TEST(quatInvert)
 {
     size_t i;
-    fer_quat_t q, q2;
+    bor_quat_t q, q2;
 
     printf("# ---- invert ----\n");
     for (i = 0; i < quats_len; i++){
@@ -183,7 +183,7 @@ TEST(quatInvert)
 TEST(quatRotVec)
 {
     size_t i, j;
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     printf("# ---- rot vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){
@@ -197,9 +197,9 @@ TEST(quatRotVec)
 TEST(quatAngleAxis)
 {
     size_t i, j;
-    fer_quat_t q;
-    fer_vec3_t v;
-    fer_real_t a;
+    bor_quat_t q;
+    bor_vec3_t v;
+    bor_real_t a;
 
     printf("# ---- angle axis vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){

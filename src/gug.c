@@ -22,64 +22,64 @@
 #include <boruvka/nn.h>
 
 
-struct _fer_gug_cache_t {
-    fer_gug_el_t **els; /*!< Elements that we are searching for */
-    fer_real_t *dist;       /*!< Distances of elements in .els */
+struct _bor_gug_cache_t {
+    bor_gug_el_t **els; /*!< Elements that we are searching for */
+    bor_real_t *dist;       /*!< Distances of elements in .els */
     size_t len;             /*!< Number of so far found elements */
     size_t max_len;         /*!< Maximal number of elements we want to find */
 
-    const fer_vec_t *p;
+    const bor_vec_t *p;
 
-    fer_real_t __dist[4];   /*!< Preallocated array on stack for .dist[] to
+    bor_real_t __dist[4];   /*!< Preallocated array on stack for .dist[] to
                                  avoid allocation on heap */
 };
-typedef struct _fer_gug_cache_t fer_gug_cache_t;
+typedef struct _bor_gug_cache_t bor_gug_cache_t;
 
-static void cellInit(fer_gug_t *cs, fer_gug_cell_t *c, size_t id);
+static void cellInit(bor_gug_t *cs, bor_gug_cell_t *c, size_t id);
 
-static void cellsAlloc(fer_gug_t *cs, size_t num_cells);
+static void cellsAlloc(bor_gug_t *cs, size_t num_cells);
 
 /** Creates and destroys cache */
-static void cacheInit(fer_gug_cache_t *cache,
-                      fer_gug_el_t **els,
+static void cacheInit(bor_gug_cache_t *cache,
+                      bor_gug_el_t **els,
                       size_t max_len,
-                      const fer_vec_t *p);
-static void cacheDestroy(fer_gug_cache_t *cache);
+                      const bor_vec_t *p);
+static void cacheDestroy(bor_gug_cache_t *cache);
 
 
 /** Nearest nodes in given radius around center */
-static int nearestInRadius(const fer_gug_t *cs, fer_gug_cache_t *cache,
+static int nearestInRadius(const bor_gug_t *cs, bor_gug_cache_t *cache,
                            int radius,
                            const size_t *center, size_t *pos);
 /** For 2D */
-static int nearestInRadius2(const fer_gug_t *cs, fer_gug_cache_t *cache,
+static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
                             int radius,
                             const size_t *center, size_t *pos);
 /** Searches only specified cube */
-static void nearestInCell(const fer_gug_t *cs, fer_gug_cache_t *cache,
-                          fer_gug_cell_t *c);
+static void nearestInCell(const bor_gug_t *cs, bor_gug_cache_t *cache,
+                          bor_gug_cell_t *c);
 /** Checks if given element isn't closer than the ones already stored in
  *  cache. */
-static void nearestCheck(const fer_gug_t *cs, fer_gug_cache_t *cache,
-                         fer_gug_el_t *el);
+static void nearestCheck(const bor_gug_t *cs, bor_gug_cache_t *cache,
+                         bor_gug_el_t *el);
 /** Bubble sort. Takes the last element in .els and bubble it towards
  *  smaller ones (according to .dist[] value). */
-static void nearestBubbleUp(fer_gug_cache_t *c);
+static void nearestBubbleUp(bor_gug_cache_t *c);
 /** Returns distance of initial border. */
-_fer_inline fer_real_t initBorder(const fer_gug_t *cs, const fer_vec_t *p);
+_fer_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p);
 
 
 /** Converts position in cells to cell's ID */
-_fer_inline size_t __ferGUGPosToID(const fer_gug_t *cs,
+_fer_inline size_t __ferGUGPosToID(const bor_gug_t *cs,
                                        const size_t *pos);
-_fer_inline size_t __ferGUGPosToID2(const fer_gug_t *cs,
+_fer_inline size_t __ferGUGPosToID2(const bor_gug_t *cs,
                                         const size_t *pos);
 /** Invert function to __ferGUGPosToID() */
-_fer_inline void __ferGUGIDToPos(const fer_gug_t *cs, size_t id,
+_fer_inline void __ferGUGIDToPos(const bor_gug_t *cs, size_t id,
                                      size_t *pos);
 
 
-void ferGUGParamsInit(fer_gug_params_t *p)
+void ferGUGParamsInit(bor_gug_params_t *p)
 {
     p->dim         = 2;
     p->num_cells   = 10000;
@@ -90,12 +90,12 @@ void ferGUGParamsInit(fer_gug_params_t *p)
 }
 
 
-fer_gug_t *ferGUGNew(const fer_gug_params_t *params)
+bor_gug_t *ferGUGNew(const bor_gug_params_t *params)
 {
     size_t i;
-    fer_gug_t *c;
+    bor_gug_t *c;
 
-    c = FER_ALLOC(fer_gug_t);
+    c = FER_ALLOC(bor_gug_t);
     c->type = FER_NN_GUG;
 
     c->num_els = 0;
@@ -109,13 +109,13 @@ fer_gug_t *ferGUGNew(const fer_gug_params_t *params)
         c->expand   = params->expand_rate;
     }
 
-    c->aabb = FER_ALLOC_ARR(fer_real_t, c->d * 2);
+    c->aabb = FER_ALLOC_ARR(bor_real_t, c->d * 2);
     for (i = 0; i < c->d * 2; i++){
         c->aabb[i] = params->aabb[i];
     }
 
     // Compute shifting
-    c->shift = FER_ALLOC_ARR(fer_real_t, c->d);
+    c->shift = FER_ALLOC_ARR(bor_real_t, c->d);
     for (i = 0; i < c->d; i++){
         c->shift[i] = -FER_ONE * c->aabb[2 * i];
     }
@@ -133,7 +133,7 @@ fer_gug_t *ferGUGNew(const fer_gug_params_t *params)
     return c;
 }
 
-void ferGUGDel(fer_gug_t *c)
+void ferGUGDel(bor_gug_t *c)
 {
     if (c->dim)
         FER_FREE(c->dim);
@@ -150,16 +150,16 @@ void ferGUGDel(fer_gug_t *c)
 }
 
 
-static size_t __ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p,
-                                  size_t num, fer_gug_el_t **els,
+static size_t __ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
+                                  size_t num, bor_gug_el_t **els,
                                   int approx)
 {
     size_t center_id, retlen;
     size_t *center, *pos;
-    fer_gug_cell_t *cell;
-    fer_gug_cache_t cache;
+    bor_gug_cell_t *cell;
+    bor_gug_cache_t cache;
     int radius;
-    fer_real_t border, border2;
+    bor_real_t border, border2;
 
     if (ferGUGSize(cs) == 0)
         return 0;
@@ -215,24 +215,24 @@ static size_t __ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p,
     return retlen;
 }
 
-size_t ferGUGNearest(const fer_gug_t *cs, const fer_vec_t *p, size_t num,
-                         fer_gug_el_t **els)
+size_t ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p, size_t num,
+                         bor_gug_el_t **els)
 {
     return __ferGUGNearest(cs, p, num, els, cs->approx);
 }
 
-size_t ferGUGNearestApprox(const fer_gug_t *cs, const fer_vec_t *p,
-                               size_t num, fer_gug_el_t **els)
+size_t ferGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
+                               size_t num, bor_gug_el_t **els)
 {
     return __ferGUGNearest(cs, p, num, els, 1);
 }
 
-void __ferGUGExpand(fer_gug_t *cs)
+void __ferGUGExpand(bor_gug_t *cs)
 {
-    fer_gug_cell_t *cells;
+    bor_gug_cell_t *cells;
     size_t i, cells_len, newlen;
-    fer_list_t *item;
-    fer_gug_el_t *el;
+    bor_list_t *item;
+    bor_gug_el_t *el;
 
     // save old cells
     cells     = cs->cells;
@@ -250,7 +250,7 @@ void __ferGUGExpand(fer_gug_t *cs)
     for (i = 0; i < cells_len; i++){
         while (!ferListEmpty(&cells[i].list)){
             item = ferListNext(&cells[i].list);
-            el   = FER_LIST_ENTRY(item, fer_gug_el_t, list);
+            el   = FER_LIST_ENTRY(item, bor_gug_el_t, list);
             ferListDel(item);
 
             ferGUGAdd(cs, el);
@@ -262,13 +262,13 @@ void __ferGUGExpand(fer_gug_t *cs)
     //DBG("cells: %d", (int)cs->cells_len);
 }
 
-static void cellsAlloc(fer_gug_t *c, size_t num_cells)
+static void cellsAlloc(bor_gug_t *c, size_t num_cells)
 {
     size_t i;
-    fer_real_t *fdim, volume;
+    bor_real_t *fdim, volume;
 
     // Compute dimensions of covered space and size of cell's edge
-    fdim   = FER_ALLOC_ARR(fer_real_t, c->d);
+    fdim   = FER_ALLOC_ARR(bor_real_t, c->d);
 
     // dimensions and volume of space
     volume = 1.;
@@ -300,7 +300,7 @@ static void cellsAlloc(fer_gug_t *c, size_t num_cells)
     }
 
     // allocate array of cells
-    c->cells = FER_ALLOC_ARR(fer_gug_cell_t, c->cells_len);
+    c->cells = FER_ALLOC_ARR(bor_gug_cell_t, c->cells_len);
 
     for (i = 0; i < c->cells_len; i++){
         cellInit(c, &c->cells[i], i);
@@ -314,23 +314,23 @@ static void cellsAlloc(fer_gug_t *c, size_t num_cells)
 }
 
 
-static void cellInit(fer_gug_t *cs, fer_gug_cell_t *c, size_t id)
+static void cellInit(bor_gug_t *cs, bor_gug_cell_t *c, size_t id)
 {
     ferListInit(&c->list);
 }
 
  
 
-static void cacheInit(fer_gug_cache_t *cache,
-                      fer_gug_el_t **els,
+static void cacheInit(bor_gug_cache_t *cache,
+                      bor_gug_el_t **els,
                       size_t max_len,
-                      const fer_vec_t *p)
+                      const bor_vec_t *p)
 {
     // avoid allocation on heap if possible
     if (max_len < 4){
         cache->dist = cache->__dist;
     }else{
-        cache->dist = FER_ALLOC_ARR(fer_real_t, max_len);
+        cache->dist = FER_ALLOC_ARR(bor_real_t, max_len);
     }
 
     cache->els     = els;
@@ -339,7 +339,7 @@ static void cacheInit(fer_gug_cache_t *cache,
     cache->p       = p;
 }
 
-static void cacheDestroy(fer_gug_cache_t *cache)
+static void cacheDestroy(bor_gug_cache_t *cache)
 {
     if (cache->dist != cache->__dist)
         FER_FREE(cache->dist);
@@ -347,7 +347,7 @@ static void cacheDestroy(fer_gug_cache_t *cache)
 
 
 
-static void __nearestInRadius(const fer_gug_t *cs, fer_gug_cache_t *cache,
+static void __nearestInRadius(const bor_gug_t *cs, bor_gug_cache_t *cache,
                               int radius,
                               const size_t *center,
                               size_t *pos, int d, int fix)
@@ -388,7 +388,7 @@ static void __nearestInRadius(const fer_gug_t *cs, fer_gug_cache_t *cache,
     }
 }
 
-static int nearestInRadius(const fer_gug_t *cs, fer_gug_cache_t *cache,
+static int nearestInRadius(const bor_gug_t *cs, bor_gug_cache_t *cache,
                            int radius,
                            const size_t *center, size_t *pos)
 {
@@ -415,7 +415,7 @@ static int nearestInRadius(const fer_gug_t *cs, fer_gug_cache_t *cache,
     return ret;
 }
 
-static int nearestInRadius2(const fer_gug_t *cs, fer_gug_cache_t *cache,
+static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
                             int radius,
                             const size_t *center, size_t *pos)
 {
@@ -476,28 +476,28 @@ static int nearestInRadius2(const fer_gug_t *cs, fer_gug_cache_t *cache,
     return ret;
 }
 
-static void nearestInCell(const fer_gug_t *cs, fer_gug_cache_t *cache,
-                          fer_gug_cell_t *c)
+static void nearestInCell(const bor_gug_t *cs, bor_gug_cache_t *cache,
+                          bor_gug_cell_t *c)
 {
-    fer_list_t *list, *item;
-    fer_gug_el_t *el;
+    bor_list_t *list, *item;
+    bor_gug_el_t *el;
 
     list = &c->list;
     FER_LIST_FOR_EACH(list, item){
-        el = FER_LIST_ENTRY(item, fer_gug_el_t, list);
+        el = FER_LIST_ENTRY(item, bor_gug_el_t, list);
         nearestCheck(cs, cache, el);
     }
 }
 
-static void nearestCheck(const fer_gug_t *cs, fer_gug_cache_t *c,
-                         fer_gug_el_t *el)
+static void nearestCheck(const bor_gug_t *cs, bor_gug_cache_t *c,
+                         bor_gug_el_t *el)
 {
-    fer_real_t dist;
+    bor_real_t dist;
 
     if (cs->d == 2){
-        dist = ferVec2Dist2((fer_vec2_t *)c->p, (fer_vec2_t *)el->p);
+        dist = ferVec2Dist2((bor_vec2_t *)c->p, (bor_vec2_t *)el->p);
     }else if (cs->d == 3){
-        dist = ferVec3Dist2((fer_vec3_t *)c->p, (fer_vec3_t *)el->p);
+        dist = ferVec3Dist2((bor_vec3_t *)c->p, (bor_vec3_t *)el->p);
     }else{
         dist = ferVecDist2(cs->d, c->p, el->p);
     }
@@ -515,11 +515,11 @@ static void nearestCheck(const fer_gug_t *cs, fer_gug_cache_t *c,
     }
 }
 
-static void nearestBubbleUp(fer_gug_cache_t *c)
+static void nearestBubbleUp(bor_gug_cache_t *c)
 {
     size_t i;
-    fer_real_t tmpd;
-    fer_gug_el_t *tmpn;
+    bor_real_t tmpd;
+    bor_gug_el_t *tmpn;
 
     // don't worry, c->len can never be zero
     for (i = c->len - 1; i > 0; i--){
@@ -533,7 +533,7 @@ static void nearestBubbleUp(fer_gug_cache_t *c)
 }
 
 
-_fer_inline size_t __ferGUGPosToID(const fer_gug_t *cs, const size_t *pos)
+_fer_inline size_t __ferGUGPosToID(const bor_gug_t *cs, const size_t *pos)
 {
     size_t id, mul, i;
 
@@ -547,13 +547,13 @@ _fer_inline size_t __ferGUGPosToID(const fer_gug_t *cs, const size_t *pos)
     return id;
 }
 
-_fer_inline size_t __ferGUGPosToID2(const fer_gug_t *cs,
+_fer_inline size_t __ferGUGPosToID2(const bor_gug_t *cs,
                                         const size_t *pos)
 {
     return pos[0] + pos[1] * cs->dim[0];
 }
 
-_fer_inline void __ferGUGIDToPos(const fer_gug_t *cs, size_t id,
+_fer_inline void __ferGUGIDToPos(const bor_gug_t *cs, size_t id,
                                      size_t *pos)
 {
     size_t i;
@@ -564,11 +564,11 @@ _fer_inline void __ferGUGIDToPos(const fer_gug_t *cs, size_t id,
     }
 }
 
-_fer_inline fer_real_t initBorder(const fer_gug_t *cs, const fer_vec_t *p)
+_fer_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p)
 {
     size_t i;
-    fer_real_t local, min, max;
-    fer_real_t f, b, border;
+    bor_real_t local, min, max;
+    bor_real_t f, b, border;
 
     border = FER_REAL_MAX;
 

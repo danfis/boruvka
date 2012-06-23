@@ -23,9 +23,9 @@
 
 static size_t __fer_page_size = 0;
 
-fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
+bor_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
 {
-    fer_pc_mem_t *m;
+    bor_pc_mem_t *m;
     void *mem, *datamem;
     size_t memsize;
 
@@ -36,7 +36,7 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
     // Estimation is based od assumption that one chunk will contain at
     // least min_size points.
     memsize  = min_size * elsize;
-    memsize += sizeof(fer_pc_mem_t);
+    memsize += sizeof(bor_pc_mem_t);
     memsize /= __fer_page_size;
     memsize  = (memsize + 1) * __fer_page_size;
 
@@ -45,12 +45,12 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
 
     // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of
-    // fer_pc_mem_t struct) and .size must be set according to it
-    m = (fer_pc_mem_t *)mem;
+    // bor_pc_mem_t struct) and .size must be set according to it
+    m = (bor_pc_mem_t *)mem;
     m->len = 0;
     ferListInit(&m->list);
 
-    datamem = (void *)((long)m + sizeof(fer_pc_mem_t));
+    datamem = (void *)((long)m + sizeof(bor_pc_mem_t));
     datamem = ferAlign(datamem, align);
     m->data = datamem;
     m->size = ((long)mem + (long)memsize - (long)datamem) / elsize;
@@ -60,7 +60,7 @@ fer_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
     return m;
 }
 
-void ferPCMemDel(fer_pc_mem_t *m)
+void ferPCMemDel(bor_pc_mem_t *m)
 
 {
     ferListDel(&m->list);

@@ -26,7 +26,7 @@
 #include <boruvka/rand-mt.h>
 #include <boruvka/alloc.h>
 
-_fer_inline void ferRandMTInit(fer_rand_mt_t *r, uint32_t seed);
+_fer_inline void ferRandMTInit(bor_rand_mt_t *r, uint32_t seed);
 
 _fer_inline uint32_t hiBit(uint32_t u);
 _fer_inline uint32_t loBit(uint32_t u);
@@ -37,49 +37,49 @@ _fer_inline uint32_t twist(uint32_t m, uint32_t s0, uint32_t s1);
 static uint32_t hash(time_t t, clock_t c);
 
 
-fer_rand_mt_t *ferRandMTNew(uint32_t seed)
+bor_rand_mt_t *ferRandMTNew(uint32_t seed)
 {
-    fer_rand_mt_t *r;
-    r = FER_ALLOC(fer_rand_mt_t);
+    bor_rand_mt_t *r;
+    r = FER_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseed(r, seed);
 
     return r;
 }
 
-fer_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen)
+bor_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen)
 {
-    fer_rand_mt_t *r;
+    bor_rand_mt_t *r;
 
-    r = FER_ALLOC(fer_rand_mt_t);
+    r = FER_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseed2(r, seed, seedlen);
 
     return r;
 }
 
-fer_rand_mt_t *ferRandMTNewAuto(void)
+bor_rand_mt_t *ferRandMTNewAuto(void)
 {
-    fer_rand_mt_t *r;
-    r = FER_ALLOC(fer_rand_mt_t);
+    bor_rand_mt_t *r;
+    r = FER_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseedAuto(r);
 
     return r;
 }
 
-void ferRandMTDel(fer_rand_mt_t *r)
+void ferRandMTDel(bor_rand_mt_t *r)
 {
     FER_FREE(r);
 }
 
-void ferRandMTReseed(fer_rand_mt_t *r, uint32_t seed)
+void ferRandMTReseed(bor_rand_mt_t *r, uint32_t seed)
 {
     ferRandMTInit(r, seed);
     __ferRandMTReload(r);
 }
 
-void ferRandMTReseed2(fer_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
+void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
 {
     register int i = 1;
     register uint32_t j = 0;
@@ -127,7 +127,7 @@ void ferRandMTReseed2(fer_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
     __ferRandMTReload(r);
 }
 
-void ferRandMTReseedAuto(fer_rand_mt_t *r)
+void ferRandMTReseedAuto(bor_rand_mt_t *r)
 {
     FILE *urandom;
     uint32_t bigSeed[FER_RAND_MT_N];
@@ -153,7 +153,7 @@ void ferRandMTReseedAuto(fer_rand_mt_t *r)
 }
 
 
-_fer_inline void ferRandMTInit(fer_rand_mt_t *g, uint32_t seed)
+_fer_inline void ferRandMTInit(bor_rand_mt_t *g, uint32_t seed)
 {
     // Initialize generator state with seed
     // See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
@@ -170,7 +170,7 @@ _fer_inline void ferRandMTInit(fer_rand_mt_t *g, uint32_t seed)
     }
 }
 
-void __ferRandMTReload(fer_rand_mt_t *r)
+void __ferRandMTReload(bor_rand_mt_t *r)
 {
     // Generate N new values in state
     // Made clearer and faster by Matthew Bellew (matthew.bellew@home.com)

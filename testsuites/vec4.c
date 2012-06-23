@@ -14,7 +14,7 @@ TEST(vec4TearDown)
 
 TEST(vec4Alloc)
 {
-    fer_vec4_t *v, w;
+    bor_vec4_t *v, w;
 
     v = ferVec4New(0., 1., 2., 3.);
     ferVec4Set(&w, 0., 1., 2., 3.);
@@ -24,7 +24,7 @@ TEST(vec4Alloc)
 
 TEST(vec4Add)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
     size_t i;
 
     printf("# ---- add ----\n");
@@ -38,7 +38,7 @@ TEST(vec4Add)
 
 TEST(vec4Sub)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
     size_t i;
 
     printf("# ---- sub ----\n");
@@ -52,7 +52,7 @@ TEST(vec4Sub)
 
 TEST(vec4Scale)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
     size_t i;
 
     printf("# ---- scale ----\n");
@@ -66,7 +66,7 @@ TEST(vec4Scale)
 
 TEST(vec4Normalize)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
     size_t i;
 
     printf("# ---- normalize ----\n");
@@ -80,7 +80,7 @@ TEST(vec4Normalize)
 
 TEST(vec4Dot)
 {
-    fer_real_t dot;
+    bor_real_t dot;
     size_t i;
 
     printf("# ---- dot ----\n");
@@ -93,7 +93,7 @@ TEST(vec4Dot)
 
 TEST(vec4Mul)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
     size_t i;
 
     printf("# ---- mul ----\n");
@@ -107,7 +107,7 @@ TEST(vec4Mul)
 
 TEST(vec4Len2)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- len2 ----\n");
@@ -120,7 +120,7 @@ TEST(vec4Len2)
 
 TEST(vec4Len)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- len ----\n");
@@ -133,7 +133,7 @@ TEST(vec4Len)
 
 TEST(vec4Dist2)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- dist2 ----\n");
@@ -146,7 +146,7 @@ TEST(vec4Dist2)
 
 TEST(vec4Dist)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- dist ----\n");

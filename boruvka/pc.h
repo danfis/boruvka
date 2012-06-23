@@ -37,17 +37,17 @@ extern "C" {
  * Point cloud is internally allocated using several memory chunks to be
  * able to represent huge amount points.
  */
-struct _fer_pc_t {
+struct _bor_pc_t {
     size_t dim;      /*!< Dimension of points stored in pc */
-    fer_list_t head; /*!< Head of list of memory chunks (fer_pc_mem_t) */
+    bor_list_t head; /*!< Head of list of memory chunks (bor_pc_mem_t) */
     size_t len;      /*! Overall number of points */
 
     size_t min_chunk_size; /*!< min number of points per chunk, by default
                                 FER_PC_MIN_CHUNK_SIZE */
 
-    fer_rand_mt_t *rand;
+    bor_rand_mt_t *rand;
 };
-typedef struct _fer_pc_t fer_pc_t;
+typedef struct _bor_pc_t bor_pc_t;
 
 
 /**
@@ -58,40 +58,40 @@ typedef struct _fer_pc_t fer_pc_t;
 /**
  * Creates point cloud.
  */
-fer_pc_t *ferPCNew(size_t dim);
+bor_pc_t *ferPCNew(size_t dim);
 
 /**
  * Creates point cloud.
  */
-fer_pc_t *ferPCNew2(size_t dim, size_t min_chunk_size);
+bor_pc_t *ferPCNew2(size_t dim, size_t min_chunk_size);
 
 /**
  * Delets point cloud.
  */
-void ferPCDel(fer_pc_t *);
+void ferPCDel(bor_pc_t *);
 
 /**
  * Adds point to point cloud.
  */
-void ferPCAdd(fer_pc_t *pc, const fer_vec_t *v);
+void ferPCAdd(bor_pc_t *pc, const bor_vec_t *v);
 
 /**
  * Returns number of points in point cloud.
  */
-_fer_inline size_t ferPCLen(const fer_pc_t *pc);
+_fer_inline size_t ferPCLen(const bor_pc_t *pc);
 
 /**
  * Returns n'th point from point cloud.
  * Note that this function must iterate over memory chunks to find the
  * point. Use iterators if you don't need random access.
  */
-fer_vec_t *ferPCGet(fer_pc_t *pc, size_t n);
+bor_vec_t *ferPCGet(bor_pc_t *pc, size_t n);
 
 /**
  * Permutates points in point cloud.
  * Permutated pc can be used for random access to whole point clouds' pool.
  */
-void ferPCPermutate(fer_pc_t *pc);
+void ferPCPermutate(bor_pc_t *pc);
 
 
 /**
@@ -99,13 +99,13 @@ void ferPCPermutate(fer_pc_t *pc);
  * File must have one point on each file.
  * Returns number of added points.
  */
-size_t ferPCAddFromFile(fer_pc_t *pc, const char *filename);
+size_t ferPCAddFromFile(bor_pc_t *pc, const char *filename);
 
 /**
  * Sets {aabb} array which must have at least 2 * dim items to axis aligned
  * bounding box of points in point cloud.
  */
-void ferPCAABB(const fer_pc_t *pc, fer_real_t *aabb);
+void ferPCAABB(const bor_pc_t *pc, bor_real_t *aabb);
 
 
 /**
@@ -115,12 +115,12 @@ void ferPCAABB(const fer_pc_t *pc, fer_real_t *aabb);
  * Iterator over point cloud.
  * See ferPCIt*() functions.
  */
-struct _fer_pc_it_t {
-    fer_pc_t *pc;      /*!< Reference to point cloud */
-    fer_pc_mem_t *mem; /*!< Current mem chunk */
+struct _bor_pc_it_t {
+    bor_pc_t *pc;      /*!< Reference to point cloud */
+    bor_pc_mem_t *mem; /*!< Current mem chunk */
     size_t pos;        /*!< Current position in mem chunk */
 };
-typedef struct _fer_pc_it_t fer_pc_it_t;
+typedef struct _bor_pc_it_t bor_pc_it_t;
 
 
 /**
@@ -131,29 +131,29 @@ typedef struct _fer_pc_it_t fer_pc_it_t;
 /**
  * Initializes point cloud iterator and set iterator to beggining.
  */
-_fer_inline void ferPCItInit(fer_pc_it_t *it, fer_pc_t *pc);
+_fer_inline void ferPCItInit(bor_pc_it_t *it, bor_pc_t *pc);
 
 /**
  * Returns true if iterator points at (or after) end of point cloud.
  */
-_fer_inline int ferPCItEnd(const fer_pc_it_t *it);
+_fer_inline int ferPCItEnd(const bor_pc_it_t *it);
 
 /**
  * Returns point from current position of iterator.
  * No boundaries are checked!
  */
-_fer_inline fer_vec_t *ferPCItGet(fer_pc_it_t *it);
+_fer_inline bor_vec_t *ferPCItGet(bor_pc_it_t *it);
 
 /**
  * Moves iterator to next (prev) position.
  * No boundaries are checked!
  */
-_fer_inline void ferPCItNext(fer_pc_it_t *it);
-_fer_inline void ferPCItPrev(fer_pc_it_t *it);
+_fer_inline void ferPCItNext(bor_pc_it_t *it);
+_fer_inline void ferPCItPrev(bor_pc_it_t *it);
 
 
 /**** INLINES ****/
-_fer_inline size_t ferPCLen(const fer_pc_t *pc)
+_fer_inline size_t ferPCLen(const bor_pc_t *pc)
 {
     return pc->len;
 }
@@ -161,38 +161,38 @@ _fer_inline size_t ferPCLen(const fer_pc_t *pc)
 
 
 
-_fer_inline void ferPCItInit(fer_pc_it_t *it, fer_pc_t *pc)
+_fer_inline void ferPCItInit(bor_pc_it_t *it, bor_pc_t *pc)
 {
     it->pc = pc;
-    it->mem = FER_LIST_ENTRY(ferListNext(&pc->head), fer_pc_mem_t, list);
+    it->mem = FER_LIST_ENTRY(ferListNext(&pc->head), bor_pc_mem_t, list);
     it->pos = 0;
 }
 
-_fer_inline int ferPCItEnd(const fer_pc_it_t *it)
+_fer_inline int ferPCItEnd(const bor_pc_it_t *it)
 {
     return ferListNext(&it->mem->list) == &it->pc->head
                 && it->pos >= it->mem->len;
 }
 
-_fer_inline fer_vec_t *ferPCItGet(fer_pc_it_t *it)
+_fer_inline bor_vec_t *ferPCItGet(bor_pc_it_t *it)
 {
-    return ferPCMemGet2(it->mem, it->pos, fer_vec_t, it->pc->dim * sizeof(fer_vec_t));
+    return ferPCMemGet2(it->mem, it->pos, bor_vec_t, it->pc->dim * sizeof(bor_vec_t));
 }
 
-_fer_inline void ferPCItNext(fer_pc_it_t *it)
+_fer_inline void ferPCItNext(bor_pc_it_t *it)
 {
     it->pos++;
     if (it->pos >= it->mem->len
             && ferListNext(&it->mem->list) != &it->pc->head){
-        it->mem = FER_LIST_ENTRY(ferListNext(&it->mem->list), fer_pc_mem_t, list);
+        it->mem = FER_LIST_ENTRY(ferListNext(&it->mem->list), bor_pc_mem_t, list);
         it->pos = 0;
     }
 }
 
-_fer_inline void ferPCItPrev(fer_pc_it_t *it)
+_fer_inline void ferPCItPrev(bor_pc_it_t *it)
 {
     if (it->pos == 0 && ferListPrev(&it->mem->list) != &it->pc->head){
-        it->mem = FER_LIST_ENTRY(ferListPrev(&it->mem->list), fer_pc_mem_t, list);
+        it->mem = FER_LIST_ENTRY(ferListPrev(&it->mem->list), bor_pc_mem_t, list);
         it->pos = it->mem->len - 1;
     }else{
         it->pos--;

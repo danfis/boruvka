@@ -18,17 +18,17 @@
 #ifndef __FER_CFG_LEXER_H__
 #define __FER_CFG_LEXER_H__
 
-struct _fer_cfg_lex_t {
+struct _bor_cfg_lex_t {
     const char *str;
     size_t strlen;
     const char *name;
     size_t namelen;
     const char *type;
-    fer_real_t flt;
+    bor_real_t flt;
     long integer;
     unsigned int lineno;
 };
-typedef struct _fer_cfg_lex_t fer_cfg_lex_t;
+typedef struct _bor_cfg_lex_t bor_cfg_lex_t;
 
 #define T_NAME          1
 #define T_ERROR         2

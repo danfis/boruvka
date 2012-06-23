@@ -22,48 +22,48 @@
 #define QUEUE_SIZE SEM_VALUE_MAX
 
 /** Single thread */
-struct _fer_tasks_thread_t {
+struct _bor_tasks_thread_t {
     pthread_t th;            /*!< Posix thread */
-    fer_tasks_thinfo_t info; /*!< Thread info, see tasks.h */
-    fer_tasks_t *tasks;      /*!< Reference to task queue */
-    fer_list_t list;         /*!< Connection into task.threads list */
+    bor_tasks_thinfo_t info; /*!< Thread info, see tasks.h */
+    bor_tasks_t *tasks;      /*!< Reference to task queue */
+    bor_list_t list;         /*!< Connection into task.threads list */
 };
-typedef struct _fer_tasks_thread_t fer_tasks_thread_t;
+typedef struct _bor_tasks_thread_t bor_tasks_thread_t;
 
-static fer_tasks_thread_t *threadNew(fer_tasks_t *t);
-static void threadDel(fer_tasks_thread_t *th);
-//static void threadCancel(fer_tasks_thread_t *th);
-static void threadJoin(fer_tasks_thread_t *th);
-static void threadRun(fer_tasks_thread_t *th);
+static bor_tasks_thread_t *threadNew(bor_tasks_t *t);
+static void threadDel(bor_tasks_thread_t *th);
+//static void threadCancel(bor_tasks_thread_t *th);
+static void threadJoin(bor_tasks_thread_t *th);
+static void threadRun(bor_tasks_thread_t *th);
 static void *threadMain(void *_th);
 
 
 /** Single task */
-struct _fer_tasks_task_t {
+struct _bor_tasks_task_t {
     fer_tasks_fn fn; /*!< Callback */
     void *data;      /*!< Data for callback */
     int id;          /*!< ID of task */
     int finish;      /*!< If set to 1 - thread will be closed immediatelly */
-    fer_list_t list; /*!< List for connection info tasks.tasks */
-    fer_tasks_t *tasks; /*!< Reference to main struct */
+    bor_list_t list; /*!< List for connection info tasks.tasks */
+    bor_tasks_t *tasks; /*!< Reference to main struct */
 };
-typedef struct _fer_tasks_task_t fer_tasks_task_t;
+typedef struct _bor_tasks_task_t bor_tasks_task_t;
 
 
-static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id);
-static void taskDel(fer_tasks_task_t *task);
+static bor_tasks_task_t *taskNew(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id);
+static void taskDel(bor_tasks_task_t *task);
 
 
-static void _ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id,
+static void _ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id,
                          int finish);
 
-fer_tasks_t *ferTasksNew(size_t num_threads)
+bor_tasks_t *ferTasksNew(size_t num_threads)
 {
-    fer_tasks_t *t;
-    fer_tasks_thread_t *th;
+    bor_tasks_t *t;
+    bor_tasks_thread_t *th;
     size_t i;
 
-    t = FER_ALLOC(fer_tasks_t);
+    t = FER_ALLOC(bor_tasks_t);
     ferListInit(&t->tasks);
     ferListInit(&t->threads);
     t->threads_len = 0;
@@ -85,11 +85,11 @@ fer_tasks_t *ferTasksNew(size_t num_threads)
     return t;
 }
 
-void ferTasksDel(fer_tasks_t *t)
+void ferTasksDel(bor_tasks_t *t)
 {
-    fer_list_t *item;
-    fer_tasks_thread_t *th;
-    fer_tasks_task_t *task;
+    bor_list_t *item;
+    bor_tasks_thread_t *th;
+    bor_tasks_task_t *task;
     size_t i;
 
     // add special tasks
@@ -99,7 +99,7 @@ void ferTasksDel(fer_tasks_t *t)
 
     // join threads
     FER_LIST_FOR_EACH(&t->threads, item){
-        th = FER_LIST_ENTRY(item, fer_tasks_thread_t, list);
+        th = FER_LIST_ENTRY(item, bor_tasks_thread_t, list);
         threadJoin(th);
     }
 
@@ -107,7 +107,7 @@ void ferTasksDel(fer_tasks_t *t)
     while (!ferListEmpty(&t->threads)){
         item = ferListNext(&t->threads);
         ferListDel(item);
-        th = FER_LIST_ENTRY(item, fer_tasks_thread_t, list);
+        th = FER_LIST_ENTRY(item, bor_tasks_thread_t, list);
         threadDel(th);
     }
 
@@ -115,7 +115,7 @@ void ferTasksDel(fer_tasks_t *t)
     while (!ferListEmpty(&t->tasks)){
         item = ferListNext(&t->tasks);
         ferListDel(item);
-        task = FER_LIST_ENTRY(item, fer_tasks_task_t, list);
+        task = FER_LIST_ENTRY(item, bor_tasks_task_t, list);
         taskDel(task);
     }
 
@@ -128,17 +128,17 @@ void ferTasksDel(fer_tasks_t *t)
     FER_FREE(t);
 }
 
-void ferTasksCancelDel(fer_tasks_t *t)
+void ferTasksCancelDel(bor_tasks_t *t)
 {
-    fer_list_t *item;
-    fer_tasks_task_t *task;
+    bor_list_t *item;
+    bor_tasks_task_t *task;
 
     // empty task queue
     pthread_mutex_lock(&t->lock);
     while (!ferListEmpty(&t->tasks)){
         item = ferListNext(&t->tasks);
         ferListDel(item);
-        task = FER_LIST_ENTRY(item, fer_tasks_task_t, list);
+        task = FER_LIST_ENTRY(item, bor_tasks_task_t, list);
         taskDel(task);
     }
     pthread_mutex_unlock(&t->lock);
@@ -149,23 +149,23 @@ void ferTasksCancelDel(fer_tasks_t *t)
     ferTasksDel(t);
 }
 
-void ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, int id, void *data)
+void ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, int id, void *data)
 {
     _ferTasksAdd(t, fn, data, id, 0);
 }
 
-void ferTasksRun(fer_tasks_t *t)
+void ferTasksRun(bor_tasks_t *t)
 {
-    fer_list_t *item;
-    fer_tasks_thread_t *th;
+    bor_list_t *item;
+    bor_tasks_thread_t *th;
 
     FER_LIST_FOR_EACH(&t->threads, item){
-        th = FER_LIST_ENTRY(item, fer_tasks_thread_t, list);
+        th = FER_LIST_ENTRY(item, bor_tasks_thread_t, list);
         threadRun(th);
     }
 }
 
-int ferTasksPending(fer_tasks_t *t)
+int ferTasksPending(bor_tasks_t *t)
 {
     int p;
 
@@ -176,7 +176,7 @@ int ferTasksPending(fer_tasks_t *t)
     return p;
 }
 
-void ferTasksRunBlock(fer_tasks_t *t)
+void ferTasksRunBlock(bor_tasks_t *t)
 {
     pthread_mutex_lock(&t->lock);
     ferTasksRun(t);
@@ -184,7 +184,7 @@ void ferTasksRunBlock(fer_tasks_t *t)
     pthread_mutex_unlock(&t->lock);
 }
 
-void ferTasksBarrier(fer_tasks_t *t)
+void ferTasksBarrier(bor_tasks_t *t)
 {
     pthread_mutex_lock(&t->lock);
     if (t->pending != 0)
@@ -195,11 +195,11 @@ void ferTasksBarrier(fer_tasks_t *t)
 
 
 
-static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
+static bor_tasks_thread_t *threadNew(bor_tasks_t *t)
 {
-    fer_tasks_thread_t *th;
+    bor_tasks_thread_t *th;
 
-    th = FER_ALLOC(fer_tasks_thread_t);
+    th = FER_ALLOC(bor_tasks_thread_t);
     th->info.id    = t->next_id++;
     th->tasks      = t;
     ferListInit(&th->list);
@@ -207,25 +207,25 @@ static fer_tasks_thread_t *threadNew(fer_tasks_t *t)
     return th;
 }
 
-static void threadDel(fer_tasks_thread_t *th)
+static void threadDel(bor_tasks_thread_t *th)
 {
     FER_FREE(th);
 }
 
-static void threadJoin(fer_tasks_thread_t *th)
+static void threadJoin(bor_tasks_thread_t *th)
 {
     pthread_join(th->th, NULL);
 }
 
 #if 0
-static void threadCancel(fer_tasks_thread_t *th)
+static void threadCancel(bor_tasks_thread_t *th)
 {
     pthread_cancel(th->th);
 }
 #endif
 
 
-static void threadRun(fer_tasks_thread_t *th)
+static void threadRun(bor_tasks_thread_t *th)
 {
     pthread_attr_t attr;
 
@@ -235,9 +235,9 @@ static void threadRun(fer_tasks_thread_t *th)
 
 static void *threadMain(void *_th)
 {
-    fer_tasks_thread_t *th = (fer_tasks_thread_t *)_th;
-    fer_tasks_task_t *task;
-    fer_list_t *item;
+    bor_tasks_thread_t *th = (bor_tasks_thread_t *)_th;
+    bor_tasks_task_t *task;
+    bor_list_t *item;
     int finish = 0;
 
     while (!finish) {
@@ -248,7 +248,7 @@ static void *threadMain(void *_th)
         pthread_mutex_lock(&th->tasks->lock);
         item = ferListNext(&th->tasks->tasks);
         ferListDel(item);
-        task = FER_LIST_ENTRY(item, fer_tasks_task_t, list);
+        task = FER_LIST_ENTRY(item, bor_tasks_task_t, list);
         pthread_mutex_unlock(&th->tasks->lock);
 
         // let know that there is free room in queue
@@ -279,11 +279,11 @@ static void *threadMain(void *_th)
 
 
 
-static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id)
+static bor_tasks_task_t *taskNew(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id)
 {
-    fer_tasks_task_t *task;
+    bor_tasks_task_t *task;
 
-    task = FER_ALLOC(fer_tasks_task_t);
+    task = FER_ALLOC(bor_tasks_task_t);
     task->fn     = fn;
     task->data   = data;
     task->id     = id;
@@ -293,17 +293,17 @@ static fer_tasks_task_t *taskNew(fer_tasks_t *t, fer_tasks_fn fn, void *data, in
     return task;
 }
 
-static void taskDel(fer_tasks_task_t *task)
+static void taskDel(bor_tasks_task_t *task)
 {
     FER_FREE(task);
 }
 
 
 
-static void _ferTasksAdd(fer_tasks_t *t, fer_tasks_fn fn, void *data, int id,
+static void _ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id,
                          int finish)
 {
-    fer_tasks_task_t *task;
+    bor_tasks_task_t *task;
 
     task = taskNew(t, fn, data, id);
     task->finish = finish;

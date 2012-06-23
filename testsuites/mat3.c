@@ -15,7 +15,7 @@ TEST(mat3TearDown)
 TEST(mat3Alloc)
 {
     /*
-    fer_mat3_t *v, w;
+    bor_mat3_t *v, w;
 
     v = ferMat3New(0., 1., 2., 3.);
     ferMat3Set(&w, 0., 1., 2., 3.);
@@ -24,7 +24,7 @@ TEST(mat3Alloc)
     */
 }
 
-static void pr(const fer_mat3_t *m, const char *p)
+static void pr(const bor_mat3_t *m, const char *p)
 {
     printf("# %s %g %g %g %g %g %g %g %g %g\n",
            p,
@@ -36,7 +36,7 @@ static void pr(const fer_mat3_t *m, const char *p)
 TEST(mat3AddSub)
 {
     size_t i;
-    fer_mat3_t m;
+    bor_mat3_t m;
 
     printf("# ---- add sub ----\n");
     for (i = 0; i < mat3s_len - 1; i++){
@@ -58,8 +58,8 @@ TEST(mat3AddSub)
 TEST(mat3Const)
 {
     size_t i;
-    fer_mat3_t m;
-    fer_real_t c;
+    bor_mat3_t m;
+    bor_real_t c;
 
     printf("# ---- const ----\n");
     for (i = 0; i < mat3s_len; i++){
@@ -83,7 +83,7 @@ TEST(mat3Const)
 TEST(mat3Mul)
 {
     size_t i;
-    fer_mat3_t m;
+    bor_mat3_t m;
 
     printf("# ---- mul ----\n");
     for (i = 0; i < mat3s_len - 1; i++){
@@ -99,7 +99,7 @@ TEST(mat3Mul)
 TEST(mat3Trans)
 {
     size_t i;
-    fer_mat3_t m;
+    bor_mat3_t m;
 
     printf("# ---- trans ----\n");
     for (i = 0; i < mat3s_len; i++){
@@ -115,7 +115,7 @@ TEST(mat3Trans)
 TEST(mat3Det)
 {
     size_t i;
-    fer_real_t d;
+    bor_real_t d;
 
     printf("# ---- det ----\n");
     for (i = 0; i < mat3s_len; i++){
@@ -128,7 +128,7 @@ TEST(mat3Det)
 TEST(mat3Inv)
 {
     size_t i;
-    fer_mat3_t m;
+    bor_mat3_t m;
 
     printf("# ---- inv ----\n");
     for (i = 0; i < mat3s_len; i++){
@@ -151,8 +151,8 @@ TEST(mat3Inv)
 TEST(mat3MulVec)
 {
     size_t i;
-    fer_vec3_t u, v;
-    fer_vec2_t a, b;
+    bor_vec3_t u, v;
+    bor_vec2_t a, b;
 
     printf("# ---- mul vec ----\n");
     for (i = 0; i < mat3s_len; i++){
@@ -175,8 +175,8 @@ TEST(mat3MulVec)
 
 TEST(mat3Tr)
 {
-    fer_vec2_t v, w;
-    fer_mat3_t tr;
+    bor_vec2_t v, w;
+    bor_mat3_t tr;
 
     ferVec2Set(&v, -1.2, 5);
 

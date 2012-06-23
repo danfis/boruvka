@@ -159,7 +159,7 @@
 #define INEXACT                          /* Nothing */
 /* #define INEXACT volatile */
 
-#define REAL fer_real_t                      /* float or double */
+#define REAL bor_real_t                      /* float or double */
 #define REALPRINT doubleprint
 #define REALRAND doublerand
 #define NARROWRAND narrowdoublerand
@@ -418,7 +418,7 @@ static REAL isperrboundA, isperrboundB, isperrboundC;
 /*                                                                           */
 /*****************************************************************************/
 
-void ferPredInit(fer_pred_t *pred)
+void ferPredInit(bor_pred_t *pred)
 {
     REAL half;
     REAL check, lastcheck;
@@ -475,7 +475,7 @@ void ferPredInit(fer_pred_t *pred)
 /*                                                                           */
 /*****************************************************************************/
 
-static int fast_expansion_sum_zeroelim(const fer_pred_t *pred,
+static int fast_expansion_sum_zeroelim(const bor_pred_t *pred,
                                        int elen, REAL *e,
                                        int flen, REAL *f,
                                        REAL *h)  /* h cannot be e or f. */
@@ -563,7 +563,7 @@ static int fast_expansion_sum_zeroelim(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-static int scale_expansion_zeroelim(const fer_pred_t *pred,
+static int scale_expansion_zeroelim(const bor_pred_t *pred,
                                     int elen, REAL *e,
                                     REAL b, REAL *h)   /* e and h cannot be the same. */
 {
@@ -651,10 +651,10 @@ static REAL estimate(int elen, REAL *e)
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient2dFast(const fer_pred_t *pred,
-                         const fer_vec2_t *pa,
-                         const fer_vec2_t *pb,
-                         const fer_vec2_t *pc)
+REAL ferPredOrient2dFast(const bor_pred_t *pred,
+                         const bor_vec2_t *pa,
+                         const bor_vec2_t *pb,
+                         const bor_vec2_t *pc)
 {
   REAL acx, bcx, acy, bcy;
 
@@ -665,10 +665,10 @@ REAL ferPredOrient2dFast(const fer_pred_t *pred,
   return acx * bcy - acy * bcx;
 }
 
-static REAL orient2dadapt(const fer_pred_t *pred,
-                          const fer_vec2_t *pa,
-                          const fer_vec2_t *pb,
-                          const fer_vec2_t *pc,
+static REAL orient2dadapt(const bor_pred_t *pred,
+                          const bor_vec2_t *pa,
+                          const bor_vec2_t *pb,
+                          const bor_vec2_t *pc,
                           REAL detsum)
 {
   INEXACT REAL acx, acy, bcx, bcy;
@@ -749,10 +749,10 @@ static REAL orient2dadapt(const fer_pred_t *pred,
   return(D[Dlength - 1]);
 }
 
-fer_real_t ferPredOrient2d(const fer_pred_t *pred,
-                           const fer_vec2_t *pa,
-                           const fer_vec2_t *pb,
-                           const fer_vec2_t *pc)
+bor_real_t ferPredOrient2d(const bor_pred_t *pred,
+                           const bor_vec2_t *pa,
+                           const bor_vec2_t *pb,
+                           const bor_vec2_t *pc)
 {
   REAL detleft, detright, det;
   REAL detsum, errbound;
@@ -814,11 +814,11 @@ fer_real_t ferPredOrient2d(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient3dFast(const fer_pred_t *pred,
-                         const fer_vec3_t *pa,
-                         const fer_vec3_t *pb,
-                         const fer_vec3_t *pc,
-                         const fer_vec3_t *pd)
+REAL ferPredOrient3dFast(const bor_pred_t *pred,
+                         const bor_vec3_t *pa,
+                         const bor_vec3_t *pb,
+                         const bor_vec3_t *pc,
+                         const bor_vec3_t *pd)
 {
   REAL adx, bdx, cdx;
   REAL ady, bdy, cdy;
@@ -839,11 +839,11 @@ REAL ferPredOrient3dFast(const fer_pred_t *pred,
        + cdx * (ady * bdz - adz * bdy);
 }
 
-static REAL orient3dadapt(const fer_pred_t *pred,
-                          const fer_vec3_t *pa,
-                          const fer_vec3_t *pb,
-                          const fer_vec3_t *pc,
-                          const fer_vec3_t *pd,
+static REAL orient3dadapt(const bor_pred_t *pred,
+                          const bor_vec3_t *pa,
+                          const bor_vec3_t *pb,
+                          const bor_vec3_t *pc,
+                          const bor_vec3_t *pd,
                           REAL permanent)
 {
   INEXACT REAL adx, bdx, cdx, ady, bdy, cdy, adz, bdz, cdz;
@@ -1244,11 +1244,11 @@ static REAL orient3dadapt(const fer_pred_t *pred,
   return finnow[finlength - 1];
 }
 
-REAL ferPredOrient3d(const fer_pred_t *pred,
-                     const fer_vec3_t *pa,
-                     const fer_vec3_t *pb,
-                     const fer_vec3_t *pc,
-                     const fer_vec3_t *pd)
+REAL ferPredOrient3d(const bor_pred_t *pred,
+                     const bor_vec3_t *pa,
+                     const bor_vec3_t *pb,
+                     const bor_vec3_t *pc,
+                     const bor_vec3_t *pd)
 {
   REAL adx, bdx, cdx, ady, bdy, cdy, adz, bdz, cdz;
   REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -1315,11 +1315,11 @@ REAL ferPredOrient3d(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInCircleFast(const fer_pred_t *pred,
-                         const fer_vec2_t *pa,
-                         const fer_vec2_t *pb,
-                         const fer_vec2_t *pc,
-                         const fer_vec2_t *pd)
+REAL ferPredInCircleFast(const bor_pred_t *pred,
+                         const bor_vec2_t *pa,
+                         const bor_vec2_t *pb,
+                         const bor_vec2_t *pc,
+                         const bor_vec2_t *pd)
 {
   REAL adx, ady, bdx, bdy, cdx, cdy;
   REAL abdet, bcdet, cadet;
@@ -1342,11 +1342,11 @@ REAL ferPredInCircleFast(const fer_pred_t *pred,
   return alift * bcdet + blift * cadet + clift * abdet;
 }
 
-static REAL incircleadapt(const fer_pred_t *pred,
-                          const fer_vec2_t *pa,
-                          const fer_vec2_t *pb,
-                          const fer_vec2_t *pc,
-                          const fer_vec2_t *pd,
+static REAL incircleadapt(const bor_pred_t *pred,
+                          const bor_vec2_t *pa,
+                          const bor_vec2_t *pb,
+                          const bor_vec2_t *pc,
+                          const bor_vec2_t *pd,
                           REAL permanent)
 {
   INEXACT REAL adx, bdx, cdx, ady, bdy, cdy;
@@ -1916,11 +1916,11 @@ static REAL incircleadapt(const fer_pred_t *pred,
   return finnow[finlength - 1];
 }
 
-REAL ferPredInCircle(const fer_pred_t *pred,
-                     const fer_vec2_t *pa,
-                     const fer_vec2_t *pb,
-                     const fer_vec2_t *pc,
-                     const fer_vec2_t *pd)
+REAL ferPredInCircle(const bor_pred_t *pred,
+                     const bor_vec2_t *pa,
+                     const bor_vec2_t *pb,
+                     const bor_vec2_t *pc,
+                     const bor_vec2_t *pd)
 {
   REAL adx, bdx, cdx, ady, bdy, cdy;
   REAL bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -1989,12 +1989,12 @@ REAL ferPredInCircle(const fer_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInSphereFast(const fer_pred_t *pred,
-                         const fer_vec3_t *pa,
-                         const fer_vec3_t *pb,
-                         const fer_vec3_t *pc,
-                         const fer_vec3_t *pd,
-                         const fer_vec3_t *pe)
+REAL ferPredInSphereFast(const bor_pred_t *pred,
+                         const bor_vec3_t *pa,
+                         const bor_vec3_t *pb,
+                         const bor_vec3_t *pc,
+                         const bor_vec3_t *pd,
+                         const bor_vec3_t *pe)
 {
   REAL aex, bex, cex, dex;
   REAL aey, bey, cey, dey;
@@ -2037,12 +2037,12 @@ REAL ferPredInSphereFast(const fer_pred_t *pred,
   return (dlift * abc - clift * dab) + (blift * cda - alift * bcd);
 }
 
-static REAL insphereexact(const fer_pred_t *pred,
-                          const fer_vec3_t *pa,
-                          const fer_vec3_t *pb,
-                          const fer_vec3_t *pc,
-                          const fer_vec3_t *pd,
-                          const fer_vec3_t *pe)
+static REAL insphereexact(const bor_pred_t *pred,
+                          const bor_vec3_t *pa,
+                          const bor_vec3_t *pb,
+                          const bor_vec3_t *pc,
+                          const bor_vec3_t *pd,
+                          const bor_vec3_t *pe)
 {
   INEXACT REAL axby1, bxcy1, cxdy1, dxey1, exay1;
   INEXACT REAL bxay1, cxby1, dxcy1, exdy1, axey1;
@@ -2294,12 +2294,12 @@ static REAL insphereexact(const fer_pred_t *pred,
   return deter[deterlen - 1];
 }
 
-static REAL insphereadapt(const fer_pred_t *pred,
-                          const fer_vec3_t *pa,
-                          const fer_vec3_t *pb,
-                          const fer_vec3_t *pc,
-                          const fer_vec3_t *pd,
-                          const fer_vec3_t *pe,
+static REAL insphereadapt(const bor_pred_t *pred,
+                          const bor_vec3_t *pa,
+                          const bor_vec3_t *pb,
+                          const bor_vec3_t *pc,
+                          const bor_vec3_t *pd,
+                          const bor_vec3_t *pe,
                           REAL permanent)
 {
   INEXACT REAL aex, bex, cex, dex, aey, bey, cey, dey, aez, bez, cez, dez;
@@ -2514,12 +2514,12 @@ static REAL insphereadapt(const fer_pred_t *pred,
   return insphereexact(pred, pa, pb, pc, pd, pe);
 }
 
-REAL ferPredInSphere(const fer_pred_t *pred,
-                     const fer_vec3_t *pa,
-                     const fer_vec3_t *pb,
-                     const fer_vec3_t *pc,
-                     const fer_vec3_t *pd,
-                     const fer_vec3_t *pe)
+REAL ferPredInSphere(const bor_pred_t *pred,
+                     const bor_vec3_t *pa,
+                     const bor_vec3_t *pb,
+                     const bor_vec3_t *pc,
+                     const bor_vec3_t *pd,
+                     const bor_vec3_t *pe)
 {
   REAL aex, bex, cex, dex;
   REAL aey, bey, cey, dey;

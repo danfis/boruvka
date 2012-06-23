@@ -3,9 +3,9 @@
 #include <boruvka/vec3.h>
 #include <boruvka/dbg.h>
 
-static void taskV(int id, void *data, const fer_tasks_thinfo_t *info)
+static void taskV(int id, void *data, const bor_tasks_thinfo_t *info)
 {
-    fer_vec3_t v, w;
+    bor_vec3_t v, w;
 
     printf("[%02d]: ID: %d (%lx)\n", info->id, id, (long)data);
 
@@ -31,7 +31,7 @@ static void taskV(int id, void *data, const fer_tasks_thinfo_t *info)
 
 TEST(tasks1)
 {
-    fer_tasks_t *t;
+    bor_tasks_t *t;
     size_t c = 1;
 
     t = ferTasksNew(3);

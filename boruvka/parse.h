@@ -36,7 +36,7 @@ extern "C" {
  * pointer to string after parsed number.
  * Returns 0 on success, -1 otherwise.
  */
-int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **next);
+int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **next);
 
 /**
  * Parses given string that starts at str and ends at strend (exclusively)
@@ -45,17 +45,17 @@ int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **ne
  * separated by whitespaces.
  * Returns 0 on success -1 otherwise.
  */
-int ferParseVec3(const char *str, const char *strend, fer_vec3_t *v, char **next);
+int ferParseVec3(const char *str, const char *strend, bor_vec3_t *v, char **next);
 
 /**
  * Similar function to ferParseVec3() but parses 2D vectors.
  */
-int ferParseVec2(const char *str, const char *strend, fer_vec2_t *v, char **next);
+int ferParseVec2(const char *str, const char *strend, bor_vec2_t *v, char **next);
 
 /**
  * Similar function to ferParseVec3() but parses 4D vectors.
  */
-int ferParseVec4(const char *str, const char *strend, fer_vec4_t *v, char **next);
+int ferParseVec4(const char *str, const char *strend, bor_vec4_t *v, char **next);
 
 /**
  * Parses given string that starts at str ands ends at strend (exclusively)

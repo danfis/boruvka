@@ -16,10 +16,10 @@
 
 #include <boruvka/quat.h>
 
-void ferQuatSetEuler(fer_quat_t *q, fer_real_t yaw, fer_real_t pitch, fer_real_t roll)
+void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll)
 {
-    fer_real_t c1, c2, c3, s1, s2, s3;
-    fer_real_t w, x, y, z;
+    bor_real_t c1, c2, c3, s1, s2, s3;
+    bor_real_t w, x, y, z;
 
     c1 = FER_COS(yaw / FER_REAL(2.));
     c2 = FER_COS(pitch / FER_REAL(2.));

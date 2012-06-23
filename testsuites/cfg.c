@@ -4,17 +4,17 @@
 
 TEST(cfg1)
 {
-    fer_cfg_t *cfg;
-    fer_real_t vf;
+    bor_cfg_t *cfg;
+    bor_real_t vf;
     int vi;
     const char *vs;
-    fer_vec2_t v2;
-    fer_vec3_t v3;
+    bor_vec2_t v2;
+    bor_vec3_t v3;
     char **vss;
-    const fer_real_t *vfs;
+    const bor_real_t *vfs;
     const int *vis;
-    const fer_vec2_t *v2s;
-    const fer_vec3_t *v3s;
+    const bor_vec2_t *v2s;
+    const bor_vec3_t *v3s;
     size_t len;
 
     cfg = ferCfgRead("cfg1.cfg");
@@ -133,9 +133,9 @@ TEST(cfg1)
 
 
 struct _cfg1_format_t {
-    fer_real_t var1, var2;
-    fer_vec3_t v3;
-    fer_real_t *var6;
+    bor_real_t var1, var2;
+    bor_vec3_t v3;
+    bor_real_t *var6;
     size_t var6len;
     int i;
     const int *is;
@@ -145,7 +145,7 @@ typedef struct _cfg1_format_t cfg1_format_t;
 
 TEST(cfg1format)
 {
-    fer_cfg_t *cfg;
+    bor_cfg_t *cfg;
     cfg1_format_t f;
     size_t i;
 

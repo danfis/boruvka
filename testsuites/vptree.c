@@ -11,33 +11,33 @@
 #define BUILD_MAXSIZE 5
 
 struct _el_t {
-    fer_vec2_t w;
-    fer_vptree_el_t el;
-    fer_list_t list;
+    bor_vec2_t w;
+    bor_vptree_el_t el;
+    bor_list_t list;
     int added;
 };
 typedef struct _el_t el_t;
 
-static fer_real_t build2Dist(void *item1, fer_list_t *item2,
+static bor_real_t build2Dist(void *item1, bor_list_t *item2,
                              void *data)
 {
-    fer_vec2_t *p = (fer_vec2_t *)item1;
+    bor_vec2_t *p = (bor_vec2_t *)item1;
     el_t *el = FER_LIST_ENTRY(item2, el_t, list);
 
     return ferVec2Dist(p, &el->w);
 }
 
-static void build2Test(fer_rand_mt_t *rand,
-                       fer_vptree_t *vp, fer_list_t *list, size_t num)
+static void build2Test(bor_rand_mt_t *rand,
+                       bor_vptree_t *vp, bor_list_t *list, size_t num)
 {
-    fer_vptree_el_t *nn[10];
-    fer_list_t *nn2[10];
+    bor_vptree_el_t *nn[10];
+    bor_list_t *nn2[10];
     el_t *el, *el2;
-    fer_vec2_t p;
+    bor_vec2_t p;
     size_t len, len2, i;
 
     ferVec2Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferVPTreeNearest(vp, (const fer_vec_t *)&p, num, nn);
+    len = ferVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
     len2 = ferNearestLinear(list, (void *)&p, build2Dist, nn2, num, NULL);
 
     assertEquals(len, num);
@@ -59,10 +59,10 @@ static void build2Test(fer_rand_mt_t *rand,
 
 TEST(vptreeBuild2)
 {
-    fer_rand_mt_t *rand;
-    fer_vptree_t *vp;
-    fer_vptree_params_t params;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_vptree_t *vp;
+    bor_vptree_params_t params;
+    static bor_list_t els_list;
     static int els_len = BUILD_ELS_LEN;
     static el_t els[BUILD_ELS_LEN];
     int i, j, size;
@@ -72,7 +72,7 @@ TEST(vptreeBuild2)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const fer_vec_t *)&els[i].w);
+        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
     }
 
@@ -97,32 +97,32 @@ TEST(vptreeBuild2)
 
 
 struct _el3_t {
-    fer_vec3_t w;
-    fer_vptree_el_t el;
-    fer_list_t list;
+    bor_vec3_t w;
+    bor_vptree_el_t el;
+    bor_list_t list;
 };
 typedef struct _el3_t el3_t;
 
-static fer_real_t build3Dist(void *item1, fer_list_t *item2,
+static bor_real_t build3Dist(void *item1, bor_list_t *item2,
                              void *data)
 {
-    fer_vec3_t *p = (fer_vec3_t *)item1;
+    bor_vec3_t *p = (bor_vec3_t *)item1;
     el3_t *el = FER_LIST_ENTRY(item2, el3_t, list);
 
     return ferVec3Dist(p, &el->w);
 }
 
-static void build3Test(fer_rand_mt_t *rand,
-                       fer_vptree_t *vp, fer_list_t *list, size_t num)
+static void build3Test(bor_rand_mt_t *rand,
+                       bor_vptree_t *vp, bor_list_t *list, size_t num)
 {
-    fer_vptree_el_t *nn[10];
-    fer_list_t *nn2[10];
+    bor_vptree_el_t *nn[10];
+    bor_list_t *nn2[10];
     el3_t *el, *el2;
-    fer_vec3_t p;
+    bor_vec3_t p;
     size_t len, len2, i;
 
     ferVec3Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferVPTreeNearest(vp, (const fer_vec_t *)&p, num, nn);
+    len = ferVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
     len2 = ferNearestLinear(list, (void *)&p, build3Dist, nn2, num, NULL);
 
     assertEquals(len, num);
@@ -144,10 +144,10 @@ static void build3Test(fer_rand_mt_t *rand,
 
 TEST(vptreeBuild3)
 {
-    fer_rand_mt_t *rand;
-    fer_vptree_t *vp;
-    fer_vptree_params_t params;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_vptree_t *vp;
+    bor_vptree_params_t params;
+    static bor_list_t els_list;
     static int els_len = BUILD_ELS_LEN;
     static el3_t els[BUILD_ELS_LEN];
     int i, j, size;
@@ -157,7 +157,7 @@ TEST(vptreeBuild3)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec3Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const fer_vec_t *)&els[i].w);
+        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
     }
 
@@ -188,10 +188,10 @@ TEST(vptreeBuild3)
 #define ADD_MAXSIZE 5
 TEST(vptreeAdd)
 {
-    fer_rand_mt_t *rand;
-    fer_vptree_t *vp;
-    fer_vptree_params_t params;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_vptree_t *vp;
+    bor_vptree_params_t params;
+    static bor_list_t els_list;
     static int els_len = ADD_ELS_LEN;
     static el_t els[ADD_ELS_LEN];
     int i, j, size;
@@ -201,7 +201,7 @@ TEST(vptreeAdd)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const fer_vec_t *)&els[i].w);
+        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
     }
 
@@ -231,10 +231,10 @@ TEST(vptreeAdd)
 
 TEST(vptreeAddRm)
 {
-    fer_rand_mt_t *rand;
-    fer_vptree_t *vp;
-    fer_vptree_params_t params;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_vptree_t *vp;
+    bor_vptree_params_t params;
+    static bor_list_t els_list;
     static int els_len = ADD_ELS_LEN;
     static el_t els[ADD_ELS_LEN];
     int i, j, size;
@@ -244,7 +244,7 @@ TEST(vptreeAddRm)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const fer_vec_t *)&els[i].w);
+        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
         els[i].added = 0;
     }

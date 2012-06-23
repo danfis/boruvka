@@ -20,22 +20,22 @@
 #include <boruvka/vec.h>
 #include <boruvka/dbg.h>
 
-fer_vec_t *ferVecNew(size_t size)
+bor_vec_t *ferVecNew(size_t size)
 {
-    fer_vec_t *v;
-    v = FER_ALLOC_ARR(fer_vec_t, size);
+    bor_vec_t *v;
+    v = FER_ALLOC_ARR(bor_vec_t, size);
     return v;
 }
 
-void ferVecDel(fer_vec_t *v)
+void ferVecDel(bor_vec_t *v)
 {
     FER_FREE(v);
 }
 
-void ferVecSetN(size_t size, fer_vec_t *v, ...)
+void ferVecSetN(size_t size, bor_vec_t *v, ...)
 {
     va_list ap;
-    fer_real_t val;
+    bor_real_t val;
     size_t i;
 
     va_start(ap, v);

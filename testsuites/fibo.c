@@ -5,14 +5,14 @@
 #include <boruvka/alloc.h>
 
 /*
-static void treeDump(fer_list_t *fl, size_t spaces)
+static void treeDump(bor_list_t *fl, size_t spaces)
 {
-    fer_list_t *item;
-    fer_fibo_node_t *n;
+    bor_list_t *item;
+    bor_fibo_node_t *n;
     size_t i;
 
     FER_LIST_FOR_EACH(fl, item){
-        n = FER_LIST_ENTRY(item, fer_fibo_node_t, list);
+        n = FER_LIST_ENTRY(item, bor_fibo_node_t, list);
         for (i = 0; i < spaces; i++){
             fprintf(stdout, " ");
         }
@@ -21,7 +21,7 @@ static void treeDump(fer_list_t *fl, size_t spaces)
     }
 }
 
-static void fiboDump(fer_fibo_t *fibo)
+static void fiboDump(bor_fibo_t *fibo)
 {
     fprintf(stdout, "---\n");
     fprintf(stdout, "min: %lx\n", (long)fibo->min);
@@ -32,15 +32,15 @@ static void fiboDump(fer_fibo_t *fibo)
 
 struct _el_t {
     int val;
-    fer_fibo_node_t node;
+    bor_fibo_node_t node;
     int id;
 };
 typedef struct _el_t el_t;
 
 static el_t *randomEls(size_t num)
 {
-    fer_rand_t r;
-    fer_real_t val;
+    bor_rand_t r;
+    bor_real_t val;
     el_t *els;
     size_t i;
 
@@ -69,7 +69,7 @@ static int cmpIncEl(const void *i1, const void *i2)
     return 1;
 }
 
-static int ltEl(const fer_fibo_node_t *n1, const fer_fibo_node_t *n2, void *_)
+static int ltEl(const bor_fibo_node_t *n1, const bor_fibo_node_t *n2, void *_)
 {
     el_t *el1, *el2;
 
@@ -84,8 +84,8 @@ static void checkCorrect(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_fibo_t *fibo;
-    fer_fibo_node_t *n;
+    bor_fibo_t *fibo;
+    bor_fibo_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
@@ -134,12 +134,12 @@ static void checkCorrect2(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_fibo_t *fibo;
-    fer_fibo_node_t *n;
+    bor_fibo_t *fibo;
+    bor_fibo_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 
@@ -191,12 +191,12 @@ static void checkCorrect3(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_fibo_t *fibo;
-    fer_fibo_node_t *n;
+    bor_fibo_t *fibo;
+    bor_fibo_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 

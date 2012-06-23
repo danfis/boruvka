@@ -16,7 +16,7 @@
 
 #include <boruvka/timer.h>
 
-void ferTimerPrintElapsed(const fer_timer_t *t, FILE *out,
+void ferTimerPrintElapsed(const bor_timer_t *t, FILE *out,
                           const char *format, ...)
 {
     va_list ap; 
@@ -26,7 +26,7 @@ void ferTimerPrintElapsed(const fer_timer_t *t, FILE *out,
     va_end(ap);
 }
 
-void ferTimerStopAndPrintElapsed(fer_timer_t *t, FILE *out,
+void ferTimerStopAndPrintElapsed(bor_timer_t *t, FILE *out,
                                  const char *format, ...)
 {
     va_list ap; 

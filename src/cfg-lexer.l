@@ -34,7 +34,7 @@
 %option reentrant
 %option nounput
 %option noinput
-%option extra-type="fer_cfg_lex_t *"
+%option extra-type="bor_cfg_lex_t *"
 
 DIGIT [0-9]
 NONZERO [1-9]

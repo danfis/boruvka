@@ -29,21 +29,21 @@ extern "C" {
  * Mat3 - 3x3 matrix
  * ==================
  */
-union _fer_mat3_t {
-    fer_vec3_t v[3];
-    fer_real_t f[3 * 4];
+union _bor_mat3_t {
+    bor_vec3_t v[3];
+    bor_real_t f[3 * 4];
 };
-typedef union _fer_mat3_t fer_mat3_t;
+typedef union _bor_mat3_t bor_mat3_t;
 
 /**
  * Holds identity matrix. Read only variable!
  */
-extern const fer_mat3_t *fer_mat3_identity;
+extern const bor_mat3_t *fer_mat3_identity;
 
 /**
  * Holds zero matrix. Read only variable!
  */
-extern const fer_mat3_t *fer_mat3_zero;
+extern const bor_mat3_t *fer_mat3_zero;
 
 #define FER_MAT3_STATIC(f11, f12, f13, \
                         f21, f22, f23, \
@@ -55,7 +55,7 @@ extern const fer_mat3_t *fer_mat3_zero;
 #define FER_MAT3(name, f11, f12, f13, \
                        f21, f22, f23, \
                        f31, f32, f33) \
-    fer_mat3_t name = FER_MAT3_STATIC(f11, f12, f13, \
+    bor_mat3_t name = FER_MAT3_STATIC(f11, f12, f13, \
                                       f21, f22, f23, \
                                       f31, f32, f33)
 
@@ -67,55 +67,55 @@ extern const fer_mat3_t *fer_mat3_zero;
 /**
  * Allocates uninitialized new matrix.
  */
-fer_mat3_t *ferMat3New(void);
+bor_mat3_t *ferMat3New(void);
 
 /**
  * Deletes matrix.
  */
-void ferMat3Del(fer_mat3_t *m);
+void ferMat3Del(bor_mat3_t *m);
 
 /**
  * Clones given matrix.
  */
-_fer_inline fer_mat3_t *ferMat3Clone(const fer_mat3_t *m);
+_fer_inline bor_mat3_t *ferMat3Clone(const bor_mat3_t *m);
 
 /**
  * Copies matrix from s to d.
  */
-_fer_inline void ferMat3Copy(fer_mat3_t *d, const fer_mat3_t *s);
+_fer_inline void ferMat3Copy(bor_mat3_t *d, const bor_mat3_t *s);
 
 
 /**
  * Returns element from specified position.
  */
-_fer_inline fer_real_t ferMat3Get(const fer_mat3_t *m, size_t row, size_t col);
+_fer_inline bor_real_t ferMat3Get(const bor_mat3_t *m, size_t row, size_t col);
 
 /**
  * Sets element at specified position.
  */
-_fer_inline void ferMat3Set1(fer_mat3_t *m, size_t row, size_t col,
-                             fer_real_t val);
+_fer_inline void ferMat3Set1(bor_mat3_t *m, size_t row, size_t col,
+                             bor_real_t val);
 
 /**
  * Sets all elements to val.
  */
-_fer_inline void ferMat3SetAll(fer_mat3_t *m, fer_real_t val);
+_fer_inline void ferMat3SetAll(bor_mat3_t *m, bor_real_t val);
 
 /**
  * Sets whole matrix.
  */
-_fer_inline void ferMat3Set(fer_mat3_t *m,
-                            fer_real_t f11, fer_real_t f12, fer_real_t f13,
-                            fer_real_t f21, fer_real_t f22, fer_real_t f23,
-                            fer_real_t f31, fer_real_t f32, fer_real_t f33);
+_fer_inline void ferMat3Set(bor_mat3_t *m,
+                            bor_real_t f11, bor_real_t f12, bor_real_t f13,
+                            bor_real_t f21, bor_real_t f22, bor_real_t f23,
+                            bor_real_t f31, bor_real_t f32, bor_real_t f33);
 
 /**
  * Sets rows of matrix
  */
-_fer_inline void ferMat3SetRows(fer_mat3_t *m,
-                                const fer_vec3_t *row1,
-                                const fer_vec3_t *row2,
-                                const fer_vec3_t *row3);
+_fer_inline void ferMat3SetRows(bor_mat3_t *m,
+                                const bor_vec3_t *row1,
+                                const bor_vec3_t *row2,
+                                const bor_vec3_t *row3);
 
 /**
  * Set identity matrix.
@@ -124,12 +124,12 @@ _fer_inline void ferMat3SetRows(fer_mat3_t *m,
  * m = | 0 1 0 |
  *     | 0 0 1 |
  */
-_fer_inline void ferMat3SetIdentity(fer_mat3_t *m);
+_fer_inline void ferMat3SetIdentity(bor_mat3_t *m);
 
 /**
  * Set zero matrix.
  */
-_fer_inline void ferMat3SetZero(fer_mat3_t *m);
+_fer_inline void ferMat3SetZero(bor_mat3_t *m);
 
 /**
  * Set scale matrix.
@@ -138,7 +138,7 @@ _fer_inline void ferMat3SetZero(fer_mat3_t *m);
  * m = | 0 s 0 |
  *     | 0 0 1 |
  */
-_fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s);
+_fer_inline void ferMat3SetScale(bor_mat3_t *m, bor_real_t s);
 
 /**
  * Set diagonal.
@@ -147,7 +147,7 @@ _fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s);
  * m = | 0 s 0 |
  *     | 0 0 s |
  */
-_fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s);
+_fer_inline void ferMat3SetDiag(bor_mat3_t *m, bor_real_t s);
 
 /**
  * Set translation matrix (translation along v vector).
@@ -156,7 +156,7 @@ _fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s);
  * m = | 0 1 y |
  *     | 0 0 1 |
  */
-_fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v);
+_fer_inline void ferMat3SetTranslate(bor_mat3_t *m, const bor_vec2_t *v);
 
 /**
  * Set rotation matrix (2D).
@@ -165,14 +165,14 @@ _fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v);
  * m = | sin(a)  cos(a) 0 |
  *     |   0       0    1 |
  */
-_fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle);
+_fer_inline void ferMat3SetRot(bor_mat3_t *m, bor_real_t angle);
 
 /**
  * Set rotation matrix (3D) defined by rotation about x, y, z axis
  * respectively.
  */
-_fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
-                                 fer_real_t ax, fer_real_t ay, fer_real_t az);
+_fer_inline void ferMat3SetRot3D(bor_mat3_t *m,
+                                 bor_real_t ax, bor_real_t ay, bor_real_t az);
 
 /**
  * Apply scale transfomation.
@@ -181,7 +181,7 @@ _fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
  * m = | 0 s 0 | . m
  *     | 0 0 1 |
  */
-_fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s);
+_fer_inline void ferMat3TrScale(bor_mat3_t *m, bor_real_t s);
 
 /**
  * Translate transformation matrix towards vector v.
@@ -190,7 +190,7 @@ _fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s);
  * m = | 0 1 y | . m
  *     | 0 0 1 |
  */
-_fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v);
+_fer_inline void ferMat3Translate(bor_mat3_t *m, const bor_vec2_t *v);
 
 /**
  * Rotate transformation matrix.
@@ -199,103 +199,103 @@ _fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v);
  * m = | sin(a)  cos(a) 0 | . m
  *     |   0       0    1 |
  */
-_fer_inline void ferMat3Rot(fer_mat3_t *m, fer_real_t angle);
+_fer_inline void ferMat3Rot(bor_mat3_t *m, bor_real_t angle);
 
 
 /**
  * Composes transformation:
  * A = B . A
  */
-_fer_inline void ferMat3Compose(fer_mat3_t *A, const fer_mat3_t *B);
+_fer_inline void ferMat3Compose(bor_mat3_t *A, const bor_mat3_t *B);
 
 
 /**
  * a = a + b
  */
-_fer_inline void ferMat3Add(fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3Add(bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * d = a + b
  */
-_fer_inline void ferMat3Add2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b);
+_fer_inline void ferMat3Add2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b);
 
 /**
  * a = a - b
  */
-_fer_inline void ferMat3Sub(fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3Sub(bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * d = a - b
  */
-_fer_inline void ferMat3Sub2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b);
+_fer_inline void ferMat3Sub2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b);
 
 /**
  * d = d * s
  */
-_fer_inline void ferMat3Scale(fer_mat3_t *d, fer_real_t s);
+_fer_inline void ferMat3Scale(bor_mat3_t *d, bor_real_t s);
 
 /**
  * d = a * s
  */
-_fer_inline void ferMat3Scale2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t s);
+_fer_inline void ferMat3Scale2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t s);
 
 /**
  * d = d + c
  */
-_fer_inline void ferMat3AddConst(fer_mat3_t *d, fer_real_t c);
+_fer_inline void ferMat3AddConst(bor_mat3_t *d, bor_real_t c);
 
 /**
  * d = a + c
  */
-_fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
+_fer_inline void ferMat3AddConst2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t c);
 
 /**
  * d = d - c
  */
-_fer_inline void ferMat3SubConst(fer_mat3_t *d, fer_real_t c);
+_fer_inline void ferMat3SubConst(bor_mat3_t *d, bor_real_t c);
 
 /**
  * d = a - c
  */
-_fer_inline void ferMat3SubConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c);
+_fer_inline void ferMat3SubConst2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t c);
 
 
 /**
  * a = a * b
  */
-_fer_inline void ferMat3Mul(fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3Mul(bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * d = a * b
  */
-_fer_inline void ferMat3Mul2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b);
+_fer_inline void ferMat3Mul2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b);
 
 /**
  * a = b * a
  */
-_fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3MulLeft(bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * a = b^t * a
  */
-_fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3MulLeftTrans(bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * d = a^t * b
  */
-_fer_inline void ferMat3MulTrans2(fer_mat3_t *d,
-                                  const fer_mat3_t *a, const fer_mat3_t *b);
+_fer_inline void ferMat3MulTrans2(bor_mat3_t *d,
+                                  const bor_mat3_t *a, const bor_mat3_t *b);
 
 /**
  * Multiplies {a} by matrix defined by three column vectors.
  */
-_fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
-                                    const fer_vec3_t *col1,
-                                    const fer_vec3_t *col2,
-                                    const fer_vec3_t *col3);
+_fer_inline void ferMat3MulColVecs2(bor_mat3_t *d, const bor_mat3_t *a,
+                                    const bor_vec3_t *col1,
+                                    const bor_vec3_t *col2,
+                                    const bor_vec3_t *col3);
 
 /**
  * Multiplies {a} from left by matrix defined by three row vectors.
@@ -304,10 +304,10 @@ _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
  * d = |row2| . a
  *     |row3|
  */
-_fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
-                                        const fer_vec3_t *row1,
-                                        const fer_vec3_t *row2,
-                                        const fer_vec3_t *row3);
+_fer_inline void ferMat3MulLeftRowVecs2(bor_mat3_t *d, const bor_mat3_t *a,
+                                        const bor_vec3_t *row1,
+                                        const bor_vec3_t *row2,
+                                        const bor_vec3_t *row3);
 
 
 /**
@@ -317,59 +317,59 @@ _fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
  * a = | a21*b21 a22*b22 a23*b23 |
  *     | a31*b31 a32*b32 a33*313 |
  */
-_fer_inline void ferMat3MulComp(fer_mat3_t *a, const fer_mat3_t *b);
-_fer_inline void ferMat3MulComp2(fer_mat3_t *d, const fer_mat3_t *a,
-                                                const fer_mat3_t *b);
+_fer_inline void ferMat3MulComp(bor_mat3_t *a, const bor_mat3_t *b);
+_fer_inline void ferMat3MulComp2(bor_mat3_t *d, const bor_mat3_t *a,
+                                                const bor_mat3_t *b);
 
 /**
  * Transposes matrix.
  */
-_fer_inline void ferMat3Trans(fer_mat3_t *d);
-_fer_inline void ferMat3Trans2(fer_mat3_t *d, const fer_mat3_t *a);
+_fer_inline void ferMat3Trans(bor_mat3_t *d);
+_fer_inline void ferMat3Trans2(bor_mat3_t *d, const bor_mat3_t *a);
 
 /**
  * Returns true if matrix is regular.
  */
-_fer_inline int ferMat3Regular(const fer_mat3_t *m);
+_fer_inline int ferMat3Regular(const bor_mat3_t *m);
 
 /**
  * Returns true if matrix is singular.
  */
-_fer_inline int ferMat3Singular(const fer_mat3_t *m);
+_fer_inline int ferMat3Singular(const bor_mat3_t *m);
 
 /**
  * Returns determinant of matrix.
  */
-_fer_inline fer_real_t ferMat3Det(const fer_mat3_t *m);
+_fer_inline bor_real_t ferMat3Det(const bor_mat3_t *m);
 
 /**
  * Inverts matrix.
  * Returns 0 on success, -1 if matrix is singular.
  */
-_fer_inline int ferMat3Inv(fer_mat3_t *m);
+_fer_inline int ferMat3Inv(bor_mat3_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
  * m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
-_fer_inline int ferMat3Inv2(fer_mat3_t *m, const fer_mat3_t *a);
+_fer_inline int ferMat3Inv2(bor_mat3_t *m, const bor_mat3_t *a);
 
 
 /**
  * Multiplies 3D vector by matrix (vectors are considered to be colunmal).
  * v = m * w
  */
-_fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
-                                              const fer_vec3_t *w);
+_fer_inline void ferMat3MulVec(bor_vec3_t *v, const bor_mat3_t *m,
+                                              const bor_vec3_t *w);
 
 /**
  * Multiplies 3D vector by transposed matrix (vectors are considered to be
  * colunmal).
  * v = m^t * w
  */
-_fer_inline void ferMat3MulVecTrans(fer_vec3_t *v, const fer_mat3_t *m,
-                                                   const fer_vec3_t *w);
+_fer_inline void ferMat3MulVecTrans(bor_vec3_t *v, const bor_mat3_t *m,
+                                                   const bor_vec3_t *w);
 
 /**
  * Multiplies matrix with 2D vector.
@@ -383,13 +383,13 @@ _fer_inline void ferMat3MulVecTrans(fer_vec3_t *v, const fer_mat3_t *m,
  * v.x = v.x / v.z
  * v.y = v.y / v.z
  */
-_fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
-                                               const fer_vec2_t *w);
+_fer_inline void ferMat3MulVec2(bor_vec2_t *v, const bor_mat3_t *m,
+                                               const bor_vec2_t *w);
 
 /**
  * dst = ABS(src)
  */
-_fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src);
+_fer_inline void ferMat3Abs2(bor_mat3_t *dst, const bor_mat3_t *src);
 
 /**
  * Compute eigenvectors of a given matrix.
@@ -397,59 +397,59 @@ _fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src);
  *
  * Jacobi Rotation Algorithm is used.
  */
-int ferMat3Eigen(const fer_mat3_t *_m, fer_mat3_t *eigen,
-                 fer_vec3_t *eigenvals);
+int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
+                 bor_vec3_t *eigenvals);
 
 /**
  * Computes dot product of r'th row of matrix m and c'th column of matrix n.
  */
-_fer_inline fer_real_t ferMat3DotRowCol(const fer_mat3_t *m, size_t r,
-                                        const fer_mat3_t *n, size_t c);
+_fer_inline bor_real_t ferMat3DotRowCol(const bor_mat3_t *m, size_t r,
+                                        const bor_mat3_t *n, size_t c);
 
 
-_fer_inline void ferMat3CopyCol(fer_vec3_t *col, const fer_mat3_t *m, size_t c);
-_fer_inline void ferMat3CopyRow(fer_vec3_t *row, const fer_mat3_t *m, size_t r);
+_fer_inline void ferMat3CopyCol(bor_vec3_t *col, const bor_mat3_t *m, size_t c);
+_fer_inline void ferMat3CopyRow(bor_vec3_t *row, const bor_mat3_t *m, size_t r);
 
 /**
  * Returns dot product of col'th column of matrix m with vector (a, b, c).
  */
-_fer_inline fer_real_t ferMat3DotCol(const fer_mat3_t *m, size_t col,
-                                     const fer_vec3_t *v);
+_fer_inline bor_real_t ferMat3DotCol(const bor_mat3_t *m, size_t col,
+                                     const bor_vec3_t *v);
 
 /**
  * Returns dot product of row'th row of matrix m with vector (a, b, c).
  */
-_fer_inline fer_real_t ferMat3DotRow(const fer_mat3_t *m, size_t row,
-                                     const fer_vec3_t *v);
+_fer_inline bor_real_t ferMat3DotRow(const bor_mat3_t *m, size_t row,
+                                     const bor_vec3_t *v);
 
 /**** INLINES ****/
-_fer_inline fer_mat3_t *ferMat3Clone(const fer_mat3_t *m)
+_fer_inline bor_mat3_t *ferMat3Clone(const bor_mat3_t *m)
 {
-    fer_mat3_t *n;
+    bor_mat3_t *n;
 
     n = ferMat3New();
     ferMat3Copy(n, m);
     return n;
 }
 
-_fer_inline void ferMat3Copy(fer_mat3_t *d, const fer_mat3_t *s)
+_fer_inline void ferMat3Copy(bor_mat3_t *d, const bor_mat3_t *s)
 {
     *d = *s;
 }
 
 
-_fer_inline fer_real_t ferMat3Get(const fer_mat3_t *m, size_t row, size_t col)
+_fer_inline bor_real_t ferMat3Get(const bor_mat3_t *m, size_t row, size_t col)
 {
     return m->f[row * 4 + col];
 }
 
-_fer_inline void ferMat3Set1(fer_mat3_t *m, size_t row, size_t col,
-                             fer_real_t val)
+_fer_inline void ferMat3Set1(bor_mat3_t *m, size_t row, size_t col,
+                             bor_real_t val)
 {
     m->f[row * 4 + col] = val;
 }
 
-_fer_inline void ferMat3SetAll(fer_mat3_t *m, fer_real_t val)
+_fer_inline void ferMat3SetAll(bor_mat3_t *m, bor_real_t val)
 {
     size_t i;
     for (i = 0; i < 3; i++){
@@ -457,10 +457,10 @@ _fer_inline void ferMat3SetAll(fer_mat3_t *m, fer_real_t val)
     }
 }
 
-_fer_inline void ferMat3Set(fer_mat3_t *m,
-                            fer_real_t f11, fer_real_t f12, fer_real_t f13,
-                            fer_real_t f21, fer_real_t f22, fer_real_t f23,
-                            fer_real_t f31, fer_real_t f32, fer_real_t f33)
+_fer_inline void ferMat3Set(bor_mat3_t *m,
+                            bor_real_t f11, bor_real_t f12, bor_real_t f13,
+                            bor_real_t f21, bor_real_t f22, bor_real_t f23,
+                            bor_real_t f31, bor_real_t f32, bor_real_t f33)
 {
     m->f[0] = f11;
     m->f[1] = f12;
@@ -473,58 +473,58 @@ _fer_inline void ferMat3Set(fer_mat3_t *m,
     m->f[10] = f33;
 }
 
-_fer_inline void ferMat3SetRows(fer_mat3_t *m,
-                                const fer_vec3_t *row1,
-                                const fer_vec3_t *row2,
-                                const fer_vec3_t *row3)
+_fer_inline void ferMat3SetRows(bor_mat3_t *m,
+                                const bor_vec3_t *row1,
+                                const bor_vec3_t *row2,
+                                const bor_vec3_t *row3)
 {
     ferVec3Copy(&m->v[0], row1);
     ferVec3Copy(&m->v[1], row2);
     ferVec3Copy(&m->v[2], row3);
 }
 
-_fer_inline void ferMat3SetIdentity(fer_mat3_t *m)
+_fer_inline void ferMat3SetIdentity(bor_mat3_t *m)
 {
     ferMat3Set(m, FER_ONE, FER_ZERO, FER_ZERO,
                   FER_ZERO, FER_ONE, FER_ZERO,
                   FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat3SetZero(fer_mat3_t *m)
+_fer_inline void ferMat3SetZero(bor_mat3_t *m)
 {
     ferMat3SetAll(m, FER_ZERO);
 }
 
-_fer_inline void ferMat3SetScale(fer_mat3_t *m, fer_real_t s)
+_fer_inline void ferMat3SetScale(bor_mat3_t *m, bor_real_t s)
 {
     ferMat3Set(m, s, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO,
                   FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat3SetDiag(fer_mat3_t *m, fer_real_t s)
+_fer_inline void ferMat3SetDiag(bor_mat3_t *m, bor_real_t s)
 {
     ferMat3Set(m, s, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO,
                   FER_ZERO, FER_ZERO, s);
 }
 
-_fer_inline void ferMat3SetTranslate(fer_mat3_t *m, const fer_vec2_t *v)
+_fer_inline void ferMat3SetTranslate(bor_mat3_t *m, const bor_vec2_t *v)
 {
     ferMat3Set(m, FER_ONE, FER_ZERO, ferVec2X(v),
                   FER_ZERO, FER_ONE, ferVec2Y(v),
                   FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat3SetRot(fer_mat3_t *m, fer_real_t angle)
+_fer_inline void ferMat3SetRot(bor_mat3_t *m, bor_real_t angle)
 {
     ferMat3Set(m, FER_COS(angle), -FER_SIN(angle), FER_ZERO,
                   FER_SIN(angle),  FER_COS(angle), FER_ZERO,
                   FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
-                                 fer_real_t ax, fer_real_t ay, fer_real_t az)
+_fer_inline void ferMat3SetRot3D(bor_mat3_t *m,
+                                 bor_real_t ax, bor_real_t ay, bor_real_t az)
 {
     m->f[0] = FER_COS(ay) * FER_COS(az);
     m->f[1]  = -FER_COS(ax) * FER_SIN(az);
@@ -543,109 +543,109 @@ _fer_inline void ferMat3SetRot3D(fer_mat3_t *m,
     m->f[10] = FER_COS(ax) * FER_COS(ay);
 }
 
-_fer_inline void ferMat3TrScale(fer_mat3_t *m, fer_real_t s)
+_fer_inline void ferMat3TrScale(bor_mat3_t *m, bor_real_t s)
 {
-    fer_mat3_t scale;
+    bor_mat3_t scale;
     ferMat3SetScale(&scale, s);
     ferMat3Compose(m, &scale);
 }
 
-_fer_inline void ferMat3Translate(fer_mat3_t *m, const fer_vec2_t *v)
+_fer_inline void ferMat3Translate(bor_mat3_t *m, const bor_vec2_t *v)
 {
-    fer_mat3_t tr;
+    bor_mat3_t tr;
     ferMat3SetTranslate(&tr, v);
     ferMat3Compose(m, &tr);
 }
 
-_fer_inline void ferMat3Rot(fer_mat3_t *m, fer_real_t angle)
+_fer_inline void ferMat3Rot(bor_mat3_t *m, bor_real_t angle)
 {
-    fer_mat3_t rot;
+    bor_mat3_t rot;
     ferMat3SetRot(&rot, angle);
     ferMat3Compose(m, &rot);
 }
 
 
-_fer_inline void ferMat3Compose(fer_mat3_t *A, const fer_mat3_t *B)
+_fer_inline void ferMat3Compose(bor_mat3_t *A, const bor_mat3_t *B)
 {
     ferMat3MulLeft(A, B);
 }
 
 
-_fer_inline void ferMat3Add(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3Add(bor_mat3_t *a, const bor_mat3_t *b)
 {
     ferVec3Add(a->v + 0, b->v + 0);
     ferVec3Add(a->v + 1, b->v + 1);
     ferVec3Add(a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3Add2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b)
+_fer_inline void ferMat3Add2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b)
 {
     ferVec3Add2(d->v + 0, a->v + 0, b->v + 0);
     ferVec3Add2(d->v + 1, a->v + 1, b->v + 1);
     ferVec3Add2(d->v + 2, a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3Sub(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3Sub(bor_mat3_t *a, const bor_mat3_t *b)
 {
     ferVec3Sub(a->v + 0, b->v + 0);
     ferVec3Sub(a->v + 1, b->v + 1);
     ferVec3Sub(a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3Sub2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b)
+_fer_inline void ferMat3Sub2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b)
 {
     ferVec3Sub2(d->v + 0, a->v + 0, b->v + 0);
     ferVec3Sub2(d->v + 1, a->v + 1, b->v + 1);
     ferVec3Sub2(d->v + 2, a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3Scale(fer_mat3_t *d, fer_real_t s)
+_fer_inline void ferMat3Scale(bor_mat3_t *d, bor_real_t s)
 {
     ferVec3Scale(d->v + 0, s);
     ferVec3Scale(d->v + 1, s);
     ferVec3Scale(d->v + 2, s);
 }
 
-_fer_inline void ferMat3Scale2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t s)
+_fer_inline void ferMat3Scale2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t s)
 {
     ferVec3Scale2(d->v + 0, a->v + 0, s);
     ferVec3Scale2(d->v + 1, a->v + 1, s);
     ferVec3Scale2(d->v + 2, a->v + 2, s);
 }
 
-_fer_inline void ferMat3AddConst(fer_mat3_t *d, fer_real_t c)
+_fer_inline void ferMat3AddConst(bor_mat3_t *d, bor_real_t c)
 {
     ferVec3AddConst(d->v + 0, c);
     ferVec3AddConst(d->v + 1, c);
     ferVec3AddConst(d->v + 2, c);
 }
 
-_fer_inline void ferMat3AddConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c)
+_fer_inline void ferMat3AddConst2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t c)
 {
     ferVec3AddConst2(d->v + 0, a->v + 0, c);
     ferVec3AddConst2(d->v + 1, a->v + 1, c);
     ferVec3AddConst2(d->v + 2, a->v + 2, c);
 }
 
-_fer_inline void ferMat3SubConst(fer_mat3_t *d, fer_real_t c)
+_fer_inline void ferMat3SubConst(bor_mat3_t *d, bor_real_t c)
 {
     ferVec3SubConst(d->v + 0, c);
     ferVec3SubConst(d->v + 1, c);
     ferVec3SubConst(d->v + 2, c);
 }
 
-_fer_inline void ferMat3SubConst2(fer_mat3_t *d, const fer_mat3_t *a, fer_real_t c)
+_fer_inline void ferMat3SubConst2(bor_mat3_t *d, const bor_mat3_t *a, bor_real_t c)
 {
     ferVec3SubConst2(d->v + 0, a->v + 0, c);
     ferVec3SubConst2(d->v + 1, a->v + 1, c);
     ferVec3SubConst2(d->v + 2, a->v + 2, c);
 }
 
-_fer_inline void ferMat3Mul(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3Mul(bor_mat3_t *a, const bor_mat3_t *b)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     ferVec3Copy(&v, a->v + 0);
     a->f[0]  = ferMat3DotCol(b, 0, &v);
@@ -664,10 +664,10 @@ _fer_inline void ferMat3Mul(fer_mat3_t *a, const fer_mat3_t *b)
 
 }
 
-_fer_inline void ferMat3Mul2(fer_mat3_t *d, const fer_mat3_t *a,
-                                            const fer_mat3_t *b)
+_fer_inline void ferMat3Mul2(bor_mat3_t *d, const bor_mat3_t *a,
+                                            const bor_mat3_t *b)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     ferMat3CopyCol(&v, b, 0);
     d->f[0]  = ferMat3DotRow(a, 0, &v);
@@ -685,9 +685,9 @@ _fer_inline void ferMat3Mul2(fer_mat3_t *d, const fer_mat3_t *a,
     d->f[10] = ferMat3DotRow(a, 2, &v);
 }
 
-_fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3MulLeft(bor_mat3_t *a, const bor_mat3_t *b)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     ferMat3CopyCol(&v, a, 0);
     a->f[0]  = ferMat3DotRow(b, 0, &v);
@@ -706,9 +706,9 @@ _fer_inline void ferMat3MulLeft(fer_mat3_t *a, const fer_mat3_t *b)
 
 }
 
-_fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3MulLeftTrans(bor_mat3_t *a, const bor_mat3_t *b)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     ferMat3CopyCol(&v, a, 0);
     a->f[0]  = ferMat3DotCol(b, 0, &v);
@@ -726,10 +726,10 @@ _fer_inline void ferMat3MulLeftTrans(fer_mat3_t *a, const fer_mat3_t *b)
     a->f[10] = ferMat3DotCol(b, 2, &v);
 }
 
-_fer_inline void ferMat3MulTrans2(fer_mat3_t *d,
-                                  const fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3MulTrans2(bor_mat3_t *d,
+                                  const bor_mat3_t *a, const bor_mat3_t *b)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
 
     ferMat3CopyCol(&v, b, 0);
     d->f[0]  = ferMat3DotCol(a, 0, &v);
@@ -747,10 +747,10 @@ _fer_inline void ferMat3MulTrans2(fer_mat3_t *d,
     d->f[10] = ferMat3DotCol(a, 2, &v);
 }
 
-_fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
-                                    const fer_vec3_t *col1,
-                                    const fer_vec3_t *col2,
-                                    const fer_vec3_t *col3)
+_fer_inline void ferMat3MulColVecs2(bor_mat3_t *d, const bor_mat3_t *a,
+                                    const bor_vec3_t *col1,
+                                    const bor_vec3_t *col2,
+                                    const bor_vec3_t *col3)
 {
     d->f[0]  = ferMat3DotRow(a, 0, col1);
     d->f[1]  = ferMat3DotRow(a, 0, col2);
@@ -765,10 +765,10 @@ _fer_inline void ferMat3MulColVecs2(fer_mat3_t *d, const fer_mat3_t *a,
     d->f[10] = ferMat3DotRow(a, 2, col3);
 }
 
-_fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
-                                        const fer_vec3_t *row1,
-                                        const fer_vec3_t *row2,
-                                        const fer_vec3_t *row3)
+_fer_inline void ferMat3MulLeftRowVecs2(bor_mat3_t *d, const bor_mat3_t *a,
+                                        const bor_vec3_t *row1,
+                                        const bor_vec3_t *row2,
+                                        const bor_vec3_t *row3)
 {
     d->f[0]  = ferMat3DotCol(a, 0, row1);
     d->f[1]  = ferMat3DotCol(a, 1, row1);
@@ -783,24 +783,24 @@ _fer_inline void ferMat3MulLeftRowVecs2(fer_mat3_t *d, const fer_mat3_t *a,
     d->f[10] = ferMat3DotCol(a, 2, row3);
 }
 
-_fer_inline void ferMat3MulComp(fer_mat3_t *a, const fer_mat3_t *b)
+_fer_inline void ferMat3MulComp(bor_mat3_t *a, const bor_mat3_t *b)
 {
     ferVec3MulComp(a->v + 0, b->v + 0);
     ferVec3MulComp(a->v + 1, b->v + 1);
     ferVec3MulComp(a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3MulComp2(fer_mat3_t *d, const fer_mat3_t *a,
-                                                const fer_mat3_t *b)
+_fer_inline void ferMat3MulComp2(bor_mat3_t *d, const bor_mat3_t *a,
+                                                const bor_mat3_t *b)
 {
     ferVec3MulComp2(d->v + 0, a->v + 0, b->v + 0);
     ferVec3MulComp2(d->v + 1, a->v + 1, b->v + 1);
     ferVec3MulComp2(d->v + 2, a->v + 2, b->v + 2);
 }
 
-_fer_inline void ferMat3Trans(fer_mat3_t *d)
+_fer_inline void ferMat3Trans(bor_mat3_t *d)
 {
-    fer_real_t a, b, c;
+    bor_real_t a, b, c;
 
     a = d->f[1];
     b = d->f[2];
@@ -810,28 +810,28 @@ _fer_inline void ferMat3Trans(fer_mat3_t *d)
                   b,       c,       d->f[10]);
 }
 
-_fer_inline void ferMat3Trans2(fer_mat3_t *d, const fer_mat3_t *a)
+_fer_inline void ferMat3Trans2(bor_mat3_t *d, const bor_mat3_t *a)
 {
     ferMat3CopyCol(d->v + 0, a, 0);
     ferMat3CopyCol(d->v + 1, a, 1);
     ferMat3CopyCol(d->v + 2, a, 2);
 }
 
-_fer_inline int ferMat3Regular(const fer_mat3_t *m)
+_fer_inline int ferMat3Regular(const bor_mat3_t *m)
 {
-    fer_real_t det;
+    bor_real_t det;
     det = ferMat3Det(m);
     return !ferIsZero(det);
 }
 
-_fer_inline int ferMat3Singular(const fer_mat3_t *m)
+_fer_inline int ferMat3Singular(const bor_mat3_t *m)
 {
     return !ferMat3Regular(m);
 }
 
-_fer_inline fer_real_t ferMat3Det(const fer_mat3_t *m)
+_fer_inline bor_real_t ferMat3Det(const bor_mat3_t *m)
 {
-    fer_real_t det;
+    bor_real_t det;
 
     det =  m->f[0] * m->f[5] * m->f[10];
     det += m->f[1] * m->f[6] * m->f[8];
@@ -843,16 +843,16 @@ _fer_inline fer_real_t ferMat3Det(const fer_mat3_t *m)
     return det;
 }
 
-_fer_inline int ferMat3Inv(fer_mat3_t *m)
+_fer_inline int ferMat3Inv(bor_mat3_t *m)
 {
-    fer_mat3_t n;
+    bor_mat3_t n;
     ferMat3Copy(&n, m);
     return ferMat3Inv2(m, &n);
 }
 
-_fer_inline int ferMat3Inv2(fer_mat3_t *m, const fer_mat3_t *a)
+_fer_inline int ferMat3Inv2(bor_mat3_t *m, const bor_mat3_t *a)
 {
-    fer_real_t det, invdet;
+    bor_real_t det, invdet;
 
     det = ferMat3Det(a);
     if (ferIsZero(det))
@@ -875,27 +875,27 @@ _fer_inline int ferMat3Inv2(fer_mat3_t *m, const fer_mat3_t *a)
     return 0;
 }
 
-_fer_inline void ferMat3MulVec(fer_vec3_t *v, const fer_mat3_t *m,
-                                              const fer_vec3_t *w)
+_fer_inline void ferMat3MulVec(bor_vec3_t *v, const bor_mat3_t *m,
+                                              const bor_vec3_t *w)
 {
     ferVec3SetX(v, ferMat3DotRow(m, 0, w));
     ferVec3SetY(v, ferMat3DotRow(m, 1, w));
     ferVec3SetZ(v, ferMat3DotRow(m, 2, w));
 }
 
-_fer_inline void ferMat3MulVecTrans(fer_vec3_t *v, const fer_mat3_t *m,
-                                                   const fer_vec3_t *w)
+_fer_inline void ferMat3MulVecTrans(bor_vec3_t *v, const bor_mat3_t *m,
+                                                   const bor_vec3_t *w)
 {
     ferVec3SetX(v, ferMat3DotCol(m, 0, w));
     ferVec3SetY(v, ferMat3DotCol(m, 1, w));
     ferVec3SetZ(v, ferMat3DotCol(m, 2, w));
 }
 
-_fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
-                                               const fer_vec2_t *_w)
+_fer_inline void ferMat3MulVec2(bor_vec2_t *v, const bor_mat3_t *m,
+                                               const bor_vec2_t *_w)
 {
-    fer_real_t denom;
-    fer_vec3_t w;
+    bor_real_t denom;
+    bor_vec3_t w;
 
     ferVec3Set(&w, ferVec2X(_w), ferVec2Y(_w), FER_ONE);
 
@@ -906,7 +906,7 @@ _fer_inline void ferMat3MulVec2(fer_vec2_t *v, const fer_mat3_t *m,
 }
 
 
-_fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src)
+_fer_inline void ferMat3Abs2(bor_mat3_t *dst, const bor_mat3_t *src)
 {
     size_t i, j;
 
@@ -920,34 +920,34 @@ _fer_inline void ferMat3Abs2(fer_mat3_t *dst, const fer_mat3_t *src)
 
 
 
-_fer_inline fer_real_t ferMat3DotRowCol(const fer_mat3_t *m, size_t r,
-                                        const fer_mat3_t *n, size_t c)
+_fer_inline bor_real_t ferMat3DotRowCol(const bor_mat3_t *m, size_t r,
+                                        const bor_mat3_t *n, size_t c)
 {
-    fer_vec3_t col;
+    bor_vec3_t col;
     ferMat3CopyCol(&col, n, c);
     return ferVec3Dot(&col, m->v + r);
 }
 
-_fer_inline void ferMat3CopyCol(fer_vec3_t *col, const fer_mat3_t *m, size_t c)
+_fer_inline void ferMat3CopyCol(bor_vec3_t *col, const bor_mat3_t *m, size_t c)
 {
     ferVec3Set(col, m->f[c], m->f[c + 4], m->f[c + 8]);
 }
 
-_fer_inline void ferMat3CopyRow(fer_vec3_t *row, const fer_mat3_t *m, size_t r)
+_fer_inline void ferMat3CopyRow(bor_vec3_t *row, const bor_mat3_t *m, size_t r)
 {
     ferVec3Copy(row, m->v + r);
 }
 
-_fer_inline fer_real_t ferMat3DotCol(const fer_mat3_t *m, size_t c,
-                                     const fer_vec3_t *v)
+_fer_inline bor_real_t ferMat3DotCol(const bor_mat3_t *m, size_t c,
+                                     const bor_vec3_t *v)
 {
-    fer_vec3_t col;
+    bor_vec3_t col;
     ferMat3CopyCol(&col, m, c);
     return ferVec3Dot(&col, v);
 }
 
-_fer_inline fer_real_t ferMat3DotRow(const fer_mat3_t *m, size_t row,
-                                     const fer_vec3_t *v)
+_fer_inline bor_real_t ferMat3DotRow(const bor_mat3_t *m, size_t row,
+                                     const bor_vec3_t *v)
 {
     return ferVec3Dot(m->v + row, v);
 }

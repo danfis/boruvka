@@ -27,9 +27,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-struct _fer_mesh3_vertex_t;
-struct _fer_mesh3_edge_t;
-struct _fer_mesh3_face_t;
+struct _bor_mesh3_vertex_t;
+struct _bor_mesh3_edge_t;
+struct _bor_mesh3_face_t;
 
 
 /**
@@ -53,7 +53,7 @@ struct _fer_mesh3_face_t;
  * initialized before use - functions ferMesh3Add{Vertex,Edge,Face}()
  * initialize them when adding to mesh. Structs can be allocated on both
  * stack or heap and doesn't need any alignment. Vertices are designed hold
- * only pointer to *user-defined* fer_vec3_t vector representing
+ * only pointer to *user-defined* bor_vec3_t vector representing
  * coordinates. Mesh3 takes care only of connection between vertices, edges
  * and faces, the rest is user's responsibility.
  *
@@ -61,8 +61,8 @@ struct _fer_mesh3_face_t;
  * structs just embeds into to, for example:
  * ~~~~~
  *   struct my_vec_t {
- *       fer_vec3_t vec;       // Coordinates of vertex
- *       fer_mesh3_vertex_t v; // Vertex
+ *       bor_vec3_t vec;       // Coordinates of vertex
+ *       bor_mesh3_vertex_t v; // Vertex
  *   };
  *   ....
  *   struct my_vec_t v;
@@ -75,47 +75,47 @@ struct _fer_mesh3_face_t;
  * inline functions.
  */
 
-struct _fer_mesh3_t {
-    fer_list_t verts; /*!< List of vertices */
+struct _bor_mesh3_t {
+    bor_list_t verts; /*!< List of vertices */
     size_t verts_len; /*!< Number of vertices in list */
-    fer_list_t edges; /*!< List of edges */
+    bor_list_t edges; /*!< List of edges */
     size_t edges_len; /*!< Number of edges in list */
-    fer_list_t faces; /*!< List of faces */
+    bor_list_t faces; /*!< List of faces */
     size_t faces_len; /*!< Number of faces in list */
 };
-typedef struct _fer_mesh3_t fer_mesh3_t;
+typedef struct _bor_mesh3_t bor_mesh3_t;
 
 
-struct _fer_mesh3_vertex_t {
-    const fer_vec3_t *v; /*!< User provided coordinates of vertex */
-    fer_list_t list;     /*!< Connection into list of all vertices */
+struct _bor_mesh3_vertex_t {
+    const bor_vec3_t *v; /*!< User provided coordinates of vertex */
+    bor_list_t list;     /*!< Connection into list of all vertices */
 
-    fer_list_t edges; /*!< List of all incidenting edges */
+    bor_list_t edges; /*!< List of all incidenting edges */
     size_t edges_len; /*!< Number of edges in list */
 
     int _id; /*!< This is currently used only for ferMesh3DumpSVT() */
 };
-typedef struct _fer_mesh3_vertex_t fer_mesh3_vertex_t;
+typedef struct _bor_mesh3_vertex_t bor_mesh3_vertex_t;
 
 
-struct _fer_mesh3_edge_t {
-    fer_mesh3_vertex_t *v[2];       /*!< Start and end point of edge */
-    struct _fer_mesh3_face_t *f[2]; /*!< Incidenting faces */
+struct _bor_mesh3_edge_t {
+    bor_mesh3_vertex_t *v[2];       /*!< Start and end point of edge */
+    struct _bor_mesh3_face_t *f[2]; /*!< Incidenting faces */
 
-    fer_list_t list;       /*!< Connection into list of all edges */
-    fer_list_m_t vlist[2]; /*!< Connection into list of edges incidenting
+    bor_list_t list;       /*!< Connection into list of all edges */
+    bor_list_m_t vlist[2]; /*!< Connection into list of edges incidenting
                                 with vertex.
                                 .vlist[0] correspond with vertex .v[0] and
                                 .vlist[1] with .v[1] */
 };
-typedef struct _fer_mesh3_edge_t fer_mesh3_edge_t;
+typedef struct _bor_mesh3_edge_t bor_mesh3_edge_t;
 
 
-struct _fer_mesh3_face_t {
-    fer_mesh3_edge_t *e[3]; /*!< Incidenting edges */
-    fer_list_t list;        /*!< Connection into list of all faces */
+struct _bor_mesh3_face_t {
+    bor_mesh3_edge_t *e[3]; /*!< Incidenting edges */
+    bor_list_t list;        /*!< Connection into list of all faces */
 };
-typedef struct _fer_mesh3_face_t fer_mesh3_face_t;
+typedef struct _bor_mesh3_face_t bor_mesh3_face_t;
 
 
 /**
@@ -129,61 +129,61 @@ typedef struct _fer_mesh3_face_t fer_mesh3_face_t;
  * initializes it when it's added to mesh.
  * Note that since there is no initialization function it is not safe to
  * use any ferMesh3Vertex*() function until it's added to mesh.
- * Note also that nothing ever touches fer_vec3_t vector stored (as
+ * Note also that nothing ever touches bor_vec3_t vector stored (as
  * pointer) in vertex. It is safe anytime (even if it is not added to mesh)
  * to get or set coords - ferMesh3Vertex{,Set}Coords{,W}().
  *
- * See fer_mesh3_vertex_t.
+ * See bor_mesh3_vertex_t.
  */
 
 /**
  * Allocates and initializes new vertex.
  */
-fer_mesh3_vertex_t *ferMesh3VertexNew(void);
+bor_mesh3_vertex_t *ferMesh3VertexNew(void);
 
 /**
  * Deletes vertex.
  */
-void ferMesh3VertexDel(fer_mesh3_vertex_t *v);
+void ferMesh3VertexDel(bor_mesh3_vertex_t *v);
 
 
 /**
  * Sets pointer to user-defined vec3 coordinates.
  */
-_fer_inline void ferMesh3VertexSetCoords(fer_mesh3_vertex_t *v,
-                                         const fer_vec3_t *coords);
+_fer_inline void ferMesh3VertexSetCoords(bor_mesh3_vertex_t *v,
+                                         const bor_vec3_t *coords);
 
 /**
  * Returns pointer to vector representing coordinates of vertex.
  */
-_fer_inline const fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v);
+_fer_inline const bor_vec3_t *ferMesh3VertexCoords(bor_mesh3_vertex_t *v);
 
 /**
  * Returns writeable pointer to vec3 coordinates.
  */
-_fer_inline fer_vec3_t *ferMesh3VertexCoordsW(fer_mesh3_vertex_t *v);
+_fer_inline bor_vec3_t *ferMesh3VertexCoordsW(bor_mesh3_vertex_t *v);
 
 /**
  * Returns number of edges incidenting with given vertex.
  */
-_fer_inline size_t ferMesh3VertexEdgesLen(const fer_mesh3_vertex_t *v);
+_fer_inline size_t ferMesh3VertexEdgesLen(const bor_mesh3_vertex_t *v);
 
 /**
  * Returns head of list of edges incidenting with vertex.
  */
-_fer_inline fer_list_t *ferMesh3VertexEdges(fer_mesh3_vertex_t *v);
+_fer_inline bor_list_t *ferMesh3VertexEdges(bor_mesh3_vertex_t *v);
 
 /**
  * Returns true if vertex incidents with given edge.
  */
-_fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
-                                      const fer_mesh3_edge_t *e);
+_fer_inline int ferMesh3VertexHasEdge(const bor_mesh3_vertex_t *v,
+                                      const bor_mesh3_edge_t *e);
 
 /**
  * Returns edge (first) connecting given pair of vertices.
  */
-fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
-                                           const fer_mesh3_vertex_t *v2);
+bor_mesh3_edge_t *ferMesh3VertexCommonEdge(const bor_mesh3_vertex_t *v1,
+                                           const bor_mesh3_vertex_t *v2);
 
 
 /**
@@ -195,24 +195,24 @@ fer_mesh3_edge_t *ferMesh3VertexCommonEdge(const fer_mesh3_vertex_t *v1,
  * initialization function it is not safe to use any ferMesh3Edge*()
  * function until it's added to mesh.
  *
- * See fer_mesh3_edge_t.
+ * See bor_mesh3_edge_t.
  */
 
 /**
  * Allocates and initializes edge.
  */
-fer_mesh3_edge_t *ferMesh3EdgeNew(void);
+bor_mesh3_edge_t *ferMesh3EdgeNew(void);
 
 /**
  * Deletes edge.
  */
-void ferMesh3EdgeDel(fer_mesh3_edge_t *e);
+void ferMesh3EdgeDel(bor_mesh3_edge_t *e);
 
 /**
  * Returns start or end point of edge.
  * Parameter i can be either 0 or 1 (no check is performed).
  */
-_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i);
+_fer_inline bor_mesh3_vertex_t *ferMesh3EdgeVertex(bor_mesh3_edge_t *e, size_t i);
 
 /**
  * Returns incidenting face.
@@ -220,55 +220,55 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i
  * can be 0 or 1.
  * No checking of i is performed!
  */
-_fer_inline fer_mesh3_face_t *ferMesh3EdgeFace(fer_mesh3_edge_t *e, size_t i);
+_fer_inline bor_mesh3_face_t *ferMesh3EdgeFace(bor_mesh3_edge_t *e, size_t i);
 
 /**
  * Returns the other face than given.
  */
-_fer_inline fer_mesh3_face_t *ferMesh3EdgeOtherFace(fer_mesh3_edge_t *e,
-                                                    fer_mesh3_face_t *f);
+_fer_inline bor_mesh3_face_t *ferMesh3EdgeOtherFace(bor_mesh3_edge_t *e,
+                                                    bor_mesh3_face_t *f);
 
 /**
  * Returns true if edge incidents with given vertex.
  */
-_fer_inline int ferMesh3EdgeHasVertex(const fer_mesh3_edge_t *e,
-                                      const fer_mesh3_vertex_t *v);
+_fer_inline int ferMesh3EdgeHasVertex(const bor_mesh3_edge_t *e,
+                                      const bor_mesh3_vertex_t *v);
 
 /**
  * Returns true if edge incidents with given face.
  */
-_fer_inline int ferMesh3EdgeHasFace(const fer_mesh3_edge_t *e,
-                                    const fer_mesh3_face_t *f);
+_fer_inline int ferMesh3EdgeHasFace(const bor_mesh3_edge_t *e,
+                                    const bor_mesh3_face_t *f);
 
 /**
  * Returns number of incidenting faces.
  */
-_fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e);
+_fer_inline size_t ferMesh3EdgeFacesLen(const bor_mesh3_edge_t *e);
 
 
 /**
  * Returns the other (start/end) vertex than provided.
  */
-_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
-                                                        const fer_mesh3_vertex_t *v);
+_fer_inline bor_mesh3_vertex_t *ferMesh3EdgeOtherVertex(bor_mesh3_edge_t *e,
+                                                        const bor_mesh3_vertex_t *v);
 
 /**
  * Returns true if given triplet of edges form triangle.
  */
-int ferMesh3EdgeTriCheck(const fer_mesh3_edge_t *e1,
-                         const fer_mesh3_edge_t *e2,
-                         const fer_mesh3_edge_t *e3);
+int ferMesh3EdgeTriCheck(const bor_mesh3_edge_t *e1,
+                         const bor_mesh3_edge_t *e2,
+                         const bor_mesh3_edge_t *e3);
 
 /**
  * Return pointer of edge struct based on list item (pointer to vlist[0|1].
  */
-_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l);
+_fer_inline bor_mesh3_edge_t *ferMesh3EdgeFromVertexList(bor_list_t *l);
 
 
 /**
  * Swaps end vertices of edge.
  */
-_fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e);
+_fer_inline void ferMesh3EdgeSwapVertices(bor_mesh3_edge_t *e);
 
 
 /**
@@ -277,18 +277,18 @@ _fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e);
  *
  * Same as with edges - faces don't have to be initialized.
  *
- * See fer_mesh3_face_t.
+ * See bor_mesh3_face_t.
  */
 
 /**
  * Allocates and initializes new face.
  */
-fer_mesh3_face_t *ferMesh3FaceNew(void);
+bor_mesh3_face_t *ferMesh3FaceNew(void);
 
 /**
  * Deletes face.
  */
-void ferMesh3FaceDel(fer_mesh3_face_t *f);
+void ferMesh3FaceDel(bor_mesh3_face_t *f);
 
 /**
  * Returns incidenting edge.
@@ -296,38 +296,38 @@ void ferMesh3FaceDel(fer_mesh3_face_t *f);
  * incidenting edges.
  * No check of parameters is performed.
  */
-_fer_inline fer_mesh3_edge_t *ferMesh3FaceEdge(fer_mesh3_face_t *f, size_t i);
+_fer_inline bor_mesh3_edge_t *ferMesh3FaceEdge(bor_mesh3_face_t *f, size_t i);
 
 /**
  * Returns true if face incidents with given edge.
  */
-_fer_inline int ferMesh3FaceHasEdge(const fer_mesh3_face_t *f,
-                                    const fer_mesh3_edge_t *e);
+_fer_inline int ferMesh3FaceHasEdge(const bor_mesh3_face_t *f,
+                                    const bor_mesh3_edge_t *e);
 
 /**
  * Returns true if face incidents with given vertex.
  */
-_fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
-                                      const fer_mesh3_vertex_t *v);
+_fer_inline int ferMesh3FaceHasVertex(const bor_mesh3_face_t *f,
+                                      const bor_mesh3_vertex_t *v);
 
 /**
  * Retuns three incidenting vertices (via vs argument).
  * Note that ns must be preallocated array of size 3.
  */
-_fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
-                                      fer_mesh3_vertex_t **vs);
+_fer_inline void ferMesh3FaceVertices(bor_mesh3_face_t *f,
+                                      bor_mesh3_vertex_t **vs);
 
 /**
  * Returns twice an area of a face.
  */
-_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f);
+_fer_inline bor_real_t ferMesh3FaceArea2(const bor_mesh3_face_t *f);
 
 /**
  * Returns the last vertex bounding the face.
  */
-_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
-                                                        fer_mesh3_vertex_t *v1,
-                                                        fer_mesh3_vertex_t *v2);
+_fer_inline bor_mesh3_vertex_t *ferMesh3FaceOtherVertex(bor_mesh3_face_t *f,
+                                                        bor_mesh3_vertex_t *v1,
+                                                        bor_mesh3_vertex_t *v2);
 
 /**
  * Mesh
@@ -341,11 +341,11 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
  *
  * For iteration over vertices use this approach:
  * ~~~~
- *   // note: mesh hold pointer to fer_mesh3_t
- *   fer_list_t *item;
- *   fer_mesh3_vertex_t *v;
+ *   // note: mesh hold pointer to bor_mesh3_t
+ *   bor_list_t *item;
+ *   bor_mesh3_vertex_t *v;
  *   FER_LIST_FOR_EACH(ferMesh3Vertices(mesh), item) {
- *       v = FER_LIST_ENTRY(item, fer_mesh3_vertex_t, list);
+ *       v = FER_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
  *       // here you have vertex stored in v
  *       ...
  *   }
@@ -361,13 +361,13 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
  *       edges and faces.
  *
  *
- * See fer_mesh3_t.
+ * See bor_mesh3_t.
  */
 
 /**
  * Creates new empty mesh.
  */
-fer_mesh3_t *ferMesh3New(void);
+bor_mesh3_t *ferMesh3New(void);
 
 /**
  * Deletes mesh.
@@ -375,7 +375,7 @@ fer_mesh3_t *ferMesh3New(void);
  * allocated outside a mesh! See ferMesh3Del2() if you want more
  * sofisticated destructor.
  */
-void ferMesh3Del(fer_mesh3_t *m);
+void ferMesh3Del(bor_mesh3_t *m);
 
 /**
  * Deletes mesh. This destructor can used for deleting all vertices, edges
@@ -385,66 +385,66 @@ void ferMesh3Del(fer_mesh3_t *m);
  * vertex is first disconnected from mesh and then delvertex is called with
  * second argument vdata. Similarly are iterated edges and faces.
  */
-void ferMesh3Del2(fer_mesh3_t *m,
-                  void (*delvertex)(fer_mesh3_vertex_t *, void *), void *vdata,
-                  void (*deledge)(fer_mesh3_edge_t *, void *), void *edata,
-                  void (*delface)(fer_mesh3_face_t *, void *), void *fdata);
+void ferMesh3Del2(bor_mesh3_t *m,
+                  void (*delvertex)(bor_mesh3_vertex_t *, void *), void *vdata,
+                  void (*deledge)(bor_mesh3_edge_t *, void *), void *edata,
+                  void (*delface)(bor_mesh3_face_t *, void *), void *fdata);
 
 /**
  * Returns number of vertices stored in mesh.
  */
-_fer_inline size_t ferMesh3VerticesLen(const fer_mesh3_t *m);
+_fer_inline size_t ferMesh3VerticesLen(const bor_mesh3_t *m);
 
 /**
  * Returns number of edges stored in mesh.
  */
-_fer_inline size_t ferMesh3EdgesLen(const fer_mesh3_t *m);
+_fer_inline size_t ferMesh3EdgesLen(const bor_mesh3_t *m);
 
 /**
  * Returns number of faces stored in mesh.
  */
-_fer_inline size_t ferMesh3FacesLen(const fer_mesh3_t *m);
+_fer_inline size_t ferMesh3FacesLen(const bor_mesh3_t *m);
 
 /**
  * Returns list of vertices.
  */
-_fer_inline fer_list_t *ferMesh3Vertices(fer_mesh3_t *m);
+_fer_inline bor_list_t *ferMesh3Vertices(bor_mesh3_t *m);
 
 /**
  * Returns list of edges.
  */
-_fer_inline fer_list_t *ferMesh3Edges(fer_mesh3_t *m);
+_fer_inline bor_list_t *ferMesh3Edges(bor_mesh3_t *m);
 
 /**
  * Returns list of faces.
  */
-_fer_inline fer_list_t *ferMesh3Faces(fer_mesh3_t *m);
+_fer_inline bor_list_t *ferMesh3Faces(bor_mesh3_t *m);
 
 
 /**
  * Adds vertex into mesh.
  */
-void ferMesh3AddVertex(fer_mesh3_t *m, fer_mesh3_vertex_t *v);
+void ferMesh3AddVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v);
 
 /**
  * Removes vertex into mesh.
  * If vertex is connected with any edge, vertex can't be removed and -1 is
  * returned. On success 0 is returned.
  */
-int ferMesh3RemoveVertex(fer_mesh3_t *m, fer_mesh3_vertex_t *v);
+int ferMesh3RemoveVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v);
 
 /**
  * Adds edge into mesh. Start and end points (vertices) must be provided.
  */
-void ferMesh3AddEdge(fer_mesh3_t *m, fer_mesh3_edge_t *e,
-                     fer_mesh3_vertex_t *start, fer_mesh3_vertex_t *end);
+void ferMesh3AddEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e,
+                     bor_mesh3_vertex_t *start, bor_mesh3_vertex_t *end);
 
 /**
  * Removes edge from mesh.
  * If edge incidents with any face, edge can't be removed and -1 is
  * returned. On success 0 is returned.
  */
-int ferMesh3RemoveEdge(fer_mesh3_t *m, fer_mesh3_edge_t *e);
+int ferMesh3RemoveEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e);
 
 /**
  * Adds face into mesh. Three incidenting faces must be provided.
@@ -454,72 +454,72 @@ int ferMesh3RemoveEdge(fer_mesh3_t *m, fer_mesh3_edge_t *e);
  * The three provided edges should form triangle (by start and end points),
  * note that check if it is so is not performed! - see ferMesh3EdgeTriCheck()
  */
-int ferMesh3AddFace(fer_mesh3_t *m, fer_mesh3_face_t *f,
-                    fer_mesh3_edge_t *e1, fer_mesh3_edge_t *e2,
-                    fer_mesh3_edge_t *e3);
+int ferMesh3AddFace(bor_mesh3_t *m, bor_mesh3_face_t *f,
+                    bor_mesh3_edge_t *e1, bor_mesh3_edge_t *e2,
+                    bor_mesh3_edge_t *e3);
 
 /**
  * Removes face from mesh.
  * Note that this function can never fail.
  */
-void ferMesh3RemoveFace(fer_mesh3_t *m, fer_mesh3_face_t *f);
+void ferMesh3RemoveFace(bor_mesh3_t *m, bor_mesh3_face_t *f);
 
 /**
  * Dumps mesh as one object in SVT format.
  * See http://svt.danfis.cz for more info.
  */
-void ferMesh3DumpSVT(fer_mesh3_t *m, FILE *out, const char *name);
+void ferMesh3DumpSVT(bor_mesh3_t *m, FILE *out, const char *name);
 
 /**
  * Dumps mesh as list of triangles.
  * One triangle per line (ax ay az bx by ...)
  */
-void ferMesh3DumpTriangles(fer_mesh3_t *m, FILE *out);
+void ferMesh3DumpTriangles(bor_mesh3_t *m, FILE *out);
 
 /**
  * Dumps mesh in povray format.
  */
-void ferMesh3DumpPovray(fer_mesh3_t *m, FILE *out);
+void ferMesh3DumpPovray(bor_mesh3_t *m, FILE *out);
 
 
 
 /**** INLINES ****/
-_fer_inline void ferMesh3VertexSetCoords(fer_mesh3_vertex_t *v,
-                                         const fer_vec3_t *coords)
+_fer_inline void ferMesh3VertexSetCoords(bor_mesh3_vertex_t *v,
+                                         const bor_vec3_t *coords)
 {
     v->v = coords;
 }
 
-_fer_inline const fer_vec3_t *ferMesh3VertexCoords(fer_mesh3_vertex_t *v)
+_fer_inline const bor_vec3_t *ferMesh3VertexCoords(bor_mesh3_vertex_t *v)
 {
     return v->v;
 }
 
-_fer_inline fer_vec3_t *ferMesh3VertexCoordsW(fer_mesh3_vertex_t *v)
+_fer_inline bor_vec3_t *ferMesh3VertexCoordsW(bor_mesh3_vertex_t *v)
 {
-    return (fer_vec3_t *)v->v;
+    return (bor_vec3_t *)v->v;
 }
 
-_fer_inline size_t ferMesh3VertexEdgesLen(const fer_mesh3_vertex_t *v)
+_fer_inline size_t ferMesh3VertexEdgesLen(const bor_mesh3_vertex_t *v)
 {
     return v->edges_len;
 }
 
-_fer_inline fer_list_t *ferMesh3VertexEdges(fer_mesh3_vertex_t *v)
+_fer_inline bor_list_t *ferMesh3VertexEdges(bor_mesh3_vertex_t *v)
 {
     return &v->edges;
 }
 
-_fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
-                                      const fer_mesh3_edge_t *e)
+_fer_inline int ferMesh3VertexHasEdge(const bor_mesh3_vertex_t *v,
+                                      const bor_mesh3_edge_t *e)
 {
-    fer_list_t *item;
-    fer_list_m_t *mitem;
-    fer_mesh3_edge_t *edge;
+    bor_list_t *item;
+    bor_list_m_t *mitem;
+    bor_mesh3_edge_t *edge;
 
     FER_LIST_FOR_EACH(&v->edges, item){
         mitem = ferListMFromList(item);
-        edge = FER_LIST_M_ENTRY(item, fer_mesh3_edge_t, vlist, mitem->mark);
+        edge = FER_LIST_M_ENTRY(item, bor_mesh3_edge_t, vlist, mitem->mark);
         if (edge == e)
             return 1;
     }
@@ -531,37 +531,37 @@ _fer_inline int ferMesh3VertexHasEdge(const fer_mesh3_vertex_t *v,
 
 
 
-_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeVertex(fer_mesh3_edge_t *e, size_t i)
+_fer_inline bor_mesh3_vertex_t *ferMesh3EdgeVertex(bor_mesh3_edge_t *e, size_t i)
 {
     return e->v[i];
 }
 
-_fer_inline fer_mesh3_face_t *ferMesh3EdgeFace(fer_mesh3_edge_t *e, size_t i)
+_fer_inline bor_mesh3_face_t *ferMesh3EdgeFace(bor_mesh3_edge_t *e, size_t i)
 {
     return e->f[i];
 }
 
-_fer_inline fer_mesh3_face_t *ferMesh3EdgeOtherFace(fer_mesh3_edge_t *e,
-                                                    fer_mesh3_face_t *f)
+_fer_inline bor_mesh3_face_t *ferMesh3EdgeOtherFace(bor_mesh3_edge_t *e,
+                                                    bor_mesh3_face_t *f)
 {
     if (e->f[0] == f)
         return e->f[1];
     return e->f[0];
 }
 
-_fer_inline int ferMesh3EdgeHasVertex(const fer_mesh3_edge_t *e,
-                                      const fer_mesh3_vertex_t *v)
+_fer_inline int ferMesh3EdgeHasVertex(const bor_mesh3_edge_t *e,
+                                      const bor_mesh3_vertex_t *v)
 {
     return e->v[0] == v || e->v[1] == v;
 }
 
-_fer_inline int ferMesh3EdgeHasFace(const fer_mesh3_edge_t *e,
-                                    const fer_mesh3_face_t *f)
+_fer_inline int ferMesh3EdgeHasFace(const bor_mesh3_edge_t *e,
+                                    const bor_mesh3_face_t *f)
 {
     return e->f[0] == f || e->f[1] == f;
 }
 
-_fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e)
+_fer_inline size_t ferMesh3EdgeFacesLen(const bor_mesh3_edge_t *e)
 {
     if (e->f[0] == NULL){
         if (e->f[1] == NULL)
@@ -574,28 +574,28 @@ _fer_inline size_t ferMesh3EdgeFacesLen(const fer_mesh3_edge_t *e)
     }
 }
 
-_fer_inline fer_mesh3_vertex_t *ferMesh3EdgeOtherVertex(fer_mesh3_edge_t *e,
-                                                        const fer_mesh3_vertex_t *v)
+_fer_inline bor_mesh3_vertex_t *ferMesh3EdgeOtherVertex(bor_mesh3_edge_t *e,
+                                                        const bor_mesh3_vertex_t *v)
 {
     if (e->v[0] == v)
         return e->v[1];
     return e->v[0];
 }
 
-_fer_inline fer_mesh3_edge_t *ferMesh3EdgeFromVertexList(fer_list_t *l)
+_fer_inline bor_mesh3_edge_t *ferMesh3EdgeFromVertexList(bor_list_t *l)
 {
-    fer_list_m_t *m;
-    fer_mesh3_edge_t *e;
+    bor_list_m_t *m;
+    bor_mesh3_edge_t *e;
 
     m = ferListMFromList(l);
-    e = FER_LIST_M_ENTRY(l, fer_mesh3_edge_t, vlist, m->mark);
+    e = FER_LIST_M_ENTRY(l, bor_mesh3_edge_t, vlist, m->mark);
 
     return e;
 }
 
-_fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e)
+_fer_inline void ferMesh3EdgeSwapVertices(bor_mesh3_edge_t *e)
 {
-    fer_mesh3_vertex_t *tmp;
+    bor_mesh3_vertex_t *tmp;
 
     tmp = e->v[0];
     e->v[0] = e->v[1];
@@ -604,31 +604,31 @@ _fer_inline void ferMesh3EdgeSwapVertices(fer_mesh3_edge_t *e)
 
 
 
-_fer_inline fer_mesh3_edge_t *ferMesh3FaceEdge(fer_mesh3_face_t *f, size_t i)
+_fer_inline bor_mesh3_edge_t *ferMesh3FaceEdge(bor_mesh3_face_t *f, size_t i)
 {
     return f->e[i];
 }
 
-_fer_inline int ferMesh3FaceHasEdge(const fer_mesh3_face_t *f,
-                                    const fer_mesh3_edge_t *e)
+_fer_inline int ferMesh3FaceHasEdge(const bor_mesh3_face_t *f,
+                                    const bor_mesh3_edge_t *e)
 {
     return f->e[0] == e
             || f->e[1] == e
             || f->e[2] == e;
 }
 
-_fer_inline int ferMesh3FaceHasVertex(const fer_mesh3_face_t *f,
-                                      const fer_mesh3_vertex_t *v)
+_fer_inline int ferMesh3FaceHasVertex(const bor_mesh3_face_t *f,
+                                      const bor_mesh3_vertex_t *v)
 {
-    fer_mesh3_vertex_t *vs[3];
-    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+    bor_mesh3_vertex_t *vs[3];
+    ferMesh3FaceVertices((bor_mesh3_face_t *)f, vs);
     return vs[0] == v || vs[1] == v || vs[2] == v;
 }
 
-_fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
-                                      fer_mesh3_vertex_t **vs)
+_fer_inline void ferMesh3FaceVertices(bor_mesh3_face_t *f,
+                                      bor_mesh3_vertex_t **vs)
 {
-    fer_mesh3_vertex_t *n;
+    bor_mesh3_vertex_t *n;
 
     vs[0] = ferMesh3EdgeVertex(f->e[0], 0);
     vs[1] = ferMesh3EdgeVertex(f->e[0], 1);
@@ -641,20 +641,20 @@ _fer_inline void ferMesh3FaceVertices(fer_mesh3_face_t *f,
     }
 }
 
-_fer_inline fer_real_t ferMesh3FaceArea2(const fer_mesh3_face_t *f)
+_fer_inline bor_real_t ferMesh3FaceArea2(const bor_mesh3_face_t *f)
 {
-    fer_mesh3_vertex_t *vs[3];
-    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+    bor_mesh3_vertex_t *vs[3];
+    ferMesh3FaceVertices((bor_mesh3_face_t *)f, vs);
     return ferVec3TriArea2(vs[0]->v, vs[1]->v, vs[2]->v);
 }
 
-_fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
-                                                        fer_mesh3_vertex_t *v1,
-                                                        fer_mesh3_vertex_t *v2)
+_fer_inline bor_mesh3_vertex_t *ferMesh3FaceOtherVertex(bor_mesh3_face_t *f,
+                                                        bor_mesh3_vertex_t *v1,
+                                                        bor_mesh3_vertex_t *v2)
 {
-    fer_mesh3_vertex_t *vs[3];
+    bor_mesh3_vertex_t *vs[3];
 
-    ferMesh3FaceVertices((fer_mesh3_face_t *)f, vs);
+    ferMesh3FaceVertices((bor_mesh3_face_t *)f, vs);
 
     if (vs[0] != v1 && vs[0] != v2)
         return vs[0];
@@ -665,32 +665,32 @@ _fer_inline fer_mesh3_vertex_t *ferMesh3FaceOtherVertex(fer_mesh3_face_t *f,
 
 
 
-_fer_inline size_t ferMesh3VerticesLen(const fer_mesh3_t *m)
+_fer_inline size_t ferMesh3VerticesLen(const bor_mesh3_t *m)
 {
     return m->verts_len;
 }
 
-_fer_inline size_t ferMesh3EdgesLen(const fer_mesh3_t *m)
+_fer_inline size_t ferMesh3EdgesLen(const bor_mesh3_t *m)
 {
     return m->edges_len;
 }
 
-_fer_inline size_t ferMesh3FacesLen(const fer_mesh3_t *m)
+_fer_inline size_t ferMesh3FacesLen(const bor_mesh3_t *m)
 {
     return m->faces_len;
 }
 
-_fer_inline fer_list_t *ferMesh3Vertices(fer_mesh3_t *m)
+_fer_inline bor_list_t *ferMesh3Vertices(bor_mesh3_t *m)
 {
     return &m->verts;
 }
 
-_fer_inline fer_list_t *ferMesh3Edges(fer_mesh3_t *m)
+_fer_inline bor_list_t *ferMesh3Edges(bor_mesh3_t *m)
 {
     return &m->edges;
 }
 
-_fer_inline fer_list_t *ferMesh3Faces(fer_mesh3_t *m)
+_fer_inline bor_list_t *ferMesh3Faces(bor_mesh3_t *m)
 {
     return &m->faces;
 }

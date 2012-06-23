@@ -3,10 +3,10 @@
 
 int main(int argc, char *argv[])
 {
-    fer_timer_t timer;
-    fer_qdelaunay_t *q;
-    fer_qhull_mesh3_t *mesh;
-    fer_pc_t *pc;
+    bor_timer_t timer;
+    bor_qdelaunay_t *q;
+    bor_qhull_mesh3_t *mesh;
+    bor_pc_t *pc;
     size_t len;
 
     if (argc != 2){

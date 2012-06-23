@@ -19,23 +19,23 @@
 #include <boruvka/dbg.h>
 
 
-struct _fer_hmap_el_t {
-    fer_list_t list;
+struct _bor_hmap_el_t {
+    bor_list_t list;
     void *key;
 };
 
-static int _eq(const fer_list_t *key1, const fer_list_t *key2, void *userdata);
+static int _eq(const bor_list_t *key1, const bor_list_t *key2, void *userdata);
 
-fer_hmap_t *ferHMapNew(size_t size,
+bor_hmap_t *ferHMapNew(size_t size,
                        fer_hmap_hash_fn hash_func,
                        fer_hmap_eq_fn eq_func,
                        void *userdata)
 {
-    fer_hmap_t *hmap;
+    bor_hmap_t *hmap;
     size_t i;
 
-    hmap = FER_ALLOC(fer_hmap_t);
-    hmap->table = FER_ALLOC_ARR(fer_list_t, size);
+    hmap = FER_ALLOC(bor_hmap_t);
+    hmap->table = FER_ALLOC_ARR(bor_list_t, size);
     hmap->size = size;
 
     hmap->hash = hash_func;
@@ -52,10 +52,10 @@ fer_hmap_t *ferHMapNew(size_t size,
     return hmap;
 }
 
-void ferHMapDel(fer_hmap_t *h)
+void ferHMapDel(bor_hmap_t *h)
 {
     size_t i;
-    fer_list_t *list, *item;
+    bor_list_t *list, *item;
 
     for (i = 0; i < h->size; i++){
         list = &h->table[i];
@@ -70,7 +70,7 @@ void ferHMapDel(fer_hmap_t *h)
 }
 
 
-uint32_t ferHMapID(const fer_hmap_t *m, fer_list_t *key1)
+uint32_t ferHMapID(const bor_hmap_t *m, bor_list_t *key1)
 {
     uint32_t id;
 
@@ -80,9 +80,9 @@ uint32_t ferHMapID(const fer_hmap_t *m, fer_list_t *key1)
     return id;
 }
 
-fer_list_t *ferHMapIDGet(const fer_hmap_t *m, uint32_t id, fer_list_t *key1)
+bor_list_t *ferHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
-    fer_list_t *item;
+    bor_list_t *item;
 
     FER_LIST_FOR_EACH(&m->table[id], item){
         if (m->eq(key1, item, m->data))
@@ -92,9 +92,9 @@ fer_list_t *ferHMapIDGet(const fer_hmap_t *m, uint32_t id, fer_list_t *key1)
     return NULL;
 }
 
-int ferHMapIDRemove(fer_hmap_t *m, uint32_t id, fer_list_t *key1)
+int ferHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
-    fer_list_t *item;
+    bor_list_t *item;
 
     item = ferHMapIDGet(m, id, key1);
     if (item){
@@ -104,10 +104,10 @@ int ferHMapIDRemove(fer_hmap_t *m, uint32_t id, fer_list_t *key1)
     return -1;
 }
 
-void ferHMapGather(fer_hmap_t *m, fer_list_t *list)
+void ferHMapGather(bor_hmap_t *m, bor_list_t *list)
 {
     size_t i;
-    fer_list_t *item;
+    bor_list_t *item;
 
     for (i = 0; i < m->size; i++){
         while (!ferListEmpty(&m->table[i])){
@@ -119,7 +119,7 @@ void ferHMapGather(fer_hmap_t *m, fer_list_t *list)
 }
 
 
-static int _eq(const fer_list_t *key1, const fer_list_t *key2, void *userdata)
+static int _eq(const bor_list_t *key1, const bor_list_t *key2, void *userdata)
 {
     return key1 == key2;
 }

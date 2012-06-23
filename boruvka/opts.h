@@ -45,7 +45,7 @@ extern "C" {
  *
  * int main(int argc, char *argv[])
  * {
- *     fer_real_t opt1;
+ *     bor_real_t opt1;
  *     int help;
  *     int i;
  *
@@ -118,8 +118,8 @@ extern "C" {
 
 /**
  * Real.
- *     1. .set - [fer_real_t *]
- *     2. .callback - void (*)(const char *long_name, char short_name, fer_real_t val)
+ *     1. .set - [bor_real_t *]
+ *     2. .callback - void (*)(const char *long_name, char short_name, bor_real_t val)
  */
 #define FER_OPTS_REAL 0x03
 
@@ -139,8 +139,8 @@ extern "C" {
 
 /**
  * 2-D vector.
- *     1. .set - [fer_vec2_t *]
- *     2. .callback - void (*)(const char *long_name, char short_name, const fer_vec2_t *)
+ *     1. .set - [bor_vec2_t *]
+ *     2. .callback - void (*)(const char *long_name, char short_name, const bor_vec2_t *)
  */
 #define FER_OPTS_V2 0x06
 

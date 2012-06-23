@@ -21,42 +21,42 @@
 
 
 /** Returns subdeterminant */
-static fer_real_t ferMat4Subdet(const fer_mat4_t *m, size_t i, size_t j);
+static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j);
 
 
 static FER_MAT4(__fer_mat4_identity, FER_ONE, FER_ZERO, FER_ZERO, FER_ZERO,
                                      FER_ZERO, FER_ONE, FER_ZERO, FER_ZERO,
                                      FER_ZERO, FER_ZERO, FER_ONE, FER_ZERO,
                                      FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
-const fer_mat4_t *fer_mat4_identity = &__fer_mat4_identity;
+const bor_mat4_t *fer_mat4_identity = &__fer_mat4_identity;
 
 static FER_MAT4(__fer_mat4_zero, FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
                                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
                                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
                                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO);
-const fer_mat4_t *fer_mat4_zero = &__fer_mat4_zero;
+const bor_mat4_t *fer_mat4_zero = &__fer_mat4_zero;
 
-fer_mat4_t *ferMat4New(void)
+bor_mat4_t *ferMat4New(void)
 {
-    fer_mat4_t *m;
+    bor_mat4_t *m;
 
 #ifdef FER_SSE
-    m = FER_ALLOC_ALIGN(fer_mat4_t, 16);
+    m = FER_ALLOC_ALIGN(bor_mat4_t, 16);
 #else /* FER_SSE */
-    m = FER_ALLOC(fer_mat4_t);
+    m = FER_ALLOC(bor_mat4_t);
 #endif /* FER_SSE */
 
     return m;
 }
 
-void ferMat4Del(fer_mat4_t *m)
+void ferMat4Del(bor_mat4_t *m)
 {
     FER_FREE(m);
 }
 
-int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a)
+int ferMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a)
 {
-    fer_real_t det, invdet;
+    bor_real_t det, invdet;
     int sign;
     size_t i, j;
 
@@ -78,9 +78,9 @@ int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a)
 }
 
 
-static fer_real_t ferMat4Subdet(const fer_mat4_t *m, size_t i, size_t j)
+static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j)
 {
-    fer_mat3_t m3;
+    bor_mat3_t m3;
     size_t k, l, r, c;
 
     // copy the matrix into m3 leaving out i'th row and j'th column

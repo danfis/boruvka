@@ -33,62 +33,62 @@ extern "C" {
 /**
  * PPM image
  */
-struct _fer_image_pnmf_t {
+struct _bor_image_pnmf_t {
     uint8_t type;
     int width;
     int height;
     float *data;
 };
-typedef struct _fer_image_pnmf_t fer_image_pnmf_t;
+typedef struct _bor_image_pnmf_t bor_image_pnmf_t;
 
 /**
  * Loads PPM from file.
  */
-fer_image_pnmf_t *ferImagePNMF(const char *filename);
+bor_image_pnmf_t *ferImagePNMF(const char *filename);
 
 /**
  * Deletes PPM file.
  */
-void ferImagePNMFDel(fer_image_pnmf_t *img);
+void ferImagePNMFDel(bor_image_pnmf_t *img);
 
 /**
  * Save image as given file
  */
-void ferImagePNMFSave(fer_image_pnmf_t *img, const char *filename);
+void ferImagePNMFSave(bor_image_pnmf_t *img, const char *filename);
 
 /**
  * Returns color from (row, col) position
  */
-void ferImagePNMFGetRGB(const fer_image_pnmf_t *img, int row, int col,
+void ferImagePNMFGetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float *r, float *g, float *b);
 
 /**
  * Set color at (row, col) position
  */
-void ferImagePNMFSetRGB(const fer_image_pnmf_t *img, int row, int col,
+void ferImagePNMFSetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float r, float g, float b);
 
 /**
  * Returns color from position
  */
-void ferImagePNMFGetRGB2(const fer_image_pnmf_t *img, int pos,
+void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
                          float *r, float *g, float *b);
 
 /**
  * Set color at position
  */
-void ferImagePNMFSetRGB2(const fer_image_pnmf_t *img, int pos,
+void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
                          float r, float g, float b);
 
 /**
  * Returns gray from position
  */
-float ferImagePNMFGetGray2(const fer_image_pnmf_t *img, int pos);
+float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos);
 
 /**
  * Set gray at position
  */
-void ferImagePNMFSetGray2(const fer_image_pnmf_t *img, int pos, float gr);
+void ferImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr);
 
 #ifdef __cplusplus
 } /* extern "C" */

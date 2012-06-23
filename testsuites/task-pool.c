@@ -3,7 +3,7 @@
 #include <boruvka/vec3.h>
 #include <boruvka/dbg.h>
 
-static void taskV(int id, void *data, const fer_task_pool_thinfo_t *info)
+static void taskV(int id, void *data, const bor_task_pool_thinfo_t *info)
 {
     printf("[%02d]: ID: %d (%lx)\n", info->id, id, (long)data);
     fflush(stdout);
@@ -11,7 +11,7 @@ static void taskV(int id, void *data, const fer_task_pool_thinfo_t *info)
 
 TEST(taskpool1)
 {
-    fer_task_pool_t *t;
+    bor_task_pool_t *t;
     size_t c = 1;
 
     printf(" === taskpool1 ===\n");
@@ -42,7 +42,7 @@ TEST(taskpool1)
 
 TEST(taskpool2)
 {
-    fer_task_pool_t *t;
+    bor_task_pool_t *t;
     size_t c = 1;
 
     printf(" === taskpool2 ===\n");

@@ -48,30 +48,30 @@ extern "C" {
  * Variable Length Arrays
  * =======================
  */
-struct _fer_varr_t {
+struct _bor_varr_t {
     void *arr;
     size_t len;
     size_t alloc;
 };
-typedef struct _fer_varr_t fer_varr_t;
+typedef struct _bor_varr_t bor_varr_t;
 
 /**
  * Initializes array, {init_size} is initial number of elements and
  * {elemsize} is size (in bytes) of a single element in array.
  */
-void ferVArrInit(fer_varr_t *arr, size_t init_size, size_t elemsize);
+void ferVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize);
 
 /**
  * Free all allocated memory
  */
-void ferVArrDestroy(fer_varr_t *arr);
+void ferVArrDestroy(bor_varr_t *arr);
 
 /**
  * Expands array, factor-times more memory will be allocated.
  * Note, that "realloc" is used, so the elements can change place in the
  * memory.
  */
-void ferVArrExpand(fer_varr_t *arr, size_t factor, size_t elemsize);
+void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 
 
 /**
@@ -100,7 +100,7 @@ void ferVArrExpand(fer_varr_t *arr, size_t factor, size_t elemsize);
 #define FER_VARR_INIT(struct_name, func_name) \
     _fer_inline void func_name(struct_name *arr, size_t init_size) \
     { \
-        ferVArrInit((fer_varr_t *)arr, init_size, sizeof(*(arr)->arr)); \
+        ferVArrInit((bor_varr_t *)arr, init_size, sizeof(*(arr)->arr)); \
     }
 
 /**
@@ -111,7 +111,7 @@ void ferVArrExpand(fer_varr_t *arr, size_t factor, size_t elemsize);
 #define FER_VARR_DESTROY(struct_name, func_name) \
     _fer_inline void func_name(struct_name *arr) \
     { \
-        ferVArrDestroy((fer_varr_t *)arr); \
+        ferVArrDestroy((bor_varr_t *)arr); \
     }
 
 /**
@@ -147,7 +147,7 @@ void ferVArrExpand(fer_varr_t *arr, size_t factor, size_t elemsize);
     _fer_inline size_t func_name(struct_name *arr, type val) \
     { \
         if (arr->len == arr->alloc) \
-            ferVArrExpand((fer_varr_t *)arr, 2, sizeof(type)); \
+            ferVArrExpand((bor_varr_t *)arr, 2, sizeof(type)); \
         arr->arr[arr->len] = val; \
         return arr->len++; \
     }

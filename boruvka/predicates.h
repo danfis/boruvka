@@ -56,18 +56,18 @@ extern "C" {
  * latter one is approximate and nonrobust (but fast) version.
  */
 
-struct _fer_pred_t {
-    fer_real_t splitter; /* = 2^ceiling(p / 2) + 1.  Used to split floats in half. */
-    fer_real_t epsilon;  /* = 2^(-p). Used to estimate roundoff errors. */
+struct _bor_pred_t {
+    bor_real_t splitter; /* = 2^ceiling(p / 2) + 1.  Used to split floats in half. */
+    bor_real_t epsilon;  /* = 2^(-p). Used to estimate roundoff errors. */
 
     /* A set of coefficients used to calculate maximum roundoff errors. */
-    fer_real_t resulterrbound;
-    fer_real_t ccwerrboundA, ccwerrboundB, ccwerrboundC;
-    fer_real_t o3derrboundA, o3derrboundB, o3derrboundC;
-    fer_real_t iccerrboundA, iccerrboundB, iccerrboundC;
-    fer_real_t isperrboundA, isperrboundB, isperrboundC;
+    bor_real_t resulterrbound;
+    bor_real_t ccwerrboundA, ccwerrboundB, ccwerrboundC;
+    bor_real_t o3derrboundA, o3derrboundB, o3derrboundC;
+    bor_real_t iccerrboundA, iccerrboundB, iccerrboundC;
+    bor_real_t isperrboundA, isperrboundB, isperrboundC;
 };
-typedef struct _fer_pred_t fer_pred_t;
+typedef struct _bor_pred_t bor_pred_t;
 
 
 /**
@@ -79,7 +79,7 @@ typedef struct _fer_pred_t fer_pred_t;
  * Initialize the variables used for exact arithmetic.
  * Call this once before calling any of exact versions of functions.
  */
-void ferPredInit(fer_pred_t *pred);
+void ferPredInit(bor_pred_t *pred);
 
 
 /**
@@ -89,18 +89,18 @@ void ferPredInit(fer_pred_t *pred);
  * result is also a rough approximation of twice the signed
  * area of the triangle defined by the three points.
  */
-fer_real_t ferPredOrient2dFast(const fer_pred_t *pred,
-                               const fer_vec2_t *pa,
-                               const fer_vec2_t *pb,
-                               const fer_vec2_t *pc);
+bor_real_t ferPredOrient2dFast(const bor_pred_t *pred,
+                               const bor_vec2_t *pa,
+                               const bor_vec2_t *pb,
+                               const bor_vec2_t *pc);
 
 /**
  * This is robust and exact version of ferPredOrient2dFast().
  */
-fer_real_t ferPredOrient2d(const fer_pred_t *pred,
-                           const fer_vec2_t *pa,
-                           const fer_vec2_t *pb,
-                           const fer_vec2_t *pc);
+bor_real_t ferPredOrient2d(const bor_pred_t *pred,
+                           const bor_vec2_t *pa,
+                           const bor_vec2_t *pb,
+                           const bor_vec2_t *pc);
 
 
 /**
@@ -113,20 +113,20 @@ fer_real_t ferPredOrient2d(const fer_pred_t *pred,
  * times the signed volume of the tetrahedron defined by the
  * four points.
  */
-fer_real_t ferPredOrient3dFast(const fer_pred_t *pred,
-                               const fer_vec3_t *pa,
-                               const fer_vec3_t *pb,
-                               const fer_vec3_t *pc,
-                               const fer_vec3_t *pd);
+bor_real_t ferPredOrient3dFast(const bor_pred_t *pred,
+                               const bor_vec3_t *pa,
+                               const bor_vec3_t *pb,
+                               const bor_vec3_t *pc,
+                               const bor_vec3_t *pd);
 
 /**
  * This is robust and exact version of ferPredOrient3dFast().
  */
-fer_real_t ferPredOrient3d(const fer_pred_t *pred,
-                           const fer_vec3_t *pa,
-                           const fer_vec3_t *pb,
-                           const fer_vec3_t *pc,
-                           const fer_vec3_t *pd);
+bor_real_t ferPredOrient3d(const bor_pred_t *pred,
+                           const bor_vec3_t *pa,
+                           const bor_vec3_t *pb,
+                           const bor_vec3_t *pc,
+                           const bor_vec3_t *pd);
 
 
 /**
@@ -136,20 +136,20 @@ fer_real_t ferPredOrient3d(const fer_pred_t *pred,
  * The points pa, pb, and pc must be in counterclockwise
  * order, or the sign of the result will be reversed.
  */
-fer_real_t ferPredInCircleFast(const fer_pred_t *pred,
-                               const fer_vec2_t *pa,
-                               const fer_vec2_t *pb,
-                               const fer_vec2_t *pc,
-                               const fer_vec2_t *pd);
+bor_real_t ferPredInCircleFast(const bor_pred_t *pred,
+                               const bor_vec2_t *pa,
+                               const bor_vec2_t *pb,
+                               const bor_vec2_t *pc,
+                               const bor_vec2_t *pd);
 
 /**
  * This is robust and exact version of ferPredInCircleFast().
  */
-fer_real_t ferPredInCircle(const fer_pred_t *pred,
-                           const fer_vec2_t *pa,
-                           const fer_vec2_t *pb,
-                           const fer_vec2_t *pc,
-                           const fer_vec2_t *pd);
+bor_real_t ferPredInCircle(const bor_pred_t *pred,
+                           const bor_vec2_t *pa,
+                           const bor_vec2_t *pb,
+                           const bor_vec2_t *pc,
+                           const bor_vec2_t *pd);
 
 /**
  * Return a positive value if the point pe lies inside the
@@ -159,22 +159,22 @@ fer_real_t ferPredInCircle(const fer_pred_t *pred,
  * so that they have a positive orientation (as defined by
  * orient3d()), or the sign of the result will be reversed.
  */
-fer_real_t ferPredInSphereFast(const fer_pred_t *pred,
-                               const fer_vec3_t *pa,
-                               const fer_vec3_t *pb,
-                               const fer_vec3_t *pc,
-                               const fer_vec3_t *pd,
-                               const fer_vec3_t *pe);
+bor_real_t ferPredInSphereFast(const bor_pred_t *pred,
+                               const bor_vec3_t *pa,
+                               const bor_vec3_t *pb,
+                               const bor_vec3_t *pc,
+                               const bor_vec3_t *pd,
+                               const bor_vec3_t *pe);
 
 /**
  * This is robust and exact version of ferPredInSphereFast().
  */
-fer_real_t ferPredInSphere(const fer_pred_t *pred,
-                           const fer_vec3_t *pa,
-                           const fer_vec3_t *pb,
-                           const fer_vec3_t *pc,
-                           const fer_vec3_t *pd,
-                           const fer_vec3_t *pe);
+bor_real_t ferPredInSphere(const bor_pred_t *pred,
+                           const bor_vec3_t *pa,
+                           const bor_vec3_t *pb,
+                           const bor_vec3_t *pc,
+                           const bor_vec3_t *pd,
+                           const bor_vec3_t *pe);
 
 #ifdef __cplusplus
 } /* extern "C" */

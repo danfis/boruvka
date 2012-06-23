@@ -21,19 +21,19 @@
 #include <boruvka/dbg.h>
 
 static FER_VEC3(__fer_vec3_origin, FER_ZERO, FER_ZERO, FER_ZERO);
-const fer_vec3_t *fer_vec3_origin = &__fer_vec3_origin;
+const bor_vec3_t *fer_vec3_origin = &__fer_vec3_origin;
 
 static FER_VEC3(__fer_vec3_axis_x, FER_ONE,  FER_ZERO, FER_ZERO);
 static FER_VEC3(__fer_vec3_axis_y, FER_ZERO, FER_ONE,  FER_ZERO);
 static FER_VEC3(__fer_vec3_axis_z, FER_ZERO, FER_ZERO, FER_ONE);
 
-const fer_vec3_t *fer_vec3_axis[3] = {
+const bor_vec3_t *fer_vec3_axis[3] = {
     &__fer_vec3_axis_x,
     &__fer_vec3_axis_y,
     &__fer_vec3_axis_z
 };
 
-static fer_vec3_t points_on_sphere[] = {
+static bor_vec3_t points_on_sphere[] = {
     FER_VEC3_STATIC(FER_REAL( 0.000000), FER_REAL(-0.000000), FER_REAL(-1.000000)),
     FER_VEC3_STATIC(FER_REAL( 0.723608), FER_REAL(-0.525725), FER_REAL(-0.447219)),
     FER_VEC3_STATIC(FER_REAL(-0.276388), FER_REAL(-0.850649), FER_REAL(-0.447219)),
@@ -77,10 +77,10 @@ static fer_vec3_t points_on_sphere[] = {
     FER_VEC3_STATIC(FER_REAL(-0.425323), FER_REAL( 0.309011), FER_REAL( 0.850654)),
     FER_VEC3_STATIC(FER_REAL( 0.162456), FER_REAL( 0.499995), FER_REAL( 0.850654))
 };
-fer_vec3_t *fer_points_on_sphere = points_on_sphere;
-size_t fer_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(fer_vec3_t);
+bor_vec3_t *fer_points_on_sphere = points_on_sphere;
+size_t fer_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(bor_vec3_t);
 
-_fer_inline fer_real_t _ferVec3ACos(fer_real_t angle)
+_fer_inline bor_real_t _ferVec3ACos(bor_real_t angle)
 {
     if (ferEq(angle, FER_ONE) || angle > FER_ONE)
         angle = FER_ONE;
@@ -97,46 +97,46 @@ _fer_inline fer_real_t _ferVec3ACos(fer_real_t angle)
 }
 
 
-fer_vec3_t *ferVec3New(fer_real_t x, fer_real_t y, fer_real_t z)
+bor_vec3_t *ferVec3New(bor_real_t x, bor_real_t y, bor_real_t z)
 {
-    fer_vec3_t *v;
+    bor_vec3_t *v;
 
 #ifdef FER_SSE
-    v = FER_ALLOC_ALIGN(fer_vec3_t, 16);
+    v = FER_ALLOC_ALIGN(bor_vec3_t, 16);
 #else /* FER_SSE */
-    v = FER_ALLOC(fer_vec3_t);
+    v = FER_ALLOC(bor_vec3_t);
 #endif /* FER_SSE */
     ferVec3Set(v, x, y, z);
     return v;
 }
 
-void ferVec3Del(fer_vec3_t *v)
+void ferVec3Del(bor_vec3_t *v)
 {
     FER_FREE(v);
 }
 
-fer_vec3_t *ferVec3ArrNew(size_t num_vecs)
+bor_vec3_t *ferVec3ArrNew(size_t num_vecs)
 {
-    fer_vec3_t *vs;
+    bor_vec3_t *vs;
 
 #ifdef FER_SSE
-    vs = FER_ALLOC_ALIGN_ARR(fer_vec3_t, num_vecs, sizeof(fer_vec3_t));
+    vs = FER_ALLOC_ALIGN_ARR(bor_vec3_t, num_vecs, sizeof(bor_vec3_t));
 #else /* FER_SSE */
-    vs = FER_ALLOC_ARR(fer_vec3_t, num_vecs);
+    vs = FER_ALLOC_ARR(bor_vec3_t, num_vecs);
 #endif /* FER_SSE */
 
     return vs;
 }
 
-void ferVec3ArrDel(fer_vec3_t *v)
+void ferVec3ArrDel(bor_vec3_t *v)
 {
     FER_FREE(v);
 }
 
-_fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,
-                                               const fer_vec3_t *x0,
-                                               const fer_vec3_t *b,
-                                               fer_vec3_t *witness)
+_fer_inline bor_real_t __ferVec3PointSegmentDist2(const bor_vec3_t *P,
+                                               const bor_vec3_t *x0,
+                                               const bor_vec3_t *b,
+                                               bor_vec3_t *witness)
 {
     // The computation comes from solving equation of segment:
     //      S(t) = x0 + t.d
@@ -153,8 +153,8 @@ _fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,
     //
     // Bonus of this method is witness point for free.
 
-    fer_real_t dist, t;
-    fer_vec3_t d, a;
+    bor_real_t dist, t;
+    bor_vec3_t d, a;
 
     // direction of segment
     ferVec3Sub2(&d, b, x0);
@@ -190,15 +190,15 @@ _fer_inline fer_real_t __ferVec3PointSegmentDist2(const fer_vec3_t *P,
     return dist;
 }
 
-fer_real_t ferVec3PointSegmentDist2(const fer_vec3_t *P,
-                                    const fer_vec3_t *x0, const fer_vec3_t *b,
-                                    fer_vec3_t *witness)
+bor_real_t ferVec3PointSegmentDist2(const bor_vec3_t *P,
+                                    const bor_vec3_t *x0, const bor_vec3_t *b,
+                                    bor_vec3_t *witness)
 {
     return __ferVec3PointSegmentDist2(P, x0, b, witness);
 }
 
 
-_fer_inline fer_real_t __clamp(fer_real_t n, fer_real_t min, fer_real_t max)
+_fer_inline bor_real_t __clamp(bor_real_t n, bor_real_t min, bor_real_t max)
 {
     if (n < min)
         return min;
@@ -207,17 +207,17 @@ _fer_inline fer_real_t __clamp(fer_real_t n, fer_real_t min, fer_real_t max)
     return n;
 }
 
-fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *A, const fer_vec3_t *B,
-                                      const fer_vec3_t *C, const fer_vec3_t *D,
-                                      fer_vec3_t *witness1,
-                                      fer_vec3_t *witness2,
+bor_real_t ferVec3SegmentSegmentDist2(const bor_vec3_t *A, const bor_vec3_t *B,
+                                      const bor_vec3_t *C, const bor_vec3_t *D,
+                                      bor_vec3_t *witness1,
+                                      bor_vec3_t *witness2,
                                       int *parallel)
 {
     /** Taken from "orange" book, 5.1.9 */
 
-    fer_vec3_t d1, d2, r;
-    fer_real_t a, b, c, denom, e, f;
-    fer_real_t s, t;
+    bor_vec3_t d1, d2, r;
+    bor_real_t a, b, c, denom, e, f;
+    bor_real_t s, t;
 
     // direction vector of segment AB and segment CD
     ferVec3Sub2(&d1, B, A);
@@ -304,10 +304,10 @@ fer_real_t ferVec3SegmentSegmentDist2(const fer_vec3_t *A, const fer_vec3_t *B,
 }
 
 
-fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
-                              const fer_vec3_t *x0, const fer_vec3_t *B,
-                              const fer_vec3_t *C,
-                              fer_vec3_t *witness)
+bor_real_t ferVec3PointTriDist2(const bor_vec3_t *P,
+                              const bor_vec3_t *x0, const bor_vec3_t *B,
+                              const bor_vec3_t *C,
+                              bor_vec3_t *witness)
 {
     // Computation comes from analytic expression for triangle (x0, B, C)
     //      T(s, t) = x0 + s.d1 + t.d2, where d1 = B - x0 and d2 = C - x0 and
@@ -318,10 +318,10 @@ fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
     // between 0 and 1 and t + s < 1, otherwise distance from segment is
     // computed.
 
-    fer_vec3_t d1, d2, a;
-    fer_real_t u, v, w, p, q, r;
-    fer_real_t s, t, dist, dist2;
-    fer_vec3_t witness2;
+    bor_vec3_t d1, d2, a;
+    bor_real_t u, v, w, p, q, r;
+    bor_real_t s, t, dist, dist2;
+    bor_vec3_t witness2;
 
     ferVec3Sub2(&d1, B, x0);
     ferVec3Sub2(&d2, C, x0);
@@ -380,13 +380,13 @@ fer_real_t ferVec3PointTriDist2(const fer_vec3_t *P,
     return dist;
 }
 
-int ferVec3PointInTri(const fer_vec3_t *p,
-                     const fer_vec3_t *a, const fer_vec3_t *b,
-                     const fer_vec3_t *c)
+int ferVec3PointInTri(const bor_vec3_t *p,
+                     const bor_vec3_t *a, const bor_vec3_t *b,
+                     const bor_vec3_t *c)
 {
-    fer_vec3_t v0, v1, v2;
-    fer_real_t dot00, dot01, dot02, dot11, dot12;
-    fer_real_t inv_denom, u, v;
+    bor_vec3_t v0, v1, v2;
+    bor_real_t dot00, dot01, dot02, dot11, dot12;
+    bor_real_t inv_denom, u, v;
 
     // compute vectors
     ferVec3Sub2(&v0, c, a);
@@ -411,10 +411,10 @@ int ferVec3PointInTri(const fer_vec3_t *p,
             && (u + v < FER_ONE || ferEq(u + v, FER_ONE));
 }
 
-fer_real_t ferVec3Angle(const fer_vec3_t *a, const fer_vec3_t *b, const fer_vec3_t *c)
+bor_real_t ferVec3Angle(const bor_vec3_t *a, const bor_vec3_t *b, const bor_vec3_t *c)
 {
-    fer_real_t angle, div;
-    fer_real_t abx, aby, abz, cbx, cby, cbz;
+    bor_real_t angle, div;
+    bor_real_t abx, aby, abz, cbx, cby, cbz;
 
     abx = ferVec3X(a) - ferVec3X(b);
     aby = ferVec3Y(a) - ferVec3Y(b);
@@ -435,12 +435,12 @@ fer_real_t ferVec3Angle(const fer_vec3_t *a, const fer_vec3_t *b, const fer_vec3
     return _ferVec3ACos(angle);
 }
 
-fer_real_t ferVec3DihedralAngle(const fer_vec3_t *a, const fer_vec3_t *b,
-                              const fer_vec3_t *c, const fer_vec3_t *d)
+bor_real_t ferVec3DihedralAngle(const bor_vec3_t *a, const bor_vec3_t *b,
+                              const bor_vec3_t *c, const bor_vec3_t *d)
 {
-    fer_vec3_t base, v;
-    fer_vec3_t na, nb;
-    fer_real_t angle;
+    bor_vec3_t base, v;
+    bor_vec3_t na, nb;
+    bor_real_t angle;
 
     // get normal vec3tors of planes
     ferVec3Sub2(&base, c, b);
@@ -459,11 +459,11 @@ fer_real_t ferVec3DihedralAngle(const fer_vec3_t *a, const fer_vec3_t *b,
     return _ferVec3ACos(angle);
 }
 
-fer_real_t ferVec3ProjToPlane(const fer_vec3_t *p,
-                            const fer_vec3_t *u, const fer_vec3_t *v,
-                            const fer_vec3_t *w, fer_vec3_t *d)
+bor_real_t ferVec3ProjToPlane(const bor_vec3_t *p,
+                            const bor_vec3_t *u, const bor_vec3_t *v,
+                            const bor_vec3_t *w, bor_vec3_t *d)
 {
-    fer_vec3_t uv, wv, normal;
+    bor_vec3_t uv, wv, normal;
 
     // uv = u - v, wv = w - v
     ferVec3Sub2(&uv, u, v);
@@ -484,12 +484,12 @@ fer_real_t ferVec3ProjToPlane(const fer_vec3_t *p,
     return ferVec3ProjToPlane2(p, v, &normal, d);
 }
 
-fer_real_t ferVec3ProjToPlane2(const fer_vec3_t *p,
-                             const fer_vec3_t *x, const fer_vec3_t *normal,
-                             fer_vec3_t *d)
+bor_real_t ferVec3ProjToPlane2(const bor_vec3_t *p,
+                             const bor_vec3_t *x, const bor_vec3_t *normal,
+                             bor_vec3_t *d)
 {
-    fer_real_t k;
-    fer_vec3_t xp;
+    bor_real_t k;
+    bor_vec3_t xp;
 
     ferVec3Sub2(&xp, x, p);
     k  = ferVec3Dot(&xp, normal);
@@ -504,11 +504,11 @@ fer_real_t ferVec3ProjToPlane2(const fer_vec3_t *p,
     return k;
 }
 
-fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
-                         const fer_vec3_t *c)
+bor_real_t ferVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
+                         const bor_vec3_t *c)
 {
-    fer_vec3_t ba, bc, babc;
-    fer_real_t area;
+    bor_vec3_t ba, bc, babc;
+    bor_real_t area;
 
     ferVec3Sub2(&ba, a, b);
     ferVec3Sub2(&bc, c, b);
@@ -583,18 +583,18 @@ fer_real_t ferVec3TriArea2(const fer_vec3_t *a, const fer_vec3_t *b,
     }
 
 
-_fer_inline int __overlapCoplanar(const fer_vec3_t *_p1,
-                                  const fer_vec3_t *_q1,
-                                  const fer_vec3_t *_r1,
-                                  const fer_vec3_t *_p2,
-                                  const fer_vec3_t *_q2,
-                                  const fer_vec3_t *_r2,
-                                  const fer_vec3_t *n1,
-                                  const fer_vec3_t *n2)
+_fer_inline int __overlapCoplanar(const bor_vec3_t *_p1,
+                                  const bor_vec3_t *_q1,
+                                  const bor_vec3_t *_r1,
+                                  const bor_vec3_t *_p2,
+                                  const bor_vec3_t *_q2,
+                                  const bor_vec3_t *_r2,
+                                  const bor_vec3_t *n1,
+                                  const bor_vec3_t *n2)
 {
-    fer_vec2_t p1, q1, r1;
-    fer_vec2_t p2, q2, r2;
-    fer_real_t n_x, n_y, n_z;
+    bor_vec2_t p1, q1, r1;
+    bor_vec2_t p2, q2, r2;
+    bor_real_t n_x, n_y, n_z;
 
     n_x = FER_FABS(ferVec3X(n1));
     n_y = FER_FABS(ferVec3Y(n1));
@@ -636,14 +636,14 @@ _fer_inline int __overlapCoplanar(const fer_vec3_t *_p1,
                                 &p2, &q2, &r2);
 }
 
-int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
-                         const fer_vec3_t *r1,
-                         const fer_vec3_t *p2, const fer_vec3_t *q2,
-                         const fer_vec3_t *r2)
+int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
+                         const bor_vec3_t *r1,
+                         const bor_vec3_t *p2, const bor_vec3_t *q2,
+                         const bor_vec3_t *r2)
 {
-    fer_vec3_t n1, n2, v1, v2;
-    fer_real_t sp1, sq1, sr1;
-    fer_real_t sp2, sq2, sr2;
+    bor_vec3_t n1, n2, v1, v2;
+    bor_real_t sp1, sq1, sr1;
+    bor_real_t sp2, sq2, sr2;
 
     // compute signs of first triangle to second triangle
     ferVec3Sub2(&v1, p2, r2);
@@ -771,7 +771,7 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
 
 #define EDGE_AGAINST_TRI_EDGES(V0,V1,U0,U1,U2) \
 {                                              \
-  fer_real_t Ax,Ay,Bx,By,Cx,Cy,e,d,f;          \
+  bor_real_t Ax,Ay,Bx,By,Cx,Cy,e,d,f;          \
   Ax=ferVec3Get(V1, i0)-ferVec3Get(V0, i0);    \
   Ay=ferVec3Get(V1, i1)-ferVec3Get(V0, i1);    \
   /* test edge U0,U1 against V0,V1 */          \
@@ -784,7 +784,7 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
 
 #define POINT_IN_TRI(V0,U0,U1,U2)           \
 {                                           \
-  fer_real_t a,b,c,d0,d1,d2;                \
+  bor_real_t a,b,c,d0,d1,d2;                \
   /* is T1 completly inside T2? */          \
   /* check if V0 is inside tri(U0,U1,U2) */ \
   a=ferVec3Get(U1, i1)-ferVec3Get(U0, i1);                          \
@@ -807,10 +807,10 @@ int ferVec3TriTriOverlap(const fer_vec3_t *p1, const fer_vec3_t *q1,
   }                                         \
 }
 
-static int coplanar_tri_tri(const fer_vec3_t *N, const fer_vec3_t *V0, const fer_vec3_t *V1, const fer_vec3_t *V2,
-                            const fer_vec3_t *U0, const fer_vec3_t *U1, const fer_vec3_t *U2)
+static int coplanar_tri_tri(const bor_vec3_t *N, const bor_vec3_t *V0, const bor_vec3_t *V1, const bor_vec3_t *V2,
+                            const bor_vec3_t *U0, const bor_vec3_t *U1, const bor_vec3_t *U2)
 {
-    fer_real_t A[3];
+    bor_real_t A[3];
     short i0,i1;
 
     /* first project onto an axis-aligned plane, that maximizes the area */
@@ -857,14 +857,14 @@ static int coplanar_tri_tri(const fer_vec3_t *N, const fer_vec3_t *V0, const fer
     return 0;
 }
 
-_fer_inline void isect2(const fer_vec3_t *VTX0, const fer_vec3_t *VTX1,
-                        const fer_vec3_t *VTX2,
-                        fer_real_t VV0,fer_real_t VV1,fer_real_t VV2,
-                        fer_real_t D0,fer_real_t D1,fer_real_t D2,fer_real_t *isect0,fer_real_t *isect1,
-                        fer_vec3_t *isectpoint0, fer_vec3_t *isectpoint1)
+_fer_inline void isect2(const bor_vec3_t *VTX0, const bor_vec3_t *VTX1,
+                        const bor_vec3_t *VTX2,
+                        bor_real_t VV0,bor_real_t VV1,bor_real_t VV2,
+                        bor_real_t D0,bor_real_t D1,bor_real_t D2,bor_real_t *isect0,bor_real_t *isect1,
+                        bor_vec3_t *isectpoint0, bor_vec3_t *isectpoint1)
 {
     float tmp=D0/(D0-D1);
-    fer_vec3_t diff;
+    bor_vec3_t diff;
 
     *isect0=VV0+(VV1-VV0)*tmp;
     ferVec3Sub2(&diff, VTX1, VTX0);
@@ -876,17 +876,17 @@ _fer_inline void isect2(const fer_vec3_t *VTX0, const fer_vec3_t *VTX1,
     ferVec3Scale(&diff,tmp);
     ferVec3Add2(isectpoint1,VTX0,&diff);
 }
-_fer_inline int compute_intervals_isectline(const fer_vec3_t *VERT0,
-                                            const fer_vec3_t *VERT1,
-                                            const fer_vec3_t *VERT2,
-                                            fer_real_t VV0, fer_real_t VV1,
-                                            fer_real_t VV2, fer_real_t D0,
-                                            fer_real_t D1, fer_real_t D2,
-                                            fer_real_t D0D1, fer_real_t D0D2,
-                                            fer_real_t *isect0,
-                                            fer_real_t *isect1,
-                                            fer_vec3_t *isectpoint0,
-                                            fer_vec3_t *isectpoint1)
+_fer_inline int compute_intervals_isectline(const bor_vec3_t *VERT0,
+                                            const bor_vec3_t *VERT1,
+                                            const bor_vec3_t *VERT2,
+                                            bor_real_t VV0, bor_real_t VV1,
+                                            bor_real_t VV2, bor_real_t D0,
+                                            bor_real_t D1, bor_real_t D2,
+                                            bor_real_t D0D1, bor_real_t D0D2,
+                                            bor_real_t *isect0,
+                                            bor_real_t *isect1,
+                                            bor_vec3_t *isectpoint0,
+                                            bor_vec3_t *isectpoint1)
 {
     if(D0D1>0.0f)
     {
@@ -920,24 +920,24 @@ _fer_inline int compute_intervals_isectline(const fer_vec3_t *VERT0,
     return 0;
 }
 
-int ferVec3TriTriIntersect(const fer_vec3_t *V0, const fer_vec3_t *V1,
-                           const fer_vec3_t *V2,
-                           const fer_vec3_t *U0, const fer_vec3_t *U1,
-                           const fer_vec3_t *U2,
-                           fer_vec3_t *isectpt1, fer_vec3_t *isectpt2)
+int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
+                           const bor_vec3_t *V2,
+                           const bor_vec3_t *U0, const bor_vec3_t *U1,
+                           const bor_vec3_t *U2,
+                           bor_vec3_t *isectpt1, bor_vec3_t *isectpt2)
 {
-    fer_vec3_t E1, E2, N1, N2;
-    fer_real_t d1, d2;
-    fer_real_t du0,du1,du2,dv0,dv1,dv2;
-    fer_vec3_t D;
-    fer_real_t isect1[2], isect2[2];
-    fer_vec3_t isectpointA1,isectpointA2;
-    fer_vec3_t isectpointB1,isectpointB2;
-    fer_real_t du0du1,du0du2,dv0dv1,dv0dv2;
+    bor_vec3_t E1, E2, N1, N2;
+    bor_real_t d1, d2;
+    bor_real_t du0,du1,du2,dv0,dv1,dv2;
+    bor_vec3_t D;
+    bor_real_t isect1[2], isect2[2];
+    bor_vec3_t isectpointA1,isectpointA2;
+    bor_vec3_t isectpointB1,isectpointB2;
+    bor_real_t du0du1,du0du2,dv0dv1,dv0dv2;
     short index;
-    fer_real_t vp0,vp1,vp2;
-    fer_real_t up0,up1,up2;
-    fer_real_t b,c,max;
+    bor_real_t vp0,vp1,vp2;
+    bor_real_t up0,up1,up2;
+    bor_real_t b,c,max;
     int smallest1,smallest2;
 
     /* compute plane equation of triangle(V0,V1,V2) */

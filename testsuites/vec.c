@@ -13,13 +13,13 @@ TEST(vecTearDown)
 
 TEST(vecInit)
 {
-    fer_vec_t *vec;
+    bor_vec_t *vec;
 
     vec = ferVecNew(34);
     ferVecDel(vec);
 }
 
-static void prVec(size_t len, const char *prefix, const fer_vec_t *v)
+static void prVec(size_t len, const char *prefix, const bor_vec_t *v)
 {
     size_t i;
 

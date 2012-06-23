@@ -20,7 +20,7 @@
 #include <boruvka/dbg.h>
 #include <boruvka/alloc.h>
 
-struct _fer_opt_t {
+struct _bor_opt_t {
     const char *long_name; /*!< Long name of option. NULL means no long
                                 name. */
     char short_name;       /*!< Short, one letter long, name of option. 0x0
@@ -34,19 +34,19 @@ struct _fer_opt_t {
                                 on the {.type} */
     char *desc;            /*!< Description of the option */
 };
-typedef struct _fer_opt_t fer_opt_t;
+typedef struct _bor_opt_t bor_opt_t;
 
-static fer_opt_t **opts = NULL;
+static bor_opt_t **opts = NULL;
 static size_t opts_len = 0;
 
 
-static fer_opt_t *findOpt(char *arg);
-static fer_opt_t *findOptLong(char *arg);
-static fer_opt_t *findOptShort(char arg);
+static bor_opt_t *findOpt(char *arg);
+static bor_opt_t *findOptLong(char *arg);
+static bor_opt_t *findOptShort(char arg);
 
-static void optNoArg(fer_opt_t *opt);
-static int optArg(fer_opt_t *opt, const char *arg);
-static void invalidOptErr(const fer_opt_t *opt);
+static void optNoArg(bor_opt_t *opt);
+static int optArg(bor_opt_t *opt, const char *arg);
+static void invalidOptErr(const bor_opt_t *opt);
 
 static const char *strend(const char *str);
 
@@ -59,11 +59,11 @@ int ferOptsAdd(const char *long_name, char short_name,
         return -1;
 
     opts_len += 1;
-    opts = FER_REALLOC_ARR(opts, fer_opt_t *, opts_len);
+    opts = FER_REALLOC_ARR(opts, bor_opt_t *, opts_len);
 
 
     i = opts_len - 1;
-    opts[i] = FER_ALLOC(fer_opt_t);
+    opts[i] = FER_ALLOC(bor_opt_t);
     opts[i]->long_name  = long_name;
     opts[i]->short_name = short_name;
     opts[i]->type       = type;
@@ -82,7 +82,7 @@ int ferOptsAddDesc(const char *long_name, char short_name,
                    const char *desc)
 {
     size_t id, desclen;
-    fer_opt_t *opt;
+    bor_opt_t *opt;
    
     id = ferOptsAdd(long_name, short_name, type, set, callback);
     if (id < 0)
@@ -114,7 +114,7 @@ void ferOptsClear(void)
 
 int ferOpts(int *argc, char **argv)
 {
-    fer_opt_t *opt;
+    bor_opt_t *opt;
     int args_remaining;
     int i, ok = 0;
    
@@ -153,10 +153,10 @@ int ferOpts(int *argc, char **argv)
     return ok;
 }
 
-static fer_opt_t *findOpt(char *_arg)
+static bor_opt_t *findOpt(char *_arg)
 {
     char *arg = _arg;
-    fer_opt_t *opt;
+    bor_opt_t *opt;
 
     if (arg[0] == '-'){
         if (arg[1] == '-'){
@@ -183,7 +183,7 @@ static fer_opt_t *findOpt(char *_arg)
     return NULL;
 }
 
-static fer_opt_t *findOptLong(char *arg)
+static bor_opt_t *findOptLong(char *arg)
 {
     size_t i;
 
@@ -196,7 +196,7 @@ static fer_opt_t *findOptLong(char *arg)
     return NULL;
 }
 
-static fer_opt_t *findOptShort(char arg)
+static bor_opt_t *findOptShort(char arg)
 {
     size_t i;
 
@@ -209,7 +209,7 @@ static fer_opt_t *findOptShort(char arg)
     return NULL;
 }
 
-static void optNoArg(fer_opt_t *opt)
+static void optNoArg(bor_opt_t *opt)
 {
     void (*cb)(const char *, char);
 
@@ -223,7 +223,7 @@ static void optNoArg(fer_opt_t *opt)
     }
 }
 
-static void invalidOptErr(const fer_opt_t *opt)
+static void invalidOptErr(const bor_opt_t *opt)
 {
     if (opt->long_name){
         fprintf(stderr, "Invalid argument of --%s option.\n", (opt)->long_name);
@@ -252,25 +252,25 @@ static void invalidOptErr(const fer_opt_t *opt)
     \
     return 0
 
-static int optArgLong(fer_opt_t *opt, const char *arg)
+static int optArgLong(bor_opt_t *opt, const char *arg)
 {
     _optArgLong(opt, arg, long);
 }
 
-static int optArgInt(fer_opt_t *opt, const char *arg)
+static int optArgInt(bor_opt_t *opt, const char *arg)
 {
     _optArgLong(opt, arg, int);
 }
 
-static int optArgSizeT(fer_opt_t *opt, const char *arg)
+static int optArgSizeT(bor_opt_t *opt, const char *arg)
 {
     _optArgLong(opt, arg, size_t);
 }
 
-static int optArgReal(fer_opt_t *opt, const char *arg)
+static int optArgReal(bor_opt_t *opt, const char *arg)
 {
-    void (*cb)(const char *, char, fer_real_t);
-    fer_real_t val;
+    void (*cb)(const char *, char, bor_real_t);
+    bor_real_t val;
 
     if (ferParseReal(arg, strend(arg), &val, NULL) != 0){
         if (opt->long_name){
@@ -282,22 +282,22 @@ static int optArgReal(fer_opt_t *opt, const char *arg)
     }
 
     if (opt->set){
-        *(fer_real_t *)opt->set = val;
+        *(bor_real_t *)opt->set = val;
     }
 
     if (opt->callback){
-        cb = (void (*)(const char *, char, fer_real_t))opt->callback;
+        cb = (void (*)(const char *, char, bor_real_t))opt->callback;
         cb(opt->long_name, opt->short_name, val);
     }
 
     return 0;
 }
 
-static int optArgV2(fer_opt_t *opt, const char *arg)
+static int optArgV2(bor_opt_t *opt, const char *arg)
 {
-    void (*cb)(const char *, char, const fer_vec2_t *);
-    fer_real_t val;
-    fer_vec2_t v2;
+    void (*cb)(const char *, char, const bor_vec2_t *);
+    bor_real_t val;
+    bor_vec2_t v2;
     const char *arg2;
 
     arg2 = arg;
@@ -320,11 +320,11 @@ static int optArgV2(fer_opt_t *opt, const char *arg)
     ferVec2SetY(&v2, val);
 
     if (opt->set){
-        ferVec2Copy((fer_vec2_t *)opt->set, &v2);
+        ferVec2Copy((bor_vec2_t *)opt->set, &v2);
     }
 
     if (opt->callback){
-        cb = (void (*)(const char *, char, const fer_vec2_t *))opt->callback;
+        cb = (void (*)(const char *, char, const bor_vec2_t *))opt->callback;
         cb(opt->long_name, opt->short_name, &v2);
     }
 
@@ -339,7 +339,7 @@ optArgV2_err:
     return -1;
 }
 
-static int optArgStr(fer_opt_t *opt, const char *arg)
+static int optArgStr(bor_opt_t *opt, const char *arg)
 {
     void (*cb)(const char *, char, const char *);
 
@@ -355,7 +355,7 @@ static int optArgStr(fer_opt_t *opt, const char *arg)
     return 0;
 }
 
-static int optArg(fer_opt_t *opt, const char *arg)
+static int optArg(bor_opt_t *opt, const char *arg)
 {
     switch(opt->type){
         case FER_OPTS_LONG:
@@ -413,7 +413,7 @@ static size_t optsNameLen(void)
     return name_len;
 }
 
-static void printName(fer_opt_t *opt, size_t len, FILE *out)
+static void printName(bor_opt_t *opt, size_t len, FILE *out)
 {
     size_t l = 0;
 
@@ -432,7 +432,7 @@ static void printName(fer_opt_t *opt, size_t len, FILE *out)
     }
 }
 
-static void printType(fer_opt_t *opt, FILE *out)
+static void printType(bor_opt_t *opt, FILE *out)
 {
     switch(opt->type){
         case FER_OPTS_NONE:
@@ -459,7 +459,7 @@ static void printType(fer_opt_t *opt, FILE *out)
     }
 }
 
-static void printDesc(fer_opt_t *opt, FILE *out)
+static void printDesc(bor_opt_t *opt, FILE *out)
 {
     if (!opt->desc)
         return;

@@ -3,7 +3,7 @@
 #include <boruvka/alloc.h>
 
 struct _el_t {
-    fer_real_t val;
+    bor_real_t val;
     HNODE node;
     int onheap;
 };
@@ -13,8 +13,8 @@ static FILE *fout;
 
 static el_t *randomEls(size_t num)
 {
-    fer_rand_t r;
-    fer_real_t val;
+    bor_rand_t r;
+    bor_real_t val;
     el_t *els;
     size_t i;
 
@@ -60,7 +60,7 @@ static void IPR(HHEAP *heap, el_t *els, size_t num)
     HNODE *node;
     el_t *el;
     size_t i, insert, num_inserts;
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 
@@ -101,7 +101,7 @@ static void IPD(HHEAP *heap, el_t *els, size_t num)
     el_t *el;
     size_t i, dec, num_inserts;
     size_t loop;
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 
@@ -166,7 +166,7 @@ static void IPC(HHEAP *heap, el_t *els, size_t num)
     el_t *el;
     size_t i, dec, num_inserts;
     size_t loop;
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     size_t num;
     HHEAP *heap;
     el_t *els;
-    fer_timer_t timer;
+    bor_timer_t timer;
 
     if (argc != 3){
         fprintf(stderr, "Usage: %s ip|ipr|ipd|ipc num_els\n", argv[0]);

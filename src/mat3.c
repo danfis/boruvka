@@ -21,27 +21,27 @@
 static FER_MAT3(__fer_mat3_identity, FER_ONE, FER_ZERO, FER_ZERO,
                                      FER_ZERO, FER_ONE, FER_ZERO,
                                      FER_ZERO, FER_ZERO, FER_ONE);
-const fer_mat3_t *fer_mat3_identity = &__fer_mat3_identity;
+const bor_mat3_t *fer_mat3_identity = &__fer_mat3_identity;
 
 static FER_MAT3(__fer_mat3_zero, FER_ZERO, FER_ZERO, FER_ZERO,
                                  FER_ZERO, FER_ZERO, FER_ZERO,
                                  FER_ZERO, FER_ZERO, FER_ZERO);
-const fer_mat3_t *fer_mat3_zero = &__fer_mat3_zero;
+const bor_mat3_t *fer_mat3_zero = &__fer_mat3_zero;
 
-fer_mat3_t *ferMat3New(void)
+bor_mat3_t *ferMat3New(void)
 {
-    fer_mat3_t *m;
+    bor_mat3_t *m;
 
 #ifdef FER_SSE
-    m = FER_ALLOC_ALIGN(fer_mat3_t, 16);
+    m = FER_ALLOC_ALIGN(bor_mat3_t, 16);
 #else /* FER_SSE */
-    m = FER_ALLOC(fer_mat3_t);
+    m = FER_ALLOC(bor_mat3_t);
 #endif /* FER_SSE */
 
     return m;
 }
 
-void ferMat3Del(fer_mat3_t *m)
+void ferMat3Del(bor_mat3_t *m)
 {
     FER_FREE(m);
 }
@@ -51,14 +51,14 @@ void ferMat3Del(fer_mat3_t *m)
 static const int eigen_row[3] = { 0, 0, 1 };
 static const int eigen_col[3] = { 1, 2, 2 };
 
-int ferMat3Eigen(const fer_mat3_t *_m, fer_mat3_t *eigen,
-                 fer_vec3_t *eigenvals)
+int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
+                 bor_vec3_t *eigenvals)
 {
-    fer_mat3_t rot, m;
+    bor_mat3_t rot, m;
     size_t i;
     int row, col;
-    fer_real_t angle, y, x;
-    fer_real_t upper;
+    bor_real_t angle, y, x;
+    bor_real_t upper;
 
     // Copy source matrix
     ferMat3Copy(&m, _m);

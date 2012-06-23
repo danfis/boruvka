@@ -25,12 +25,12 @@
 const char *__ferCLErrorStr(cl_int err);
 _fer_inline int __ferCLErrorCheck(cl_int err, const char *errstr);
 
-fer_cl_t *ferCLNewSimple(const char *program, const char *buildopts)
+bor_cl_t *ferCLNewSimple(const char *program, const char *buildopts)
 {
     return ferCLNewSimple2(1, &program, buildopts);
 }
 
-fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
+bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
                           const char *buildopts)
 {
     cl_uint num_platforms, num_devices, i;
@@ -39,7 +39,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     cl_device_id device;
     size_t bufsize;
     char buf[1024], *buf2;
-    fer_cl_t *cl;
+    bor_cl_t *cl;
 
     // find platform and device
     platform = (cl_platform_id)-1;
@@ -75,7 +75,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
         return NULL;
 
 
-    cl = FER_ALLOC(fer_cl_t);
+    cl = FER_ALLOC(bor_cl_t);
     cl->platform = platform;
     cl->device   = device;
 
@@ -135,7 +135,7 @@ fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     return cl;
 }
 
-void ferCLDel(fer_cl_t *cl)
+void ferCLDel(bor_cl_t *cl)
 {
     size_t i;
 
@@ -154,7 +154,7 @@ void ferCLDel(fer_cl_t *cl)
     FER_FREE(cl);
 }
 
-int ferCLKernelNew(fer_cl_t *cl, const char *kernel)
+int ferCLKernelNew(bor_cl_t *cl, const char *kernel)
 {
     cl_kernel k;
     cl_int err;
@@ -325,7 +325,7 @@ char *ferCLProgramFromFile(const char *filename)
     return out;
 }
 
-int ferCLKernelSetArg(fer_cl_t *cl, size_t kernel, size_t arg_idx,
+int ferCLKernelSetArg(bor_cl_t *cl, size_t kernel, size_t arg_idx,
                       size_t size, const void *arg)
 {
     cl_int err;
@@ -336,7 +336,7 @@ int ferCLKernelSetArg(fer_cl_t *cl, size_t kernel, size_t arg_idx,
     return 0;
 }
 
-int ferCLKernelEnqueue(fer_cl_t *cl, size_t kernel,
+int ferCLKernelEnqueue(bor_cl_t *cl, size_t kernel,
                        size_t dim, const size_t *glob, const size_t *loc)
 {
     cl_int err;
@@ -349,7 +349,7 @@ int ferCLKernelEnqueue(fer_cl_t *cl, size_t kernel,
     return 0;
 }
 
-int ferCLFinish(fer_cl_t *cl)
+int ferCLFinish(bor_cl_t *cl)
 {
     cl_int err;
     
@@ -360,7 +360,7 @@ int ferCLFinish(fer_cl_t *cl)
 }
 
 
-void *ferCLAlloc(fer_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
+void *ferCLAlloc(bor_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
 {
     void *dst;
     cl_int err;
@@ -375,7 +375,7 @@ void *ferCLAlloc(fer_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
     return dst;
 }
 
-void *ferCLCloneToHost(fer_cl_t *cl, const void *src, size_t size)
+void *ferCLCloneToHost(bor_cl_t *cl, const void *src, size_t size)
 {
     void *dst;
     cl_int err;
@@ -389,7 +389,7 @@ void *ferCLCloneToHost(fer_cl_t *cl, const void *src, size_t size)
     return dst;
 }
 
-void ferCLCopyToHost(fer_cl_t *cl, const void *src, void *dst, size_t size)
+void ferCLCopyToHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
 {
     cl_int err;
 
@@ -397,7 +397,7 @@ void ferCLCopyToHost(fer_cl_t *cl, const void *src, void *dst, size_t size)
     __ferCLErrorCheck(err, "Can't copy device memory to host memory");
 }
 
-void ferCLCopyFromHost(fer_cl_t *cl, const void *src, void *dst, size_t size)
+void ferCLCopyFromHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
 {
     cl_int err;
 
@@ -405,7 +405,7 @@ void ferCLCopyFromHost(fer_cl_t *cl, const void *src, void *dst, size_t size)
     __ferCLErrorCheck(err, "Can't copy device memory to host memory");
 }
 
-void *ferCLMemMap(fer_cl_t *cl, void *src, size_t size, cl_mem_flags _flags)
+void *ferCLMemMap(bor_cl_t *cl, void *src, size_t size, cl_mem_flags _flags)
 {
     void *dst;
     cl_int err;

@@ -4,7 +4,7 @@
 #include <boruvka/dbg.h>
 #include "data.h"
 
-static void projToPlanePrint(fer_vec3_t *vs, int num);
+static void projToPlanePrint(bor_vec3_t *vs, int num);
 
 TEST(vec3SetUp)
 {
@@ -16,7 +16,7 @@ TEST(vec3TearDown)
 
 TEST(vec3Alloc)
 {
-    fer_vec3_t *v, w;
+    bor_vec3_t *v, w;
 
     v = ferVec3New(0., 1., 2.);
     ferVec3Set(&w, 0., 1., 2.);
@@ -26,7 +26,7 @@ TEST(vec3Alloc)
 
 TEST(vec3Add)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- add ----\n");
@@ -40,7 +40,7 @@ TEST(vec3Add)
 
 TEST(vec3Sub)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- sub ----\n");
@@ -54,7 +54,7 @@ TEST(vec3Sub)
 
 TEST(vec3Scale)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- scale ----\n");
@@ -68,7 +68,7 @@ TEST(vec3Scale)
 
 TEST(vec3Normalize)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- normalize ----\n");
@@ -82,7 +82,7 @@ TEST(vec3Normalize)
 
 TEST(vec3Dot)
 {
-    fer_real_t dot;
+    bor_real_t dot;
     size_t i;
 
     printf("# ---- dot ----\n");
@@ -95,7 +95,7 @@ TEST(vec3Dot)
 
 TEST(vec3Mul)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- mul ----\n");
@@ -108,7 +108,7 @@ TEST(vec3Mul)
 
 TEST(vec3Cross)
 {
-    fer_vec3_t v;
+    bor_vec3_t v;
     size_t i;
 
     printf("# ---- cross ----\n");
@@ -121,7 +121,7 @@ TEST(vec3Cross)
 
 TEST(vec3Len2)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- len2 ----\n");
@@ -134,7 +134,7 @@ TEST(vec3Len2)
 
 TEST(vec3Len)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- len ----\n");
@@ -147,7 +147,7 @@ TEST(vec3Len)
 
 TEST(vec3Dist2)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- dist2 ----\n");
@@ -160,7 +160,7 @@ TEST(vec3Dist2)
 
 TEST(vec3Dist)
 {
-    fer_real_t d;
+    bor_real_t d;
     size_t i;
 
     printf("# ---- dist ----\n");
@@ -173,8 +173,8 @@ TEST(vec3Dist)
 
 TEST(vec3SegmentDist)
 {
-    fer_real_t d;
-    fer_vec3_t w;
+    bor_real_t d;
+    bor_vec3_t w;
     size_t i;
 
     printf("# ---- segment dist ----\n");
@@ -187,8 +187,8 @@ TEST(vec3SegmentDist)
 
 TEST(vec3TriDist)
 {
-    fer_real_t d;
-    fer_vec3_t w;
+    bor_real_t d;
+    bor_vec3_t w;
     size_t i;
 
     printf("# ---- tri dist ----\n");
@@ -202,7 +202,7 @@ TEST(vec3TriDist)
 
 TEST(vec3Core)
 {
-    fer_vec3_t a, b, c, d;
+    bor_vec3_t a, b, c, d;
 
     ferVec3Set(&a, 0., 0., 0.);
     assertTrue(ferVec3Eq(&a, fer_vec3_origin));
@@ -300,8 +300,8 @@ TEST(vec3Core)
 
 TEST(vec3PointSegmentDist)
 {
-    fer_vec3_t P, a, b, w, ew;
-    fer_real_t dist;
+    bor_vec3_t P, a, b, w, ew;
+    bor_real_t dist;
 
     ferVec3Set(&a, 0., 0., 0.);
     ferVec3Set(&b, 1., 0., 0.);
@@ -442,8 +442,8 @@ TEST(vec3PointSegmentDist)
 
 TEST(vec3PointTriDist)
 {
-    fer_vec3_t P, a, b, c, w, P0;
-    fer_real_t dist;
+    bor_vec3_t P, a, b, c, w, P0;
+    bor_real_t dist;
 
     ferVec3Set(&a, -1., 0., 0.);
     ferVec3Set(&b, 0., 1., 1.);
@@ -561,7 +561,7 @@ TEST(vec3PointTriDist)
 
 TEST(vec3PointInTri)
 {
-    fer_vec3_t v[5];
+    bor_vec3_t v[5];
 
     ferVec3Set(&v[0], 1., 1., 0.);
     ferVec3Set(&v[1], 0., 0., 0.);
@@ -604,8 +604,8 @@ TEST(vec3PointInTri)
 
 TEST(vec3Angle)
 {
-    fer_vec3_t v[3];
-    fer_real_t a;
+    bor_vec3_t v[3];
+    bor_real_t a;
     size_t i;
 
     ferVec3Set(&v[0], 2., 2., 0.);
@@ -645,7 +645,7 @@ TEST(vec3Angle)
     printf("# ---- angle end ----\n\n");
 }
 
-static void projToPlanePrint(fer_vec3_t *vs, int num)
+static void projToPlanePrint(bor_vec3_t *vs, int num)
 {
     size_t i;
 
@@ -673,7 +673,7 @@ static void projToPlanePrint(fer_vec3_t *vs, int num)
 
 TEST(vec3ProjToPlane)
 {
-    fer_vec3_t v[6];
+    bor_vec3_t v[6];
 
     ferVec3Set(&v[1], 0., 0., 0.);
     ferVec3Set(&v[2], 0., 0., 0.);
@@ -739,7 +739,7 @@ TEST(vec3ProjToPlane)
 
 TEST(vec3Centroid)
 {
-    fer_vec3_t v[5];
+    bor_vec3_t v[5];
 
     ferVec3Set(&v[0], 0., 0., 0.);
     ferVec3Set(&v[1], 1., 0., 0.);
@@ -753,7 +753,7 @@ TEST(vec3Centroid)
 
 TEST(vec3TriTriOverlap)
 {
-    fer_vec3_t p1, q1, r1, p2, q2, r2;
+    bor_vec3_t p1, q1, r1, p2, q2, r2;
     int res;
     size_t i;
 

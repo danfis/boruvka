@@ -11,17 +11,17 @@
 #define BUILD_MAXSIZE 5
 
 struct _el_t {
-    fer_vec2_t w;
-    fer_nn_el_t el;
-    fer_list_t list;
+    bor_vec2_t w;
+    bor_nn_el_t el;
+    bor_list_t list;
     int added;
 };
 typedef struct _el_t el_t;
 
 struct _el3_t {
-    fer_vec3_t w;
-    fer_nn_el_t el;
-    fer_list_t list;
+    bor_vec3_t w;
+    bor_nn_el_t el;
+    bor_list_t list;
 };
 typedef struct _el3_t el3_t;
 
@@ -31,26 +31,26 @@ typedef struct _el3_t el3_t;
 #define ADD_NUM_NNS 5
 #define ADD_MAXSIZE 5
 
-static fer_real_t dist2(void *item1, fer_list_t *item2,
+static bor_real_t dist2(void *item1, bor_list_t *item2,
                         void *data)
 {
-    fer_vec2_t *p = (fer_vec2_t *)item1;
+    bor_vec2_t *p = (bor_vec2_t *)item1;
     el_t *el = FER_LIST_ENTRY(item2, el_t, list);
 
     return ferVec2Dist(p, &el->w);
 }
 
-static void test2(fer_rand_mt_t *rand,
-                  fer_nn_t *n, fer_list_t *list, size_t num)
+static void test2(bor_rand_mt_t *rand,
+                  bor_nn_t *n, bor_list_t *list, size_t num)
 {
-    fer_nn_el_t *nn[10];
-    fer_list_t *nn2[10];
+    bor_nn_el_t *nn[10];
+    bor_list_t *nn2[10];
     el_t *el, *el2;
-    fer_vec2_t p;
+    bor_vec2_t p;
     size_t len, len2, i;
 
     ferVec2Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferNNNearest(n, (const fer_vec_t *)&p, num, nn);
+    len = ferNNNearest(n, (const bor_vec_t *)&p, num, nn);
     len2 = ferNearestLinear(list, (void *)&p, dist2, nn2, num, NULL);
 
     assertEquals(len, num);
@@ -70,11 +70,11 @@ static void test2(fer_rand_mt_t *rand,
     }
 }
 
-static void _nnAdd(uint8_t type, fer_nn_params_t *params)
+static void _nnAdd(uint8_t type, bor_nn_params_t *params)
 {
-    fer_rand_mt_t *rand;
-    fer_nn_t *nn;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_nn_t *nn;
+    static bor_list_t els_list;
     static int els_len = ADD_ELS_LEN;
     static el_t els[ADD_ELS_LEN];
     int i, j;
@@ -87,7 +87,7 @@ static void _nnAdd(uint8_t type, fer_nn_params_t *params)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferNNElInit(nn, &els[i].el, (const fer_vec_t *)&els[i].w);
+        ferNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
     }
 
@@ -109,8 +109,8 @@ static void _nnAdd(uint8_t type, fer_nn_params_t *params)
 
 TEST(nnAdd)
 {
-    fer_nn_params_t params;
-    fer_real_t aabb[4] = {-3, 3, -3, 3};
+    bor_nn_params_t params;
+    bor_real_t aabb[4] = {-3, 3, -3, 3};
 
     ferNNParamsInit(&params);
     params.linear.dim = 2;
@@ -125,11 +125,11 @@ TEST(nnAdd)
     _nnAdd(FER_NN_GUG, &params);
 }
 
-static void _nnAddRm(uint8_t type, fer_nn_params_t *params)
+static void _nnAddRm(uint8_t type, bor_nn_params_t *params)
 {
-    fer_rand_mt_t *rand;
-    fer_nn_t *nn;
-    static fer_list_t els_list;
+    bor_rand_mt_t *rand;
+    bor_nn_t *nn;
+    static bor_list_t els_list;
     static int els_len = ADD_ELS_LEN;
     static el_t els[ADD_ELS_LEN];
     int i, j;
@@ -142,7 +142,7 @@ static void _nnAddRm(uint8_t type, fer_nn_params_t *params)
     ferListInit(&els_list);
     for (i = 0; i < els_len; i++){
         ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferNNElInit(nn, &els[i].el, (const fer_vec_t *)&els[i].w);
+        ferNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
         ferListAppend(&els_list, &els[i].list);
     }
 
@@ -169,8 +169,8 @@ static void _nnAddRm(uint8_t type, fer_nn_params_t *params)
 
 TEST(nnAddRm)
 {
-    fer_nn_params_t params;
-    fer_real_t aabb[4] = {-3, 3, -3, 3};
+    bor_nn_params_t params;
+    bor_real_t aabb[4] = {-3, 3, -3, 3};
 
     ferNNParamsInit(&params);
     params.linear.dim = 2;

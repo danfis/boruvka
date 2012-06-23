@@ -7,15 +7,15 @@
 
 struct _el_t {
     int val;
-    fer_pairheap_node_t node;
+    bor_pairheap_node_t node;
     int id;
 };
 typedef struct _el_t el_t;
 
 static el_t *randomEls(size_t num)
 {
-    fer_rand_t r;
-    fer_real_t val;
+    bor_rand_t r;
+    bor_real_t val;
     el_t *els;
     size_t i;
 
@@ -44,7 +44,7 @@ static int cmpIncEl(const void *i1, const void *i2)
     return 1;
 }
 
-static int ltEl(const fer_pairheap_node_t *n1, const fer_pairheap_node_t *n2, void *_)
+static int ltEl(const bor_pairheap_node_t *n1, const bor_pairheap_node_t *n2, void *_)
 {
     el_t *el1, *el2;
 
@@ -59,8 +59,8 @@ static void checkCorrect(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_pairheap_t *heap;
-    fer_pairheap_node_t *n;
+    bor_pairheap_t *heap;
+    bor_pairheap_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
@@ -109,12 +109,12 @@ static void checkCorrect2(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_pairheap_t *heap;
-    fer_pairheap_node_t *n;
+    bor_pairheap_t *heap;
+    bor_pairheap_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 
@@ -166,12 +166,12 @@ static void checkCorrect3(int ID, size_t num)
 {
     el_t *els, *el;
     int *ids;
-    fer_pairheap_t *heap;
-    fer_pairheap_node_t *n;
+    bor_pairheap_t *heap;
+    bor_pairheap_node_t *n;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
-    fer_rand_t r;
+    bor_rand_t r;
 
     ferRandInit(&r);
 

@@ -8,25 +8,25 @@
 #include <boruvka/mat3.h>
 #include <boruvka/mat4.h>
 
-extern fer_vec2_t vecs2[];
+extern bor_vec2_t vecs2[];
 extern size_t vecs2_len;
 
-extern fer_vec3_t vecs[];
+extern bor_vec3_t vecs[];
 extern size_t vecs_len;
 
-extern fer_quat_t quats[];
+extern bor_quat_t quats[];
 extern size_t quats_len;
 
-extern fer_vec4_t vecs4[];
+extern bor_vec4_t vecs4[];
 extern size_t vecs4_len;
 
-extern fer_mat3_t mat3s[];
+extern bor_mat3_t mat3s[];
 extern size_t mat3s_len;
 
-extern fer_mat4_t mat4s[];
+extern bor_mat4_t mat4s[];
 extern size_t mat4s_len;
 
-extern fer_vec3_t *bunny_coords;
+extern bor_vec3_t *bunny_coords;
 extern size_t bunny_coords_len;
 extern unsigned int *bunny_ids;
 extern size_t bunny_ids_len;

@@ -15,7 +15,7 @@ TEST(mat4TearDown)
 TEST(mat4Alloc)
 {
     /*
-    fer_mat4_t *v, w;
+    bor_mat4_t *v, w;
 
     v = ferMat4New(0., 1., 2., 3.);
     ferMat4Set(&w, 0., 1., 2., 3.);
@@ -24,7 +24,7 @@ TEST(mat4Alloc)
     */
 }
 
-static void pr(const fer_mat4_t *m, const char *p)
+static void pr(const bor_mat4_t *m, const char *p)
 {
     printf("# %s %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g\n",
            p,
@@ -37,7 +37,7 @@ static void pr(const fer_mat4_t *m, const char *p)
 TEST(mat4AddSub)
 {
     size_t i;
-    fer_mat4_t m;
+    bor_mat4_t m;
 
     printf("# ---- add sub ----\n");
     for (i = 0; i < mat4s_len - 1; i++){
@@ -59,8 +59,8 @@ TEST(mat4AddSub)
 TEST(mat4Const)
 {
     size_t i;
-    fer_mat4_t m;
-    fer_real_t c;
+    bor_mat4_t m;
+    bor_real_t c;
 
     printf("# ---- const ----\n");
     for (i = 0; i < mat4s_len; i++){
@@ -84,7 +84,7 @@ TEST(mat4Const)
 TEST(mat4Mul)
 {
     size_t i;
-    fer_mat4_t m;
+    bor_mat4_t m;
 
     printf("# ---- mul ----\n");
     for (i = 0; i < mat4s_len - 1; i++){
@@ -100,7 +100,7 @@ TEST(mat4Mul)
 TEST(mat4Trans)
 {
     size_t i;
-    fer_mat4_t m;
+    bor_mat4_t m;
 
     printf("# ---- trans ----\n");
     for (i = 0; i < mat4s_len; i++){
@@ -116,7 +116,7 @@ TEST(mat4Trans)
 TEST(mat4Det)
 {
     size_t i;
-    fer_real_t d;
+    bor_real_t d;
 
     printf("# ---- det ----\n");
     for (i = 0; i < mat4s_len; i++){
@@ -129,7 +129,7 @@ TEST(mat4Det)
 TEST(mat4Inv)
 {
     size_t i;
-    fer_mat4_t m;
+    bor_mat4_t m;
 
     printf("# ---- inv ----\n");
     for (i = 0; i < mat4s_len; i++){
@@ -152,8 +152,8 @@ TEST(mat4Inv)
 TEST(mat4MulVec)
 {
     size_t i;
-    fer_vec4_t u, v;
-    fer_vec3_t a, b;
+    bor_vec4_t u, v;
+    bor_vec3_t a, b;
 
     printf("# ---- mul vec ----\n");
     for (i = 0; i < mat4s_len; i++){
@@ -178,8 +178,8 @@ TEST(mat4MulVec)
 
 TEST(mat4Tr)
 {
-    fer_vec3_t v, w, axis;
-    fer_mat4_t tr;
+    bor_vec3_t v, w, axis;
+    bor_mat4_t tr;
 
     ferVec3Set(&v, -1.2, 5, 2);
 

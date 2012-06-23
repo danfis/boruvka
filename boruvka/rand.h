@@ -32,10 +32,10 @@ extern "C" {
  *
  * This is only simplified API upon std C erand48(3) function.
  */
-struct _fer_rand_t {
+struct _bor_rand_t {
     unsigned short xi[3]; /*! seed for generation random numbers */
 };
-typedef struct _fer_rand_t fer_rand_t;
+typedef struct _bor_rand_t bor_rand_t;
 
 /**
  * Functions
@@ -45,16 +45,16 @@ typedef struct _fer_rand_t fer_rand_t;
 /**
  * Initializes rand struct.
  */
-_fer_inline void ferRandInit(fer_rand_t *r);
+_fer_inline void ferRandInit(bor_rand_t *r);
 
 /**
  * Returns randomly generated number in range <from, to).
  */
-_fer_inline fer_real_t ferRand(fer_rand_t *r, fer_real_t from, fer_real_t to);
+_fer_inline bor_real_t ferRand(bor_rand_t *r, bor_real_t from, bor_real_t to);
 
 
 /**** INLINES ****/
-_fer_inline void ferRandInit(fer_rand_t *r)
+_fer_inline void ferRandInit(bor_rand_t *r)
 {
     r->xi[0] = time(NULL);
     r->xi[1] = getpid();
@@ -62,9 +62,9 @@ _fer_inline void ferRandInit(fer_rand_t *r)
 }
 
 
-_fer_inline fer_real_t ferRand(fer_rand_t *r, fer_real_t from, fer_real_t to)
+_fer_inline bor_real_t ferRand(bor_rand_t *r, bor_real_t from, bor_real_t to)
 {
-    fer_real_t num;
+    bor_real_t num;
 
     num = erand48(r->xi);
     num *= to - from;

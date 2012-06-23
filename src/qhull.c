@@ -10,21 +10,21 @@
 #define FER_QHULL_OUTPUT_LINE_MAX_LEN 1024
 
 /** Creates new qhull mesh3 */
-static fer_qhull_mesh3_t *ferQHullMesh3New(size_t vertices);
+static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices);
 
 /** Deletes dymanically allocated vertices, edges and faces */
-static void mesh3DelVert(fer_mesh3_vertex_t *v, void *data);
-static void mesh3DelEdge(fer_mesh3_edge_t *e, void *data);
-static void mesh3DelFace(fer_mesh3_face_t *f, void *data);
+static void mesh3DelVert(bor_mesh3_vertex_t *v, void *data);
+static void mesh3DelEdge(bor_mesh3_edge_t *e, void *data);
+static void mesh3DelFace(bor_mesh3_face_t *f, void *data);
 
 /** Writes point cloud into fd in format qhull accepts.
  *  Returns 0 on success */
-static int writePC33(fer_pc_t *pc, int fd);
+static int writePC33(bor_pc_t *pc, int fd);
 /** Parses input from fd into Mesh3 */
-static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd);
+static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd);
 
 
-void ferQHullMesh3Del(fer_qhull_mesh3_t *m)
+void ferQHullMesh3Del(bor_qhull_mesh3_t *m)
 {
     if (m->mesh){
         ferMesh3Del2(m->mesh, mesh3DelVert, NULL,
@@ -40,37 +40,37 @@ void ferQHullMesh3Del(fer_qhull_mesh3_t *m)
 
 
 
-fer_qdelaunay_t *ferQDelaunayNew(void)
+bor_qdelaunay_t *ferQDelaunayNew(void)
 {
-    fer_qdelaunay_t *q;
+    bor_qdelaunay_t *q;
 
-    q = FER_ALLOC(fer_qdelaunay_t);
+    q = FER_ALLOC(bor_qdelaunay_t);
 
     q->bin_path = strdup(FER_QDELAUNAY_BIN_PATH);
 
     return q;
 }
 
-void ferQDelaunayDel(fer_qdelaunay_t *q)
+void ferQDelaunayDel(bor_qdelaunay_t *q)
 {
     if (q->bin_path)
         FER_FREE(q->bin_path);
     FER_FREE(q);
 }
 
-void ferQDelaunaySetPath(fer_qdelaunay_t *q, const char *path)
+void ferQDelaunaySetPath(bor_qdelaunay_t *q, const char *path)
 {
     if (q->bin_path)
         FER_FREE(q->bin_path);
     q->bin_path = strdup(path);
 }
 
-fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc_t *pc)
+bor_qhull_mesh3_t *ferQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc)
 {
     int pipe_points[2];
     int pipe_result[2];
     int pid;
-    fer_qhull_mesh3_t *mesh;
+    bor_qhull_mesh3_t *mesh;
 
     // open pipes for communication between qdelaunay program and this
     // program
@@ -125,7 +125,7 @@ fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc_t *pc)
     close(pipe_result[1]);
 
     // write points on qdelaunay stdin
-    if (writePC33((fer_pc_t *)pc, pipe_points[1]) != 0){
+    if (writePC33((bor_pc_t *)pc, pipe_points[1]) != 0){
         ERR2("Can't open write end of pipe using stdio.");
         close(pipe_points[1]);
     }
@@ -143,11 +143,11 @@ fer_qhull_mesh3_t *ferQDelaunayMesh3(fer_qdelaunay_t *q, const fer_pc_t *pc)
     return mesh;
 }
 
-static fer_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
+static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
 {
-    fer_qhull_mesh3_t *m;
+    bor_qhull_mesh3_t *m;
 
-    m = FER_ALLOC(fer_qhull_mesh3_t);
+    m = FER_ALLOC(bor_qhull_mesh3_t);
 
     m->mesh = ferMesh3New();
 
@@ -157,26 +157,26 @@ static fer_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
     return m;
 }
 
-static void mesh3DelVert(fer_mesh3_vertex_t *v, void *data)
+static void mesh3DelVert(bor_mesh3_vertex_t *v, void *data)
 {
     FER_FREE(v);
 }
 
-static void mesh3DelEdge(fer_mesh3_edge_t *e, void *data)
+static void mesh3DelEdge(bor_mesh3_edge_t *e, void *data)
 {
     FER_FREE(e);
 }
 
-static void mesh3DelFace(fer_mesh3_face_t *f, void *data)
+static void mesh3DelFace(bor_mesh3_face_t *f, void *data)
 {
     FER_FREE(f);
 }
 
-static int writePC33(fer_pc_t *pc, int fd)
+static int writePC33(bor_pc_t *pc, int fd)
 {
     FILE *fout;
-    fer_pc_it_t pcit;
-    fer_vec3_t *v;
+    bor_pc_it_t pcit;
+    bor_vec3_t *v;
 
     fout = fdopen(fd, "w");
     if (!fout)
@@ -189,9 +189,9 @@ static int writePC33(fer_pc_t *pc, int fd)
     fprintf(fout, "%d\n", (int)ferPCLen(pc));
 
     // and write all points
-    ferPCItInit(&pcit, (fer_pc_t *)pc);
+    ferPCItInit(&pcit, (bor_pc_t *)pc);
     while (!ferPCItEnd(&pcit)){
-        v = (fer_vec3_t *)ferPCItGet(&pcit);
+        v = (bor_vec3_t *)ferPCItGet(&pcit);
         fprintf(fout, "%g %g %g\n", ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
 
         ferPCItNext(&pcit);
@@ -202,19 +202,19 @@ static int writePC33(fer_pc_t *pc, int fd)
     return 0;
 }
 
-static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd)
+static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
 {
     FILE *fin;
     int vertices, faces, tmp;
     int i, j, k;
     double x, y, z, w;
     int id[4];
-    fer_qhull_mesh3_t *qmesh;
-    fer_mesh3_t *mesh;
-    fer_mesh3_vertex_t **verts;
-    fer_mesh3_vertex_t *vert;
-    fer_mesh3_edge_t *edge;
-    //fer_mesh3_face_t *face;
+    bor_qhull_mesh3_t *qmesh;
+    bor_mesh3_t *mesh;
+    bor_mesh3_vertex_t **verts;
+    bor_mesh3_vertex_t *vert;
+    bor_mesh3_edge_t *edge;
+    //bor_mesh3_face_t *face;
 
     fin = fdopen(fd, "r");
     if (!fin)
@@ -238,7 +238,7 @@ static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd)
     mesh = ferQHullMesh3(qmesh);
 
     // allocate index array for vertices
-    verts = FER_ALLOC_ARR(fer_mesh3_vertex_t *, vertices);
+    verts = FER_ALLOC_ARR(bor_mesh3_vertex_t *, vertices);
 
     // read points and create vertices
     for (i = 0; i < vertices; i++){
@@ -248,7 +248,7 @@ static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd)
 
         ferVec3Set(&qmesh->vecs[i], x, y, z);
 
-        vert = FER_ALLOC(fer_mesh3_vertex_t);
+        vert = FER_ALLOC(bor_mesh3_vertex_t);
         ferMesh3VertexSetCoords(vert, &qmesh->vecs[i]);
         ferMesh3AddVertex(mesh, vert);
         verts[i] = vert;
@@ -268,7 +268,7 @@ static fer_qhull_mesh3_t *qdelaunayToMesh3(int fd)
                 // create new edge only if it is not already there
                 edge = ferMesh3VertexCommonEdge(verts[id[j]], verts[id[k]]);
                 if (!edge){
-                    edge = FER_ALLOC(fer_mesh3_edge_t);
+                    edge = FER_ALLOC(bor_mesh3_edge_t);
                     ferMesh3AddEdge(mesh, edge, verts[id[j]], verts[id[k]]);
                 }
             }

@@ -21,12 +21,12 @@
 
 
 
-static fer_real_t distL2Norm(int d, const fer_vec_t *v1,
-                                    const fer_vec_t *v2, void *data);
+static bor_real_t distL2Norm(int d, const bor_vec_t *v1,
+                                    const bor_vec_t *v2, void *data);
 
-static void bubbleUp(fer_nn_linear_el_t **els, size_t len);
+static void bubbleUp(bor_nn_linear_el_t **els, size_t len);
 
-void ferNNLinearParamsInit(fer_nn_linear_params_t *p)
+void ferNNLinearParamsInit(bor_nn_linear_params_t *p)
 {
     p->dim = 2;
     p->dist = distL2Norm;
@@ -36,11 +36,11 @@ void ferNNLinearParamsInit(fer_nn_linear_params_t *p)
 
 
 
-fer_nn_linear_t *ferNNLinearNew(const fer_nn_linear_params_t *params)
+bor_nn_linear_t *ferNNLinearNew(const bor_nn_linear_params_t *params)
 {
-    fer_nn_linear_t *nn;
+    bor_nn_linear_t *nn;
 
-    nn = FER_ALLOC(fer_nn_linear_t);
+    nn = FER_ALLOC(bor_nn_linear_t);
     nn->type = FER_NN_LINEAR;
     ferListInit(&nn->list);
     nn->params = *params;
@@ -48,28 +48,28 @@ fer_nn_linear_t *ferNNLinearNew(const fer_nn_linear_params_t *params)
     return nn;
 }
 
-void ferNNLinearDel(fer_nn_linear_t *nn)
+void ferNNLinearDel(bor_nn_linear_t *nn)
 {
     ferListInit(&nn->list);
     FER_FREE(nn);
 }
 
-size_t ferNNLinearNearest(const fer_nn_linear_t *nn, const fer_vec_t *p, size_t num,
-                          fer_nn_linear_el_t **els)
+size_t ferNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t num,
+                          bor_nn_linear_el_t **els)
 {
-    fer_list_t *item;
-    fer_real_t *dists, dist;
-    fer_nn_linear_el_t *el;
+    bor_list_t *item;
+    bor_real_t *dists, dist;
+    bor_nn_linear_el_t *el;
     size_t len;
 
     if (num == 0)
         return 0;
 
-    dists = FER_ALLOC_ARR(fer_real_t, num);
+    dists = FER_ALLOC_ARR(bor_real_t, num);
     len = 0;
 
     FER_LIST_FOR_EACH(&nn->list, item){
-        el = FER_LIST_ENTRY(item, fer_nn_linear_el_t, list);
+        el = FER_LIST_ENTRY(item, bor_nn_linear_el_t, list);
         dist = nn->params.dist(nn->params.dim, p, el->p, nn->params.dist_data);
 
         if (len < num){
@@ -92,16 +92,16 @@ size_t ferNNLinearNearest(const fer_nn_linear_t *nn, const fer_vec_t *p, size_t 
 
 
 
-static fer_real_t distL2Norm(int d, const fer_vec_t *v1,
-                                    const fer_vec_t *v2, void *data)
+static bor_real_t distL2Norm(int d, const bor_vec_t *v1,
+                                    const bor_vec_t *v2, void *data)
 {
     return ferVecDist2(d, v1, v2);
 }
 
-static void bubbleUp(fer_nn_linear_el_t **els, size_t len)
+static void bubbleUp(bor_nn_linear_el_t **els, size_t len)
 {
     size_t i;
-    fer_nn_linear_el_t *tmpn;
+    bor_nn_linear_el_t *tmpn;
 
     // don't worry, len can never be zero
     for (i = len - 1; i > 0; i--){

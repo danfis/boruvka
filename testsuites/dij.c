@@ -5,11 +5,11 @@
 #define NUM_NODES 20
 
 
-static void expand(fer_dij_node_t *n, fer_list_t *list, void *);
+static void expand(bor_dij_node_t *n, bor_list_t *list, void *);
 
 struct _node_t {
-    fer_vec2_t v;
-    fer_dij_node_t dij;
+    bor_vec2_t v;
+    bor_dij_node_t dij;
 
     struct _node_t *nodes[3];
     size_t nodes_len;
@@ -38,9 +38,9 @@ static void dumpNodes(node_t *nodes, FILE *out)
 
 static void dumpPath(node_t *endnode, FILE *out)
 {
-    fer_dij_node_t *n;
+    bor_dij_node_t *n;
     node_t *node;
-    fer_list_t list, *item;
+    bor_list_t list, *item;
     size_t i, size;
 
     fprintf(out, "----\n");
@@ -128,8 +128,8 @@ static void initNodes1(node_t *nodes)
 
 TEST(dij1)
 {
-    fer_dij_t *dij;
-    fer_dij_ops_t ops;
+    bor_dij_t *dij;
+    bor_dij_ops_t ops;
     node_t nodes[NUM_NODES];
     int res;
 
@@ -149,11 +149,11 @@ TEST(dij1)
     ferDijDel(dij);
 }
 
-static void expand(fer_dij_node_t *_n, fer_list_t *list, void *_)
+static void expand(bor_dij_node_t *_n, bor_list_t *list, void *_)
 {
     size_t i;
     node_t *n;
-    fer_real_t dist;
+    bor_real_t dist;
 
     n = fer_container_of(_n, node_t, dij);
 

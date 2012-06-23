@@ -18,21 +18,21 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-static void bubbleUp(fer_real_t *dists, fer_list_t **nearest, size_t len);
+static void bubbleUp(bor_real_t *dists, bor_list_t **nearest, size_t len);
 
-size_t ferNearestLinear(fer_list_t *list, void *p,
-                        fer_nearest_linear_dist_t dist_cb,
-                        fer_list_t **nearest, size_t num,
+size_t ferNearestLinear(bor_list_t *list, void *p,
+                        bor_nearest_linear_dist_t dist_cb,
+                        bor_list_t **nearest, size_t num,
                         void *data)
 {
-    fer_list_t *item;
-    fer_real_t *dists, dist;
+    bor_list_t *item;
+    bor_real_t *dists, dist;
     size_t len;
 
     if (num == 0)
         return 0;
 
-    dists = FER_ALLOC_ARR(fer_real_t, num);
+    dists = FER_ALLOC_ARR(bor_real_t, num);
     len = 0;
 
     FER_LIST_FOR_EACH(list, item){
@@ -56,11 +56,11 @@ size_t ferNearestLinear(fer_list_t *list, void *p,
     return len;
 }
 
-static void bubbleUp(fer_real_t *dists, fer_list_t **nearest, size_t len)
+static void bubbleUp(bor_real_t *dists, bor_list_t **nearest, size_t len)
 {
     size_t i;
-    fer_real_t tmpd;
-    fer_list_t *tmpn;
+    bor_real_t tmpd;
+    bor_list_t *tmpn;
 
     // don't worry, len can never be zero
     for (i = len - 1; i > 0; i--){

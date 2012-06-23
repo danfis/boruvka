@@ -5,8 +5,8 @@
 
 TEST(testCHull)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -60,8 +60,8 @@ TEST(testCHull)
 TEST(testCHull2)
 {
 
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -142,8 +142,8 @@ TEST(testCHull2)
 
 TEST(testCHull3)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -182,8 +182,8 @@ TEST(testCHull3)
 
 TEST(testCHull4)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -273,8 +273,8 @@ TEST(testCHull4)
 
 TEST(testCHull5)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -309,8 +309,8 @@ TEST(testCHull5)
 
 TEST(testCHull6)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -349,8 +349,8 @@ TEST(testCHull6)
 
 TEST(testCHull7)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -408,8 +408,8 @@ TEST(testCHull7)
 
 TEST(testCHull8)
 {
-    fer_chull3_t *h;
-    fer_vec3_t v;
+    bor_chull3_t *h;
+    bor_vec3_t v;
 
     h = ferCHull3New();
 
@@ -712,7 +712,7 @@ TEST(testCHull8)
 
 TEST(testCHullBunny)
 {
-    fer_chull3_t *h;
+    bor_chull3_t *h;
     size_t i;
 
     h = ferCHull3New();

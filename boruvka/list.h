@@ -29,24 +29,24 @@ extern "C" {
  * List
  * =====
  */
-struct _fer_list_t {
-    struct _fer_list_t *next, *prev;
+struct _bor_list_t {
+    struct _bor_list_t *next, *prev;
 };
-typedef struct _fer_list_t fer_list_t;
+typedef struct _bor_list_t bor_list_t;
 
 /**
- * Simliar struct as fer_list_t but with extra member "mark" which can be
+ * Simliar struct as bor_list_t but with extra member "mark" which can be
  * used for marking a particular struct.
  * In your code, you can put this struct into your own struct then use
  * ferListMAsList() for iterating over list and finaly ferListMFromList()
- * for backcast to this struct. (In other words retyping from fer_list_m_t
- * to fer_list_t is safe!).
+ * for backcast to this struct. (In other words retyping from bor_list_m_t
+ * to bor_list_t is safe!).
  */
-struct _fer_list_m_t {
-    struct _fer_list_m_t *next, *prev;
+struct _bor_list_m_t {
+    struct _bor_list_m_t *next, *prev;
     int mark;
 };
-typedef struct _fer_list_m_t fer_list_m_t;
+typedef struct _bor_list_m_t bor_list_m_t;
 
 /**
  * Example
@@ -60,14 +60,14 @@ typedef struct _fer_list_m_t fer_list_m_t;
  *     int a, b, c;
  *     ...
  *
- *     fer_list_t head;
+ *     bor_list_t head;
  * };
  *
  * struct member_t {
  *     int d, e, f;
  *     ...
  *
- *     fer_list_t list;
+ *     bor_list_t list;
  * };
  * ~~~~~~~
  *
@@ -87,7 +87,7 @@ typedef struct _fer_list_m_t fer_list_m_t;
  *
  * Now you can iterate over list or do anything else.
  * ~~~~~
- * fer_list_t *item;
+ * bor_list_t *item;
  * struct member_t *m;
  *
  * FER_LIST_FOR_EACH(&head.head, item){
@@ -111,7 +111,7 @@ typedef struct _fer_list_m_t fer_list_m_t;
  * static FER_LIST(name);
  * void main()
  * {
- *     fer_list_t *item;
+ *     bor_list_t *item;
  *
  *     FER_LIST_FOR_EACH(&name, item){
  *      ...
@@ -119,11 +119,11 @@ typedef struct _fer_list_m_t fer_list_m_t;
  * }
  */
 #define FER_LIST(name) \
-    fer_list_t name = { &name, &name }
+    bor_list_t name = { &name, &name }
 
 /**
  * Get the struct for this entry.
- * {ptr}: the &fer_list_t pointer.
+ * {ptr}: the &bor_list_t pointer.
  * {type}: the type of the struct this is embedded in.
  * {member}: the name of the list_struct within the struct.
  */
@@ -131,7 +131,7 @@ typedef struct _fer_list_m_t fer_list_m_t;
     fer_container_of(ptr, type, member)
 
 #define FER_LIST_M_ENTRY(ptr, type, member, offset) \
-    (type *)((char *)fer_container_of(ptr, type, member) - (sizeof(fer_list_m_t) * offset))
+    (type *)((char *)fer_container_of(ptr, type, member) - (sizeof(bor_list_m_t) * offset))
 
 /**
  * Iterates over list.
@@ -177,89 +177,89 @@ typedef struct _fer_list_m_t fer_list_m_t;
 /**
  * Initialize list.
  */
-_fer_inline void ferListInit(fer_list_t *l);
+_fer_inline void ferListInit(bor_list_t *l);
 
 /**
  * Returns next element in list. If called on head first element is
  * returned.
  */
-_fer_inline fer_list_t *ferListNext(fer_list_t *l);
+_fer_inline bor_list_t *ferListNext(bor_list_t *l);
 
 /**
  * Returns previous element in list. If called on head last element is
  * returned.
  */
-_fer_inline fer_list_t *ferListPrev(fer_list_t *l);
+_fer_inline bor_list_t *ferListPrev(bor_list_t *l);
 
 /**
  * Returns true if list is empty.
  */
-_fer_inline int ferListEmpty(const fer_list_t *head);
+_fer_inline int ferListEmpty(const bor_list_t *head);
 
 /**
  * Appends item to end of the list l.
  */
-_fer_inline void ferListAppend(fer_list_t *l, fer_list_t *item);
+_fer_inline void ferListAppend(bor_list_t *l, bor_list_t *item);
 
 /**
  * Prepends item before first item in list.
  */
-_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *item);
+_fer_inline void ferListPrepend(bor_list_t *l, bor_list_t *item);
 
 /**
  * Removes item from list.
  */
-_fer_inline void ferListDel(fer_list_t *item);
+_fer_inline void ferListDel(bor_list_t *item);
 
 
 /**
  * Returns number of items in list - this takes O(n).
  */
-_fer_inline size_t ferListSize(const fer_list_t *head);
+_fer_inline size_t ferListSize(const bor_list_t *head);
 
 
 /**
  * Move all items from {src} to {dst}. Items will be appended to dst.
  */
-_fer_inline void ferListMove(fer_list_t *src, fer_list_t *dst);
+_fer_inline void ferListMove(bor_list_t *src, bor_list_t *dst);
 
 
 /**
  * Retypes given "M" list struct to regular list struct.
  */
-_fer_inline fer_list_t *ferListMAsList(fer_list_m_t *l);
+_fer_inline bor_list_t *ferListMAsList(bor_list_m_t *l);
 
 /**
  * Opposite to ferListMAsList().
  */
-_fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l);
+_fer_inline bor_list_m_t *ferListMFromList(bor_list_t *l);
 
 
 
 
 /**** INLINES ****/
-_fer_inline void ferListInit(fer_list_t *l)
+_fer_inline void ferListInit(bor_list_t *l)
 {
     l->next = l;
     l->prev = l;
 }
 
-_fer_inline fer_list_t *ferListNext(fer_list_t *l)
+_fer_inline bor_list_t *ferListNext(bor_list_t *l)
 {
     return l->next;
 }
 
-_fer_inline fer_list_t *ferListPrev(fer_list_t *l)
+_fer_inline bor_list_t *ferListPrev(bor_list_t *l)
 {
     return l->prev;
 }
 
-_fer_inline int ferListEmpty(const fer_list_t *head)
+_fer_inline int ferListEmpty(const bor_list_t *head)
 {
     return head->next == head;
 }
 
-_fer_inline void ferListAppend(fer_list_t *l, fer_list_t *n)
+_fer_inline void ferListAppend(bor_list_t *l, bor_list_t *n)
 {
     n->prev = l->prev;
     n->next = l;
@@ -267,7 +267,7 @@ _fer_inline void ferListAppend(fer_list_t *l, fer_list_t *n)
     l->prev = n;
 }
 
-_fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *n)
+_fer_inline void ferListPrepend(bor_list_t *l, bor_list_t *n)
 {
     n->next = l->next;
     n->prev = l;
@@ -275,7 +275,7 @@ _fer_inline void ferListPrepend(fer_list_t *l, fer_list_t *n)
     l->next = n;
 }
 
-_fer_inline void ferListDel(fer_list_t *item)
+_fer_inline void ferListDel(bor_list_t *item)
 {
     item->next->prev = item->prev;
     item->prev->next = item->next;
@@ -283,9 +283,9 @@ _fer_inline void ferListDel(fer_list_t *item)
     item->prev = item;
 }
 
-_fer_inline size_t ferListSize(const fer_list_t *head)
+_fer_inline size_t ferListSize(const bor_list_t *head)
 {
-    fer_list_t *item;
+    bor_list_t *item;
     size_t size = 0;
 
     FER_LIST_FOR_EACH(head, item){
@@ -295,9 +295,9 @@ _fer_inline size_t ferListSize(const fer_list_t *head)
     return size;
 }
 
-_fer_inline void ferListMove(fer_list_t *src, fer_list_t *dst)
+_fer_inline void ferListMove(bor_list_t *src, bor_list_t *dst)
 {
-    fer_list_t *item;
+    bor_list_t *item;
 
     while (!ferListEmpty(src)){
         item = ferListNext(src);
@@ -306,14 +306,14 @@ _fer_inline void ferListMove(fer_list_t *src, fer_list_t *dst)
     }
 }
 
-_fer_inline fer_list_t *ferListMAsList(fer_list_m_t *l)
+_fer_inline bor_list_t *ferListMAsList(bor_list_m_t *l)
 {
-    return (fer_list_t *)l;
+    return (bor_list_t *)l;
 }
 
-_fer_inline fer_list_m_t *ferListMFromList(fer_list_t *l)
+_fer_inline bor_list_m_t *ferListMFromList(bor_list_t *l)
 {
-    return (fer_list_m_t *)l;
+    return (bor_list_m_t *)l;
 }
 
 #ifdef __cplusplus

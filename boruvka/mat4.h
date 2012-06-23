@@ -29,21 +29,21 @@ extern "C" {
  * Mat4 - 4x4 matrix
  * ==================
  */
-union _fer_mat4_t {
-    fer_vec4_t v[4];
-    fer_real_t f[4 * 4];
+union _bor_mat4_t {
+    bor_vec4_t v[4];
+    bor_real_t f[4 * 4];
 };
-typedef union _fer_mat4_t fer_mat4_t;
+typedef union _bor_mat4_t bor_mat4_t;
 
 /**
  * Holds identity matrix. Read only variable!
  */
-extern const fer_mat4_t *fer_mat4_identity;
+extern const bor_mat4_t *fer_mat4_identity;
 
 /**
  * Holds zero matrix. Read only variable!
  */
-extern const fer_mat4_t *fer_mat4_zero;
+extern const bor_mat4_t *fer_mat4_zero;
 
 #define FER_MAT4_STATIC(f11, f12, f13, f14, \
                         f21, f22, f23, f24, \
@@ -58,7 +58,7 @@ extern const fer_mat4_t *fer_mat4_zero;
                        f21, f22, f23, f24, \
                        f31, f32, f33, f34, \
                        f41, f42, f43, f44) \
-    fer_mat4_t name = FER_MAT4_STATIC((f11), (f12), (f13), (f14), \
+    bor_mat4_t name = FER_MAT4_STATIC((f11), (f12), (f13), (f14), \
                                       (f21), (f22), (f23), (f24), \
                                       (f31), (f32), (f33), (f34), \
                                       (f41), (f42), (f43), (f44))
@@ -71,48 +71,48 @@ extern const fer_mat4_t *fer_mat4_zero;
 /**
  * Allocates uninitialized new matrix.
  */
-fer_mat4_t *ferMat4New(void);
+bor_mat4_t *ferMat4New(void);
 
 /**
  * Deletes matrix.
  */
-void ferMat4Del(fer_mat4_t *m);
+void ferMat4Del(bor_mat4_t *m);
 
 /**
  * Clones given matrix.
  */
-_fer_inline fer_mat4_t *ferMat4Clone(const fer_mat4_t *m);
+_fer_inline bor_mat4_t *ferMat4Clone(const bor_mat4_t *m);
 
 /**
  * Copies matrix from s to d.
  */
-_fer_inline void ferMat4Copy(fer_mat4_t *d, const fer_mat4_t *s);
+_fer_inline void ferMat4Copy(bor_mat4_t *d, const bor_mat4_t *s);
 
 
 /**
  * Returns element from specified position.
  */
-_fer_inline fer_real_t ferMat4Get(const fer_mat4_t *m, size_t row, size_t col);
+_fer_inline bor_real_t ferMat4Get(const bor_mat4_t *m, size_t row, size_t col);
 
 /**
  * Sets element at specified position.
  */
-_fer_inline void ferMat4Set1(fer_mat4_t *m, size_t row, size_t col,
-                             fer_real_t val);
+_fer_inline void ferMat4Set1(bor_mat4_t *m, size_t row, size_t col,
+                             bor_real_t val);
 
 /**
  * Sets all elements to val.
  */
-_fer_inline void ferMat4SetAll(fer_mat4_t *m, fer_real_t val);
+_fer_inline void ferMat4SetAll(bor_mat4_t *m, bor_real_t val);
 
 /**
  * Sets whole matrix.
  */
-_fer_inline void ferMat4Set(fer_mat4_t *m,
-                            fer_real_t f11, fer_real_t f12, fer_real_t f13, fer_real_t f14,
-                            fer_real_t f21, fer_real_t f22, fer_real_t f23, fer_real_t f24,
-                            fer_real_t f31, fer_real_t f32, fer_real_t f33, fer_real_t f34,
-                            fer_real_t f41, fer_real_t f42, fer_real_t f43, fer_real_t f44);
+_fer_inline void ferMat4Set(bor_mat4_t *m,
+                            bor_real_t f11, bor_real_t f12, bor_real_t f13, bor_real_t f14,
+                            bor_real_t f21, bor_real_t f22, bor_real_t f23, bor_real_t f24,
+                            bor_real_t f31, bor_real_t f32, bor_real_t f33, bor_real_t f34,
+                            bor_real_t f41, bor_real_t f42, bor_real_t f43, bor_real_t f44);
 
 /**
  * Set identity matrix.
@@ -122,12 +122,12 @@ _fer_inline void ferMat4Set(fer_mat4_t *m,
  *     | 0 0 1 0 |
  *     | 0 0 0 1 |
  */
-_fer_inline void ferMat4SetIdentity(fer_mat4_t *m);
+_fer_inline void ferMat4SetIdentity(bor_mat4_t *m);
 
 /**
  * Set zero matrix.
  */
-_fer_inline void ferMat4SetZero(fer_mat4_t *m);
+_fer_inline void ferMat4SetZero(bor_mat4_t *m);
 
 /**
  * Set scale matrix.
@@ -137,7 +137,7 @@ _fer_inline void ferMat4SetZero(fer_mat4_t *m);
  *     | 0 0 s 0 |
  *     | 0 0 0 1 |
  */
-_fer_inline void ferMat4SetScale(fer_mat4_t *m, fer_real_t s);
+_fer_inline void ferMat4SetScale(bor_mat4_t *m, bor_real_t s);
 
 /**
  * Set diagonal.
@@ -147,7 +147,7 @@ _fer_inline void ferMat4SetScale(fer_mat4_t *m, fer_real_t s);
  *     | 0 0 s 0 |
  *     | 0 0 0 s |
  */
-_fer_inline void ferMat4SetDiag(fer_mat4_t *m, fer_real_t s);
+_fer_inline void ferMat4SetDiag(bor_mat4_t *m, bor_real_t s);
 
 /**
  * Set translation matrix (translation along v vector).
@@ -157,13 +157,13 @@ _fer_inline void ferMat4SetDiag(fer_mat4_t *m, fer_real_t s);
  *     | 0 0 1 z |
  *     | 0 0 0 1 |
  */
-_fer_inline void ferMat4SetTranslate(fer_mat4_t *m, const fer_vec3_t *v);
+_fer_inline void ferMat4SetTranslate(bor_mat4_t *m, const bor_vec3_t *v);
 
 /**
  * Set rotation matrix (3D).
  */
-_fer_inline void ferMat4SetRot(fer_mat4_t *m,
-                               fer_real_t angle, const fer_vec3_t *axis);
+_fer_inline void ferMat4SetRot(bor_mat4_t *m,
+                               bor_real_t angle, const bor_vec3_t *axis);
 
 /**
  * Apply scale transfomation.
@@ -173,7 +173,7 @@ _fer_inline void ferMat4SetRot(fer_mat4_t *m,
  *     | 0 0 s 0 |
  *     | 0 0 0 1 |
  */
-_fer_inline void ferMat4TrScale(fer_mat4_t *m, fer_real_t s);
+_fer_inline void ferMat4TrScale(bor_mat4_t *m, bor_real_t s);
 
 /**
  * Translate transformation matrix towards vector v.
@@ -183,90 +183,90 @@ _fer_inline void ferMat4TrScale(fer_mat4_t *m, fer_real_t s);
  *     | 0 0 0 z |
  *     | 0 0 0 1 |
  */
-_fer_inline void ferMat4Translate(fer_mat4_t *m, const fer_vec3_t *v);
+_fer_inline void ferMat4Translate(bor_mat4_t *m, const bor_vec3_t *v);
 
 /**
  * Rotate transformation matrix.
  */
-_fer_inline void ferMat4Rot(fer_mat4_t *m,
-                            fer_real_t angle, const fer_vec3_t *axis);
+_fer_inline void ferMat4Rot(bor_mat4_t *m,
+                            bor_real_t angle, const bor_vec3_t *axis);
 
 
 /**
  * Composes transformation:
  * A = B . A
  */
-_fer_inline void ferMat4Compose(fer_mat4_t *A, const fer_mat4_t *B);
+_fer_inline void ferMat4Compose(bor_mat4_t *A, const bor_mat4_t *B);
 
 
 /**
  * a = a + b
  */
-_fer_inline void ferMat4Add(fer_mat4_t *a, const fer_mat4_t *b);
+_fer_inline void ferMat4Add(bor_mat4_t *a, const bor_mat4_t *b);
 
 /**
  * d = a + b
  */
-_fer_inline void ferMat4Add2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b);
+_fer_inline void ferMat4Add2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b);
 
 /**
  * a = a - b
  */
-_fer_inline void ferMat4Sub(fer_mat4_t *a, const fer_mat4_t *b);
+_fer_inline void ferMat4Sub(bor_mat4_t *a, const bor_mat4_t *b);
 
 /**
  * d = a - b
  */
-_fer_inline void ferMat4Sub2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b);
+_fer_inline void ferMat4Sub2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b);
 
 /**
  * d = d * s
  */
-_fer_inline void ferMat4Scale(fer_mat4_t *d, fer_real_t s);
+_fer_inline void ferMat4Scale(bor_mat4_t *d, bor_real_t s);
 
 /**
  * d = a * s
  */
-_fer_inline void ferMat4Scale2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t s);
+_fer_inline void ferMat4Scale2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t s);
 
 /**
  * d = d + c
  */
-_fer_inline void ferMat4AddConst(fer_mat4_t *d, fer_real_t c);
+_fer_inline void ferMat4AddConst(bor_mat4_t *d, bor_real_t c);
 
 /**
  * d = a + c
  */
-_fer_inline void ferMat4AddConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c);
+_fer_inline void ferMat4AddConst2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t c);
 
 /**
  * d = d - c
  */
-_fer_inline void ferMat4SubConst(fer_mat4_t *d, fer_real_t c);
+_fer_inline void ferMat4SubConst(bor_mat4_t *d, bor_real_t c);
 
 /**
  * d = a - c
  */
-_fer_inline void ferMat4SubConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c);
+_fer_inline void ferMat4SubConst2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t c);
 
 
 /**
  * a = a * b
  */
-_fer_inline void ferMat4Mul(fer_mat4_t *a, const fer_mat4_t *b);
+_fer_inline void ferMat4Mul(bor_mat4_t *a, const bor_mat4_t *b);
 
 /**
  * d = a * b
  */
-_fer_inline void ferMat4Mul2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b);
+_fer_inline void ferMat4Mul2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b);
 
 /**
  * a = b * a
  */
-_fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b);
+_fer_inline void ferMat4MulLeft(bor_mat4_t *a, const bor_mat4_t *b);
 
 
 /**
@@ -277,51 +277,51 @@ _fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b);
  *     | a31*b31 a32*b32 a33*b33 a34*b34 |
  *     | a41*b41 a42*b42 a43*b43 a44*b44 |
  */
-_fer_inline void ferMat4MulComp(fer_mat4_t *a, const fer_mat4_t *b);
-_fer_inline void ferMat4MulComp2(fer_mat4_t *d, const fer_mat4_t *a,
-                                                const fer_mat4_t *b);
+_fer_inline void ferMat4MulComp(bor_mat4_t *a, const bor_mat4_t *b);
+_fer_inline void ferMat4MulComp2(bor_mat4_t *d, const bor_mat4_t *a,
+                                                const bor_mat4_t *b);
 
 /**
  * Transposes matrix.
  */
-_fer_inline void ferMat4Trans(fer_mat4_t *d);
-_fer_inline void ferMat4Trans2(fer_mat4_t *d, const fer_mat4_t *a);
+_fer_inline void ferMat4Trans(bor_mat4_t *d);
+_fer_inline void ferMat4Trans2(bor_mat4_t *d, const bor_mat4_t *a);
 
 /**
  * Returns true if matrix is regular.
  */
-_fer_inline int ferMat4Regular(const fer_mat4_t *m);
+_fer_inline int ferMat4Regular(const bor_mat4_t *m);
 
 /**
  * Returns true if matrix is singular.
  */
-_fer_inline int ferMat4Singular(const fer_mat4_t *m);
+_fer_inline int ferMat4Singular(const bor_mat4_t *m);
 
 /**
  * Returns determinant of matrix.
  */
-_fer_inline fer_real_t ferMat4Det(const fer_mat4_t *m);
+_fer_inline bor_real_t ferMat4Det(const bor_mat4_t *m);
 
 /**
  * Inverts matrix.
  * Returns 0 on success, -1 if matrix is singular.
  */
-_fer_inline int ferMat4Inv(fer_mat4_t *m);
+_fer_inline int ferMat4Inv(bor_mat4_t *m);
 
 /**
  * Computes invertion matrix and stores it in m:
  * m = inv(a)
  * Returns 0 on success, -1 if matrix is singular.
  */
-int ferMat4Inv2(fer_mat4_t *m, const fer_mat4_t *a);
+int ferMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a);
 
 
 /**
  * Multiplies 4D vector by matrix (vectors are considered to be colunmal).
  * v = m * w
  */
-_fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
-                                              const fer_vec4_t *w);
+_fer_inline void ferMat4MulVec(bor_vec4_t *v, const bor_mat4_t *m,
+                                              const bor_vec4_t *w);
 
 /**
  * Multiplies matrix with 3D vector.
@@ -338,67 +338,67 @@ _fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
  * v.y = v.y / v.w
  * v.z = v.z / v.w
  */
-_fer_inline void ferMat4MulVec3(fer_vec3_t *v, const fer_mat4_t *m,
-                                               const fer_vec3_t *w);
+_fer_inline void ferMat4MulVec3(bor_vec3_t *v, const bor_mat4_t *m,
+                                               const bor_vec3_t *w);
 
 
 /**
  * Copies c'th column in col vector.
  */
-_fer_inline void ferMat4CopyCol(fer_vec4_t *col, const fer_mat4_t *m, size_t c);
+_fer_inline void ferMat4CopyCol(bor_vec4_t *col, const bor_mat4_t *m, size_t c);
 
 /**
  * Copies r'th row in row vector.
  */
-_fer_inline void ferMat4CopyRow(fer_vec4_t *row, const fer_mat4_t *m, size_t r);
+_fer_inline void ferMat4CopyRow(bor_vec4_t *row, const bor_mat4_t *m, size_t r);
 
 /**
  * Computes dot product of r'th row of matrix m and c'th column of matrix n.
  */
-_fer_inline fer_real_t ferMat4DotRowCol(const fer_mat4_t *m, size_t r,
-                                        const fer_mat4_t *n, size_t c);
+_fer_inline bor_real_t ferMat4DotRowCol(const bor_mat4_t *m, size_t r,
+                                        const bor_mat4_t *n, size_t c);
 
 /**
  * Returns dot product of col'th column of matrix m with vector v.
  */
-_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t c,
-                                     const fer_vec4_t *v);
+_fer_inline bor_real_t ferMat4DotCol(const bor_mat4_t *m, size_t c,
+                                     const bor_vec4_t *v);
 
 /**
  * Returns dot product of row'th row of matrix m with vector v.
  */
-_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t r,
-                                     const fer_vec4_t *v);
+_fer_inline bor_real_t ferMat4DotRow(const bor_mat4_t *m, size_t r,
+                                     const bor_vec4_t *v);
 
 
 /**** INLINES ****/
-_fer_inline fer_mat4_t *ferMat4Clone(const fer_mat4_t *m)
+_fer_inline bor_mat4_t *ferMat4Clone(const bor_mat4_t *m)
 {
-    fer_mat4_t *n;
+    bor_mat4_t *n;
 
     n = ferMat4New();
     ferMat4Copy(n, m);
     return n;
 }
 
-_fer_inline void ferMat4Copy(fer_mat4_t *d, const fer_mat4_t *s)
+_fer_inline void ferMat4Copy(bor_mat4_t *d, const bor_mat4_t *s)
 {
     *d = *s;
 }
 
 
-_fer_inline fer_real_t ferMat4Get(const fer_mat4_t *m, size_t row, size_t col)
+_fer_inline bor_real_t ferMat4Get(const bor_mat4_t *m, size_t row, size_t col)
 {
     return m->f[row * 4 + col];
 }
 
-_fer_inline void ferMat4Set1(fer_mat4_t *m, size_t row, size_t col,
-                             fer_real_t val)
+_fer_inline void ferMat4Set1(bor_mat4_t *m, size_t row, size_t col,
+                             bor_real_t val)
 {
     m->f[row * 4 + col] = val;
 }
 
-_fer_inline void ferMat4SetAll(fer_mat4_t *m, fer_real_t val)
+_fer_inline void ferMat4SetAll(bor_mat4_t *m, bor_real_t val)
 {
     size_t i;
     for (i = 0; i < 4 * 4; i++){
@@ -406,11 +406,11 @@ _fer_inline void ferMat4SetAll(fer_mat4_t *m, fer_real_t val)
     }
 }
 
-_fer_inline void ferMat4Set(fer_mat4_t *m,
-                            fer_real_t f11, fer_real_t f12, fer_real_t f13, fer_real_t f14,
-                            fer_real_t f21, fer_real_t f22, fer_real_t f23, fer_real_t f24,
-                            fer_real_t f31, fer_real_t f32, fer_real_t f33, fer_real_t f34,
-                            fer_real_t f41, fer_real_t f42, fer_real_t f43, fer_real_t f44)
+_fer_inline void ferMat4Set(bor_mat4_t *m,
+                            bor_real_t f11, bor_real_t f12, bor_real_t f13, bor_real_t f14,
+                            bor_real_t f21, bor_real_t f22, bor_real_t f23, bor_real_t f24,
+                            bor_real_t f31, bor_real_t f32, bor_real_t f33, bor_real_t f34,
+                            bor_real_t f41, bor_real_t f42, bor_real_t f43, bor_real_t f44)
 {
     m->f[0] = f11;
     m->f[1] = f12;
@@ -430,7 +430,7 @@ _fer_inline void ferMat4Set(fer_mat4_t *m,
     m->f[15] = f44;
 }
 
-_fer_inline void ferMat4SetIdentity(fer_mat4_t *m)
+_fer_inline void ferMat4SetIdentity(bor_mat4_t *m)
 {
     ferMat4Set(m, FER_ONE, FER_ZERO, FER_ZERO, FER_ZERO,
                   FER_ZERO, FER_ONE, FER_ZERO, FER_ZERO,
@@ -438,12 +438,12 @@ _fer_inline void ferMat4SetIdentity(fer_mat4_t *m)
                   FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat4SetZero(fer_mat4_t *m)
+_fer_inline void ferMat4SetZero(bor_mat4_t *m)
 {
     ferMat4SetAll(m, FER_ZERO);
 }
 
-_fer_inline void ferMat4SetScale(fer_mat4_t *m, fer_real_t s)
+_fer_inline void ferMat4SetScale(bor_mat4_t *m, bor_real_t s)
 {
     ferMat4Set(m, s, FER_ZERO, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO, FER_ZERO,
@@ -451,7 +451,7 @@ _fer_inline void ferMat4SetScale(fer_mat4_t *m, fer_real_t s)
                   FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat4SetDiag(fer_mat4_t *m, fer_real_t s)
+_fer_inline void ferMat4SetDiag(bor_mat4_t *m, bor_real_t s)
 {
     ferMat4Set(m, s, FER_ZERO, FER_ZERO, FER_ZERO,
                   FER_ZERO, s, FER_ZERO, FER_ZERO,
@@ -459,7 +459,7 @@ _fer_inline void ferMat4SetDiag(fer_mat4_t *m, fer_real_t s)
                   FER_ZERO, FER_ZERO, FER_ZERO, s);
 }
 
-_fer_inline void ferMat4SetTranslate(fer_mat4_t *m, const fer_vec3_t *v)
+_fer_inline void ferMat4SetTranslate(bor_mat4_t *m, const bor_vec3_t *v)
 {
     ferMat4Set(m, FER_ONE, FER_ZERO, FER_ZERO, ferVec3X(v),
                   FER_ZERO, FER_ONE, FER_ZERO, ferVec3Y(v),
@@ -467,11 +467,11 @@ _fer_inline void ferMat4SetTranslate(fer_mat4_t *m, const fer_vec3_t *v)
                   FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
 }
 
-_fer_inline void ferMat4SetRot(fer_mat4_t *m,
-                               fer_real_t angle, const fer_vec3_t *axis)
+_fer_inline void ferMat4SetRot(bor_mat4_t *m,
+                               bor_real_t angle, const bor_vec3_t *axis)
 {
-    fer_real_t x2, y2, z2, len2;
-    fer_real_t k1, k2, k3, k1xy, k1xz, k1yz, k3x, k3y, k3z;
+    bor_real_t x2, y2, z2, len2;
+    bor_real_t k1, k2, k3, k1xy, k1xz, k1yz, k3x, k3y, k3z;
 
     x2 = ferVec3X(axis) * ferVec3X(axis);
     y2 = ferVec3Y(axis) * ferVec3Y(axis);
@@ -509,36 +509,36 @@ _fer_inline void ferMat4SetRot(fer_mat4_t *m,
     m->f[15] = FER_ONE;
 }
 
-_fer_inline void ferMat4TrScale(fer_mat4_t *m, fer_real_t s)
+_fer_inline void ferMat4TrScale(bor_mat4_t *m, bor_real_t s)
 {
-    fer_mat4_t scale;
+    bor_mat4_t scale;
     ferMat4SetScale(&scale, s);
     ferMat4Compose(m, &scale);
 }
 
-_fer_inline void ferMat4Translate(fer_mat4_t *m, const fer_vec3_t *v)
+_fer_inline void ferMat4Translate(bor_mat4_t *m, const bor_vec3_t *v)
 {
-    fer_mat4_t tr;
+    bor_mat4_t tr;
     ferMat4SetTranslate(&tr, v);
     ferMat4Compose(m, &tr);
 }
 
-_fer_inline void ferMat4Rot(fer_mat4_t *m,
-                            fer_real_t angle, const fer_vec3_t *axis)
+_fer_inline void ferMat4Rot(bor_mat4_t *m,
+                            bor_real_t angle, const bor_vec3_t *axis)
 {
-    fer_mat4_t rot;
+    bor_mat4_t rot;
     ferMat4SetRot(&rot, angle, axis);
     ferMat4Compose(m, &rot);
 }
 
 
-_fer_inline void ferMat4Compose(fer_mat4_t *A, const fer_mat4_t *B)
+_fer_inline void ferMat4Compose(bor_mat4_t *A, const bor_mat4_t *B)
 {
     ferMat4MulLeft(A, B);
 }
 
 
-_fer_inline void ferMat4Add(fer_mat4_t *a, const fer_mat4_t *b)
+_fer_inline void ferMat4Add(bor_mat4_t *a, const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -546,8 +546,8 @@ _fer_inline void ferMat4Add(fer_mat4_t *a, const fer_mat4_t *b)
     }
 }
 
-_fer_inline void ferMat4Add2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b)
+_fer_inline void ferMat4Add2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -555,7 +555,7 @@ _fer_inline void ferMat4Add2(fer_mat4_t *d, const fer_mat4_t *a,
     }
 }
 
-_fer_inline void ferMat4Sub(fer_mat4_t *a, const fer_mat4_t *b)
+_fer_inline void ferMat4Sub(bor_mat4_t *a, const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -563,8 +563,8 @@ _fer_inline void ferMat4Sub(fer_mat4_t *a, const fer_mat4_t *b)
     }
 }
 
-_fer_inline void ferMat4Sub2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b)
+_fer_inline void ferMat4Sub2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -572,7 +572,7 @@ _fer_inline void ferMat4Sub2(fer_mat4_t *d, const fer_mat4_t *a,
     }
 }
 
-_fer_inline void ferMat4Scale(fer_mat4_t *d, fer_real_t s)
+_fer_inline void ferMat4Scale(bor_mat4_t *d, bor_real_t s)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -580,7 +580,7 @@ _fer_inline void ferMat4Scale(fer_mat4_t *d, fer_real_t s)
     }
 }
 
-_fer_inline void ferMat4Scale2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t s)
+_fer_inline void ferMat4Scale2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t s)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -588,7 +588,7 @@ _fer_inline void ferMat4Scale2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t s)
     }
 }
 
-_fer_inline void ferMat4AddConst(fer_mat4_t *d, fer_real_t c)
+_fer_inline void ferMat4AddConst(bor_mat4_t *d, bor_real_t c)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -596,7 +596,7 @@ _fer_inline void ferMat4AddConst(fer_mat4_t *d, fer_real_t c)
     }
 }
 
-_fer_inline void ferMat4AddConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c)
+_fer_inline void ferMat4AddConst2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t c)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -604,7 +604,7 @@ _fer_inline void ferMat4AddConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t
     }
 }
 
-_fer_inline void ferMat4SubConst(fer_mat4_t *d, fer_real_t c)
+_fer_inline void ferMat4SubConst(bor_mat4_t *d, bor_real_t c)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -612,7 +612,7 @@ _fer_inline void ferMat4SubConst(fer_mat4_t *d, fer_real_t c)
     }
 }
 
-_fer_inline void ferMat4SubConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t c)
+_fer_inline void ferMat4SubConst2(bor_mat4_t *d, const bor_mat4_t *a, bor_real_t c)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -620,9 +620,9 @@ _fer_inline void ferMat4SubConst2(fer_mat4_t *d, const fer_mat4_t *a, fer_real_t
     }
 }
 
-_fer_inline void ferMat4Mul(fer_mat4_t *a, const fer_mat4_t *b)
+_fer_inline void ferMat4Mul(bor_mat4_t *a, const bor_mat4_t *b)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
 
     ferVec4Copy(&v, a->v + 0);
     a->f[0]  = ferMat4DotCol(b, 0, &v);
@@ -650,10 +650,10 @@ _fer_inline void ferMat4Mul(fer_mat4_t *a, const fer_mat4_t *b)
 
 }
 
-_fer_inline void ferMat4Mul2(fer_mat4_t *d, const fer_mat4_t *a,
-                                            const fer_mat4_t *b)
+_fer_inline void ferMat4Mul2(bor_mat4_t *d, const bor_mat4_t *a,
+                                            const bor_mat4_t *b)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
 
     ferMat4CopyCol(&v, b, 0);
     d->f[0]  = ferMat4DotRow(a, 0, &v);
@@ -680,9 +680,9 @@ _fer_inline void ferMat4Mul2(fer_mat4_t *d, const fer_mat4_t *a,
     d->f[15] = ferMat4DotRow(a, 3, &v);
 }
 
-_fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b)
+_fer_inline void ferMat4MulLeft(bor_mat4_t *a, const bor_mat4_t *b)
 {
-    fer_vec4_t v;
+    bor_vec4_t v;
 
     ferMat4CopyCol(&v, a, 0);
     a->f[0]  = ferMat4DotRow(b, 0, &v);
@@ -709,7 +709,7 @@ _fer_inline void ferMat4MulLeft(fer_mat4_t *a, const fer_mat4_t *b)
     a->f[15] = ferMat4DotRow(b, 3, &v);
 }
 
-_fer_inline void ferMat4MulComp(fer_mat4_t *a, const fer_mat4_t *b)
+_fer_inline void ferMat4MulComp(bor_mat4_t *a, const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -717,8 +717,8 @@ _fer_inline void ferMat4MulComp(fer_mat4_t *a, const fer_mat4_t *b)
     }
 }
 
-_fer_inline void ferMat4MulComp2(fer_mat4_t *d, const fer_mat4_t *a,
-                                                const fer_mat4_t *b)
+_fer_inline void ferMat4MulComp2(bor_mat4_t *d, const bor_mat4_t *a,
+                                                const bor_mat4_t *b)
 {
     size_t i;
     for (i = 0; i < 4; i++){
@@ -726,9 +726,9 @@ _fer_inline void ferMat4MulComp2(fer_mat4_t *d, const fer_mat4_t *a,
     }
 }
 
-_fer_inline void ferMat4Trans(fer_mat4_t *d)
+_fer_inline void ferMat4Trans(bor_mat4_t *d)
 {
-    fer_real_t a, b, c, e, f, g;
+    bor_real_t a, b, c, e, f, g;
 
     a = d->f[1];
     b = d->f[2];
@@ -742,7 +742,7 @@ _fer_inline void ferMat4Trans(fer_mat4_t *d)
                   e,       f,       g,        d->f[15]);
 }
 
-_fer_inline void ferMat4Trans2(fer_mat4_t *d, const fer_mat4_t *a)
+_fer_inline void ferMat4Trans2(bor_mat4_t *d, const bor_mat4_t *a)
 {
     ferMat4CopyCol(d->v + 0, a, 0);
     ferMat4CopyCol(d->v + 1, a, 1);
@@ -750,21 +750,21 @@ _fer_inline void ferMat4Trans2(fer_mat4_t *d, const fer_mat4_t *a)
     ferMat4CopyCol(d->v + 3, a, 3);
 }
 
-_fer_inline int ferMat4Regular(const fer_mat4_t *m)
+_fer_inline int ferMat4Regular(const bor_mat4_t *m)
 {
-    fer_real_t det;
+    bor_real_t det;
     det = ferMat4Det(m);
     return !ferIsZero(det);
 }
 
-_fer_inline int ferMat4Singular(const fer_mat4_t *m)
+_fer_inline int ferMat4Singular(const bor_mat4_t *m)
 {
     return !ferMat4Regular(m);
 }
 
-_fer_inline fer_real_t ferMat4Det(const fer_mat4_t *m)
+_fer_inline bor_real_t ferMat4Det(const bor_mat4_t *m)
 {
-    fer_real_t det;
+    bor_real_t det;
 
     det  = m->f[0] * m->f[5] * m->f[10] * m->f[15];
     det -= m->f[0] * m->f[5] * m->f[11] * m->f[14];
@@ -794,15 +794,15 @@ _fer_inline fer_real_t ferMat4Det(const fer_mat4_t *m)
     return det;
 }
 
-_fer_inline int ferMat4Inv(fer_mat4_t *m)
+_fer_inline int ferMat4Inv(bor_mat4_t *m)
 {
-    fer_mat4_t n;
+    bor_mat4_t n;
     ferMat4Copy(&n, m);
     return ferMat4Inv2(m, &n);
 }
 
-_fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
-                                              const fer_vec4_t *w)
+_fer_inline void ferMat4MulVec(bor_vec4_t *v, const bor_mat4_t *m,
+                                              const bor_vec4_t *w)
 {
     ferVec4SetX(v, ferVec4Dot(m->v + 0, w));
     ferVec4SetY(v, ferVec4Dot(m->v + 1, w));
@@ -810,11 +810,11 @@ _fer_inline void ferMat4MulVec(fer_vec4_t *v, const fer_mat4_t *m,
     ferVec4SetW(v, ferVec4Dot(m->v + 3, w));
 }
 
-_fer_inline void ferMat4MulVec3(fer_vec3_t *v, const fer_mat4_t *m,
-                                               const fer_vec3_t *_w)
+_fer_inline void ferMat4MulVec3(bor_vec3_t *v, const bor_mat4_t *m,
+                                               const bor_vec3_t *_w)
 {
-    fer_real_t denom;
-    fer_vec4_t w;
+    bor_real_t denom;
+    bor_vec4_t w;
 
     ferVec4SetX(&w, ferVec3X(_w));
     ferVec4SetY(&w, ferVec3Y(_w));
@@ -830,34 +830,34 @@ _fer_inline void ferMat4MulVec3(fer_vec3_t *v, const fer_mat4_t *m,
 
 
 
-_fer_inline void ferMat4CopyCol(fer_vec4_t *col, const fer_mat4_t *m, size_t c)
+_fer_inline void ferMat4CopyCol(bor_vec4_t *col, const bor_mat4_t *m, size_t c)
 {
     ferVec4Set(col, m->f[c], m->f[c + 4], m->f[c + 8], m->f[c + 12]);
 }
 
-_fer_inline void ferMat4CopyRow(fer_vec4_t *row, const fer_mat4_t *m, size_t r)
+_fer_inline void ferMat4CopyRow(bor_vec4_t *row, const bor_mat4_t *m, size_t r)
 {
     ferVec4Copy(row, m->v + r);
 }
 
-_fer_inline fer_real_t ferMat4DotRowCol(const fer_mat4_t *m, size_t r,
-                                        const fer_mat4_t *n, size_t c)
+_fer_inline bor_real_t ferMat4DotRowCol(const bor_mat4_t *m, size_t r,
+                                        const bor_mat4_t *n, size_t c)
 {
-    fer_vec4_t col;
+    bor_vec4_t col;
     ferMat4CopyCol(&col, n, c);
     return ferVec4Dot(m->v + r, &col);
 }
 
-_fer_inline fer_real_t ferMat4DotCol(const fer_mat4_t *m, size_t c,
-                                     const fer_vec4_t *v)
+_fer_inline bor_real_t ferMat4DotCol(const bor_mat4_t *m, size_t c,
+                                     const bor_vec4_t *v)
 {
-    fer_vec4_t col;
+    bor_vec4_t col;
     ferMat4CopyCol(&col, m, c);
     return ferVec4Dot(&col, v);
 }
 
-_fer_inline fer_real_t ferMat4DotRow(const fer_mat4_t *m, size_t r,
-                                     const fer_vec4_t *v)
+_fer_inline bor_real_t ferMat4DotRow(const bor_mat4_t *m, size_t r,
+                                     const bor_vec4_t *v)
 {
     return ferVec4Dot(m->v + r, v);
 }

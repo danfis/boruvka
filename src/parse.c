@@ -21,12 +21,12 @@
     ( c != ' ' && c != '\t' && c != '\n')
 
 /* Implementation taken from SVT project. */
-int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **next)
+int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **next)
 {
     char c;
-    fer_real_t fract;
-    fer_real_t mult;
-    fer_real_t num;
+    bor_real_t fract;
+    bor_real_t mult;
+    bor_real_t num;
     int negative = 0;
     int has_e;
 
@@ -136,9 +136,9 @@ int ferParseReal(const char *str, const char *strend, fer_real_t *val, char **ne
 }
 
 
-int ferParseVec3(const char *_str, const char *strend, fer_vec3_t *vec, char **n)
+int ferParseVec3(const char *_str, const char *strend, bor_vec3_t *vec, char **n)
 {
-    fer_real_t v[3];
+    bor_real_t v[3];
     size_t i;
     char *str, *next;
 
@@ -159,9 +159,9 @@ int ferParseVec3(const char *_str, const char *strend, fer_vec3_t *vec, char **n
     return 0;
 }
 
-int ferParseVec2(const char *_str, const char *strend, fer_vec2_t *vec, char **n)
+int ferParseVec2(const char *_str, const char *strend, bor_vec2_t *vec, char **n)
 {
-    fer_real_t v[2];
+    bor_real_t v[2];
     size_t i;
     char *str, *next;
 
@@ -182,9 +182,9 @@ int ferParseVec2(const char *_str, const char *strend, fer_vec2_t *vec, char **n
     return 0;
 }
 
-int ferParseVec4(const char *_str, const char *strend, fer_vec4_t *vec, char **n)
+int ferParseVec4(const char *_str, const char *strend, bor_vec4_t *vec, char **n)
 {
-    fer_real_t v[4];
+    bor_real_t v[4];
     size_t i;
     char *str, *next;
 

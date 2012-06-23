@@ -6,14 +6,14 @@
 
 struct rs_t {
     int i;
-    fer_real_t key;
+    bor_real_t key;
 };
 
 #define RS_PTR_LEN 1000
 
 TEST(sortRadixPtr)
 {
-    fer_rand_t rnd;
+    bor_rand_t rnd;
     struct rs_t *arr[RS_PTR_LEN], *tmp[RS_PTR_LEN];
     size_t i, len = RS_PTR_LEN;
 

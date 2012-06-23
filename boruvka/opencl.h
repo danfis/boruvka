@@ -34,7 +34,7 @@ extern "C" {
  * OpenCL - Simplified API To OpenCL
  * ==================================
  */
-struct _fer_cl_t {
+struct _bor_cl_t {
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
@@ -44,7 +44,7 @@ struct _fer_cl_t {
     cl_kernel *kernels; /*!< List of kernels from program */
     size_t kernels_len;
 };
-typedef struct _fer_cl_t fer_cl_t;
+typedef struct _bor_cl_t bor_cl_t;
 
 /**
  * Functions and Macros
@@ -101,19 +101,19 @@ typedef struct _fer_cl_t fer_cl_t;
  * Creates new OpenCL program from given NULL-terminated string.
  * A "Simple" means that first GPU capable device will be chosen.
  */
-fer_cl_t *ferCLNewSimple(const char *program, const char *buildopts);
+bor_cl_t *ferCLNewSimple(const char *program, const char *buildopts);
 
 /**
  * Similar to ferCLNewSimple() but program is created from array of
  * NULL-terminated strings.
  */
-fer_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
+bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
                           const char *buildopts);
 
 /**
  * Deletes previoulsy created OpenCL program.
  */
-void ferCLDel(fer_cl_t *cl);
+void ferCLDel(bor_cl_t *cl);
 
 /**
  * Prints to given output info about platforms and devices.
@@ -130,17 +130,17 @@ char *ferCLProgramFromFile(const char *filename);
  * Kernel's ID (that can be used in ferCLKernel() function) is returned
  * or -1 is returned on error.
  */
-int ferCLKernelNew(fer_cl_t *cl, const char *kernel);
+int ferCLKernelNew(bor_cl_t *cl, const char *kernel);
 
 /**
  * Returns number of kernels stored in OpenCL program.
  */
-_fer_inline size_t ferCLKernelsLen(const fer_cl_t *cl);
+_fer_inline size_t ferCLKernelsLen(const bor_cl_t *cl);
 
 /**
  * Returns i'th kernel.
  */
-_fer_inline cl_kernel ferCLKernel(const fer_cl_t *cl, size_t i);
+_fer_inline cl_kernel ferCLKernel(const bor_cl_t *cl, size_t i);
 
 /**
  * Setting kernel's arg_idx's argument - on size of value must be spcified.
@@ -151,7 +151,7 @@ _fer_inline cl_kernel ferCLKernel(const fer_cl_t *cl, size_t i);
 /**
  * Sets arg_idx'th arguemnt of kernel.
  */
-int ferCLKernelSetArg(fer_cl_t *cl, size_t kernel, size_t arg_idx,
+int ferCLKernelSetArg(bor_cl_t *cl, size_t kernel, size_t arg_idx,
                       size_t size, const void *arg);
 
 /**
@@ -160,42 +160,42 @@ int ferCLKernelSetArg(fer_cl_t *cl, size_t kernel, size_t arg_idx,
  * number of work groups (CUDA's grid size), {loc} is array of
  * number of work items per group (CUDA's thread size).
  */
-int ferCLKernelEnqueue(fer_cl_t *cl, size_t kernel,
+int ferCLKernelEnqueue(bor_cl_t *cl, size_t kernel,
                        size_t dim, const size_t *glob, const size_t *loc);
 
 
 /**
  * Flush device queue and block until finished.
  */
-int ferCLFinish(fer_cl_t *cl);
+int ferCLFinish(bor_cl_t *cl);
 
 /**
  * Allocate size bytes of memory on device. If src in non-NULL it must
  * point to host memory and that is copyied to newly allocated device
  * memory.
  */
-void *ferCLAlloc(fer_cl_t *cl, size_t size, void *src, cl_mem_flags flags);
+void *ferCLAlloc(bor_cl_t *cl, size_t size, void *src, cl_mem_flags flags);
 
 /**
  * Clone device memory to host memory.
  */
-void *ferCLCloneToHost(fer_cl_t *cl, const void *src, size_t size);
+void *ferCLCloneToHost(bor_cl_t *cl, const void *src, size_t size);
 
-void ferCLCopyToHost(fer_cl_t *cl, const void *src, void *dst, size_t size);
-void ferCLCopyFromHost(fer_cl_t *cl, const void *src, void *dst, size_t size);
+void ferCLCopyToHost(bor_cl_t *cl, const void *src, void *dst, size_t size);
+void ferCLCopyFromHost(bor_cl_t *cl, const void *src, void *dst, size_t size);
 
 /**
  * Map given host memory to device memory.
  */
-void *ferCLMemMap(fer_cl_t *cl, void *src, size_t size, cl_mem_flags flags);
+void *ferCLMemMap(bor_cl_t *cl, void *src, size_t size, cl_mem_flags flags);
 
 /**** INLINES ****/
-_fer_inline size_t ferCLKernelsLen(const fer_cl_t *cl)
+_fer_inline size_t ferCLKernelsLen(const bor_cl_t *cl)
 {
     return cl->kernels_len;
 }
 
-_fer_inline cl_kernel ferCLKernel(const fer_cl_t *cl, size_t i)
+_fer_inline cl_kernel ferCLKernel(const bor_cl_t *cl, size_t i)
 {
     return cl->kernels[i];
 }

@@ -8,26 +8,26 @@
 #include <boruvka/dbg.h>
 
 struct _el_t {
-    fer_vec2_t v;
-    fer_nn_el_t linear;
-    fer_nn_el_t gug;
-    fer_nn_el_t vp;
+    bor_vec2_t v;
+    bor_nn_el_t linear;
+    bor_nn_el_t gug;
+    bor_nn_el_t vp;
 };
 typedef struct _el_t el_t;
 
 
-static fer_rand_t r;
+static bor_rand_t r;
 static size_t arr_len;
 static size_t loops;
 static size_t nearest_len;
 
-fer_nn_t *gug, *vp, *linear;
+bor_nn_t *gug, *vp, *linear;
 
 
 static el_t *elsNew(size_t len)
 {
     size_t i;
-    fer_real_t x, y;
+    bor_real_t x, y;
     el_t *ns;
 
     ns = FER_ALLOC_ARR(el_t, arr_len);
@@ -36,9 +36,9 @@ static el_t *elsNew(size_t len)
         y = ferRand(&r, -20., 20.);
 
         ferVec2Set(&ns[i].v, x, y);
-        ferNNElInit(linear, &ns[i].linear, (const fer_vec_t *)&ns[i].v);
-        ferNNElInit(gug, &ns[i].gug, (const fer_vec_t *)&ns[i].v);
-        ferNNElInit(vp, &ns[i].vp, (const fer_vec_t *)&ns[i].v);
+        ferNNElInit(linear, &ns[i].linear, (const bor_vec_t *)&ns[i].v);
+        ferNNElInit(gug, &ns[i].gug, (const bor_vec_t *)&ns[i].v);
+        ferNNElInit(vp, &ns[i].vp, (const bor_vec_t *)&ns[i].v);
 
         ferNNAdd(linear, &ns[i].linear);
         ferNNAdd(gug, &ns[i].gug);
@@ -50,14 +50,14 @@ static el_t *elsNew(size_t len)
 
 static void testCorrect(void)
 {
-    fer_nn_params_t params;
-    fer_real_t range[4] = { -15., 15., -18., 17. };
+    bor_nn_params_t params;
+    bor_real_t range[4] = { -15., 15., -18., 17. };
     el_t *ns, *near[3];
-    fer_nn_el_t *el_linear[50], *el_gug[50], *el_vp[50];
+    bor_nn_el_t *el_linear[50], *el_gug[50], *el_vp[50];
     int i, j, k;
     int len_linear, len_gug, len_vp;
     int incorrect;
-    fer_vec2_t v;
+    bor_vec2_t v;
 
 
     ferNNParamsInit(&params);
@@ -83,9 +83,9 @@ static void testCorrect(void)
             fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            len_linear = ferNNNearest(linear, (const fer_vec_t *)&v, k + 1, el_linear);
-            len_gug    = ferNNNearest(gug, (const fer_vec_t *)&v, k + 1, el_gug);
-            len_vp     = ferNNNearest(vp, (const fer_vec_t *)&v, k + 1, el_vp);
+            len_linear = ferNNNearest(linear, (const bor_vec_t *)&v, k + 1, el_linear);
+            len_gug    = ferNNNearest(gug, (const bor_vec_t *)&v, k + 1, el_gug);
+            len_vp     = ferNNNearest(vp, (const bor_vec_t *)&v, k + 1, el_vp);
 
             if (len_linear != len_gug
                     || len_linear != len_vp
@@ -122,14 +122,14 @@ static void testCorrect(void)
 
 static void bench(void)
 {
-    fer_nn_params_t params;
-    fer_real_t range[4] = { -15., 15., -18., 17. };
+    bor_nn_params_t params;
+    bor_real_t range[4] = { -15., 15., -18., 17. };
     el_t *ns, *near;
-    fer_nn_el_t *el[50];
+    bor_nn_el_t *el[50];
     int i, j, k;
-    fer_vec2_t v;
+    bor_vec2_t v;
     int devnull;
-    fer_timer_t timer;
+    bor_timer_t timer;
 
     devnull = open("/dev/null", O_WRONLY);
     if (devnull < 0){
@@ -160,7 +160,7 @@ static void bench(void)
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNNearest(linear, (const fer_vec_t *)&v, k + 1, el);
+            ferNNNearest(linear, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
                 near = fer_container_of(el[j], el_t, linear);
                 write(devnull, &near->v, 1);
@@ -175,7 +175,7 @@ static void bench(void)
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNNearest(gug, (const fer_vec_t *)&v, k + 1, el);
+            ferNNNearest(gug, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
                 near = fer_container_of(el[j], el_t, gug);
                 write(devnull, &near->v, 1);
@@ -190,7 +190,7 @@ static void bench(void)
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferNNNearest(vp, (const fer_vec_t *)&v, k + 1, el);
+            ferNNNearest(vp, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
                 near = fer_container_of(el[j], el_t, vp);
                 write(devnull, &near->v, 1);

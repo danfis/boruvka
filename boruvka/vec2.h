@@ -28,57 +28,57 @@ extern "C" {
  * Vec2 - 2D vector
  * =================
  *
- * .. c:type:: fer_vec2_t
+ * .. c:type:: bor_vec2_t
  */
 
 /** vvvvv */
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
-union _fer_vec2_t {
+union _bor_vec2_t {
     __m128 v;
-    fer_real_t f[4];
+    bor_real_t f[4];
 } fer_aligned(16) fer_packed;
-typedef union _fer_vec2_t fer_vec2_t;
+typedef union _bor_vec2_t bor_vec2_t;
 # else /* FER_SSE_SINGLE */
-union _fer_vec2_t {
+union _bor_vec2_t {
     __m128d v;
-    fer_real_t f[2];
+    bor_real_t f[2];
 } fer_aligned(16) fer_packed;
-typedef union _fer_vec2_t fer_vec2_t;
+typedef union _bor_vec2_t bor_vec2_t;
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-struct _fer_vec2_t {
-    fer_real_t f[2];
+struct _bor_vec2_t {
+    bor_real_t f[2];
 };
-typedef struct _fer_vec2_t fer_vec2_t;
+typedef struct _bor_vec2_t bor_vec2_t;
 #endif /* FER_SSE */
 /** ^^^^^ */
 
 /**
  * Holds origin (0,0) - this variable is meant to be read-only!
  */
-extern const fer_vec2_t *fer_vec2_origin;
+extern const bor_vec2_t *fer_vec2_origin;
 
 /**
  * Holds vector (0, 1) - readonly
  */
-extern const fer_vec2_t *fer_vec2_01;
+extern const bor_vec2_t *fer_vec2_01;
 
 /**
  * Holds vector (1, 0) - readonly
  */
-extern const fer_vec2_t *fer_vec2_10;
+extern const bor_vec2_t *fer_vec2_10;
 
 /**
  * Holds vector (1, 1) - readonly
  */
-extern const fer_vec2_t *fer_vec2_11;
+extern const bor_vec2_t *fer_vec2_11;
 
 #define FER_VEC2_STATIC(x, y) \
     { .f = { (x), (y) } }
 
 #define FER_VEC2(name, x, y) \
-    fer_vec2_t name = FER_VEC2_STATIC((x), (y))
+    bor_vec2_t name = FER_VEC2_STATIC((x), (y))
 
 
 /**
@@ -90,172 +90,172 @@ extern const fer_vec2_t *fer_vec2_11;
 /**
  * Allocate and initialize new vector.
  */
-fer_vec2_t *ferVec2New(fer_real_t x, fer_real_t y);
+bor_vec2_t *ferVec2New(bor_real_t x, bor_real_t y);
 
 /**
  * Delete vector.
  */
-void ferVec2Del(fer_vec2_t *);
+void ferVec2Del(bor_vec2_t *);
 
 /**
- * Clone given fer_vec2_t. This does deep copy.
+ * Clone given bor_vec2_t. This does deep copy.
  */
-_fer_inline fer_vec2_t *ferVec2Clone(const fer_vec2_t *v);
+_fer_inline bor_vec2_t *ferVec2Clone(const bor_vec2_t *v);
 
 /**
  * Copies w into v.
  */
-_fer_inline void ferVec2Copy(fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline void ferVec2Copy(bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Returns X coordinate
  */
-_fer_inline fer_real_t ferVec2X(const fer_vec2_t *v);
+_fer_inline bor_real_t ferVec2X(const bor_vec2_t *v);
 
 /**
  * Returns Y coordinate
  */
-_fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v);
+_fer_inline bor_real_t ferVec2Y(const bor_vec2_t *v);
 
 /**
  * Returns coordinate according to argument d (0 or 1).
  */
-_fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d);
+_fer_inline bor_real_t ferVec2Get(const bor_vec2_t *v, int d);
 
 /**
  * Sets X coordinate.
  */
-_fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val);
+_fer_inline void ferVec2SetX(bor_vec2_t *v, bor_real_t val);
 
 /**
  * Sets Y coordinate
  */
-_fer_inline void ferVec2SetY(fer_vec2_t *v, fer_real_t val);
+_fer_inline void ferVec2SetY(bor_vec2_t *v, bor_real_t val);
 
 /**
  * Sets X and Y coordinates.
  */
-_fer_inline void ferVec2Set(fer_vec2_t *v, fer_real_t x, fer_real_t y);
+_fer_inline void ferVec2Set(bor_vec2_t *v, bor_real_t x, bor_real_t y);
 
 /**
  * Sets i'th coordinate (0 or 1)
  */
-_fer_inline void ferVec2SetCoord(fer_vec2_t *v, size_t i, fer_real_t val);
+_fer_inline void ferVec2SetCoord(bor_vec2_t *v, size_t i, bor_real_t val);
 
 /**
  * Returns true if two given vectors equals to each other.
  */
-_fer_inline int ferVec2Eq(const fer_vec2_t *x, const fer_vec2_t *y);
+_fer_inline int ferVec2Eq(const bor_vec2_t *x, const bor_vec2_t *y);
 
 /**
  * Opposite of ferVec2Eq().
  */
-_fer_inline int ferVec2NEq(const fer_vec2_t *x, const fer_vec2_t *y);
+_fer_inline int ferVec2NEq(const bor_vec2_t *x, const bor_vec2_t *y);
 
 /**
  * Returns true if vector v equals to [x, y]
  */
-_fer_inline int ferVec2Eq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y);
+_fer_inline int ferVec2Eq2(const bor_vec2_t *v, bor_real_t x, bor_real_t y);
 
 /**
  * Opposite of ferVec2Eq2().
  */
-_fer_inline int ferVec2NEq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y);
+_fer_inline int ferVec2NEq2(const bor_vec2_t *v, bor_real_t x, bor_real_t y);
 
 
 /**
  * Compute squared distance between two points represented as vectors.
  */
-_fer_inline fer_real_t ferVec2Dist2(const fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline bor_real_t ferVec2Dist2(const bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Distance of two vectors.
  */
-_fer_inline fer_real_t ferVec2Dist(const fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline bor_real_t ferVec2Dist(const bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Squared length of vector.
  */
-_fer_inline fer_real_t ferVec2Len2(const fer_vec2_t *v);
+_fer_inline bor_real_t ferVec2Len2(const bor_vec2_t *v);
 
 /**
  * Length of vector.
  */
-_fer_inline fer_real_t ferVec2Len(const fer_vec2_t *v);
+_fer_inline bor_real_t ferVec2Len(const bor_vec2_t *v);
 
 
 /**
  * Adds vector W to vector V (and result is stored in V):
  * v = v + w
  */
-_fer_inline void ferVec2Add(fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline void ferVec2Add(bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * d = v + w
  */
-_fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline void ferVec2Add2(bor_vec2_t *d, const bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Substracts coordinates of vector W from vector V:
  * v = v - w
  */
-_fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline void ferVec2Sub(bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * d = v - w
  */
-_fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline void ferVec2Sub2(bor_vec2_t *d, const bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Adds constant to vector v:
  * v = v + f.
  */
-_fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2AddConst(bor_vec2_t *v, bor_real_t f);
 
 /**
  * d = v + f
  */
-_fer_inline void ferVec2AddConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2AddConst2(bor_vec2_t *d, const bor_vec2_t *v, bor_real_t f);
 
 /**
  * v = v - f
  */
-_fer_inline void ferVec2SubConst(fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2SubConst(bor_vec2_t *v, bor_real_t f);
 
 /**
  * d = v - f
  */
-_fer_inline void ferVec2SubConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f);
+_fer_inline void ferVec2SubConst2(bor_vec2_t *d, const bor_vec2_t *v, bor_real_t f);
 
 
 /**
  * Scales vector to given length.
  */
-_fer_inline void ferVec2ScaleToLen(fer_vec2_t *v, fer_real_t len);
+_fer_inline void ferVec2ScaleToLen(bor_vec2_t *v, bor_real_t len);
 
 /**
  * Normalizes vector to unit vector.
  */
-_fer_inline void ferVec2Normalize(fer_vec2_t *v);
+_fer_inline void ferVec2Normalize(bor_vec2_t *v);
 
 /**
  * Dot product of two vectors.
  */
-_fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w);
+_fer_inline bor_real_t ferVec2Dot(const bor_vec2_t *v, const bor_vec2_t *w);
 
 /**
  * Multiplies vectors by components:
  * a.x = a.x * b.x
  * a.y = a.y * b.y
  */
-_fer_inline void ferVec2MulComp(fer_vec2_t *a, const fer_vec2_t *b);
+_fer_inline void ferVec2MulComp(bor_vec2_t *a, const bor_vec2_t *b);
 
 /**
  * Multiplies vectors by components:
  * d.x = a.x * b.x
  * d.y = a.y * b.y
  */
-_fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_vec2_t *b);
+_fer_inline void ferVec2MulComp2(bor_vec2_t *d, const bor_vec2_t *a, const bor_vec2_t *b);
 
 
 
@@ -263,39 +263,39 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
  * Scales vector V using constant k:
  * v = k * v
  */
-_fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k);
+_fer_inline void ferVec2Scale(bor_vec2_t *v, bor_real_t k);
 
 
 /**
  * Rotates vector by given angle (counterclockwise).
  */
-void ferVec2Rot(fer_vec2_t *v, fer_real_t angle);
+void ferVec2Rot(bor_vec2_t *v, bor_real_t angle);
 
 /**
  * Rotates vector {v} by given angle and stores the result in {w}.
  */
-void ferVec2Rot2(fer_vec2_t *w, const fer_vec2_t *v, fer_real_t angle);
+void ferVec2Rot2(bor_vec2_t *w, const bor_vec2_t *v, bor_real_t angle);
 
 /**
  * Prints vector to *out* in form "x y".
  */
-_fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out);
+_fer_inline void ferVec2Print(const bor_vec2_t *v, FILE *out);
 
 /**
  * Returns twice area enclosed by given vectors.
  * a, b, c should be named in counterclockwise order to get positive
  * area and clockwise to get negative.
  */
-_fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
-                                    const fer_vec2_t *b,
-                                    const fer_vec2_t *c);
+_fer_inline bor_real_t ferVec2Area2(const bor_vec2_t *a,
+                                    const bor_vec2_t *b,
+                                    const bor_vec2_t *c);
 
 
 /**
  * Returns angle in b formed by vectors a, b, c.
  * Returned value is between 0 and PI
  */
-fer_real_t ferVec2Angle(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c);
+bor_real_t ferVec2Angle(const bor_vec2_t *a, const bor_vec2_t *b, const bor_vec2_t *c);
 
 /**
  * Returns angle formed by points a, b, c in this order, it means, that
@@ -303,9 +303,9 @@ fer_real_t ferVec2Angle(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2
  * Returned angle is from -PI to PI. Positive angle is in
  * counterclockwise direction.
  */
-_fer_inline fer_real_t ferVec2SignedAngle(const fer_vec2_t *a,
-                                          const fer_vec2_t *b,
-                                          const fer_vec2_t *c);
+_fer_inline bor_real_t ferVec2SignedAngle(const bor_vec2_t *a,
+                                          const bor_vec2_t *b,
+                                          const bor_vec2_t *c);
 
 
 /**
@@ -314,36 +314,36 @@ _fer_inline fer_real_t ferVec2SignedAngle(const fer_vec2_t *a,
  *
  * Returns 0 if there exists any projection, otherwise -1.
  */
-int ferVec2ProjectionPointOntoSegment(const fer_vec2_t *A, const fer_vec2_t *B,
-                                      const fer_vec2_t *C,
-                                      fer_vec2_t *X);
+int ferVec2ProjectionPointOntoSegment(const bor_vec2_t *A, const bor_vec2_t *B,
+                                      const bor_vec2_t *C,
+                                      bor_vec2_t *X);
 
 
 /**
  * Returns true if point d is in circle formed by points a, b, c.
  * Vectors a, b, c must be in counterclockwise order.
  */
-int ferVec2InCircle(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c,
-                    const fer_vec2_t *d);
+int ferVec2InCircle(const bor_vec2_t *a, const bor_vec2_t *b, const bor_vec2_t *c,
+                    const bor_vec2_t *d);
 
 /**
  * Returns true if point a lies on segment formed by b c.
  */
-int ferVec2LiesOn(const fer_vec2_t *a, const fer_vec2_t *b, const fer_vec2_t *c);
+int ferVec2LiesOn(const bor_vec2_t *a, const bor_vec2_t *b, const bor_vec2_t *c);
 
 
 /**
  * Returns true if a is collinear with b and c.
  */
-_fer_inline int ferVec2Collinear(const fer_vec2_t *a, const fer_vec2_t *b,
-                                 const fer_vec2_t *c);
+_fer_inline int ferVec2Collinear(const bor_vec2_t *a, const bor_vec2_t *b,
+                                 const bor_vec2_t *c);
 
 /**
  * Returns true, if vector v is in cone formed by p1, c, p2 (in
  * counterclockwise order).
  */
-int ferVec2InCone(const fer_vec2_t *v,
-                  const fer_vec2_t *p1, const fer_vec2_t *c, const fer_vec2_t *p2);
+int ferVec2InCone(const bor_vec2_t *v,
+                  const bor_vec2_t *p1, const bor_vec2_t *c, const bor_vec2_t *p2);
 
 
 /**
@@ -354,36 +354,36 @@ int ferVec2InCone(const fer_vec2_t *v,
  * by this function) means that one of end point lies somewhere on other
  * segment.
  */
-_fer_inline int ferVec2IntersectProp(const fer_vec2_t *a,
-                                     const fer_vec2_t *b,
-                                     const fer_vec2_t *c,
-                                     const fer_vec2_t *d);
+_fer_inline int ferVec2IntersectProp(const bor_vec2_t *a,
+                                     const bor_vec2_t *b,
+                                     const bor_vec2_t *c,
+                                     const bor_vec2_t *d);
 
 
 
 /**
  * Returns true if segment ab intersects segment cd properly or improperly.
  */
-_fer_inline int ferVec2Intersect(const fer_vec2_t *a, const fer_vec2_t *b,
-                                 const fer_vec2_t *c, const fer_vec2_t *d);
+_fer_inline int ferVec2Intersect(const bor_vec2_t *a, const bor_vec2_t *b,
+                                 const bor_vec2_t *c, const bor_vec2_t *d);
 
 
 /**
  * Compute intersection point of two segments - (a, b) and (c, d).
  * Returns 0 if there exists intersection, -1 otherwise.
  * Intersetion point is returned in p, where p must point to already
- * allocated fer_vec2_t.
+ * allocated bor_vec2_t.
  */
-int ferVec2IntersectPoint(const fer_vec2_t *a, const fer_vec2_t *b,
-                          const fer_vec2_t *c, const fer_vec2_t *d,
-                          fer_vec2_t *p);
+int ferVec2IntersectPoint(const bor_vec2_t *a, const bor_vec2_t *b,
+                          const bor_vec2_t *c, const bor_vec2_t *d,
+                          bor_vec2_t *p);
 
 /**
  * Returns true iff vector v is on left side from segment formed by p1 and
  * p2 in this ordering.
  */
-_fer_inline int ferVec2OnLeft(const fer_vec2_t *v,
-                              const fer_vec2_t *p1, const fer_vec2_t *p2);
+_fer_inline int ferVec2OnLeft(const bor_vec2_t *v,
+                              const bor_vec2_t *p1, const bor_vec2_t *p2);
 
 
 /**
@@ -396,10 +396,10 @@ _fer_inline int ferVec2OnLeft(const fer_vec2_t *v,
  * If any part of segment (x, y) does not lies within given rectangle,
  * -1 is returned, 0 if segment is found.
  */
-int ferVec2SegmentInRect(const fer_vec2_t *a, const fer_vec2_t *b,
-                         const fer_vec2_t *c, const fer_vec2_t *d,
-                         const fer_vec2_t *x, const fer_vec2_t *y,
-                         fer_vec2_t *s1, fer_vec2_t *s2);
+int ferVec2SegmentInRect(const bor_vec2_t *a, const bor_vec2_t *b,
+                         const bor_vec2_t *c, const bor_vec2_t *d,
+                         const bor_vec2_t *x, const bor_vec2_t *y,
+                         bor_vec2_t *s1, bor_vec2_t *s2);
 
 
 /**
@@ -407,7 +407,7 @@ int ferVec2SegmentInRect(const fer_vec2_t *a, const fer_vec2_t *b,
  * same direction as vector a.
  * Returned angle is in range -PI, PI.
  */
-fer_real_t ferVec2AngleSameDir(const fer_vec2_t *a, const fer_vec2_t *b);
+bor_real_t ferVec2AngleSameDir(const bor_vec2_t *a, const bor_vec2_t *b);
 
 
 
@@ -417,125 +417,125 @@ fer_real_t ferVec2AngleSameDir(const fer_vec2_t *a, const fer_vec2_t *b);
  * vector (D - C) and directional vector of segment AB is vector (B - A).
  * Returned angle will be between -PI and PI.
  */
-fer_real_t ferVec2AngleSegsSameDir(const fer_vec2_t *A, const fer_vec2_t *B,
-                                   const fer_vec2_t *C, const fer_vec2_t *D);
+bor_real_t ferVec2AngleSegsSameDir(const bor_vec2_t *A, const bor_vec2_t *B,
+                                   const bor_vec2_t *C, const bor_vec2_t *D);
 
 
 /**
  * Returns true if given triangles (p1, q1, r1) and (p2, q2, r2) overlap.
  */
-int ferVec2TriTriOverlap(const fer_vec2_t *p1, const fer_vec2_t *q1,
-                         const fer_vec2_t *r1,
-                         const fer_vec2_t *p2, const fer_vec2_t *q2,
-                         const fer_vec2_t *r2);
+int ferVec2TriTriOverlap(const bor_vec2_t *p1, const bor_vec2_t *q1,
+                         const bor_vec2_t *r1,
+                         const bor_vec2_t *p2, const bor_vec2_t *q2,
+                         const bor_vec2_t *r2);
 
 /**
  * Returns true if point {P} is inside triangle {pqr}.
  */
-_fer_inline int ferVec2PointInTri(const fer_vec2_t *P,
-                                  const fer_vec2_t *p, const fer_vec2_t *q,
-                                  const fer_vec2_t *r);
+_fer_inline int ferVec2PointInTri(const bor_vec2_t *P,
+                                  const bor_vec2_t *p, const bor_vec2_t *q,
+                                  const bor_vec2_t *r);
 
 /**
  * Returns true if boxes overlap.
  */
-int ferVec2BoxBoxOverlap(const fer_vec2_t *half_edges1,
-                         const fer_vec2_t *pos1, fer_real_t rot1,
-                         const fer_vec2_t *half_edges2,
-                         const fer_vec2_t *pos2, fer_real_t rot2);
+int ferVec2BoxBoxOverlap(const bor_vec2_t *half_edges1,
+                         const bor_vec2_t *pos1, bor_real_t rot1,
+                         const bor_vec2_t *half_edges2,
+                         const bor_vec2_t *pos2, bor_real_t rot2);
 
 /***** INLINES *****/
-_fer_inline fer_real_t ferVec2Get(const fer_vec2_t *v, int d)
+_fer_inline bor_real_t ferVec2Get(const bor_vec2_t *v, int d)
 {
     return v->f[d];
 }
 
 
-_fer_inline fer_real_t ferVec2X(const fer_vec2_t *v)
+_fer_inline bor_real_t ferVec2X(const bor_vec2_t *v)
 {
     return v->f[0];
 }
-_fer_inline fer_real_t ferVec2Y(const fer_vec2_t *v)
+_fer_inline bor_real_t ferVec2Y(const bor_vec2_t *v)
 {
     return v->f[1];
 }
 
 
-_fer_inline void ferVec2SetX(fer_vec2_t *v, fer_real_t val)
+_fer_inline void ferVec2SetX(bor_vec2_t *v, bor_real_t val)
 {
     v->f[0] = val;
 }
-_fer_inline void ferVec2SetY(fer_vec2_t *v, fer_real_t val)
+_fer_inline void ferVec2SetY(bor_vec2_t *v, bor_real_t val)
 {
     v->f[1] = val;
 }
 
 
-_fer_inline void ferVec2Set(fer_vec2_t *v, fer_real_t x, fer_real_t y)
+_fer_inline void ferVec2Set(bor_vec2_t *v, bor_real_t x, bor_real_t y)
 {
     ferVec2SetX(v, x);
     ferVec2SetY(v, y);
 }
 
-_fer_inline void ferVec2SetCoord(fer_vec2_t *v, size_t i, fer_real_t val)
+_fer_inline void ferVec2SetCoord(bor_vec2_t *v, size_t i, bor_real_t val)
 {
     v->f[i] = val;
 }
 
 
-_fer_inline fer_vec2_t *ferVec2Clone(const fer_vec2_t *v)
+_fer_inline bor_vec2_t *ferVec2Clone(const bor_vec2_t *v)
 {
     return ferVec2New(ferVec2X(v), ferVec2Y(v));
 }
 
-_fer_inline void ferVec2Copy(fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline void ferVec2Copy(bor_vec2_t *v, const bor_vec2_t *w)
 {
     ferVec2Set(v, ferVec2X(w), ferVec2Y(w));
 }
 
-_fer_inline int ferVec2Eq(const fer_vec2_t *x, const fer_vec2_t *y)
+_fer_inline int ferVec2Eq(const bor_vec2_t *x, const bor_vec2_t *y)
 {
     return ferEq(ferVec2X(x), ferVec2X(y)) && ferEq(ferVec2Y(x), ferVec2Y(y));
 }
-_fer_inline int ferVec2NEq(const fer_vec2_t *x, const fer_vec2_t *y)
+_fer_inline int ferVec2NEq(const bor_vec2_t *x, const bor_vec2_t *y)
 {
     return !ferVec2Eq(x, y);
 }
 
-_fer_inline int ferVec2Eq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y)
+_fer_inline int ferVec2Eq2(const bor_vec2_t *v, bor_real_t x, bor_real_t y)
 {
     return ferEq(ferVec2X(v), x) && ferEq(ferVec2Y(v), y);
 }
-_fer_inline int ferVec2NEq2(const fer_vec2_t *v, fer_real_t x, fer_real_t y)
+_fer_inline int ferVec2NEq2(const bor_vec2_t *v, bor_real_t x, bor_real_t y)
 {
     return !ferVec2Eq2(v, x, y);
 }
 
 
-_fer_inline fer_real_t ferVec2Dist2(const fer_vec2_t *a, const fer_vec2_t *b)
+_fer_inline bor_real_t ferVec2Dist2(const bor_vec2_t *a, const bor_vec2_t *b)
 {
-    fer_vec2_t ab;
+    bor_vec2_t ab;
     ferVec2Sub2(&ab, a, b);
     return ferVec2Len2(&ab);
 }
 
-_fer_inline fer_real_t ferVec2Dist(const fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline bor_real_t ferVec2Dist(const bor_vec2_t *v, const bor_vec2_t *w)
 {
     return FER_SQRT(ferVec2Dist2(v, w));
 }
 
-_fer_inline fer_real_t ferVec2Len2(const fer_vec2_t *v)
+_fer_inline bor_real_t ferVec2Len2(const bor_vec2_t *v)
 {
     return ferVec2Dot(v, v);
 }
 
-_fer_inline fer_real_t ferVec2Len(const fer_vec2_t *v)
+_fer_inline bor_real_t ferVec2Len(const bor_vec2_t *v)
 {
     return FER_SQRT(ferVec2Len2(v));
 }
 
 
-_fer_inline void ferVec2Add(fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline void ferVec2Add(bor_vec2_t *v, const bor_vec2_t *w)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -549,7 +549,7 @@ _fer_inline void ferVec2Add(fer_vec2_t *v, const fer_vec2_t *w)
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline void ferVec2Add2(bor_vec2_t *d, const bor_vec2_t *v, const bor_vec2_t *w)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -563,7 +563,7 @@ _fer_inline void ferVec2Add2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline void ferVec2Sub(bor_vec2_t *v, const bor_vec2_t *w)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -577,7 +577,7 @@ _fer_inline void ferVec2Sub(fer_vec2_t *v, const fer_vec2_t *w)
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline void ferVec2Sub2(bor_vec2_t *d, const bor_vec2_t *v, const bor_vec2_t *w)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -591,32 +591,32 @@ _fer_inline void ferVec2Sub2(fer_vec2_t *d, const fer_vec2_t *v, const fer_vec2_
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2AddConst(fer_vec2_t *v, fer_real_t f)
+_fer_inline void ferVec2AddConst(bor_vec2_t *v, bor_real_t f)
 {
     v->f[0] += f;
     v->f[1] += f;
 }
 
-_fer_inline void ferVec2AddConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f)
+_fer_inline void ferVec2AddConst2(bor_vec2_t *d, const bor_vec2_t *v, bor_real_t f)
 {
     d->f[0] = v->f[0] + f;
     d->f[1] = v->f[1] + f;
 }
 
-_fer_inline void ferVec2SubConst(fer_vec2_t *v, fer_real_t f)
+_fer_inline void ferVec2SubConst(bor_vec2_t *v, bor_real_t f)
 {
     v->f[0] -= f;
     v->f[1] -= f;
 }
 
-_fer_inline void ferVec2SubConst2(fer_vec2_t *d, const fer_vec2_t *v, fer_real_t f)
+_fer_inline void ferVec2SubConst2(bor_vec2_t *d, const bor_vec2_t *v, bor_real_t f)
 {
     d->f[0] = v->f[0] - f;
     d->f[1] = v->f[1] - f;
 }
 
 
-_fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k)
+_fer_inline void ferVec2Scale(bor_vec2_t *v, bor_real_t k)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -634,7 +634,7 @@ _fer_inline void ferVec2Scale(fer_vec2_t *v, fer_real_t k)
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2ScaleToLen(fer_vec2_t *v, fer_real_t len)
+_fer_inline void ferVec2ScaleToLen(bor_vec2_t *v, bor_real_t len)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -655,12 +655,12 @@ _fer_inline void ferVec2ScaleToLen(fer_vec2_t *v, fer_real_t len)
     v->v = _mm_div_pd(v->v, k);
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-    fer_real_t k = len * ferRsqrt(ferVec2Len2(v));
+    bor_real_t k = len * ferRsqrt(ferVec2Len2(v));
     ferVec2Scale(v, k);
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2Normalize(fer_vec2_t *v)
+_fer_inline void ferVec2Normalize(bor_vec2_t *v)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -677,16 +677,16 @@ _fer_inline void ferVec2Normalize(fer_vec2_t *v)
     v->v = _mm_div_pd(v->v, k);
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-    fer_real_t k = ferRsqrt(ferVec2Len2(v));
+    bor_real_t k = ferRsqrt(ferVec2Len2(v));
     ferVec2Scale(v, k);
 #endif /* FER_SSE */
 }
 
-_fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w)
+_fer_inline bor_real_t ferVec2Dot(const bor_vec2_t *v, const bor_vec2_t *w)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
-    fer_vec2_t dot, t;
+    bor_vec2_t dot, t;
 
     dot.v = _mm_mul_ps(v->v, w->v);
     dot.f[2] = dot.f[3] = FER_ZERO;
@@ -695,7 +695,7 @@ _fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w)
 
     return dot.f[0];
 # else /* FER_SSE_SINGLE */
-    fer_vec2_t dot, t;
+    bor_vec2_t dot, t;
 
     dot.v = _mm_mul_pd(v->v, w->v);
     t.v = _mm_shuffle_pd(dot.v, dot.v, _MM_SHUFFLE2(1, 1));
@@ -704,14 +704,14 @@ _fer_inline fer_real_t ferVec2Dot(const fer_vec2_t *v, const fer_vec2_t *w)
     return dot.f[0];
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
-    fer_real_t dot;
+    bor_real_t dot;
     dot  = v->f[0] * w->f[0];
     dot += v->f[1] * w->f[1];
     return dot;
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2MulComp(fer_vec2_t *a, const fer_vec2_t *b)
+_fer_inline void ferVec2MulComp(bor_vec2_t *a, const bor_vec2_t *b)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -725,7 +725,7 @@ _fer_inline void ferVec2MulComp(fer_vec2_t *a, const fer_vec2_t *b)
 #endif /* FER_SSE */
 }
 
-_fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_vec2_t *b)
+_fer_inline void ferVec2MulComp2(bor_vec2_t *d, const bor_vec2_t *a, const bor_vec2_t *b)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -740,15 +740,15 @@ _fer_inline void ferVec2MulComp2(fer_vec2_t *d, const fer_vec2_t *a, const fer_v
 }
 
 
-_fer_inline void ferVec2Print(const fer_vec2_t *v, FILE *out)
+_fer_inline void ferVec2Print(const bor_vec2_t *v, FILE *out)
 {
     fprintf(out, "%g %g", (double)ferVec2X(v), (double)ferVec2Y(v));
 }
 
 #include <stdio.h>
-_fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
-                                    const fer_vec2_t *b,
-                                    const fer_vec2_t *c)
+_fer_inline bor_real_t ferVec2Area2(const bor_vec2_t *a,
+                                    const bor_vec2_t *b,
+                                    const bor_vec2_t *c)
 {
 #ifdef FER_SSE
 # ifdef FER_SSE_SINGLE
@@ -772,7 +772,7 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
     x1 = _mm_add_ps(x1, x3);
     x1 = _mm_add_ps(x1, x5);
 
-    return ((fer_vec2_t *)&x1)->f[0];
+    return ((bor_vec2_t *)&x1)->f[0];
 # else /* FER_SSE_SINGLE */
     __m128d bybx, cycx, x1, x2, x3, x4, x5, x6;
 
@@ -792,7 +792,7 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
     x1 = _mm_add_pd(x1, x3);
     x1 = _mm_add_pd(x1, x5);
 
-    return ((fer_vec2_t *)&x1)->f[0];
+    return ((bor_vec2_t *)&x1)->f[0];
 # endif /* FER_SSE_SINGLE */
 #else /* FER_SSE */
     /* Area2 can be computed as determinant:
@@ -801,7 +801,7 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
      * | c.x c.y 1 |
      */
 
-    fer_real_t ax, ay, bx, by, cx, cy;
+    bor_real_t ax, ay, bx, by, cx, cy;
 
     ax = ferVec2X(a);
     ay = ferVec2Y(a);
@@ -816,11 +816,11 @@ _fer_inline fer_real_t ferVec2Area2(const fer_vec2_t *a,
 }
 
 
-_fer_inline fer_real_t ferVec2SignedAngle(const fer_vec2_t *a,
-                                    const fer_vec2_t *b,
-                                    const fer_vec2_t *c)
+_fer_inline bor_real_t ferVec2SignedAngle(const bor_vec2_t *a,
+                                    const bor_vec2_t *b,
+                                    const bor_vec2_t *c)
 {
-    fer_real_t ang = ferVec2Angle(a, b, c);
+    bor_real_t ang = ferVec2Angle(a, b, c);
 
     /* angle holded in b is convex */
     if (ferVec2Area2(a, b, c) < 0)
@@ -830,17 +830,17 @@ _fer_inline fer_real_t ferVec2SignedAngle(const fer_vec2_t *a,
     return -1 * ang;
 }
 
-_fer_inline int ferVec2Collinear(const fer_vec2_t *a, const fer_vec2_t *b,
-                                 const fer_vec2_t *c)
+_fer_inline int ferVec2Collinear(const bor_vec2_t *a, const bor_vec2_t *b,
+                                 const bor_vec2_t *c)
 {
     return ferEq(ferVec2Area2((b), (c), (a)), FER_ZERO);
 }
 
 
-_fer_inline int ferVec2IntersectProp(const fer_vec2_t *a,
-                                  const fer_vec2_t *b,
-                                  const fer_vec2_t *c,
-                                  const fer_vec2_t *d)
+_fer_inline int ferVec2IntersectProp(const bor_vec2_t *a,
+                                  const bor_vec2_t *b,
+                                  const bor_vec2_t *c,
+                                  const bor_vec2_t *d)
 {
     /* area2(a, b, c) * area2(a, b, d) is less than zero only if */
     /* only one computed area is less than zero, so it means that it is the */
@@ -853,8 +853,8 @@ _fer_inline int ferVec2IntersectProp(const fer_vec2_t *a,
 
 
 
-_fer_inline int ferVec2Intersect(const fer_vec2_t *a, const fer_vec2_t *b,
-                              const fer_vec2_t *c, const fer_vec2_t *d)
+_fer_inline int ferVec2Intersect(const bor_vec2_t *a, const bor_vec2_t *b,
+                              const bor_vec2_t *c, const bor_vec2_t *d)
 {
     if (ferVec2IntersectProp(a, b, c, d))
         return 1;
@@ -866,16 +866,16 @@ _fer_inline int ferVec2Intersect(const fer_vec2_t *a, const fer_vec2_t *b,
 }
 
 
-_fer_inline int ferVec2OnLeft(const fer_vec2_t *v,
-                           const fer_vec2_t *p1, const fer_vec2_t *p2)
+_fer_inline int ferVec2OnLeft(const bor_vec2_t *v,
+                           const bor_vec2_t *p1, const bor_vec2_t *p2)
 {
     return ferVec2Area2(p1, p2, v) > FER_ZERO;
 }
 
 
-_fer_inline int ferVec2PointInTri(const fer_vec2_t *P,
-                                  const fer_vec2_t *p, const fer_vec2_t *q,
-                                  const fer_vec2_t *r)
+_fer_inline int ferVec2PointInTri(const bor_vec2_t *P,
+                                  const bor_vec2_t *p, const bor_vec2_t *q,
+                                  const bor_vec2_t *r)
 {
     int count = 0;
     count += ferVec2OnLeft(P, p, q);

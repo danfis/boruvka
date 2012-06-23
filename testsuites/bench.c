@@ -19,8 +19,8 @@ __attribute__((noinline)) static void add(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_vec3_t v;
-    fer_real_t d = 0;
+    bor_vec3_t v;
+    bor_real_t d = 0;
 
     ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
     cuTimerStart();
@@ -40,8 +40,8 @@ __attribute__((noinline)) static void sub(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_vec3_t v;
-    fer_real_t d = 0;
+    bor_vec3_t v;
+    bor_real_t d = 0;
 
     ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
     cuTimerStart();
@@ -61,8 +61,8 @@ __attribute__((noinline)) static void scale(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_vec3_t v;
-    fer_real_t d = 0;
+    bor_vec3_t v;
+    bor_real_t d = 0;
 
     ferVec3Copy(&v, &vecs[0]);
     cuTimerStart();
@@ -82,8 +82,8 @@ __attribute__((noinline)) static void normalize(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_vec3_t v;
-    fer_real_t d = 0;
+    bor_vec3_t v;
+    bor_real_t d = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -103,7 +103,7 @@ __attribute__((noinline)) static void dot(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t dot = 0;
+    bor_real_t dot = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -121,8 +121,8 @@ __attribute__((noinline)) static void cross(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_vec3_t v;
-    fer_real_t d = 0;
+    bor_vec3_t v;
+    bor_real_t d = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -141,7 +141,7 @@ __attribute__((noinline)) static void len2(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t len = 0;
+    bor_real_t len = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -159,7 +159,7 @@ __attribute__((noinline)) static void len(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t len = 0;
+    bor_real_t len = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -177,7 +177,7 @@ __attribute__((noinline)) static void dist2(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t d = 0;
+    bor_real_t d = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -195,7 +195,7 @@ __attribute__((noinline)) static void dist(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t d = 0;
+    bor_real_t d = 0;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -213,8 +213,8 @@ __attribute__((noinline)) static void segment_dist(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t d = 0;
-    fer_vec3_t w;
+    bor_real_t d = 0;
+    bor_vec3_t w;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
@@ -232,8 +232,8 @@ __attribute__((noinline)) static void tri_dist(void)
 {
     size_t i, j;
     const struct timespec *t;
-    fer_real_t d = 0;
-    fer_vec3_t w;
+    bor_real_t d = 0;
+    bor_vec3_t w;
 
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){

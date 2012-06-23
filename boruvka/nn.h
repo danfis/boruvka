@@ -38,33 +38,33 @@ extern "C" {
  *     2. :doc:`/fer-vptree.h`
  *     3. :doc:`/fer-nn-linear.h`
  *
- * See fer_nn_t.
- * See fer_nn_params_t.
+ * See bor_nn_t.
+ * See bor_nn_params_t.
  */
 
-struct _fer_nn_t {
+struct _bor_nn_t {
     uint8_t type; /*!< Type of NN search algorithm */
 };
-typedef struct _fer_nn_t fer_nn_t;
+typedef struct _bor_nn_t bor_nn_t;
 
-struct _fer_nn_params_t {
+struct _bor_nn_params_t {
     uint8_t type; /*!< Type of NN search algorithm. See 'Types of
                        Algorithms'. Default: FER_NN_LINEAR */
-    fer_gug_params_t gug;
-    fer_vptree_params_t vptree;
-    fer_nn_linear_params_t linear;
+    bor_gug_params_t gug;
+    bor_vptree_params_t vptree;
+    bor_nn_linear_params_t linear;
 };
-typedef struct _fer_nn_params_t fer_nn_params_t;
+typedef struct _bor_nn_params_t bor_nn_params_t;
 
 /**
  * Initialize parameters
  */
-_fer_inline void ferNNParamsInit(fer_nn_params_t *params);
+_fer_inline void ferNNParamsInit(bor_nn_params_t *params);
 
 /**
  * Set dimensionality for all algorithms.
  */
-_fer_inline void ferNNParamsSetDim(fer_nn_params_t *params, int dim);
+_fer_inline void ferNNParamsSetDim(bor_nn_params_t *params, int dim);
 
 
 /**
@@ -87,19 +87,19 @@ _fer_inline void ferNNParamsSetDim(fer_nn_params_t *params, int dim);
  *
  * TODO: Example
  */
-struct _fer_nn_el_t {
-    const fer_vec_t *p; /*!< Pointer to user-defined point vector */
-    fer_list_t list;    /*!< Connection into list of elements */
+struct _bor_nn_el_t {
+    const bor_vec_t *p; /*!< Pointer to user-defined point vector */
+    bor_list_t list;    /*!< Connection into list of elements */
     uint64_t __;        /*!< Eight bytes available for specific NN search
                              algorithm */
 };
-typedef struct _fer_nn_el_t fer_nn_el_t;
+typedef struct _bor_nn_el_t bor_nn_el_t;
 
 /**
  * Initialize an element struct.
  * This must be called before using the element.
  */
-_fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p);
+_fer_inline void ferNNElInit(bor_nn_t *nn, bor_nn_el_t *el, const bor_vec_t *p);
 
 
 
@@ -112,31 +112,31 @@ _fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p);
  * Creates new instance of NN search struct.
  *
  * A type of the NN search algorithm must be provided and appropriate part
- * of the fer_nn_params_t struct must be set.
+ * of the bor_nn_params_t struct must be set.
  */
-_fer_inline fer_nn_t *ferNNNew(const fer_nn_params_t *params);
+_fer_inline bor_nn_t *ferNNNew(const bor_nn_params_t *params);
 
 /**
  * Free all allocated memory.
  */
-_fer_inline void ferNNDel(fer_nn_t *nn);
+_fer_inline void ferNNDel(bor_nn_t *nn);
 
 /**
  * Adds an element to the search struct.
  */
-_fer_inline void ferNNAdd(fer_nn_t *nn, fer_nn_el_t *el);
+_fer_inline void ferNNAdd(bor_nn_t *nn, bor_nn_el_t *el);
 
 /**
  * Removes an element from the search struct.
  */
-_fer_inline void ferNNRemove(fer_nn_t *nn, fer_nn_el_t *el);
+_fer_inline void ferNNRemove(bor_nn_t *nn, bor_nn_el_t *el);
 
 /**
  * Updates an element in the search struct.
  * This function should be called whenever a position of the element is
  * changed.
  */
-_fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el);
+_fer_inline void ferNNUpdate(bor_nn_t *nn, bor_nn_el_t *el);
 
 
 /**
@@ -146,12 +146,12 @@ _fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-_fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
-                                size_t num, fer_nn_el_t **els);
+_fer_inline size_t ferNNNearest(const bor_nn_t *nn, const bor_vec_t *p,
+                                size_t num, bor_nn_el_t **els);
 
 
 /**** INLINES ****/
-_fer_inline void ferNNParamsInit(fer_nn_params_t *params)
+_fer_inline void ferNNParamsInit(bor_nn_params_t *params)
 {
     params->type = FER_NN_LINEAR;
     ferGUGParamsInit(&params->gug);
@@ -159,95 +159,95 @@ _fer_inline void ferNNParamsInit(fer_nn_params_t *params)
     ferNNLinearParamsInit(&params->linear);
 }
 
-_fer_inline void ferNNParamsSetDim(fer_nn_params_t *params, int dim)
+_fer_inline void ferNNParamsSetDim(bor_nn_params_t *params, int dim)
 {
     params->gug.dim = dim;
     params->vptree.dim = dim;
     params->linear.dim = dim;
 }
 
-_fer_inline void ferNNElInit(fer_nn_t *nn, fer_nn_el_t *el, const fer_vec_t *p)
+_fer_inline void ferNNElInit(bor_nn_t *nn, bor_nn_el_t *el, const bor_vec_t *p)
 {
     if (nn->type == FER_NN_GUG){
-        ferGUGElInit((fer_gug_el_t *)el, p);
+        ferGUGElInit((bor_gug_el_t *)el, p);
     }else if (nn->type == FER_NN_VPTREE){
-        ferVPTreeElInit((fer_vptree_el_t *)el, p);
+        ferVPTreeElInit((bor_vptree_el_t *)el, p);
     }else if (nn->type == FER_NN_LINEAR){
-        ferNNLinearElInit((fer_nn_linear_el_t *)el, p);
+        ferNNLinearElInit((bor_nn_linear_el_t *)el, p);
     }
 }
 
-_fer_inline fer_nn_t *ferNNNew(const fer_nn_params_t *params)
+_fer_inline bor_nn_t *ferNNNew(const bor_nn_params_t *params)
 {
-    fer_nn_t *nn = NULL;
+    bor_nn_t *nn = NULL;
 
     if (params->type == FER_NN_GUG){
-        nn = (fer_nn_t *)ferGUGNew(&params->gug);
+        nn = (bor_nn_t *)ferGUGNew(&params->gug);
     }else if (params->type == FER_NN_VPTREE){
-        nn = (fer_nn_t *)ferVPTreeNew(&params->vptree);
+        nn = (bor_nn_t *)ferVPTreeNew(&params->vptree);
     }else if (params->type == FER_NN_LINEAR){
-        nn = (fer_nn_t *)ferNNLinearNew(&params->linear);
+        nn = (bor_nn_t *)ferNNLinearNew(&params->linear);
     }
 
     return nn;
 }
 
-_fer_inline void ferNNDel(fer_nn_t *nn)
+_fer_inline void ferNNDel(bor_nn_t *nn)
 {
     if (nn->type == FER_NN_GUG){
-        ferGUGDel((fer_gug_t *)nn);
+        ferGUGDel((bor_gug_t *)nn);
     }else if (nn->type == FER_NN_VPTREE){
-        ferVPTreeDel((fer_vptree_t *)nn);
+        ferVPTreeDel((bor_vptree_t *)nn);
     }else if (nn->type == FER_NN_LINEAR){
-        ferNNLinearDel((fer_nn_linear_t *)nn);
+        ferNNLinearDel((bor_nn_linear_t *)nn);
     }
 }
 
-_fer_inline void ferNNAdd(fer_nn_t *nn, fer_nn_el_t *el)
+_fer_inline void ferNNAdd(bor_nn_t *nn, bor_nn_el_t *el)
 {
     if (nn->type == FER_NN_GUG){
-        ferGUGAdd((fer_gug_t *)nn, (fer_gug_el_t *)el);
+        ferGUGAdd((bor_gug_t *)nn, (bor_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
-        ferVPTreeAdd((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+        ferVPTreeAdd((bor_vptree_t *)nn, (bor_vptree_el_t *)el);
     }else if (nn->type == FER_NN_LINEAR){
-        ferNNLinearAdd((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
+        ferNNLinearAdd((bor_nn_linear_t *)nn, (bor_nn_linear_el_t *)el);
     }
 }
 
-_fer_inline void ferNNRemove(fer_nn_t *nn, fer_nn_el_t *el)
+_fer_inline void ferNNRemove(bor_nn_t *nn, bor_nn_el_t *el)
 {
     if (nn->type == FER_NN_GUG){
-        ferGUGRemove((fer_gug_t *)nn, (fer_gug_el_t *)el);
+        ferGUGRemove((bor_gug_t *)nn, (bor_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
-        ferVPTreeRemove((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+        ferVPTreeRemove((bor_vptree_t *)nn, (bor_vptree_el_t *)el);
     }else if (nn->type == FER_NN_LINEAR){
-        ferNNLinearRemove((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
+        ferNNLinearRemove((bor_nn_linear_t *)nn, (bor_nn_linear_el_t *)el);
     }
 }
 
-_fer_inline void ferNNUpdate(fer_nn_t *nn, fer_nn_el_t *el)
+_fer_inline void ferNNUpdate(bor_nn_t *nn, bor_nn_el_t *el)
 {
     if (nn->type == FER_NN_GUG){
-        ferGUGUpdate((fer_gug_t *)nn, (fer_gug_el_t *)el);
+        ferGUGUpdate((bor_gug_t *)nn, (bor_gug_el_t *)el);
     }else if (nn->type == FER_NN_VPTREE){
-        ferVPTreeUpdate((fer_vptree_t *)nn, (fer_vptree_el_t *)el);
+        ferVPTreeUpdate((bor_vptree_t *)nn, (bor_vptree_el_t *)el);
     }else if (nn->type == FER_NN_LINEAR){
-        ferNNLinearUpdate((fer_nn_linear_t *)nn, (fer_nn_linear_el_t *)el);
+        ferNNLinearUpdate((bor_nn_linear_t *)nn, (bor_nn_linear_el_t *)el);
     }
 }
 
-_fer_inline size_t ferNNNearest(const fer_nn_t *nn, const fer_vec_t *p,
-                                size_t num, fer_nn_el_t **els)
+_fer_inline size_t ferNNNearest(const bor_nn_t *nn, const bor_vec_t *p,
+                                size_t num, bor_nn_el_t **els)
 {
     if (nn->type == FER_NN_GUG){
-        return ferGUGNearest((const fer_gug_t *)nn, p, num,
-                                 (fer_gug_el_t **)els);
+        return ferGUGNearest((const bor_gug_t *)nn, p, num,
+                                 (bor_gug_el_t **)els);
     }else if (nn->type == FER_NN_VPTREE){
-        return ferVPTreeNearest((const fer_vptree_t *)nn, p, num,
-                                (fer_vptree_el_t **)els);
+        return ferVPTreeNearest((const bor_vptree_t *)nn, p, num,
+                                (bor_vptree_el_t **)els);
     }else if (nn->type == FER_NN_LINEAR){
-        return ferNNLinearNearest((const fer_nn_linear_t *)nn, p, num,
-                                  (fer_nn_linear_el_t **)els);
+        return ferNNLinearNearest((const bor_nn_linear_t *)nn, p, num,
+                                  (bor_nn_linear_el_t **)els);
     }
 
     return 0;

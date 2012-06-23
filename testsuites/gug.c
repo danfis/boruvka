@@ -5,7 +5,7 @@
 #include <boruvka/nearest-linear.h>
 #include <boruvka/dbg.h>
 
-static fer_rand_t r;
+static bor_rand_t r;
 
 TEST(gugSetUp)
 {
@@ -18,9 +18,9 @@ TEST(gugTearDown)
 
 TEST(gugNew2)
 {
-    fer_gug_t *cs;
-    fer_gug_params_t params;
-    fer_real_t bound[4] = { -3, 2, 1, 4 };
+    bor_gug_t *cs;
+    bor_gug_params_t params;
+    bor_real_t bound[4] = { -3, 2, 1, 4 };
 
     ferGUGParamsInit(&params);
     params.dim = 2;
@@ -33,18 +33,18 @@ TEST(gugNew2)
 }
 
 struct _el_t {
-    fer_vec2_t v;
-    fer_gug_el_t c;
-    fer_list_t list;
+    bor_vec2_t v;
+    bor_gug_el_t c;
+    bor_list_t list;
 };
 typedef struct _el_t el_t;
 
 TEST(gugEl2)
 {
     el_t n;
-    fer_gug_t *cs;
-    fer_gug_params_t params;
-    fer_real_t range[6] = { -1., 1.,
+    bor_gug_t *cs;
+    bor_gug_params_t params;
+    bor_real_t range[6] = { -1., 1.,
                             -2., 2. };
     size_t num = 16;
     const size_t *dim;
@@ -52,7 +52,7 @@ TEST(gugEl2)
     printf("gugNode:\n");
 
     ferVec2Set(&n.v, 0., 0.);
-    ferGUGElInit(&n.c, (const fer_vec_t *)&n.v);
+    ferGUGElInit(&n.c, (const bor_vec_t *)&n.v);
 
     ferGUGParamsInit(&params);
     params.dim = 2;
@@ -104,10 +104,10 @@ TEST(gugEl2)
     printf("------ gugNode\n\n");
 }
 
-static void elNew(el_t *ns, size_t len, fer_list_t *head)
+static void elNew(el_t *ns, size_t len, bor_list_t *head)
 {
     size_t i;
-    fer_real_t x, y;
+    bor_real_t x, y;
 
     ferListInit(head);
 
@@ -116,13 +116,13 @@ static void elNew(el_t *ns, size_t len, fer_list_t *head)
         y = ferRand(&r, -10., 10.);
 
         ferVec2Set(&ns[i].v, x, y);
-        ferGUGElInit(&ns[i].c, (const fer_vec_t *)&ns[i].v);
+        ferGUGElInit(&ns[i].c, (const bor_vec_t *)&ns[i].v);
 
         ferListAppend(head, &ns[i].list);
     }
 }
 
-static void elAdd(fer_gug_t *cs, el_t *ns, size_t len)
+static void elAdd(bor_gug_t *cs, el_t *ns, size_t len)
 {
     size_t i;
 
@@ -131,12 +131,12 @@ static void elAdd(fer_gug_t *cs, el_t *ns, size_t len)
     }
 }
 
-static fer_real_t dist2(void *item1, fer_list_t *item2, void *_)
+static bor_real_t dist2(void *item1, bor_list_t *item2, void *_)
 {
     el_t *el2;
-    fer_vec2_t *v;
+    bor_vec2_t *v;
 
-    v   = (fer_vec2_t *)item1;
+    v   = (bor_vec2_t *)item1;
     el2 = fer_container_of(item2, el_t, list);
     return ferVec2Dist2(v, &el2->v);
 }
@@ -145,15 +145,15 @@ static fer_real_t dist2(void *item1, fer_list_t *item2, void *_)
 #define N_LOOPS 2000
 TEST(gugNearest2)
 {
-    fer_vec2_t v;
-    fer_list_t head;
+    bor_vec2_t v;
+    bor_list_t head;
     el_t ns[N_LEN];
-    fer_gug_el_t *nsc[5];
-    fer_list_t *nsl[5];
+    bor_gug_el_t *nsc[5];
+    bor_list_t *nsl[5];
     el_t *near[10];
-    fer_gug_t *cs;
-    fer_gug_params_t params;
-    fer_real_t range[4] = { -9., 9., -11., 7. };
+    bor_gug_t *cs;
+    bor_gug_params_t params;
+    bor_real_t range[4] = { -9., 9., -11., 7. };
     size_t i, j, k;
     const size_t *dim;
 
@@ -180,7 +180,7 @@ TEST(gugNearest2)
         for (i=0; i < N_LOOPS; i++){
             ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
 
-            ferGUGNearest(cs, (const fer_vec_t *)&v, k + 1, nsc);
+            ferGUGNearest(cs, (const bor_vec_t *)&v, k + 1, nsc);
             ferNearestLinear(&head, &v, dist2, nsl, k + 1, NULL);
 
             for (j = 0; j < k + 1; j++){
@@ -199,12 +199,12 @@ TEST(gugNearest2)
 
 struct _el6_t {
     FER_VEC(v, 6);
-    fer_gug_el_t c;
-    fer_list_t list;
+    bor_gug_el_t c;
+    bor_list_t list;
 };
 typedef struct _el6_t el6_t;
 
-static void el6New(el6_t *ns, size_t len, fer_list_t *head)
+static void el6New(el6_t *ns, size_t len, bor_list_t *head)
 {
     size_t i, j;
 
@@ -221,7 +221,7 @@ static void el6New(el6_t *ns, size_t len, fer_list_t *head)
     }
 }
 
-static void el6Add(fer_gug_t *cs, el6_t *ns, size_t len)
+static void el6Add(bor_gug_t *cs, el6_t *ns, size_t len)
 {
     size_t i;
 
@@ -230,12 +230,12 @@ static void el6Add(fer_gug_t *cs, el6_t *ns, size_t len)
     }
 }
 
-static fer_real_t dist62(void *item1, fer_list_t *item2, void *_)
+static bor_real_t dist62(void *item1, bor_list_t *item2, void *_)
 {
     el6_t *el2;
-    fer_vec_t *v;
+    bor_vec_t *v;
 
-    v   = (fer_vec_t *)item1;
+    v   = (bor_vec_t *)item1;
     el2 = fer_container_of(item2, el6_t, list);
     return ferVecDist2(6, v, el2->v);
 }
@@ -243,14 +243,14 @@ static fer_real_t dist62(void *item1, fer_list_t *item2, void *_)
 TEST(gugNearest6)
 {
     FER_VEC(v, 6);
-    fer_list_t head;
+    bor_list_t head;
     el6_t ns[N_LEN];
-    fer_gug_el_t *nsc[5];
-    fer_list_t *nsl[5];
+    bor_gug_el_t *nsc[5];
+    bor_list_t *nsl[5];
     el6_t *near[10];
-    fer_gug_t *cs;
-    fer_gug_params_t params;
-    fer_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
+    bor_gug_t *cs;
+    bor_gug_params_t params;
+    bor_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
     size_t i, j, k;
     const size_t *dim;
 
