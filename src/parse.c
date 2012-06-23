@@ -21,7 +21,7 @@
     ( c != ' ' && c != '\t' && c != '\n')
 
 /* Implementation taken from SVT project. */
-int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **next)
+int borParseReal(const char *str, const char *strend, bor_real_t *val, char **next)
 {
     char c;
     bor_real_t fract;
@@ -136,7 +136,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
 }
 
 
-int ferParseVec3(const char *_str, const char *strend, bor_vec3_t *vec, char **n)
+int borParseVec3(const char *_str, const char *strend, bor_vec3_t *vec, char **n)
 {
     bor_real_t v[3];
     size_t i;
@@ -144,7 +144,7 @@ int ferParseVec3(const char *_str, const char *strend, bor_vec3_t *vec, char **n
 
     str = (char *)_str;
     for (i = 0; i < 3 && str < strend; i++){
-        if (ferParseReal(str, strend, &v[i], &next) != 0)
+        if (borParseReal(str, strend, &v[i], &next) != 0)
             break;
         str = next;
     }
@@ -152,14 +152,14 @@ int ferParseVec3(const char *_str, const char *strend, bor_vec3_t *vec, char **n
     if (i != 3)
         return -1;
 
-    ferVec3Set(vec, v[0], v[1], v[2]);
+    borVec3Set(vec, v[0], v[1], v[2]);
     if (n)
         *n = str;
 
     return 0;
 }
 
-int ferParseVec2(const char *_str, const char *strend, bor_vec2_t *vec, char **n)
+int borParseVec2(const char *_str, const char *strend, bor_vec2_t *vec, char **n)
 {
     bor_real_t v[2];
     size_t i;
@@ -167,7 +167,7 @@ int ferParseVec2(const char *_str, const char *strend, bor_vec2_t *vec, char **n
 
     str = (char *)_str;
     for (i = 0; i < 2 && str < strend; i++){
-        if (ferParseReal(str, strend, &v[i], &next) != 0)
+        if (borParseReal(str, strend, &v[i], &next) != 0)
             break;
         str = next;
     }
@@ -175,14 +175,14 @@ int ferParseVec2(const char *_str, const char *strend, bor_vec2_t *vec, char **n
     if (i != 2)
         return -1;
 
-    ferVec2Set(vec, v[0], v[1]);
+    borVec2Set(vec, v[0], v[1]);
     if (n)
         *n = str;
 
     return 0;
 }
 
-int ferParseVec4(const char *_str, const char *strend, bor_vec4_t *vec, char **n)
+int borParseVec4(const char *_str, const char *strend, bor_vec4_t *vec, char **n)
 {
     bor_real_t v[4];
     size_t i;
@@ -190,7 +190,7 @@ int ferParseVec4(const char *_str, const char *strend, bor_vec4_t *vec, char **n
 
     str = (char *)_str;
     for (i = 0; i < 4 && str < strend; i++){
-        if (ferParseReal(str, strend, &v[i], &next) != 0)
+        if (borParseReal(str, strend, &v[i], &next) != 0)
             break;
         str = next;
     }
@@ -198,14 +198,14 @@ int ferParseVec4(const char *_str, const char *strend, bor_vec4_t *vec, char **n
     if (i != 4)
         return -1;
 
-    ferVec4Set(vec, v[0], v[1], v[2], v[3]);
+    borVec4Set(vec, v[0], v[1], v[2], v[3]);
     if (n)
         *n = str;
 
     return 0;
 }
 
-int ferParseLong(const char *str, const char *strend, long *val, char **next)
+int borParseLong(const char *str, const char *strend, long *val, char **next)
 {
     char c;
     int negative = 0;

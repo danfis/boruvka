@@ -45,16 +45,16 @@ typedef struct _bor_rand_t bor_rand_t;
 /**
  * Initializes rand struct.
  */
-_fer_inline void ferRandInit(bor_rand_t *r);
+_bor_inline void borRandInit(bor_rand_t *r);
 
 /**
  * Returns randomly generated number in range <from, to).
  */
-_fer_inline bor_real_t ferRand(bor_rand_t *r, bor_real_t from, bor_real_t to);
+_bor_inline bor_real_t borRand(bor_rand_t *r, bor_real_t from, bor_real_t to);
 
 
 /**** INLINES ****/
-_fer_inline void ferRandInit(bor_rand_t *r)
+_bor_inline void borRandInit(bor_rand_t *r)
 {
     r->xi[0] = time(NULL);
     r->xi[1] = getpid();
@@ -62,7 +62,7 @@ _fer_inline void ferRandInit(bor_rand_t *r)
 }
 
 
-_fer_inline bor_real_t ferRand(bor_rand_t *r, bor_real_t from, bor_real_t to)
+_bor_inline bor_real_t borRand(bor_rand_t *r, bor_real_t from, bor_real_t to)
 {
     bor_real_t num;
 

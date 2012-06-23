@@ -26,60 +26,60 @@
 #include <boruvka/rand-mt.h>
 #include <boruvka/alloc.h>
 
-_fer_inline void ferRandMTInit(bor_rand_mt_t *r, uint32_t seed);
+_bor_inline void borRandMTInit(bor_rand_mt_t *r, uint32_t seed);
 
-_fer_inline uint32_t hiBit(uint32_t u);
-_fer_inline uint32_t loBit(uint32_t u);
-_fer_inline uint32_t loBits(uint32_t u);
-_fer_inline uint32_t mixBits(uint32_t u, uint32_t v);
-_fer_inline uint32_t magic(uint32_t u);
-_fer_inline uint32_t twist(uint32_t m, uint32_t s0, uint32_t s1);
+_bor_inline uint32_t hiBit(uint32_t u);
+_bor_inline uint32_t loBit(uint32_t u);
+_bor_inline uint32_t loBits(uint32_t u);
+_bor_inline uint32_t mixBits(uint32_t u, uint32_t v);
+_bor_inline uint32_t magic(uint32_t u);
+_bor_inline uint32_t twist(uint32_t m, uint32_t s0, uint32_t s1);
 static uint32_t hash(time_t t, clock_t c);
 
 
-bor_rand_mt_t *ferRandMTNew(uint32_t seed)
+bor_rand_mt_t *borRandMTNew(uint32_t seed)
 {
     bor_rand_mt_t *r;
     r = BOR_ALLOC(bor_rand_mt_t);
 
-    ferRandMTReseed(r, seed);
+    borRandMTReseed(r, seed);
 
     return r;
 }
 
-bor_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen)
+bor_rand_mt_t *borRandMTNew2(uint32_t *seed, uint32_t seedlen)
 {
     bor_rand_mt_t *r;
 
     r = BOR_ALLOC(bor_rand_mt_t);
 
-    ferRandMTReseed2(r, seed, seedlen);
+    borRandMTReseed2(r, seed, seedlen);
 
     return r;
 }
 
-bor_rand_mt_t *ferRandMTNewAuto(void)
+bor_rand_mt_t *borRandMTNewAuto(void)
 {
     bor_rand_mt_t *r;
     r = BOR_ALLOC(bor_rand_mt_t);
 
-    ferRandMTReseedAuto(r);
+    borRandMTReseedAuto(r);
 
     return r;
 }
 
-void ferRandMTDel(bor_rand_mt_t *r)
+void borRandMTDel(bor_rand_mt_t *r)
 {
     BOR_FREE(r);
 }
 
-void ferRandMTReseed(bor_rand_mt_t *r, uint32_t seed)
+void borRandMTReseed(bor_rand_mt_t *r, uint32_t seed)
 {
-    ferRandMTInit(r, seed);
-    __ferRandMTReload(r);
+    borRandMTInit(r, seed);
+    __borRandMTReload(r);
 }
 
-void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
+void borRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
 {
     register int i = 1;
     register uint32_t j = 0;
@@ -91,7 +91,7 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
     // default seed length of N = 624 uint32's).  Any bits above the lower 32
     // in each element are discarded.
 
-    ferRandMTInit(r, 19650218UL);
+    borRandMTInit(r, 19650218UL);
 
     for (; k; --k){
         r->state[i] ^= ((r->state[i-1] ^ (r->state[i-1] >> 30)) * 1664525UL);
@@ -124,10 +124,10 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
 
     r->state[0] = 0x80000000UL;  // MSB is 1, assuring non-zero initial array
 
-    __ferRandMTReload(r);
+    __borRandMTReload(r);
 }
 
-void ferRandMTReseedAuto(bor_rand_mt_t *r)
+void borRandMTReseedAuto(bor_rand_mt_t *r)
 {
     FILE *urandom;
     uint32_t bigSeed[BOR_RAND_MT_N];
@@ -145,15 +145,15 @@ void ferRandMTReseedAuto(bor_rand_mt_t *r)
             success = fread(s++, sizeof(uint32_t), 1, urandom);
         fclose(urandom);
         if (success){
-            ferRandMTReseed2(r, bigSeed, BOR_RAND_MT_N);
+            borRandMTReseed2(r, bigSeed, BOR_RAND_MT_N);
         }
     }
     
-    ferRandMTReseed(r, hash(time(NULL), clock()));
+    borRandMTReseed(r, hash(time(NULL), clock()));
 }
 
 
-_fer_inline void ferRandMTInit(bor_rand_mt_t *g, uint32_t seed)
+_bor_inline void borRandMTInit(bor_rand_mt_t *g, uint32_t seed)
 {
     // Initialize generator state with seed
     // See Knuth TAOCP Vol 2, 3rd Ed, p.106 for multiplier.
@@ -170,7 +170,7 @@ _fer_inline void ferRandMTInit(bor_rand_mt_t *g, uint32_t seed)
     }
 }
 
-void __ferRandMTReload(bor_rand_mt_t *r)
+void __borRandMTReload(bor_rand_mt_t *r)
 {
     // Generate N new values in state
     // Made clearer and faster by Matthew Bellew (matthew.bellew@home.com)
@@ -188,32 +188,32 @@ void __ferRandMTReload(bor_rand_mt_t *r)
 }
 
 
-_fer_inline uint32_t hiBit(uint32_t u )
+_bor_inline uint32_t hiBit(uint32_t u )
 {
     return u & 0x80000000UL;
 }
 
-_fer_inline uint32_t loBit(uint32_t u)
+_bor_inline uint32_t loBit(uint32_t u)
 {
     return u & 0x00000001UL;
 }
 
-_fer_inline uint32_t loBits(uint32_t u)
+_bor_inline uint32_t loBits(uint32_t u)
 {
     return u & 0x7fffffffUL;
 }
 
-_fer_inline uint32_t mixBits(uint32_t u, uint32_t v)
+_bor_inline uint32_t mixBits(uint32_t u, uint32_t v)
 {
     return hiBit(u) | loBits(v);
 }
 
-_fer_inline uint32_t magic(uint32_t u )
+_bor_inline uint32_t magic(uint32_t u )
 {
     return loBit(u) ? 0x9908b0dfUL : 0x0UL;
 }
 
-_fer_inline uint32_t twist(uint32_t m, uint32_t s0, uint32_t s1)
+_bor_inline uint32_t twist(uint32_t m, uint32_t s0, uint32_t s1)
 {
     return m ^ (mixBits(s0, s1) >> 1) ^ magic(s1);
 }

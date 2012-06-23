@@ -18,10 +18,10 @@ TEST(vec3Alloc)
 {
     bor_vec3_t *v, w;
 
-    v = ferVec3New(0., 1., 2.);
-    ferVec3Set(&w, 0., 1., 2.);
-    assertTrue(ferVec3Eq(v, &w));
-    ferVec3Del(v);
+    v = borVec3New(0., 1., 2.);
+    borVec3Set(&w, 0., 1., 2.);
+    assertTrue(borVec3Eq(v, &w));
+    borVec3Del(v);
 }
 
 TEST(vec3Add)
@@ -30,10 +30,10 @@ TEST(vec3Add)
     size_t i;
 
     printf("# ---- add ----\n");
-    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs_len; i++){
-        ferVec3Add(&v, &vecs[i]);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Add(&v, &vecs[i]);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- add end ----\n\n");
 }
@@ -44,10 +44,10 @@ TEST(vec3Sub)
     size_t i;
 
     printf("# ---- sub ----\n");
-    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs_len; i++){
-        ferVec3Sub(&v, &vecs[i]);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Sub(&v, &vecs[i]);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- sub end ----\n\n");
 }
@@ -58,10 +58,10 @@ TEST(vec3Scale)
     size_t i;
 
     printf("# ---- scale ----\n");
-    ferVec3Copy(&v, &vecs[0]);
+    borVec3Copy(&v, &vecs[0]);
     for (i = 0; i < vecs_len; i++){
-        ferVec3Scale(&v, ferVec3X(&vecs[i]));
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Scale(&v, borVec3X(&vecs[i]));
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- scale end ----\n\n");
 }
@@ -73,9 +73,9 @@ TEST(vec3Normalize)
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < vecs_len; i++){
-        ferVec3Copy(&v, &vecs[i]);
-        ferVec3Normalize(&v);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Copy(&v, &vecs[i]);
+        borVec3Normalize(&v);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- normalize end ----\n\n");
 }
@@ -87,7 +87,7 @@ TEST(vec3Dot)
 
     printf("# ---- dot ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        dot = ferVec3Dot(&vecs[i], &vecs[i + 1]);
+        dot = borVec3Dot(&vecs[i], &vecs[i + 1]);
         printf("# %g\n", dot);
     }
     printf("# ---- dot end ----\n\n");
@@ -100,8 +100,8 @@ TEST(vec3Mul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        ferVec3MulComp2(&v, &vecs[i], &vecs[i + 1]);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3MulComp2(&v, &vecs[i], &vecs[i + 1]);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- mul end ----\n\n");
 }
@@ -113,8 +113,8 @@ TEST(vec3Cross)
 
     printf("# ---- cross ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        ferVec3Cross(&v, &vecs[i], &vecs[i + 1]);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Cross(&v, &vecs[i], &vecs[i + 1]);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- cross end ----\n\n");
 }
@@ -126,7 +126,7 @@ TEST(vec3Len2)
 
     printf("# ---- len2 ----\n");
     for (i = 0; i < vecs_len; i++){
-        d = ferVec3Len2(&vecs[i]);
+        d = borVec3Len2(&vecs[i]);
         printf("# %g\n", d);
     }
     printf("# ---- len2 end ----\n\n");
@@ -139,7 +139,7 @@ TEST(vec3Len)
 
     printf("# ---- len ----\n");
     for (i = 0; i < vecs_len; i++){
-        d = ferVec3Len(&vecs[i]);
+        d = borVec3Len(&vecs[i]);
         printf("# %g\n", d);
     }
     printf("# ---- len end ----\n\n");
@@ -152,7 +152,7 @@ TEST(vec3Dist2)
 
     printf("# ---- dist2 ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        d = ferVec3Dist2(&vecs[i], &vecs[i + 1]);
+        d = borVec3Dist2(&vecs[i], &vecs[i + 1]);
         printf("# %g\n", d);
     }
     printf("# ---- dist2 end ----\n\n");
@@ -165,7 +165,7 @@ TEST(vec3Dist)
 
     printf("# ---- dist ----\n");
     for (i = 0; i < vecs_len - 1; i++){
-        d = ferVec3Dist(&vecs[i], &vecs[i + 1]);
+        d = borVec3Dist(&vecs[i], &vecs[i + 1]);
         printf("# %g\n", d);
     }
     printf("# ---- dist end ----\n\n");
@@ -179,8 +179,8 @@ TEST(vec3SegmentDist)
 
     printf("# ---- segment dist ----\n");
     for (i = 0; i < vecs_len - 2; i++){
-        d = ferVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
-        printf("# %g %g %g %g\n", d, ferVec3X(&w), ferVec3Y(&w), ferVec3Z(&w));
+        d = borVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
+        printf("# %g %g %g %g\n", d, borVec3X(&w), borVec3Y(&w), borVec3Z(&w));
     }
     printf("# ---- segment dist end ----\n\n");
 }
@@ -193,8 +193,8 @@ TEST(vec3TriDist)
 
     printf("# ---- tri dist ----\n");
     for (i = 0; i < vecs_len - 3; i++){
-        d = ferVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
-        printf("# %g %g %g %g\n", d, ferVec3X(&w), ferVec3Y(&w), ferVec3Z(&w));
+        d = borVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
+        printf("# %g %g %g %g\n", d, borVec3X(&w), borVec3Y(&w), borVec3Z(&w));
     }
     printf("# ---- tri dist end ----\n\n");
 }
@@ -204,98 +204,98 @@ TEST(vec3Core)
 {
     bor_vec3_t a, b, c, d;
 
-    ferVec3Set(&a, 0., 0., 0.);
-    assertTrue(ferVec3Eq(&a, fer_vec3_origin));
+    borVec3Set(&a, 0., 0., 0.);
+    assertTrue(borVec3Eq(&a, bor_vec3_origin));
 
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    assertTrue(ferVec3Eq(&a, &b));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(borVec3Eq(&a, &b));
 
-    ferVec3Set(&a, 9., 1., 5.);
-    ferVec3Copy(&b, &a);
-    assertTrue(ferVec3Eq(&a, &b));
+    borVec3Set(&a, 9., 1., 5.);
+    borVec3Copy(&b, &a);
+    assertTrue(borVec3Eq(&a, &b));
 
-    ferVec3Set(&a, 0., 0., 0.);
-    assertTrue(ferEq(0., ferVec3Len2(&a)));
-    ferVec3Set(&a, 1., 1., 1.);
-    assertTrue(ferEq(3., ferVec3Len2(&a)));
-    ferVec3Set(&a, 1., 4., 3.);
-    assertTrue(ferEq(1. + 4. * 4. + 3. * 3., ferVec3Len2(&a)));
+    borVec3Set(&a, 0., 0., 0.);
+    assertTrue(borEq(0., borVec3Len2(&a)));
+    borVec3Set(&a, 1., 1., 1.);
+    assertTrue(borEq(3., borVec3Len2(&a)));
+    borVec3Set(&a, 1., 4., 3.);
+    assertTrue(borEq(1. + 4. * 4. + 3. * 3., borVec3Len2(&a)));
 
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    assertTrue(ferEq(0., ferVec3Dist2(&a, &b)));
-    ferVec3Set(&a, 0., 1., .4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    assertTrue(ferEq(10.04, ferVec3Dist2(&a, &b)));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(borEq(0., borVec3Dist2(&a, &b)));
+    borVec3Set(&a, 0., 1., .4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(borEq(10.04, borVec3Dist2(&a, &b)));
 
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    ferVec3Sub2(&c, &a, &b);
-    assertTrue(ferVec3Eq(&c, fer_vec3_origin));
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    ferVec3Sub(&a, &b);
-    assertTrue(ferVec3Eq(&a, fer_vec3_origin));
-    ferVec3Set(&a, 1.3, 1.2, 3.4);
-    ferVec3Set(&b, 0.2,  .2,  .4);
-    ferVec3Sub2(&c, &a, &b);
-    ferVec3Set(&d, 1.1, 1., 3.);
-    assertTrue(ferVec3Eq(&c, &d));
-    ferVec3Sub(&b, &a);
-    ferVec3Set(&d, -1.1, -1., -3.);
-    assertTrue(ferVec3Eq(&b, &d));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    borVec3Sub2(&c, &a, &b);
+    assertTrue(borVec3Eq(&c, bor_vec3_origin));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    borVec3Sub(&a, &b);
+    assertTrue(borVec3Eq(&a, bor_vec3_origin));
+    borVec3Set(&a, 1.3, 1.2, 3.4);
+    borVec3Set(&b, 0.2,  .2,  .4);
+    borVec3Sub2(&c, &a, &b);
+    borVec3Set(&d, 1.1, 1., 3.);
+    assertTrue(borVec3Eq(&c, &d));
+    borVec3Sub(&b, &a);
+    borVec3Set(&d, -1.1, -1., -3.);
+    assertTrue(borVec3Eq(&b, &d));
 
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    ferVec3Add(&a, &b);
-    ferVec3Set(&d, 2., 2.4, 6.8);
-    assertTrue(ferVec3Eq(&a, &d));
-    ferVec3Set(&a, 1.3, 1.2, 3.4);
-    ferVec3Set(&b, 0.2,  .2,  .4);
-    ferVec3Add(&a, &b);
-    ferVec3Set(&d, 1.5, 1.4, 3.8);
-    assertTrue(ferVec3Eq(&a, &d));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Set(&b, 1., 1.2, 3.4);
+    borVec3Add(&a, &b);
+    borVec3Set(&d, 2., 2.4, 6.8);
+    assertTrue(borVec3Eq(&a, &d));
+    borVec3Set(&a, 1.3, 1.2, 3.4);
+    borVec3Set(&b, 0.2,  .2,  .4);
+    borVec3Add(&a, &b);
+    borVec3Set(&d, 1.5, 1.4, 3.8);
+    assertTrue(borVec3Eq(&a, &d));
 
-    ferVec3Set(&a, 1., 1.2, 3.4);
-    ferVec3Scale(&a, 2.);
-    ferVec3Set(&d, 2., 2.4, 6.8);
-    assertTrue(ferVec3Eq(&a, &d));
-    ferVec3Set(&a, 1.3, 1.2, 3.4);
-    ferVec3Scale(&a, 0.2);
-    ferVec3Set(&d, 1.3 * .2, 1.2 * .2, 3.4 * .2);
-    assertTrue(ferVec3Eq(&a, &d));
+    borVec3Set(&a, 1., 1.2, 3.4);
+    borVec3Scale(&a, 2.);
+    borVec3Set(&d, 2., 2.4, 6.8);
+    assertTrue(borVec3Eq(&a, &d));
+    borVec3Set(&a, 1.3, 1.2, 3.4);
+    borVec3Scale(&a, 0.2);
+    borVec3Set(&d, 1.3 * .2, 1.2 * .2, 3.4 * .2);
+    assertTrue(borVec3Eq(&a, &d));
 
-    ferVec3Set(&a, 2., 1.1, 5.4);
-    ferVec3Normalize(&a);
-    assertTrue(ferEq(1., ferVec3Len2(&a)));
-    ferVec3Set(&a, 1., .1, 3.4);
-    ferVec3Normalize(&a);
-    assertTrue(ferEq(1., ferVec3Len2(&a)));
+    borVec3Set(&a, 2., 1.1, 5.4);
+    borVec3Normalize(&a);
+    assertTrue(borEq(1., borVec3Len2(&a)));
+    borVec3Set(&a, 1., .1, 3.4);
+    borVec3Normalize(&a);
+    assertTrue(borEq(1., borVec3Len2(&a)));
 
-    ferVec3Set(&a, 2., 1.1, 5.4);
-    assertTrue(ferEq(ferVec3Len2(&a), ferVec3Dot(&a, &a)));
-    ferVec3Set(&b, 1., 1.2, 3.4);
-    assertTrue(ferEq(2. + 1.1 * 1.2 + 5.4 * 3.4, ferVec3Dot(&a, &b)));
-    ferVec3Set(&a, 2., 2.4, 6.8);
-    assertTrue(ferEq(2. + 2.4 * 1.2 + 6.8 * 3.4, ferVec3Dot(&a, &b)));
+    borVec3Set(&a, 2., 1.1, 5.4);
+    assertTrue(borEq(borVec3Len2(&a), borVec3Dot(&a, &a)));
+    borVec3Set(&b, 1., 1.2, 3.4);
+    assertTrue(borEq(2. + 1.1 * 1.2 + 5.4 * 3.4, borVec3Dot(&a, &b)));
+    borVec3Set(&a, 2., 2.4, 6.8);
+    assertTrue(borEq(2. + 2.4 * 1.2 + 6.8 * 3.4, borVec3Dot(&a, &b)));
 
-    ferVec3Set(&a, 1., 0., 0.);
-    ferVec3Set(&b, 0., 1., 0.);
-    ferVec3Cross(&c, &a, &b);
-    ferVec3Set(&d, 0., 0., 1.);
-    assertTrue(ferVec3Eq(&c, &d));
-    ferVec3Cross(&c, &b, &a);
-    ferVec3Set(&d, 0., 0., -1.);
-    assertTrue(ferVec3Eq(&c, &d));
-    ferVec3Set(&a, 1., 1., 1.);
-    ferVec3Set(&b, 0., 1., 0.);
-    ferVec3Cross(&c, &a, &b);
-    ferVec3Set(&d, -1., 0., 1.);
-    assertTrue(ferVec3Eq(&c, &d));
-    ferVec3Cross(&c, &b, &a);
-    ferVec3Set(&d, 1., 0., -1.);
-    assertTrue(ferVec3Eq(&c, &d));
+    borVec3Set(&a, 1., 0., 0.);
+    borVec3Set(&b, 0., 1., 0.);
+    borVec3Cross(&c, &a, &b);
+    borVec3Set(&d, 0., 0., 1.);
+    assertTrue(borVec3Eq(&c, &d));
+    borVec3Cross(&c, &b, &a);
+    borVec3Set(&d, 0., 0., -1.);
+    assertTrue(borVec3Eq(&c, &d));
+    borVec3Set(&a, 1., 1., 1.);
+    borVec3Set(&b, 0., 1., 0.);
+    borVec3Cross(&c, &a, &b);
+    borVec3Set(&d, -1., 0., 1.);
+    assertTrue(borVec3Eq(&c, &d));
+    borVec3Cross(&c, &b, &a);
+    borVec3Set(&d, 1., 0., -1.);
+    assertTrue(borVec3Eq(&c, &d));
 }
 
 TEST(vec3PointSegmentDist)
@@ -303,140 +303,140 @@ TEST(vec3PointSegmentDist)
     bor_vec3_t P, a, b, w, ew;
     bor_real_t dist;
 
-    ferVec3Set(&a, 0., 0., 0.);
-    ferVec3Set(&b, 1., 0., 0.);
+    borVec3Set(&a, 0., 0., 0.);
+    borVec3Set(&b, 1., 0., 0.);
 
     // extereme w == a
-    ferVec3Set(&P, -1., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 1.));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -1., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 1.));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -0.5, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.5 * 0.5));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -0.5, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.5 * 0.5));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -0.1, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, .1 * .1));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -0.1, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, .1 * .1));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, 0., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, 0., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -1., 1., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 2.));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -1., 1., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 2.));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -0.5, 0.5, 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.5));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -0.5, 0.5, 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.5));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -0.1, -1., 2.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 5.01));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -0.1, -1., 2.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 5.01));
+    assertTrue(borVec3Eq(&w, &a));
 
 
     // extereme w == b
-    ferVec3Set(&P, 2., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 1.));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 2., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 1.));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 1.5, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.5 * 0.5));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 1.5, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.5 * 0.5));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 1.1, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, .1 * .1));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 1.1, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, .1 * .1));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 1., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 1., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 2., 1., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 2.));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 2., 1., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 2.));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 1.5, 0.5, 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.5));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 1.5, 0.5, 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.5));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 1.1, -1., 2.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 5.01));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 1.1, -1., 2.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 5.01));
+    assertTrue(borVec3Eq(&w, &b));
 
     // inside segment
-    ferVec3Set(&P, .5, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &P));
+    borVec3Set(&P, .5, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &P));
 
-    ferVec3Set(&P, .9, 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &P));
+    borVec3Set(&P, .9, 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &P));
 
-    ferVec3Set(&P, .5, 1., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 1.));
-    ferVec3Set(&ew, 0.5, 0., 0.);
-    assertTrue(ferVec3Eq(&w, &ew));
+    borVec3Set(&P, .5, 1., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 1.));
+    borVec3Set(&ew, 0.5, 0., 0.);
+    assertTrue(borVec3Eq(&w, &ew));
 
-    ferVec3Set(&P, .5, 1., 1.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 2.));
-    ferVec3Set(&ew, 0.5, 0., 0.);
-    assertTrue(ferVec3Eq(&w, &ew));
+    borVec3Set(&P, .5, 1., 1.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 2.));
+    borVec3Set(&ew, 0.5, 0., 0.);
+    assertTrue(borVec3Eq(&w, &ew));
 
 
 
-    ferVec3Set(&a, -.5, 2., 1.);
-    ferVec3Set(&b, 1., 1.5, 0.5);
+    borVec3Set(&a, -.5, 2., 1.);
+    borVec3Set(&b, 1., 1.5, 0.5);
 
     // extereme w == a
-    ferVec3Set(&P, -10., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 9.5 * 9.5 + 2. * 2. + 1.));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -10., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 9.5 * 9.5 + 2. * 2. + 1.));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, -10., 9.2, 3.4);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 9.5 * 9.5 + 7.2 * 7.2 + 2.4 * 2.4));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -10., 9.2, 3.4);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 9.5 * 9.5 + 7.2 * 7.2 + 2.4 * 2.4));
+    assertTrue(borVec3Eq(&w, &a));
 
     // extereme w == b
-    ferVec3Set(&P, 10., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 9. * 9. + 1.5 * 1.5 + 0.5 * 0.5));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 10., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 9. * 9. + 1.5 * 1.5 + 0.5 * 0.5));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, 10., 9.2, 3.4);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 9. * 9. + 7.7 * 7.7 + 2.9 * 2.9));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 10., 9.2, 3.4);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 9. * 9. + 7.7 * 7.7 + 2.9 * 2.9));
+    assertTrue(borVec3Eq(&w, &b));
 
     // inside ab
-    ferVec3Set(&a, -.1, 1., 1.);
-    ferVec3Set(&b, 1., 1., 1.);
-    ferVec3Set(&P, 0., 0., 0.);
-    dist = ferVec3PointSegmentDist2(&P, &a, &b, &w);
-    assertTrue(ferEq(dist, 2.));
-    ferVec3Set(&ew, 0., 1., 1.);
-    assertTrue(ferVec3Eq(&w, &ew));
+    borVec3Set(&a, -.1, 1., 1.);
+    borVec3Set(&b, 1., 1., 1.);
+    borVec3Set(&P, 0., 0., 0.);
+    dist = borVec3PointSegmentDist2(&P, &a, &b, &w);
+    assertTrue(borEq(dist, 2.));
+    borVec3Set(&ew, 0., 1., 1.);
+    assertTrue(borVec3Eq(&w, &ew));
 }
 
 
@@ -445,117 +445,117 @@ TEST(vec3PointTriDist)
     bor_vec3_t P, a, b, c, w, P0;
     bor_real_t dist;
 
-    ferVec3Set(&a, -1., 0., 0.);
-    ferVec3Set(&b, 0., 1., 1.);
-    ferVec3Set(&c, -1., 0., 1.);
+    borVec3Set(&a, -1., 0., 0.);
+    borVec3Set(&b, 0., 1., 1.);
+    borVec3Set(&c, -1., 0., 1.);
 
-    ferVec3Set(&P, -1., 0., 0.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -1., 0., 0.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &a));
 
-    ferVec3Set(&P, 0., 1., 1.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 0., 1., 1.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &b));
 
-    ferVec3Set(&P, -1., 0., 1.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &c));
+    borVec3Set(&P, -1., 0., 1.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &c));
 
-    ferVec3Set(&P, 0., 0., 0.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, NULL);
-    assertTrue(ferEq(dist, 2./3.));
+    borVec3Set(&P, 0., 0., 0.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, NULL);
+    assertTrue(borEq(dist, 2./3.));
 
 
     // region 4
-    ferVec3Set(&P, -2., 0., 0.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &a)));
-    assertTrue(ferVec3Eq(&w, &a));
-    ferVec3Set(&P, -2., 0.2, -1.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &a)));
-    assertTrue(ferVec3Eq(&w, &a));
+    borVec3Set(&P, -2., 0., 0.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &a)));
+    assertTrue(borVec3Eq(&w, &a));
+    borVec3Set(&P, -2., 0.2, -1.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &a)));
+    assertTrue(borVec3Eq(&w, &a));
 
     // region 2
-    ferVec3Set(&P, -1.3, 0., 1.2);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &c)));
-    assertTrue(ferVec3Eq(&w, &c));
-    ferVec3Set(&P, -1.2, 0.2, 1.1);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &c)));
-    assertTrue(ferVec3Eq(&w, &c));
+    borVec3Set(&P, -1.3, 0., 1.2);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &c)));
+    assertTrue(borVec3Eq(&w, &c));
+    borVec3Set(&P, -1.2, 0.2, 1.1);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &c)));
+    assertTrue(borVec3Eq(&w, &c));
 
     // region 6
-    ferVec3Set(&P, 0.3, 1., 1.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &b)));
-    assertTrue(ferVec3Eq(&w, &b));
-    ferVec3Set(&P, .1, 1., 1.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, ferVec3Dist2(&P, &b)));
-    assertTrue(ferVec3Eq(&w, &b));
+    borVec3Set(&P, 0.3, 1., 1.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &b)));
+    assertTrue(borVec3Eq(&w, &b));
+    borVec3Set(&P, .1, 1., 1.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, borVec3Dist2(&P, &b)));
+    assertTrue(borVec3Eq(&w, &b));
 
     // region 1
-    ferVec3Set(&P, 0., 1., 2.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 1.));
-    assertTrue(ferVec3Eq(&w, &b));
-    ferVec3Set(&P, -1., 0., 2.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 1.));
-    assertTrue(ferVec3Eq(&w, &c));
-    ferVec3Set(&P, -0.5, 0.5, 2.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 1.));
-    ferVec3Set(&P0, -0.5, 0.5, 1.);
-    assertTrue(ferVec3Eq(&w, &P0));
+    borVec3Set(&P, 0., 1., 2.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 1.));
+    assertTrue(borVec3Eq(&w, &b));
+    borVec3Set(&P, -1., 0., 2.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 1.));
+    assertTrue(borVec3Eq(&w, &c));
+    borVec3Set(&P, -0.5, 0.5, 2.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 1.));
+    borVec3Set(&P0, -0.5, 0.5, 1.);
+    assertTrue(borVec3Eq(&w, &P0));
 
     // region 3
-    ferVec3Set(&P, -2., -1., 0.7);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 2.));
-    ferVec3Set(&P0, -1., 0., 0.7);
-    assertTrue(ferVec3Eq(&w, &P0));
+    borVec3Set(&P, -2., -1., 0.7);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 2.));
+    borVec3Set(&P0, -1., 0., 0.7);
+    assertTrue(borVec3Eq(&w, &P0));
 
     // region 5
-    ferVec3Set(&P, 0., 0., 0.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 2./3.));
-    ferVec3Set(&P0, -2./3., 1./3., 1./3.);
-    assertTrue(ferVec3Eq(&w, &P0));
+    borVec3Set(&P, 0., 0., 0.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 2./3.));
+    borVec3Set(&P0, -2./3., 1./3., 1./3.);
+    assertTrue(borVec3Eq(&w, &P0));
 
     // region 0
-    ferVec3Set(&P, -0.5, 0.5, 0.5);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &P));
-    ferVec3Set(&P, -0.5, 0.5, 0.7);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &P));
-    ferVec3Set(&P, -0.5, 0.5, 0.9);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.));
-    assertTrue(ferVec3Eq(&w, &P));
+    borVec3Set(&P, -0.5, 0.5, 0.5);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &P));
+    borVec3Set(&P, -0.5, 0.5, 0.7);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &P));
+    borVec3Set(&P, -0.5, 0.5, 0.9);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.));
+    assertTrue(borVec3Eq(&w, &P));
 
-    ferVec3Set(&P, 0., 0., 0.5);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.5));
-    ferVec3Set(&P0, -.5, .5, .5);
-    assertTrue(ferVec3Eq(&w, &P0));
+    borVec3Set(&P, 0., 0., 0.5);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.5));
+    borVec3Set(&P0, -.5, .5, .5);
+    assertTrue(borVec3Eq(&w, &P0));
 
-    ferVec3Set(&a, -1., 0., 0.);
-    ferVec3Set(&b, 0., 1., -1.);
-    ferVec3Set(&c, 0., 1., 1.);
-    ferVec3Set(&P, 0., 0., 0.);
-    dist = ferVec3PointTriDist2(&P, &a, &b, &c, &w);
-    assertTrue(ferEq(dist, 0.5));
-    ferVec3Set(&P0, -.5, .5, 0.);
-    assertTrue(ferVec3Eq(&w, &P0));
+    borVec3Set(&a, -1., 0., 0.);
+    borVec3Set(&b, 0., 1., -1.);
+    borVec3Set(&c, 0., 1., 1.);
+    borVec3Set(&P, 0., 0., 0.);
+    dist = borVec3PointTriDist2(&P, &a, &b, &c, &w);
+    assertTrue(borEq(dist, 0.5));
+    borVec3Set(&P0, -.5, .5, 0.);
+    assertTrue(borVec3Eq(&w, &P0));
     //fprintf(stderr, "dist: %lf\n", dist);
 }
 
@@ -563,43 +563,43 @@ TEST(vec3PointInTri)
 {
     bor_vec3_t v[5];
 
-    ferVec3Set(&v[0], 1., 1., 0.);
-    ferVec3Set(&v[1], 0., 0., 0.);
-    ferVec3Set(&v[2], 2., 0.5, 0.);
-    ferVec3Set(&v[3], 0., 2., 0.);
-    assertTrue(ferVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
+    borVec3Set(&v[0], 1., 1., 0.);
+    borVec3Set(&v[1], 0., 0., 0.);
+    borVec3Set(&v[2], 2., 0.5, 0.);
+    borVec3Set(&v[3], 0., 2., 0.);
+    assertTrue(borVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
 
-    ferVec3Set(&v[0], 1., 1., 0.);
-    ferVec3Set(&v[1], 0., 0., 0.);
-    ferVec3Set(&v[2], 2., -1., 0.);
-    ferVec3Set(&v[3], 0., 2., 0.);
-    assertFalse(ferVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
+    borVec3Set(&v[0], 1., 1., 0.);
+    borVec3Set(&v[1], 0., 0., 0.);
+    borVec3Set(&v[2], 2., -1., 0.);
+    borVec3Set(&v[3], 0., 2., 0.);
+    assertFalse(borVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
 
-    ferVec3Set(&v[0], 1., 1., 0.);
-    ferVec3Set(&v[1], 0., 0., 0.);
-    ferVec3Set(&v[2], 0., 0., 0.);
-    ferVec3Set(&v[3], 0., 0., 0.);
-    assertFalse(ferVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
+    borVec3Set(&v[0], 1., 1., 0.);
+    borVec3Set(&v[1], 0., 0., 0.);
+    borVec3Set(&v[2], 0., 0., 0.);
+    borVec3Set(&v[3], 0., 0., 0.);
+    assertFalse(borVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
 
-    ferVec3Set(&v[0], 1., 1., 0.);
-    ferVec3Set(&v[1], 1., 0., 0.);
-    ferVec3Set(&v[2], 0., 0., 0.);
-    ferVec3Set(&v[3], -1., 0., 0.);
-    assertFalse(ferVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
+    borVec3Set(&v[0], 1., 1., 0.);
+    borVec3Set(&v[1], 1., 0., 0.);
+    borVec3Set(&v[2], 0., 0., 0.);
+    borVec3Set(&v[3], -1., 0., 0.);
+    assertFalse(borVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
 
-    ferVec3Set(&v[4], 0., 0., 0.);
-    ferVec3Set(&v[1], -1., 1., -1.);
-    ferVec3Set(&v[2], 1., 1., -1.);
-    ferVec3Set(&v[3], 0., 1., 2.);
-    ferVec3ProjToPlane(&v[4], &v[1], &v[2], &v[3], &v[0]);
-    assertTrue(ferVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
+    borVec3Set(&v[4], 0., 0., 0.);
+    borVec3Set(&v[1], -1., 1., -1.);
+    borVec3Set(&v[2], 1., 1., -1.);
+    borVec3Set(&v[3], 0., 1., 2.);
+    borVec3ProjToPlane(&v[4], &v[1], &v[2], &v[3], &v[0]);
+    assertTrue(borVec3PointInTri(&v[0], &v[1], &v[2], &v[3]));
 
-    ferVec3Set(&v[1], 0., 0., 0.);
-    ferVec3Set(&v[2], -1., 1., -1.);
-    ferVec3Set(&v[3], 1., 0.8, -1.);
-    ferVec3Set(&v[4], 0., 1.3, 2.2);
-    ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]);
-    assertTrue(ferVec3PointInTri(&v[0], &v[2], &v[3], &v[4]));
+    borVec3Set(&v[1], 0., 0., 0.);
+    borVec3Set(&v[2], -1., 1., -1.);
+    borVec3Set(&v[3], 1., 0.8, -1.);
+    borVec3Set(&v[4], 0., 1.3, 2.2);
+    borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]);
+    assertTrue(borVec3PointInTri(&v[0], &v[2], &v[3], &v[4]));
 }
 
 TEST(vec3Angle)
@@ -608,38 +608,38 @@ TEST(vec3Angle)
     bor_real_t a;
     size_t i;
 
-    ferVec3Set(&v[0], 2., 2., 0.);
-    ferVec3Set(&v[1], 1., 0., 0.);
-    a = ferVec3Angle(&v[0], fer_vec3_origin, &v[1]);
-    assertTrue(ferEq(a, M_PI_4));
+    borVec3Set(&v[0], 2., 2., 0.);
+    borVec3Set(&v[1], 1., 0., 0.);
+    a = borVec3Angle(&v[0], bor_vec3_origin, &v[1]);
+    assertTrue(borEq(a, M_PI_4));
 
-    ferVec3Set(&v[0], 1., 2., 1.);
-    ferVec3Set(&v[1], 0., 1., 0.);
-    ferVec3Set(&v[2], -1., 0., -1.);
-    a = ferVec3Angle(&v[0], &v[1], &v[2]);
-    assertTrue(ferEq(a, M_PI));
+    borVec3Set(&v[0], 1., 2., 1.);
+    borVec3Set(&v[1], 0., 1., 0.);
+    borVec3Set(&v[2], -1., 0., -1.);
+    a = borVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(borEq(a, M_PI));
 
-    ferVec3Set(&v[0], 0., 1., 1.);
-    ferVec3Set(&v[1], 0., 1., 0.);
-    ferVec3Set(&v[2], -1., 1., 0.);
-    a = ferVec3Angle(&v[0], &v[1], &v[2]);
-    assertTrue(ferEq(a, M_PI_2));
+    borVec3Set(&v[0], 0., 1., 1.);
+    borVec3Set(&v[1], 0., 1., 0.);
+    borVec3Set(&v[2], -1., 1., 0.);
+    a = borVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(borEq(a, M_PI_2));
 
-    ferVec3Set(&v[0], 0., 1., 1.);
-    ferVec3Set(&v[1], 0., 1., 0.);
-    ferVec3Set(&v[2], -10., 11., 0.);
-    a = ferVec3Angle(&v[0], &v[1], &v[2]);
-    assertTrue(ferEq(a, M_PI_2));
+    borVec3Set(&v[0], 0., 1., 1.);
+    borVec3Set(&v[1], 0., 1., 0.);
+    borVec3Set(&v[2], -10., 11., 0.);
+    a = borVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(borEq(a, M_PI_2));
 
-    ferVec3Set(&v[0], 0., 1., 1.);
-    ferVec3Set(&v[1], 0., 1., 0.);
-    ferVec3Set(&v[2], 0.01, 0.06, 0.);
-    a = ferVec3Angle(&v[0], &v[1], &v[2]);
-    assertTrue(ferEq(a, M_PI_2));
+    borVec3Set(&v[0], 0., 1., 1.);
+    borVec3Set(&v[1], 0., 1., 0.);
+    borVec3Set(&v[2], 0.01, 0.06, 0.);
+    a = borVec3Angle(&v[0], &v[1], &v[2]);
+    assertTrue(borEq(a, M_PI_2));
 
     printf("# ---- angle ----\n");
     for (i = 0; i < vecs_len - 2; i++){
-        a = ferVec3Angle(&vecs[i], &vecs[i + 1], &vecs[i + 2]);
+        a = borVec3Angle(&vecs[i], &vecs[i + 1], &vecs[i + 2]);
         printf("# %g\n", a);
     }
     printf("# ---- angle end ----\n\n");
@@ -655,84 +655,84 @@ static void projToPlanePrint(bor_vec3_t *vs, int num)
     printf("Name: Proj %d - Plane\n", num);
     printf("Points:\n");
     for (i=0; i < 3; i++)
-        printf("%g %g %g\n", ferVec3X(&vs[i + 2]), ferVec3Y(&vs[i + 2]), ferVec3Z(&vs[i + 2]));
+        printf("%g %g %g\n", borVec3X(&vs[i + 2]), borVec3Y(&vs[i + 2]), borVec3Z(&vs[i + 2]));
     printf("Faces: 0 1 2\n");
 
     printf("------\n");
     printf("Point color: 1 0 0 \n");
     printf("Name: Proj %d - OPoint\n", num);
     printf("Points:\n");
-    printf("%g %g %g\n", ferVec3X(&vs[1]), ferVec3Y(&vs[1]), ferVec3Z(&vs[1]));
+    printf("%g %g %g\n", borVec3X(&vs[1]), borVec3Y(&vs[1]), borVec3Z(&vs[1]));
 
     printf("------\n");
     printf("Point color: 0 0 1 \n");
     printf("Name: Proj %d - PPoint\n", num);
     printf("Points:\n");
-    printf("%g %g %g\n", ferVec3X(&vs[0]), ferVec3Y(&vs[0]), ferVec3Z(&vs[0]));
+    printf("%g %g %g\n", borVec3X(&vs[0]), borVec3Y(&vs[0]), borVec3Z(&vs[0]));
 }
 
 TEST(vec3ProjToPlane)
 {
     bor_vec3_t v[6];
 
-    ferVec3Set(&v[1], 0., 0., 0.);
-    ferVec3Set(&v[2], 0., 0., 0.);
-    ferVec3Set(&v[3], 1., 0., 0.);
-    ferVec3Set(&v[4], 0., 1., 0.);
-    ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferEq(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]), BOR_ZERO));
-    assertTrue(ferVec3Eq(&v[0], &v[5]));
+    borVec3Set(&v[1], 0., 0., 0.);
+    borVec3Set(&v[2], 0., 0., 0.);
+    borVec3Set(&v[3], 1., 0., 0.);
+    borVec3Set(&v[4], 0., 1., 0.);
+    borVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(borEq(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]), BOR_ZERO));
+    assertTrue(borVec3Eq(&v[0], &v[5]));
 
-    ferVec3Set(&v[1], 0., 0., 1.);
-    ferVec3Set(&v[2], 0., 0., 0.);
-    ferVec3Set(&v[3], 1., 0., 0.);
-    ferVec3Set(&v[4], 0., 1., 0.);
-    ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    assertTrue(ferVec3Eq(&v[0], &v[5]));
+    borVec3Set(&v[1], 0., 0., 1.);
+    borVec3Set(&v[2], 0., 0., 0.);
+    borVec3Set(&v[3], 1., 0., 0.);
+    borVec3Set(&v[4], 0., 1., 0.);
+    borVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    assertTrue(borVec3Eq(&v[0], &v[5]));
 
-    ferVec3Set(&v[1], 0., 0., -1.);
-    ferVec3Set(&v[2], 0., 0., 0.);
-    ferVec3Set(&v[3], 1., 0., 0.);
-    ferVec3Set(&v[4], 0., 1., 0.);
-    ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    assertTrue(ferVec3Eq(&v[0], &v[5]));
+    borVec3Set(&v[1], 0., 0., -1.);
+    borVec3Set(&v[2], 0., 0., 0.);
+    borVec3Set(&v[3], 1., 0., 0.);
+    borVec3Set(&v[4], 0., 1., 0.);
+    borVec3Set(&v[5], 0., 0., 0.);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    assertTrue(borVec3Eq(&v[0], &v[5]));
 
-    ferVec3Set(&v[1], 0., 0., 1.);
-    ferVec3Set(&v[2], -1., -1., -1.);
-    ferVec3Set(&v[3], 1., -1., -1.);
-    ferVec3Set(&v[4], -1., 1., -1.);
-    ferVec3Set(&v[5], 0., 0., -1.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    assertTrue(ferVec3Eq(&v[0], &v[5]));
+    borVec3Set(&v[1], 0., 0., 1.);
+    borVec3Set(&v[2], -1., -1., -1.);
+    borVec3Set(&v[3], 1., -1., -1.);
+    borVec3Set(&v[4], -1., 1., -1.);
+    borVec3Set(&v[5], 0., 0., -1.);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    assertTrue(borVec3Eq(&v[0], &v[5]));
 
-    ferVec3Set(&v[1], 0.5, 10., 0.5);
-    ferVec3Set(&v[2], 1., 0., 0.);
-    ferVec3Set(&v[3], -1., 0., 1.);
-    ferVec3Set(&v[4], -1., 0., -1.);
-    ferVec3Set(&v[5], 0.5, 0., 0.5);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    assertTrue(ferVec3Eq(&v[0], &v[5]));
+    borVec3Set(&v[1], 0.5, 10., 0.5);
+    borVec3Set(&v[2], 1., 0., 0.);
+    borVec3Set(&v[3], -1., 0., 1.);
+    borVec3Set(&v[4], -1., 0., -1.);
+    borVec3Set(&v[5], 0.5, 0., 0.5);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    assertTrue(borVec3Eq(&v[0], &v[5]));
 
-    ferVec3Set(&v[1], 0.5, 10., 0.5);
-    ferVec3Set(&v[2], -1., -1., -1.);
-    ferVec3Set(&v[3], 1., 1., 1.);
-    ferVec3Set(&v[4], 0., 0., 0.);
-    assertFalse(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    borVec3Set(&v[1], 0.5, 10., 0.5);
+    borVec3Set(&v[2], -1., -1., -1.);
+    borVec3Set(&v[3], 1., 1., 1.);
+    borVec3Set(&v[4], 0., 0., 0.);
+    assertFalse(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
 
-    ferVec3Set(&v[1], 0., 0., 1.);
-    ferVec3Set(&v[2], -1., -1., -1.);
-    ferVec3Set(&v[3], 1., 1., 1.);
-    ferVec3Set(&v[4], -1., 1., 1.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    borVec3Set(&v[1], 0., 0., 1.);
+    borVec3Set(&v[2], -1., -1., -1.);
+    borVec3Set(&v[3], 1., 1., 1.);
+    borVec3Set(&v[4], -1., 1., 1.);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     projToPlanePrint(v, 1);
 
-    ferVec3Set(&v[1], 3., -2., 1.);
-    ferVec3Set(&v[2], -1., -2., -1.);
-    ferVec3Set(&v[3], 1., 2., 1.8);
-    ferVec3Set(&v[4], -1.4, 1., 1.2);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
+    borVec3Set(&v[1], 3., -2., 1.);
+    borVec3Set(&v[2], -1., -2., -1.);
+    borVec3Set(&v[3], 1., 2., 1.8);
+    borVec3Set(&v[4], -1.4, 1., 1.2);
+    assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     projToPlanePrint(v, 2);
 }
 
@@ -741,13 +741,13 @@ TEST(vec3Centroid)
 {
     bor_vec3_t v[5];
 
-    ferVec3Set(&v[0], 0., 0., 0.);
-    ferVec3Set(&v[1], 1., 0., 0.);
-    ferVec3Set(&v[2], 0., 1., 0.);
-    ferVec3TriCentroid(&v[0], &v[1], &v[2], &v[3]);
+    borVec3Set(&v[0], 0., 0., 0.);
+    borVec3Set(&v[1], 1., 0., 0.);
+    borVec3Set(&v[2], 0., 1., 0.);
+    borVec3TriCentroid(&v[0], &v[1], &v[2], &v[3]);
 
-    ferVec3Set(&v[4], 1./3., 1./3., 0.);
-    assertTrue(ferVec3Eq(&v[3], &v[4]));
+    borVec3Set(&v[4], 1./3., 1./3., 0.);
+    assertTrue(borVec3Eq(&v[3], &v[4]));
 }
 
 
@@ -757,36 +757,36 @@ TEST(vec3TriTriOverlap)
     int res;
     size_t i;
 
-    ferVec3Set(&p1, 0, 0, 0);
-    ferVec3Set(&q1, 1, 0, 0);
-    ferVec3Set(&r1, 1, 1, 0);
-    ferVec3Set(&p2, 0, 0, 1);
-    ferVec3Set(&q2, 1, 0, 1);
-    ferVec3Set(&r2, 1, 1, 1);
-    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    borVec3Set(&p1, 0, 0, 0);
+    borVec3Set(&q1, 1, 0, 0);
+    borVec3Set(&r1, 1, 1, 0);
+    borVec3Set(&p2, 0, 0, 1);
+    borVec3Set(&q2, 1, 0, 1);
+    borVec3Set(&r2, 1, 1, 1);
+    res = borVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
     assertFalse(res);
 
-    ferVec3Set(&p1, 0, 0, 0);
-    ferVec3Set(&q1, 1, 0, 0);
-    ferVec3Set(&r1, 1, 1, 0);
-    ferVec3Set(&p2, 0.1, 0, 0);
-    ferVec3Set(&q2, 1.1, 0, 0);
-    ferVec3Set(&r2, 1.1, 1, 0);
-    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    borVec3Set(&p1, 0, 0, 0);
+    borVec3Set(&q1, 1, 0, 0);
+    borVec3Set(&r1, 1, 1, 0);
+    borVec3Set(&p2, 0.1, 0, 0);
+    borVec3Set(&q2, 1.1, 0, 0);
+    borVec3Set(&r2, 1.1, 1, 0);
+    res = borVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
     assertTrue(res);
 
-    ferVec3Set(&p1, 0, 0, 0);
-    ferVec3Set(&q1, 1, 0, 0);
-    ferVec3Set(&r1, 1, 1, 0);
-    ferVec3Set(&p2, 0.5, 0.5, 0.5);
-    ferVec3Set(&q2, 0.5, 0.5, -1);
-    ferVec3Set(&r2, -1, 0, 0);
-    res = ferVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
+    borVec3Set(&p1, 0, 0, 0);
+    borVec3Set(&q1, 1, 0, 0);
+    borVec3Set(&r1, 1, 1, 0);
+    borVec3Set(&p2, 0.5, 0.5, 0.5);
+    borVec3Set(&q2, 0.5, 0.5, -1);
+    borVec3Set(&r2, -1, 0, 0);
+    res = borVec3TriTriOverlap(&p1, &q1, &r1, &p2, &q2, &r2);
     assertTrue(res);
 
     printf("# ---- tri tri overlap ----\n");
     for (i = 0; i < vecs_len / 100; i += 6){
-        res = ferVec3TriTriOverlap(&vecs[i + 0], &vecs[i + 1], &vecs[i + 2],
+        res = borVec3TriTriOverlap(&vecs[i + 0], &vecs[i + 1], &vecs[i + 2],
                                    &vecs[i + 3], &vecs[i + 4], &vecs[i + 5]);
         printf("# res[%04d]: %d\n", (int)i, (int)res);
         /*
@@ -794,14 +794,14 @@ TEST(vec3TriTriOverlap)
         sprintf(name, "v: %d", res);
         printf("--\nName: [%04u] %s\n", i, name);
         printf("Points:\n");
-        ferVec3Print(&vecs[i + 0], stdout); printf("\n");
-        ferVec3Print(&vecs[i + 1], stdout); printf("\n");
-        ferVec3Print(&vecs[i + 2], stdout); printf("\n");
+        borVec3Print(&vecs[i + 0], stdout); printf("\n");
+        borVec3Print(&vecs[i + 1], stdout); printf("\n");
+        borVec3Print(&vecs[i + 2], stdout); printf("\n");
         printf("Edges:\n0 1\n1 2\n2 0\n--\n");
         printf("---\nPoints:\n");
-        ferVec3Print(&vecs[i + 3], stdout); printf("\n");
-        ferVec3Print(&vecs[i + 4], stdout); printf("\n");
-        ferVec3Print(&vecs[i + 5], stdout); printf("\n");
+        borVec3Print(&vecs[i + 3], stdout); printf("\n");
+        borVec3Print(&vecs[i + 4], stdout); printf("\n");
+        borVec3Print(&vecs[i + 5], stdout); printf("\n");
         printf("Edges:\n0 1\n1 2\n2 0\n--\n");
         */
     }

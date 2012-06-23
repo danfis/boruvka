@@ -43,7 +43,7 @@ extern "C" {
 /**
  * Returns distance between two {d}-dimensional vectors
  */
-typedef bor_real_t (*fer_nn_linear_dist)(int d,
+typedef bor_real_t (*bor_nn_linear_dist)(int d,
                                          const bor_vec_t *v1,
                                          const bor_vec_t *v2, void *data);
 
@@ -51,7 +51,7 @@ typedef bor_real_t (*fer_nn_linear_dist)(int d,
 
 struct _bor_nn_linear_params_t {
     int dim;                 /*!< Dimension of space. Default: 2 */
-    fer_nn_linear_dist dist; /*!< Callback for distance measurement.
+    bor_nn_linear_dist dist; /*!< Callback for distance measurement.
                                   Default: L2 norm distance */
     void *dist_data;         /*!< User-defined data for .dist. Default: NULL */
 };
@@ -60,7 +60,7 @@ typedef struct _bor_nn_linear_params_t bor_nn_linear_params_t;
 /**
  * Initialize parameters to default values.
  */
-void ferNNLinearParamsInit(bor_nn_linear_params_t *p);
+void borNNLinearParamsInit(bor_nn_linear_params_t *p);
 
 
 struct _bor_nn_linear_t {
@@ -88,7 +88,7 @@ typedef struct _bor_nn_linear_el_t bor_nn_linear_el_t;
  * Initialize element struct.
  * This must be called before added.
  */
-_fer_inline void ferNNLinearElInit(bor_nn_linear_el_t *el, const bor_vec_t *p);
+_bor_inline void borNNLinearElInit(bor_nn_linear_el_t *el, const bor_vec_t *p);
 
 
 
@@ -100,27 +100,27 @@ _fer_inline void ferNNLinearElInit(bor_nn_linear_el_t *el, const bor_vec_t *p);
 /**
  * Creates new empty search structure.
  */
-bor_nn_linear_t *ferNNLinearNew(const bor_nn_linear_params_t *params);
+bor_nn_linear_t *borNNLinearNew(const bor_nn_linear_params_t *params);
 
 /**
  * Destructor.
  */
-void ferNNLinearDel(bor_nn_linear_t *nn);
+void borNNLinearDel(bor_nn_linear_t *nn);
 
 /**
  * Adds element.
  */
-_fer_inline void ferNNLinearAdd(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
+_bor_inline void borNNLinearAdd(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
 
 /**
  * Removes element.
  */
-_fer_inline void ferNNLinearRemove(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
+_bor_inline void borNNLinearRemove(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
 
 /**
  * Updates position of the element.
  */
-_fer_inline void ferNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
+_bor_inline void borNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -129,27 +129,27 @@ _fer_inline void ferNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t num,
+size_t borNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t num,
                           bor_nn_linear_el_t **els);
 
 /**** INLINES ****/
-_fer_inline void ferNNLinearElInit(bor_nn_linear_el_t *el, const bor_vec_t *p)
+_bor_inline void borNNLinearElInit(bor_nn_linear_el_t *el, const bor_vec_t *p)
 {
     el->p = p;
-    ferListInit(&el->list);
+    borListInit(&el->list);
 }
 
-_fer_inline void ferNNLinearAdd(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
+_bor_inline void borNNLinearAdd(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
 {
-    ferListAppend(&nn->list, &el->list);
+    borListAppend(&nn->list, &el->list);
 }
 
-_fer_inline void ferNNLinearRemove(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
+_bor_inline void borNNLinearRemove(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
 {
-    ferListDel(&el->list);
+    borListDel(&el->list);
 }
 
-_fer_inline void ferNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
+_bor_inline void borNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
 {
     // nop
 }

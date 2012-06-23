@@ -17,10 +17,10 @@ TEST(mat4Alloc)
     /*
     bor_mat4_t *v, w;
 
-    v = ferMat4New(0., 1., 2., 3.);
-    ferMat4Set(&w, 0., 1., 2., 3.);
-    assertTrue(ferMat4Eq(v, &w));
-    ferMat4Del(v);
+    v = borMat4New(0., 1., 2., 3.);
+    borMat4Set(&w, 0., 1., 2., 3.);
+    assertTrue(borMat4Eq(v, &w));
+    borMat4Del(v);
     */
 }
 
@@ -28,10 +28,10 @@ static void pr(const bor_mat4_t *m, const char *p)
 {
     printf("# %s %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g\n",
            p,
-           ferMat4Get(m, 0, 0), ferMat4Get(m, 0, 1), ferMat4Get(m, 0, 2), ferMat4Get(m, 0, 3),
-           ferMat4Get(m, 1, 0), ferMat4Get(m, 1, 1), ferMat4Get(m, 1, 2), ferMat4Get(m, 1, 3), 
-           ferMat4Get(m, 2, 0), ferMat4Get(m, 2, 1), ferMat4Get(m, 2, 2), ferMat4Get(m, 2, 3),
-           ferMat4Get(m, 3, 0), ferMat4Get(m, 3, 1), ferMat4Get(m, 3, 2), ferMat4Get(m, 3, 3));
+           borMat4Get(m, 0, 0), borMat4Get(m, 0, 1), borMat4Get(m, 0, 2), borMat4Get(m, 0, 3),
+           borMat4Get(m, 1, 0), borMat4Get(m, 1, 1), borMat4Get(m, 1, 2), borMat4Get(m, 1, 3), 
+           borMat4Get(m, 2, 0), borMat4Get(m, 2, 1), borMat4Get(m, 2, 2), borMat4Get(m, 2, 3),
+           borMat4Get(m, 3, 0), borMat4Get(m, 3, 1), borMat4Get(m, 3, 2), borMat4Get(m, 3, 3));
 }
 
 TEST(mat4AddSub)
@@ -41,16 +41,16 @@ TEST(mat4AddSub)
 
     printf("# ---- add sub ----\n");
     for (i = 0; i < mat4s_len - 1; i++){
-        ferMat4Add2(&m, &mat4s[i], &mat4s[i + 1]);
+        borMat4Add2(&m, &mat4s[i], &mat4s[i + 1]);
         pr(&m, "add");
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4Add(&m, &mat4s[i + 1]);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4Add(&m, &mat4s[i + 1]);
         pr(&m, "add");
 
-        ferMat4Sub2(&m, &mat4s[i], &mat4s[i + 1]);
+        borMat4Sub2(&m, &mat4s[i], &mat4s[i + 1]);
         pr(&m, "sub");
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4Sub(&m, &mat4s[i + 1]);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4Sub(&m, &mat4s[i + 1]);
         pr(&m, "sub");
     }
     printf("# ---- add sub end ----\n\n");
@@ -64,18 +64,18 @@ TEST(mat4Const)
 
     printf("# ---- const ----\n");
     for (i = 0; i < mat4s_len; i++){
-        c = ferMat4Get(&mat4s[i], 0, 0);
-        ferMat4Scale2(&m, &mat4s[i], c);
+        c = borMat4Get(&mat4s[i], 0, 0);
+        borMat4Scale2(&m, &mat4s[i], c);
         pr(&m, "scale");
 
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4Scale(&m, c);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4Scale(&m, c);
         pr(&m, "scale");
 
-        ferMat4AddConst2(&m, &mat4s[i], c);
+        borMat4AddConst2(&m, &mat4s[i], c);
         pr(&m, "add");
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4AddConst(&m, c);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4AddConst(&m, c);
         pr(&m, "add");
     }
     printf("# ---- const end ----\n\n");
@@ -88,10 +88,10 @@ TEST(mat4Mul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < mat4s_len - 1; i++){
-        ferMat4Mul2(&m, &mat4s[i], &mat4s[i + 1]);
+        borMat4Mul2(&m, &mat4s[i], &mat4s[i + 1]);
         pr(&m, "right");
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4MulLeft(&m, &mat4s[i + 1]);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4MulLeft(&m, &mat4s[i + 1]);
         pr(&m, "left");
     }
     printf("# ---- mul end ----\n\n");
@@ -104,10 +104,10 @@ TEST(mat4Trans)
 
     printf("# ---- trans ----\n");
     for (i = 0; i < mat4s_len; i++){
-        ferMat4Trans2(&m, &mat4s[i]);
+        borMat4Trans2(&m, &mat4s[i]);
         pr(&m, "");
-        ferMat4Copy(&m, &mat4s[i]);
-        ferMat4Trans(&m);
+        borMat4Copy(&m, &mat4s[i]);
+        borMat4Trans(&m);
         pr(&m, "");
     }
     printf("# ---- trans end ----\n\n");
@@ -120,7 +120,7 @@ TEST(mat4Det)
 
     printf("# ---- det ----\n");
     for (i = 0; i < mat4s_len; i++){
-        d = ferMat4Det(&mat4s[i]);
+        d = borMat4Det(&mat4s[i]);
         printf("# %g\n", d);
     }
     printf("# ---- det end ----\n\n");
@@ -133,14 +133,14 @@ TEST(mat4Inv)
 
     printf("# ---- inv ----\n");
     for (i = 0; i < mat4s_len; i++){
-        if (ferMat4Inv2(&m, &mat4s[i]) == 0){
+        if (borMat4Inv2(&m, &mat4s[i]) == 0){
             pr(&m, "");
         }else{
             printf("# 0\n");
         }
 
-        ferMat4Copy(&m, &mat4s[i]);
-        if (ferMat4Inv(&m) == 0){
+        borMat4Copy(&m, &mat4s[i]);
+        if (borMat4Inv(&m) == 0){
             pr(&m, "");
         }else{
             printf("# 0\n");
@@ -157,21 +157,21 @@ TEST(mat4MulVec)
 
     printf("# ---- mul vec ----\n");
     for (i = 0; i < mat4s_len; i++){
-        ferVec4Set(&v, ferMat4Get(&mat4s[i], 0, 1),
-                       ferMat4Get(&mat4s[i], 0, 2),
-                       ferMat4Get(&mat4s[i], 0, 3),
-                       ferMat4Get(&mat4s[i], 1, 0));
-        ferVec3Set(&b, ferMat4Get(&mat4s[i], 0, 3),
-                       ferMat4Get(&mat4s[i], 1, 0),
-                       ferMat4Get(&mat4s[i], 1, 1));
+        borVec4Set(&v, borMat4Get(&mat4s[i], 0, 1),
+                       borMat4Get(&mat4s[i], 0, 2),
+                       borMat4Get(&mat4s[i], 0, 3),
+                       borMat4Get(&mat4s[i], 1, 0));
+        borVec3Set(&b, borMat4Get(&mat4s[i], 0, 3),
+                       borMat4Get(&mat4s[i], 1, 0),
+                       borMat4Get(&mat4s[i], 1, 1));
 
-        ferMat4MulVec(&u, &mat4s[i], &v);
-        ferMat4MulVec3(&a, &mat4s[i], &b);
+        borMat4MulVec(&u, &mat4s[i], &v);
+        borMat4MulVec3(&a, &mat4s[i], &b);
 
         printf("# vec4 %g %g %g %g\n",
-               ferVec4X(&u), ferVec4Y(&u), ferVec4Z(&u), ferVec4W(&u));
+               borVec4X(&u), borVec4Y(&u), borVec4Z(&u), borVec4W(&u));
         printf("# vec3 %g %g %g\n",
-               ferVec3X(&a), ferVec3Y(&a), ferVec3Z(&a));
+               borVec3X(&a), borVec3Y(&a), borVec3Z(&a));
     }
     printf("# ---- mul vec end ----\n\n");
 }
@@ -181,66 +181,66 @@ TEST(mat4Tr)
     bor_vec3_t v, w, axis;
     bor_mat4_t tr;
 
-    ferVec3Set(&v, -1.2, 5, 2);
+    borVec3Set(&v, -1.2, 5, 2);
 
-    ferMat4SetIdentity(&tr);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferVec3Eq(&w, &v));
+    borMat4SetIdentity(&tr);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borVec3Eq(&w, &v));
 
-    ferMat4SetScale(&tr, 2.);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), 2. * -1.2));
-    assertTrue(ferEq(ferVec3Y(&w), 2. * 5.));
-    assertTrue(ferEq(ferVec3Z(&w), 2. * 2.));
+    borMat4SetScale(&tr, 2.);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), 2. * -1.2));
+    assertTrue(borEq(borVec3Y(&w), 2. * 5.));
+    assertTrue(borEq(borVec3Z(&w), 2. * 2.));
 
-    ferVec3Set(&w, 1.2, -2.1, 0.15);
-    ferMat4SetTranslate(&tr, &w);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), 1.2 + -1.2));
-    assertTrue(ferEq(ferVec3Y(&w), -2.1 + 5.));
-    assertTrue(ferEq(ferVec3Z(&w), 2. + 0.15));
+    borVec3Set(&w, 1.2, -2.1, 0.15);
+    borMat4SetTranslate(&tr, &w);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), 1.2 + -1.2));
+    assertTrue(borEq(borVec3Y(&w), -2.1 + 5.));
+    assertTrue(borEq(borVec3Z(&w), 2. + 0.15));
 
-    ferVec3Set(&v, 1., 1., 0.);
-    ferVec3Set(&axis, 0., 0., 1.);
-    ferMat4SetRot(&tr, M_PI_4, &axis);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), BOR_ZERO));
-    assertTrue(ferEq(ferVec3Y(&w), BOR_SQRT(2.)));
-    assertTrue(ferEq(ferVec3Z(&w), BOR_ZERO));
+    borVec3Set(&v, 1., 1., 0.);
+    borVec3Set(&axis, 0., 0., 1.);
+    borMat4SetRot(&tr, M_PI_4, &axis);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), BOR_ZERO));
+    assertTrue(borEq(borVec3Y(&w), BOR_SQRT(2.)));
+    assertTrue(borEq(borVec3Z(&w), BOR_ZERO));
 
-    ferVec3Set(&v, 1., 0., 1.);
-    ferVec3Set(&axis, 0., 1., 0.);
-    ferMat4SetRot(&tr, M_PI_4, &axis);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), BOR_SQRT(2.)));
-    assertTrue(ferEq(ferVec3Y(&w), BOR_ZERO));
-    assertTrue(ferEq(ferVec3Z(&w), BOR_ZERO));
+    borVec3Set(&v, 1., 0., 1.);
+    borVec3Set(&axis, 0., 1., 0.);
+    borMat4SetRot(&tr, M_PI_4, &axis);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), BOR_SQRT(2.)));
+    assertTrue(borEq(borVec3Y(&w), BOR_ZERO));
+    assertTrue(borEq(borVec3Z(&w), BOR_ZERO));
 
 
     // ------
 
-    ferVec3Set(&v, 1., 2., 3.);
-    ferMat4SetIdentity(&tr);
-    ferVec3Set(&w, 0.5, 0.7, 0.1);
-    ferMat4Translate(&tr, &w);
-    ferMat4TrScale(&tr, 2.);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), 2. * (0.5 + 1.)));
-    assertTrue(ferEq(ferVec3Y(&w), 2. * (0.7 + 2.)));
-    assertTrue(ferEq(ferVec3Z(&w), 2. * (0.1 + 3.)));
+    borVec3Set(&v, 1., 2., 3.);
+    borMat4SetIdentity(&tr);
+    borVec3Set(&w, 0.5, 0.7, 0.1);
+    borMat4Translate(&tr, &w);
+    borMat4TrScale(&tr, 2.);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), 2. * (0.5 + 1.)));
+    assertTrue(borEq(borVec3Y(&w), 2. * (0.7 + 2.)));
+    assertTrue(borEq(borVec3Z(&w), 2. * (0.1 + 3.)));
 
-    ferVec3Set(&v, .5, .3, .9);
-    ferVec3Set(&axis, 1, 1, 1);
-    ferMat4Rot(&tr, M_PI_4, &axis);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), 2.));
-    assertTrue(ferEq(ferVec3Y(&w), 2.));
-    assertTrue(ferEq(ferVec3Z(&w), 2.));
+    borVec3Set(&v, .5, .3, .9);
+    borVec3Set(&axis, 1, 1, 1);
+    borMat4Rot(&tr, M_PI_4, &axis);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), 2.));
+    assertTrue(borEq(borVec3Y(&w), 2.));
+    assertTrue(borEq(borVec3Z(&w), 2.));
 
-    ferVec3Set(&axis, 0, 0, 1);
-    ferMat4Rot(&tr, M_PI_4, &axis);
-    ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), 0.));
-    assertTrue(ferEq(ferVec3Y(&w), 2. * BOR_SQRT(2)));
-    assertTrue(ferEq(ferVec3Z(&w), 2.));
+    borVec3Set(&axis, 0, 0, 1);
+    borMat4Rot(&tr, M_PI_4, &axis);
+    borMat4MulVec3(&w, &tr, &v);
+    assertTrue(borEq(borVec3X(&w), 0.));
+    assertTrue(borEq(borVec3Y(&w), 2. * BOR_SQRT(2)));
+    assertTrue(borEq(borVec3Z(&w), 2.));
 }

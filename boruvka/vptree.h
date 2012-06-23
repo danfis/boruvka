@@ -55,7 +55,7 @@ struct _bor_vptree_el_t;
 /**
  * Returns distance between two {d}-dimensional vectors
  */
-typedef bor_real_t (*fer_vptree_dist)(int d,
+typedef bor_real_t (*bor_vptree_dist)(int d,
                                       const bor_vec_t *v1,
                                       const bor_vec_t *v2, void *data);
 
@@ -63,7 +63,7 @@ typedef bor_real_t (*fer_vptree_dist)(int d,
 
 struct _bor_vptree_params_t {
     int dim;              /*!< Dimension of space. Default: 2 */
-    fer_vptree_dist dist; /*!< Callback for distance measurement.
+    bor_vptree_dist dist; /*!< Callback for distance measurement.
                                Default: L2 norm distance */
     void *dist_data;      /*!< User-defined data for .dist. Default: NULL */
     int minsize;          /*!< Minimal number of elements in leaf node. Default: 1 */
@@ -76,7 +76,7 @@ typedef struct _bor_vptree_params_t bor_vptree_params_t;
 /**
  * Initializes params struct
  */
-void ferVPTreeParamsInit(bor_vptree_params_t *params);
+void borVPTreeParamsInit(bor_vptree_params_t *params);
 
 
 
@@ -120,7 +120,7 @@ typedef struct _bor_vptree_el_t bor_vptree_el_t;
  * Initialize element struct.
  * This must be called before added to vp-tree
  */
-void ferVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p);
+void borVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p);
 
 
 
@@ -132,34 +132,34 @@ void ferVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p);
 /**
  * Creates new empty vp-tree
  */
-bor_vptree_t *ferVPTreeNew(const bor_vptree_params_t *params);
+bor_vptree_t *borVPTreeNew(const bor_vptree_params_t *params);
 
 /**
  * Builds vp-tree from array of elements
  * TODO: Example
  */
-bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
+bor_vptree_t *borVPTreeBuild(const bor_vptree_params_t *params,
                              bor_vptree_el_t *els, size_t els_len, size_t stride);
 
 /**
  * Deletes vp-tree
  */
-void ferVPTreeDel(bor_vptree_t *vp);
+void borVPTreeDel(bor_vptree_t *vp);
 
 /**
  * Adds element to the vp-tree
  */
-void ferVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el);
+void borVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Removes element from vp-tree
  */
-void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el);
+void borVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Updates position of element in vp-tree.
  */
-void ferVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
+void borVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -168,11 +168,11 @@ void ferVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
+size_t borVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
                         bor_vptree_el_t **els);
 
 
-void ferVPTreeDump(bor_vptree_t *vp, FILE *out);
+void borVPTreeDump(bor_vptree_t *vp, FILE *out);
 
 #ifdef __cplusplus
 } /* extern "C" */

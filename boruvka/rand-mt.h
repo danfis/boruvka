@@ -68,122 +68,122 @@ typedef struct _bor_rand_mt_t bor_rand_mt_t;
 /**
  * Creates generator with given seed.
  */
-bor_rand_mt_t *ferRandMTNew(uint32_t seed);
+bor_rand_mt_t *borRandMTNew(uint32_t seed);
 
 /**
  * Creates generator with more seeds.
  */
-bor_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen);
+bor_rand_mt_t *borRandMTNew2(uint32_t *seed, uint32_t seedlen);
 
 /**
- * Similar to ferRandMTNew() but seed is chosen automatically.
+ * Similar to borRandMTNew() but seed is chosen automatically.
  */
-bor_rand_mt_t *ferRandMTNewAuto(void);
+bor_rand_mt_t *borRandMTNewAuto(void);
 
 /**
  * Reseeds generator.
  */
-void ferRandMTReseed(bor_rand_mt_t *r, uint32_t seed);
+void borRandMTReseed(bor_rand_mt_t *r, uint32_t seed);
 
 /**
  * Similar to *Reseed() but more seeds are used.
  */
-void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen);
+void borRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen);
 
 /**
  * Similar to *Reseed() function but seed is chosen automatically from
  * /dev/urandom if available or from time() and clock().
  */
-void ferRandMTReseedAuto(bor_rand_mt_t *r);
+void borRandMTReseedAuto(bor_rand_mt_t *r);
 
 /**
  * Deletes generator.
  */
-void ferRandMTDel(bor_rand_mt_t *r);
+void borRandMTDel(bor_rand_mt_t *r);
 
 /**
  * Returns randomly generated number in range [from, to).
  */
-_fer_inline double ferRandMT(bor_rand_mt_t *r, bor_real_t from, bor_real_t to);
+_bor_inline double borRandMT(bor_rand_mt_t *r, bor_real_t from, bor_real_t to);
 
 /**
  * Returns number between [0-1) real interval.
  */
-_fer_inline double ferRandMT01(bor_rand_mt_t *r);
+_bor_inline double borRandMT01(bor_rand_mt_t *r);
 
 /**
  * Returns number between [0-1] real interval.
  */
-_fer_inline double ferRandMT01Closed(bor_rand_mt_t *r);
+_bor_inline double borRandMT01Closed(bor_rand_mt_t *r);
 
 /**
  * Returns number between (0-1) real interval.
  */
-_fer_inline double ferRandMT01Open(bor_rand_mt_t *r);
+_bor_inline double borRandMT01Open(bor_rand_mt_t *r);
 
 /**
  * Returns number between [0-1) real interval with 53-bit resolution.
  */
-_fer_inline double ferRandMT01_53(bor_rand_mt_t *r);
+_bor_inline double borRandMT01_53(bor_rand_mt_t *r);
 
 /**
  * Returns random integer number in interval [0, 2^32-1].
  */
-_fer_inline uint32_t ferRandMTInt(bor_rand_mt_t *r);
+_bor_inline uint32_t borRandMTInt(bor_rand_mt_t *r);
 
 
 /**
  * Returns number from a normal (Gaussian) distribution.
  */
-_fer_inline double ferRandMTNormal(bor_rand_mt_t *r, double mean, double stddev);
+_bor_inline double borRandMTNormal(bor_rand_mt_t *r, double mean, double stddev);
 
 
 /**
  * Reloads generator.
  * This is for internal use.
  */
-void __ferRandMTReload(bor_rand_mt_t *r);
+void __borRandMTReload(bor_rand_mt_t *r);
 
 /**** INLINES ****/
-_fer_inline double ferRandMT01(bor_rand_mt_t *r)
+_bor_inline double borRandMT01(bor_rand_mt_t *r)
 {
-    return (double)ferRandMTInt(r) * (1.0/4294967296.0);
+    return (double)borRandMTInt(r) * (1.0/4294967296.0);
 }
 
-_fer_inline double ferRandMT01Closed(bor_rand_mt_t *r)
+_bor_inline double borRandMT01Closed(bor_rand_mt_t *r)
 {
-    return (double)ferRandMTInt(r) * (1.0/4294967295.0);
+    return (double)borRandMTInt(r) * (1.0/4294967295.0);
 }
 
-_fer_inline double ferRandMT01Open(bor_rand_mt_t *r)
+_bor_inline double borRandMT01Open(bor_rand_mt_t *r)
 {
-    return ((double)ferRandMTInt(r) + 0.5) * (1.0/4294967296.0);
+    return ((double)borRandMTInt(r) + 0.5) * (1.0/4294967296.0);
 }
 
-_fer_inline double ferRandMT01_53(bor_rand_mt_t *r)
+_bor_inline double borRandMT01_53(bor_rand_mt_t *r)
 {
-    uint32_t a = ferRandMTInt(r) >> 5;
-    uint32_t b = ferRandMTInt(r) >> 6;
+    uint32_t a = borRandMTInt(r) >> 5;
+    uint32_t b = borRandMTInt(r) >> 6;
     return (a * 67108864.0 + b) * (1.0/9007199254740992.0);  /* by Isaku Wada */
 }
 
-_fer_inline double ferRandMT(bor_rand_mt_t *r, bor_real_t from, bor_real_t to)
+_bor_inline double borRandMT(bor_rand_mt_t *r, bor_real_t from, bor_real_t to)
 {
     double val;
-    val  = ferRandMT01(r);
+    val  = borRandMT01(r);
     val *= to - from;
     val += from;
     return val;
 }
 
-_fer_inline uint32_t ferRandMTInt(bor_rand_mt_t *r)
+_bor_inline uint32_t borRandMTInt(bor_rand_mt_t *r)
 {
     /* Pull a 32-bit integer from the generator state */
     /* Every other access function simply transforms the numbers extracted here */
     register uint32_t s1;
     
     if (r->left == 0)
-        __ferRandMTReload(r);
+        __borRandMTReload(r);
     --r->left;
     
     s1 = *r->next++;
@@ -193,15 +193,15 @@ _fer_inline uint32_t ferRandMTInt(bor_rand_mt_t *r)
     return (s1 ^ (s1 >> 18));
 }
 
-_fer_inline double ferRandMTNormal(bor_rand_mt_t *g, double mean, double stddev)
+_bor_inline double borRandMTNormal(bor_rand_mt_t *g, double mean, double stddev)
 {
     /* Return a real number from a normal (Gaussian) distribution with given */
     /* mean and standard deviation by polar form of Box-Muller transformation */
     double x, y, r;
     do
     {
-        x = 2.0 * ferRandMT01(g) - 1.0;
-        y = 2.0 * ferRandMT01(g) - 1.0;
+        x = 2.0 * borRandMT01(g) - 1.0;
+        y = 2.0 * borRandMT01(g) - 1.0;
         r = x * x + y * y;
     }
     while ( r >= 1.0 || r == 0.0 );

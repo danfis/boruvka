@@ -22,15 +22,15 @@ __attribute__((noinline)) static void add(void)
     bor_vec3_t v;
     bor_real_t d = 0;
 
-    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            ferVec3Add(&v, &vecs[i]);
+            borVec3Add(&v, &vecs[i]);
         }
     }
     t = cuTimerStop();
-    d = ferVec3X(&v);
+    d = borVec3X(&v);
     prTime();
 
     write(fd, (void *)&d, 1);
@@ -43,15 +43,15 @@ __attribute__((noinline)) static void sub(void)
     bor_vec3_t v;
     bor_real_t d = 0;
 
-    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            ferVec3Sub(&v, &vecs[i]);
+            borVec3Sub(&v, &vecs[i]);
         }
     }
     t = cuTimerStop();
-    d = ferVec3X(&v);
+    d = borVec3X(&v);
     prTime();
 
     write(fd, (void *)&d, 1);
@@ -64,15 +64,15 @@ __attribute__((noinline)) static void scale(void)
     bor_vec3_t v;
     bor_real_t d = 0;
 
-    ferVec3Copy(&v, &vecs[0]);
+    borVec3Copy(&v, &vecs[0]);
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            ferVec3Scale(&v, ferVec3X(&vecs[i]));
+            borVec3Scale(&v, borVec3X(&vecs[i]));
         }
     }
     t = cuTimerStop();
-    d = ferVec3X(&v);
+    d = borVec3X(&v);
     prTime();
 
     write(fd, (void *)&d, 1);
@@ -88,12 +88,12 @@ __attribute__((noinline)) static void normalize(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            ferVec3Copy(&v, &vecs[i]);
-            ferVec3Normalize(&v);
+            borVec3Copy(&v, &vecs[i]);
+            borVec3Normalize(&v);
         }
     }
     t = cuTimerStop();
-    d = ferVec3X(&v);
+    d = borVec3X(&v);
     prTime();
 
     write(fd, (void *)&d, 1);
@@ -108,7 +108,7 @@ __attribute__((noinline)) static void dot(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            dot += ferVec3Dot(&vecs[i], &vecs[i + 1]);
+            dot += borVec3Dot(&vecs[i], &vecs[i + 1]);
         }
     }
     t = cuTimerStop();
@@ -127,10 +127,10 @@ __attribute__((noinline)) static void cross(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            ferVec3Cross(&v, &vecs[i], &vecs[i + 1]);
+            borVec3Cross(&v, &vecs[i], &vecs[i + 1]);
         }
     }
-    d = ferVec3X(&v);
+    d = borVec3X(&v);
     t = cuTimerStop();
     prTime();
 
@@ -146,7 +146,7 @@ __attribute__((noinline)) static void len2(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            len += ferVec3Len2(&vecs[i]);
+            len += borVec3Len2(&vecs[i]);
         }
     }
     t = cuTimerStop();
@@ -164,7 +164,7 @@ __attribute__((noinline)) static void len(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
-            len += ferVec3Len(&vecs[i]);
+            len += borVec3Len(&vecs[i]);
         }
     }
     t = cuTimerStop();
@@ -182,7 +182,7 @@ __attribute__((noinline)) static void dist2(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            d += ferVec3Dist2(&vecs[i], &vecs[i + 1]);
+            d += borVec3Dist2(&vecs[i], &vecs[i + 1]);
         }
     }
     t = cuTimerStop();
@@ -200,7 +200,7 @@ __attribute__((noinline)) static void dist(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            d += ferVec3Dist(&vecs[i], &vecs[i + 1]);
+            d += borVec3Dist(&vecs[i], &vecs[i + 1]);
         }
     }
     t = cuTimerStop();
@@ -219,7 +219,7 @@ __attribute__((noinline)) static void segment_dist(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 2; i++){
-            d += ferVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
+            d += borVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
         }
     }
     t = cuTimerStop();
@@ -238,7 +238,7 @@ __attribute__((noinline)) static void tri_dist(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 3; i++){
-            d += ferVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
+            d += borVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
         }
     }
     t = cuTimerStop();
@@ -256,8 +256,8 @@ __attribute__((noinline)) static void eq(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            e += ferVec3Eq(&vecs[i], &vecs[i]);
-            e += ferVec3Eq(&vecs[i], &vecs[i + 1]);
+            e += borVec3Eq(&vecs[i], &vecs[i]);
+            e += borVec3Eq(&vecs[i], &vecs[i + 1]);
         }
     }
     t = cuTimerStop();
@@ -275,8 +275,8 @@ __attribute__((noinline)) static void neq(void)
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len - 1; i++){
-            e += ferVec3NEq(&vecs[i], &vecs[i]);
-            e += ferVec3NEq(&vecs[i], &vecs[i + 1]);
+            e += borVec3NEq(&vecs[i], &vecs[i]);
+            e += borVec3NEq(&vecs[i], &vecs[i + 1]);
         }
     }
     t = cuTimerStop();

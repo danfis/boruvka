@@ -42,7 +42,7 @@
   c ^= b; c -= rot(b,24); \
 }
 
-uint32_t ferHashJenkins(const uint32_t *k, size_t length, uint32_t initval)
+uint32_t borHashJenkins(const uint32_t *k, size_t length, uint32_t initval)
 {
     uint32_t a,b,c;
 
@@ -75,7 +75,7 @@ uint32_t ferHashJenkins(const uint32_t *k, size_t length, uint32_t initval)
 }
 
 
-uint32_t ferHashDJB2(const char *str)
+uint32_t borHashDJB2(const char *str)
 {
     uint32_t hash = 5381;
     int c;
@@ -86,7 +86,7 @@ uint32_t ferHashDJB2(const char *str)
     return hash;
 }
 
-uint32_t ferHashSDBM(const char *str)
+uint32_t borHashSDBM(const char *str)
 {
     uint32_t hash = 0;
     int c;

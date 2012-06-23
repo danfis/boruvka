@@ -26,9 +26,9 @@ struct _bor_hmap_el_t {
 
 static int _eq(const bor_list_t *key1, const bor_list_t *key2, void *userdata);
 
-bor_hmap_t *ferHMapNew(size_t size,
-                       fer_hmap_hash_fn hash_func,
-                       fer_hmap_eq_fn eq_func,
+bor_hmap_t *borHMapNew(size_t size,
+                       bor_hmap_hash_fn hash_func,
+                       bor_hmap_eq_fn eq_func,
                        void *userdata)
 {
     bor_hmap_t *hmap;
@@ -46,22 +46,22 @@ bor_hmap_t *ferHMapNew(size_t size,
         hmap->eq = _eq;
 
     for (i = 0; i < hmap->size; i++){
-        ferListInit(hmap->table + i);
+        borListInit(hmap->table + i);
     }
 
     return hmap;
 }
 
-void ferHMapDel(bor_hmap_t *h)
+void borHMapDel(bor_hmap_t *h)
 {
     size_t i;
     bor_list_t *list, *item;
 
     for (i = 0; i < h->size; i++){
         list = &h->table[i];
-        while (!ferListEmpty(list)){
-            item = ferListNext(list);
-            ferListDel(item);
+        while (!borListEmpty(list)){
+            item = borListNext(list);
+            borListDel(item);
         }
     }
 
@@ -70,7 +70,7 @@ void ferHMapDel(bor_hmap_t *h)
 }
 
 
-uint32_t ferHMapID(const bor_hmap_t *m, bor_list_t *key1)
+uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1)
 {
     uint32_t id;
 
@@ -80,7 +80,7 @@ uint32_t ferHMapID(const bor_hmap_t *m, bor_list_t *key1)
     return id;
 }
 
-bor_list_t *ferHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
+bor_list_t *borHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
     bor_list_t *item;
 
@@ -92,28 +92,28 @@ bor_list_t *ferHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
     return NULL;
 }
 
-int ferHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
+int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
     bor_list_t *item;
 
-    item = ferHMapIDGet(m, id, key1);
+    item = borHMapIDGet(m, id, key1);
     if (item){
-        ferListDel(item);
+        borListDel(item);
         return 0;
     }
     return -1;
 }
 
-void ferHMapGather(bor_hmap_t *m, bor_list_t *list)
+void borHMapGather(bor_hmap_t *m, bor_list_t *list)
 {
     size_t i;
     bor_list_t *item;
 
     for (i = 0; i < m->size; i++){
-        while (!ferListEmpty(&m->table[i])){
-            item = ferListNext(&m->table[i]);
-            ferListDel(item);
-            ferListAppend(list, item);
+        while (!borListEmpty(&m->table[i])){
+            item = borListNext(&m->table[i]);
+            borListDel(item);
+            borListAppend(list, item);
         }
     }
 }

@@ -37,9 +37,9 @@ extern "C" {
 /**
  * Mesh3 implementation based on bor_mesh3_t suitable for qhull algorithms.
  *
- * Use ferQHullMesh3() function to get pointer to bor_mesh3_t you can work
+ * Use borQHullMesh3() function to get pointer to bor_mesh3_t you can work
  * with.
- * Call ferQHullMesh3Del() on all meshes that are returned from QHull
+ * Call borQHullMesh3Del() on all meshes that are returned from QHull
  * functions.
  */
 struct _bor_qhull_mesh3_t {
@@ -53,12 +53,12 @@ typedef struct _bor_qhull_mesh3_t bor_qhull_mesh3_t;
 /**
  * Deletes mesh3 returned from some qhull functions.
  */
-void ferQHullMesh3Del(bor_qhull_mesh3_t *m);
+void borQHullMesh3Del(bor_qhull_mesh3_t *m);
 
 /**
  * Returns pointer to bor_mesh3_t struct.
  */
-_fer_inline bor_mesh3_t *ferQHullMesh3(bor_qhull_mesh3_t *m);
+_bor_inline bor_mesh3_t *borQHullMesh3(bor_qhull_mesh3_t *m);
 
 
 
@@ -74,36 +74,36 @@ typedef struct _bor_qdelaunay_t bor_qdelaunay_t;
 /**
  * Creates new qdelaunay instance.
  */
-bor_qdelaunay_t *ferQDelaunayNew(void);
+bor_qdelaunay_t *borQDelaunayNew(void);
 
 /**
  * Deallocates and frees qdelaunay struct.
  */
-void ferQDelaunayDel(bor_qdelaunay_t *q);
+void borQDelaunayDel(bor_qdelaunay_t *q);
 
 /**
  * Returns path to qdelaunay binary.
  */
-_fer_inline const char *ferQDelaunayPath(const bor_qdelaunay_t *q);
+_bor_inline const char *borQDelaunayPath(const bor_qdelaunay_t *q);
 
 /**
  * Sets path to qdelaunay binary.
  */
-void ferQDelaunaySetPath(bor_qdelaunay_t *q, const char *path);
+void borQDelaunaySetPath(bor_qdelaunay_t *q, const char *path);
 
 /**
  * Performs 3D delaunay triangulation on given point cloud.
  * New Mesh3 instance is returned.
  */
-bor_qhull_mesh3_t *ferQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc);
+bor_qhull_mesh3_t *borQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc);
 
 /**** INLINES ****/
-_fer_inline bor_mesh3_t *ferQHullMesh3(bor_qhull_mesh3_t *m)
+_bor_inline bor_mesh3_t *borQHullMesh3(bor_qhull_mesh3_t *m)
 {
     return m->mesh;
 }
 
-_fer_inline const char *ferQDelaunayPath(const bor_qdelaunay_t *q)
+_bor_inline const char *borQDelaunayPath(const bor_qdelaunay_t *q)
 {
     return q->bin_path;
 }

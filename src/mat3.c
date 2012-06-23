@@ -18,17 +18,17 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-static BOR_MAT3(__fer_mat3_identity, BOR_ONE, BOR_ZERO, BOR_ZERO,
+static BOR_MAT3(__bor_mat3_identity, BOR_ONE, BOR_ZERO, BOR_ZERO,
                                      BOR_ZERO, BOR_ONE, BOR_ZERO,
                                      BOR_ZERO, BOR_ZERO, BOR_ONE);
-const bor_mat3_t *fer_mat3_identity = &__fer_mat3_identity;
+const bor_mat3_t *bor_mat3_identity = &__bor_mat3_identity;
 
-static BOR_MAT3(__fer_mat3_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+static BOR_MAT3(__bor_mat3_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                  BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                  BOR_ZERO, BOR_ZERO, BOR_ZERO);
-const bor_mat3_t *fer_mat3_zero = &__fer_mat3_zero;
+const bor_mat3_t *bor_mat3_zero = &__bor_mat3_zero;
 
-bor_mat3_t *ferMat3New(void)
+bor_mat3_t *borMat3New(void)
 {
     bor_mat3_t *m;
 
@@ -41,7 +41,7 @@ bor_mat3_t *ferMat3New(void)
     return m;
 }
 
-void ferMat3Del(bor_mat3_t *m)
+void borMat3Del(bor_mat3_t *m)
 {
     BOR_FREE(m);
 }
@@ -51,7 +51,7 @@ void ferMat3Del(bor_mat3_t *m)
 static const int eigen_row[3] = { 0, 0, 1 };
 static const int eigen_col[3] = { 1, 2, 2 };
 
-int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
+int borMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
                  bor_vec3_t *eigenvals)
 {
     bor_mat3_t rot, m;
@@ -61,9 +61,9 @@ int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
     bor_real_t upper;
 
     // Copy source matrix
-    ferMat3Copy(&m, _m);
+    borMat3Copy(&m, _m);
     // Init eigen vector matrix
-    ferMat3SetIdentity(eigen);
+    borMat3SetIdentity(eigen);
 
     for (i = 0; i < EIGEN_MAX_STEPS; i++){
         // Choose off-diagonal largest element in upper triangular half
@@ -73,48 +73,48 @@ int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
         col = eigen_col[i % 3];
 
         // Compute rotational angle
-        if (ferEq(ferMat3Get(eigen, row, row), ferMat3Get(eigen, col, col))){
+        if (borEq(borMat3Get(eigen, row, row), borMat3Get(eigen, col, col))){
             angle = M_PI_2;
         }else{
-            y = BOR_REAL(2.) * ferMat3Get(&m, row, col);
-            x = ferMat3Get(&m, row, row) - ferMat3Get(&m, col, col);
+            y = BOR_REAL(2.) * borMat3Get(&m, row, col);
+            x = borMat3Get(&m, row, row) - borMat3Get(&m, col, col);
             angle = BOR_ATAN(y / x);
-            angle *= ferRecp(BOR_REAL(2.));
+            angle *= borRecp(BOR_REAL(2.));
         }
 
-        upper  = ferMat3Get(&m, 0, 1);
-        upper += ferMat3Get(&m, 0, 2);
-        upper += ferMat3Get(&m, 1, 2);
-        if (ferIsZero(upper))
+        upper  = borMat3Get(&m, 0, 1);
+        upper += borMat3Get(&m, 0, 2);
+        upper += borMat3Get(&m, 1, 2);
+        if (borIsZero(upper))
             break;
 
         // set rotation matrix
         if (i % 3 == 0){
-            ferMat3Set(&rot, BOR_COS(angle), -BOR_SIN(angle), BOR_ZERO,
+            borMat3Set(&rot, BOR_COS(angle), -BOR_SIN(angle), BOR_ZERO,
                              BOR_SIN(angle), BOR_COS(angle), BOR_ZERO,
                              BOR_ZERO, BOR_ZERO, BOR_ONE);
         }else if (i % 3 == 1){
-            ferMat3Set(&rot, BOR_COS(angle), BOR_ZERO, -BOR_SIN(angle),
+            borMat3Set(&rot, BOR_COS(angle), BOR_ZERO, -BOR_SIN(angle),
                              BOR_ZERO, BOR_ONE, BOR_ZERO,
                              BOR_SIN(angle), BOR_ZERO, BOR_COS(angle));
         }else{
-            ferMat3Set(&rot, BOR_ONE, BOR_ZERO, BOR_ZERO,
+            borMat3Set(&rot, BOR_ONE, BOR_ZERO, BOR_ZERO,
                              BOR_ZERO, BOR_COS(angle), -BOR_SIN(angle),
                              BOR_ZERO, BOR_SIN(angle), BOR_COS(angle));
         }
 
         // rotate matrix
-        ferMat3MulLeftTrans(&m, &rot);
-        ferMat3Mul(&m, &rot);
+        borMat3MulLeftTrans(&m, &rot);
+        borMat3Mul(&m, &rot);
 
         // update eigen vector matrix
-        ferMat3Mul(eigen, &rot);
+        borMat3Mul(eigen, &rot);
     }
 
     if (eigenvals){
-        ferVec3Set(eigenvals, ferMat3Get(&m, 0, 0),
-                              ferMat3Get(&m, 1, 1),
-                              ferMat3Get(&m, 2, 2));
+        borVec3Set(eigenvals, borMat3Get(&m, 0, 0),
+                              borMat3Get(&m, 1, 1),
+                              borMat3Get(&m, 2, 2));
     }
 
     return 0;

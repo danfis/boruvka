@@ -34,12 +34,12 @@ extern "C" {
  *
  * Taken from http://burtleburtle.net/bob/c/lookup3.c.
  */
-uint32_t ferHashJenkins(const uint32_t *k, size_t length, uint32_t initval);
+uint32_t borHashJenkins(const uint32_t *k, size_t length, uint32_t initval);
 
 /**
  * Hash function by Dan Bernstein
  */
-uint32_t ferHashDJB2(const char *str);
+uint32_t borHashDJB2(const char *str);
 
 /*
  * This algorithm was created for sdbm (a public-domain reimplementation of
@@ -53,7 +53,7 @@ uint32_t ferHashDJB2(const char *str);
  * with different constants, and turns out to be a prime. This is one of
  * the algorithms used in berkeley db (see sleepycat) and elsewhere.
  */
-uint32_t ferHashSDBM(const char *str);
+uint32_t borHashSDBM(const char *str);
 
 
 #ifdef __cplusplus

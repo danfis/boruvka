@@ -20,7 +20,7 @@
 
 static void bubbleUp(bor_real_t *dists, bor_list_t **nearest, size_t len);
 
-size_t ferNearestLinear(bor_list_t *list, void *p,
+size_t borNearestLinear(bor_list_t *list, void *p,
                         bor_nearest_linear_dist_t dist_cb,
                         bor_list_t **nearest, size_t num,
                         void *data)

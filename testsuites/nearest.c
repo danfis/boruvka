@@ -18,7 +18,7 @@ static void randList(bor_list_t *head)
 
     BOR_LIST_FOR_EACH(head, item){
         it = BOR_LIST_ENTRY(item, struct linear_t, list);
-        it->num = ferRand(&r, -10, 10);
+        it->num = borRand(&r, -10, 10);
     }
 }
 
@@ -69,31 +69,31 @@ TEST(nearestLinear)
     bor_list_t *nearest[10];
     bor_real_t p;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
-    ferListInit(&list.list);
+    borListInit(&list.list);
     for  (i = 0; i < LINEAR_LEN; i++){
-        ferListInit(&items[i].list);
-        ferListAppend(&list.list, &items[i].list);
+        borListInit(&items[i].list);
+        borListAppend(&list.list, &items[i].list);
     }
 
     p = 10.;
     randList(&list.list);
-    ferNearestLinear(&list.list, &p, linearDist, nearest, 2, NULL);
+    borNearestLinear(&list.list, &p, linearDist, nearest, 2, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 2);
 
     p = -1.;
     randList(&list.list);
-    ferNearestLinear(&list.list, &p, linearDist, nearest, 4, NULL);
+    borNearestLinear(&list.list, &p, linearDist, nearest, 4, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 4);
 
     p = 3.5;
     randList(&list.list);
-    ferNearestLinear(&list.list, &p, linearDist, nearest, 3, NULL);
+    borNearestLinear(&list.list, &p, linearDist, nearest, 3, NULL);
     //prList(&list.list);
     //fprintf(stdout, "# %g\n", p);
     //prNearest(nearest, 3);

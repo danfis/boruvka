@@ -38,7 +38,7 @@ static void stats(void)
     fprintf(stderr, "    unfreed:   % 10lu bytes\n", cur_alloc);
 }
 
-void ferFreeCheck(void *_ptr)
+void borFreeCheck(void *_ptr)
 {
     void *ptr;
 
@@ -49,7 +49,7 @@ void ferFreeCheck(void *_ptr)
 #endif /* BOR_MEMCHECK */
 
 
-void *ferRealloc(void *ptr, size_t size)
+void *borRealloc(void *ptr, size_t size)
 {
     void *ret;
    
@@ -83,7 +83,7 @@ void *ferRealloc(void *ptr, size_t size)
     return ret;
 }
 
-void *ferAllocAlign(size_t size, size_t alignment)
+void *borAllocAlign(size_t size, size_t alignment)
 {
     void *mem;
 

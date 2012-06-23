@@ -18,24 +18,24 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-bor_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data)
+bor_pairheap_t *borPairHeapNew(bor_pairheap_lt less_than, void *data)
 {
     bor_pairheap_t *ph;
 
     ph = BOR_ALLOC(bor_pairheap_t);
-    ferListInit(&ph->root);
+    borListInit(&ph->root);
     ph->lt = less_than;
     ph->data = data;
 
     return ph;
 }
 
-void ferPairHeapDel(bor_pairheap_t *ph)
+void borPairHeapDel(bor_pairheap_t *ph)
 {
     BOR_FREE(ph);
 }
 
-void ferPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n)
+void borPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n)
 {
     bor_pairheap_node_t *c;
     bor_list_t *list, *item, *item_tmp;
@@ -45,16 +45,16 @@ void ferPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n)
         c = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
 
         // remove from n
-        ferListDel(&c->list);
+        borListDel(&c->list);
         // add it to root list
-        ferListAppend(&ph->root, &c->list);
+        borListAppend(&ph->root, &c->list);
     }
 
     // remove n itself
-    ferListDel(&n->list);
+    borListDel(&n->list);
 }
 
-void __ferPairHeapConsolidate(bor_pairheap_t *ph)
+void __borPairHeapConsolidate(bor_pairheap_t *ph)
 {
     bor_list_t *root, *item, *item_next;
     bor_pairheap_node_t *n1, *n2;
@@ -62,8 +62,8 @@ void __ferPairHeapConsolidate(bor_pairheap_t *ph)
     root = &ph->root;
 
     // 1. First pairing from left to righ
-    item = ferListNext(root);
-    item_next = ferListNext(item);
+    item = borListNext(root);
+    item_next = borListNext(item);
     while (item != root && item_next != root){
         // get nodes
         n1 = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
@@ -71,36 +71,36 @@ void __ferPairHeapConsolidate(bor_pairheap_t *ph)
 
         // compare them
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
-            ferListDel(&n2->list);
-            ferListAppend(&n1->children, &n2->list);
-            item = ferListNext(&n1->list);
+            borListDel(&n2->list);
+            borListAppend(&n1->children, &n2->list);
+            item = borListNext(&n1->list);
         }else{
-            ferListDel(&n1->list);
-            ferListAppend(&n2->children, &n1->list);
-            item = ferListNext(&n2->list);
+            borListDel(&n1->list);
+            borListAppend(&n2->children, &n1->list);
+            item = borListNext(&n2->list);
         }
 
-        item_next = ferListNext(item);
+        item_next = borListNext(item);
     }
 
     // 2. Finish mergin from right to left
     // To be honest, I really don't understand should it be from right to
     // left, so let's do it ordinary way...
-    item = ferListNext(root);
-    item_next = ferListNext(item);
+    item = borListNext(root);
+    item_next = borListNext(item);
     while (item != root && item_next != root){
         // get nodes
         n1 = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
         n2 = BOR_LIST_ENTRY(item_next, bor_pairheap_node_t, list);
 
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
-            ferListDel(&n2->list);
-            ferListAppend(&n1->children, &n2->list);
+            borListDel(&n2->list);
+            borListAppend(&n1->children, &n2->list);
         }else{
-            ferListDel(&n1->list);
-            ferListAppend(&n2->children, &n1->list);
+            borListDel(&n1->list);
+            borListAppend(&n2->children, &n1->list);
             item = item_next;
         }
-        item_next = ferListNext(item);
+        item_next = borListNext(item);
     }
 }

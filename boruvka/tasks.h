@@ -58,76 +58,76 @@ typedef struct _bor_tasks_thinfo_t bor_tasks_thinfo_t;
 /**
  * Callback used as task
  */
-typedef void (*fer_tasks_fn)(int id, void *data,
+typedef void (*bor_tasks_fn)(int id, void *data,
                              const bor_tasks_thinfo_t *thinfo);
 
 /**
  * Creates empty task queue with {num_threads} threads waiting.
  */
-bor_tasks_t *ferTasksNew(size_t num_threads);
+bor_tasks_t *borTasksNew(size_t num_threads);
 
 /**
  * Waits for all tasks to be processed and then deletes task queue.
  * This is blocking call.
  *
- * Note that ferTasksRun() must be called before this!
+ * Note that borTasksRun() must be called before this!
  */
-void ferTasksDel(bor_tasks_t *t);
+void borTasksDel(bor_tasks_t *t);
 
 /**
  * Returns number of threads.
  */
-_fer_inline size_t ferTasksNumThreads(const bor_tasks_t *t);
+_bor_inline size_t borTasksNumThreads(const bor_tasks_t *t);
 
 /**
  * Returns number of threads.
  */
-_fer_inline size_t ferTasksSize(const bor_tasks_t *t);
+_bor_inline size_t borTasksSize(const bor_tasks_t *t);
 
 /**
  * Waits for current tasks to be processed, empty task queue and then
  * deletes the queue.
  *
- * Note that ferTasksRun() must be called before this!
+ * Note that borTasksRun() must be called before this!
  */
-void ferTasksCancelDel(bor_tasks_t *t);
+void borTasksCancelDel(bor_tasks_t *t);
 
 /**
  * Adds task to an end of queue.
  * Returns 0 on success.
  */
-void ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, int id, void *data);
+void borTasksAdd(bor_tasks_t *t, bor_tasks_fn fn, int id, void *data);
 
 /**
  * Run tasks
  */
-void ferTasksRun(bor_tasks_t *t);
+void borTasksRun(bor_tasks_t *t);
 
 /**
  * Returns number of pending tasks
  */
-int ferTasksPending(bor_tasks_t *t);
+int borTasksPending(bor_tasks_t *t);
 
 
 /**
  * Runs all tasks and blocks until all are finished
  */
-void ferTasksRunBlock(bor_tasks_t *t);
+void borTasksRunBlock(bor_tasks_t *t);
 
 /**
  * Blocks until all tasks in queue aren't finished
  */
-void ferTasksBarrier(bor_tasks_t *t);
+void borTasksBarrier(bor_tasks_t *t);
 
 // TODO: AddThreads()/RemoveThreads()
 
 /**** INLINES ****/
-_fer_inline size_t ferTasksNumThreads(const bor_tasks_t *t)
+_bor_inline size_t borTasksNumThreads(const bor_tasks_t *t)
 {
     return t->threads_len;
 }
 
-_fer_inline size_t ferTasksSize(const bor_tasks_t *t)
+_bor_inline size_t borTasksSize(const bor_tasks_t *t)
 {
     return t->threads_len;
 }

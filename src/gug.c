@@ -66,20 +66,20 @@ static void nearestCheck(const bor_gug_t *cs, bor_gug_cache_t *cache,
  *  smaller ones (according to .dist[] value). */
 static void nearestBubbleUp(bor_gug_cache_t *c);
 /** Returns distance of initial border. */
-_fer_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p);
+_bor_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p);
 
 
 /** Converts position in cells to cell's ID */
-_fer_inline size_t __ferGUGPosToID(const bor_gug_t *cs,
+_bor_inline size_t __borGUGPosToID(const bor_gug_t *cs,
                                        const size_t *pos);
-_fer_inline size_t __ferGUGPosToID2(const bor_gug_t *cs,
+_bor_inline size_t __borGUGPosToID2(const bor_gug_t *cs,
                                         const size_t *pos);
-/** Invert function to __ferGUGPosToID() */
-_fer_inline void __ferGUGIDToPos(const bor_gug_t *cs, size_t id,
+/** Invert function to __borGUGPosToID() */
+_bor_inline void __borGUGIDToPos(const bor_gug_t *cs, size_t id,
                                      size_t *pos);
 
 
-void ferGUGParamsInit(bor_gug_params_t *p)
+void borGUGParamsInit(bor_gug_params_t *p)
 {
     p->dim         = 2;
     p->num_cells   = 10000;
@@ -90,7 +90,7 @@ void ferGUGParamsInit(bor_gug_params_t *p)
 }
 
 
-bor_gug_t *ferGUGNew(const bor_gug_params_t *params)
+bor_gug_t *borGUGNew(const bor_gug_params_t *params)
 {
     size_t i;
     bor_gug_t *c;
@@ -133,7 +133,7 @@ bor_gug_t *ferGUGNew(const bor_gug_params_t *params)
     return c;
 }
 
-void ferGUGDel(bor_gug_t *c)
+void borGUGDel(bor_gug_t *c)
 {
     if (c->dim)
         BOR_FREE(c->dim);
@@ -150,7 +150,7 @@ void ferGUGDel(bor_gug_t *c)
 }
 
 
-static size_t __ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
+static size_t __borGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
                                   size_t num, bor_gug_el_t **els,
                                   int approx)
 {
@@ -161,7 +161,7 @@ static size_t __ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
     int radius;
     bor_real_t border, border2;
 
-    if (ferGUGSize(cs) == 0)
+    if (borGUGSize(cs) == 0)
         return 0;
 
     center = BOR_ALLOC_ARR(size_t, cs->d);
@@ -169,8 +169,8 @@ static size_t __ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
 
     cacheInit(&cache, els, num, p);
 
-    center_id = __ferGUGCoordsToID(cs, p);
-    __ferGUGIDToPos(cs, center_id, center);
+    center_id = __borGUGCoordsToID(cs, p);
+    __borGUGIDToPos(cs, center_id, center);
 
     // search in center first
     cell = &cs->cells[center_id];
@@ -215,19 +215,19 @@ static size_t __ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p,
     return retlen;
 }
 
-size_t ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p, size_t num,
+size_t borGUGNearest(const bor_gug_t *cs, const bor_vec_t *p, size_t num,
                          bor_gug_el_t **els)
 {
-    return __ferGUGNearest(cs, p, num, els, cs->approx);
+    return __borGUGNearest(cs, p, num, els, cs->approx);
 }
 
-size_t ferGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
+size_t borGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
                                size_t num, bor_gug_el_t **els)
 {
-    return __ferGUGNearest(cs, p, num, els, 1);
+    return __borGUGNearest(cs, p, num, els, 1);
 }
 
-void __ferGUGExpand(bor_gug_t *cs)
+void __borGUGExpand(bor_gug_t *cs)
 {
     bor_gug_cell_t *cells;
     size_t i, cells_len, newlen;
@@ -248,12 +248,12 @@ void __ferGUGExpand(bor_gug_t *cs)
 
     // copy elements from old cells to the new one
     for (i = 0; i < cells_len; i++){
-        while (!ferListEmpty(&cells[i].list)){
-            item = ferListNext(&cells[i].list);
+        while (!borListEmpty(&cells[i].list)){
+            item = borListNext(&cells[i].list);
             el   = BOR_LIST_ENTRY(item, bor_gug_el_t, list);
-            ferListDel(item);
+            borListDel(item);
 
-            ferGUGAdd(cs, el);
+            borGUGAdd(cs, el);
         }
     }
 
@@ -278,11 +278,11 @@ static void cellsAlloc(bor_gug_t *c, size_t num_cells)
     }
 
     // estimate volume of one cell
-    volume *= ferRecp(num_cells);
+    volume *= borRecp(num_cells);
 
     // set edge size as d'th root of volume
-    c->edge = BOR_POW(volume, ferRecp(c->d));
-    c->edge_recp = ferRecp(c->edge);
+    c->edge = BOR_POW(volume, borRecp(c->d));
+    c->edge_recp = borRecp(c->edge);
 
     // and finally compute number of cells along each axis
     // there is addition of 1 to be sure that whole space will be mapped to
@@ -316,7 +316,7 @@ static void cellsAlloc(bor_gug_t *c, size_t num_cells)
 
 static void cellInit(bor_gug_t *cs, bor_gug_cell_t *c, size_t id)
 {
-    ferListInit(&c->list);
+    borListInit(&c->list);
 }
 
  
@@ -357,7 +357,7 @@ static void __nearestInRadius(const bor_gug_t *cs, bor_gug_cache_t *cache,
 
     if (d == fix){
         if (d == cs->d - 1){
-            id = __ferGUGPosToID(cs, pos);
+            id = __borGUGPosToID(cs, pos);
             nearestInCell(cs, cache, &cs->cells[id]);
         }else{
             __nearestInRadius(cs, cache, radius, center, pos, d + 1, fix);
@@ -379,7 +379,7 @@ static void __nearestInRadius(const bor_gug_t *cs, bor_gug_cache_t *cache,
             pos[d] = i;
 
             if (d == cs->d - 1){
-                id = __ferGUGPosToID(cs, pos);
+                id = __borGUGPosToID(cs, pos);
                 nearestInCell(cs, cache, &cs->cells[id]);
             }else{
                 __nearestInRadius(cs, cache, radius, center, pos, d + 1, fix);
@@ -432,7 +432,7 @@ static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
         pos[0] = center[0] - radius;
         for (d = from; d <= to; d++){
             pos[1] = d;
-            id = __ferGUGPosToID2(cs, pos);
+            id = __borGUGPosToID2(cs, pos);
             nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
@@ -442,7 +442,7 @@ static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
         pos[0] = center[0] + radius;
         for (d = from; d <= to; d++){
             pos[1] = d;
-            id = __ferGUGPosToID2(cs, pos);
+            id = __borGUGPosToID2(cs, pos);
             nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
@@ -457,7 +457,7 @@ static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
         pos[1] = center[1] - radius;
         for (d = from; d <= to; d++){
             pos[0] = d;
-            id = __ferGUGPosToID2(cs, pos);
+            id = __borGUGPosToID2(cs, pos);
             nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
@@ -467,7 +467,7 @@ static int nearestInRadius2(const bor_gug_t *cs, bor_gug_cache_t *cache,
         pos[1] = center[1] + radius;
         for (d = from; d <= to; d++){
             pos[0] = d;
-            id = __ferGUGPosToID2(cs, pos);
+            id = __borGUGPosToID2(cs, pos);
             nearestInCell(cs, cache, &cs->cells[id]);
             ret = 0;
         }
@@ -495,11 +495,11 @@ static void nearestCheck(const bor_gug_t *cs, bor_gug_cache_t *c,
     bor_real_t dist;
 
     if (cs->d == 2){
-        dist = ferVec2Dist2((bor_vec2_t *)c->p, (bor_vec2_t *)el->p);
+        dist = borVec2Dist2((bor_vec2_t *)c->p, (bor_vec2_t *)el->p);
     }else if (cs->d == 3){
-        dist = ferVec3Dist2((bor_vec3_t *)c->p, (bor_vec3_t *)el->p);
+        dist = borVec3Dist2((bor_vec3_t *)c->p, (bor_vec3_t *)el->p);
     }else{
-        dist = ferVecDist2(cs->d, c->p, el->p);
+        dist = borVecDist2(cs->d, c->p, el->p);
     }
     if (c->len < c->max_len){
         c->els[c->len]  = el;
@@ -533,7 +533,7 @@ static void nearestBubbleUp(bor_gug_cache_t *c)
 }
 
 
-_fer_inline size_t __ferGUGPosToID(const bor_gug_t *cs, const size_t *pos)
+_bor_inline size_t __borGUGPosToID(const bor_gug_t *cs, const size_t *pos)
 {
     size_t id, mul, i;
 
@@ -547,13 +547,13 @@ _fer_inline size_t __ferGUGPosToID(const bor_gug_t *cs, const size_t *pos)
     return id;
 }
 
-_fer_inline size_t __ferGUGPosToID2(const bor_gug_t *cs,
+_bor_inline size_t __borGUGPosToID2(const bor_gug_t *cs,
                                         const size_t *pos)
 {
     return pos[0] + pos[1] * cs->dim[0];
 }
 
-_fer_inline void __ferGUGIDToPos(const bor_gug_t *cs, size_t id,
+_bor_inline void __borGUGIDToPos(const bor_gug_t *cs, size_t id,
                                      size_t *pos)
 {
     size_t i;
@@ -564,7 +564,7 @@ _fer_inline void __ferGUGIDToPos(const bor_gug_t *cs, size_t id,
     }
 }
 
-_fer_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p)
+_bor_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p)
 {
     size_t i;
     bor_real_t local, min, max;
@@ -573,7 +573,7 @@ _fer_inline bor_real_t initBorder(const bor_gug_t *cs, const bor_vec_t *p)
     border = BOR_REAL_MAX;
 
     for (i = 0; i < cs->d; i++){
-        local = ferVecGet(p, i) + cs->shift[i];
+        local = borVecGet(p, i) + cs->shift[i];
 
         f = local * cs->edge_recp;
         min = f * cs->edge;

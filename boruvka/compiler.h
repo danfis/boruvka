@@ -30,14 +30,14 @@
 /**
  * Returns offset of member in given type (struct).
  */
-#define fer_offsetof(TYPE, MEMBER) offsetof(TYPE, MEMBER)
-/*#define fer_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)*/
+#define bor_offsetof(TYPE, MEMBER) offsetof(TYPE, MEMBER)
+/*#define bor_offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)*/
 
 /**
  * Returns container of given member
  */
-#define fer_container_of(ptr, type, member) \
-    (type *)( (char *)ptr - fer_offsetof(type, member))
+#define bor_container_of(ptr, type, member) \
+    (type *)( (char *)ptr - bor_offsetof(type, member))
 
 
 /**
@@ -45,16 +45,16 @@
  */
 #ifdef __GNUC__
 #  ifdef BOR_DEBUG
-#    define _fer_inline static
+#    define _bor_inline static
 #  else /* BOR_DEBUG */
 #    ifdef __NO_INLINE__
-#      define _fer_inline static
+#      define _bor_inline static
 #    else /* __NO_INLINE */
-#      define _fer_inline static inline __attribute__((always_inline))
+#      define _bor_inline static inline __attribute__((always_inline))
 #    endif /* __NO_INLINE */
 #  endif /* BOR_DEBUG */
 #else /* __GNUC__ */
-# define _fer_inline static inline
+# define _bor_inline static inline
 #endif /* __GNUC__ */
 
 
@@ -63,11 +63,11 @@
  * __prefetchw(x) - prefetches the cacheline at "x" for write
  */
 #ifdef __GNUC__
-# define _fer_prefetch(x) __builtin_prefetch(x)
-# define _fer_prefetchw(x) __builtin_prefetch(x,1)
+# define _bor_prefetch(x) __builtin_prefetch(x)
+# define _bor_prefetchw(x) __builtin_prefetch(x,1)
 #else /* __GNUC__ */
-# define _fer_prefetch(x)
-# define _fer_prefetchw(x)
+# define _bor_prefetch(x)
+# define _bor_prefetchw(x)
 #endif /* __GNUC__ */
 
 /**
@@ -76,19 +76,19 @@
  * Comes from linux header file ./include/compiler.h
  */
 #ifdef __GNUC__
-# define fer_likely(x) __builtin_expect(!!(x), 1)
-# define fer_unlikely(x) __builtin_expect(!!(x), 0)
+# define bor_likely(x) __builtin_expect(!!(x), 1)
+# define bor_unlikely(x) __builtin_expect(!!(x), 0)
 #else /* __GNUC__ */
-# define fer_likely(x) !!(x)
-# define fer_unlikely(x) !!(x)
+# define bor_likely(x) !!(x)
+# define bor_unlikely(x) !!(x)
 #endif /* __GNUC__ */
 
 #ifdef __GNUC__
-# define fer_aligned(x) __attribute__ ((aligned(x)))
-# define fer_packed __attribute__ ((packed))
+# define bor_aligned(x) __attribute__ ((aligned(x)))
+# define bor_packed __attribute__ ((packed))
 #else /* __GNUC__ */
-# define fer_aligned(x)
-# define fer_packed
+# define bor_aligned(x)
+# define bor_packed
 #endif /* __GNUC__ */
 
 

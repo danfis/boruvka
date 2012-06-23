@@ -14,12 +14,12 @@ TEST(opts1)
     static char *argv[] = { "program", "--opt1", "11.1", "-h", "filename" };
     int i;
 
-    ferOptsAdd("opt1", 'o', BOR_OPTS_REAL, (void *)&opt1, NULL);
-    ferOptsAdd(NULL, 'h', BOR_OPTS_NONE, (void *)&help, BOR_OPTS_CB(opts1_help));
+    borOptsAdd("opt1", 'o', BOR_OPTS_REAL, (void *)&opt1, NULL);
+    borOptsAdd(NULL, 'h', BOR_OPTS_NONE, (void *)&help, BOR_OPTS_CB(opts1_help));
 
-    ferOpts(&argc, (char **)argv);
+    borOpts(&argc, (char **)argv);
 
-    assertTrue(ferEq(opt1, 11.1));
+    assertTrue(borEq(opt1, 11.1));
     assertEquals(help, 1);
 
     fprintf(stdout, "opts1 :: Remaining options:\n");
@@ -27,5 +27,5 @@ TEST(opts1)
         fprintf(stdout, "  [%02d] `%s'\n", i, argv[i]);
     }
 
-    ferOptsClear();
+    borOptsClear();
 }

@@ -20,17 +20,17 @@
 #include <boruvka/vec2.h>
 #include <boruvka/dbg.h>
 
-static BOR_VEC3(__fer_vec3_origin, BOR_ZERO, BOR_ZERO, BOR_ZERO);
-const bor_vec3_t *fer_vec3_origin = &__fer_vec3_origin;
+static BOR_VEC3(__bor_vec3_origin, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+const bor_vec3_t *bor_vec3_origin = &__bor_vec3_origin;
 
-static BOR_VEC3(__fer_vec3_axis_x, BOR_ONE,  BOR_ZERO, BOR_ZERO);
-static BOR_VEC3(__fer_vec3_axis_y, BOR_ZERO, BOR_ONE,  BOR_ZERO);
-static BOR_VEC3(__fer_vec3_axis_z, BOR_ZERO, BOR_ZERO, BOR_ONE);
+static BOR_VEC3(__bor_vec3_axis_x, BOR_ONE,  BOR_ZERO, BOR_ZERO);
+static BOR_VEC3(__bor_vec3_axis_y, BOR_ZERO, BOR_ONE,  BOR_ZERO);
+static BOR_VEC3(__bor_vec3_axis_z, BOR_ZERO, BOR_ZERO, BOR_ONE);
 
-const bor_vec3_t *fer_vec3_axis[3] = {
-    &__fer_vec3_axis_x,
-    &__fer_vec3_axis_y,
-    &__fer_vec3_axis_z
+const bor_vec3_t *bor_vec3_axis[3] = {
+    &__bor_vec3_axis_x,
+    &__bor_vec3_axis_y,
+    &__bor_vec3_axis_z
 };
 
 static bor_vec3_t points_on_sphere[] = {
@@ -77,14 +77,14 @@ static bor_vec3_t points_on_sphere[] = {
     BOR_VEC3_STATIC(BOR_REAL(-0.425323), BOR_REAL( 0.309011), BOR_REAL( 0.850654)),
     BOR_VEC3_STATIC(BOR_REAL( 0.162456), BOR_REAL( 0.499995), BOR_REAL( 0.850654))
 };
-bor_vec3_t *fer_points_on_sphere = points_on_sphere;
-size_t fer_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(bor_vec3_t);
+bor_vec3_t *bor_points_on_sphere = points_on_sphere;
+size_t bor_points_on_sphere_len = sizeof(points_on_sphere) / sizeof(bor_vec3_t);
 
-_fer_inline bor_real_t _ferVec3ACos(bor_real_t angle)
+_bor_inline bor_real_t _borVec3ACos(bor_real_t angle)
 {
-    if (ferEq(angle, BOR_ONE) || angle > BOR_ONE)
+    if (borEq(angle, BOR_ONE) || angle > BOR_ONE)
         angle = BOR_ONE;
-    if (ferEq(angle, -BOR_ONE) || angle < -BOR_ONE)
+    if (borEq(angle, -BOR_ONE) || angle < -BOR_ONE)
         angle = -BOR_ONE;
 
     /*
@@ -97,7 +97,7 @@ _fer_inline bor_real_t _ferVec3ACos(bor_real_t angle)
 }
 
 
-bor_vec3_t *ferVec3New(bor_real_t x, bor_real_t y, bor_real_t z)
+bor_vec3_t *borVec3New(bor_real_t x, bor_real_t y, bor_real_t z)
 {
     bor_vec3_t *v;
 
@@ -106,16 +106,16 @@ bor_vec3_t *ferVec3New(bor_real_t x, bor_real_t y, bor_real_t z)
 #else /* BOR_SSE */
     v = BOR_ALLOC(bor_vec3_t);
 #endif /* BOR_SSE */
-    ferVec3Set(v, x, y, z);
+    borVec3Set(v, x, y, z);
     return v;
 }
 
-void ferVec3Del(bor_vec3_t *v)
+void borVec3Del(bor_vec3_t *v)
 {
     BOR_FREE(v);
 }
 
-bor_vec3_t *ferVec3ArrNew(size_t num_vecs)
+bor_vec3_t *borVec3ArrNew(size_t num_vecs)
 {
     bor_vec3_t *vs;
 
@@ -128,12 +128,12 @@ bor_vec3_t *ferVec3ArrNew(size_t num_vecs)
     return vs;
 }
 
-void ferVec3ArrDel(bor_vec3_t *v)
+void borVec3ArrDel(bor_vec3_t *v)
 {
     BOR_FREE(v);
 }
 
-_fer_inline bor_real_t __ferVec3PointSegmentDist2(const bor_vec3_t *P,
+_bor_inline bor_real_t __borVec3PointSegmentDist2(const bor_vec3_t *P,
                                                const bor_vec3_t *x0,
                                                const bor_vec3_t *b,
                                                bor_vec3_t *witness)
@@ -157,48 +157,48 @@ _fer_inline bor_real_t __ferVec3PointSegmentDist2(const bor_vec3_t *P,
     bor_vec3_t d, a;
 
     // direction of segment
-    ferVec3Sub2(&d, b, x0);
+    borVec3Sub2(&d, b, x0);
 
     // precompute vector from P to x0
-    ferVec3Sub2(&a, x0, P);
+    borVec3Sub2(&a, x0, P);
 
-    t  = -BOR_REAL(1.) * ferVec3Dot(&a, &d);
-    t /= ferVec3Len2(&d);
+    t  = -BOR_REAL(1.) * borVec3Dot(&a, &d);
+    t /= borVec3Len2(&d);
 
-    if (t < BOR_ZERO || ferIsZero(t)){
-        dist = ferVec3Dist2(x0, P);
+    if (t < BOR_ZERO || borIsZero(t)){
+        dist = borVec3Dist2(x0, P);
         if (witness)
-            ferVec3Copy(witness, x0);
-    }else if (t > BOR_ONE || ferEq(t, BOR_ONE)){
-        dist = ferVec3Dist2(b, P);
+            borVec3Copy(witness, x0);
+    }else if (t > BOR_ONE || borEq(t, BOR_ONE)){
+        dist = borVec3Dist2(b, P);
         if (witness)
-            ferVec3Copy(witness, b);
+            borVec3Copy(witness, b);
     }else{
         if (witness){
-            ferVec3Copy(witness, &d);
-            ferVec3Scale(witness, t);
-            ferVec3Add(witness, x0);
-            dist = ferVec3Dist2(witness, P);
+            borVec3Copy(witness, &d);
+            borVec3Scale(witness, t);
+            borVec3Add(witness, x0);
+            dist = borVec3Dist2(witness, P);
         }else{
             // recycling variables
-            ferVec3Scale(&d, t);
-            ferVec3Add(&d, &a);
-            dist = ferVec3Len2(&d);
+            borVec3Scale(&d, t);
+            borVec3Add(&d, &a);
+            dist = borVec3Len2(&d);
         }
     }
 
     return dist;
 }
 
-bor_real_t ferVec3PointSegmentDist2(const bor_vec3_t *P,
+bor_real_t borVec3PointSegmentDist2(const bor_vec3_t *P,
                                     const bor_vec3_t *x0, const bor_vec3_t *b,
                                     bor_vec3_t *witness)
 {
-    return __ferVec3PointSegmentDist2(P, x0, b, witness);
+    return __borVec3PointSegmentDist2(P, x0, b, witness);
 }
 
 
-_fer_inline bor_real_t __clamp(bor_real_t n, bor_real_t min, bor_real_t max)
+_bor_inline bor_real_t __clamp(bor_real_t n, bor_real_t min, bor_real_t max)
 {
     if (n < min)
         return min;
@@ -207,7 +207,7 @@ _fer_inline bor_real_t __clamp(bor_real_t n, bor_real_t min, bor_real_t max)
     return n;
 }
 
-bor_real_t ferVec3SegmentSegmentDist2(const bor_vec3_t *A, const bor_vec3_t *B,
+bor_real_t borVec3SegmentSegmentDist2(const bor_vec3_t *A, const bor_vec3_t *B,
                                       const bor_vec3_t *C, const bor_vec3_t *D,
                                       bor_vec3_t *witness1,
                                       bor_vec3_t *witness2,
@@ -220,53 +220,53 @@ bor_real_t ferVec3SegmentSegmentDist2(const bor_vec3_t *A, const bor_vec3_t *B,
     bor_real_t s, t;
 
     // direction vector of segment AB and segment CD
-    ferVec3Sub2(&d1, B, A);
-    ferVec3Sub2(&d2, D, C);
-    ferVec3Sub2(&r, A, C);
+    borVec3Sub2(&d1, B, A);
+    borVec3Sub2(&d2, D, C);
+    borVec3Sub2(&r, A, C);
 
     // square lengths
-    a = ferVec3Len2(&d1);
-    e = ferVec3Len2(&d1);
-    f = ferVec3Dot(&d2, &r);
+    a = borVec3Len2(&d1);
+    e = borVec3Len2(&d1);
+    f = borVec3Dot(&d2, &r);
 
     if (parallel)
         *parallel = 0;
 
     // check if either or both segments degenerate into point
-    if (ferIsZero(a) && ferIsZero(e)){
+    if (borIsZero(a) && borIsZero(e)){
         // both segments degenerate into points
         if (witness1)
-            ferVec3Copy(witness1, A);
+            borVec3Copy(witness1, A);
         if (witness2)
-            ferVec3Copy(witness2, C);
+            borVec3Copy(witness2, C);
 
-        return ferVec3Dist2(A, C);
+        return borVec3Dist2(A, C);
     }
 
-    if (ferIsZero(a)){
+    if (borIsZero(a)){
         // segment AB degenerates into point
         if (witness1)
-            ferVec3Copy(witness1, A);
+            borVec3Copy(witness1, A);
 
         t = f / e;
         if (witness2){
-            ferVec3Scale(&d2, t);
-            ferVec3Add2(witness2, C, &d2);
+            borVec3Scale(&d2, t);
+            borVec3Add2(witness2, C, &d2);
         }
 
         return __clamp(t, BOR_ZERO, BOR_ONE);
     }else{
-        c = ferVec3Dot(&d1, &r);
-        if (ferIsZero(e)){
+        c = borVec3Dot(&d1, &r);
+        if (borIsZero(e)){
             // segment CD degenerates into point
             t = BOR_ZERO;
             s = __clamp(-c / a, BOR_ZERO, BOR_ONE);
         }else{
             // general non-degenerate case
-            b = ferVec3Dot(&d1, &d2);
+            b = borVec3Dot(&d1, &d2);
             denom = (a * e) - (b * b);
 
-            if (!ferIsZero(denom)){
+            if (!borIsZero(denom)){
                 s = __clamp((b * f) - (c * e) / denom, BOR_ZERO, BOR_ONE);
             }else{
                 // segments parallel - choose arbitrary s.
@@ -288,23 +288,23 @@ bor_real_t ferVec3SegmentSegmentDist2(const bor_vec3_t *A, const bor_vec3_t *B,
         }
     }
 
-    ferVec3Scale(&d1, s);
-    ferVec3Add(&d1, A);
-    ferVec3Scale(&d2, t);
-    ferVec3Add(&d2, C);
+    borVec3Scale(&d1, s);
+    borVec3Add(&d1, A);
+    borVec3Scale(&d2, t);
+    borVec3Add(&d2, C);
 
     if (witness1){
-        ferVec3Copy(witness1, &d1);
+        borVec3Copy(witness1, &d1);
     }
     if (witness2){
-        ferVec3Copy(witness2, &d2);
+        borVec3Copy(witness2, &d2);
     }
 
-    return ferVec3Dist2(&d1, &d2);
+    return borVec3Dist2(&d1, &d2);
 }
 
 
-bor_real_t ferVec3PointTriDist2(const bor_vec3_t *P,
+bor_real_t borVec3PointTriDist2(const bor_vec3_t *P,
                               const bor_vec3_t *x0, const bor_vec3_t *B,
                               const bor_vec3_t *C,
                               bor_vec3_t *witness)
@@ -323,34 +323,34 @@ bor_real_t ferVec3PointTriDist2(const bor_vec3_t *P,
     bor_real_t s, t, dist, dist2;
     bor_vec3_t witness2;
 
-    ferVec3Sub2(&d1, B, x0);
-    ferVec3Sub2(&d2, C, x0);
-    ferVec3Sub2(&a, x0, P);
+    borVec3Sub2(&d1, B, x0);
+    borVec3Sub2(&d2, C, x0);
+    borVec3Sub2(&a, x0, P);
 
-    u = ferVec3Dot(&a, &a);
-    v = ferVec3Dot(&d1, &d1);
-    w = ferVec3Dot(&d2, &d2);
-    p = ferVec3Dot(&a, &d1);
-    q = ferVec3Dot(&a, &d2);
-    r = ferVec3Dot(&d1, &d2);
+    u = borVec3Dot(&a, &a);
+    v = borVec3Dot(&d1, &d1);
+    w = borVec3Dot(&d2, &d2);
+    p = borVec3Dot(&a, &d1);
+    q = borVec3Dot(&a, &d2);
+    r = borVec3Dot(&d1, &d2);
 
     s = (q * r - w * p) / (w * v - r * r);
     t = (-s * r - q) / w;
 
-    if ((ferIsZero(s) || s > BOR_ZERO)
-            && (ferEq(s, BOR_ONE) || s < BOR_ONE)
-            && (ferIsZero(t) || t > BOR_ZERO)
-            && (ferEq(t, BOR_ONE) || t < BOR_ONE)
-            && (ferEq(t + s, BOR_ONE) || t + s < BOR_ONE)){
+    if ((borIsZero(s) || s > BOR_ZERO)
+            && (borEq(s, BOR_ONE) || s < BOR_ONE)
+            && (borIsZero(t) || t > BOR_ZERO)
+            && (borEq(t, BOR_ONE) || t < BOR_ONE)
+            && (borEq(t + s, BOR_ONE) || t + s < BOR_ONE)){
 
         if (witness){
-            ferVec3Scale(&d1, s);
-            ferVec3Scale(&d2, t);
-            ferVec3Copy(witness, x0);
-            ferVec3Add(witness, &d1);
-            ferVec3Add(witness, &d2);
+            borVec3Scale(&d1, s);
+            borVec3Scale(&d2, t);
+            borVec3Copy(witness, x0);
+            borVec3Add(witness, &d1);
+            borVec3Add(witness, &d2);
 
-            dist = ferVec3Dist2(witness, P);
+            dist = borVec3Dist2(witness, P);
         }else{
             dist  = s * s * v;
             dist += t * t * w;
@@ -360,27 +360,27 @@ bor_real_t ferVec3PointTriDist2(const bor_vec3_t *P,
             dist += u;
         }
     }else{
-        dist = __ferVec3PointSegmentDist2(P, x0, B, witness);
+        dist = __borVec3PointSegmentDist2(P, x0, B, witness);
 
-        dist2 = __ferVec3PointSegmentDist2(P, x0, C, &witness2);
+        dist2 = __borVec3PointSegmentDist2(P, x0, C, &witness2);
         if (dist2 < dist){
             dist = dist2;
             if (witness)
-                ferVec3Copy(witness, &witness2);
+                borVec3Copy(witness, &witness2);
         }
 
-        dist2 = __ferVec3PointSegmentDist2(P, B, C, &witness2);
+        dist2 = __borVec3PointSegmentDist2(P, B, C, &witness2);
         if (dist2 < dist){
             dist = dist2;
             if (witness)
-                ferVec3Copy(witness, &witness2);
+                borVec3Copy(witness, &witness2);
         }
     }
 
     return dist;
 }
 
-int ferVec3PointInTri(const bor_vec3_t *p,
+int borVec3PointInTri(const bor_vec3_t *p,
                      const bor_vec3_t *a, const bor_vec3_t *b,
                      const bor_vec3_t *c)
 {
@@ -389,16 +389,16 @@ int ferVec3PointInTri(const bor_vec3_t *p,
     bor_real_t inv_denom, u, v;
 
     // compute vectors
-    ferVec3Sub2(&v0, c, a);
-    ferVec3Sub2(&v1, b, a);
-    ferVec3Sub2(&v2, p, a);
+    borVec3Sub2(&v0, c, a);
+    borVec3Sub2(&v1, b, a);
+    borVec3Sub2(&v2, p, a);
 
     // compute dot products
-    dot00 = ferVec3Dot(&v0, &v0);
-    dot01 = ferVec3Dot(&v0, &v1);
-    dot02 = ferVec3Dot(&v0, &v2);
-    dot11 = ferVec3Dot(&v1, &v1);
-    dot12 = ferVec3Dot(&v1, &v2);
+    dot00 = borVec3Dot(&v0, &v0);
+    dot01 = borVec3Dot(&v0, &v1);
+    dot02 = borVec3Dot(&v0, &v2);
+    dot11 = borVec3Dot(&v1, &v1);
+    dot12 = borVec3Dot(&v1, &v2);
 
     // compute barycentric coordinates
     inv_denom = BOR_ONE / (dot00 * dot11 - dot01 * dot01);
@@ -406,36 +406,36 @@ int ferVec3PointInTri(const bor_vec3_t *p,
     v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
 
     // check if point is in triangle
-    return (u > BOR_ZERO || ferIsZero(u))
-            && (v > BOR_ZERO || ferIsZero(v))
-            && (u + v < BOR_ONE || ferEq(u + v, BOR_ONE));
+    return (u > BOR_ZERO || borIsZero(u))
+            && (v > BOR_ZERO || borIsZero(v))
+            && (u + v < BOR_ONE || borEq(u + v, BOR_ONE));
 }
 
-bor_real_t ferVec3Angle(const bor_vec3_t *a, const bor_vec3_t *b, const bor_vec3_t *c)
+bor_real_t borVec3Angle(const bor_vec3_t *a, const bor_vec3_t *b, const bor_vec3_t *c)
 {
     bor_real_t angle, div;
     bor_real_t abx, aby, abz, cbx, cby, cbz;
 
-    abx = ferVec3X(a) - ferVec3X(b);
-    aby = ferVec3Y(a) - ferVec3Y(b);
-    abz = ferVec3Z(a) - ferVec3Z(b);
+    abx = borVec3X(a) - borVec3X(b);
+    aby = borVec3Y(a) - borVec3Y(b);
+    abz = borVec3Z(a) - borVec3Z(b);
 
-    cbx = ferVec3X(c) - ferVec3X(b);
-    cby = ferVec3Y(c) - ferVec3Y(b);
-    cbz = ferVec3Z(c) - ferVec3Z(b);
+    cbx = borVec3X(c) - borVec3X(b);
+    cby = borVec3Y(c) - borVec3Y(b);
+    cbz = borVec3Z(c) - borVec3Z(b);
 
     div = BOR_SQRT(abx * abx + aby * aby + abz * abz);
     div *= BOR_SQRT(cbx * cbx + cby * cby + cbz * cbz);
-    if (ferIsZero(div))
+    if (borIsZero(div))
         return BOR_ZERO;
 
     angle = abx * cbx + aby * cby + abz * cbz;
     angle /= div;
 
-    return _ferVec3ACos(angle);
+    return _borVec3ACos(angle);
 }
 
-bor_real_t ferVec3DihedralAngle(const bor_vec3_t *a, const bor_vec3_t *b,
+bor_real_t borVec3DihedralAngle(const bor_vec3_t *a, const bor_vec3_t *b,
                               const bor_vec3_t *c, const bor_vec3_t *d)
 {
     bor_vec3_t base, v;
@@ -443,78 +443,78 @@ bor_real_t ferVec3DihedralAngle(const bor_vec3_t *a, const bor_vec3_t *b,
     bor_real_t angle;
 
     // get normal vec3tors of planes
-    ferVec3Sub2(&base, c, b);
-    ferVec3Sub2(&v, a, b);
-    ferVec3Cross(&na, &v, &base);
+    borVec3Sub2(&base, c, b);
+    borVec3Sub2(&v, a, b);
+    borVec3Cross(&na, &v, &base);
 
-    ferVec3Sub2(&v, d, b);
-    ferVec3Cross(&nb, &v, &base);
+    borVec3Sub2(&v, d, b);
+    borVec3Cross(&nb, &v, &base);
 
     // normalize normals
-    ferVec3Normalize(&na);
-    ferVec3Normalize(&nb);
+    borVec3Normalize(&na);
+    borVec3Normalize(&nb);
 
-    angle = ferVec3Dot(&na, &nb);
+    angle = borVec3Dot(&na, &nb);
 
-    return _ferVec3ACos(angle);
+    return _borVec3ACos(angle);
 }
 
-bor_real_t ferVec3ProjToPlane(const bor_vec3_t *p,
+bor_real_t borVec3ProjToPlane(const bor_vec3_t *p,
                             const bor_vec3_t *u, const bor_vec3_t *v,
                             const bor_vec3_t *w, bor_vec3_t *d)
 {
     bor_vec3_t uv, wv, normal;
 
     // uv = u - v, wv = w - v
-    ferVec3Sub2(&uv, u, v);
-    ferVec3Sub2(&wv, w, v);
+    borVec3Sub2(&uv, u, v);
+    borVec3Sub2(&wv, w, v);
 
     // scale uv and wv to get better normal
-    if (ferVec3Len2(&uv) < BOR_ONE)
-        ferVec3Normalize(&uv);
-    if (ferVec3Len2(&wv) < BOR_ONE)
-        ferVec3Normalize(&wv);
+    if (borVec3Len2(&uv) < BOR_ONE)
+        borVec3Normalize(&uv);
+    if (borVec3Len2(&wv) < BOR_ONE)
+        borVec3Normalize(&wv);
 
     // compute normal vec3tor
-    ferVec3Cross(&normal, &uv, &wv);
+    borVec3Cross(&normal, &uv, &wv);
 
-    if (ferVec3IsZero(&normal))
+    if (borVec3IsZero(&normal))
         return BOR_REAL(-1.);
 
-    return ferVec3ProjToPlane2(p, v, &normal, d);
+    return borVec3ProjToPlane2(p, v, &normal, d);
 }
 
-bor_real_t ferVec3ProjToPlane2(const bor_vec3_t *p,
+bor_real_t borVec3ProjToPlane2(const bor_vec3_t *p,
                              const bor_vec3_t *x, const bor_vec3_t *normal,
                              bor_vec3_t *d)
 {
     bor_real_t k;
     bor_vec3_t xp;
 
-    ferVec3Sub2(&xp, x, p);
-    k  = ferVec3Dot(&xp, normal);
-    k /= ferVec3Len2(normal);
+    borVec3Sub2(&xp, x, p);
+    k  = borVec3Dot(&xp, normal);
+    k /= borVec3Len2(normal);
 
-    ferVec3Copy(d, normal);
-    ferVec3Scale(d, k);
-    ferVec3Add(d, p);
+    borVec3Copy(d, normal);
+    borVec3Scale(d, k);
+    borVec3Add(d, p);
 
-    k = ferVec3Dist(p, d);
+    k = borVec3Dist(p, d);
 
     return k;
 }
 
-bor_real_t ferVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
+bor_real_t borVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
                          const bor_vec3_t *c)
 {
     bor_vec3_t ba, bc, babc;
     bor_real_t area;
 
-    ferVec3Sub2(&ba, a, b);
-    ferVec3Sub2(&bc, c, b);
-    ferVec3Cross(&babc, &ba, &bc);
+    borVec3Sub2(&ba, a, b);
+    borVec3Sub2(&bc, c, b);
+    borVec3Cross(&babc, &ba, &bc);
 
-    area = ferVec3Len(&babc);
+    area = borVec3Len(&babc);
     return area;
 }
 
@@ -523,28 +523,28 @@ bor_real_t ferVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
 
 
 #define __overlapMinMax(p1, q1, r1, p2, q2, r2) \
-    ferVec3Sub2(&v1, p2, q1); \
-    ferVec3Sub2(&v2, p1, q1); \
-    ferVec3Cross(&n1, &v1, &v2); \
+    borVec3Sub2(&v1, p2, q1); \
+    borVec3Sub2(&v2, p1, q1); \
+    borVec3Cross(&n1, &v1, &v2); \
     \
-    ferVec3Sub2(&v1, q2, q1); \
-    if (ferVec3Dot(&v1, &n1) > BOR_ZERO) \
+    borVec3Sub2(&v1, q2, q1); \
+    if (borVec3Dot(&v1, &n1) > BOR_ZERO) \
         return 0; \
     \
-    ferVec3Sub2(&v1, p2, p1); \
-    ferVec3Sub2(&v2, r1, p1); \
-    ferVec3Cross(&n1, &v1, &v2); \
+    borVec3Sub2(&v1, p2, p1); \
+    borVec3Sub2(&v2, r1, p1); \
+    borVec3Cross(&n1, &v1, &v2); \
     \
-    ferVec3Sub2(&v1, r2, p1); \
-    if (ferVec3Dot(&v1, &n1) > BOR_ZERO) \
+    borVec3Sub2(&v1, r2, p1); \
+    if (borVec3Dot(&v1, &n1) > BOR_ZERO) \
         return 0; \
     \
     return 1;
 
 #define __overlapCheck(p1, q1, r1, p2, q2, r2, sp2, sq2, sr2) \
-    if (ferIsZero(sp2)){ \
-        if (ferIsZero(sq2)){ \
-            if (ferIsZero(sr2)){ \
+    if (borIsZero(sp2)){ \
+        if (borIsZero(sq2)){ \
+            if (borIsZero(sr2)){ \
                 return __overlapCoplanar(p1, q1, r1, p2, q2, r2, &n1, &n2); \
             }else if (sr2 > BOR_ZERO){ \
                 __overlapMinMax(p1, q1, r1, r2, p2, q2) \
@@ -552,7 +552,7 @@ bor_real_t ferVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
                 __overlapMinMax(p1, r1, q1, r2, p2, q2) \
             } \
         }else if (sq2 < BOR_ZERO){ \
-            if (ferIsZero(sr2) || sr2 > BOR_ZERO){ \
+            if (borIsZero(sr2) || sr2 > BOR_ZERO){ \
                 __overlapMinMax(p1, r1, q1, q2, r2, p2) \
             }else{ \
                 __overlapMinMax(p1, q1, r1, p2, q2, r2) \
@@ -583,7 +583,7 @@ bor_real_t ferVec3TriArea2(const bor_vec3_t *a, const bor_vec3_t *b,
     }
 
 
-_fer_inline int __overlapCoplanar(const bor_vec3_t *_p1,
+_bor_inline int __overlapCoplanar(const bor_vec3_t *_p1,
                                   const bor_vec3_t *_q1,
                                   const bor_vec3_t *_r1,
                                   const bor_vec3_t *_p2,
@@ -596,47 +596,47 @@ _fer_inline int __overlapCoplanar(const bor_vec3_t *_p1,
     bor_vec2_t p2, q2, r2;
     bor_real_t n_x, n_y, n_z;
 
-    n_x = BOR_FABS(ferVec3X(n1));
-    n_y = BOR_FABS(ferVec3Y(n1));
-    n_z = BOR_FABS(ferVec3Z(n1));
+    n_x = BOR_FABS(borVec3X(n1));
+    n_y = BOR_FABS(borVec3Y(n1));
+    n_z = BOR_FABS(borVec3Z(n1));
 
     // Projection of the triangles in 3D onto 2D such that the area of
     // the projection is maximized.
 
     if (n_x > n_z && n_x >= n_y){
         // Project onto plane YZ
-        ferVec2Set(&p1, ferVec3Z(_q1), ferVec3Y(_q1));
-        ferVec2Set(&q1, ferVec3Z(_p1), ferVec3Y(_p1));
-        ferVec2Set(&r1, ferVec3Z(_r1), ferVec3Y(_r1));
+        borVec2Set(&p1, borVec3Z(_q1), borVec3Y(_q1));
+        borVec2Set(&q1, borVec3Z(_p1), borVec3Y(_p1));
+        borVec2Set(&r1, borVec3Z(_r1), borVec3Y(_r1));
 
-        ferVec2Set(&p2, ferVec3Z(_q2), ferVec3Y(_q2));
-        ferVec2Set(&q2, ferVec3Z(_p2), ferVec3Y(_p2));
-        ferVec2Set(&r2, ferVec3Z(_r2), ferVec3Y(_r2));
+        borVec2Set(&p2, borVec3Z(_q2), borVec3Y(_q2));
+        borVec2Set(&q2, borVec3Z(_p2), borVec3Y(_p2));
+        borVec2Set(&r2, borVec3Z(_r2), borVec3Y(_r2));
     }else if (n_y > n_z && n_y >= n_x){
         // Project onto plane XZ
-        ferVec2Set(&p1, ferVec3X(_q1), ferVec3Z(_q1));
-        ferVec2Set(&q1, ferVec3X(_p1), ferVec3Z(_p1));
-        ferVec2Set(&r1, ferVec3X(_r1), ferVec3Z(_r1));
+        borVec2Set(&p1, borVec3X(_q1), borVec3Z(_q1));
+        borVec2Set(&q1, borVec3X(_p1), borVec3Z(_p1));
+        borVec2Set(&r1, borVec3X(_r1), borVec3Z(_r1));
 
-        ferVec2Set(&p2, ferVec3X(_q2), ferVec3Z(_q2));
-        ferVec2Set(&q2, ferVec3X(_p2), ferVec3Z(_p2));
-        ferVec2Set(&r2, ferVec3X(_r2), ferVec3Z(_r2));
+        borVec2Set(&p2, borVec3X(_q2), borVec3Z(_q2));
+        borVec2Set(&q2, borVec3X(_p2), borVec3Z(_p2));
+        borVec2Set(&r2, borVec3X(_r2), borVec3Z(_r2));
     }else {
         // Project onto plane XY
-        ferVec2Set(&p1, ferVec3X(_q1), ferVec3Y(_q1));
-        ferVec2Set(&q1, ferVec3X(_p1), ferVec3Y(_p1));
-        ferVec2Set(&r1, ferVec3X(_r1), ferVec3Y(_r1));
+        borVec2Set(&p1, borVec3X(_q1), borVec3Y(_q1));
+        borVec2Set(&q1, borVec3X(_p1), borVec3Y(_p1));
+        borVec2Set(&r1, borVec3X(_r1), borVec3Y(_r1));
 
-        ferVec2Set(&p2, ferVec3X(_q2), ferVec3Y(_q2));
-        ferVec2Set(&q2, ferVec3X(_p2), ferVec3Y(_p2));
-        ferVec2Set(&r2, ferVec3X(_r2), ferVec3Y(_r2));
+        borVec2Set(&p2, borVec3X(_q2), borVec3Y(_q2));
+        borVec2Set(&q2, borVec3X(_p2), borVec3Y(_p2));
+        borVec2Set(&r2, borVec3X(_r2), borVec3Y(_r2));
     }
 
-    return ferVec2TriTriOverlap(&p1, &q1, &r1,
+    return borVec2TriTriOverlap(&p1, &q1, &r1,
                                 &p2, &q2, &r2);
 }
 
-int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
+int borVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
                          const bor_vec3_t *r1,
                          const bor_vec3_t *p2, const bor_vec3_t *q2,
                          const bor_vec3_t *r2)
@@ -646,17 +646,17 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
     bor_real_t sp2, sq2, sr2;
 
     // compute signs of first triangle to second triangle
-    ferVec3Sub2(&v1, p2, r2);
-    ferVec3Sub2(&v2, q2, r2);
-    ferVec3Cross(&n2, &v1, &v2);
-    ferVec3Normalize(&n2);
+    borVec3Sub2(&v1, p2, r2);
+    borVec3Sub2(&v2, q2, r2);
+    borVec3Cross(&n2, &v1, &v2);
+    borVec3Normalize(&n2);
 
-    ferVec3Sub2(&v1, p1, r2);
-    sp1 = ferVec3Dot(&v1, &n2);
-    ferVec3Sub2(&v1, q1, r2);
-    sq1 = ferVec3Dot(&v1, &n2);
-    ferVec3Sub2(&v1, r1, r2);
-    sr1 = ferVec3Dot(&v1, &n2);
+    borVec3Sub2(&v1, p1, r2);
+    sp1 = borVec3Dot(&v1, &n2);
+    borVec3Sub2(&v1, q1, r2);
+    sq1 = borVec3Dot(&v1, &n2);
+    borVec3Sub2(&v1, r1, r2);
+    sr1 = borVec3Dot(&v1, &n2);
 
     // check if all points from tri1 aren't on same side
     if (sp1 * sq1 > BOR_ZERO
@@ -665,17 +665,17 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
 
 
     // compute signs for second triangle
-    ferVec3Sub2(&v1, q1, p1);
-    ferVec3Sub2(&v2, r1, p1);
-    ferVec3Cross(&n1, &v1, &v2);
-    ferVec3Normalize(&n1);
+    borVec3Sub2(&v1, q1, p1);
+    borVec3Sub2(&v2, r1, p1);
+    borVec3Cross(&n1, &v1, &v2);
+    borVec3Normalize(&n1);
 
-    ferVec3Sub2(&v1, p2, r1);
-    sp2 = ferVec3Dot(&v1, &n1);
-    ferVec3Sub2(&v1, q2, r1);
-    sq2 = ferVec3Dot(&v1, &n1);
-    ferVec3Sub2(&v1, r2, r1);
-    sr2 = ferVec3Dot(&v1, &n1);
+    borVec3Sub2(&v1, p2, r1);
+    sp2 = borVec3Dot(&v1, &n1);
+    borVec3Sub2(&v1, q2, r1);
+    sq2 = borVec3Dot(&v1, &n1);
+    borVec3Sub2(&v1, r2, r1);
+    sr2 = borVec3Dot(&v1, &n1);
 
     // check if all tri2s' points aren't on same side
     if (sp2 * sq2 > BOR_ZERO
@@ -683,9 +683,9 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
         return 0;
 
 
-    if (ferIsZero(sp1)){
-        if (ferIsZero(sq1)){
-            if (ferIsZero(sr1)){
+    if (borIsZero(sp1)){
+        if (borIsZero(sq1)){
+            if (borIsZero(sr1)){
                 return __overlapCoplanar(p1, q1, r1, p2, q2, r2, &n1, &n2);
             }else if (sr1 > BOR_ZERO){
                 __overlapCheck(r1,p1,q1,p2,q2,r2,sp2,sq2,sr2)
@@ -693,7 +693,7 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
                 __overlapCheck(r1,p1,q1,p2,r2,q2,sp2,sr2,sq2)
             }
         }else if (sq1 < BOR_ZERO){
-            if (ferIsZero(sr1) || sr1 > BOR_ZERO){
+            if (borIsZero(sr1) || sr1 > BOR_ZERO){
                 __overlapCheck(q1,r1,p1,p2,r2,q2,sp2,sr2,sq2)
             }else{
                 __overlapCheck(p1,q1,r1,p2,q2,r2,sp2,sq2,sr2)
@@ -727,7 +727,7 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
 }
 
 
-/** ferVec3TriTriIntersect() adapted from http://jgt.akpeters.com/papers/Moller97/tritri.html */
+/** borVec3TriTriIntersect() adapted from http://jgt.akpeters.com/papers/Moller97/tritri.html */
 /* if USE_EPSILON_TEST is true then we do a check:
          if |dv|<EPSILON then dv=0.0;
    else no check is done (which is less robust)
@@ -750,10 +750,10 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
    "Faster Line Segment Intersection", in Graphics Gems III,
    pp. 199-202 */
 #define EDGE_EDGE_TEST(V0,U0,U1)                      \
-  Bx=ferVec3Get(U0, i0)-ferVec3Get(U1, i0);           \
-  By=ferVec3Get(U0, i1)-ferVec3Get(U1, i1);           \
-  Cx=ferVec3Get(V0, i0)-ferVec3Get(U0, i0);           \
-  Cy=ferVec3Get(V0, i1)-ferVec3Get(U0, i1);           \
+  Bx=borVec3Get(U0, i0)-borVec3Get(U1, i0);           \
+  By=borVec3Get(U0, i1)-borVec3Get(U1, i1);           \
+  Cx=borVec3Get(V0, i0)-borVec3Get(U0, i0);           \
+  Cy=borVec3Get(V0, i1)-borVec3Get(U0, i1);           \
   f=Ay*Bx-Ax*By;                                      \
   d=By*Cx-Bx*Cy;                                      \
   if((f>0 && d>=0 && d<=f) || (f<0 && d<=0 && d>=f))  \
@@ -772,8 +772,8 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
 #define EDGE_AGAINST_TRI_EDGES(V0,V1,U0,U1,U2) \
 {                                              \
   bor_real_t Ax,Ay,Bx,By,Cx,Cy,e,d,f;          \
-  Ax=ferVec3Get(V1, i0)-ferVec3Get(V0, i0);    \
-  Ay=ferVec3Get(V1, i1)-ferVec3Get(V0, i1);    \
+  Ax=borVec3Get(V1, i0)-borVec3Get(V0, i0);    \
+  Ay=borVec3Get(V1, i1)-borVec3Get(V0, i1);    \
   /* test edge U0,U1 against V0,V1 */          \
   EDGE_EDGE_TEST(V0,U0,U1);                    \
   /* test edge U1,U2 against V0,V1 */          \
@@ -787,20 +787,20 @@ int ferVec3TriTriOverlap(const bor_vec3_t *p1, const bor_vec3_t *q1,
   bor_real_t a,b,c,d0,d1,d2;                \
   /* is T1 completly inside T2? */          \
   /* check if V0 is inside tri(U0,U1,U2) */ \
-  a=ferVec3Get(U1, i1)-ferVec3Get(U0, i1);                          \
-  b=-(ferVec3Get(U1, i0)-ferVec3Get(U0, i0));                       \
-  c=-a*ferVec3Get(U0, i0)-b*ferVec3Get(U0, i1);                     \
-  d0=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+  a=borVec3Get(U1, i1)-borVec3Get(U0, i1);                          \
+  b=-(borVec3Get(U1, i0)-borVec3Get(U0, i0));                       \
+  c=-a*borVec3Get(U0, i0)-b*borVec3Get(U0, i1);                     \
+  d0=a*borVec3Get(V0, i0)+b*borVec3Get(V0, i1)+c;                   \
                                             \
-  a=ferVec3Get(U2, i1)-ferVec3Get(U1, i1);                          \
-  b=-(ferVec3Get(U2, i0)-ferVec3Get(U1, i0));                       \
-  c=-a*ferVec3Get(U1, i0)-b*ferVec3Get(U1, i1);                     \
-  d1=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+  a=borVec3Get(U2, i1)-borVec3Get(U1, i1);                          \
+  b=-(borVec3Get(U2, i0)-borVec3Get(U1, i0));                       \
+  c=-a*borVec3Get(U1, i0)-b*borVec3Get(U1, i1);                     \
+  d1=a*borVec3Get(V0, i0)+b*borVec3Get(V0, i1)+c;                   \
                                             \
-  a=ferVec3Get(U0, i1)-ferVec3Get(U2, i1);                          \
-  b=-(ferVec3Get(U0, i0)-ferVec3Get(U2, i0));                       \
-  c=-a*ferVec3Get(U2, i0)-b*ferVec3Get(U2, i1);                     \
-  d2=a*ferVec3Get(V0, i0)+b*ferVec3Get(V0, i1)+c;                   \
+  a=borVec3Get(U0, i1)-borVec3Get(U2, i1);                          \
+  b=-(borVec3Get(U0, i0)-borVec3Get(U2, i0));                       \
+  c=-a*borVec3Get(U2, i0)-b*borVec3Get(U2, i1);                     \
+  d2=a*borVec3Get(V0, i0)+b*borVec3Get(V0, i1)+c;                   \
   if(d0*d1>0.0)                             \
   {                                         \
     if(d0*d2>0.0) return 1;                 \
@@ -815,9 +815,9 @@ static int coplanar_tri_tri(const bor_vec3_t *N, const bor_vec3_t *V0, const bor
 
     /* first project onto an axis-aligned plane, that maximizes the area */
     /* of the triangles, compute indices: i0,i1. */
-    A[0]=BOR_FABS(ferVec3X(N));
-    A[1]=BOR_FABS(ferVec3Y(N));
-    A[2]=BOR_FABS(ferVec3Z(N));
+    A[0]=BOR_FABS(borVec3X(N));
+    A[1]=BOR_FABS(borVec3Y(N));
+    A[2]=BOR_FABS(borVec3Z(N));
     if(A[0]>A[1])
     {
         if(A[0]>A[2])
@@ -857,7 +857,7 @@ static int coplanar_tri_tri(const bor_vec3_t *N, const bor_vec3_t *V0, const bor
     return 0;
 }
 
-_fer_inline void isect2(const bor_vec3_t *VTX0, const bor_vec3_t *VTX1,
+_bor_inline void isect2(const bor_vec3_t *VTX0, const bor_vec3_t *VTX1,
                         const bor_vec3_t *VTX2,
                         bor_real_t VV0,bor_real_t VV1,bor_real_t VV2,
                         bor_real_t D0,bor_real_t D1,bor_real_t D2,bor_real_t *isect0,bor_real_t *isect1,
@@ -867,16 +867,16 @@ _fer_inline void isect2(const bor_vec3_t *VTX0, const bor_vec3_t *VTX1,
     bor_vec3_t diff;
 
     *isect0=VV0+(VV1-VV0)*tmp;
-    ferVec3Sub2(&diff, VTX1, VTX0);
-    ferVec3Scale(&diff, tmp);
-    ferVec3Add2(isectpoint0,&diff,VTX0);
+    borVec3Sub2(&diff, VTX1, VTX0);
+    borVec3Scale(&diff, tmp);
+    borVec3Add2(isectpoint0,&diff,VTX0);
     tmp=D0/(D0-D2);
     *isect1=VV0+(VV2-VV0)*tmp;
-    ferVec3Sub2(&diff,VTX2,VTX0);
-    ferVec3Scale(&diff,tmp);
-    ferVec3Add2(isectpoint1,VTX0,&diff);
+    borVec3Sub2(&diff,VTX2,VTX0);
+    borVec3Scale(&diff,tmp);
+    borVec3Add2(isectpoint1,VTX0,&diff);
 }
-_fer_inline int compute_intervals_isectline(const bor_vec3_t *VERT0,
+_bor_inline int compute_intervals_isectline(const bor_vec3_t *VERT0,
                                             const bor_vec3_t *VERT1,
                                             const bor_vec3_t *VERT2,
                                             bor_real_t VV0, bor_real_t VV1,
@@ -920,7 +920,7 @@ _fer_inline int compute_intervals_isectline(const bor_vec3_t *VERT0,
     return 0;
 }
 
-int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
+int borVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
                            const bor_vec3_t *V2,
                            const bor_vec3_t *U0, const bor_vec3_t *U1,
                            const bor_vec3_t *U2,
@@ -941,22 +941,22 @@ int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
     int smallest1,smallest2;
 
     /* compute plane equation of triangle(V0,V1,V2) */
-    ferVec3Sub2(&E1,V1,V0);
-    ferVec3Sub2(&E2,V2,V0);
-    ferVec3Cross(&N1,&E1,&E2);
-    d1=-ferVec3Dot(&N1,V0);
+    borVec3Sub2(&E1,V1,V0);
+    borVec3Sub2(&E2,V2,V0);
+    borVec3Cross(&N1,&E1,&E2);
+    d1=-borVec3Dot(&N1,V0);
     /* plane equation 1: N1.X+d1=0 */
 
     /* put U0,U1,U2 into plane equation 1 to compute signed distances to the plane*/
-    du0=ferVec3Dot(&N1,U0)+d1;
-    du1=ferVec3Dot(&N1,U1)+d1;
-    du2=ferVec3Dot(&N1,U2)+d1;
+    du0=borVec3Dot(&N1,U0)+d1;
+    du1=borVec3Dot(&N1,U1)+d1;
+    du2=borVec3Dot(&N1,U2)+d1;
 
     /* coplanarity robustness check */
 #ifdef USE_EPSILON_TEST
-    if(ferIsZero(du0)) du0 = BOR_ZERO;
-    if(ferIsZero(du1)) du1 = BOR_ZERO;
-    if(ferIsZero(du2)) du2 = BOR_ZERO;
+    if(borIsZero(du0)) du0 = BOR_ZERO;
+    if(borIsZero(du1)) du1 = BOR_ZERO;
+    if(borIsZero(du2)) du2 = BOR_ZERO;
 #endif
     du0du1=du0*du1;
     du0du2=du0*du2;
@@ -965,21 +965,21 @@ int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
         return 0;                    /* no intersection occurs */
 
     /* compute plane of triangle (U0,U1,U2) */
-    ferVec3Sub2(&E1,U1,U0);
-    ferVec3Sub2(&E2,U2,U0);
-    ferVec3Cross(&N2,&E1,&E2);
-    d2=-ferVec3Dot(&N2,U0);
+    borVec3Sub2(&E1,U1,U0);
+    borVec3Sub2(&E2,U2,U0);
+    borVec3Cross(&N2,&E1,&E2);
+    d2=-borVec3Dot(&N2,U0);
     /* plane equation 2: N2.X+d2=0 */
 
     /* put V0,V1,V2 into plane equation 2 */
-    dv0=ferVec3Dot(&N2,V0)+d2;
-    dv1=ferVec3Dot(&N2,V1)+d2;
-    dv2=ferVec3Dot(&N2,V2)+d2;
+    dv0=borVec3Dot(&N2,V0)+d2;
+    dv1=borVec3Dot(&N2,V1)+d2;
+    dv2=borVec3Dot(&N2,V2)+d2;
 
 #ifdef USE_EPSILON_TEST
-    if(ferIsZero(dv0)) dv0 = BOR_ZERO;
-    if(ferIsZero(dv1)) dv1 = BOR_ZERO;
-    if(ferIsZero(dv2)) dv2 = BOR_ZERO;
+    if(borIsZero(dv0)) dv0 = BOR_ZERO;
+    if(borIsZero(dv1)) dv1 = BOR_ZERO;
+    if(borIsZero(dv2)) dv2 = BOR_ZERO;
 #endif
 
     dv0dv1=dv0*dv1;
@@ -989,24 +989,24 @@ int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
         return 0;                    /* no intersection occurs */
 
     /* compute direction of intersection line */
-    ferVec3Cross(&D,&N1,&N2);
+    borVec3Cross(&D,&N1,&N2);
 
     /* compute and index to the largest component of D */
-    max=BOR_FABS(ferVec3X(&D));
+    max=BOR_FABS(borVec3X(&D));
     index=0;
-    b=BOR_FABS(ferVec3Y(&D));
-    c=BOR_FABS(ferVec3Z(&D));
+    b=BOR_FABS(borVec3Y(&D));
+    c=BOR_FABS(borVec3Z(&D));
     if(b>max) max=b,index=1;
     if(c>max) max=c,index=2;
 
     /* this is the simplified projection onto L*/
-    vp0=ferVec3Get(V0, index);
-    vp1=ferVec3Get(V1, index);
-    vp2=ferVec3Get(V2, index);
+    vp0=borVec3Get(V0, index);
+    vp1=borVec3Get(V1, index);
+    vp2=borVec3Get(V2, index);
 
-    up0=ferVec3Get(U0, index);
-    up1=ferVec3Get(U1, index);
-    up2=ferVec3Get(U2, index);
+    up0=borVec3Get(U0, index);
+    up1=borVec3Get(U1, index);
+    up2=borVec3Get(U2, index);
 
     /* compute interval for triangle 1 */
     if (compute_intervals_isectline(V0,V1,V2,vp0,vp1,vp2,dv0,dv1,dv2,
@@ -1035,34 +1035,34 @@ int ferVec3TriTriIntersect(const bor_vec3_t *V0, const bor_vec3_t *V1,
 
     if(isect2[0]<isect1[0])
     {
-        if(smallest1==0) { ferVec3Copy(isectpt1,&isectpointA1); }
-        else { ferVec3Copy(isectpt1,&isectpointA2); }
+        if(smallest1==0) { borVec3Copy(isectpt1,&isectpointA1); }
+        else { borVec3Copy(isectpt1,&isectpointA2); }
 
         if(isect2[1]<isect1[1])
         {
-            if(smallest2==0) { ferVec3Copy(isectpt2,&isectpointB2); }
-            else { ferVec3Copy(isectpt2,&isectpointB1); }
+            if(smallest2==0) { borVec3Copy(isectpt2,&isectpointB2); }
+            else { borVec3Copy(isectpt2,&isectpointB1); }
         }
         else
         {
-            if(smallest1==0) { ferVec3Copy(isectpt2,&isectpointA2); }
-            else { ferVec3Copy(isectpt2,&isectpointA1); }
+            if(smallest1==0) { borVec3Copy(isectpt2,&isectpointA2); }
+            else { borVec3Copy(isectpt2,&isectpointA1); }
         }
     }
     else
     {
-        if(smallest2==0) { ferVec3Copy(isectpt1,&isectpointB1); }
-        else { ferVec3Copy(isectpt1,&isectpointB2); }
+        if(smallest2==0) { borVec3Copy(isectpt1,&isectpointB1); }
+        else { borVec3Copy(isectpt1,&isectpointB2); }
 
         if(isect2[1]>isect1[1])
         {
-            if(smallest1==0) { ferVec3Copy(isectpt2,&isectpointA2); }
-            else { ferVec3Copy(isectpt2,&isectpointA1); }
+            if(smallest1==0) { borVec3Copy(isectpt2,&isectpointA2); }
+            else { borVec3Copy(isectpt2,&isectpointA1); }
         }
         else
         {
-            if(smallest2==0) { ferVec3Copy(isectpt2,&isectpointB2); }
-            else { ferVec3Copy(isectpt2,&isectpointB1); }
+            if(smallest2==0) { borVec3Copy(isectpt2,&isectpointB2); }
+            else { borVec3Copy(isectpt2,&isectpointB1); }
         }
     }
     return 1;

@@ -44,11 +44,11 @@ static el_t *randomEls(size_t num)
     el_t *els;
     size_t i;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     els = BOR_ALLOC_ARR(el_t, num);
     for (i = 0; i < num; i++){
-        val = ferRand(&r, -500., 500.);
+        val = borRand(&r, -500., 500.);
         els[i].val = val;
         els[i].id = i;
     }
@@ -62,7 +62,7 @@ static int cmpIncEl(const void *i1, const void *i2)
     e1 = (el_t *)i1;
     e2 = (el_t *)i2;
 
-    if (ferEq(e1->val, e2->val))
+    if (borEq(e1->val, e2->val))
         return 0;
     if (e1->val < e2->val)
         return -1;
@@ -73,8 +73,8 @@ static int ltEl(const bor_fibo_node_t *n1, const bor_fibo_node_t *n2, void *_)
 {
     el_t *el1, *el2;
 
-    el1 = fer_container_of(n1, el_t, node);
-    el2 = fer_container_of(n2, el_t, node);
+    el1 = bor_container_of(n1, el_t, node);
+    el2 = bor_container_of(n2, el_t, node);
 
     return el1->val < el2->val;
 }
@@ -98,20 +98,20 @@ static void checkCorrect(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew(ltEl, NULL);
+    fibo = borFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferFiboAdd(fibo, &els[i].node);
+        borFiboAdd(fibo, &els[i].node);
     }
 
     i = 0;
-    while (!ferFiboEmpty(fibo)){
-        n = ferFiboExtractMin(fibo);
+    while (!borFiboEmpty(fibo)){
+        n = borFiboExtractMin(fibo);
         //if (num == 100)
         //    fiboDump(fibo);
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -122,7 +122,7 @@ static void checkCorrect(int ID, size_t num)
     }
 
 
-    ferFiboDel(fibo);
+    borFiboDel(fibo);
     free(els);
     free(ids);
 
@@ -141,7 +141,7 @@ static void checkCorrect2(int ID, size_t num)
     char fn[300];
     bor_rand_t r;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     sprintf(fn, "regressions/tmp.TSFibo.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
@@ -151,23 +151,23 @@ static void checkCorrect2(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew(ltEl, NULL);
+    fibo = borFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferFiboAdd(fibo, &els[i].node);
+        borFiboAdd(fibo, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
-        els[i].val -= ferRand(&r, 1, 100);
-        ferFiboDecreaseKey(fibo, &els[i].node);
+        els[i].val -= borRand(&r, 1, 100);
+        borFiboDecreaseKey(fibo, &els[i].node);
     }
 
     i = 0;
-    while (!ferFiboEmpty(fibo)){
-        n = ferFiboExtractMin(fibo);
-        el = fer_container_of(n, el_t, node);
+    while (!borFiboEmpty(fibo)){
+        n = borFiboExtractMin(fibo);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -178,7 +178,7 @@ static void checkCorrect2(int ID, size_t num)
     }
 
 
-    ferFiboDel(fibo);
+    borFiboDel(fibo);
     free(els);
     free(ids);
 
@@ -198,7 +198,7 @@ static void checkCorrect3(int ID, size_t num)
     char fn[300];
     bor_rand_t r;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     sprintf(fn, "regressions/tmp.TSFibo.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
@@ -208,23 +208,23 @@ static void checkCorrect3(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    fibo = ferFiboNew(ltEl, NULL);
+    fibo = borFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferFiboAdd(fibo, &els[i].node);
+        borFiboAdd(fibo, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
-        els[i].val += ferRand(&r, 1, 100);
-        ferFiboUpdate(fibo, &els[i].node);
+        els[i].val += borRand(&r, 1, 100);
+        borFiboUpdate(fibo, &els[i].node);
     }
 
     i = 0;
-    while (!ferFiboEmpty(fibo)){
-        n = ferFiboExtractMin(fibo);
-        el = fer_container_of(n, el_t, node);
+    while (!borFiboEmpty(fibo)){
+        n = borFiboExtractMin(fibo);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -235,7 +235,7 @@ static void checkCorrect3(int ID, size_t num)
     }
 
 
-    ferFiboDel(fibo);
+    borFiboDel(fibo);
     free(els);
     free(ids);
 

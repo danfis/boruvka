@@ -17,7 +17,7 @@
 #include <boruvka/barrier.h>
 #include <boruvka/alloc.h>
 
-bor_barrier_t *ferBarrierNew(uint16_t goal)
+bor_barrier_t *borBarrierNew(uint16_t goal)
 {
     bor_barrier_t *b;
 
@@ -31,14 +31,14 @@ bor_barrier_t *ferBarrierNew(uint16_t goal)
     return b;
 }
 
-void ferBarrierDel(bor_barrier_t *b)
+void borBarrierDel(bor_barrier_t *b)
 {
     pthread_mutex_destroy(&b->lock);
     pthread_cond_destroy(&b->cond);
     BOR_FREE(b);
 }
 
-void ferBarrier(bor_barrier_t *b)
+void borBarrier(bor_barrier_t *b)
 {
     pthread_mutex_lock(&b->lock);
     ++b->cur;

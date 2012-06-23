@@ -50,7 +50,7 @@ static void invalidOptErr(const bor_opt_t *opt);
 
 static const char *strend(const char *str);
 
-int ferOptsAdd(const char *long_name, char short_name,
+int borOptsAdd(const char *long_name, char short_name,
                uint32_t type, void *set, void (*callback)(void))
 {
     size_t i;
@@ -77,14 +77,14 @@ int ferOptsAdd(const char *long_name, char short_name,
     return i;
 }
 
-int ferOptsAddDesc(const char *long_name, char short_name,
+int borOptsAddDesc(const char *long_name, char short_name,
                    uint32_t type, void *set, void (*callback)(void),
                    const char *desc)
 {
     size_t id, desclen;
     bor_opt_t *opt;
    
-    id = ferOptsAdd(long_name, short_name, type, set, callback);
+    id = borOptsAdd(long_name, short_name, type, set, callback);
     if (id < 0)
         return -1;
 
@@ -98,7 +98,7 @@ int ferOptsAddDesc(const char *long_name, char short_name,
     return id;
 }
 
-void ferOptsClear(void)
+void borOptsClear(void)
 {
     size_t i;
 
@@ -112,7 +112,7 @@ void ferOptsClear(void)
     opts_len = 0;
 }
 
-int ferOpts(int *argc, char **argv)
+int borOpts(int *argc, char **argv)
 {
     bor_opt_t *opt;
     int args_remaining;
@@ -236,7 +236,7 @@ static void invalidOptErr(const bor_opt_t *opt)
     void (*cb)(const char *, char, type); \
     long val; \
     \
-    if (ferParseLong((arg), strend(arg), &val, NULL) != 0){ \
+    if (borParseLong((arg), strend(arg), &val, NULL) != 0){ \
         invalidOptErr(opt); \
         return -1; \
     } \
@@ -272,7 +272,7 @@ static int optArgReal(bor_opt_t *opt, const char *arg)
     void (*cb)(const char *, char, bor_real_t);
     bor_real_t val;
 
-    if (ferParseReal(arg, strend(arg), &val, NULL) != 0){
+    if (borParseReal(arg, strend(arg), &val, NULL) != 0){
         if (opt->long_name){
             fprintf(stderr, "Invalid argument of --%s option.\n", opt->long_name);
         }else{
@@ -308,19 +308,19 @@ static int optArgV2(bor_opt_t *opt, const char *arg)
         goto optArgV2_err;
     }
 
-    if (ferParseReal(arg, arg2, &val, NULL) != 0){
+    if (borParseReal(arg, arg2, &val, NULL) != 0){
         goto optArgV2_err;
     }
-    ferVec2SetX(&v2, val);
+    borVec2SetX(&v2, val);
 
     ++arg2;
-    if (ferParseReal(arg2, strend(arg2), &val, NULL) != 0){
+    if (borParseReal(arg2, strend(arg2), &val, NULL) != 0){
         goto optArgV2_err;
     }
-    ferVec2SetY(&v2, val);
+    borVec2SetY(&v2, val);
 
     if (opt->set){
-        ferVec2Copy((bor_vec2_t *)opt->set, &v2);
+        borVec2Copy((bor_vec2_t *)opt->set, &v2);
     }
 
     if (opt->callback){
@@ -467,7 +467,7 @@ static void printDesc(bor_opt_t *opt, FILE *out)
     fprintf(out, opt->desc);
 }
 
-void ferOptsPrint(FILE *out, const char *lineprefix)
+void borOptsPrint(FILE *out, const char *lineprefix)
 {
     size_t i;
     size_t name_len;

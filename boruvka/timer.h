@@ -33,7 +33,7 @@ extern "C" {
 struct _bor_timer_t {
     struct timespec t_start;   /*!< Time when timer was started */
     struct timespec t_elapsed; /*!< Elapsed time from start of timer in
-                                    moment when ferTimerStop() was called */
+                                    moment when borTimerStop() was called */
 };
 typedef struct _bor_timer_t bor_timer_t;
 
@@ -47,112 +47,112 @@ typedef struct _bor_timer_t bor_timer_t;
  *
  * In fact, this only fills .t_start member of bor_timer_t struct.
  */
-_fer_inline void ferTimerStart(bor_timer_t *t);
+_bor_inline void borTimerStart(bor_timer_t *t);
 
 /**
- * Stops timer and computes elapsed time from last ferTimerStart() call.
+ * Stops timer and computes elapsed time from last borTimerStart() call.
  */
-_fer_inline void ferTimerStop(bor_timer_t *t);
+_bor_inline void borTimerStop(bor_timer_t *t);
 
 /**
  * Returns elapsed time.
  */
-_fer_inline const struct timespec *ferTimerElapsed(const bor_timer_t *t);
+_bor_inline const struct timespec *borTimerElapsed(const bor_timer_t *t);
 
 
 /**
  * Works as usual fprintf(3) but output is printed with prefix elapsed time
  * in format [minutes:seconds.milisec].
  */
-void ferTimerPrintElapsed(const bor_timer_t *t, FILE *out,
+void borTimerPrintElapsed(const bor_timer_t *t, FILE *out,
                           const char *format, ...);
 /**
- * Stops timer and prints output same as ferTimerPrintElapsed().
+ * Stops timer and prints output same as borTimerPrintElapsed().
  */
-void ferTimerStopAndPrintElapsed(bor_timer_t *t, FILE *out,
+void borTimerStopAndPrintElapsed(bor_timer_t *t, FILE *out,
                                  const char *format, ...);
 
 /**
- * Equivalent to ferTimerPrintElapsed() expect it is called with va_list
+ * Equivalent to borTimerPrintElapsed() expect it is called with va_list
  * instead of variable number of arguments.
  */
-_fer_inline void ferTimerPrintElapsed2(const bor_timer_t *t, FILE *out,
+_bor_inline void borTimerPrintElapsed2(const bor_timer_t *t, FILE *out,
                                        const char *format, va_list ap);
 
 /**
  * Returns nanosecond part of elapsed time.
  */
-_fer_inline long ferTimerElapsedNs(const bor_timer_t *t);
+_bor_inline long borTimerElapsedNs(const bor_timer_t *t);
 
 /**
  * Returns microsecond part of elapsed time.
  */
-_fer_inline long ferTimerElapsedUs(const bor_timer_t *t);
+_bor_inline long borTimerElapsedUs(const bor_timer_t *t);
 
 /**
  * Returns milisecond part of elapsed time.
  */
-_fer_inline long ferTimerElapsedMs(const bor_timer_t *t);
+_bor_inline long borTimerElapsedMs(const bor_timer_t *t);
 
 /**
  * Returns second part of elapsed time.
  */
-_fer_inline long ferTimerElapsedS(const bor_timer_t *t);
+_bor_inline long borTimerElapsedS(const bor_timer_t *t);
 
 /**
  * Returns minute part of elapsed time.
  */
-_fer_inline long ferTimerElapsedM(const bor_timer_t *t);
+_bor_inline long borTimerElapsedM(const bor_timer_t *t);
 
 /**
  * Returns hour part of elapsed time.
  */
-_fer_inline long ferTimerElapsedH(const bor_timer_t *t);
+_bor_inline long borTimerElapsedH(const bor_timer_t *t);
 
 
 /**
  * Returns elapsed time in ns.
  */
-_fer_inline unsigned long ferTimerElapsedInNs(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInNs(const bor_timer_t *t);
 
 /**
  * Returns elapsed time in us.
  */
-_fer_inline unsigned long ferTimerElapsedInUs(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInUs(const bor_timer_t *t);
 
 /**
  * Returns elapsed time in ms.
  */
-_fer_inline unsigned long ferTimerElapsedInMs(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInMs(const bor_timer_t *t);
 
 /**
  * Returns elapsed time in s.
  */
-_fer_inline unsigned long ferTimerElapsedInS(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInS(const bor_timer_t *t);
 
 /**
  * Returns elapsed time in m.
  */
-_fer_inline unsigned long ferTimerElapsedInM(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInM(const bor_timer_t *t);
 
 /**
  * Returns elapsed time in h.
  */
-_fer_inline unsigned long ferTimerElapsedInH(const bor_timer_t *t);
+_bor_inline unsigned long borTimerElapsedInH(const bor_timer_t *t);
 
 
 /**
  * Returns elapsed time in s as float number
  */
-_fer_inline bor_real_t ferTimerElapsedInSF(const bor_timer_t *t);
+_bor_inline bor_real_t borTimerElapsedInSF(const bor_timer_t *t);
 
 /**** INLINES ****/
-_fer_inline void ferTimerStart(bor_timer_t *t)
+_bor_inline void borTimerStart(bor_timer_t *t)
 {
     clock_gettime(CLOCK_MONOTONIC, &t->t_start);
 }
 
-_fer_inline void ferTimerStop(bor_timer_t *t)
+_bor_inline void borTimerStop(bor_timer_t *t)
 {
     struct timespec cur;
     clock_gettime(CLOCK_MONOTONIC, &cur);
@@ -167,86 +167,86 @@ _fer_inline void ferTimerStop(bor_timer_t *t)
     }
 }
 
-_fer_inline const struct timespec *ferTimerElapsed(const bor_timer_t *t)
+_bor_inline const struct timespec *borTimerElapsed(const bor_timer_t *t)
 {
     return &t->t_elapsed;
 }
 
-_fer_inline void ferTimerPrintElapsed2(const bor_timer_t *t, FILE *out,
+_bor_inline void borTimerPrintElapsed2(const bor_timer_t *t, FILE *out,
                                        const char *format, va_list ap)
 {
     /* print elapsed time */
     fprintf(out, "[%02ld:%02ld.%03ld]",
-            ferTimerElapsedM(t),
-            ferTimerElapsedS(t),
-            ferTimerElapsedMs(t));
+            borTimerElapsedM(t),
+            borTimerElapsedS(t),
+            borTimerElapsedMs(t));
 
     /* print the rest */
     vfprintf(out, format, ap);
 }
 
-_fer_inline long ferTimerElapsedNs(const bor_timer_t *t)
+_bor_inline long borTimerElapsedNs(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_nsec % 1000L;
 }
 
-_fer_inline long ferTimerElapsedUs(const bor_timer_t *t)
+_bor_inline long borTimerElapsedUs(const bor_timer_t *t)
 {
     return (t->t_elapsed.tv_nsec / 1000L) % 1000L;
 }
 
-_fer_inline long ferTimerElapsedMs(const bor_timer_t *t)
+_bor_inline long borTimerElapsedMs(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_nsec / 1000000L;
 }
 
-_fer_inline long ferTimerElapsedS(const bor_timer_t *t)
+_bor_inline long borTimerElapsedS(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_sec % 60L;
 }
 
-_fer_inline long ferTimerElapsedM(const bor_timer_t *t)
+_bor_inline long borTimerElapsedM(const bor_timer_t *t)
 {
     return (t->t_elapsed.tv_sec / 60L) % 60L;
 }
 
-_fer_inline long ferTimerElapsedH(const bor_timer_t *t)
+_bor_inline long borTimerElapsedH(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_sec / 3600L;
 }
 
 
-_fer_inline unsigned long ferTimerElapsedInNs(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInNs(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_nsec + t->t_elapsed.tv_sec * 1000000000L;
 }
 
-_fer_inline unsigned long ferTimerElapsedInUs(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInUs(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_nsec / 1000L + t->t_elapsed.tv_sec * 1000000L;
 }
 
-_fer_inline unsigned long ferTimerElapsedInMs(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInMs(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_nsec / 1000000L + t->t_elapsed.tv_sec * 1000L;
 }
 
-_fer_inline unsigned long ferTimerElapsedInS(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInS(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_sec;
 }
 
-_fer_inline unsigned long ferTimerElapsedInM(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInM(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_sec / 60L;
 }
 
-_fer_inline unsigned long ferTimerElapsedInH(const bor_timer_t *t)
+_bor_inline unsigned long borTimerElapsedInH(const bor_timer_t *t)
 {
     return t->t_elapsed.tv_sec / 3600L;
 }
 
-_fer_inline bor_real_t ferTimerElapsedInSF(const bor_timer_t *t)
+_bor_inline bor_real_t borTimerElapsedInSF(const bor_timer_t *t)
 {
     bor_real_t time;
     time  = t->t_elapsed.tv_nsec / BOR_REAL(1000000000.);

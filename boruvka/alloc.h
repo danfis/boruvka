@@ -33,7 +33,7 @@ extern "C" {
 
 /* Memory allocation: - internal macro */
 #define _BOR_ALLOC_MEMORY(type, ptr_old, size) \
-    (type *)ferRealloc((void *)ptr_old, (size))
+    (type *)borRealloc((void *)ptr_old, (size))
 
 /**
  * Allocate memory for one element of given type.
@@ -45,13 +45,13 @@ extern "C" {
  * Allocates aligned memory
  */
 #define BOR_ALLOC_ALIGN(type, align) \
-    (type *)ferAllocAlign(sizeof(type), align)
+    (type *)borAllocAlign(sizeof(type), align)
 
 /**
  * Allocates aligned array
  */
 #define BOR_ALLOC_ALIGN_ARR(type, num_els, align) \
-    (type *)ferAllocAlign(sizeof(type) * (num_els), align)
+    (type *)borAllocAlign(sizeof(type) * (num_els), align)
 
 /**
  * Allocate array of elements of given type.
@@ -68,14 +68,14 @@ extern "C" {
 #ifndef BOR_MEMCHECK
 # define BOR_FREE(ptr) free(ptr) /*!< Deallocates memory */
 #else /* BOR_MEMCHECK */
-# define BOR_FREE(ptr) ferFreeCheck(ptr)
+# define BOR_FREE(ptr) borFreeCheck(ptr)
 #endif /* BOR_MEMCHECK */
 
-void *ferRealloc(void *ptr, size_t size);
-void *ferAllocAlign(size_t size, size_t alignment);
+void *borRealloc(void *ptr, size_t size);
+void *borAllocAlign(size_t size, size_t alignment);
 
 #ifdef BOR_MEMCHECK
-void ferFreeCheck(void *ptr);
+void borFreeCheck(void *ptr);
 #endif /* BOR_MEMCHECK */
 
 #ifdef __cplusplus

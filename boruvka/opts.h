@@ -50,11 +50,11 @@ extern "C" {
  *     int i;
  *
  *     // define options
- *     ferOptsAdd("opt1", 'o', BOR_OPTS_REAL, (void *)&opt1, NULL);
- *     ferOptsAdd("help", 'h', BOR_OPTS_NONE, (void *)&help, BOR_OPTS_CB(helpcb));
+ *     borOptsAdd("opt1", 'o', BOR_OPTS_REAL, (void *)&opt1, NULL);
+ *     borOptsAdd("help", 'h', BOR_OPTS_NONE, (void *)&help, BOR_OPTS_CB(helpcb));
  *
  *     // parse options
- *     ferOpts(&argc, argv);
+ *     borOpts(&argc, argv);
  *
  *     // print some info
  *     fprintf(stdout, "help: %d\n", help);
@@ -152,7 +152,7 @@ extern "C" {
  */
 
 /**
- * Use this macro for passing callback to ferOptsAdd().
+ * Use this macro for passing callback to borOptsAdd().
  */
 #define BOR_OPTS_CB(func) (void (*)(void))(func)
  
@@ -168,21 +168,21 @@ extern "C" {
  *
  * Returns ID of the added option.
  */
-int ferOptsAdd(const char *long_name, char short_name,
+int borOptsAdd(const char *long_name, char short_name,
                 uint32_t type, void *set, void (*callback)(void));
 
 /**
- * Same as {ferOptsAdd()} but has additional parameter {desc} where can be
+ * Same as {borOptsAdd()} but has additional parameter {desc} where can be
  * passed string description of the option
  */
-int ferOptsAddDesc(const char *long_name, char short_name,
+int borOptsAddDesc(const char *long_name, char short_name,
                    uint32_t type, void *set, void (*callback)(void),
                    const char *desc);
 
 /**
  * Clears all options previously added
  */
-void ferOptsClear(void);
+void borOptsClear(void);
 
 /**
  * Parses command line options.
@@ -191,13 +191,13 @@ void ferOptsClear(void);
  * the options that weren't parsed.
  * Returns 0 if all options were successfully parsed.
  */
-int ferOpts(int *argc, char **argv);
+int borOpts(int *argc, char **argv);
 
 
 /**
  * Print list of all options
  */
-void ferOptsPrint(FILE *out, const char *lineprefix);
+void borOptsPrint(FILE *out, const char *lineprefix);
 
 #ifdef __cplusplus
 }

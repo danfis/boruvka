@@ -21,22 +21,22 @@
 
 
 /** Returns subdeterminant */
-static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j);
+static bor_real_t borMat4Subdet(const bor_mat4_t *m, size_t i, size_t j);
 
 
-static BOR_MAT4(__fer_mat4_identity, BOR_ONE, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+static BOR_MAT4(__bor_mat4_identity, BOR_ONE, BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                      BOR_ZERO, BOR_ONE, BOR_ZERO, BOR_ZERO,
                                      BOR_ZERO, BOR_ZERO, BOR_ONE, BOR_ZERO,
                                      BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
-const bor_mat4_t *fer_mat4_identity = &__fer_mat4_identity;
+const bor_mat4_t *bor_mat4_identity = &__bor_mat4_identity;
 
-static BOR_MAT4(__fer_mat4_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+static BOR_MAT4(__bor_mat4_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
                                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
-const bor_mat4_t *fer_mat4_zero = &__fer_mat4_zero;
+const bor_mat4_t *bor_mat4_zero = &__bor_mat4_zero;
 
-bor_mat4_t *ferMat4New(void)
+bor_mat4_t *borMat4New(void)
 {
     bor_mat4_t *m;
 
@@ -49,28 +49,28 @@ bor_mat4_t *ferMat4New(void)
     return m;
 }
 
-void ferMat4Del(bor_mat4_t *m)
+void borMat4Del(bor_mat4_t *m)
 {
     BOR_FREE(m);
 }
 
-int ferMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a)
+int borMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a)
 {
     bor_real_t det, invdet;
     int sign;
     size_t i, j;
 
-    det = ferMat4Det(a);
-    if (ferIsZero(det))
+    det = borMat4Det(a);
+    if (borIsZero(det))
         return -1;
 
-    invdet = ferRecp(det);
+    invdet = borRecp(det);
 
     for (i = 0; i < 4; i++){
         for (j = 0; j < 4; j++){
-            det  = ferMat4Subdet(a, i, j);
+            det  = borMat4Subdet(a, i, j);
             sign = 1 - ((i + j) % 2) * 2;
-            ferMat4Set1(m, j, i, sign * det * invdet);
+            borMat4Set1(m, j, i, sign * det * invdet);
         }
     }
 
@@ -78,7 +78,7 @@ int ferMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a)
 }
 
 
-static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j)
+static bor_real_t borMat4Subdet(const bor_mat4_t *m, size_t i, size_t j)
 {
     bor_mat3_t m3;
     size_t k, l, r, c;
@@ -93,12 +93,12 @@ static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j)
         for (l = 0; l < 4; l++){
             if (l == j)
                 continue;
-            ferMat3Set1(&m3, r, c, ferMat4Get(m, k, l));
+            borMat3Set1(&m3, r, c, borMat4Get(m, k, l));
             c++;
         }
 
         r++;
     }
 
-    return ferMat3Det(&m3);
+    return borMat3Det(&m3);
 }

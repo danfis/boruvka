@@ -32,7 +32,7 @@ static void *threadMain(void *_th);
 
 /** Single task */
 struct _bor_task_pool_task_t {
-    fer_task_pool_fn fn;    /*!< Callback */
+    bor_task_pool_fn fn;    /*!< Callback */
     void *data;             /*!< Data for callback */
     int id;                 /*!< ID of task */
     int finish;             /*!< If set to 1 - thread will be closed
@@ -42,14 +42,14 @@ struct _bor_task_pool_task_t {
 typedef struct _bor_task_pool_task_t bor_task_pool_task_t;
 
 
-static bor_task_pool_task_t *taskNew(bor_task_pool_t *t, fer_task_pool_fn fn, void *data, int id);
+static bor_task_pool_task_t *taskNew(bor_task_pool_t *t, bor_task_pool_fn fn, void *data, int id);
 static void taskDel(bor_task_pool_task_t *task);
 
 
-static void _ferTaskPoolAdd(bor_task_pool_t *t, int tid,
-                         fer_task_pool_fn fn, void *data, int id, int finish);
+static void _borTaskPoolAdd(bor_task_pool_t *t, int tid,
+                         bor_task_pool_fn fn, void *data, int id, int finish);
 
-bor_task_pool_t *ferTaskPoolNew(size_t num_threads)
+bor_task_pool_t *borTaskPoolNew(size_t num_threads)
 {
     bor_task_pool_t *t;
     size_t i;
@@ -67,14 +67,14 @@ bor_task_pool_t *ferTaskPoolNew(size_t num_threads)
     return t;
 }
 
-void ferTaskPoolDel(bor_task_pool_t *t)
+void borTaskPoolDel(bor_task_pool_t *t)
 {
     size_t i;
 
     if (t->started){
         // add special tasks
         for (i = 0; i < t->threads_len; i++){
-            _ferTaskPoolAdd(t, i, NULL, NULL, -1, 1);
+            _borTaskPoolAdd(t, i, NULL, NULL, -1, 1);
         }
 
         // join threads
@@ -92,13 +92,13 @@ void ferTaskPoolDel(bor_task_pool_t *t)
     BOR_FREE(t);
 }
 
-void ferTaskPoolAdd(bor_task_pool_t *t, int tid,
-                    fer_task_pool_fn fn, int id, void *data)
+void borTaskPoolAdd(bor_task_pool_t *t, int tid,
+                    bor_task_pool_fn fn, int id, void *data)
 {
-    _ferTaskPoolAdd(t, tid, fn, data, id, 0);
+    _borTaskPoolAdd(t, tid, fn, data, id, 0);
 }
 
-void ferTaskPoolRun(bor_task_pool_t *t)
+void borTaskPoolRun(bor_task_pool_t *t)
 {
     size_t i;
 
@@ -109,7 +109,7 @@ void ferTaskPoolRun(bor_task_pool_t *t)
     t->started = 1;
 }
 
-int ferTaskPoolPending(bor_task_pool_t *t, int id)
+int borTaskPoolPending(bor_task_pool_t *t, int id)
 {
     int p;
 
@@ -120,7 +120,7 @@ int ferTaskPoolPending(bor_task_pool_t *t, int id)
     return p;
 }
 
-void ferTaskPoolBarrier(bor_task_pool_t *t, int id)
+void borTaskPoolBarrier(bor_task_pool_t *t, int id)
 {
     pthread_mutex_lock(&t->threads[id]->lock);
     if (t->threads[id]->pending != 0)
@@ -140,7 +140,7 @@ static bor_task_pool_thread_t *threadNew(bor_task_pool_t *t, int id)
     th->info.id    = id;
     th->task_pool  = t;
 
-    ferListInit(&th->tasks);
+    borListInit(&th->tasks);
 
     pthread_mutex_init(&th->lock, NULL);
     sem_init(&th->full, 0, 0);
@@ -158,9 +158,9 @@ static void threadDel(bor_task_pool_thread_t *th)
     bor_task_pool_task_t *task;
 
     // delete tasks
-    while (!ferListEmpty(&th->tasks)){
-        item = ferListNext(&th->tasks);
-        ferListDel(item);
+    while (!borListEmpty(&th->tasks)){
+        item = borListNext(&th->tasks);
+        borListDel(item);
         task = BOR_LIST_ENTRY(item, bor_task_pool_task_t, list);
         taskDel(task);
     }
@@ -200,8 +200,8 @@ static void *threadMain(void *_th)
 
         // pick up task
         pthread_mutex_lock(&th->lock);
-        item = ferListNext(&th->tasks);
-        ferListDel(item);
+        item = borListNext(&th->tasks);
+        borListDel(item);
         task = BOR_LIST_ENTRY(item, bor_task_pool_task_t, list);
         pthread_mutex_unlock(&th->lock);
 
@@ -233,7 +233,7 @@ static void *threadMain(void *_th)
 
 
 
-static bor_task_pool_task_t *taskNew(bor_task_pool_t *t, fer_task_pool_fn fn, void *data, int id)
+static bor_task_pool_task_t *taskNew(bor_task_pool_t *t, bor_task_pool_fn fn, void *data, int id)
 {
     bor_task_pool_task_t *task;
 
@@ -242,7 +242,7 @@ static bor_task_pool_task_t *taskNew(bor_task_pool_t *t, fer_task_pool_fn fn, vo
     task->data   = data;
     task->id     = id;
     task->finish = 0;
-    ferListInit(&task->list);
+    borListInit(&task->list);
     return task;
 }
 
@@ -253,8 +253,8 @@ static void taskDel(bor_task_pool_task_t *task)
 
 
 
-static void _ferTaskPoolAdd(bor_task_pool_t *t, int tid,
-                            fer_task_pool_fn fn, void *data, int id, int finish)
+static void _borTaskPoolAdd(bor_task_pool_t *t, int tid,
+                            bor_task_pool_fn fn, void *data, int id, int finish)
 {
     bor_task_pool_task_t *task;
 
@@ -266,7 +266,7 @@ static void _ferTaskPoolAdd(bor_task_pool_t *t, int tid,
 
     // add to queue
     pthread_mutex_lock(&t->threads[tid]->lock);
-    ferListAppend(&t->threads[tid]->tasks, &task->list);
+    borListAppend(&t->threads[tid]->tasks, &task->list);
     ++t->threads[tid]->pending;
     pthread_mutex_unlock(&t->threads[tid]->lock);
 

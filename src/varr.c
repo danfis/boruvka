@@ -18,20 +18,20 @@
 #include <boruvka/varr.h>
 #include <boruvka/alloc.h>
 
-void ferVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize)
+void borVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize)
 {
     arr->len   = 0;
     arr->alloc = init_size;
-    arr->arr   = ferRealloc(NULL, arr->alloc * elemsize);
+    arr->arr   = borRealloc(NULL, arr->alloc * elemsize);
 }
 
-void ferVArrDestroy(bor_varr_t *arr)
+void borVArrDestroy(bor_varr_t *arr)
 {
     BOR_FREE(arr->arr);
 }
 
-void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize)
+void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize)
 {
     arr->alloc *= factor;
-    arr->arr = ferRealloc(arr->arr, arr->alloc * elemsize);
+    arr->arr = borRealloc(arr->arr, arr->alloc * elemsize);
 }

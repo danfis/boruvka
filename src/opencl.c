@@ -22,15 +22,15 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-const char *__ferCLErrorStr(cl_int err);
-_fer_inline int __ferCLErrorCheck(cl_int err, const char *errstr);
+const char *__borCLErrorStr(cl_int err);
+_bor_inline int __borCLErrorCheck(cl_int err, const char *errstr);
 
-bor_cl_t *ferCLNewSimple(const char *program, const char *buildopts)
+bor_cl_t *borCLNewSimple(const char *program, const char *buildopts)
 {
-    return ferCLNewSimple2(1, &program, buildopts);
+    return borCLNewSimple2(1, &program, buildopts);
 }
 
-bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
+bor_cl_t *borCLNewSimple2(size_t program_count, const char **program,
                           const char *buildopts)
 {
     cl_uint num_platforms, num_devices, i;
@@ -45,23 +45,23 @@ bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     platform = (cl_platform_id)-1;
 
     err = clGetPlatformIDs(0, NULL, &num_platforms);
-    if (__ferCLErrorCheck(err, "Can't get any platform") != 0)
+    if (__borCLErrorCheck(err, "Can't get any platform") != 0)
         return NULL;
     if (num_platforms == 0)
         return NULL;
 
     platforms = BOR_ALLOC_ARR(cl_platform_id, num_platforms);
     err = clGetPlatformIDs(num_platforms, platforms, NULL);
-    if (__ferCLErrorCheck(err, "Can't get any platform") != 0)
+    if (__borCLErrorCheck(err, "Can't get any platform") != 0)
         return NULL;
 
     for (i = 0; i < num_platforms; i++){
         err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
-        if (__ferCLErrorCheck(err, "Cant'get any device") != 0)
+        if (__borCLErrorCheck(err, "Cant'get any device") != 0)
             break;
 
         err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 1, &device, &num_devices);
-        if (__ferCLErrorCheck(err, "Cant'get any device") != 0)
+        if (__borCLErrorCheck(err, "Cant'get any device") != 0)
             break;
 
         if (num_devices > 0){
@@ -81,14 +81,14 @@ bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
 
     // create context
     cl->context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
-    if (__ferCLErrorCheck(err, "Can't create context") != 0){
+    if (__borCLErrorCheck(err, "Can't create context") != 0){
         BOR_FREE(cl);
         return NULL;
     }
 
     // create queue
     cl->queue = clCreateCommandQueue(cl->context, cl->device, 0, &err);
-    if (__ferCLErrorCheck(err, "Can't create command queue") != 0){
+    if (__borCLErrorCheck(err, "Can't create command queue") != 0){
         clReleaseContext(cl->context);
         BOR_FREE(cl);
         return NULL;
@@ -96,7 +96,7 @@ bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
 
     // create program
     cl->program = clCreateProgramWithSource(cl->context, program_count, program, NULL, &err);
-    if (__ferCLErrorCheck(err, "Can't create program") != 0){
+    if (__borCLErrorCheck(err, "Can't create program") != 0){
         clReleaseCommandQueue(cl->queue);
         clReleaseContext(cl->context);
         BOR_FREE(cl);
@@ -105,19 +105,19 @@ bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
 
     // build program
     err = clBuildProgram(cl->program, 1, &cl->device, buildopts, NULL, NULL);
-    if (__ferCLErrorCheck(err, "Can't build program") != 0){
+    if (__borCLErrorCheck(err, "Can't build program") != 0){
         err = clGetProgramBuildInfo(cl->program, cl->device, CL_PROGRAM_BUILD_LOG,
                                     1024, buf, &bufsize);
         if (err == CL_INVALID_VALUE && bufsize > 1024){
             buf2 = BOR_ALLOC_ARR(char, bufsize);
             err = clGetProgramBuildInfo(cl->program, cl->device, CL_PROGRAM_BUILD_LOG,
                                         bufsize, buf2, NULL);
-            if (__ferCLErrorCheck(err, "Can't obtain build log") == 0){
+            if (__borCLErrorCheck(err, "Can't obtain build log") == 0){
                 fprintf(stderr, " >> Build log:\n%s\n", buf2);
             }
             BOR_FREE(buf2);
         }else{
-            if (__ferCLErrorCheck(err, "Can't obtain build log") == 0){
+            if (__borCLErrorCheck(err, "Can't obtain build log") == 0){
                 fprintf(stderr, " >> Build log:\n%s\n", buf);
             }
         }
@@ -135,7 +135,7 @@ bor_cl_t *ferCLNewSimple2(size_t program_count, const char **program,
     return cl;
 }
 
-void ferCLDel(bor_cl_t *cl)
+void borCLDel(bor_cl_t *cl)
 {
     size_t i;
 
@@ -154,13 +154,13 @@ void ferCLDel(bor_cl_t *cl)
     BOR_FREE(cl);
 }
 
-int ferCLKernelNew(bor_cl_t *cl, const char *kernel)
+int borCLKernelNew(bor_cl_t *cl, const char *kernel)
 {
     cl_kernel k;
     cl_int err;
 
     k = clCreateKernel(cl->program, kernel, &err);
-    if (__ferCLErrorCheck(err, "Can't create kernel") != 0)
+    if (__borCLErrorCheck(err, "Can't create kernel") != 0)
         return -1;
 
     cl->kernels_len += 1;
@@ -171,7 +171,7 @@ int ferCLKernelNew(bor_cl_t *cl, const char *kernel)
 }
 
 
-void ferCLPrintPlatforms(FILE *out)
+void borCLPrintPlatforms(FILE *out)
 {
     cl_uint i, j, num_platforms, num_devices;
     cl_int err;
@@ -184,7 +184,7 @@ void ferCLPrintPlatforms(FILE *out)
     size_t buf_size, *buf_size2, bi;
 
     err = clGetPlatformIDs(0, NULL, &num_platforms);
-    if (__ferCLErrorCheck(err, "Can't get platforms IDs") != 0)
+    if (__borCLErrorCheck(err, "Can't get platforms IDs") != 0)
         return;
 
     if (num_platforms == 0){
@@ -194,7 +194,7 @@ void ferCLPrintPlatforms(FILE *out)
 
     platforms = BOR_ALLOC_ARR(cl_platform_id, num_platforms);
     err = clGetPlatformIDs(num_platforms, platforms, NULL);
-    if (__ferCLErrorCheck(err, "Can't get platforms IDs") != 0)
+    if (__borCLErrorCheck(err, "Can't get platforms IDs") != 0)
         return;
 
     fprintf(out, "Available Platforms (%d):\n", (int)num_platforms);
@@ -227,7 +227,7 @@ void ferCLPrintPlatforms(FILE *out)
         }
 
         err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
-        if (__ferCLErrorCheck(err, "Can't get devices' IDs") == 0){
+        if (__borCLErrorCheck(err, "Can't get devices' IDs") == 0){
             devices = BOR_ALLOC_ARR(cl_device_id, num_devices);
             clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU,
                            num_devices, devices, NULL);
@@ -298,7 +298,7 @@ void ferCLPrintPlatforms(FILE *out)
     BOR_FREE(platforms);
 }
 
-char *ferCLProgramFromFile(const char *filename)
+char *borCLProgramFromFile(const char *filename)
 {
     char *out, *buf;
     size_t len, written;
@@ -325,18 +325,18 @@ char *ferCLProgramFromFile(const char *filename)
     return out;
 }
 
-int ferCLKernelSetArg(bor_cl_t *cl, size_t kernel, size_t arg_idx,
+int borCLKernelSetArg(bor_cl_t *cl, size_t kernel, size_t arg_idx,
                       size_t size, const void *arg)
 {
     cl_int err;
 
     err = clSetKernelArg(cl->kernels[kernel], arg_idx, size, arg);
-    if (__ferCLErrorCheck(err, "Can't set kernel's arg") != 0)
+    if (__borCLErrorCheck(err, "Can't set kernel's arg") != 0)
         return -1;
     return 0;
 }
 
-int ferCLKernelEnqueue(bor_cl_t *cl, size_t kernel,
+int borCLKernelEnqueue(bor_cl_t *cl, size_t kernel,
                        size_t dim, const size_t *glob, const size_t *loc)
 {
     cl_int err;
@@ -344,23 +344,23 @@ int ferCLKernelEnqueue(bor_cl_t *cl, size_t kernel,
     //DBG("%u %u", glob[0], loc[0]);
     err = clEnqueueNDRangeKernel(cl->queue, cl->kernels[kernel],
                                  dim, NULL, glob, loc, 0, NULL, NULL);
-    if (__ferCLErrorCheck(err, "Can't enqueue kernel") != 0)
+    if (__borCLErrorCheck(err, "Can't enqueue kernel") != 0)
         return -1;
     return 0;
 }
 
-int ferCLFinish(bor_cl_t *cl)
+int borCLFinish(bor_cl_t *cl)
 {
     cl_int err;
     
     err = clFinish(cl->queue);
-    if (__ferCLErrorCheck(err, "Can't finish queue") != 0)
+    if (__borCLErrorCheck(err, "Can't finish queue") != 0)
         return -1;
     return 0;
 }
 
 
-void *ferCLAlloc(bor_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
+void *borCLAlloc(bor_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
 {
     void *dst;
     cl_int err;
@@ -375,37 +375,37 @@ void *ferCLAlloc(bor_cl_t *cl, size_t size, void *src, cl_mem_flags _flags)
     return dst;
 }
 
-void *ferCLCloneToHost(bor_cl_t *cl, const void *src, size_t size)
+void *borCLCloneToHost(bor_cl_t *cl, const void *src, size_t size)
 {
     void *dst;
     cl_int err;
 
-    dst = ferRealloc(NULL, size);
+    dst = borRealloc(NULL, size);
     err = clEnqueueReadBuffer(cl->queue, (cl_mem)src, CL_TRUE, 0, size, dst, 0, NULL, NULL);
-    if (__ferCLErrorCheck(err, "Can't read device memory") != 0){
+    if (__borCLErrorCheck(err, "Can't read device memory") != 0){
         BOR_FREE(dst);
         return NULL;
     }
     return dst;
 }
 
-void ferCLCopyToHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
+void borCLCopyToHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
 {
     cl_int err;
 
     err = clEnqueueReadBuffer(cl->queue, (cl_mem)src, CL_TRUE, 0, size, dst, 0, NULL, NULL);
-    __ferCLErrorCheck(err, "Can't copy device memory to host memory");
+    __borCLErrorCheck(err, "Can't copy device memory to host memory");
 }
 
-void ferCLCopyFromHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
+void borCLCopyFromHost(bor_cl_t *cl, const void *src, void *dst, size_t size)
 {
     cl_int err;
 
     err = clEnqueueWriteBuffer(cl->queue, dst, CL_TRUE, 0, size, src, 0, NULL, NULL);
-    __ferCLErrorCheck(err, "Can't copy device memory to host memory");
+    __borCLErrorCheck(err, "Can't copy device memory to host memory");
 }
 
-void *ferCLMemMap(bor_cl_t *cl, void *src, size_t size, cl_mem_flags _flags)
+void *borCLMemMap(bor_cl_t *cl, void *src, size_t size, cl_mem_flags _flags)
 {
     void *dst;
     cl_int err;
@@ -415,13 +415,13 @@ void *ferCLMemMap(bor_cl_t *cl, void *src, size_t size, cl_mem_flags _flags)
         flags |= CL_MEM_USE_HOST_PTR;
 
     dst = clCreateBuffer(cl->context, flags, size, src, &err);
-    if (__ferCLErrorCheck(err, "Can't map host memory to device memory") != 0)
+    if (__borCLErrorCheck(err, "Can't map host memory to device memory") != 0)
         return NULL;
     return dst;
 }
 
 
-const char *__ferCLErrorStr(cl_int err)
+const char *__borCLErrorStr(cl_int err)
 {
     static const char* error_str[] = {
         "CL_SUCCESS",
@@ -485,7 +485,7 @@ const char *__ferCLErrorStr(cl_int err)
         "CL_INVALID_EVENT",
         "CL_INVALID_OPERATION",
         "CL_INVALID_GL_OBJECT",
-        "CL_INVALID_BUFFER_SIZE",
+        "CL_INVALID_BUFBOR_SIZE",
         "CL_INVALID_MIP_LEVEL",
         "CL_INVALID_GLOBAL_WORK_SIZE",
     };
@@ -497,10 +497,10 @@ const char *__ferCLErrorStr(cl_int err)
     return "UNKOWN ERROR";
 }
 
-_fer_inline int __ferCLErrorCheck(cl_int err, const char *s)
+_bor_inline int __borCLErrorCheck(cl_int err, const char *s)
 {
     if (err != CL_SUCCESS){
-        fprintf(stderr, "OpenCL Error (%s): %s\n", __ferCLErrorStr(err), s);
+        fprintf(stderr, "OpenCL Error (%s): %s\n", __borCLErrorStr(err), s);
         return -1;
     }
     return 0;

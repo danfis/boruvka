@@ -14,28 +14,28 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    pc = ferPCNew(3);
-    len = ferPCAddFromFile(pc, argv[1]);
+    pc = borPCNew(3);
+    len = borPCAddFromFile(pc, argv[1]);
     fprintf(stderr, "Read %d points from %s\n", (int)len, argv[1]);
 
-    q = ferQDelaunayNew();
+    q = borQDelaunayNew();
 
-    ferTimerStart(&timer);
-    mesh = ferQDelaunayMesh3(q, pc);
+    borTimerStart(&timer);
+    mesh = borQDelaunayMesh3(q, pc);
     if (!mesh){
         fprintf(stderr, "No mesh!\n");
     }
-    ferTimerStopAndPrintElapsed(&timer, stderr, " Generated mesh %d vertices, %d edges, %d faces\n",
-                                ferMesh3VerticesLen(ferQHullMesh3(mesh)),
-                                ferMesh3EdgesLen(ferQHullMesh3(mesh)),
-                                ferMesh3FacesLen(ferQHullMesh3(mesh)));
+    borTimerStopAndPrintElapsed(&timer, stderr, " Generated mesh %d vertices, %d edges, %d faces\n",
+                                borMesh3VerticesLen(borQHullMesh3(mesh)),
+                                borMesh3EdgesLen(borQHullMesh3(mesh)),
+                                borMesh3FacesLen(borQHullMesh3(mesh)));
 
 
-    ferQDelaunayDel(q);
+    borQDelaunayDel(q);
 
-    ferMesh3DumpSVT(ferQHullMesh3(mesh), stdout, NULL);
-    ferQHullMesh3Del(mesh);
-    ferPCDel(pc);
+    borMesh3DumpSVT(borQHullMesh3(mesh), stdout, NULL);
+    borQHullMesh3Del(mesh);
+    borPCDel(pc);
 
     return 0;
 }

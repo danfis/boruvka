@@ -44,51 +44,51 @@ typedef struct _bor_image_pnmf_t bor_image_pnmf_t;
 /**
  * Loads PPM from file.
  */
-bor_image_pnmf_t *ferImagePNMF(const char *filename);
+bor_image_pnmf_t *borImagePNMF(const char *filename);
 
 /**
  * Deletes PPM file.
  */
-void ferImagePNMFDel(bor_image_pnmf_t *img);
+void borImagePNMFDel(bor_image_pnmf_t *img);
 
 /**
  * Save image as given file
  */
-void ferImagePNMFSave(bor_image_pnmf_t *img, const char *filename);
+void borImagePNMFSave(bor_image_pnmf_t *img, const char *filename);
 
 /**
  * Returns color from (row, col) position
  */
-void ferImagePNMFGetRGB(const bor_image_pnmf_t *img, int row, int col,
+void borImagePNMFGetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float *r, float *g, float *b);
 
 /**
  * Set color at (row, col) position
  */
-void ferImagePNMFSetRGB(const bor_image_pnmf_t *img, int row, int col,
+void borImagePNMFSetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float r, float g, float b);
 
 /**
  * Returns color from position
  */
-void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
+void borImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
                          float *r, float *g, float *b);
 
 /**
  * Set color at position
  */
-void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
+void borImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
                          float r, float g, float b);
 
 /**
  * Returns gray from position
  */
-float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos);
+float borImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos);
 
 /**
  * Set gray at position
  */
-void ferImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr);
+void borImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr);
 
 #ifdef __cplusplus
 } /* extern "C" */

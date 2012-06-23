@@ -44,7 +44,7 @@ typedef bor_real_t (*bor_nearest_linear_dist_t)(void *item1, bor_list_t *item2,
  * Searches list for *num* items nearest to *p*.
  * Returns number of found items.
  */
-size_t ferNearestLinear(bor_list_t *list, void *p,
+size_t borNearestLinear(bor_list_t *list, void *p,
                         bor_nearest_linear_dist_t dist_cb,
                         bor_list_t **nearest, size_t num,
                         void *data);

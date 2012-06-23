@@ -26,18 +26,18 @@
 #include <boruvka/dbg.h>
 
 
-bor_pc_t *ferPCNew(size_t dim)
+bor_pc_t *borPCNew(size_t dim)
 {
-    return ferPCNew2(dim, BOR_PC_MIN_CHUNK_SIZE);
+    return borPCNew2(dim, BOR_PC_MIN_CHUNK_SIZE);
 }
 
-bor_pc_t *ferPCNew2(size_t dim, size_t min_chunk_size)
+bor_pc_t *borPCNew2(size_t dim, size_t min_chunk_size)
 {
     bor_pc_t *pc;
 
     pc = BOR_ALLOC(bor_pc_t);
     pc->dim = dim;
-    ferListInit(&pc->head);
+    borListInit(&pc->head);
     pc->len = 0;
 
     pc->min_chunk_size = min_chunk_size;
@@ -48,44 +48,44 @@ bor_pc_t *ferPCNew2(size_t dim, size_t min_chunk_size)
 
 }
 
-void ferPCDel(bor_pc_t *pc)
+void borPCDel(bor_pc_t *pc)
 {
     bor_list_t *item, *tmp;
     bor_pc_mem_t *mem;
 
     BOR_LIST_FOR_EACH_SAFE(&pc->head, item, tmp){
         mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
-        ferPCMemDel(mem);
+        borPCMemDel(mem);
     }
 
     if (pc->rand)
-        ferRandMTDel(pc->rand);
+        borRandMTDel(pc->rand);
 
     BOR_FREE(pc);
 }
 
-void ferPCAdd(bor_pc_t *pc, const bor_vec_t *v)
+void borPCAdd(bor_pc_t *pc, const bor_vec_t *v)
 {
     bor_list_t *item;
     bor_pc_mem_t *mem;
 
-    item = ferListPrev(&pc->head);
+    item = borListPrev(&pc->head);
     mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
-    if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
+    if (borListEmpty(&pc->head) || borPCMemFull(mem)){
 #ifdef BOR_SSE
-        mem = ferPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 16);
+        mem = borPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 16);
 #else /* BOR_SSE */
-        mem = ferPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 0);
+        mem = borPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 0);
 #endif /* BOR_SSE */
-        ferListAppend(&pc->head, &mem->list);
+        borListAppend(&pc->head, &mem->list);
     }
 
-    ferPCMemAdd2Memcpy(mem, v, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
+    borPCMemAdd2Memcpy(mem, v, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
     // TODO: AABBUpdate(pc->aabb, v);
     pc->len++;
 }
 
-bor_vec_t *ferPCGet(bor_pc_t *pc, size_t n)
+bor_vec_t *borPCGet(bor_pc_t *pc, size_t n)
 {
     bor_list_t *item;
     bor_pc_mem_t *mem;
@@ -99,7 +99,7 @@ bor_vec_t *ferPCGet(bor_pc_t *pc, size_t n)
     BOR_LIST_FOR_EACH(&pc->head, item){
         mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
         if (pos + mem->len > n){
-            p = ferPCMemGet2(mem, n - pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
+            p = borPCMemGet2(mem, n - pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
             break;
         }
         pos += mem->len;
@@ -111,7 +111,7 @@ bor_vec_t *ferPCGet(bor_pc_t *pc, size_t n)
 /** Returns (via other and other_pos) memory chunk and position within it
  *  randomly chosen from point cloud from range starting at position from
  *  of mem chunk mem_from. */
-static void ferPCPermutateOther(bor_pc_mem_t *mem_from, size_t from,
+static void borPCPermutateOther(bor_pc_mem_t *mem_from, size_t from,
                                 size_t len, bor_rand_mt_t *rand,
                                 bor_pc_mem_t **other, size_t *other_pos)
 {
@@ -122,12 +122,12 @@ static void ferPCPermutateOther(bor_pc_mem_t *mem_from, size_t from,
     mem = mem_from;
 
     // choose position
-    pos = ferRandMT(rand, (bor_real_t)from, (bor_real_t)len);
+    pos = borRandMT(rand, (bor_real_t)from, (bor_real_t)len);
 
     // find correct mem chunk
     while (pos >= mem->len){
         pos -= mem->len;
-        item = ferListNext(&mem->list);
+        item = borListNext(&mem->list);
         mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
     }
 
@@ -135,7 +135,7 @@ static void ferPCPermutateOther(bor_pc_mem_t *mem_from, size_t from,
     *other_pos = pos;
 }
 
-void ferPCPermutate(bor_pc_t *pc)
+void borPCPermutate(bor_pc_t *pc)
 {
     bor_list_t *item;
     bor_pc_mem_t *cur_mem, *other_mem;
@@ -143,12 +143,12 @@ void ferPCPermutate(bor_pc_t *pc)
     bor_vec_t *v, *cur, *other;
 
     if (!pc->rand){
-        pc->rand = ferRandMTNewAuto();
+        pc->rand = borRandMTNewAuto();
     }
 
     pc_len = pc->len;
 
-    v = ferVecNew(pc->dim);
+    v = borVecNew(pc->dim);
 
     // iterate over all positions in all chunks consequently from beginning
     // and choose some point from rest of point cloud (from positions _after_
@@ -157,27 +157,27 @@ void ferPCPermutate(bor_pc_t *pc)
         cur_mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
         for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
             // choose other point for swapping
-            ferPCPermutateOther(cur_mem, cur_pos + 1, pc_len, pc->rand,
+            borPCPermutateOther(cur_mem, cur_pos + 1, pc_len, pc->rand,
                                 &other_mem, &other_pos);
 
             // swap points
-            cur   = ferPCMemGet2(cur_mem, cur_pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
-            other = ferPCMemGet2(other_mem, other_pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
-            ferVecCopy(pc->dim, v, other);
-            ferVecCopy(pc->dim, other, cur);
-            ferVecCopy(pc->dim, cur, v);
+            cur   = borPCMemGet2(cur_mem, cur_pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
+            other = borPCMemGet2(other_mem, other_pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
+            borVecCopy(pc->dim, v, other);
+            borVecCopy(pc->dim, other, cur);
+            borVecCopy(pc->dim, cur, v);
         }
 
-        // length must be decreased because ferPC`N`PermutateOther takes
+        // length must be decreased because borPC`N`PermutateOther takes
         // length which is relative to first mem chunk
         pc_len -= cur_mem->len;
     }
 
-    ferVecDel(v);
+    borVecDel(v);
 }
 
 
-size_t ferPCAddFromFile(bor_pc_t *pc, const char *filename)
+size_t borPCAddFromFile(bor_pc_t *pc, const char *filename)
 {
     int fd;
     size_t size;
@@ -217,26 +217,26 @@ size_t ferPCAddFromFile(bor_pc_t *pc, const char *filename)
         return added;
     }
 
-    v = ferVecNew(pc->dim);
+    v = borVecNew(pc->dim);
 
     // set up char pointers to current char (fstr) and to end of memory (fend)
     i = 0;
     fstr = (char *)file;
     fend = (char *)file + size;
-    while (ferParseReal(fstr, fend, &val, &fnext) == 0){
+    while (borParseReal(fstr, fend, &val, &fnext) == 0){
         fstr = fnext;
 
-        ferVecSet(v, i, val);
+        borVecSet(v, i, val);
         i++;
 
         if (i == pc->dim){
-            ferPCAdd(pc, v);
+            borPCAdd(pc, v);
             added++;
             i = 0;
         }
     }
 
-    ferVecDel(v);
+    borVecDel(v);
 
     // unmap mapped memory
     munmap(file, size);
@@ -247,7 +247,7 @@ size_t ferPCAddFromFile(bor_pc_t *pc, const char *filename)
     return added;
 }
 
-void ferPCAABB(const bor_pc_t *pc, bor_real_t *aabb)
+void borPCAABB(const bor_pc_t *pc, bor_real_t *aabb)
 {
     size_t i;
     bor_pc_it_t it;
@@ -258,16 +258,16 @@ void ferPCAABB(const bor_pc_t *pc, bor_real_t *aabb)
         aabb[2 * i + 1] = -BOR_REAL_MAX;
     }
 
-    ferPCItInit(&it, (bor_pc_t *)pc);
-    while (!ferPCItEnd(&it)){
-        v = ferPCItGet(&it);
+    borPCItInit(&it, (bor_pc_t *)pc);
+    while (!borPCItEnd(&it)){
+        v = borPCItGet(&it);
         for (i = 0; i < pc->dim; i++){
-            if (ferVecGet(v, i) < aabb[2 * i])
-                aabb[2 * i] = ferVecGet(v, i);
-            if (ferVecGet(v, i) > aabb[2 * i + 1])
-                aabb[2 * i + 1] = ferVecGet(v, i);
+            if (borVecGet(v, i) < aabb[2 * i])
+                aabb[2 * i] = borVecGet(v, i);
+            if (borVecGet(v, i) > aabb[2 * i + 1])
+                aabb[2 * i + 1] = borVecGet(v, i);
         }
 
-        ferPCItNext(&it);
+        borPCItNext(&it);
     }
 }

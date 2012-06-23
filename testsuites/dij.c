@@ -24,7 +24,7 @@ static void dumpNodes(node_t *nodes, FILE *out)
 
     fprintf(out, "----\nPoints:\n");
     for (i = 0; i < NUM_NODES; i++){
-        fprintf(out, "%g %g\n", ferVec2X(&nodes[i].v), ferVec2Y(&nodes[i].v));
+        fprintf(out, "%g %g\n", borVec2X(&nodes[i].v), borVec2Y(&nodes[i].v));
     }
 
     fprintf(out, "Edges:\n");
@@ -47,15 +47,15 @@ static void dumpPath(node_t *endnode, FILE *out)
     fprintf(out, "Name: Path\n");
     fprintf(out, "Edge color: 0.7 0 0\n");
 
-    ferListInit(&list);
-    ferDijPath(&endnode->dij, &list);
+    borListInit(&list);
+    borDijPath(&endnode->dij, &list);
 
     fprintf(out, "Points:\n");
     size = 0;
     BOR_LIST_FOR_EACH(&list, item){
-        n = ferDijNodeFromList(item);
-        node = fer_container_of(n, node_t, dij);
-        fprintf(out, "%g %g\n", ferVec2X(&node->v), ferVec2Y(&node->v));
+        n = borDijNodeFromList(item);
+        node = bor_container_of(n, node_t, dij);
+        fprintf(out, "%g %g\n", borVec2X(&node->v), borVec2Y(&node->v));
         size++;
     }
     fprintf(out, "Edges:\n");
@@ -71,13 +71,13 @@ static void initNodes(node_t *nodes)
     size_t i;
 
     for (i = 0; i < NUM_NODES; i++){
-        ferDijNodeInit(&nodes[i].dij);
+        borDijNodeInit(&nodes[i].dij);
         nodes[i].nodes[0] = NULL;
         nodes[i].nodes[1] = NULL;
         nodes[i].nodes[2] = NULL;
         nodes[i].nodes_len = 0;
         nodes[i].id = i;
-        ferVec2Set(&nodes[i].v, -1, -1);
+        borVec2Set(&nodes[i].v, -1, -1);
 
         //fprintf(stderr, "[%d] %lx %lx\n", i, (long)&nodes[i], (long)&nodes[i].dij);
     }
@@ -90,12 +90,12 @@ static void initNodes1(node_t *nodes)
     initNodes(nodes);
 
     // start and end node
-    ferVec2Set(&nodes[0].v, 0., 0.);
-    ferVec2Set(&nodes[1].v, 4., 4.);
+    borVec2Set(&nodes[0].v, 0., 0.);
+    borVec2Set(&nodes[1].v, 4., 4.);
 
     for (i = 0; i < 3; i++){
         for (j = 0; j < 3; j++){
-            ferVec2Set(&nodes[2 + i * 3 + j].v, j + 1., i + 1.);
+            borVec2Set(&nodes[2 + i * 3 + j].v, j + 1., i + 1.);
         }
     }
 
@@ -135,18 +135,18 @@ TEST(dij1)
 
     initNodes1(nodes);
 
-    ferDijOpsInit(&ops);
+    borDijOpsInit(&ops);
     ops.expand = expand;
 
-    dij = ferDijNew(&ops);
+    dij = borDijNew(&ops);
 
     dumpNodes(nodes, stdout);
-    res = ferDijRun(dij, &nodes[0].dij, &nodes[1].dij);
+    res = borDijRun(dij, &nodes[0].dij, &nodes[1].dij);
     dumpPath(&nodes[1], stdout);
 
     assertEquals(res, 0);
 
-    ferDijDel(dij);
+    borDijDel(dij);
 }
 
 static void expand(bor_dij_node_t *_n, bor_list_t *list, void *_)
@@ -155,12 +155,12 @@ static void expand(bor_dij_node_t *_n, bor_list_t *list, void *_)
     node_t *n;
     bor_real_t dist;
 
-    n = fer_container_of(_n, node_t, dij);
+    n = bor_container_of(_n, node_t, dij);
 
     for (i = 0; i < n->nodes_len; i++){
-        if (!ferDijNodeClosed(&n->nodes[i]->dij)){
-            dist = ferVec2Dist(&n->v, &n->nodes[i]->v);
-            ferDijNodeAdd(&n->nodes[i]->dij, list, dist);
+        if (!borDijNodeClosed(&n->nodes[i]->dij)){
+            dist = borVec2Dist(&n->v, &n->nodes[i]->v);
+            borDijNodeAdd(&n->nodes[i]->dij, list, dist);
         }
     }
 }

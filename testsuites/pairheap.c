@@ -19,11 +19,11 @@ static el_t *randomEls(size_t num)
     el_t *els;
     size_t i;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     els = BOR_ALLOC_ARR(el_t, num);
     for (i = 0; i < num; i++){
-        val = ferRand(&r, -500., 500.);
+        val = borRand(&r, -500., 500.);
         els[i].val = val;
         els[i].id = i;
     }
@@ -37,7 +37,7 @@ static int cmpIncEl(const void *i1, const void *i2)
     e1 = (el_t *)i1;
     e2 = (el_t *)i2;
 
-    if (ferEq(e1->val, e2->val))
+    if (borEq(e1->val, e2->val))
         return 0;
     if (e1->val < e2->val)
         return -1;
@@ -48,8 +48,8 @@ static int ltEl(const bor_pairheap_node_t *n1, const bor_pairheap_node_t *n2, vo
 {
     el_t *el1, *el2;
 
-    el1 = fer_container_of(n1, el_t, node);
-    el2 = fer_container_of(n2, el_t, node);
+    el1 = bor_container_of(n1, el_t, node);
+    el2 = bor_container_of(n2, el_t, node);
 
     return el1->val < el2->val;
 }
@@ -73,20 +73,20 @@ static void checkCorrect(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl, NULL);
+    heap = borPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferPairHeapAdd(heap, &els[i].node);
+        borPairHeapAdd(heap, &els[i].node);
     }
 
     i = 0;
-    while (!ferPairHeapEmpty(heap)){
-        n = ferPairHeapExtractMin(heap);
+    while (!borPairHeapEmpty(heap)){
+        n = borPairHeapExtractMin(heap);
         //if (num == 100)
         //    heapDump(heap);
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -97,7 +97,7 @@ static void checkCorrect(int ID, size_t num)
     }
 
 
-    ferPairHeapDel(heap);
+    borPairHeapDel(heap);
     free(els);
     free(ids);
 
@@ -116,7 +116,7 @@ static void checkCorrect2(int ID, size_t num)
     char fn[300];
     bor_rand_t r;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     sprintf(fn, "regressions/tmp.TSPairHeap.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
@@ -126,23 +126,23 @@ static void checkCorrect2(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl, NULL);
+    heap = borPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferPairHeapAdd(heap, &els[i].node);
+        borPairHeapAdd(heap, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
-        els[i].val -= ferRand(&r, 1, 100);
-        ferPairHeapDecreaseKey(heap, &els[i].node);
+        els[i].val -= borRand(&r, 1, 100);
+        borPairHeapDecreaseKey(heap, &els[i].node);
     }
 
     i = 0;
-    while (!ferPairHeapEmpty(heap)){
-        n = ferPairHeapExtractMin(heap);
-        el = fer_container_of(n, el_t, node);
+    while (!borPairHeapEmpty(heap)){
+        n = borPairHeapExtractMin(heap);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -153,7 +153,7 @@ static void checkCorrect2(int ID, size_t num)
     }
 
 
-    ferPairHeapDel(heap);
+    borPairHeapDel(heap);
     free(els);
     free(ids);
 
@@ -173,7 +173,7 @@ static void checkCorrect3(int ID, size_t num)
     char fn[300];
     bor_rand_t r;
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     sprintf(fn, "regressions/tmp.TSPairHeap.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
@@ -183,23 +183,23 @@ static void checkCorrect3(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = ferPairHeapNew(ltEl, NULL);
+    heap = borPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
-        ferPairHeapAdd(heap, &els[i].node);
+        borPairHeapAdd(heap, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
-        els[i].val += ferRand(&r, 1, 100);
-        ferPairHeapUpdate(heap, &els[i].node);
+        els[i].val += borRand(&r, 1, 100);
+        borPairHeapUpdate(heap, &els[i].node);
     }
 
     i = 0;
-    while (!ferPairHeapEmpty(heap)){
-        n = ferPairHeapExtractMin(heap);
-        el = fer_container_of(n, el_t, node);
+    while (!borPairHeapEmpty(heap)){
+        n = borPairHeapExtractMin(heap);
+        el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
-        el = fer_container_of(n, el_t, node);
+        el = bor_container_of(n, el_t, node);
         ids[i] = el->id;
         i++;
     }
@@ -210,7 +210,7 @@ static void checkCorrect3(int ID, size_t num)
     }
 
 
-    ferPairHeapDel(heap);
+    borPairHeapDel(heap);
     free(els);
     free(ids);
 

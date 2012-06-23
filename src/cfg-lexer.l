@@ -128,7 +128,7 @@ VAL_INT {SIGN}?({ZERO}|{NONZERO}{DIGIT}*)
     yyextra->lineno = yylineno;
     yyextra->str = yytext;
     yyextra->strlen = yyleng;
-    if (ferParseReal(yytext, yytext + yyleng, &yyextra->flt, NULL) != 0){
+    if (borParseReal(yytext, yytext + yyleng, &yyextra->flt, NULL) != 0){
         return T_ERROR;
     }
     return T_FLT;
@@ -137,7 +137,7 @@ VAL_INT {SIGN}?({ZERO}|{NONZERO}{DIGIT}*)
     yyextra->lineno = yylineno;
     yyextra->str = yytext;
     yyextra->strlen = yyleng;
-    if (ferParseLong(yytext, yytext + yyleng, &yyextra->integer, NULL) != 0){
+    if (borParseLong(yytext, yytext + yyleng, &yyextra->integer, NULL) != 0){
         return T_ERROR;
     }
     return T_INT;

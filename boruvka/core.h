@@ -50,7 +50,7 @@ union _bor_sse_t {
     __m128d md;
     float f[4];
     double d[2];
-} fer_aligned(16) fer_packed;
+} bor_aligned(16) bor_packed;
 typedef union _bor_sse_t bor_sse_t;
 #endif /* BOR_SSE */
 
@@ -73,7 +73,7 @@ typedef uint32_t bor_uint_t;
 # define BOR_REAL(x)     (x ## f)          /*!< form a constant */
 
 # ifdef BOR_SSE
-#  define BOR_SQRT(x)     (__ferSqrt(x))   /*!< square root */
+#  define BOR_SQRT(x)     (__borSqrt(x))   /*!< square root */
 # else /* BOR_SSE */
 #  define BOR_SQRT(x)     (sqrtf(x))
 # endif /* BOR_SSE */
@@ -107,7 +107,7 @@ typedef uint64_t bor_uint_t;
 # define BOR_REAL(x)     (x ## f)
 
 # ifdef BOR_SSE
-#  define BOR_SQRT(x)     (__ferSqrt(x))
+#  define BOR_SQRT(x)     (__borSqrt(x))
 # else /* BOR_SSE */
 #  define BOR_SQRT(x)     (sqrt(x))
 # endif /* BOR_SSE */
@@ -153,53 +153,53 @@ typedef union _bor_real_uint_t bor_real_uint_t;
 
 
 #ifdef BOR_SSE
-_fer_inline bor_real_t __ferSqrt(bor_real_t val);
+_bor_inline bor_real_t __borSqrt(bor_real_t val);
 #endif /* BOR_SSE */
 
 /**
  * Returns sign of value.
  */
-_fer_inline int ferSign(bor_real_t val);
+_bor_inline int borSign(bor_real_t val);
 
 /**
  * Returns true if val is zero.
  */
-_fer_inline int ferIsZero(bor_real_t val);
+_bor_inline int borIsZero(bor_real_t val);
 
 /**
  * Returns true if a and b equal.
  */
-_fer_inline int ferEq(bor_real_t a, bor_real_t b);
+_bor_inline int borEq(bor_real_t a, bor_real_t b);
 
 /**
  * Returns true if a and b not equal.
  */
-_fer_inline int ferNEq(bor_real_t a, bor_real_t b);
+_bor_inline int borNEq(bor_real_t a, bor_real_t b);
 
 /**
  * Returns 1 / d.
  */
-_fer_inline bor_real_t ferRecp(bor_real_t v);
+_bor_inline bor_real_t borRecp(bor_real_t v);
 
 /**
  * Returns 1 / sqrt(v)
  */
-_fer_inline bor_real_t ferRsqrt(bor_real_t v);
+_bor_inline bor_real_t borRsqrt(bor_real_t v);
 
 
 /**
  * Alignes given memory.
  */
-_fer_inline void *ferAlign(void *mem, int alignment);
+_bor_inline void *borAlign(void *mem, int alignment);
 
 /**
  * Returns integer representation of real number
  */
-_fer_inline bor_uint_t ferRealAsUInt(bor_real_t x);
+_bor_inline bor_uint_t borRealAsUInt(bor_real_t x);
 
 /***** INLINES *****/
 #ifdef BOR_SSE
-_fer_inline bor_real_t __ferSqrt(bor_real_t val)
+_bor_inline bor_real_t __borSqrt(bor_real_t val)
 {
     bor_sse_t m;
 
@@ -215,9 +215,9 @@ _fer_inline bor_real_t __ferSqrt(bor_real_t val)
 }
 #endif /* BOR_SSE */
 
-_fer_inline int ferSign(bor_real_t val)
+_bor_inline int borSign(bor_real_t val)
 {
-    if (ferIsZero(val)){
+    if (borIsZero(val)){
         return 0;
     }else if (val < BOR_ZERO){
         return -1;
@@ -225,12 +225,12 @@ _fer_inline int ferSign(bor_real_t val)
     return 1;
 }
 
-_fer_inline int ferIsZero(bor_real_t val)
+_bor_inline int borIsZero(bor_real_t val)
 {
     return BOR_FABS(val) < BOR_EPS;
 }
 
-_fer_inline int ferEq(bor_real_t _a, bor_real_t _b)
+_bor_inline int borEq(bor_real_t _a, bor_real_t _b)
 {
     bor_real_t ab;
 
@@ -248,12 +248,12 @@ _fer_inline int ferEq(bor_real_t _a, bor_real_t _b)
     }
 }
 
-_fer_inline int ferNEq(bor_real_t a, bor_real_t b)
+_bor_inline int borNEq(bor_real_t a, bor_real_t b)
 {
-    return !ferEq(a, b);
+    return !borEq(a, b);
 }
 
-_fer_inline bor_real_t ferRecp(bor_real_t v)
+_bor_inline bor_real_t borRecp(bor_real_t v)
 {
 #ifdef BOR_SSE_SINGLE
     bor_sse_t m;
@@ -265,7 +265,7 @@ _fer_inline bor_real_t ferRecp(bor_real_t v)
 #endif /* BOR_SSE_SINGLE */
 }
 
-_fer_inline bor_real_t ferRsqrt(bor_real_t v)
+_bor_inline bor_real_t borRsqrt(bor_real_t v)
 {
 #ifdef BOR_SSE_SINGLE
     bor_sse_t m;
@@ -277,7 +277,7 @@ _fer_inline bor_real_t ferRsqrt(bor_real_t v)
 # endif /* BOR_SSE_SINGLE */
 }
 
-_fer_inline void *ferAlign(void *mem, int align)
+_bor_inline void *borAlign(void *mem, int align)
 {
     long padding;
 
@@ -288,7 +288,7 @@ _fer_inline void *ferAlign(void *mem, int align)
     return (void *)((long)mem + padding);
 }
 
-_fer_inline bor_uint_t ferRealAsUInt(bor_real_t x)
+_bor_inline bor_uint_t borRealAsUInt(bor_real_t x)
 {
     bor_real_uint_t v;
     v.f = x;

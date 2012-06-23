@@ -4,16 +4,16 @@ Core Functions And Structures
 .. toctree::
    :maxdepth: 1
 
-   fer-core.h.rst
-   fer-compiler.h.rst
-   fer-alloc.h.rst
+   bor-core.h.rst
+   bor-compiler.h.rst
+   bor-alloc.h.rst
 
-   fer-list.h.rst
-   fer-rand.h.rst
-   fer-rand-mt.h.rst
-   fer-timer.h.rst
-   fer-parse.h.rst
-   fer-cfg.h.rst
-   fer-opts.h.rst
+   bor-list.h.rst
+   bor-rand.h.rst
+   bor-rand-mt.h.rst
+   bor-timer.h.rst
+   bor-parse.h.rst
+   bor-cfg.h.rst
+   bor-opts.h.rst
 
-   fer-opencl.h.rst
+   bor-opencl.h.rst

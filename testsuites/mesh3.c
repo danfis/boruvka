@@ -23,132 +23,132 @@ TEST(testMesh){
     bor_mesh3_face_t f[2], f2;
     size_t i;
 
-    mesh = ferMesh3New();
+    mesh = borMesh3New();
 
     for (i = 0; i < 4; i++)
-        ferMesh3VertexSetCoords(&v[i], &vcoords[i]);
-    ferVec3Set(ferMesh3VertexCoordsW(&v[0]), 0., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(&v[1]), 1., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(&v[2]), 0., 1., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(&v[3]), 1., 1., 1.);
+        borMesh3VertexSetCoords(&v[i], &vcoords[i]);
+    borVec3Set(borMesh3VertexCoordsW(&v[0]), 0., 0., 0.);
+    borVec3Set(borMesh3VertexCoordsW(&v[1]), 1., 0., 0.);
+    borVec3Set(borMesh3VertexCoordsW(&v[2]), 0., 1., 0.);
+    borVec3Set(borMesh3VertexCoordsW(&v[3]), 1., 1., 1.);
 
-    ferMesh3AddVertex(mesh, &v[0]);
-    ferMesh3AddVertex(mesh, &v[1]);
-    ferMesh3AddVertex(mesh, &v[2]);
-    ferMesh3AddVertex(mesh, &v[3]);
-    assertEquals(ferMesh3RemoveVertex(mesh, &v[2]), 0);
-    ferMesh3AddVertex(mesh, &v[2]);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
+    borMesh3AddVertex(mesh, &v[0]);
+    borMesh3AddVertex(mesh, &v[1]);
+    borMesh3AddVertex(mesh, &v[2]);
+    borMesh3AddVertex(mesh, &v[3]);
+    assertEquals(borMesh3RemoveVertex(mesh, &v[2]), 0);
+    borMesh3AddVertex(mesh, &v[2]);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
 
-    ferMesh3AddEdge(mesh, &e[0], &v[0], &v[1]);
-    ferMesh3AddEdge(mesh, &e[1], &v[0], &v[2]);
-    ferMesh3AddEdge(mesh, &e[2], &v[1], &v[2]);
-    ferMesh3AddEdge(mesh, &e[3], &v[1], &v[3]);
-    ferMesh3AddEdge(mesh, &e[4], &v[2], &v[3]);
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[4]), 0);
-    ferMesh3AddEdge(mesh, &e[4], &v[2], &v[3]);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
+    borMesh3AddEdge(mesh, &e[0], &v[0], &v[1]);
+    borMesh3AddEdge(mesh, &e[1], &v[0], &v[2]);
+    borMesh3AddEdge(mesh, &e[2], &v[1], &v[2]);
+    borMesh3AddEdge(mesh, &e[3], &v[1], &v[3]);
+    borMesh3AddEdge(mesh, &e[4], &v[2], &v[3]);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[4]), 0);
+    borMesh3AddEdge(mesh, &e[4], &v[2], &v[3]);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
 
-    assertEquals(ferMesh3VertexEdgesLen(&v[2]), 3);
-    assertEquals(ferMesh3VertexEdgesLen(&v[1]), 3);
-    assertEquals(ferMesh3VertexEdgesLen(&v[0]), 2);
-    assertTrue(ferMesh3VertexHasEdge(&v[0], &e[0]));
-    assertTrue(ferMesh3VertexHasEdge(&v[0], &e[1]));
-    assertFalse(ferMesh3VertexHasEdge(&v[0], &e[2]));
-    assertTrue(ferMesh3VertexHasEdge(&v[1], &e[0]));
-    assertTrue(ferMesh3VertexHasEdge(&v[1], &e[2]));
-    assertTrue(ferMesh3VertexHasEdge(&v[1], &e[3]));
-    assertTrue(ferMesh3VertexHasEdge(&v[2], &e[1]));
-    assertTrue(ferMesh3VertexHasEdge(&v[2], &e[2]));
+    assertEquals(borMesh3VertexEdgesLen(&v[2]), 3);
+    assertEquals(borMesh3VertexEdgesLen(&v[1]), 3);
+    assertEquals(borMesh3VertexEdgesLen(&v[0]), 2);
+    assertTrue(borMesh3VertexHasEdge(&v[0], &e[0]));
+    assertTrue(borMesh3VertexHasEdge(&v[0], &e[1]));
+    assertFalse(borMesh3VertexHasEdge(&v[0], &e[2]));
+    assertTrue(borMesh3VertexHasEdge(&v[1], &e[0]));
+    assertTrue(borMesh3VertexHasEdge(&v[1], &e[2]));
+    assertTrue(borMesh3VertexHasEdge(&v[1], &e[3]));
+    assertTrue(borMesh3VertexHasEdge(&v[2], &e[1]));
+    assertTrue(borMesh3VertexHasEdge(&v[2], &e[2]));
 
-    assertEquals(ferMesh3VertexCommonEdge(&v[0], &v[1]), &e[0]);
-    assertEquals(ferMesh3VertexCommonEdge(&v[2], &v[1]), &e[2]);
+    assertEquals(borMesh3VertexCommonEdge(&v[0], &v[1]), &e[0]);
+    assertEquals(borMesh3VertexCommonEdge(&v[2], &v[1]), &e[2]);
 
-    assertTrue(ferMesh3EdgeTriCheck(&e[0], &e[1], &e[2]));
-    assertTrue(ferMesh3EdgeTriCheck(&e[2], &e[3], &e[4]));
-    assertEquals(ferMesh3AddFace(mesh, &f[0], &e[0], &e[1], &e[2]), 0);
-    assertEquals(ferMesh3AddFace(mesh, &f[1], &e[2], &e[3], &e[4]), 0);
-    assertNotEquals(ferMesh3AddFace(mesh, &f2, &e[2], &e[3], &e[4]), 0);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertTrue(borMesh3EdgeTriCheck(&e[0], &e[1], &e[2]));
+    assertTrue(borMesh3EdgeTriCheck(&e[2], &e[3], &e[4]));
+    assertEquals(borMesh3AddFace(mesh, &f[0], &e[0], &e[1], &e[2]), 0);
+    assertEquals(borMesh3AddFace(mesh, &f[1], &e[2], &e[3], &e[4]), 0);
+    assertNotEquals(borMesh3AddFace(mesh, &f2, &e[2], &e[3], &e[4]), 0);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
-    assertTrue(ferMesh3EdgeHasVertex(&e[0], &v[0]));
-    assertTrue(ferMesh3EdgeHasVertex(&e[0], &v[1]));
-    assertTrue(ferMesh3EdgeHasFace(&e[0], &f[0]));
-    assertFalse(ferMesh3EdgeHasFace(&e[0], &f[1]));
-    assertTrue(ferMesh3EdgeHasFace(&e[2], &f[0]));
-    assertTrue(ferMesh3EdgeHasFace(&e[2], &f[1]));
-    assertEquals(ferMesh3EdgeFacesLen(&e[2]), 2);
-    assertEquals(ferMesh3EdgeFacesLen(&e[0]), 1);
-    assertTrue(ferMesh3FaceHasEdge(&f[0], &e[2]));
+    assertTrue(borMesh3EdgeHasVertex(&e[0], &v[0]));
+    assertTrue(borMesh3EdgeHasVertex(&e[0], &v[1]));
+    assertTrue(borMesh3EdgeHasFace(&e[0], &f[0]));
+    assertFalse(borMesh3EdgeHasFace(&e[0], &f[1]));
+    assertTrue(borMesh3EdgeHasFace(&e[2], &f[0]));
+    assertTrue(borMesh3EdgeHasFace(&e[2], &f[1]));
+    assertEquals(borMesh3EdgeFacesLen(&e[2]), 2);
+    assertEquals(borMesh3EdgeFacesLen(&e[0]), 1);
+    assertTrue(borMesh3FaceHasEdge(&f[0], &e[2]));
 
-    ferMesh3DumpSVT(mesh, stdout, "Mesh 1");
-    ferMesh3DumpPovray(mesh, pov);
-    ferMesh3DumpTriangles(mesh, tri);
+    borMesh3DumpSVT(mesh, stdout, "Mesh 1");
+    borMesh3DumpPovray(mesh, pov);
+    borMesh3DumpTriangles(mesh, tri);
 
-    assertNotEquals(ferMesh3RemoveEdge(mesh, &e[2]), 0);
-    assertNotEquals(ferMesh3RemoveEdge(mesh, &e[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertNotEquals(borMesh3RemoveEdge(mesh, &e[2]), 0);
+    assertNotEquals(borMesh3RemoveEdge(mesh, &e[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
 
-    assertNotEquals(ferMesh3RemoveVertex(mesh, &v[2]), 0);
-    assertNotEquals(ferMesh3RemoveVertex(mesh, &v[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertNotEquals(borMesh3RemoveVertex(mesh, &v[2]), 0);
+    assertNotEquals(borMesh3RemoveVertex(mesh, &v[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
-    ferMesh3RemoveFace(mesh, &f[0]);
+    borMesh3RemoveFace(mesh, &f[0]);
 
-    ferMesh3DumpSVT(mesh, stdout, "Mesh 1.2");
-    ferMesh3DumpPovray(mesh, pov);
-    ferMesh3DumpTriangles(mesh, tri);
+    borMesh3DumpSVT(mesh, stdout, "Mesh 1.2");
+    borMesh3DumpPovray(mesh, pov);
+    borMesh3DumpTriangles(mesh, tri);
 
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 1);
-    ferMesh3RemoveFace(mesh, &f[1]);
-    assertEquals(ferMesh3FacesLen(mesh), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 1);
+    borMesh3RemoveFace(mesh, &f[1]);
+    assertEquals(borMesh3FacesLen(mesh), 0);
 
-    ferMesh3DumpSVT(mesh, stdout, "Mesh 1.3");
-    ferMesh3DumpPovray(mesh, pov);
-    ferMesh3DumpTriangles(mesh, tri);
+    borMesh3DumpSVT(mesh, stdout, "Mesh 1.3");
+    borMesh3DumpPovray(mesh, pov);
+    borMesh3DumpTriangles(mesh, tri);
 
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 4);
-    assertEquals(ferMesh3FacesLen(mesh), 0);
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[1]), 0);
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[2]), 0);
-    assertEquals(ferMesh3RemoveVertex(mesh, &v[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 3);
-    assertEquals(ferMesh3EdgesLen(mesh), 2);
-    assertEquals(ferMesh3FacesLen(mesh), 0);
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[3]), 0);
-    assertEquals(ferMesh3RemoveEdge(mesh, &e[4]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 3);
-    assertEquals(ferMesh3EdgesLen(mesh), 0);
-    assertEquals(ferMesh3FacesLen(mesh), 0);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 4);
+    assertEquals(borMesh3FacesLen(mesh), 0);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[1]), 0);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[2]), 0);
+    assertEquals(borMesh3RemoveVertex(mesh, &v[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 3);
+    assertEquals(borMesh3EdgesLen(mesh), 2);
+    assertEquals(borMesh3FacesLen(mesh), 0);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[3]), 0);
+    assertEquals(borMesh3RemoveEdge(mesh, &e[4]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 3);
+    assertEquals(borMesh3EdgesLen(mesh), 0);
+    assertEquals(borMesh3FacesLen(mesh), 0);
 
-    ferMesh3DumpSVT(mesh, stdout, "Mesh 1 three points");
-    ferMesh3Del(mesh);
+    borMesh3DumpSVT(mesh, stdout, "Mesh 1 three points");
+    borMesh3Del(mesh);
 }
 
 
 static void testMesh2DelV(bor_mesh3_vertex_t *v, void *data)
 {
-    ferVec3Del(ferMesh3VertexCoordsW(v));
-    ferMesh3VertexDel(v);
+    borVec3Del(borMesh3VertexCoordsW(v));
+    borMesh3VertexDel(v);
     assertEquals(*(long *)data, 123);
 }
 static void testMesh2DelE(bor_mesh3_edge_t *e, void *data)
 {
-    ferMesh3EdgeDel(e);
+    borMesh3EdgeDel(e);
     assertEquals(*(long *)data, 345);
 }
 static void testMesh2DelF(bor_mesh3_face_t *f, void *data)
 {
-    ferMesh3FaceDel(f);
+    borMesh3FaceDel(f);
     assertEquals(*(long *)data, 456);
 }
 
@@ -162,72 +162,72 @@ TEST(testMesh2)
     size_t i;
     long vdata = 123, edata = 345, fdata = 456;
 
-    mesh = ferMesh3New();
+    mesh = borMesh3New();
 
     for (i = 0; i < 4; i++){
-        vcoords[i] = ferVec3New(0., 0., 0.);
-        v[i] = ferMesh3VertexNew();
-        ferMesh3VertexSetCoords(v[i], vcoords[i]);
+        vcoords[i] = borVec3New(0., 0., 0.);
+        v[i] = borMesh3VertexNew();
+        borMesh3VertexSetCoords(v[i], vcoords[i]);
     }
     for (i = 0; i < 5; i++)
-        e[i] = ferMesh3EdgeNew();
+        e[i] = borMesh3EdgeNew();
     for (i = 0; i < 2; i++)
-        f[i] = ferMesh3FaceNew();
+        f[i] = borMesh3FaceNew();
 
 
-    ferVec3Set(ferMesh3VertexCoordsW(v[0]), 0., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(v[1]), 1., 0., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(v[2]), 0., 1., 0.);
-    ferVec3Set(ferMesh3VertexCoordsW(v[3]), 1., 1., 1.);
+    borVec3Set(borMesh3VertexCoordsW(v[0]), 0., 0., 0.);
+    borVec3Set(borMesh3VertexCoordsW(v[1]), 1., 0., 0.);
+    borVec3Set(borMesh3VertexCoordsW(v[2]), 0., 1., 0.);
+    borVec3Set(borMesh3VertexCoordsW(v[3]), 1., 1., 1.);
 
-    ferMesh3AddVertex(mesh, v[0]);
-    ferMesh3AddVertex(mesh, v[1]);
-    ferMesh3AddVertex(mesh, v[2]);
-    ferMesh3AddVertex(mesh, v[3]);
-    assertEquals(ferMesh3RemoveVertex(mesh, v[2]), 0);
-    ferMesh3AddVertex(mesh, v[2]);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
+    borMesh3AddVertex(mesh, v[0]);
+    borMesh3AddVertex(mesh, v[1]);
+    borMesh3AddVertex(mesh, v[2]);
+    borMesh3AddVertex(mesh, v[3]);
+    assertEquals(borMesh3RemoveVertex(mesh, v[2]), 0);
+    borMesh3AddVertex(mesh, v[2]);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
 
-    ferMesh3AddEdge(mesh, e[0], v[0], v[1]);
-    ferMesh3AddEdge(mesh, e[1], v[0], v[2]);
-    ferMesh3AddEdge(mesh, e[2], v[1], v[2]);
-    ferMesh3AddEdge(mesh, e[3], v[1], v[3]);
-    ferMesh3AddEdge(mesh, e[4], v[2], v[3]);
-    assertEquals(ferMesh3RemoveEdge(mesh, e[4]), 0);
-    ferMesh3AddEdge(mesh, e[4], v[2], v[3]);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
+    borMesh3AddEdge(mesh, e[0], v[0], v[1]);
+    borMesh3AddEdge(mesh, e[1], v[0], v[2]);
+    borMesh3AddEdge(mesh, e[2], v[1], v[2]);
+    borMesh3AddEdge(mesh, e[3], v[1], v[3]);
+    borMesh3AddEdge(mesh, e[4], v[2], v[3]);
+    assertEquals(borMesh3RemoveEdge(mesh, e[4]), 0);
+    borMesh3AddEdge(mesh, e[4], v[2], v[3]);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
 
-    assertTrue(ferMesh3EdgeTriCheck(e[0], e[1], e[2]));
-    assertTrue(ferMesh3EdgeTriCheck(e[2], e[3], e[4]));
-    assertEquals(ferMesh3AddFace(mesh, f[0], e[0], e[1], e[2]), 0);
-    assertEquals(ferMesh3AddFace(mesh, f[1], e[2], e[3], e[4]), 0);
-    assertNotEquals(ferMesh3AddFace(mesh, &f2, e[2], e[3], e[4]), 0);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertTrue(borMesh3EdgeTriCheck(e[0], e[1], e[2]));
+    assertTrue(borMesh3EdgeTriCheck(e[2], e[3], e[4]));
+    assertEquals(borMesh3AddFace(mesh, f[0], e[0], e[1], e[2]), 0);
+    assertEquals(borMesh3AddFace(mesh, f[1], e[2], e[3], e[4]), 0);
+    assertNotEquals(borMesh3AddFace(mesh, &f2, e[2], e[3], e[4]), 0);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
-    ferMesh3DumpSVT(mesh, stdout, "Mesh 2");
+    borMesh3DumpSVT(mesh, stdout, "Mesh 2");
 
 
-    assertNotEquals(ferMesh3RemoveEdge(mesh, e[2]), 0);
-    assertNotEquals(ferMesh3RemoveEdge(mesh, e[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertNotEquals(borMesh3RemoveEdge(mesh, e[2]), 0);
+    assertNotEquals(borMesh3RemoveEdge(mesh, e[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
-    assertNotEquals(ferMesh3RemoveVertex(mesh, v[2]), 0);
-    assertNotEquals(ferMesh3RemoveVertex(mesh, v[0]), 0);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 2);
+    assertNotEquals(borMesh3RemoveVertex(mesh, v[2]), 0);
+    assertNotEquals(borMesh3RemoveVertex(mesh, v[0]), 0);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 2);
 
-    ferMesh3RemoveFace(mesh, f[0]);
-    assertEquals(ferMesh3VerticesLen(mesh), 4);
-    assertEquals(ferMesh3EdgesLen(mesh), 5);
-    assertEquals(ferMesh3FacesLen(mesh), 1);
+    borMesh3RemoveFace(mesh, f[0]);
+    assertEquals(borMesh3VerticesLen(mesh), 4);
+    assertEquals(borMesh3EdgesLen(mesh), 5);
+    assertEquals(borMesh3FacesLen(mesh), 1);
 
-    ferMesh3Del2(mesh, testMesh2DelV, &vdata,
+    borMesh3Del2(mesh, testMesh2DelV, &vdata,
                        testMesh2DelE, &edata,
                        testMesh2DelF, &fdata);
-    ferMesh3FaceDel(f[0]);
+    borMesh3FaceDel(f[0]);
 }
 
 #if 0

@@ -47,113 +47,113 @@ typedef bor_vec4_t bor_quat_t;
 #define BOR_QUAT(name, x, y, z, w) \
     bor_quat_t name = BOR_QUAT_STATIC((x), (y), (z), (w))
 
-#define ferQuatNew   ferVec4New
-#define ferQuatDel   ferVec4Del
-#define ferQuatCopy  ferVec4Copy
-#define ferQuatClone ferVec4Clone
+#define borQuatNew   borVec4New
+#define borQuatDel   borVec4Del
+#define borQuatCopy  borVec4Copy
+#define borQuatClone borVec4Clone
 
-#define ferQuatX         ferVec4X
-#define ferQuatY         ferVec4Y
-#define ferQuatZ         ferVec4Z
-#define ferQuatW         ferVec4W
-#define ferQuatGet       ferVec4Get
-#define ferQuatSet       ferVec4Set
-#define ferQuatSetX      ferVec4SetX
-#define ferQuatSetY      ferVec4SetY
-#define ferQuatSetZ      ferVec4SetZ
-#define ferQuatSetCoord  ferVec4SetCoord
-#define ferQuatSetW      ferVec4SetW
-#define ferQuatLen2      ferVec4Len2
-#define ferQuatLen       ferVec4Len
-#define ferQuatNormalize ferVec4Normalize
-#define ferQuatScale     ferVec4Scale
+#define borQuatX         borVec4X
+#define borQuatY         borVec4Y
+#define borQuatZ         borVec4Z
+#define borQuatW         borVec4W
+#define borQuatGet       borVec4Get
+#define borQuatSet       borVec4Set
+#define borQuatSetX      borVec4SetX
+#define borQuatSetY      borVec4SetY
+#define borQuatSetZ      borVec4SetZ
+#define borQuatSetCoord  borVec4SetCoord
+#define borQuatSetW      borVec4SetW
+#define borQuatLen2      borVec4Len2
+#define borQuatLen       borVec4Len
+#define borQuatNormalize borVec4Normalize
+#define borQuatScale     borVec4Scale
 
-#define ferQuatEq     ferVec4Eq
-#define ferQuatNEq    ferVec4NEq
-#define ferQuatEq2    ferVec4Eq2
-#define ferQuatNEq2   ferVec4NEq2
-#define ferQuatIsZero ferVec4IsZero
+#define borQuatEq     borVec4Eq
+#define borQuatNEq    borVec4NEq
+#define borQuatEq2    borVec4Eq2
+#define borQuatNEq2   borVec4NEq2
+#define borQuatIsZero borVec4IsZero
 /** ^^^^^ */
 
 
 /**
  * Sets quaternion as rotation of given angle around given axis.
  */
-_fer_inline void ferQuatSetAngleAxis(bor_quat_t *q,
+_bor_inline void borQuatSetAngleAxis(bor_quat_t *q,
                                      bor_real_t angle, const bor_vec3_t *axis);
 
 /**
  * Sets quaternion in euler angles (yaw, pitch, roll) or (heading,
  * elevation, bank) or rotation about (z, y, x)
  */
-void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll);
+void borQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll);
 
 /**
  * Composition of two quaternions.
  * q = q * q2
  */
-_fer_inline void ferQuatMul(bor_quat_t *q, const bor_quat_t *q2);
+_bor_inline void borQuatMul(bor_quat_t *q, const bor_quat_t *q2);
 
 /**
  * q = a * b
  */
-_fer_inline void ferQuatMul2(bor_quat_t *q,
+_bor_inline void borQuatMul2(bor_quat_t *q,
                            const bor_quat_t *a, const bor_quat_t *b);
 
 /**
  * Inverts quaternion.
  * Returns 0 on success.
  */
-_fer_inline int ferQuatInvert(bor_quat_t *q);
-_fer_inline int ferQuatInvert2(bor_quat_t *dest, const bor_quat_t *src);
+_bor_inline int borQuatInvert(bor_quat_t *q);
+_bor_inline int borQuatInvert2(bor_quat_t *dest, const bor_quat_t *src);
 
 
 /**
  * Rotate vector v by quaternion q.
  */
-_fer_inline void ferQuatRotVec(bor_vec3_t *v, const bor_quat_t *q);
+_bor_inline void borQuatRotVec(bor_vec3_t *v, const bor_quat_t *q);
 
 /**
  * Transforms quaternion into Mat3 rotation matrix.
  */
-_fer_inline void ferQuatToMat3(const bor_quat_t *q, bor_mat3_t *m);
+_bor_inline void borQuatToMat3(const bor_quat_t *q, bor_mat3_t *m);
 
 /**
  * Creates quaternion from 3x3 matrix
  */
-_fer_inline void ferQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m);
+_bor_inline void borQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m);
 
 
 /**** INLINES ****/
-_fer_inline void ferQuatSetAngleAxis(bor_quat_t *q,
+_bor_inline void borQuatSetAngleAxis(bor_quat_t *q,
                                    bor_real_t angle, const bor_vec3_t *axis)
 {
     bor_vec3_t xyz;
     bor_real_t a, s, n;
 
-    ferVec3Copy(&xyz, axis);
-    n = ferVec3Len(&xyz);
+    borVec3Copy(&xyz, axis);
+    n = borVec3Len(&xyz);
 
-    if (fer_unlikely(ferIsZero(n))){
-        ferQuatSet(q, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
+    if (bor_unlikely(borIsZero(n))){
+        borQuatSet(q, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
     }else{
         a = angle * BOR_REAL(0.5);
         s = BOR_SIN(a) / n;
 
-        ferVec3Scale(&xyz, s);
-        ferQuatSet(q, ferVec3X(&xyz), ferVec3Y(&xyz), ferVec3Z(&xyz), BOR_COS(a));
+        borVec3Scale(&xyz, s);
+        borQuatSet(q, borVec3X(&xyz), borVec3Y(&xyz), borVec3Z(&xyz), BOR_COS(a));
     }
 }
 
 
-_fer_inline void ferQuatMul(bor_quat_t *q, const bor_quat_t *q2)
+_bor_inline void borQuatMul(bor_quat_t *q, const bor_quat_t *q2)
 {
     bor_quat_t a;
-    ferQuatCopy(&a, q);
-    ferQuatMul2(q, &a, q2);
+    borQuatCopy(&a, q);
+    borQuatMul2(q, &a, q2);
 }
 
-_fer_inline void ferQuatMul2(bor_quat_t *q,
+_bor_inline void borQuatMul2(bor_quat_t *q,
                            const bor_quat_t *a, const bor_quat_t *b)
 {
 #ifdef BOR_SSE
@@ -243,9 +243,9 @@ _fer_inline void ferQuatMul2(bor_quat_t *q,
 #endif /* BOR_SSE */
 }
 
-_fer_inline int ferQuatInvert(bor_quat_t *q)
+_bor_inline int borQuatInvert(bor_quat_t *q)
 {
-    bor_real_t len2 = ferQuatLen2(q);
+    bor_real_t len2 = borQuatLen2(q);
     if (len2 < BOR_EPS)
         return -1;
 
@@ -262,7 +262,7 @@ _fer_inline int ferQuatInvert(bor_quat_t *q)
     q->v[1] = _mm_div_pd(q->v[1], k2);
 # endif /* BOR_SSE_SINGLE */
 #else /* BOR_SSE */
-    len2 = ferRecp(len2);
+    len2 = borRecp(len2);
 
     q->f[0] = -q->f[0] * len2;
     q->f[1] = -q->f[1] * len2;
@@ -272,13 +272,13 @@ _fer_inline int ferQuatInvert(bor_quat_t *q)
 
     return 0;
 }
-_fer_inline int ferQuatInvert2(bor_quat_t *dest, const bor_quat_t *src)
+_bor_inline int borQuatInvert2(bor_quat_t *dest, const bor_quat_t *src)
 {
-    ferQuatCopy(dest, src);
-    return ferQuatInvert(dest);
+    borQuatCopy(dest, src);
+    return borQuatInvert(dest);
 }
 
-_fer_inline void ferQuatRotVec(bor_vec3_t *v, const bor_quat_t *q)
+_bor_inline void borQuatRotVec(bor_vec3_t *v, const bor_quat_t *q)
 {
     bor_real_t w, x, y, z, ww, xx, yy, zz, wx, wy, wz, xy, xz, yz;
     bor_real_t vx, vy, vz;
@@ -298,36 +298,36 @@ _fer_inline void ferQuatRotVec(bor_vec3_t *v, const bor_quat_t *q)
     xz = x*z;
     yz = y*z;
 
-    vx = ww * ferVec3X(v)
-            + xx * ferVec3X(v)
-            - yy * ferVec3X(v)
-            - zz * ferVec3X(v)
-            + 2 * ((xy - wz) * ferVec3Y(v)
-            + (xz + wy) * ferVec3Z(v));
-    vy = ww * ferVec3Y(v)
-            - xx * ferVec3Y(v)
-            + yy * ferVec3Y(v)
-            - zz * ferVec3Y(v)
-            + 2 * ((xy + wz) * ferVec3X(v)
-            + (yz - wx) * ferVec3Z(v));
-    vz = ww * ferVec3Z(v)
-            - xx * ferVec3Z(v)
-            - yy * ferVec3Z(v)
-            + zz * ferVec3Z(v)
-            + 2 * ((xz - wy) * ferVec3X(v)
-            + (yz + wx) * ferVec3Y(v));
-    ferVec3Set(v, vx, vy, vz);
+    vx = ww * borVec3X(v)
+            + xx * borVec3X(v)
+            - yy * borVec3X(v)
+            - zz * borVec3X(v)
+            + 2 * ((xy - wz) * borVec3Y(v)
+            + (xz + wy) * borVec3Z(v));
+    vy = ww * borVec3Y(v)
+            - xx * borVec3Y(v)
+            + yy * borVec3Y(v)
+            - zz * borVec3Y(v)
+            + 2 * ((xy + wz) * borVec3X(v)
+            + (yz - wx) * borVec3Z(v));
+    vz = ww * borVec3Z(v)
+            - xx * borVec3Z(v)
+            - yy * borVec3Z(v)
+            + zz * borVec3Z(v)
+            + 2 * ((xz - wy) * borVec3X(v)
+            + (yz + wx) * borVec3Y(v));
+    borVec3Set(v, vx, vy, vz);
 }
 
-_fer_inline void ferQuatToMat3(const bor_quat_t *q, bor_mat3_t *m)
+_bor_inline void borQuatToMat3(const bor_quat_t *q, bor_mat3_t *m)
 {
     bor_real_t x, y, z, w;
     bor_real_t xx, yy, zz, xy, zw, xz, yw, yz, xw;
 
-    x = ferQuatX(q);
-    y = ferQuatY(q);
-    z = ferQuatZ(q);
-    w = ferQuatW(q);
+    x = borQuatX(q);
+    y = borQuatY(q);
+    z = borQuatZ(q);
+    w = borQuatW(q);
     xx = BOR_REAL(2.) * x * x;
     yy = BOR_REAL(2.) * y * y;
     zz = BOR_REAL(2.) * z * z;
@@ -338,24 +338,24 @@ _fer_inline void ferQuatToMat3(const bor_quat_t *q, bor_mat3_t *m)
     yz = BOR_REAL(2.) * y * z;
     xw = BOR_REAL(2.) * x * w;
 
-    ferMat3Set(m, 1.0-yy-zz, xy-zw, xz+yw,
+    borMat3Set(m, 1.0-yy-zz, xy-zw, xz+yw,
                   xy+zw, 1.0-xx-zz, yz-xw,
                   xz-yw, yz+xw, 1.0-xx-yy);
 }
 
-_fer_inline void ferQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m)
+_bor_inline void borQuatFromMat3(bor_quat_t *q, const bor_mat3_t *m)
 {
     bor_real_t w, w4;
 
-    w  = 1 + ferMat3Get(m, 0, 0) + ferMat3Get(m, 1, 1) + ferMat3Get(m, 2, 2);
+    w  = 1 + borMat3Get(m, 0, 0) + borMat3Get(m, 1, 1) + borMat3Get(m, 2, 2);
     w  = BOR_SQRT(w);
-    w4 = ferRecp(BOR_REAL(2.) * w);
+    w4 = borRecp(BOR_REAL(2.) * w);
     w /= BOR_REAL(2.);
 
-    ferQuatSetX(q, (ferMat3Get(m, 2, 1) - ferMat3Get(m, 1, 2)) * w4);
-    ferQuatSetX(q, (ferMat3Get(m, 0, 2) - ferMat3Get(m, 2, 0)) * w4);
-    ferQuatSetX(q, (ferMat3Get(m, 1, 0) - ferMat3Get(m, 0, 1)) * w4);
-    ferQuatSetW(q, w);
+    borQuatSetX(q, (borMat3Get(m, 2, 1) - borMat3Get(m, 1, 2)) * w4);
+    borQuatSetX(q, (borMat3Get(m, 0, 2) - borMat3Get(m, 2, 0)) * w4);
+    borQuatSetX(q, (borMat3Get(m, 1, 0) - borMat3Get(m, 0, 1)) * w4);
+    borQuatSetW(q, w);
 }
 
 #ifdef __cplusplus

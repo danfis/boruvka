@@ -40,38 +40,38 @@ typedef struct _bor_pc_mem_t bor_pc_mem_t;
  * should be able to hold. It is also base number from which will be
  * estimated amount of allocated memory.
  */
-bor_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align);
-void ferPCMemDel(bor_pc_mem_t *m);
+bor_pc_mem_t *borPCMemNew(size_t min_size, size_t elsize, int align);
+void borPCMemDel(bor_pc_mem_t *m);
 
 /**
  * Returns true if chunk is full.
  */
-_fer_inline int ferPCMemFull(const bor_pc_mem_t *m);
+_bor_inline int borPCMemFull(const bor_pc_mem_t *m);
 
 /**
  * Returns element (of given type) stored on pos'th position.
  * No boundaries are checked!
  */
-#define ferPCMemGet(mem, pos, TYPE) \
-    ferPCMemGet2(mem, pos, TYPE, sizeof(TYPE))
+#define borPCMemGet(mem, pos, TYPE) \
+    borPCMemGet2(mem, pos, TYPE, sizeof(TYPE))
 
-#define ferPCMemGet2(mem, pos, TYPE, SIZE) \
+#define borPCMemGet2(mem, pos, TYPE, SIZE) \
     (TYPE *)((char *)(mem)->data + ((pos) * SIZE))
 
 /**
  * Adds element (of given type) to chunk.
  * No boundaries are checked!
  */
-#define ferPCMemAdd(mem, el, TYPE) \
-    ferPCMemAdd2(mem, el, TYPE, sizeof(TYPE))
+#define borPCMemAdd(mem, el, TYPE) \
+    borPCMemAdd2(mem, el, TYPE, sizeof(TYPE))
 
-#define ferPCMemAdd2(mem, el, TYPE, SIZE) \
+#define borPCMemAdd2(mem, el, TYPE, SIZE) \
     do { \
         *((TYPE *)((char *)(mem)->data + ((mem)->len * SIZE))) = *(el); \
         (mem)->len++; \
     } while (0)
 
-#define ferPCMemAdd2Memcpy(mem, el, TYPE, SIZE) \
+#define borPCMemAdd2Memcpy(mem, el, TYPE, SIZE) \
     do { \
         memcpy((void *)((char *)(mem)->data + ((mem)->len * SIZE)), el, SIZE); \
         (mem)->len++; \
@@ -80,7 +80,7 @@ _fer_inline int ferPCMemFull(const bor_pc_mem_t *m);
 
 
 /**** INLINES ****/
-_fer_inline int ferPCMemFull(const bor_pc_mem_t *m)
+_bor_inline int borPCMemFull(const bor_pc_mem_t *m)
 {
     return m->len >= m->size;
 }

@@ -38,7 +38,7 @@ typedef struct _bor_list_t bor_list_t;
  * Simliar struct as bor_list_t but with extra member "mark" which can be
  * used for marking a particular struct.
  * In your code, you can put this struct into your own struct then use
- * ferListMAsList() for iterating over list and finaly ferListMFromList()
+ * borListMAsList() for iterating over list and finaly borListMFromList()
  * for backcast to this struct. (In other words retyping from bor_list_m_t
  * to bor_list_t is safe!).
  */
@@ -77,12 +77,12 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * struct member_t m1, m2, m3;
  *
  * // init head of list
- * ferListInit(&head.head);
+ * borListInit(&head.head);
  *
  * // append members to list
- * ferListAppend(&head.head, &m1.list);
- * ferListAppend(&head.head, &m2.list);
- * ferListAppend(&head.head, &m3.list);
+ * borListAppend(&head.head, &m1.list);
+ * borListAppend(&head.head, &m2.list);
+ * borListAppend(&head.head, &m3.list);
  * ~~~~~~
  *
  * Now you can iterate over list or do anything else.
@@ -128,17 +128,17 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * {member}: the name of the list_struct within the struct.
  */
 #define BOR_LIST_ENTRY(ptr, type, member) \
-    fer_container_of(ptr, type, member)
+    bor_container_of(ptr, type, member)
 
 #define BOR_LIST_M_ENTRY(ptr, type, member, offset) \
-    (type *)((char *)fer_container_of(ptr, type, member) - (sizeof(bor_list_m_t) * offset))
+    (type *)((char *)bor_container_of(ptr, type, member) - (sizeof(bor_list_m_t) * offset))
 
 /**
  * Iterates over list.
  */
 #define BOR_LIST_FOR_EACH(list, item) \
         for (item = (list)->next; \
-             _fer_prefetch((item)->next), item != (list); \
+             _bor_prefetch((item)->next), item != (list); \
              item = (item)->next)
 
 /**
@@ -157,7 +157,7 @@ typedef struct _bor_list_m_t bor_list_m_t;
  */
 #define BOR_LIST_FOR_EACH_ENTRY(head, postype, pos, member) \
 	for (pos = BOR_LIST_ENTRY((head)->next, postype, member);	\
-	     _fer_prefetch(pos->member.next), &pos->member != (head); 	\
+	     _bor_prefetch(pos->member.next), &pos->member != (head); 	\
 	     pos = BOR_LIST_ENTRY(pos->member.next, postype, member))
 
 /**
@@ -177,89 +177,89 @@ typedef struct _bor_list_m_t bor_list_m_t;
 /**
  * Initialize list.
  */
-_fer_inline void ferListInit(bor_list_t *l);
+_bor_inline void borListInit(bor_list_t *l);
 
 /**
  * Returns next element in list. If called on head first element is
  * returned.
  */
-_fer_inline bor_list_t *ferListNext(bor_list_t *l);
+_bor_inline bor_list_t *borListNext(bor_list_t *l);
 
 /**
  * Returns previous element in list. If called on head last element is
  * returned.
  */
-_fer_inline bor_list_t *ferListPrev(bor_list_t *l);
+_bor_inline bor_list_t *borListPrev(bor_list_t *l);
 
 /**
  * Returns true if list is empty.
  */
-_fer_inline int ferListEmpty(const bor_list_t *head);
+_bor_inline int borListEmpty(const bor_list_t *head);
 
 /**
  * Appends item to end of the list l.
  */
-_fer_inline void ferListAppend(bor_list_t *l, bor_list_t *item);
+_bor_inline void borListAppend(bor_list_t *l, bor_list_t *item);
 
 /**
  * Prepends item before first item in list.
  */
-_fer_inline void ferListPrepend(bor_list_t *l, bor_list_t *item);
+_bor_inline void borListPrepend(bor_list_t *l, bor_list_t *item);
 
 /**
  * Removes item from list.
  */
-_fer_inline void ferListDel(bor_list_t *item);
+_bor_inline void borListDel(bor_list_t *item);
 
 
 /**
  * Returns number of items in list - this takes O(n).
  */
-_fer_inline size_t ferListSize(const bor_list_t *head);
+_bor_inline size_t borListSize(const bor_list_t *head);
 
 
 /**
  * Move all items from {src} to {dst}. Items will be appended to dst.
  */
-_fer_inline void ferListMove(bor_list_t *src, bor_list_t *dst);
+_bor_inline void borListMove(bor_list_t *src, bor_list_t *dst);
 
 
 /**
  * Retypes given "M" list struct to regular list struct.
  */
-_fer_inline bor_list_t *ferListMAsList(bor_list_m_t *l);
+_bor_inline bor_list_t *borListMAsList(bor_list_m_t *l);
 
 /**
- * Opposite to ferListMAsList().
+ * Opposite to borListMAsList().
  */
-_fer_inline bor_list_m_t *ferListMFromList(bor_list_t *l);
+_bor_inline bor_list_m_t *borListMFromList(bor_list_t *l);
 
 
 
 
 /**** INLINES ****/
-_fer_inline void ferListInit(bor_list_t *l)
+_bor_inline void borListInit(bor_list_t *l)
 {
     l->next = l;
     l->prev = l;
 }
 
-_fer_inline bor_list_t *ferListNext(bor_list_t *l)
+_bor_inline bor_list_t *borListNext(bor_list_t *l)
 {
     return l->next;
 }
 
-_fer_inline bor_list_t *ferListPrev(bor_list_t *l)
+_bor_inline bor_list_t *borListPrev(bor_list_t *l)
 {
     return l->prev;
 }
 
-_fer_inline int ferListEmpty(const bor_list_t *head)
+_bor_inline int borListEmpty(const bor_list_t *head)
 {
     return head->next == head;
 }
 
-_fer_inline void ferListAppend(bor_list_t *l, bor_list_t *n)
+_bor_inline void borListAppend(bor_list_t *l, bor_list_t *n)
 {
     n->prev = l->prev;
     n->next = l;
@@ -267,7 +267,7 @@ _fer_inline void ferListAppend(bor_list_t *l, bor_list_t *n)
     l->prev = n;
 }
 
-_fer_inline void ferListPrepend(bor_list_t *l, bor_list_t *n)
+_bor_inline void borListPrepend(bor_list_t *l, bor_list_t *n)
 {
     n->next = l->next;
     n->prev = l;
@@ -275,7 +275,7 @@ _fer_inline void ferListPrepend(bor_list_t *l, bor_list_t *n)
     l->next = n;
 }
 
-_fer_inline void ferListDel(bor_list_t *item)
+_bor_inline void borListDel(bor_list_t *item)
 {
     item->next->prev = item->prev;
     item->prev->next = item->next;
@@ -283,7 +283,7 @@ _fer_inline void ferListDel(bor_list_t *item)
     item->prev = item;
 }
 
-_fer_inline size_t ferListSize(const bor_list_t *head)
+_bor_inline size_t borListSize(const bor_list_t *head)
 {
     bor_list_t *item;
     size_t size = 0;
@@ -295,23 +295,23 @@ _fer_inline size_t ferListSize(const bor_list_t *head)
     return size;
 }
 
-_fer_inline void ferListMove(bor_list_t *src, bor_list_t *dst)
+_bor_inline void borListMove(bor_list_t *src, bor_list_t *dst)
 {
     bor_list_t *item;
 
-    while (!ferListEmpty(src)){
-        item = ferListNext(src);
-        ferListDel(item);
-        ferListAppend(dst, item);
+    while (!borListEmpty(src)){
+        item = borListNext(src);
+        borListDel(item);
+        borListAppend(dst, item);
     }
 }
 
-_fer_inline bor_list_t *ferListMAsList(bor_list_m_t *l)
+_bor_inline bor_list_t *borListMAsList(bor_list_m_t *l)
 {
     return (bor_list_t *)l;
 }
 
-_fer_inline bor_list_m_t *ferListMFromList(bor_list_t *l)
+_bor_inline bor_list_m_t *borListMFromList(bor_list_t *l)
 {
     return (bor_list_m_t *)l;
 }

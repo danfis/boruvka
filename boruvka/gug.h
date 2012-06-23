@@ -75,7 +75,7 @@ typedef struct _bor_gug_params_t bor_gug_params_t;
 /**
  * Initializes params struct.
  */
-void ferGUGParamsInit(bor_gug_params_t *p);
+void borGUGParamsInit(bor_gug_params_t *p);
 
 
 /**
@@ -129,7 +129,7 @@ typedef struct _bor_gug_el_t bor_gug_el_t;
  * Initialize element struct.
  * You must call this before adding to gug.
  */
-_fer_inline void ferGUGElInit(bor_gug_el_t *el, const bor_vec_t *p);
+_bor_inline void borGUGElInit(bor_gug_el_t *el, const bor_vec_t *p);
 
 
 /**
@@ -140,37 +140,37 @@ _fer_inline void ferGUGElInit(bor_gug_el_t *el, const bor_vec_t *p);
 /**
  * Creates and initialize new gug structure.
  */
-bor_gug_t *ferGUGNew(const bor_gug_params_t *params);
+bor_gug_t *borGUGNew(const bor_gug_params_t *params);
 
 /**
  * Deletes gug struct.
  */
-void ferGUGDel(bor_gug_t *c);
+void borGUGDel(bor_gug_t *c);
 
 /**
  * Returns number of elements stored in cells.
  */
-_fer_inline size_t ferGUGSize(const bor_gug_t *c);
+_bor_inline size_t borGUGSize(const bor_gug_t *c);
 
 /**
  * Returns dimension of covered space.
  */
-_fer_inline size_t ferGUGD(const bor_gug_t *c);
+_bor_inline size_t borGUGD(const bor_gug_t *c);
 
 /**
  * Returns number of cubes alogn x, y, z (, ...) axis.
  */
-_fer_inline const size_t *ferGUGDim(const bor_gug_t *c);
+_bor_inline const size_t *borGUGDim(const bor_gug_t *c);
 
 /**
  * Returns number cells.
  */
-_fer_inline size_t ferGUGCellsLen(const bor_gug_t *c);
+_bor_inline size_t borGUGCellsLen(const bor_gug_t *c);
 
 /**
  * Returns size (length) of edge of one cell.
  */
-_fer_inline bor_real_t ferGUGCellSize(const bor_gug_t *c);
+_bor_inline bor_real_t borGUGCellSize(const bor_gug_t *c);
 
 
 /**
@@ -180,9 +180,9 @@ _fer_inline bor_real_t ferGUGCellSize(const bor_gug_t *c);
  * First parameter is pointer to gug structure.
  * Second parameter is gug element structure - this structure is used
  * for connection into cubes structure (don't forget to call
- * ferGUGElInit()).
+ * borGUGElInit()).
  */
-_fer_inline void ferGUGAdd(bor_gug_t *cs, bor_gug_el_t *el);
+_bor_inline void borGUGAdd(bor_gug_t *cs, bor_gug_el_t *el);
 
 /**
  * Removes element from cells.
@@ -191,23 +191,23 @@ _fer_inline void ferGUGAdd(bor_gug_t *cs, bor_gug_el_t *el);
  * Second parameter is pointer to struct using which were element
  * connected in cubes.
  */
-_fer_inline void ferGUGRemove(bor_gug_t *cs, bor_gug_el_t *el);
+_bor_inline void borGUGRemove(bor_gug_t *cs, bor_gug_el_t *el);
 
 /**
  * Updates elements position in cells.
  * Call this function anytime element is moved. If you don't do that
  * position of element in cells could be incorrect.
  *
- * Parameters are same as in ferGUGAdd().
+ * Parameters are same as in borGUGAdd().
  */
-_fer_inline void ferGUGUpdate(bor_gug_t *cs, bor_gug_el_t *el);
+_bor_inline void borGUGUpdate(bor_gug_t *cs, bor_gug_el_t *el);
 
 /**
- * This function si similar to ferGUGUpdate() but given element is
+ * This function si similar to borGUGUpdate() but given element is
  * always removed from cubes and then added again. No checking if
  * re-registering is needed is performed.
  */
-_fer_inline void ferGUGUpdateForce(bor_gug_t *cs, bor_gug_el_t *el);
+_bor_inline void borGUGUpdateForce(bor_gug_t *cs, bor_gug_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -216,13 +216,13 @@ _fer_inline void ferGUGUpdateForce(bor_gug_t *cs, bor_gug_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t ferGUGNearest(const bor_gug_t *cs, const bor_vec_t *p, size_t num,
+size_t borGUGNearest(const bor_gug_t *cs, const bor_vec_t *p, size_t num,
                          bor_gug_el_t **els);
 
 /**
- * Same as {ferGUGNearest} but approximate algorithm is used.
+ * Same as {borGUGNearest} but approximate algorithm is used.
  */
-size_t ferGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
+size_t borGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
                                size_t num, bor_gug_el_t **els);
 
 
@@ -233,88 +233,88 @@ size_t ferGUGNearestApprox(const bor_gug_t *cs, const bor_vec_t *p,
  * given coordinates.
  * This function _always_ returns correct ID.
  */
-_fer_inline size_t __ferGUGCoordsToID(const bor_gug_t *cs,
+_bor_inline size_t __borGUGCoordsToID(const bor_gug_t *cs,
                                           const bor_vec_t *p);
 
 
 /** Expands number of cells. This is function for internal use. Don't use it! */
-void __ferGUGExpand(bor_gug_t *cs);
+void __borGUGExpand(bor_gug_t *cs);
 
 /**** INLINES ****/
-_fer_inline void ferGUGElInit(bor_gug_el_t *el, const bor_vec_t *p)
+_bor_inline void borGUGElInit(bor_gug_el_t *el, const bor_vec_t *p)
 {
     el->p = p;
 }
 
 
-_fer_inline size_t ferGUGSize(const bor_gug_t *c)
+_bor_inline size_t borGUGSize(const bor_gug_t *c)
 {
     return c->num_els;
 }
 
-_fer_inline size_t ferGUGD(const bor_gug_t *c)
+_bor_inline size_t borGUGD(const bor_gug_t *c)
 {
     return c->d;
 }
 
-_fer_inline const size_t *ferGUGDim(const bor_gug_t *c)
+_bor_inline const size_t *borGUGDim(const bor_gug_t *c)
 {
     return c->dim;
 }
 
-_fer_inline size_t ferGUGCellsLen(const bor_gug_t *c)
+_bor_inline size_t borGUGCellsLen(const bor_gug_t *c)
 {
     return c->cells_len;
 }
 
-_fer_inline bor_real_t ferGUGCellSize(const bor_gug_t *c)
+_bor_inline bor_real_t borGUGCellSize(const bor_gug_t *c)
 {
     return c->edge;
 }
 
-_fer_inline void ferGUGAdd(bor_gug_t *cs, bor_gug_el_t *el)
+_bor_inline void borGUGAdd(bor_gug_t *cs, bor_gug_el_t *el)
 {
     size_t id;
 
-    id = __ferGUGCoordsToID(cs, el->p);
+    id = __borGUGCoordsToID(cs, el->p);
 
-    ferListAppend(&cs->cells[id].list, &el->list);
+    borListAppend(&cs->cells[id].list, &el->list);
 
     el->cell_id = id;
     cs->num_els++;
 
     if (cs->num_els >= cs->next_expand)
-        __ferGUGExpand(cs);
+        __borGUGExpand(cs);
 }
 
-_fer_inline void ferGUGRemove(bor_gug_t *cs, bor_gug_el_t *el)
+_bor_inline void borGUGRemove(bor_gug_t *cs, bor_gug_el_t *el)
 {
-    ferListDel(&el->list);
+    borListDel(&el->list);
 
     el->cell_id = (size_t)-1;
     cs->num_els--;
 }
 
-_fer_inline void ferGUGUpdate(bor_gug_t *cs, bor_gug_el_t *el)
+_bor_inline void borGUGUpdate(bor_gug_t *cs, bor_gug_el_t *el)
 {
     size_t id;
 
-    id = __ferGUGCoordsToID(cs, el->p);
+    id = __borGUGCoordsToID(cs, el->p);
     if (id != el->cell_id){
-        ferGUGUpdateForce(cs, el);
+        borGUGUpdateForce(cs, el);
     }
 }
 
-_fer_inline void ferGUGUpdateForce(bor_gug_t *cs, bor_gug_el_t *el)
+_bor_inline void borGUGUpdateForce(bor_gug_t *cs, bor_gug_el_t *el)
 {
-    ferGUGRemove(cs, el);
-    ferGUGAdd(cs, el);
+    borGUGRemove(cs, el);
+    borGUGAdd(cs, el);
 }
 
 
 
 
-_fer_inline size_t __ferGUGCoordsToID(const bor_gug_t *cs,
+_bor_inline size_t __borGUGCoordsToID(const bor_gug_t *cs,
                                           const bor_vec_t *p)
 {
     size_t i, tmp, id, mul;
@@ -323,7 +323,7 @@ _fer_inline size_t __ferGUGCoordsToID(const bor_gug_t *cs,
     id  = 0;
     mul = 1;
     for (i = 0; i < cs->d; i++){
-        f  = ferVecGet(p, i) + cs->shift[i];
+        f  = borVecGet(p, i) + cs->shift[i];
         f *= cs->edge_recp;
 
         tmp = BOR_MAX((int)f, 0);

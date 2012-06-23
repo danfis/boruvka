@@ -4,8 +4,8 @@ Parallel Processing
 .. toctree::
    :maxdepth: 1
 
-   fer-tasks.h.rst
-   fer-task-pool.h.rst
-   fer-hmap.h.rst
-   fer-hfunc.h.rst
-   fer-barrier.h.rst
+   bor-tasks.h.rst
+   bor-task-pool.h.rst
+   bor-hmap.h.rst
+   bor-hfunc.h.rst
+   bor-barrier.h.rst

@@ -21,18 +21,18 @@
 /**** RADIX SORT ****/
 #define RADIX_SORT_MASK 0xffu
 
-_fer_inline uint32_t radixSortVal(const bor_radix_sort_t *m,
+_bor_inline uint32_t radixSortVal(const bor_radix_sort_t *m,
                                   uint32_t shift)
 {
     bor_uint_t val;
 
-    val = ferRealAsUInt(m->key);
+    val = borRealAsUInt(m->key);
     val = (val >> shift) & RADIX_SORT_MASK;
 
     return val;
 }
 
-_fer_inline void radixSortZeroizeCounter(uint32_t *counter)
+_bor_inline void radixSortZeroizeCounter(uint32_t *counter)
 {
     int i;
     for (i = 0; i < 256; i++)
@@ -127,7 +127,7 @@ static void radixSortSortFinal(bor_radix_sort_t *src,
     }
 }
 
-void ferRadixSort(bor_radix_sort_t *rs, bor_radix_sort_t *rs_tmp, size_t rslen)
+void borRadixSort(bor_radix_sort_t *rs, bor_radix_sort_t *rs_tmp, size_t rslen)
 {
     bor_radix_sort_t *src, *dst, *tmp;
     uint32_t shift, i, len;
@@ -156,23 +156,23 @@ void ferRadixSort(bor_radix_sort_t *rs, bor_radix_sort_t *rs_tmp, size_t rslen)
 
 
 /**** RADIX SORT PTR ****/
-_fer_inline bor_real_t radixSortPtrKey(const void *el, size_t offset)
+_bor_inline bor_real_t radixSortPtrKey(const void *el, size_t offset)
 {
     return *(bor_real_t *)((char *)el + offset);
 }
 
-_fer_inline uint32_t radixSortPtrVal(const void *el, size_t offset,
+_bor_inline uint32_t radixSortPtrVal(const void *el, size_t offset,
                                      uint32_t shift)
 {
     bor_uint_t val;
 
-    val = ferRealAsUInt(radixSortPtrKey(el, offset));
+    val = borRealAsUInt(radixSortPtrKey(el, offset));
     val = (val >> shift) & RADIX_SORT_MASK;
 
     return val;
 }
 
-_fer_inline void radixSortPtrZeroizeCounter(uint32_t *counter)
+_bor_inline void radixSortPtrZeroizeCounter(uint32_t *counter)
 {
     int i;
     for (i = 0; i < 256; i++)
@@ -272,7 +272,7 @@ static void radixSortPtrSortFinal(void **src, uint32_t srclen,
     }
 }
 
-void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
+void borRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
                      size_t offset, int desc)
 {
     void **src, **dst, **tmp;
@@ -301,33 +301,33 @@ void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
 /**** RADIX SORT PTR END ****/
 
 /**** INSERT SORT LIST ****/
-void ferInsertSortList(bor_list_t *list, fer_list_sort_lt cb, void *data)
+void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
 {
     bor_list_t out;
     bor_list_t *cur, *item;
 
     // empty list - no need to sort
-    if (ferListEmpty(list))
+    if (borListEmpty(list))
         return;
 
     // list with one item - no need to sort
-    if (ferListNext(list) == ferListPrev(list))
+    if (borListNext(list) == borListPrev(list))
         return;
 
-    ferListInit(&out);
-    while (!ferListEmpty(list)){
+    borListInit(&out);
+    while (!borListEmpty(list)){
         // pick up next item from list
-        cur = ferListNext(list);
-        ferListDel(cur);
+        cur = borListNext(list);
+        borListDel(cur);
 
         // find the place where to put it
-        item = ferListPrev(&out);
+        item = borListPrev(&out);
         while (item != &out && cb(cur, item, data)){
-            item = ferListPrev(item);
+            item = borListPrev(item);
         }
 
         // put it after the item
-        ferListPrepend(item, cur);
+        borListPrepend(item, cur);
     }
 
     // and finally store sorted

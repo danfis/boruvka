@@ -16,10 +16,10 @@ TEST(vec4Alloc)
 {
     bor_vec4_t *v, w;
 
-    v = ferVec4New(0., 1., 2., 3.);
-    ferVec4Set(&w, 0., 1., 2., 3.);
-    assertTrue(ferVec4Eq(v, &w));
-    ferVec4Del(v);
+    v = borVec4New(0., 1., 2., 3.);
+    borVec4Set(&w, 0., 1., 2., 3.);
+    assertTrue(borVec4Eq(v, &w));
+    borVec4Del(v);
 }
 
 TEST(vec4Add)
@@ -28,10 +28,10 @@ TEST(vec4Add)
     size_t i;
 
     printf("# ---- add ----\n");
-    ferVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs4_len; i++){
-        ferVec4Add(&v, &vecs4[i]);
-        printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
+        borVec4Add(&v, &vecs4[i]);
+        printf("# %g %g %g %g\n", borVec4X(&v), borVec4Y(&v), borVec4Z(&v), borVec4W(&v));
     }
     printf("# ---- add end ----\n\n");
 }
@@ -42,10 +42,10 @@ TEST(vec4Sub)
     size_t i;
 
     printf("# ---- sub ----\n");
-    ferVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+    borVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs4_len; i++){
-        ferVec4Sub(&v, &vecs4[i]);
-        printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
+        borVec4Sub(&v, &vecs4[i]);
+        printf("# %g %g %g %g\n", borVec4X(&v), borVec4Y(&v), borVec4Z(&v), borVec4W(&v));
     }
     printf("# ---- sub end ----\n\n");
 }
@@ -57,9 +57,9 @@ TEST(vec4Scale)
 
     printf("# ---- scale ----\n");
     for (i = 0; i < vecs4_len; i++){
-        ferVec4Copy(&v, &vecs4[i]);
-        ferVec4Scale(&v, ferVec4X(&vecs4[i]));
-        printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
+        borVec4Copy(&v, &vecs4[i]);
+        borVec4Scale(&v, borVec4X(&vecs4[i]));
+        printf("# %g %g %g %g\n", borVec4X(&v), borVec4Y(&v), borVec4Z(&v), borVec4W(&v));
     }
     printf("# ---- scale end ----\n\n");
 }
@@ -71,9 +71,9 @@ TEST(vec4Normalize)
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < vecs4_len; i++){
-        ferVec4Copy(&v, &vecs4[i]);
-        ferVec4Normalize(&v);
-        printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
+        borVec4Copy(&v, &vecs4[i]);
+        borVec4Normalize(&v);
+        printf("# %g %g %g %g\n", borVec4X(&v), borVec4Y(&v), borVec4Z(&v), borVec4W(&v));
     }
     printf("# ---- normalize end ----\n\n");
 }
@@ -85,7 +85,7 @@ TEST(vec4Dot)
 
     printf("# ---- dot ----\n");
     for (i = 0; i < vecs4_len - 1; i++){
-        dot = ferVec4Dot(&vecs4[i], &vecs4[i + 1]);
+        dot = borVec4Dot(&vecs4[i], &vecs4[i + 1]);
         printf("# %g\n", dot);
     }
     printf("# ---- dot end ----\n\n");
@@ -98,8 +98,8 @@ TEST(vec4Mul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < vecs4_len - 1; i++){
-        ferVec4MulComp2(&v, &vecs4[i], &vecs4[i + 1]);
-        printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
+        borVec4MulComp2(&v, &vecs4[i], &vecs4[i + 1]);
+        printf("# %g %g %g %g\n", borVec4X(&v), borVec4Y(&v), borVec4Z(&v), borVec4W(&v));
     }
     printf("# ---- mul end ----\n\n");
 }
@@ -112,7 +112,7 @@ TEST(vec4Len2)
 
     printf("# ---- len2 ----\n");
     for (i = 0; i < vecs4_len; i++){
-        d = ferVec4Len2(&vecs4[i]);
+        d = borVec4Len2(&vecs4[i]);
         printf("# %g\n", d);
     }
     printf("# ---- len2 end ----\n\n");
@@ -125,7 +125,7 @@ TEST(vec4Len)
 
     printf("# ---- len ----\n");
     for (i = 0; i < vecs4_len; i++){
-        d = ferVec4Len(&vecs4[i]);
+        d = borVec4Len(&vecs4[i]);
         printf("# %g\n", d);
     }
     printf("# ---- len end ----\n\n");
@@ -138,7 +138,7 @@ TEST(vec4Dist2)
 
     printf("# ---- dist2 ----\n");
     for (i = 0; i < vecs4_len - 1; i++){
-        d = ferVec4Dist2(&vecs4[i], &vecs4[i + 1]);
+        d = borVec4Dist2(&vecs4[i], &vecs4[i + 1]);
         printf("# %g\n", d);
     }
     printf("# ---- dist2 end ----\n\n");
@@ -151,7 +151,7 @@ TEST(vec4Dist)
 
     printf("# ---- dist ----\n");
     for (i = 0; i < vecs4_len - 1; i++){
-        d = ferVec4Dist(&vecs4[i], &vecs4[i + 1]);
+        d = borVec4Dist(&vecs4[i], &vecs4[i + 1]);
         printf("# %g\n", d);
     }
     printf("# ---- dist end ----\n\n");

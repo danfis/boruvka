@@ -33,7 +33,7 @@
         || (c) == '\r' \
         || (c) == '\t')
 
-bor_image_pnmf_t *ferImagePNMF(const char *filename)
+bor_image_pnmf_t *borImagePNMF(const char *filename)
 {
     bor_image_pnmf_t *img = NULL;
     int width, height, maxval;
@@ -149,12 +149,12 @@ bor_image_pnmf_t *ferImagePNMF(const char *filename)
     return img;
 }
 
-void ferImagePNMFDel(bor_image_pnmf_t *img)
+void borImagePNMFDel(bor_image_pnmf_t *img)
 {
     BOR_FREE(img);
 }
 
-void ferImagePNMFSave(bor_image_pnmf_t *img, const char *filename)
+void borImagePNMFSave(bor_image_pnmf_t *img, const char *filename)
 {
     FILE *fout;
     int i, len;
@@ -208,29 +208,29 @@ static void grayToRGB(float gray, float *r, float *g, float *b)
     *r = *g = *b = gray;
 }
 
-void ferImagePNMFGetRGB(const bor_image_pnmf_t *img, int row, int col,
+void borImagePNMFGetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float *r, float *g, float *b)
 {
-    ferImagePNMFGetRGB2(img, row * img->width + col, r, g, b);
+    borImagePNMFGetRGB2(img, row * img->width + col, r, g, b);
 }
 
-void ferImagePNMFSetRGB(const bor_image_pnmf_t *img, int row, int col,
+void borImagePNMFSetRGB(const bor_image_pnmf_t *img, int row, int col,
                         float r, float g, float b)
 {
-    ferImagePNMFSetRGB2(img, row * img->width + col, r, g, b);
+    borImagePNMFSetRGB2(img, row * img->width + col, r, g, b);
 }
 
-float ferImagePNMFGetGray(const bor_image_pnmf_t *img, int row, int col)
+float borImagePNMFGetGray(const bor_image_pnmf_t *img, int row, int col)
 {
-    return ferImagePNMFGetGray2(img, row * img->width + col);
+    return borImagePNMFGetGray2(img, row * img->width + col);
 }
 
-void ferImagePNMFSetGray(const bor_image_pnmf_t *img, int row, int col, float gr)
+void borImagePNMFSetGray(const bor_image_pnmf_t *img, int row, int col, float gr)
 {
-    ferImagePNMFSetGray2(img, row * img->width + col, gr);
+    borImagePNMFSetGray2(img, row * img->width + col, gr);
 }
 
-void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
+void borImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
                          float *r, float *g, float *b)
 {
     if (img->type == BOR_IMAGE_PGMF){
@@ -243,7 +243,7 @@ void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
     }
 }
 
-void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
+void borImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
                          float r, float g, float b)
 {
     if (img->type == BOR_IMAGE_PGMF){
@@ -256,7 +256,7 @@ void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
     }
 }
 
-float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos)
+float borImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos)
 {
     if (img->type == BOR_IMAGE_PGMF){
         return img->data[pos];
@@ -266,7 +266,7 @@ float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos)
     }
 }
 
-void ferImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr)
+void borImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr)
 {
     if (img->type == BOR_IMAGE_PGMF){
         img->data[pos] = gr;

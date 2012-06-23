@@ -24,7 +24,7 @@ static bor_real_t build2Dist(void *item1, bor_list_t *item2,
     bor_vec2_t *p = (bor_vec2_t *)item1;
     el_t *el = BOR_LIST_ENTRY(item2, el_t, list);
 
-    return ferVec2Dist(p, &el->w);
+    return borVec2Dist(p, &el->w);
 }
 
 static void build2Test(bor_rand_mt_t *rand,
@@ -36,23 +36,23 @@ static void build2Test(bor_rand_mt_t *rand,
     bor_vec2_t p;
     size_t len, len2, i;
 
-    ferVec2Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
-    len2 = ferNearestLinear(list, (void *)&p, build2Dist, nn2, num, NULL);
+    borVec2Set(&p, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+    len = borVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
+    len2 = borNearestLinear(list, (void *)&p, build2Dist, nn2, num, NULL);
 
     assertEquals(len, num);
     assertEquals(len2, num);
 
     for (i = 0; i < num; i++){
-        el  = fer_container_of(nn[i], el_t, el);
-        el2 = fer_container_of(nn2[i], el_t, list);
+        el  = bor_container_of(nn[i], el_t, el);
+        el2 = bor_container_of(nn2[i], el_t, list);
 
         if (el == el2){
             assertEquals(el, el2);
         }else{
             fprintf(stderr, "%.30f %.30f [%.30f] - %.30f %.30f [%.30f]\n",
-                    ferVec2X(&el->w), ferVec2Y(&el->w), ferVec2Dist(&el->w, &p),
-                    ferVec2X(&el2->w), ferVec2Y(&el2->w), ferVec2Dist(&el2->w, &p));
+                    borVec2X(&el->w), borVec2Y(&el->w), borVec2Dist(&el->w, &p),
+                    borVec2X(&el2->w), borVec2Y(&el2->w), borVec2Dist(&el2->w, &p));
         }
     }
 }
@@ -67,32 +67,32 @@ TEST(vptreeBuild2)
     static el_t els[BUILD_ELS_LEN];
     int i, j, size;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec2Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
     }
 
     for (size = 1; size < BUILD_MAXSIZE; size++){
-        ferVPTreeParamsInit(&params);
+        borVPTreeParamsInit(&params);
         params.dim = 2;
         params.maxsize = size;
-        vp = ferVPTreeBuild(&params, &els[0].el, els_len, sizeof(el_t));
+        vp = borVPTreeBuild(&params, &els[0].el, els_len, sizeof(el_t));
 
-        //ferVPTreeDump(vp, stdout);
+        //borVPTreeDump(vp, stdout);
         for (i = 0; i < BUILD_NUM_TESTS; i++){
             for (j = 1; j <= BUILD_NUM_NNS; j++){
                 build2Test(rand, vp, &els_list, j);
             }
         }
-        ferVPTreeDel(vp);
+        borVPTreeDel(vp);
     }
 
 
-    ferRandMTDel(rand);
+    borRandMTDel(rand);
 }
 
 
@@ -109,7 +109,7 @@ static bor_real_t build3Dist(void *item1, bor_list_t *item2,
     bor_vec3_t *p = (bor_vec3_t *)item1;
     el3_t *el = BOR_LIST_ENTRY(item2, el3_t, list);
 
-    return ferVec3Dist(p, &el->w);
+    return borVec3Dist(p, &el->w);
 }
 
 static void build3Test(bor_rand_mt_t *rand,
@@ -121,23 +121,23 @@ static void build3Test(bor_rand_mt_t *rand,
     bor_vec3_t p;
     size_t len, len2, i;
 
-    ferVec3Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
-    len2 = ferNearestLinear(list, (void *)&p, build3Dist, nn2, num, NULL);
+    borVec3Set(&p, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+    len = borVPTreeNearest(vp, (const bor_vec_t *)&p, num, nn);
+    len2 = borNearestLinear(list, (void *)&p, build3Dist, nn2, num, NULL);
 
     assertEquals(len, num);
     assertEquals(len2, num);
 
     for (i = 0; i < num; i++){
-        el  = fer_container_of(nn[i], el3_t, el);
-        el2 = fer_container_of(nn2[i], el3_t, list);
+        el  = bor_container_of(nn[i], el3_t, el);
+        el2 = bor_container_of(nn2[i], el3_t, list);
 
         if (el == el2){
             assertEquals(el, el2);
         }else{
             fprintf(stderr, "%.30f %.30f %.30f [%.30f] - %.30f %.30f %.30f [%.30f]\n",
-                    ferVec3X(&el->w), ferVec3Y(&el->w), ferVec3Z(&el->w), ferVec3Dist(&el->w, &p),
-                    ferVec3X(&el2->w), ferVec3Y(&el2->w), ferVec3Z(&el2->w), ferVec3Dist(&el2->w, &p));
+                    borVec3X(&el->w), borVec3Y(&el->w), borVec3Z(&el->w), borVec3Dist(&el->w, &p),
+                    borVec3X(&el2->w), borVec3Y(&el2->w), borVec3Z(&el2->w), borVec3Dist(&el2->w, &p));
         }
     }
 }
@@ -152,32 +152,32 @@ TEST(vptreeBuild3)
     static el3_t els[BUILD_ELS_LEN];
     int i, j, size;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec3Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec3Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
     }
 
     for (size = 1; size < BUILD_MAXSIZE; size++){
-        ferVPTreeParamsInit(&params);
+        borVPTreeParamsInit(&params);
         params.dim = 3;
         params.maxsize = size;
-        vp = ferVPTreeBuild(&params, &els[0].el, els_len, sizeof(el3_t));
+        vp = borVPTreeBuild(&params, &els[0].el, els_len, sizeof(el3_t));
 
-        //ferVPTreeDump(vp, stdout);
+        //borVPTreeDump(vp, stdout);
         for (i = 0; i < BUILD_NUM_TESTS; i++){
             for (j = 1; j <= BUILD_NUM_NNS; j++){
                 build3Test(rand, vp, &els_list, j);
             }
         }
-        ferVPTreeDel(vp);
+        borVPTreeDel(vp);
     }
 
 
-    ferRandMTDel(rand);
+    borRandMTDel(rand);
 }
 
 
@@ -196,37 +196,37 @@ TEST(vptreeAdd)
     static el_t els[ADD_ELS_LEN];
     int i, j, size;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec2Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
     }
 
     for (size = 1; size <= ADD_MAXSIZE; size++){
-        ferVPTreeParamsInit(&params);
+        borVPTreeParamsInit(&params);
         params.dim = 2;
         params.maxsize = size;
-        vp = ferVPTreeNew(&params);
+        vp = borVPTreeNew(&params);
 
         for (i = 0; i < ADD_ELS_LEN; i++){
             //fprintf(stdout, "%02d:\n", i);
-            ferVPTreeAdd(vp, &els[i].el);
-            //ferVPTreeDump(vp, stdout);
+            borVPTreeAdd(vp, &els[i].el);
+            //borVPTreeDump(vp, stdout);
         }
 
-        //ferVPTreeDump(vp, stdout);
+        //borVPTreeDump(vp, stdout);
         for (i = 0; i < ADD_NUM_TESTS; i++){
             for (j = 1; j <= ADD_NUM_NNS; j++){
                 build2Test(rand, vp, &els_list, j);
             }
         }
-        ferVPTreeDel(vp);
+        borVPTreeDel(vp);
     }
 
-    ferRandMTDel(rand);
+    borRandMTDel(rand);
 }
 
 TEST(vptreeAddRm)
@@ -239,41 +239,41 @@ TEST(vptreeAddRm)
     static el_t els[ADD_ELS_LEN];
     int i, j, size;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec2Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borVPTreeElInit(&els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
         els[i].added = 0;
     }
 
     for (size = 1; size <= ADD_MAXSIZE; size++){
-        ferVPTreeParamsInit(&params);
+        borVPTreeParamsInit(&params);
         params.dim = 2;
         params.maxsize = size;
-        vp = ferVPTreeNew(&params);
+        vp = borVPTreeNew(&params);
 
         for (i = 0; i < ADD_ELS_LEN; i++){
             //fprintf(stdout, "%02d:\n", i);
-            ferVPTreeAdd(vp, &els[i].el);
-            //ferVPTreeDump(vp, stdout);
+            borVPTreeAdd(vp, &els[i].el);
+            //borVPTreeDump(vp, stdout);
         }
 
         for (i = 0; i < ADD_ELS_LEN; i += 3){
-            ferVPTreeRemove(vp, &els[i].el);
-            ferListDel(&els[i].list);
+            borVPTreeRemove(vp, &els[i].el);
+            borListDel(&els[i].list);
         }
 
-        //ferVPTreeDump(vp, stdout);
+        //borVPTreeDump(vp, stdout);
         for (i = 0; i < ADD_NUM_TESTS; i++){
             for (j = 1; j <= ADD_NUM_NNS; j++){
                 build2Test(rand, vp, &els_list, j);
             }
         }
-        ferVPTreeDel(vp);
+        borVPTreeDel(vp);
     }
 
-    ferRandMTDel(rand);
+    borRandMTDel(rand);
 }

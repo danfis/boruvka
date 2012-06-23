@@ -32,17 +32,17 @@ static el_t *elsNew(size_t len)
 
     ns = BOR_ALLOC_ARR(el_t, arr_len);
     for (i = 0; i < len; i++){
-        x = ferRand(&r, -15., 15.);
-        y = ferRand(&r, -20., 20.);
+        x = borRand(&r, -15., 15.);
+        y = borRand(&r, -20., 20.);
 
-        ferVec2Set(&ns[i].v, x, y);
-        ferNNElInit(linear, &ns[i].linear, (const bor_vec_t *)&ns[i].v);
-        ferNNElInit(gug, &ns[i].gug, (const bor_vec_t *)&ns[i].v);
-        ferNNElInit(vp, &ns[i].vp, (const bor_vec_t *)&ns[i].v);
+        borVec2Set(&ns[i].v, x, y);
+        borNNElInit(linear, &ns[i].linear, (const bor_vec_t *)&ns[i].v);
+        borNNElInit(gug, &ns[i].gug, (const bor_vec_t *)&ns[i].v);
+        borNNElInit(vp, &ns[i].vp, (const bor_vec_t *)&ns[i].v);
 
-        ferNNAdd(linear, &ns[i].linear);
-        ferNNAdd(gug, &ns[i].gug);
-        ferNNAdd(vp, &ns[i].vp);
+        borNNAdd(linear, &ns[i].linear);
+        borNNAdd(gug, &ns[i].gug);
+        borNNAdd(vp, &ns[i].vp);
     }
 
     return ns;
@@ -60,19 +60,19 @@ static void testCorrect(void)
     bor_vec2_t v;
 
 
-    ferNNParamsInit(&params);
-    ferNNParamsSetDim(&params, 2);
+    borNNParamsInit(&params);
+    borNNParamsSetDim(&params, 2);
     params.gug.num_cells = 0;
     params.gug.max_dens = 1;
     params.gug.expand_rate = 2.;
     params.gug.aabb = range;
 
     params.type = BOR_NN_LINEAR;
-    linear = ferNNNew(&params);
+    linear = borNNNew(&params);
     params.type = BOR_NN_GUG;
-    gug    = ferNNNew(&params);
+    gug    = borNNNew(&params);
     params.type = BOR_NN_VPTREE;
-    vp     = ferNNNew(&params);
+    vp     = borNNNew(&params);
 
     ns = elsNew(arr_len);
 
@@ -81,11 +81,11 @@ static void testCorrect(void)
 
         for (i=0; i < loops; i++){
             fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
-            ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
+            borVec2Set(&v, borRand(&r, -10., 10.), borRand(&r, -10, 10));
 
-            len_linear = ferNNNearest(linear, (const bor_vec_t *)&v, k + 1, el_linear);
-            len_gug    = ferNNNearest(gug, (const bor_vec_t *)&v, k + 1, el_gug);
-            len_vp     = ferNNNearest(vp, (const bor_vec_t *)&v, k + 1, el_vp);
+            len_linear = borNNNearest(linear, (const bor_vec_t *)&v, k + 1, el_linear);
+            len_gug    = borNNNearest(gug, (const bor_vec_t *)&v, k + 1, el_gug);
+            len_vp     = borNNNearest(vp, (const bor_vec_t *)&v, k + 1, el_vp);
 
             if (len_linear != len_gug
                     || len_linear != len_vp
@@ -95,9 +95,9 @@ static void testCorrect(void)
             }
 
             for (j = 0; j < k + 1; j++){
-                near[0] = fer_container_of(el_linear[j], el_t, linear);
-                near[1] = fer_container_of(el_gug[j], el_t, gug);
-                near[2] = fer_container_of(el_vp[j], el_t, vp);
+                near[0] = bor_container_of(el_linear[j], el_t, linear);
+                near[1] = bor_container_of(el_gug[j], el_t, gug);
+                near[2] = bor_container_of(el_vp[j], el_t, vp);
                 if (near[0] != near[1]
                         || near[0] != near[2]
                         || near[1] != near[2]){
@@ -114,9 +114,9 @@ static void testCorrect(void)
     }
 
     BOR_FREE(ns);
-    ferNNDel(linear);
-    ferNNDel(gug);
-    ferNNDel(vp);
+    borNNDel(linear);
+    borNNDel(gug);
+    borNNDel(vp);
 }
 
 
@@ -138,72 +138,72 @@ static void bench(void)
     }
 
 
-    ferNNParamsInit(&params);
-    ferNNParamsSetDim(&params, 2);
+    borNNParamsInit(&params);
+    borNNParamsSetDim(&params, 2);
     params.gug.num_cells = 0;
     params.gug.max_dens = 1;
     params.gug.expand_rate = 2.;
     params.gug.aabb = range;
 
     params.type = BOR_NN_LINEAR;
-    linear = ferNNNew(&params);
+    linear = borNNNew(&params);
     params.type = BOR_NN_GUG;
-    gug    = ferNNNew(&params);
+    gug    = borNNNew(&params);
     params.type = BOR_NN_VPTREE;
-    vp     = ferNNNew(&params);
+    vp     = borNNNew(&params);
 
     ns = elsNew(arr_len);
 
     for (k = 0; k < nearest_len; k++){
-        ferTimerStart(&timer);
+        borTimerStart(&timer);
         for (i=0; i < loops; i++){
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
-            ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
+            borVec2Set(&v, borRand(&r, -10., 10.), borRand(&r, -10, 10));
 
-            ferNNNearest(linear, (const bor_vec_t *)&v, k + 1, el);
+            borNNNearest(linear, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
-                near = fer_container_of(el[j], el_t, linear);
+                near = bor_container_of(el[j], el_t, linear);
                 write(devnull, &near->v, 1);
             }
         }
-        ferTimerStop(&timer);
-        ferTimerPrintElapsed(&timer, stderr, " - [%d] - linear -                \n", k);
+        borTimerStop(&timer);
+        borTimerPrintElapsed(&timer, stderr, " - [%d] - linear -                \n", k);
 
 
-        ferTimerStart(&timer);
+        borTimerStart(&timer);
         for (i=0; i < loops; i++){
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
-            ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
+            borVec2Set(&v, borRand(&r, -10., 10.), borRand(&r, -10, 10));
 
-            ferNNNearest(gug, (const bor_vec_t *)&v, k + 1, el);
+            borNNNearest(gug, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
-                near = fer_container_of(el[j], el_t, gug);
+                near = bor_container_of(el[j], el_t, gug);
                 write(devnull, &near->v, 1);
             }
         }
-        ferTimerStop(&timer);
-        ferTimerPrintElapsed(&timer, stderr, " - [%d] - gug -                \n", k);
+        borTimerStop(&timer);
+        borTimerPrintElapsed(&timer, stderr, " - [%d] - gug -                \n", k);
 
 
-        ferTimerStart(&timer);
+        borTimerStart(&timer);
         for (i=0; i < loops; i++){
             //fprintf(stderr, "[%d] %08d / %08d\r", (int)k, (int)i, (int)loops);
-            ferVec2Set(&v, ferRand(&r, -10., 10.), ferRand(&r, -10, 10));
+            borVec2Set(&v, borRand(&r, -10., 10.), borRand(&r, -10, 10));
 
-            ferNNNearest(vp, (const bor_vec_t *)&v, k + 1, el);
+            borNNNearest(vp, (const bor_vec_t *)&v, k + 1, el);
             for (j = 0; j < k + 1; j++){
-                near = fer_container_of(el[j], el_t, vp);
+                near = bor_container_of(el[j], el_t, vp);
                 write(devnull, &near->v, 1);
             }
         }
-        ferTimerStop(&timer);
-        ferTimerPrintElapsed(&timer, stderr, " - [%d] - vptree -                \n", k);
+        borTimerStop(&timer);
+        borTimerPrintElapsed(&timer, stderr, " - [%d] - vptree -                \n", k);
     }
 
     BOR_FREE(ns);
-    ferNNDel(linear);
-    ferNNDel(gug);
-    ferNNDel(vp);
+    borNNDel(linear);
+    borNNDel(gug);
+    borNNDel(vp);
 
     close(devnull);
 }
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
     loops       = atoi(argv[3]);
     nearest_len = atoi(argv[4]);
 
-    ferRandInit(&r);
+    borRandInit(&r);
 
     if (strcmp(argv[1], "test") == 0){
         testCorrect();

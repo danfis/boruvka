@@ -88,116 +88,116 @@ typedef struct _bor_cfg_t bor_cfg_t;
 /**
  * Reads config file
  */
-bor_cfg_t *ferCfgRead(const char *filename);
+bor_cfg_t *borCfgRead(const char *filename);
 
 /**
  * Free allocated memory
  */
-void ferCfgDel(bor_cfg_t *c);
+void borCfgDel(bor_cfg_t *c);
 
 /**
  * Returns true if specified parameter is available
  */
-int ferCfgHaveParam(const bor_cfg_t *c, const char *name);
+int borCfgHaveParam(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns type of param or BOR_CFG_PARAM_NONE if no such parameter exists.
  */
-uint8_t ferCfgParamType(const bor_cfg_t *c, const char *name);
+uint8_t borCfgParamType(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is an array.
  */
-int ferCfgParamIsArr(const bor_cfg_t *c, const char *name);
+int borCfgParamIsArr(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is a string.
  */
-int ferCfgParamIsStr(const bor_cfg_t *c, const char *name);
+int borCfgParamIsStr(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is a floating point number.
  */
-int ferCfgParamIsFlt(const bor_cfg_t *c, const char *name);
+int borCfgParamIsFlt(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is a integer.
  */
-int ferCfgParamIsInt(const bor_cfg_t *c, const char *name);
+int borCfgParamIsInt(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is 2-D vector (vec2).
  */
-int ferCfgParamIsV2(const bor_cfg_t *c, const char *name);
+int borCfgParamIsV2(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns true if the param is 3-D vector (vec3).
  */
-int ferCfgParamIsV3(const bor_cfg_t *c, const char *name);
+int borCfgParamIsV3(const bor_cfg_t *c, const char *name);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamStr(const bor_cfg_t *c, const char *name, const char **val);
+int borCfgParamStr(const bor_cfg_t *c, const char *name, const char **val);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamFlt(const bor_cfg_t *c, const char *name, bor_real_t *val);
+int borCfgParamFlt(const bor_cfg_t *c, const char *name, bor_real_t *val);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamInt(const bor_cfg_t *c, const char *name, int *val);
+int borCfgParamInt(const bor_cfg_t *c, const char *name, int *val);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamV2(const bor_cfg_t *c, const char *name, bor_vec2_t *val);
+int borCfgParamV2(const bor_cfg_t *c, const char *name, bor_vec2_t *val);
 
 /**
  * Returns (via {val}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamV3(const bor_cfg_t *c, const char *name, bor_vec3_t *val);
+int borCfgParamV3(const bor_cfg_t *c, const char *name, bor_vec3_t *val);
 
 /**
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamStrArr(const bor_cfg_t *c, const char *name,
+int borCfgParamStrArr(const bor_cfg_t *c, const char *name,
                       char ***val, size_t *len);
 
 /**
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamFltArr(const bor_cfg_t *c, const char *name,
+int borCfgParamFltArr(const bor_cfg_t *c, const char *name,
                       const bor_real_t **val, size_t *len);
 
 /**
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamIntArr(const bor_cfg_t *c, const char *name,
+int borCfgParamIntArr(const bor_cfg_t *c, const char *name,
                       const int **val, size_t *len);
 
 /**
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamV2Arr(const bor_cfg_t *c, const char *name,
+int borCfgParamV2Arr(const bor_cfg_t *c, const char *name,
                      const bor_vec2_t **val, size_t *len);
 
 /**
  * Returns (via {val} and {len}) a value of speficied parameter.
  * Return 0 on success.
  */
-int ferCfgParamV3Arr(const bor_cfg_t *c, const char *name,
+int borCfgParamV3Arr(const bor_cfg_t *c, const char *name,
                      const bor_vec3_t **val, size_t *len);
 
 
@@ -221,7 +221,7 @@ int ferCfgParamV3Arr(const bor_cfg_t *c, const char *name,
  * };
  * ...
  * struct st_t data;
- * ferCfgScan(cfg, "xpos:f ypos:f point:v2", &data.x, &data.y, &data.p);
+ * borCfgScan(cfg, "xpos:f ypos:f point:v2", &data.x, &data.y, &data.p);
  * ~~~~~~~~~
  * 
  * Example 2:
@@ -233,10 +233,10 @@ int ferCfgParamV3Arr(const bor_cfg_t *c, const char *name,
  * };
  * ...
  * struct st_t data;
- * ferCfgScan(cfg, "xpos:f flts:f[] flts:f#", &data.x, &data.fs, &data.fs_len);
+ * borCfgScan(cfg, "xpos:f flts:f[] flts:f#", &data.x, &data.fs, &data.fs_len);
  * ~~~~~~~~~
  */
-int ferCfgScan(const bor_cfg_t *c, const char *format, ...);
+int borCfgScan(const bor_cfg_t *c, const char *format, ...);
 
 #ifdef __cplusplus
 }

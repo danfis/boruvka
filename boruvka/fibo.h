@@ -45,7 +45,7 @@ typedef struct _bor_fibo_node_t bor_fibo_node_t;
 /**
  * Callback that should return true if {n1} is smaller than {n2}.
  */
-typedef int (*fer_fibo_lt)(const bor_fibo_node_t *n1,
+typedef int (*bor_fibo_lt)(const bor_fibo_node_t *n1,
                            const bor_fibo_node_t *n2,
                            void *data);
 
@@ -57,7 +57,7 @@ struct _bor_fibo_t {
                                                     elements */
     unsigned int max_degree; /*!< Maximal degree used in .cons */
 
-    fer_fibo_lt lt; /*!< "Less than" callback provided by user */
+    bor_fibo_lt lt; /*!< "Less than" callback provided by user */
     void *data;
 };
 typedef struct _bor_fibo_t bor_fibo_t;
@@ -73,80 +73,80 @@ typedef struct _bor_fibo_t bor_fibo_t;
  * Creates new empty Fibonnacci heap.
  * Callback for comparison must be provided.
  */
-bor_fibo_t *ferFiboNew(fer_fibo_lt less_than, void *data);
+bor_fibo_t *borFiboNew(bor_fibo_lt less_than, void *data);
 
 /**
  * Deletes fibonnacci heap.
  * Note that individual nodes are not disconnected from heap.
  */
-void ferFiboDel(bor_fibo_t *fibo);
+void borFiboDel(bor_fibo_t *fibo);
 
 /**
  * Returns true if heap is empty.
  */
-_fer_inline int ferFiboEmpty(const bor_fibo_t *f);
+_bor_inline int borFiboEmpty(const bor_fibo_t *f);
 
 /**
  * Returns minimal node.
  */
-_fer_inline bor_fibo_node_t *ferFiboMin(bor_fibo_t *f);
+_bor_inline bor_fibo_node_t *borFiboMin(bor_fibo_t *f);
 
 /**
  * Adds node to heap.
  */
-_fer_inline void ferFiboAdd(bor_fibo_t *f, bor_fibo_node_t *n);
+_bor_inline void borFiboAdd(bor_fibo_t *f, bor_fibo_node_t *n);
 
 /**
  * Removes and returns minimal node from heap.
  */
-bor_fibo_node_t *ferFiboExtractMin(bor_fibo_t *f);
+bor_fibo_node_t *borFiboExtractMin(bor_fibo_t *f);
 
 /**
  * Update position of node in heap in case its value was decreased.
- * If value wasn't decreased (or you are not sure) call ferFiboUpdate()
+ * If value wasn't decreased (or you are not sure) call borFiboUpdate()
  * instead.
  */
-void ferFiboDecreaseKey(bor_fibo_t *f, bor_fibo_node_t *n);
+void borFiboDecreaseKey(bor_fibo_t *f, bor_fibo_node_t *n);
 
 /**
  * Updates position of node in heap.
- * This generalized (and slower) version of ferFiboDecreaseKey() function.
+ * This generalized (and slower) version of borFiboDecreaseKey() function.
  */
-_fer_inline void ferFiboUpdate(bor_fibo_t *f, bor_fibo_node_t *n);
+_bor_inline void borFiboUpdate(bor_fibo_t *f, bor_fibo_node_t *n);
 
 /**
  * Del node from heap.
  */
-void ferFiboRemove(bor_fibo_t *f, bor_fibo_node_t *n);
+void borFiboRemove(bor_fibo_t *f, bor_fibo_node_t *n);
 
 
 /**** INLINES ****/
-_fer_inline int ferFiboEmpty(const bor_fibo_t *f)
+_bor_inline int borFiboEmpty(const bor_fibo_t *f)
 {
-    return ferListEmpty(&f->root);
+    return borListEmpty(&f->root);
 }
 
-_fer_inline bor_fibo_node_t *ferFiboMin(bor_fibo_t *f)
+_bor_inline bor_fibo_node_t *borFiboMin(bor_fibo_t *f)
 {
     return f->min;
 }
 
-_fer_inline void ferFiboAdd(bor_fibo_t *f, bor_fibo_node_t *n)
+_bor_inline void borFiboAdd(bor_fibo_t *f, bor_fibo_node_t *n)
 {
     n->degree = 0;
     n->mark   = 0;
     n->parent = 0;
-    ferListInit(&n->children);
-    ferListAppend(&f->root, &n->list);
+    borListInit(&n->children);
+    borListAppend(&f->root, &n->list);
 
     if (!f->min || f->lt(n, f->min, f->data))
         f->min = n;
 }
 
-_fer_inline void ferFiboUpdate(bor_fibo_t *f, bor_fibo_node_t *n)
+_bor_inline void borFiboUpdate(bor_fibo_t *f, bor_fibo_node_t *n)
 {
-    ferFiboRemove(f, n);
-    ferFiboAdd(f, n);
+    borFiboRemove(f, n);
+    borFiboAdd(f, n);
 }
 
 #ifdef __cplusplus

@@ -418,7 +418,7 @@ static REAL isperrboundA, isperrboundB, isperrboundC;
 /*                                                                           */
 /*****************************************************************************/
 
-void ferPredInit(bor_pred_t *pred)
+void borPredInit(bor_pred_t *pred)
 {
     REAL half;
     REAL check, lastcheck;
@@ -651,17 +651,17 @@ static REAL estimate(int elen, REAL *e)
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient2dFast(const bor_pred_t *pred,
+REAL borPredOrient2dFast(const bor_pred_t *pred,
                          const bor_vec2_t *pa,
                          const bor_vec2_t *pb,
                          const bor_vec2_t *pc)
 {
   REAL acx, bcx, acy, bcy;
 
-  acx = ferVec2X(pa) - ferVec2X(pc);
-  bcx = ferVec2X(pb) - ferVec2X(pc);
-  acy = ferVec2Y(pa) - ferVec2Y(pc);
-  bcy = ferVec2Y(pb) - ferVec2Y(pc);
+  acx = borVec2X(pa) - borVec2X(pc);
+  bcx = borVec2X(pb) - borVec2X(pc);
+  acy = borVec2Y(pa) - borVec2Y(pc);
+  bcy = borVec2Y(pb) - borVec2Y(pc);
   return acx * bcy - acy * bcx;
 }
 
@@ -693,10 +693,10 @@ static REAL orient2dadapt(const bor_pred_t *pred,
   INEXACT REAL _i, _j;
   REAL _0;
 
-  acx = (REAL) (ferVec2X(pa) - ferVec2X(pc));
-  bcx = (REAL) (ferVec2X(pb) - ferVec2X(pc));
-  acy = (REAL) (ferVec2Y(pa) - ferVec2Y(pc));
-  bcy = (REAL) (ferVec2Y(pb) - ferVec2Y(pc));
+  acx = (REAL) (borVec2X(pa) - borVec2X(pc));
+  bcx = (REAL) (borVec2X(pb) - borVec2X(pc));
+  acy = (REAL) (borVec2Y(pa) - borVec2Y(pc));
+  bcy = (REAL) (borVec2Y(pb) - borVec2Y(pc));
 
   Two_Product(acx, bcy, detleft, detlefttail);
   Two_Product(acy, bcx, detright, detrighttail);
@@ -711,10 +711,10 @@ static REAL orient2dadapt(const bor_pred_t *pred,
     return det;
   }
 
-  Two_Diff_Tail(ferVec2X(pa), ferVec2X(pc), acx, acxtail);
-  Two_Diff_Tail(ferVec2X(pb), ferVec2X(pc), bcx, bcxtail);
-  Two_Diff_Tail(ferVec2Y(pa), ferVec2Y(pc), acy, acytail);
-  Two_Diff_Tail(ferVec2Y(pb), ferVec2Y(pc), bcy, bcytail);
+  Two_Diff_Tail(borVec2X(pa), borVec2X(pc), acx, acxtail);
+  Two_Diff_Tail(borVec2X(pb), borVec2X(pc), bcx, bcxtail);
+  Two_Diff_Tail(borVec2Y(pa), borVec2Y(pc), acy, acytail);
+  Two_Diff_Tail(borVec2Y(pb), borVec2Y(pc), bcy, bcytail);
 
   if ((acxtail == 0.0) && (acytail == 0.0)
       && (bcxtail == 0.0) && (bcytail == 0.0)) {
@@ -749,7 +749,7 @@ static REAL orient2dadapt(const bor_pred_t *pred,
   return(D[Dlength - 1]);
 }
 
-bor_real_t ferPredOrient2d(const bor_pred_t *pred,
+bor_real_t borPredOrient2d(const bor_pred_t *pred,
                            const bor_vec2_t *pa,
                            const bor_vec2_t *pb,
                            const bor_vec2_t *pc)
@@ -757,8 +757,8 @@ bor_real_t ferPredOrient2d(const bor_pred_t *pred,
   REAL detleft, detright, det;
   REAL detsum, errbound;
 
-  detleft = (ferVec2X(pa) - ferVec2X(pc)) * (ferVec2Y(pb) - ferVec2Y(pc));
-  detright = (ferVec2Y(pa) - ferVec2Y(pc)) * (ferVec2X(pb) - ferVec2X(pc));
+  detleft = (borVec2X(pa) - borVec2X(pc)) * (borVec2Y(pb) - borVec2Y(pc));
+  detright = (borVec2Y(pa) - borVec2Y(pc)) * (borVec2X(pb) - borVec2X(pc));
   det = detleft - detright;
 
   if (detleft > 0.0) {
@@ -814,7 +814,7 @@ bor_real_t ferPredOrient2d(const bor_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredOrient3dFast(const bor_pred_t *pred,
+REAL borPredOrient3dFast(const bor_pred_t *pred,
                          const bor_vec3_t *pa,
                          const bor_vec3_t *pb,
                          const bor_vec3_t *pc,
@@ -824,15 +824,15 @@ REAL ferPredOrient3dFast(const bor_pred_t *pred,
   REAL ady, bdy, cdy;
   REAL adz, bdz, cdz;
 
-  adx = ferVec3X(pa) - ferVec3X(pd);
-  bdx = ferVec3X(pb) - ferVec3X(pd);
-  cdx = ferVec3X(pc) - ferVec3X(pd);
-  ady = ferVec3Y(pa) - ferVec3Y(pd);
-  bdy = ferVec3Y(pb) - ferVec3Y(pd);
-  cdy = ferVec3Y(pc) - ferVec3Y(pd);
-  adz = ferVec3Z(pa) - ferVec3Z(pd);
-  bdz = ferVec3Z(pb) - ferVec3Z(pd);
-  cdz = ferVec3Z(pc) - ferVec3Z(pd);
+  adx = borVec3X(pa) - borVec3X(pd);
+  bdx = borVec3X(pb) - borVec3X(pd);
+  cdx = borVec3X(pc) - borVec3X(pd);
+  ady = borVec3Y(pa) - borVec3Y(pd);
+  bdy = borVec3Y(pb) - borVec3Y(pd);
+  cdy = borVec3Y(pc) - borVec3Y(pd);
+  adz = borVec3Z(pa) - borVec3Z(pd);
+  bdz = borVec3Z(pb) - borVec3Z(pd);
+  cdz = borVec3Z(pc) - borVec3Z(pd);
 
   return adx * (bdy * cdz - bdz * cdy)
        + bdx * (cdy * adz - cdz * ady)
@@ -897,15 +897,15 @@ static REAL orient3dadapt(const bor_pred_t *pred,
   INEXACT REAL _i, _j, _k;
   REAL _0;
 
-  adx = (REAL) (ferVec3X(pa) - ferVec3X(pd));
-  bdx = (REAL) (ferVec3X(pb) - ferVec3X(pd));
-  cdx = (REAL) (ferVec3X(pc) - ferVec3X(pd));
-  ady = (REAL) (ferVec3Y(pa) - ferVec3Y(pd));
-  bdy = (REAL) (ferVec3Y(pb) - ferVec3Y(pd));
-  cdy = (REAL) (ferVec3Y(pc) - ferVec3Y(pd));
-  adz = (REAL) (ferVec3Z(pa) - ferVec3Z(pd));
-  bdz = (REAL) (ferVec3Z(pb) - ferVec3Z(pd));
-  cdz = (REAL) (ferVec3Z(pc) - ferVec3Z(pd));
+  adx = (REAL) (borVec3X(pa) - borVec3X(pd));
+  bdx = (REAL) (borVec3X(pb) - borVec3X(pd));
+  cdx = (REAL) (borVec3X(pc) - borVec3X(pd));
+  ady = (REAL) (borVec3Y(pa) - borVec3Y(pd));
+  bdy = (REAL) (borVec3Y(pb) - borVec3Y(pd));
+  cdy = (REAL) (borVec3Y(pc) - borVec3Y(pd));
+  adz = (REAL) (borVec3Z(pa) - borVec3Z(pd));
+  bdz = (REAL) (borVec3Z(pb) - borVec3Z(pd));
+  cdz = (REAL) (borVec3Z(pc) - borVec3Z(pd));
 
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0);
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0);
@@ -934,15 +934,15 @@ static REAL orient3dadapt(const bor_pred_t *pred,
     return det;
   }
 
-  Two_Diff_Tail(ferVec3X(pa), ferVec3X(pd), adx, adxtail);
-  Two_Diff_Tail(ferVec3X(pb), ferVec3X(pd), bdx, bdxtail);
-  Two_Diff_Tail(ferVec3X(pc), ferVec3X(pd), cdx, cdxtail);
-  Two_Diff_Tail(ferVec3Y(pa), ferVec3Y(pd), ady, adytail);
-  Two_Diff_Tail(ferVec3Y(pb), ferVec3Y(pd), bdy, bdytail);
-  Two_Diff_Tail(ferVec3Y(pc), ferVec3Y(pd), cdy, cdytail);
-  Two_Diff_Tail(ferVec3Z(pa), ferVec3Z(pd), adz, adztail);
-  Two_Diff_Tail(ferVec3Z(pb), ferVec3Z(pd), bdz, bdztail);
-  Two_Diff_Tail(ferVec3Z(pc), ferVec3Z(pd), cdz, cdztail);
+  Two_Diff_Tail(borVec3X(pa), borVec3X(pd), adx, adxtail);
+  Two_Diff_Tail(borVec3X(pb), borVec3X(pd), bdx, bdxtail);
+  Two_Diff_Tail(borVec3X(pc), borVec3X(pd), cdx, cdxtail);
+  Two_Diff_Tail(borVec3Y(pa), borVec3Y(pd), ady, adytail);
+  Two_Diff_Tail(borVec3Y(pb), borVec3Y(pd), bdy, bdytail);
+  Two_Diff_Tail(borVec3Y(pc), borVec3Y(pd), cdy, cdytail);
+  Two_Diff_Tail(borVec3Z(pa), borVec3Z(pd), adz, adztail);
+  Two_Diff_Tail(borVec3Z(pb), borVec3Z(pd), bdz, bdztail);
+  Two_Diff_Tail(borVec3Z(pc), borVec3Z(pd), cdz, cdztail);
 
   if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0)
       && (adytail == 0.0) && (bdytail == 0.0) && (cdytail == 0.0)
@@ -1244,7 +1244,7 @@ static REAL orient3dadapt(const bor_pred_t *pred,
   return finnow[finlength - 1];
 }
 
-REAL ferPredOrient3d(const bor_pred_t *pred,
+REAL borPredOrient3d(const bor_pred_t *pred,
                      const bor_vec3_t *pa,
                      const bor_vec3_t *pb,
                      const bor_vec3_t *pc,
@@ -1255,15 +1255,15 @@ REAL ferPredOrient3d(const bor_pred_t *pred,
   REAL det;
   REAL permanent, errbound;
 
-  adx = ferVec3X(pa) - ferVec3X(pd);
-  bdx = ferVec3X(pb) - ferVec3X(pd);
-  cdx = ferVec3X(pc) - ferVec3X(pd);
-  ady = ferVec3Y(pa) - ferVec3Y(pd);
-  bdy = ferVec3Y(pb) - ferVec3Y(pd);
-  cdy = ferVec3Y(pc) - ferVec3Y(pd);
-  adz = ferVec3Z(pa) - ferVec3Z(pd);
-  bdz = ferVec3Z(pb) - ferVec3Z(pd);
-  cdz = ferVec3Z(pc) - ferVec3Z(pd);
+  adx = borVec3X(pa) - borVec3X(pd);
+  bdx = borVec3X(pb) - borVec3X(pd);
+  cdx = borVec3X(pc) - borVec3X(pd);
+  ady = borVec3Y(pa) - borVec3Y(pd);
+  bdy = borVec3Y(pb) - borVec3Y(pd);
+  cdy = borVec3Y(pc) - borVec3Y(pd);
+  adz = borVec3Z(pa) - borVec3Z(pd);
+  bdz = borVec3Z(pb) - borVec3Z(pd);
+  cdz = borVec3Z(pc) - borVec3Z(pd);
 
   bdxcdy = bdx * cdy;
   cdxbdy = cdx * bdy;
@@ -1315,7 +1315,7 @@ REAL ferPredOrient3d(const bor_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInCircleFast(const bor_pred_t *pred,
+REAL borPredInCircleFast(const bor_pred_t *pred,
                          const bor_vec2_t *pa,
                          const bor_vec2_t *pb,
                          const bor_vec2_t *pc,
@@ -1325,12 +1325,12 @@ REAL ferPredInCircleFast(const bor_pred_t *pred,
   REAL abdet, bcdet, cadet;
   REAL alift, blift, clift;
 
-  adx = ferVec2X(pa) - ferVec2X(pd);
-  ady = ferVec2Y(pa) - ferVec2Y(pd);
-  bdx = ferVec2X(pb) - ferVec2X(pd);
-  bdy = ferVec2Y(pb) - ferVec2Y(pd);
-  cdx = ferVec2X(pc) - ferVec2X(pd);
-  cdy = ferVec2Y(pc) - ferVec2Y(pd);
+  adx = borVec2X(pa) - borVec2X(pd);
+  ady = borVec2Y(pa) - borVec2Y(pd);
+  bdx = borVec2X(pb) - borVec2X(pd);
+  bdy = borVec2Y(pb) - borVec2Y(pd);
+  cdx = borVec2X(pc) - borVec2X(pd);
+  cdy = borVec2Y(pc) - borVec2Y(pd);
 
   abdet = adx * bdy - bdx * ady;
   bcdet = bdx * cdy - cdx * bdy;
@@ -1410,12 +1410,12 @@ static REAL incircleadapt(const bor_pred_t *pred,
   INEXACT REAL _i, _j;
   REAL _0;
 
-  adx = (REAL) (ferVec2X(pa) - ferVec2X(pd));
-  bdx = (REAL) (ferVec2X(pb) - ferVec2X(pd));
-  cdx = (REAL) (ferVec2X(pc) - ferVec2X(pd));
-  ady = (REAL) (ferVec2Y(pa) - ferVec2Y(pd));
-  bdy = (REAL) (ferVec2Y(pb) - ferVec2Y(pd));
-  cdy = (REAL) (ferVec2Y(pc) - ferVec2Y(pd));
+  adx = (REAL) (borVec2X(pa) - borVec2X(pd));
+  bdx = (REAL) (borVec2X(pb) - borVec2X(pd));
+  cdx = (REAL) (borVec2X(pc) - borVec2X(pd));
+  ady = (REAL) (borVec2Y(pa) - borVec2Y(pd));
+  bdy = (REAL) (borVec2Y(pb) - borVec2Y(pd));
+  cdy = (REAL) (borVec2Y(pc) - borVec2Y(pd));
 
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0);
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0);
@@ -1456,12 +1456,12 @@ static REAL incircleadapt(const bor_pred_t *pred,
     return det;
   }
 
-  Two_Diff_Tail(ferVec2X(pa), ferVec2X(pd), adx, adxtail);
-  Two_Diff_Tail(ferVec2Y(pa), ferVec2Y(pd), ady, adytail);
-  Two_Diff_Tail(ferVec2X(pb), ferVec2X(pd), bdx, bdxtail);
-  Two_Diff_Tail(ferVec2Y(pb), ferVec2Y(pd), bdy, bdytail);
-  Two_Diff_Tail(ferVec2X(pc), ferVec2X(pd), cdx, cdxtail);
-  Two_Diff_Tail(ferVec2Y(pc), ferVec2Y(pd), cdy, cdytail);
+  Two_Diff_Tail(borVec2X(pa), borVec2X(pd), adx, adxtail);
+  Two_Diff_Tail(borVec2Y(pa), borVec2Y(pd), ady, adytail);
+  Two_Diff_Tail(borVec2X(pb), borVec2X(pd), bdx, bdxtail);
+  Two_Diff_Tail(borVec2Y(pb), borVec2Y(pd), bdy, bdytail);
+  Two_Diff_Tail(borVec2X(pc), borVec2X(pd), cdx, cdxtail);
+  Two_Diff_Tail(borVec2Y(pc), borVec2Y(pd), cdy, cdytail);
   if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0)
       && (adytail == 0.0) && (bdytail == 0.0) && (cdytail == 0.0)) {
     return det;
@@ -1916,7 +1916,7 @@ static REAL incircleadapt(const bor_pred_t *pred,
   return finnow[finlength - 1];
 }
 
-REAL ferPredInCircle(const bor_pred_t *pred,
+REAL borPredInCircle(const bor_pred_t *pred,
                      const bor_vec2_t *pa,
                      const bor_vec2_t *pb,
                      const bor_vec2_t *pc,
@@ -1928,12 +1928,12 @@ REAL ferPredInCircle(const bor_pred_t *pred,
   REAL det;
   REAL permanent, errbound;
 
-  adx = ferVec2X(pa) - ferVec2X(pd);
-  bdx = ferVec2X(pb) - ferVec2X(pd);
-  cdx = ferVec2X(pc) - ferVec2X(pd);
-  ady = ferVec2Y(pa) - ferVec2Y(pd);
-  bdy = ferVec2Y(pb) - ferVec2Y(pd);
-  cdy = ferVec2Y(pc) - ferVec2Y(pd);
+  adx = borVec2X(pa) - borVec2X(pd);
+  bdx = borVec2X(pb) - borVec2X(pd);
+  cdx = borVec2X(pc) - borVec2X(pd);
+  ady = borVec2Y(pa) - borVec2Y(pd);
+  bdy = borVec2Y(pb) - borVec2Y(pd);
+  cdy = borVec2Y(pc) - borVec2Y(pd);
 
   bdxcdy = bdx * cdy;
   cdxbdy = cdx * bdy;
@@ -1989,7 +1989,7 @@ REAL ferPredInCircle(const bor_pred_t *pred,
 /*                                                                           */
 /*****************************************************************************/
 
-REAL ferPredInSphereFast(const bor_pred_t *pred,
+REAL borPredInSphereFast(const bor_pred_t *pred,
                          const bor_vec3_t *pa,
                          const bor_vec3_t *pb,
                          const bor_vec3_t *pc,
@@ -2003,18 +2003,18 @@ REAL ferPredInSphereFast(const bor_pred_t *pred,
   REAL ab, bc, cd, da, ac, bd;
   REAL abc, bcd, cda, dab;
 
-  aex = ferVec3X(pa) - ferVec3X(pe);
-  bex = ferVec3X(pb) - ferVec3X(pe);
-  cex = ferVec3X(pc) - ferVec3X(pe);
-  dex = ferVec3X(pd) - ferVec3X(pe);
-  aey = ferVec3Y(pa) - ferVec3Y(pe);
-  bey = ferVec3Y(pb) - ferVec3Y(pe);
-  cey = ferVec3Y(pc) - ferVec3Y(pe);
-  dey = ferVec3Y(pd) - ferVec3Y(pe);
-  aez = ferVec3Z(pa) - ferVec3Z(pe);
-  bez = ferVec3Z(pb) - ferVec3Z(pe);
-  cez = ferVec3Z(pc) - ferVec3Z(pe);
-  dez = ferVec3Z(pd) - ferVec3Z(pe);
+  aex = borVec3X(pa) - borVec3X(pe);
+  bex = borVec3X(pb) - borVec3X(pe);
+  cex = borVec3X(pc) - borVec3X(pe);
+  dex = borVec3X(pd) - borVec3X(pe);
+  aey = borVec3Y(pa) - borVec3Y(pe);
+  bey = borVec3Y(pb) - borVec3Y(pe);
+  cey = borVec3Y(pc) - borVec3Y(pe);
+  dey = borVec3Y(pd) - borVec3Y(pe);
+  aez = borVec3Z(pa) - borVec3Z(pe);
+  bez = borVec3Z(pb) - borVec3Z(pe);
+  cez = borVec3Z(pc) - borVec3Z(pe);
+  dez = borVec3Z(pd) - borVec3Z(pe);
 
   ab = aex * bey - bex * aey;
   bc = bex * cey - cex * bey;
@@ -2086,123 +2086,123 @@ static REAL insphereexact(const bor_pred_t *pred,
   INEXACT REAL _i, _j;
   REAL _0;
 
-  Two_Product(ferVec3X(pa), ferVec3Y(pb), axby1, axby0);
-  Two_Product(ferVec3X(pb), ferVec3Y(pa), bxay1, bxay0);
+  Two_Product(borVec3X(pa), borVec3Y(pb), axby1, axby0);
+  Two_Product(borVec3X(pb), borVec3Y(pa), bxay1, bxay0);
   Two_Two_Diff(axby1, axby0, bxay1, bxay0, ab[3], ab[2], ab[1], ab[0]);
 
-  Two_Product(ferVec3X(pb), ferVec3Y(pc), bxcy1, bxcy0);
-  Two_Product(ferVec3X(pc), ferVec3Y(pb), cxby1, cxby0);
+  Two_Product(borVec3X(pb), borVec3Y(pc), bxcy1, bxcy0);
+  Two_Product(borVec3X(pc), borVec3Y(pb), cxby1, cxby0);
   Two_Two_Diff(bxcy1, bxcy0, cxby1, cxby0, bc[3], bc[2], bc[1], bc[0]);
 
-  Two_Product(ferVec3X(pc), ferVec3Y(pd), cxdy1, cxdy0);
-  Two_Product(ferVec3X(pd), ferVec3Y(pc), dxcy1, dxcy0);
+  Two_Product(borVec3X(pc), borVec3Y(pd), cxdy1, cxdy0);
+  Two_Product(borVec3X(pd), borVec3Y(pc), dxcy1, dxcy0);
   Two_Two_Diff(cxdy1, cxdy0, dxcy1, dxcy0, cd[3], cd[2], cd[1], cd[0]);
 
-  Two_Product(ferVec3X(pd), ferVec3Y(pe), dxey1, dxey0);
-  Two_Product(ferVec3X(pe), ferVec3Y(pd), exdy1, exdy0);
+  Two_Product(borVec3X(pd), borVec3Y(pe), dxey1, dxey0);
+  Two_Product(borVec3X(pe), borVec3Y(pd), exdy1, exdy0);
   Two_Two_Diff(dxey1, dxey0, exdy1, exdy0, de[3], de[2], de[1], de[0]);
 
-  Two_Product(ferVec3X(pe), ferVec3Y(pa), exay1, exay0);
-  Two_Product(ferVec3X(pa), ferVec3Y(pe), axey1, axey0);
+  Two_Product(borVec3X(pe), borVec3Y(pa), exay1, exay0);
+  Two_Product(borVec3X(pa), borVec3Y(pe), axey1, axey0);
   Two_Two_Diff(exay1, exay0, axey1, axey0, ea[3], ea[2], ea[1], ea[0]);
 
-  Two_Product(ferVec3X(pa), ferVec3Y(pc), axcy1, axcy0);
-  Two_Product(ferVec3X(pc), ferVec3Y(pa), cxay1, cxay0);
+  Two_Product(borVec3X(pa), borVec3Y(pc), axcy1, axcy0);
+  Two_Product(borVec3X(pc), borVec3Y(pa), cxay1, cxay0);
   Two_Two_Diff(axcy1, axcy0, cxay1, cxay0, ac[3], ac[2], ac[1], ac[0]);
 
-  Two_Product(ferVec3X(pb), ferVec3Y(pd), bxdy1, bxdy0);
-  Two_Product(ferVec3X(pd), ferVec3Y(pb), dxby1, dxby0);
+  Two_Product(borVec3X(pb), borVec3Y(pd), bxdy1, bxdy0);
+  Two_Product(borVec3X(pd), borVec3Y(pb), dxby1, dxby0);
   Two_Two_Diff(bxdy1, bxdy0, dxby1, dxby0, bd[3], bd[2], bd[1], bd[0]);
 
-  Two_Product(ferVec3X(pc), ferVec3Y(pe), cxey1, cxey0);
-  Two_Product(ferVec3X(pe), ferVec3Y(pc), excy1, excy0);
+  Two_Product(borVec3X(pc), borVec3Y(pe), cxey1, cxey0);
+  Two_Product(borVec3X(pe), borVec3Y(pc), excy1, excy0);
   Two_Two_Diff(cxey1, cxey0, excy1, excy0, ce[3], ce[2], ce[1], ce[0]);
 
-  Two_Product(ferVec3X(pd), ferVec3Y(pa), dxay1, dxay0);
-  Two_Product(ferVec3X(pa), ferVec3Y(pd), axdy1, axdy0);
+  Two_Product(borVec3X(pd), borVec3Y(pa), dxay1, dxay0);
+  Two_Product(borVec3X(pa), borVec3Y(pd), axdy1, axdy0);
   Two_Two_Diff(dxay1, dxay0, axdy1, axdy0, da[3], da[2], da[1], da[0]);
 
-  Two_Product(ferVec3X(pe), ferVec3Y(pb), exby1, exby0);
-  Two_Product(ferVec3X(pb), ferVec3Y(pe), bxey1, bxey0);
+  Two_Product(borVec3X(pe), borVec3Y(pb), exby1, exby0);
+  Two_Product(borVec3X(pb), borVec3Y(pe), bxey1, bxey0);
   Two_Two_Diff(exby1, exby0, bxey1, bxey0, eb[3], eb[2], eb[1], eb[0]);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, bc, ferVec3Z(pa), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, ac, -ferVec3Z(pb), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, bc, borVec3Z(pa), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, ac, -borVec3Z(pb), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, ab, ferVec3Z(pc), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ab, borVec3Z(pc), temp8a);
   abclen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        abc);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, cd, ferVec3Z(pb), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, bd, -ferVec3Z(pc), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, cd, borVec3Z(pb), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, bd, -borVec3Z(pc), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, bc, ferVec3Z(pd), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, bc, borVec3Z(pd), temp8a);
   bcdlen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        bcd);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, de, ferVec3Z(pc), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, ce, -ferVec3Z(pd), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, de, borVec3Z(pc), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, ce, -borVec3Z(pd), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, cd, ferVec3Z(pe), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, cd, borVec3Z(pe), temp8a);
   cdelen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        cde);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, ea, ferVec3Z(pd), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, da, -ferVec3Z(pe), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ea, borVec3Z(pd), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, da, -borVec3Z(pe), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, de, ferVec3Z(pa), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, de, borVec3Z(pa), temp8a);
   dealen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        dea);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, ab, ferVec3Z(pe), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, eb, -ferVec3Z(pa), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ab, borVec3Z(pe), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, eb, -borVec3Z(pa), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, ea, ferVec3Z(pb), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ea, borVec3Z(pb), temp8a);
   eablen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        eab);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, bd, ferVec3Z(pa), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, da, ferVec3Z(pb), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, bd, borVec3Z(pa), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, da, borVec3Z(pb), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, ab, ferVec3Z(pd), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ab, borVec3Z(pd), temp8a);
   abdlen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        abd);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, ce, ferVec3Z(pb), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, eb, ferVec3Z(pc), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ce, borVec3Z(pb), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, eb, borVec3Z(pc), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, bc, ferVec3Z(pe), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, bc, borVec3Z(pe), temp8a);
   bcelen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        bce);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, da, ferVec3Z(pc), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, ac, ferVec3Z(pd), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, da, borVec3Z(pc), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, ac, borVec3Z(pd), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, cd, ferVec3Z(pa), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, cd, borVec3Z(pa), temp8a);
   cdalen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        cda);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, eb, ferVec3Z(pd), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, bd, ferVec3Z(pe), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, eb, borVec3Z(pd), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, bd, borVec3Z(pe), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, de, ferVec3Z(pb), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, de, borVec3Z(pb), temp8a);
   deblen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        deb);
 
-  temp8alen = scale_expansion_zeroelim(pred, 4, ac, ferVec3Z(pe), temp8a);
-  temp8blen = scale_expansion_zeroelim(pred, 4, ce, ferVec3Z(pa), temp8b);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ac, borVec3Z(pe), temp8a);
+  temp8blen = scale_expansion_zeroelim(pred, 4, ce, borVec3Z(pa), temp8b);
   temp16len = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp8blen, temp8b,
                                           temp16);
-  temp8alen = scale_expansion_zeroelim(pred, 4, ea, ferVec3Z(pc), temp8a);
+  temp8alen = scale_expansion_zeroelim(pred, 4, ea, borVec3Z(pc), temp8a);
   eaclen = fast_expansion_sum_zeroelim(pred, temp8alen, temp8a, temp16len, temp16,
                                        eac);
 
@@ -2213,12 +2213,12 @@ static REAL insphereexact(const bor_pred_t *pred,
   }
   bcdelen = fast_expansion_sum_zeroelim(pred, temp48alen, temp48a,
                                         temp48blen, temp48b, bcde);
-  xlen = scale_expansion_zeroelim(pred, bcdelen, bcde, ferVec3X(pa), temp192);
-  xlen = scale_expansion_zeroelim(pred, xlen, temp192, ferVec3X(pa), det384x);
-  ylen = scale_expansion_zeroelim(pred, bcdelen, bcde, ferVec3Y(pa), temp192);
-  ylen = scale_expansion_zeroelim(pred, ylen, temp192, ferVec3Y(pa), det384y);
-  zlen = scale_expansion_zeroelim(pred, bcdelen, bcde, ferVec3Z(pa), temp192);
-  zlen = scale_expansion_zeroelim(pred, zlen, temp192, ferVec3Z(pa), det384z);
+  xlen = scale_expansion_zeroelim(pred, bcdelen, bcde, borVec3X(pa), temp192);
+  xlen = scale_expansion_zeroelim(pred, xlen, temp192, borVec3X(pa), det384x);
+  ylen = scale_expansion_zeroelim(pred, bcdelen, bcde, borVec3Y(pa), temp192);
+  ylen = scale_expansion_zeroelim(pred, ylen, temp192, borVec3Y(pa), det384y);
+  zlen = scale_expansion_zeroelim(pred, bcdelen, bcde, borVec3Z(pa), temp192);
+  zlen = scale_expansion_zeroelim(pred, zlen, temp192, borVec3Z(pa), det384z);
   xylen = fast_expansion_sum_zeroelim(pred, xlen, det384x, ylen, det384y, detxy);
   alen = fast_expansion_sum_zeroelim(pred, xylen, detxy, zlen, det384z, adet);
 
@@ -2229,12 +2229,12 @@ static REAL insphereexact(const bor_pred_t *pred,
   }
   cdealen = fast_expansion_sum_zeroelim(pred, temp48alen, temp48a,
                                         temp48blen, temp48b, cdea);
-  xlen = scale_expansion_zeroelim(pred, cdealen, cdea, ferVec3X(pb), temp192);
-  xlen = scale_expansion_zeroelim(pred, xlen, temp192, ferVec3X(pb), det384x);
-  ylen = scale_expansion_zeroelim(pred, cdealen, cdea, ferVec3Y(pb), temp192);
-  ylen = scale_expansion_zeroelim(pred, ylen, temp192, ferVec3Y(pb), det384y);
-  zlen = scale_expansion_zeroelim(pred, cdealen, cdea, ferVec3Z(pb), temp192);
-  zlen = scale_expansion_zeroelim(pred, zlen, temp192, ferVec3Z(pb), det384z);
+  xlen = scale_expansion_zeroelim(pred, cdealen, cdea, borVec3X(pb), temp192);
+  xlen = scale_expansion_zeroelim(pred, xlen, temp192, borVec3X(pb), det384x);
+  ylen = scale_expansion_zeroelim(pred, cdealen, cdea, borVec3Y(pb), temp192);
+  ylen = scale_expansion_zeroelim(pred, ylen, temp192, borVec3Y(pb), det384y);
+  zlen = scale_expansion_zeroelim(pred, cdealen, cdea, borVec3Z(pb), temp192);
+  zlen = scale_expansion_zeroelim(pred, zlen, temp192, borVec3Z(pb), det384z);
   xylen = fast_expansion_sum_zeroelim(pred, xlen, det384x, ylen, det384y, detxy);
   blen = fast_expansion_sum_zeroelim(pred, xylen, detxy, zlen, det384z, bdet);
 
@@ -2245,12 +2245,12 @@ static REAL insphereexact(const bor_pred_t *pred,
   }
   deablen = fast_expansion_sum_zeroelim(pred, temp48alen, temp48a,
                                         temp48blen, temp48b, deab);
-  xlen = scale_expansion_zeroelim(pred, deablen, deab, ferVec3X(pc), temp192);
-  xlen = scale_expansion_zeroelim(pred, xlen, temp192, ferVec3X(pc), det384x);
-  ylen = scale_expansion_zeroelim(pred, deablen, deab, ferVec3Y(pc), temp192);
-  ylen = scale_expansion_zeroelim(pred, ylen, temp192, ferVec3Y(pc), det384y);
-  zlen = scale_expansion_zeroelim(pred, deablen, deab, ferVec3Z(pc), temp192);
-  zlen = scale_expansion_zeroelim(pred, zlen, temp192, ferVec3Z(pc), det384z);
+  xlen = scale_expansion_zeroelim(pred, deablen, deab, borVec3X(pc), temp192);
+  xlen = scale_expansion_zeroelim(pred, xlen, temp192, borVec3X(pc), det384x);
+  ylen = scale_expansion_zeroelim(pred, deablen, deab, borVec3Y(pc), temp192);
+  ylen = scale_expansion_zeroelim(pred, ylen, temp192, borVec3Y(pc), det384y);
+  zlen = scale_expansion_zeroelim(pred, deablen, deab, borVec3Z(pc), temp192);
+  zlen = scale_expansion_zeroelim(pred, zlen, temp192, borVec3Z(pc), det384z);
   xylen = fast_expansion_sum_zeroelim(pred, xlen, det384x, ylen, det384y, detxy);
   clen = fast_expansion_sum_zeroelim(pred, xylen, detxy, zlen, det384z, cdet);
 
@@ -2261,12 +2261,12 @@ static REAL insphereexact(const bor_pred_t *pred,
   }
   eabclen = fast_expansion_sum_zeroelim(pred, temp48alen, temp48a,
                                         temp48blen, temp48b, eabc);
-  xlen = scale_expansion_zeroelim(pred, eabclen, eabc, ferVec3X(pd), temp192);
-  xlen = scale_expansion_zeroelim(pred, xlen, temp192, ferVec3X(pd), det384x);
-  ylen = scale_expansion_zeroelim(pred, eabclen, eabc, ferVec3Y(pd), temp192);
-  ylen = scale_expansion_zeroelim(pred, ylen, temp192, ferVec3Y(pd), det384y);
-  zlen = scale_expansion_zeroelim(pred, eabclen, eabc, ferVec3Z(pd), temp192);
-  zlen = scale_expansion_zeroelim(pred, zlen, temp192, ferVec3Z(pd), det384z);
+  xlen = scale_expansion_zeroelim(pred, eabclen, eabc, borVec3X(pd), temp192);
+  xlen = scale_expansion_zeroelim(pred, xlen, temp192, borVec3X(pd), det384x);
+  ylen = scale_expansion_zeroelim(pred, eabclen, eabc, borVec3Y(pd), temp192);
+  ylen = scale_expansion_zeroelim(pred, ylen, temp192, borVec3Y(pd), det384y);
+  zlen = scale_expansion_zeroelim(pred, eabclen, eabc, borVec3Z(pd), temp192);
+  zlen = scale_expansion_zeroelim(pred, zlen, temp192, borVec3Z(pd), det384z);
   xylen = fast_expansion_sum_zeroelim(pred, xlen, det384x, ylen, det384y, detxy);
   dlen = fast_expansion_sum_zeroelim(pred, xylen, detxy, zlen, det384z, ddet);
 
@@ -2277,12 +2277,12 @@ static REAL insphereexact(const bor_pred_t *pred,
   }
   abcdlen = fast_expansion_sum_zeroelim(pred, temp48alen, temp48a,
                                         temp48blen, temp48b, abcd);
-  xlen = scale_expansion_zeroelim(pred, abcdlen, abcd, ferVec3X(pe), temp192);
-  xlen = scale_expansion_zeroelim(pred, xlen, temp192, ferVec3X(pe), det384x);
-  ylen = scale_expansion_zeroelim(pred, abcdlen, abcd, ferVec3Y(pe), temp192);
-  ylen = scale_expansion_zeroelim(pred, ylen, temp192, ferVec3Y(pe), det384y);
-  zlen = scale_expansion_zeroelim(pred, abcdlen, abcd, ferVec3Z(pe), temp192);
-  zlen = scale_expansion_zeroelim(pred, zlen, temp192, ferVec3Z(pe), det384z);
+  xlen = scale_expansion_zeroelim(pred, abcdlen, abcd, borVec3X(pe), temp192);
+  xlen = scale_expansion_zeroelim(pred, xlen, temp192, borVec3X(pe), det384x);
+  ylen = scale_expansion_zeroelim(pred, abcdlen, abcd, borVec3Y(pe), temp192);
+  ylen = scale_expansion_zeroelim(pred, ylen, temp192, borVec3Y(pe), det384y);
+  zlen = scale_expansion_zeroelim(pred, abcdlen, abcd, borVec3Z(pe), temp192);
+  zlen = scale_expansion_zeroelim(pred, zlen, temp192, borVec3Z(pe), det384z);
   xylen = fast_expansion_sum_zeroelim(pred, xlen, det384x, ylen, det384y, detxy);
   elen = fast_expansion_sum_zeroelim(pred, xylen, detxy, zlen, det384z, edet);
 
@@ -2338,18 +2338,18 @@ static REAL insphereadapt(const bor_pred_t *pred,
   INEXACT REAL _i, _j;
   REAL _0;
 
-  aex = (REAL) (ferVec3X(pa) - ferVec3X(pe));
-  bex = (REAL) (ferVec3X(pb) - ferVec3X(pe));
-  cex = (REAL) (ferVec3X(pc) - ferVec3X(pe));
-  dex = (REAL) (ferVec3X(pd) - ferVec3X(pe));
-  aey = (REAL) (ferVec3Y(pa) - ferVec3Y(pe));
-  bey = (REAL) (ferVec3Y(pb) - ferVec3Y(pe));
-  cey = (REAL) (ferVec3Y(pc) - ferVec3Y(pe));
-  dey = (REAL) (ferVec3Y(pd) - ferVec3Y(pe));
-  aez = (REAL) (ferVec3Z(pa) - ferVec3Z(pe));
-  bez = (REAL) (ferVec3Z(pb) - ferVec3Z(pe));
-  cez = (REAL) (ferVec3Z(pc) - ferVec3Z(pe));
-  dez = (REAL) (ferVec3Z(pd) - ferVec3Z(pe));
+  aex = (REAL) (borVec3X(pa) - borVec3X(pe));
+  bex = (REAL) (borVec3X(pb) - borVec3X(pe));
+  cex = (REAL) (borVec3X(pc) - borVec3X(pe));
+  dex = (REAL) (borVec3X(pd) - borVec3X(pe));
+  aey = (REAL) (borVec3Y(pa) - borVec3Y(pe));
+  bey = (REAL) (borVec3Y(pb) - borVec3Y(pe));
+  cey = (REAL) (borVec3Y(pc) - borVec3Y(pe));
+  dey = (REAL) (borVec3Y(pd) - borVec3Y(pe));
+  aez = (REAL) (borVec3Z(pa) - borVec3Z(pe));
+  bez = (REAL) (borVec3Z(pb) - borVec3Z(pe));
+  cez = (REAL) (borVec3Z(pc) - borVec3Z(pe));
+  dez = (REAL) (borVec3Z(pd) - borVec3Z(pe));
 
   Two_Product(aex, bey, aexbey1, aexbey0);
   Two_Product(bex, aey, bexaey1, bexaey0);
@@ -2455,18 +2455,18 @@ static REAL insphereadapt(const bor_pred_t *pred,
     return det;
   }
 
-  Two_Diff_Tail(ferVec3X(pa), ferVec3X(pe), aex, aextail);
-  Two_Diff_Tail(ferVec3Y(pa), ferVec3Y(pe), aey, aeytail);
-  Two_Diff_Tail(ferVec3Z(pa), ferVec3Z(pe), aez, aeztail);
-  Two_Diff_Tail(ferVec3X(pb), ferVec3X(pe), bex, bextail);
-  Two_Diff_Tail(ferVec3Y(pb), ferVec3Y(pe), bey, beytail);
-  Two_Diff_Tail(ferVec3Z(pb), ferVec3Z(pe), bez, beztail);
-  Two_Diff_Tail(ferVec3X(pc), ferVec3X(pe), cex, cextail);
-  Two_Diff_Tail(ferVec3Y(pc), ferVec3Y(pe), cey, ceytail);
-  Two_Diff_Tail(ferVec3Z(pc), ferVec3Z(pe), cez, ceztail);
-  Two_Diff_Tail(ferVec3X(pd), ferVec3X(pe), dex, dextail);
-  Two_Diff_Tail(ferVec3Y(pd), ferVec3Y(pe), dey, deytail);
-  Two_Diff_Tail(ferVec3Z(pd), ferVec3Z(pe), dez, deztail);
+  Two_Diff_Tail(borVec3X(pa), borVec3X(pe), aex, aextail);
+  Two_Diff_Tail(borVec3Y(pa), borVec3Y(pe), aey, aeytail);
+  Two_Diff_Tail(borVec3Z(pa), borVec3Z(pe), aez, aeztail);
+  Two_Diff_Tail(borVec3X(pb), borVec3X(pe), bex, bextail);
+  Two_Diff_Tail(borVec3Y(pb), borVec3Y(pe), bey, beytail);
+  Two_Diff_Tail(borVec3Z(pb), borVec3Z(pe), bez, beztail);
+  Two_Diff_Tail(borVec3X(pc), borVec3X(pe), cex, cextail);
+  Two_Diff_Tail(borVec3Y(pc), borVec3Y(pe), cey, ceytail);
+  Two_Diff_Tail(borVec3Z(pc), borVec3Z(pe), cez, ceztail);
+  Two_Diff_Tail(borVec3X(pd), borVec3X(pe), dex, dextail);
+  Two_Diff_Tail(borVec3Y(pd), borVec3Y(pe), dey, deytail);
+  Two_Diff_Tail(borVec3Z(pd), borVec3Z(pe), dez, deztail);
   if ((aextail == 0.0) && (aeytail == 0.0) && (aeztail == 0.0)
       && (bextail == 0.0) && (beytail == 0.0) && (beztail == 0.0)
       && (cextail == 0.0) && (ceytail == 0.0) && (ceztail == 0.0)
@@ -2514,7 +2514,7 @@ static REAL insphereadapt(const bor_pred_t *pred,
   return insphereexact(pred, pa, pb, pc, pd, pe);
 }
 
-REAL ferPredInSphere(const bor_pred_t *pred,
+REAL borPredInSphere(const bor_pred_t *pred,
                      const bor_vec3_t *pa,
                      const bor_vec3_t *pb,
                      const bor_vec3_t *pc,
@@ -2536,18 +2536,18 @@ REAL ferPredInSphere(const bor_pred_t *pred,
   REAL det;
   REAL permanent, errbound;
 
-  aex = ferVec3X(pa) - ferVec3X(pe);
-  bex = ferVec3X(pb) - ferVec3X(pe);
-  cex = ferVec3X(pc) - ferVec3X(pe);
-  dex = ferVec3X(pd) - ferVec3X(pe);
-  aey = ferVec3Y(pa) - ferVec3Y(pe);
-  bey = ferVec3Y(pb) - ferVec3Y(pe);
-  cey = ferVec3Y(pc) - ferVec3Y(pe);
-  dey = ferVec3Y(pd) - ferVec3Y(pe);
-  aez = ferVec3Z(pa) - ferVec3Z(pe);
-  bez = ferVec3Z(pb) - ferVec3Z(pe);
-  cez = ferVec3Z(pc) - ferVec3Z(pe);
-  dez = ferVec3Z(pd) - ferVec3Z(pe);
+  aex = borVec3X(pa) - borVec3X(pe);
+  bex = borVec3X(pb) - borVec3X(pe);
+  cex = borVec3X(pc) - borVec3X(pe);
+  dex = borVec3X(pd) - borVec3X(pe);
+  aey = borVec3Y(pa) - borVec3Y(pe);
+  bey = borVec3Y(pb) - borVec3Y(pe);
+  cey = borVec3Y(pc) - borVec3Y(pe);
+  dey = borVec3Y(pd) - borVec3Y(pe);
+  aez = borVec3Z(pa) - borVec3Z(pe);
+  bez = borVec3Z(pb) - borVec3Z(pe);
+  cez = borVec3Z(pc) - borVec3Z(pe);
+  dez = borVec3Z(pd) - borVec3Z(pe);
 
   aexbey = aex * bey;
   bexaey = bex * aey;

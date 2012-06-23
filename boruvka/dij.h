@@ -48,10 +48,10 @@ struct _bor_dij_node_t {
     struct _bor_dij_node_t *prev; /*!< Pointer to previous node in path */
 
     bor_list_t _list; /*!< Internal connection into list of nodes.
-                           See function ferDijNodeAdd() and operation
+                           See function borDijNodeAdd() and operation
                            expand() */
     bor_real_t _loc_dist; /*!< Local distance computed in last expand().
-                               See function ferDijNodeAdd() and operation
+                               See function borDijNodeAdd() and operation
                                expand() */
 
     bor_pairheap_node_t _heap; /*!< Internal connection into heap */
@@ -64,36 +64,36 @@ typedef struct _bor_dij_node_t bor_dij_node_t;
  *
  * Note that no destry function is needed.
  */
-_fer_inline void ferDijNodeInit(bor_dij_node_t *n);
+_bor_inline void borDijNodeInit(bor_dij_node_t *n);
 
 /**
  * Returns true if node is closed.
  * If node is closed you don't have to expand into this node anymore...
  */
-_fer_inline int ferDijNodeClosed(const bor_dij_node_t *n);
+_bor_inline int borDijNodeClosed(const bor_dij_node_t *n);
 
 /**
  * Returns overall distance of node from start node.
  */
-_fer_inline bor_real_t ferDijDist(const bor_dij_node_t *n);
+_bor_inline bor_real_t borDijDist(const bor_dij_node_t *n);
 
 /**
  * Returns previous node in path.
  */
-_fer_inline bor_dij_node_t *ferDijNodePrev(const bor_dij_node_t *n);
+_bor_inline bor_dij_node_t *borDijNodePrev(const bor_dij_node_t *n);
 
 /**
  * Adds node into given list and sets local distance from previous node.
  *
  * Use this function in expand() operation.
  */
-_fer_inline void ferDijNodeAdd(bor_dij_node_t *n,
+_bor_inline void borDijNodeAdd(bor_dij_node_t *n,
                                bor_list_t *list, bor_real_t dist);
 
 /**
  * Returns node stored in list.
  */
-_fer_inline bor_dij_node_t *ferDijNodeFromList(bor_list_t *item);
+_bor_inline bor_dij_node_t *borDijNodeFromList(bor_list_t *item);
 
 
 /**
@@ -107,14 +107,14 @@ _fer_inline bor_dij_node_t *ferDijNodeFromList(bor_list_t *item);
 
 /**
  * Fill given list by neighbor nodes of {n}.
- * Use ferDijNodeAdd() function to connect node into given list.
+ * Use borDijNodeAdd() function to connect node into given list.
  */
-typedef void (*fer_dij_expand)(bor_dij_node_t *n, bor_list_t *list, void *);
+typedef void (*bor_dij_expand)(bor_dij_node_t *n, bor_list_t *list, void *);
 
 /** ^^^^ */
 
 struct _bor_dij_ops_t {
-    fer_dij_expand expand; /*!< Expands nodes */
+    bor_dij_expand expand; /*!< Expands nodes */
     void *data;
 };
 typedef struct _bor_dij_ops_t bor_dij_ops_t;
@@ -122,7 +122,7 @@ typedef struct _bor_dij_ops_t bor_dij_ops_t;
 /**
  * Initialize operations struct.
  */
-_fer_inline void ferDijOpsInit(bor_dij_ops_t *ops);
+_bor_inline void borDijOpsInit(bor_dij_ops_t *ops);
 
 
 
@@ -139,64 +139,64 @@ typedef struct _bor_dij_t bor_dij_t;
 /**
  * Creates new dij struct.
  */
-bor_dij_t *ferDijNew(const bor_dij_ops_t *ops);
+bor_dij_t *borDijNew(const bor_dij_ops_t *ops);
 
 /**
  * Deletes dij struct.
  * Note that no nodes are touched.
  */
-void ferDijDel(bor_dij_t *dij);
+void borDijDel(bor_dij_t *dij);
 
 /**
  * Runs dikstra algorithm.
  * Returns 0 if path was found.
  */
-int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
+int borDijRun(bor_dij_t *dij, bor_dij_node_t *start,
                               bor_dij_node_t *end);
 
 /**
  * Fills given list by path which ends on endnode.
  */
-void ferDijPath(bor_dij_node_t *endnode, bor_list_t *list);
+void borDijPath(bor_dij_node_t *endnode, bor_list_t *list);
 
 
 /**** INLINES ****/
-_fer_inline void ferDijNodeInit(bor_dij_node_t *n)
+_bor_inline void borDijNodeInit(bor_dij_node_t *n)
 {
     n->state = BOR_DIJ_STATE_UNKNOWN;
     n->dist  = BOR_REAL_MAX;
 }
 
-_fer_inline int ferDijNodeClosed(const bor_dij_node_t *n)
+_bor_inline int borDijNodeClosed(const bor_dij_node_t *n)
 {
     return n->state == BOR_DIJ_STATE_CLOSED;
 }
 
-_fer_inline bor_real_t ferDijDist(const bor_dij_node_t *n)
+_bor_inline bor_real_t borDijDist(const bor_dij_node_t *n)
 {
     return n->dist;
 }
 
-_fer_inline bor_dij_node_t *ferDijNodePrev(const bor_dij_node_t *n)
+_bor_inline bor_dij_node_t *borDijNodePrev(const bor_dij_node_t *n)
 {
     return n->prev;
 }
 
-_fer_inline void ferDijNodeAdd(bor_dij_node_t *n,
+_bor_inline void borDijNodeAdd(bor_dij_node_t *n,
                                bor_list_t *list, bor_real_t dist)
 {
-    ferListAppend(list, &n->_list);
+    borListAppend(list, &n->_list);
     n->_loc_dist = dist;
 }
 
-_fer_inline bor_dij_node_t *ferDijNodeFromList(bor_list_t *item)
+_bor_inline bor_dij_node_t *borDijNodeFromList(bor_list_t *item)
 {
     return BOR_LIST_ENTRY(item, bor_dij_node_t, _list);
 }
 
 
 
-_fer_inline void ferDijOpsInit(bor_dij_ops_t *ops)
+_bor_inline void borDijOpsInit(bor_dij_ops_t *ops)
 {
     bzero(ops, sizeof(bor_dij_ops_t));
 }

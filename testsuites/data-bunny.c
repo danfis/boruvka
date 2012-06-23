@@ -1377,9 +1377,9 @@ void testBunnyDumpSVT(FILE *out, const char *name)
 
     fprintf(out, "Points:\n");
     for (i = 0; i < bunny_coords_len; i++){
-        fprintf(out, "%f %f %f\n", (float)ferVec3X(bunny_coords + i),
-                                   (float)ferVec3Y(bunny_coords + i),
-                                   (float)ferVec3Z(bunny_coords + i));
+        fprintf(out, "%f %f %f\n", (float)borVec3X(bunny_coords + i),
+                                   (float)borVec3Y(bunny_coords + i),
+                                   (float)borVec3Z(bunny_coords + i));
     }
 
     fprintf(out, "Faces:\n");

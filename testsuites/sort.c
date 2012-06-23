@@ -17,24 +17,24 @@ TEST(sortRadixPtr)
     struct rs_t *arr[RS_PTR_LEN], *tmp[RS_PTR_LEN];
     size_t i, len = RS_PTR_LEN;
 
-    ferRandInit(&rnd);
+    borRandInit(&rnd);
 
     for (i = 0; i < len; i++){
         arr[i] = BOR_ALLOC(struct rs_t);
         arr[i]->i = i;
-        arr[i]->key = ferRand(&rnd, -10., 10.);
+        arr[i]->key = borRand(&rnd, -10., 10.);
     }
 
-    ferRadixSortPtr((void **)arr, (void **)tmp, len, fer_offsetof(struct rs_t, key), 0);
+    borRadixSortPtr((void **)arr, (void **)tmp, len, bor_offsetof(struct rs_t, key), 0);
     for (i = 1; i < len; i++){
         assertTrue(arr[i]->key > arr[i - 1]->key);
     }
 
 
     for (i = 0; i < len; i++){
-        arr[i]->key = ferRand(&rnd, -10., 10.);
+        arr[i]->key = borRand(&rnd, -10., 10.);
     }
-    ferRadixSortPtr((void **)arr, (void **)tmp, len, fer_offsetof(struct rs_t, key), 1);
+    borRadixSortPtr((void **)arr, (void **)tmp, len, bor_offsetof(struct rs_t, key), 1);
     for (i = 1; i < len; i++){
         assertTrue(arr[i]->key < arr[i - 1]->key);
     }

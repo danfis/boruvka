@@ -21,37 +21,37 @@
 #include <boruvka/dbg.h>
 #include <boruvka/alloc.h>
 
-static size_t __fer_page_size = 0;
+static size_t __bor_page_size = 0;
 
-bor_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
+bor_pc_mem_t *borPCMemNew(size_t min_size, size_t elsize, int align)
 {
     bor_pc_mem_t *m;
     void *mem, *datamem;
     size_t memsize;
 
-    if (fer_unlikely(__fer_page_size == 0))
-        __fer_page_size = getpagesize();
+    if (bor_unlikely(__bor_page_size == 0))
+        __bor_page_size = getpagesize();
 
     // Try to estimate how many memory do we need.
     // Estimation is based od assumption that one chunk will contain at
     // least min_size points.
     memsize  = min_size * elsize;
     memsize += sizeof(bor_pc_mem_t);
-    memsize /= __fer_page_size;
-    memsize  = (memsize + 1) * __fer_page_size;
+    memsize /= __bor_page_size;
+    memsize  = (memsize + 1) * __bor_page_size;
 
     // allocated memory
-    mem = ferRealloc(NULL, memsize);
+    mem = borRealloc(NULL, memsize);
 
     // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of
     // bor_pc_mem_t struct) and .size must be set according to it
     m = (bor_pc_mem_t *)mem;
     m->len = 0;
-    ferListInit(&m->list);
+    borListInit(&m->list);
 
     datamem = (void *)((long)m + sizeof(bor_pc_mem_t));
-    datamem = ferAlign(datamem, align);
+    datamem = borAlign(datamem, align);
     m->data = datamem;
     m->size = ((long)mem + (long)memsize - (long)datamem) / elsize;
 
@@ -60,9 +60,9 @@ bor_pc_mem_t *ferPCMemNew(size_t min_size, size_t elsize, int align)
     return m;
 }
 
-void ferPCMemDel(bor_pc_mem_t *m)
+void borPCMemDel(bor_pc_mem_t *m)
 
 {
-    ferListDel(&m->list);
+    borListDel(&m->list);
     BOR_FREE(m);
 }

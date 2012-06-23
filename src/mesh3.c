@@ -18,7 +18,7 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-bor_mesh3_vertex_t *ferMesh3VertexNew(void)
+bor_mesh3_vertex_t *borMesh3VertexNew(void)
 {
     bor_mesh3_vertex_t *v;
     v = BOR_ALLOC(bor_mesh3_vertex_t);
@@ -26,12 +26,12 @@ bor_mesh3_vertex_t *ferMesh3VertexNew(void)
     return v;
 }
 
-void ferMesh3VertexDel(bor_mesh3_vertex_t *v)
+void borMesh3VertexDel(bor_mesh3_vertex_t *v)
 {
     BOR_FREE(v);
 }
 
-bor_mesh3_edge_t *ferMesh3VertexCommonEdge(const bor_mesh3_vertex_t *v1,
+bor_mesh3_edge_t *borMesh3VertexCommonEdge(const bor_mesh3_vertex_t *v1,
                                            const bor_mesh3_vertex_t *v2)
 {
     bor_list_t *item;
@@ -40,15 +40,15 @@ bor_mesh3_edge_t *ferMesh3VertexCommonEdge(const bor_mesh3_vertex_t *v1,
     bor_mesh3_edge_t *e;
 
     // set v1 as vertex with less edges
-    if (ferMesh3VertexEdgesLen(v2) < ferMesh3VertexEdgesLen(v1)){
+    if (borMesh3VertexEdgesLen(v2) < borMesh3VertexEdgesLen(v1)){
         BOR_SWAP(v1, v2, vtmp);
     }
 
     BOR_LIST_FOR_EACH(&v1->edges, item){
-        mitem = ferListMFromList(item);
+        mitem = borListMFromList(item);
         e = BOR_LIST_M_ENTRY(item, bor_mesh3_edge_t, vlist, mitem->mark);
-        if (v2 == ferMesh3EdgeVertex(e, 0)
-                || v2 == ferMesh3EdgeVertex(e, 1)){
+        if (v2 == borMesh3EdgeVertex(e, 0)
+                || v2 == borMesh3EdgeVertex(e, 1)){
             return e;
         }
     }
@@ -57,20 +57,20 @@ bor_mesh3_edge_t *ferMesh3VertexCommonEdge(const bor_mesh3_vertex_t *v1,
 }
 
 
-bor_mesh3_edge_t *ferMesh3EdgeNew(void)
+bor_mesh3_edge_t *borMesh3EdgeNew(void)
 {
     bor_mesh3_edge_t *e;
     e = BOR_ALLOC(bor_mesh3_edge_t);
     return e;
 }
 
-void ferMesh3EdgeDel(bor_mesh3_edge_t *e)
+void borMesh3EdgeDel(bor_mesh3_edge_t *e)
 {
     BOR_FREE(e);
 }
 
 /** Returns true if two given edges have exactly one common vertex */
-_fer_inline int ferMesh3EdgeTriCheckCommon(const bor_mesh3_edge_t *e1,
+_bor_inline int borMesh3EdgeTriCheckCommon(const bor_mesh3_edge_t *e1,
                                            const bor_mesh3_edge_t *e2)
 {
     if (e1->v[0] == e2->v[0]){
@@ -88,7 +88,7 @@ _fer_inline int ferMesh3EdgeTriCheckCommon(const bor_mesh3_edge_t *e1,
     return 1;
 }
 
-int ferMesh3EdgeTriCheck(const bor_mesh3_edge_t *e1,
+int borMesh3EdgeTriCheck(const bor_mesh3_edge_t *e1,
                          const bor_mesh3_edge_t *e2,
                          const bor_mesh3_edge_t *e3)
 {
@@ -97,49 +97,49 @@ int ferMesh3EdgeTriCheck(const bor_mesh3_edge_t *e1,
     // I think that if these two preconditions hold then it is certain that
     // edges form triangle.
 
-    return ferMesh3EdgeTriCheckCommon(e1, e2)
-                && ferMesh3EdgeTriCheckCommon(e1, e3)
-                && ferMesh3EdgeTriCheckCommon(e2, e3);
+    return borMesh3EdgeTriCheckCommon(e1, e2)
+                && borMesh3EdgeTriCheckCommon(e1, e3)
+                && borMesh3EdgeTriCheckCommon(e2, e3);
 }
 
 
 
 
-bor_mesh3_face_t *ferMesh3FaceNew(void)
+bor_mesh3_face_t *borMesh3FaceNew(void)
 {
     bor_mesh3_face_t *f;
     f = BOR_ALLOC(bor_mesh3_face_t);
     return f;
 }
 
-void ferMesh3FaceDel(bor_mesh3_face_t *f)
+void borMesh3FaceDel(bor_mesh3_face_t *f)
 {
     BOR_FREE(f);
 }
 
 
 
-bor_mesh3_t *ferMesh3New(void)
+bor_mesh3_t *borMesh3New(void)
 {
     bor_mesh3_t *m;
     m = BOR_ALLOC(bor_mesh3_t);
 
-    ferListInit(&m->verts);
+    borListInit(&m->verts);
     m->verts_len = 0;
-    ferListInit(&m->edges);
+    borListInit(&m->edges);
     m->edges_len = 0;
-    ferListInit(&m->faces);
+    borListInit(&m->faces);
     m->faces_len = 0;
 
     return m;
 }
 
-void ferMesh3Del(bor_mesh3_t *m)
+void borMesh3Del(bor_mesh3_t *m)
 {
-    ferMesh3Del2(m, NULL, NULL, NULL, NULL, NULL, NULL);
+    borMesh3Del2(m, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
-void ferMesh3Del2(bor_mesh3_t *m,
+void borMesh3Del2(bor_mesh3_t *m,
                   void (*delvertex)(bor_mesh3_vertex_t *, void *), void *vdata,
                   void (*deledge)(bor_mesh3_edge_t *, void *), void *edata,
                   void (*delface)(bor_mesh3_face_t *, void *), void *fdata)
@@ -150,10 +150,10 @@ void ferMesh3Del2(bor_mesh3_t *m,
     bor_list_t *item;
 
     // disconnect all faces
-    while (!ferListEmpty(&m->faces)){
-        item = ferListNext(&m->faces);
+    while (!borListEmpty(&m->faces)){
+        item = borListNext(&m->faces);
         f = BOR_LIST_ENTRY(item, bor_mesh3_face_t, list);
-        ferMesh3RemoveFace(m, f);
+        borMesh3RemoveFace(m, f);
 
         if (delface){
             delface(f, fdata);
@@ -161,10 +161,10 @@ void ferMesh3Del2(bor_mesh3_t *m,
     }
 
     // disconnect all edges
-    while (!ferListEmpty(&m->edges)){
-        item = ferListNext(&m->edges);
+    while (!borListEmpty(&m->edges)){
+        item = borListNext(&m->edges);
         e = BOR_LIST_ENTRY(item, bor_mesh3_edge_t, list);
-        ferMesh3RemoveEdge(m, e);
+        borMesh3RemoveEdge(m, e);
 
         if (deledge){
             deledge(e, edata);
@@ -172,10 +172,10 @@ void ferMesh3Del2(bor_mesh3_t *m,
     }
 
     // disconnect all vertices
-    while (!ferListEmpty(&m->verts)){
-        item = ferListNext(&m->verts);
+    while (!borListEmpty(&m->verts)){
+        item = borListNext(&m->verts);
         v = BOR_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
-        ferMesh3RemoveVertex(m, v);
+        borMesh3RemoveVertex(m, v);
 
         if (delvertex){
             delvertex(v, vdata);
@@ -185,26 +185,26 @@ void ferMesh3Del2(bor_mesh3_t *m,
     BOR_FREE(m);
 }
 
-void ferMesh3AddVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v)
+void borMesh3AddVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v)
 {
-    ferListAppend(&m->verts, &v->list);
+    borListAppend(&m->verts, &v->list);
     m->verts_len++;
 
-    ferListInit(&v->edges);
+    borListInit(&v->edges);
     v->edges_len = 0;
 }
 
-int ferMesh3RemoveVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v)
+int borMesh3RemoveVertex(bor_mesh3_t *m, bor_mesh3_vertex_t *v)
 {
-    if (!ferListEmpty(&v->edges))
+    if (!borListEmpty(&v->edges))
         return -1;
 
-    ferListDel(&v->list);
+    borListDel(&v->list);
     m->verts_len--;
     return 0;
 }
 
-void ferMesh3AddEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e,
+void borMesh3AddEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e,
                      bor_mesh3_vertex_t *start, bor_mesh3_vertex_t *end)
 {
     // assign start and end point
@@ -213,33 +213,33 @@ void ferMesh3AddEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e,
 
     // append edge to list of edges in vertices
     e->vlist[0].mark = 0;
-    ferListAppend(&start->edges, ferListMAsList(&e->vlist[0]));
+    borListAppend(&start->edges, borListMAsList(&e->vlist[0]));
     start->edges_len++;
     e->vlist[1].mark = 1;
-    ferListAppend(&end->edges, ferListMAsList(&e->vlist[1]));
+    borListAppend(&end->edges, borListMAsList(&e->vlist[1]));
     end->edges_len++;
 
     // add edge to list of all edges
-    ferListAppend(&m->edges, &e->list);
+    borListAppend(&m->edges, &e->list);
     m->edges_len++;
 
     // initialize incidenting faces
     e->f[0] = e->f[1] = NULL;
 }
 
-int ferMesh3RemoveEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e)
+int borMesh3RemoveEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e)
 {
     if (e->f[0] != NULL || e->f[1] != NULL)
         return -1;
 
     // remove edge from lists in vertices
-    ferListDel(ferListMAsList(&e->vlist[0]));
+    borListDel(borListMAsList(&e->vlist[0]));
     e->v[0]->edges_len--;
-    ferListDel(ferListMAsList(&e->vlist[1]));
+    borListDel(borListMAsList(&e->vlist[1]));
     e->v[1]->edges_len--;
 
     // remove edge from list of all edges
-    ferListDel(&e->list);
+    borListDel(&e->list);
     m->edges_len--;
 
     // reset .v[]
@@ -248,13 +248,13 @@ int ferMesh3RemoveEdge(bor_mesh3_t *m, bor_mesh3_edge_t *e)
     return 0;
 }
 
-int ferMesh3AddFace(bor_mesh3_t *m, bor_mesh3_face_t *f,
+int borMesh3AddFace(bor_mesh3_t *m, bor_mesh3_face_t *f,
                     bor_mesh3_edge_t *e1, bor_mesh3_edge_t *e2,
                     bor_mesh3_edge_t *e3)
 {
-    if (ferMesh3EdgeFacesLen(e1) == 2
-            || ferMesh3EdgeFacesLen(e2) == 2
-            || ferMesh3EdgeFacesLen(e3) == 2)
+    if (borMesh3EdgeFacesLen(e1) == 2
+            || borMesh3EdgeFacesLen(e2) == 2
+            || borMesh3EdgeFacesLen(e3) == 2)
         return -1;
 
     // assign edges and also back pointers
@@ -280,13 +280,13 @@ int ferMesh3AddFace(bor_mesh3_t *m, bor_mesh3_face_t *f,
     }
 
     // add face to list of all faces
-    ferListAppend(&m->faces, &f->list);
+    borListAppend(&m->faces, &f->list);
     m->faces_len++;
 
     return 0;
 }
 
-void ferMesh3RemoveFace(bor_mesh3_t *m, bor_mesh3_face_t *f)
+void borMesh3RemoveFace(bor_mesh3_t *m, bor_mesh3_face_t *f)
 {
     size_t i;
 
@@ -298,14 +298,14 @@ void ferMesh3RemoveFace(bor_mesh3_t *m, bor_mesh3_face_t *f)
     }
 
     // disconnect face from list of all faces
-    ferListDel(&f->list);
+    borListDel(&f->list);
     m->faces_len--;
 
     // zeroize pointers to edges
     f->e[0] = f->e[1] = f->e[2] = NULL;
 }
 
-void ferMesh3DumpSVT(bor_mesh3_t *m, FILE *out, const char *name)
+void borMesh3DumpSVT(bor_mesh3_t *m, FILE *out, const char *name)
 {
     bor_list_t *item;
     bor_mesh3_vertex_t *v;
@@ -325,29 +325,29 @@ void ferMesh3DumpSVT(bor_mesh3_t *m, FILE *out, const char *name)
         v = BOR_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
         v->_id = i++;
         fprintf(out, "%g %g %g\n",
-                ferVec3X(ferMesh3VertexCoords(v)),
-                ferVec3Y(ferMesh3VertexCoords(v)),
-                ferVec3Z(ferMesh3VertexCoords(v)));
+                borVec3X(borMesh3VertexCoords(v)),
+                borVec3Y(borMesh3VertexCoords(v)),
+                borVec3Z(borMesh3VertexCoords(v)));
     }
 
     fprintf(out, "Edges:\n");
     BOR_LIST_FOR_EACH(&m->edges, item){
         e = BOR_LIST_ENTRY(item, bor_mesh3_edge_t, list);
-        fprintf(out, "%d %d\n", ferMesh3EdgeVertex(e, 0)->_id,
-                                ferMesh3EdgeVertex(e, 1)->_id);
+        fprintf(out, "%d %d\n", borMesh3EdgeVertex(e, 0)->_id,
+                                borMesh3EdgeVertex(e, 1)->_id);
     }
 
     fprintf(out, "Faces:\n");
     BOR_LIST_FOR_EACH(&m->faces, item){
         f = BOR_LIST_ENTRY(item, bor_mesh3_face_t, list);
-        ferMesh3FaceVertices(f, vs);
+        borMesh3FaceVertices(f, vs);
         fprintf(out, "%d %d %d\n", vs[0]->_id, vs[1]->_id, vs[2]->_id);
     }
 
     fprintf(out, "--------\n");
 }
 
-void ferMesh3DumpTriangles(bor_mesh3_t *m, FILE *out)
+void borMesh3DumpTriangles(bor_mesh3_t *m, FILE *out)
 {
     bor_mesh3_vertex_t *vs[3];
     bor_mesh3_face_t *f;
@@ -355,24 +355,24 @@ void ferMesh3DumpTriangles(bor_mesh3_t *m, FILE *out)
 
     BOR_LIST_FOR_EACH(&m->faces, item){
         f = BOR_LIST_ENTRY(item, bor_mesh3_face_t, list);
-        ferMesh3FaceVertices(f, vs);
+        borMesh3FaceVertices(f, vs);
 
         fprintf(out, "%g %g %g %g %g %g %g %g %g\n",
-                ferVec3X(ferMesh3VertexCoords(vs[0])),
-                ferVec3Y(ferMesh3VertexCoords(vs[0])),
-                ferVec3Z(ferMesh3VertexCoords(vs[0])),
-                ferVec3X(ferMesh3VertexCoords(vs[1])),
-                ferVec3Y(ferMesh3VertexCoords(vs[1])),
-                ferVec3Z(ferMesh3VertexCoords(vs[1])),
-                ferVec3X(ferMesh3VertexCoords(vs[2])),
-                ferVec3Y(ferMesh3VertexCoords(vs[2])),
-                ferVec3Z(ferMesh3VertexCoords(vs[2])));
+                borVec3X(borMesh3VertexCoords(vs[0])),
+                borVec3Y(borMesh3VertexCoords(vs[0])),
+                borVec3Z(borMesh3VertexCoords(vs[0])),
+                borVec3X(borMesh3VertexCoords(vs[1])),
+                borVec3Y(borMesh3VertexCoords(vs[1])),
+                borVec3Z(borMesh3VertexCoords(vs[1])),
+                borVec3X(borMesh3VertexCoords(vs[2])),
+                borVec3Y(borMesh3VertexCoords(vs[2])),
+                borVec3Z(borMesh3VertexCoords(vs[2])));
     }
 
     fflush(out);
 }
 
-void ferMesh3DumpPovray(bor_mesh3_t *m, FILE *out)
+void borMesh3DumpPovray(bor_mesh3_t *m, FILE *out)
 {
     bor_mesh3_vertex_t *vs[3];
     bor_mesh3_face_t *f;
@@ -382,18 +382,18 @@ void ferMesh3DumpPovray(bor_mesh3_t *m, FILE *out)
 
     BOR_LIST_FOR_EACH(&m->faces, item){
         f = BOR_LIST_ENTRY(item, bor_mesh3_face_t, list);
-        ferMesh3FaceVertices(f, vs);
+        borMesh3FaceVertices(f, vs);
 
         fprintf(out, "triangle { <%g %g %g>, <%g %g %g>, <%g %g %g> }\n",
-                ferVec3X(ferMesh3VertexCoords(vs[0])),
-                ferVec3Y(ferMesh3VertexCoords(vs[0])),
-                ferVec3Z(ferMesh3VertexCoords(vs[0])),
-                ferVec3X(ferMesh3VertexCoords(vs[1])),
-                ferVec3Y(ferMesh3VertexCoords(vs[1])),
-                ferVec3Z(ferMesh3VertexCoords(vs[1])),
-                ferVec3X(ferMesh3VertexCoords(vs[2])),
-                ferVec3Y(ferMesh3VertexCoords(vs[2])),
-                ferVec3Z(ferMesh3VertexCoords(vs[2])));
+                borVec3X(borMesh3VertexCoords(vs[0])),
+                borVec3Y(borMesh3VertexCoords(vs[0])),
+                borVec3Z(borMesh3VertexCoords(vs[0])),
+                borVec3X(borMesh3VertexCoords(vs[1])),
+                borVec3Y(borMesh3VertexCoords(vs[1])),
+                borVec3Z(borMesh3VertexCoords(vs[1])),
+                borVec3X(borMesh3VertexCoords(vs[2])),
+                borVec3Y(borMesh3VertexCoords(vs[2])),
+                borVec3Z(borMesh3VertexCoords(vs[2])));
     }
 
     fprintf(out, "}\n");

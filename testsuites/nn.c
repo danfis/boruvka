@@ -37,7 +37,7 @@ static bor_real_t dist2(void *item1, bor_list_t *item2,
     bor_vec2_t *p = (bor_vec2_t *)item1;
     el_t *el = BOR_LIST_ENTRY(item2, el_t, list);
 
-    return ferVec2Dist(p, &el->w);
+    return borVec2Dist(p, &el->w);
 }
 
 static void test2(bor_rand_mt_t *rand,
@@ -49,23 +49,23 @@ static void test2(bor_rand_mt_t *rand,
     bor_vec2_t p;
     size_t len, len2, i;
 
-    ferVec2Set(&p, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-    len = ferNNNearest(n, (const bor_vec_t *)&p, num, nn);
-    len2 = ferNearestLinear(list, (void *)&p, dist2, nn2, num, NULL);
+    borVec2Set(&p, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+    len = borNNNearest(n, (const bor_vec_t *)&p, num, nn);
+    len2 = borNearestLinear(list, (void *)&p, dist2, nn2, num, NULL);
 
     assertEquals(len, num);
     assertEquals(len2, num);
 
     for (i = 0; i < num; i++){
-        el  = fer_container_of(nn[i], el_t, el);
-        el2 = fer_container_of(nn2[i], el_t, list);
+        el  = bor_container_of(nn[i], el_t, el);
+        el2 = bor_container_of(nn2[i], el_t, list);
 
         if (el == el2){
             assertEquals(el, el2);
         }else{
             fprintf(stderr, "%.30f %.30f [%.30f] - %.30f %.30f [%.30f]\n",
-                    ferVec2X(&el->w), ferVec2Y(&el->w), ferVec2Dist(&el->w, &p),
-                    ferVec2X(&el2->w), ferVec2Y(&el2->w), ferVec2Dist(&el2->w, &p));
+                    borVec2X(&el->w), borVec2Y(&el->w), borVec2Dist(&el->w, &p),
+                    borVec2X(&el2->w), borVec2Y(&el2->w), borVec2Dist(&el2->w, &p));
         }
     }
 }
@@ -79,22 +79,22 @@ static void _nnAdd(uint8_t type, bor_nn_params_t *params)
     static el_t els[ADD_ELS_LEN];
     int i, j;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
     params->type = type;
 
-    nn = ferNNNew(params);
+    nn = borNNNew(params);
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec2Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
     }
 
     for (i = 0; i < ADD_ELS_LEN; i++){
         //fprintf(stdout, "%02d:\n", i);
-        ferNNAdd(nn, &els[i].el);
-        //ferNNDump(vp, stdout);
+        borNNAdd(nn, &els[i].el);
+        //borNNDump(vp, stdout);
     }
 
     for (i = 0; i < ADD_NUM_TESTS; i++){
@@ -103,8 +103,8 @@ static void _nnAdd(uint8_t type, bor_nn_params_t *params)
         }
     }
 
-    ferNNDel(nn);
-    ferRandMTDel(rand);
+    borNNDel(nn);
+    borRandMTDel(rand);
 }
 
 TEST(nnAdd)
@@ -112,7 +112,7 @@ TEST(nnAdd)
     bor_nn_params_t params;
     bor_real_t aabb[4] = {-3, 3, -3, 3};
 
-    ferNNParamsInit(&params);
+    borNNParamsInit(&params);
     params.linear.dim = 2;
     params.vptree.dim = 2;
     params.gug.dim = 2;
@@ -134,27 +134,27 @@ static void _nnAddRm(uint8_t type, bor_nn_params_t *params)
     static el_t els[ADD_ELS_LEN];
     int i, j;
 
-    rand = ferRandMTNewAuto();
+    rand = borRandMTNewAuto();
 
     params->type = type;
-    nn = ferNNNew(params);
+    nn = borNNNew(params);
 
-    ferListInit(&els_list);
+    borListInit(&els_list);
     for (i = 0; i < els_len; i++){
-        ferVec2Set(&els[i].w, ferRandMT(rand, -3, 3), ferRandMT(rand, -3, 3));
-        ferNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
-        ferListAppend(&els_list, &els[i].list);
+        borVec2Set(&els[i].w, borRandMT(rand, -3, 3), borRandMT(rand, -3, 3));
+        borNNElInit(nn, &els[i].el, (const bor_vec_t *)&els[i].w);
+        borListAppend(&els_list, &els[i].list);
     }
 
     for (i = 0; i < ADD_ELS_LEN; i++){
         //fprintf(stdout, "%02d:\n", i);
-        ferNNAdd(nn, &els[i].el);
-        //ferNNDump(vp, stdout);
+        borNNAdd(nn, &els[i].el);
+        //borNNDump(vp, stdout);
     }
 
     for (i = 0; i < ADD_ELS_LEN; i += 3){
-        ferNNRemove(nn, &els[i].el);
-        ferListDel(&els[i].list);
+        borNNRemove(nn, &els[i].el);
+        borListDel(&els[i].list);
     }
 
     for (i = 0; i < ADD_NUM_TESTS; i++){
@@ -163,8 +163,8 @@ static void _nnAddRm(uint8_t type, bor_nn_params_t *params)
         }
     }
 
-    ferNNDel(nn);
-    ferRandMTDel(rand);
+    borNNDel(nn);
+    borRandMTDel(rand);
 }
 
 TEST(nnAddRm)
@@ -172,7 +172,7 @@ TEST(nnAddRm)
     bor_nn_params_t params;
     bor_real_t aabb[4] = {-3, 3, -3, 3};
 
-    ferNNParamsInit(&params);
+    borNNParamsInit(&params);
     params.linear.dim = 2;
     params.vptree.dim = 2;
     params.gug.dim = 2;

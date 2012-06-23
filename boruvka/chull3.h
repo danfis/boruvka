@@ -40,42 +40,42 @@ typedef struct _bor_chull3_t bor_chull3_t;
 /**
  * Creates new convex hull
  */
-bor_chull3_t *ferCHull3New(void);
+bor_chull3_t *borCHull3New(void);
 
 /**
  * Deletes convex hull
  */
-void ferCHull3Del(bor_chull3_t *h);
+void borCHull3Del(bor_chull3_t *h);
 
 /**
  * Returns Mesh3 with convex hull.
  */
-_fer_inline bor_mesh3_t *ferCHull3Mesh(bor_chull3_t *h);
+_bor_inline bor_mesh3_t *borCHull3Mesh(bor_chull3_t *h);
 
 /**
  * Adds point to convex hull.
  */
-void ferCHull3Add(bor_chull3_t *h, const bor_vec3_t *point);
+void borCHull3Add(bor_chull3_t *h, const bor_vec3_t *point);
 
 /**
  * Returns number of points on hull.
  */
-_fer_inline size_t ferCHull3NumPoints(const bor_chull3_t *h);
+_bor_inline size_t borCHull3NumPoints(const bor_chull3_t *h);
 
 /**
  * Dump mesh in SVT format
  */
-void ferCHull3DumpSVT(bor_chull3_t *h, FILE *out, const char *name);
+void borCHull3DumpSVT(bor_chull3_t *h, FILE *out, const char *name);
 
 /**** INLINES ****/
-_fer_inline bor_mesh3_t *ferCHull3Mesh(bor_chull3_t *h)
+_bor_inline bor_mesh3_t *borCHull3Mesh(bor_chull3_t *h)
 {
     return h->mesh;
 }
 
-_fer_inline size_t ferCHull3NumPoints(const bor_chull3_t *h)
+_bor_inline size_t borCHull3NumPoints(const bor_chull3_t *h)
 {
-    return ferMesh3VerticesLen(h->mesh);
+    return borMesh3VerticesLen(h->mesh);
 }
 
 #ifdef __cplusplus

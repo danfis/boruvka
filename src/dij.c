@@ -23,7 +23,7 @@ static int heapLT(const bor_pairheap_node_t *n1,
                   const bor_pairheap_node_t *n2,
                   void *_);
 
-bor_dij_t *ferDijNew(const bor_dij_ops_t *ops)
+bor_dij_t *borDijNew(const bor_dij_ops_t *ops)
 {
     bor_dij_t *dij;
 
@@ -35,14 +35,14 @@ bor_dij_t *ferDijNew(const bor_dij_ops_t *ops)
     return dij;
 }
 
-void ferDijDel(bor_dij_t *dij)
+void borDijDel(bor_dij_t *dij)
 {
     if (dij->heap)
-        ferPairHeapDel(dij->heap);
+        borPairHeapDel(dij->heap);
     BOR_FREE(dij);
 }
 
-int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
+int borDijRun(bor_dij_t *dij, bor_dij_node_t *start,
                               bor_dij_node_t *end)
 {
     bor_pairheap_node_t *heapnode;
@@ -51,22 +51,22 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
     bor_real_t dist;
 
     if (dij->heap)
-        ferPairHeapDel(dij->heap);
+        borPairHeapDel(dij->heap);
 
     // create priority heap
-    dij->heap = ferPairHeapNew(heapLT, NULL);
+    dij->heap = borPairHeapNew(heapLT, NULL);
 
     // push start node on heap
     start->dist = BOR_ZERO;
     start->prev = NULL;
     start->state = BOR_DIJ_STATE_OPEN;
-    ferPairHeapAdd(dij->heap, &start->_heap);
+    borPairHeapAdd(dij->heap, &start->_heap);
 
     // run algorithm
-    while (!ferPairHeapEmpty(dij->heap)){
+    while (!borPairHeapEmpty(dij->heap)){
         // Get minimal node from priority heap
-        heapnode = ferPairHeapExtractMin(dij->heap);
-        node = fer_container_of(heapnode, bor_dij_node_t, _heap);
+        heapnode = borPairHeapExtractMin(dij->heap);
+        node = bor_container_of(heapnode, bor_dij_node_t, _heap);
 
         // set state to CLOSED
         node->state = BOR_DIJ_STATE_CLOSED;
@@ -78,7 +78,7 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
         // Expand node
 
         // empty list
-        ferListInit(&list);
+        borListInit(&list);
         // let user's function to fill list with nodes
         dij->ops.expand(node, &list, dij->ops.data);
         // iterate over all nodes in list
@@ -87,14 +87,14 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
 
             // skip closed nodes
             // user shouldn't put them in list, but to be sure...
-            if (fer_unlikely(nextnode->state == BOR_DIJ_STATE_CLOSED))
+            if (bor_unlikely(nextnode->state == BOR_DIJ_STATE_CLOSED))
                 continue;
 
             // Relax operation.
             dist = node->dist + nextnode->_loc_dist;
             // Let assume that nextnode->dist is always higher than dist if
             // nextnode wasn't touched until now - user was responsible to
-            // call ferDijNodeInit() function which sets .dist to
+            // call borDijNodeInit() function which sets .dist to
             // BOR_REAL_MAX.
             if (dist < nextnode->dist){
                 // store new distance
@@ -104,9 +104,9 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
                 // and update its position in heap or add it on heap if it
                 // is not already on heap
                 if (nextnode->state == BOR_DIJ_STATE_OPEN){
-                    ferPairHeapDecreaseKey(dij->heap, &nextnode->_heap);
+                    borPairHeapDecreaseKey(dij->heap, &nextnode->_heap);
                 }else{
-                    ferPairHeapAdd(dij->heap, &nextnode->_heap);
+                    borPairHeapAdd(dij->heap, &nextnode->_heap);
                     nextnode->state = BOR_DIJ_STATE_OPEN;
                 }
             }
@@ -116,13 +116,13 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
     return -1;
 }
 
-void ferDijPath(bor_dij_node_t *endnode, bor_list_t *list)
+void borDijPath(bor_dij_node_t *endnode, bor_list_t *list)
 {
     bor_dij_node_t *node;
 
     node = endnode;
     while (node){
-        ferListPrepend(list, &node->_list);
+        borListPrepend(list, &node->_list);
         node = node->prev;
     }
 }
@@ -133,8 +133,8 @@ static int heapLT(const bor_pairheap_node_t *h1,
                   void *_)
 {
     bor_dij_node_t *n1, *n2;
-    n1 = fer_container_of(h1, bor_dij_node_t, _heap);
-    n2 = fer_container_of(h2, bor_dij_node_t, _heap);
+    n1 = bor_container_of(h1, bor_dij_node_t, _heap);
+    n2 = bor_container_of(h2, bor_dij_node_t, _heap);
 
     return n1->dist < n2->dist;
 }

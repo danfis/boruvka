@@ -36,7 +36,7 @@ extern "C" {
  * pointer to string after parsed number.
  * Returns 0 on success, -1 otherwise.
  */
-int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **next);
+int borParseReal(const char *str, const char *strend, bor_real_t *val, char **next);
 
 /**
  * Parses given string that starts at str and ends at strend (exclusively)
@@ -45,17 +45,17 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
  * separated by whitespaces.
  * Returns 0 on success -1 otherwise.
  */
-int ferParseVec3(const char *str, const char *strend, bor_vec3_t *v, char **next);
+int borParseVec3(const char *str, const char *strend, bor_vec3_t *v, char **next);
 
 /**
- * Similar function to ferParseVec3() but parses 2D vectors.
+ * Similar function to borParseVec3() but parses 2D vectors.
  */
-int ferParseVec2(const char *str, const char *strend, bor_vec2_t *v, char **next);
+int borParseVec2(const char *str, const char *strend, bor_vec2_t *v, char **next);
 
 /**
- * Similar function to ferParseVec3() but parses 4D vectors.
+ * Similar function to borParseVec3() but parses 4D vectors.
  */
-int ferParseVec4(const char *str, const char *strend, bor_vec4_t *v, char **next);
+int borParseVec4(const char *str, const char *strend, bor_vec4_t *v, char **next);
 
 /**
  * Parses given string that starts at str ands ends at strend (exclusively)
@@ -63,7 +63,7 @@ int ferParseVec4(const char *str, const char *strend, bor_vec4_t *v, char **next
  * pointer to string after parsed number.
  * Returns 0 on success, -1 otherwise.
  */
-int ferParseLong(const char *str, const char *strend, long *val, char **next);
+int borParseLong(const char *str, const char *strend, long *val, char **next);
 
 #ifdef __cplusplus
 } /* extern "C" */

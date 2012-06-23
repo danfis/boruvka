@@ -28,7 +28,7 @@ RSTS += tasks task-pool hmap hfunc barrier
 
 RSTS += opencl
 
-RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
+RSTS := $(foreach header,$(RSTS),bor-$(header).h.rst)
 
 
 # Internal variables.
@@ -148,7 +148,7 @@ doctest:
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
-fer-%.h.rst: ../boruvka/%.h
+bor-%.h.rst: ../boruvka/%.h
 	$(PYTHON) doc.py $< >$@
 
 clean:

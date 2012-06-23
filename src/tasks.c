@@ -40,7 +40,7 @@ static void *threadMain(void *_th);
 
 /** Single task */
 struct _bor_tasks_task_t {
-    fer_tasks_fn fn; /*!< Callback */
+    bor_tasks_fn fn; /*!< Callback */
     void *data;      /*!< Data for callback */
     int id;          /*!< ID of task */
     int finish;      /*!< If set to 1 - thread will be closed immediatelly */
@@ -50,22 +50,22 @@ struct _bor_tasks_task_t {
 typedef struct _bor_tasks_task_t bor_tasks_task_t;
 
 
-static bor_tasks_task_t *taskNew(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id);
+static bor_tasks_task_t *taskNew(bor_tasks_t *t, bor_tasks_fn fn, void *data, int id);
 static void taskDel(bor_tasks_task_t *task);
 
 
-static void _ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id,
+static void _borTasksAdd(bor_tasks_t *t, bor_tasks_fn fn, void *data, int id,
                          int finish);
 
-bor_tasks_t *ferTasksNew(size_t num_threads)
+bor_tasks_t *borTasksNew(size_t num_threads)
 {
     bor_tasks_t *t;
     bor_tasks_thread_t *th;
     size_t i;
 
     t = BOR_ALLOC(bor_tasks_t);
-    ferListInit(&t->tasks);
-    ferListInit(&t->threads);
+    borListInit(&t->tasks);
+    borListInit(&t->threads);
     t->threads_len = 0;
     t->next_id     = 1;
 
@@ -75,7 +75,7 @@ bor_tasks_t *ferTasksNew(size_t num_threads)
 
     for (i = 0; i < num_threads; i++){
         th = threadNew(t);
-        ferListAppend(&t->threads, &th->list);
+        borListAppend(&t->threads, &th->list);
         t->threads_len++;
     }
 
@@ -85,7 +85,7 @@ bor_tasks_t *ferTasksNew(size_t num_threads)
     return t;
 }
 
-void ferTasksDel(bor_tasks_t *t)
+void borTasksDel(bor_tasks_t *t)
 {
     bor_list_t *item;
     bor_tasks_thread_t *th;
@@ -94,7 +94,7 @@ void ferTasksDel(bor_tasks_t *t)
 
     // add special tasks
     for (i = 0; i < t->threads_len; i++){
-        _ferTasksAdd(t, NULL, NULL, -1, 1);
+        _borTasksAdd(t, NULL, NULL, -1, 1);
     }
 
     // join threads
@@ -104,17 +104,17 @@ void ferTasksDel(bor_tasks_t *t)
     }
 
     // delete threads
-    while (!ferListEmpty(&t->threads)){
-        item = ferListNext(&t->threads);
-        ferListDel(item);
+    while (!borListEmpty(&t->threads)){
+        item = borListNext(&t->threads);
+        borListDel(item);
         th = BOR_LIST_ENTRY(item, bor_tasks_thread_t, list);
         threadDel(th);
     }
 
     // delete tasks
-    while (!ferListEmpty(&t->tasks)){
-        item = ferListNext(&t->tasks);
-        ferListDel(item);
+    while (!borListEmpty(&t->tasks)){
+        item = borListNext(&t->tasks);
+        borListDel(item);
         task = BOR_LIST_ENTRY(item, bor_tasks_task_t, list);
         taskDel(task);
     }
@@ -128,16 +128,16 @@ void ferTasksDel(bor_tasks_t *t)
     BOR_FREE(t);
 }
 
-void ferTasksCancelDel(bor_tasks_t *t)
+void borTasksCancelDel(bor_tasks_t *t)
 {
     bor_list_t *item;
     bor_tasks_task_t *task;
 
     // empty task queue
     pthread_mutex_lock(&t->lock);
-    while (!ferListEmpty(&t->tasks)){
-        item = ferListNext(&t->tasks);
-        ferListDel(item);
+    while (!borListEmpty(&t->tasks)){
+        item = borListNext(&t->tasks);
+        borListDel(item);
         task = BOR_LIST_ENTRY(item, bor_tasks_task_t, list);
         taskDel(task);
     }
@@ -146,15 +146,15 @@ void ferTasksCancelDel(bor_tasks_t *t)
     // reset semaphores - do we need this ?
     // TODO: may be problem in .pending* staff!
 
-    ferTasksDel(t);
+    borTasksDel(t);
 }
 
-void ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, int id, void *data)
+void borTasksAdd(bor_tasks_t *t, bor_tasks_fn fn, int id, void *data)
 {
-    _ferTasksAdd(t, fn, data, id, 0);
+    _borTasksAdd(t, fn, data, id, 0);
 }
 
-void ferTasksRun(bor_tasks_t *t)
+void borTasksRun(bor_tasks_t *t)
 {
     bor_list_t *item;
     bor_tasks_thread_t *th;
@@ -165,7 +165,7 @@ void ferTasksRun(bor_tasks_t *t)
     }
 }
 
-int ferTasksPending(bor_tasks_t *t)
+int borTasksPending(bor_tasks_t *t)
 {
     int p;
 
@@ -176,15 +176,15 @@ int ferTasksPending(bor_tasks_t *t)
     return p;
 }
 
-void ferTasksRunBlock(bor_tasks_t *t)
+void borTasksRunBlock(bor_tasks_t *t)
 {
     pthread_mutex_lock(&t->lock);
-    ferTasksRun(t);
+    borTasksRun(t);
     pthread_cond_wait(&t->pending_cond, &t->lock);
     pthread_mutex_unlock(&t->lock);
 }
 
-void ferTasksBarrier(bor_tasks_t *t)
+void borTasksBarrier(bor_tasks_t *t)
 {
     pthread_mutex_lock(&t->lock);
     if (t->pending != 0)
@@ -202,7 +202,7 @@ static bor_tasks_thread_t *threadNew(bor_tasks_t *t)
     th = BOR_ALLOC(bor_tasks_thread_t);
     th->info.id    = t->next_id++;
     th->tasks      = t;
-    ferListInit(&th->list);
+    borListInit(&th->list);
 
     return th;
 }
@@ -246,8 +246,8 @@ static void *threadMain(void *_th)
 
         // pick up task
         pthread_mutex_lock(&th->tasks->lock);
-        item = ferListNext(&th->tasks->tasks);
-        ferListDel(item);
+        item = borListNext(&th->tasks->tasks);
+        borListDel(item);
         task = BOR_LIST_ENTRY(item, bor_tasks_task_t, list);
         pthread_mutex_unlock(&th->tasks->lock);
 
@@ -279,7 +279,7 @@ static void *threadMain(void *_th)
 
 
 
-static bor_tasks_task_t *taskNew(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id)
+static bor_tasks_task_t *taskNew(bor_tasks_t *t, bor_tasks_fn fn, void *data, int id)
 {
     bor_tasks_task_t *task;
 
@@ -289,7 +289,7 @@ static bor_tasks_task_t *taskNew(bor_tasks_t *t, fer_tasks_fn fn, void *data, in
     task->id     = id;
     task->finish = 0;
     task->tasks  = t;
-    ferListInit(&task->list);
+    borListInit(&task->list);
     return task;
 }
 
@@ -300,7 +300,7 @@ static void taskDel(bor_tasks_task_t *task)
 
 
 
-static void _ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id,
+static void _borTasksAdd(bor_tasks_t *t, bor_tasks_fn fn, void *data, int id,
                          int finish)
 {
     bor_tasks_task_t *task;
@@ -313,7 +313,7 @@ static void _ferTasksAdd(bor_tasks_t *t, fer_tasks_fn fn, void *data, int id,
 
     // add to queue
     pthread_mutex_lock(&t->lock);
-    ferListAppend(&t->tasks, &task->list);
+    borListAppend(&t->tasks, &task->list);
     ++t->pending;
     pthread_mutex_unlock(&t->lock);
 

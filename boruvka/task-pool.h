@@ -75,50 +75,50 @@ typedef struct _bor_task_pool_t bor_task_pool_t;
 /**
  * Callback used as task
  */
-typedef void (*fer_task_pool_fn)(int id, void *data,
+typedef void (*bor_task_pool_fn)(int id, void *data,
                                  const bor_task_pool_thinfo_t *thinfo);
 
 /**
  * Creates task pool containing {num_threads} threads.
- * Note that ferTaskPoolRun() must be called in order to actually start the
+ * Note that borTaskPoolRun() must be called in order to actually start the
  * threads.
  */
-bor_task_pool_t *ferTaskPoolNew(size_t num_threads);
+bor_task_pool_t *borTaskPoolNew(size_t num_threads);
 
 /**
  * Waits for all tasks to be processed and then deletes task pool.
  */
-void ferTaskPoolDel(bor_task_pool_t *t);
+void borTaskPoolDel(bor_task_pool_t *t);
 
 /**
  * Returns number of threads in task pool.
  */
-_fer_inline size_t ferTaskPoolSize(const bor_task_pool_t *t);
+_bor_inline size_t borTaskPoolSize(const bor_task_pool_t *t);
 
 /**
  * Adds task to {tid}'th thread in pool.
  * Returns 0 on success.
  */
-void ferTaskPoolAdd(bor_task_pool_t *t, int tid,
-                    fer_task_pool_fn fn, int id, void *data);
+void borTaskPoolAdd(bor_task_pool_t *t, int tid,
+                    bor_task_pool_fn fn, int id, void *data);
 
 /**
  * Start all threads in pool.
  */
-void ferTaskPoolRun(bor_task_pool_t *t);
+void borTaskPoolRun(bor_task_pool_t *t);
 
 /**
  * Returns number of pending tasks of {id}'th thread.
  */
-int ferTaskPoolPending(bor_task_pool_t *t, int id);
+int borTaskPoolPending(bor_task_pool_t *t, int id);
 
 /**
  * Blocks until all tasks of {id}'th thread aren't finished
  */
-void ferTaskPoolBarrier(bor_task_pool_t *t, int id);
+void borTaskPoolBarrier(bor_task_pool_t *t, int id);
 
 /**** INLINES ****/
-_fer_inline size_t ferTaskPoolSize(const bor_task_pool_t *t)
+_bor_inline size_t borTaskPoolSize(const bor_task_pool_t *t)
 {
     return t->threads_len;
 }

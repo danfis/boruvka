@@ -13,7 +13,7 @@ original_visit_Text = HTMLTranslator.visit_Text
 def visit_Text(self, node):
     text = node.astext()
 
-    if text == '_fer_inline':
+    if text == '_bor_inline':
         encoded = self.encode(text)
         self.body.append('<span class="func_inline">' + encoded + '</span>')
     else:

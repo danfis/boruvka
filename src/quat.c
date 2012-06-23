@@ -16,7 +16,7 @@
 
 #include <boruvka/quat.h>
 
-void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll)
+void borQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t roll)
 {
     bor_real_t c1, c2, c3, s1, s2, s3;
     bor_real_t w, x, y, z;
@@ -33,5 +33,5 @@ void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t
     y = s1 * c2 * c3 + c1 * s2 * s3;
     z = c1 * s2 * c3 - s1 * c2 * s3;
 
-    ferQuatSet(q, x, y, z, w);
+    borQuatSet(q, x, y, z, w);
 }

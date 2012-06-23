@@ -81,16 +81,16 @@ static _bor_vptree_node_t *buildNode(build_t *build,
 
 
 /** Returns distance between v1 and v2 */
-_fer_inline bor_real_t ferVPTreeDist(const bor_vptree_t *vp,
+_bor_inline bor_real_t borVPTreeDist(const bor_vptree_t *vp,
                                      const bor_vec_t *v1, const bor_vec_t *v2);
 /** Euclidean distance callback */
-static bor_real_t ferVPTreeDistCB(int d, const bor_vec_t *v1,
+static bor_real_t borVPTreeDistCB(int d, const bor_vec_t *v1,
                                   const bor_vec_t *v2, void *data);
 
-void ferVPTreeParamsInit(bor_vptree_params_t *params)
+void borVPTreeParamsInit(bor_vptree_params_t *params)
 {
     params->dim = 2;
-    params->dist = ferVPTreeDistCB;
+    params->dist = borVPTreeDistCB;
     params->dist_data = NULL;
 
     params->minsize = 1;
@@ -99,14 +99,14 @@ void ferVPTreeParamsInit(bor_vptree_params_t *params)
     params->samplesize = 5;
 }
 
-void ferVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p)
+void borVPTreeElInit(bor_vptree_el_t *el, const bor_vec_t *p)
 {
-    ferListInit(&el->list);
+    borListInit(&el->list);
     el->p = p;
     el->node = NULL;
 }
 
-bor_vptree_t *ferVPTreeNew(const bor_vptree_params_t *params)
+bor_vptree_t *borVPTreeNew(const bor_vptree_params_t *params)
 {
     bor_vptree_t *vp;
 
@@ -123,7 +123,7 @@ bor_vptree_t *ferVPTreeNew(const bor_vptree_params_t *params)
     return vp;
 }
 
-void ferVPTreeDel(bor_vptree_t *vp)
+void borVPTreeDel(bor_vptree_t *vp)
 {
     if (vp->root)
         nodeDel(vp, vp->root);
@@ -133,7 +133,7 @@ void ferVPTreeDel(bor_vptree_t *vp)
 }
 
 
-void ferVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el)
+void borVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
     _bor_vptree_node_t *node;
 
@@ -153,7 +153,7 @@ void ferVPTreeAdd(bor_vptree_t *vp, bor_vptree_el_t *el)
     }
 }
 
-void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el)
+void borVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
     _bor_vptree_node_t *node, *par, *other;
 
@@ -161,10 +161,10 @@ void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el)
     node = el->node;
 
     // remove element from node
-    ferListDel(&el->list);
+    borListDel(&el->list);
     node->size--;
     el->node = NULL;
-    ferListInit(&el->list);
+    borListInit(&el->list);
 
     // check if node isn't empty
     if (node->size == 0){
@@ -203,16 +203,16 @@ void ferVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el)
         }
 
         // delete par
-        ferVecDel(par->vp);
+        borVecDel(par->vp);
         par->left = par->right = NULL;
         nodeDel(vp, par);
     }
 }
 
-void ferVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el)
+void borVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el)
 {
-    ferVPTreeRemove(vp, el);
-    ferVPTreeAdd(vp, el);
+    borVPTreeRemove(vp, el);
+    borVPTreeAdd(vp, el);
 }
 
 
@@ -269,24 +269,24 @@ static void nearest(nearest_t *n, const _bor_vptree_node_t *node)
         // node is leaf node, try to add all elements
         BOR_LIST_FOR_EACH(&node->els, item){
             el = BOR_LIST_ENTRY(item, bor_vptree_el_t, list);
-            dist = ferVPTreeDist(n->vp, n->p, el->p);
+            dist = borVPTreeDist(n->vp, n->p, el->p);
             if (dist < n->radius){
                 nearestAdd(n, el, dist);
                 n->radius = n->dist[n->num - 1];
             }
         }
     }else{
-        d = ferVPTreeDist(n->vp, n->p, node->vp);
+        d = borVPTreeDist(n->vp, n->p, node->vp);
         if (d < node->radius){
             if (d < node->radius + n->radius)
                 nearest(n, node->left);
 
             d2 = node->radius - n->radius;
-            if (ferEq(d, d2) || d > d2)
+            if (borEq(d, d2) || d > d2)
                 nearest(n, node->right);
         }else{
             d2 = node->radius - n->radius;
-            if (ferEq(d, d2) || d > d2)
+            if (borEq(d, d2) || d > d2)
                 nearest(n, node->right);
 
             if (d < node->radius + n->radius)
@@ -295,7 +295,7 @@ static void nearest(nearest_t *n, const _bor_vptree_node_t *node)
     }
 }
 
-size_t ferVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
+size_t borVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
                         bor_vptree_el_t **els)
 {
     nearest_t n;
@@ -335,7 +335,7 @@ static void dump(bor_vptree_t *vp, _bor_vptree_node_t *n, _bor_vptree_node_t *pa
 
     if (n->left && n->right){
         fprintf(out, "vp: (");
-        ferVecPrint(vp->params.dim, n->vp, out);
+        borVecPrint(vp->params.dim, n->vp, out);
         fprintf(out, "), %f", n->radius);
         fprintf(out, " [%lx]\n", (long)n);
 
@@ -345,31 +345,31 @@ static void dump(bor_vptree_t *vp, _bor_vptree_node_t *n, _bor_vptree_node_t *pa
         BOR_LIST_FOR_EACH(&n->els, item){
             el = BOR_LIST_ENTRY(item, bor_vptree_el_t, list);
             fprintf(out, "(");
-            ferVecPrint(vp->params.dim, el->p, out);
+            borVecPrint(vp->params.dim, el->p, out);
             fprintf(out, ") ");
         }
         fprintf(out, " [%lx]\n", (long)n);
     }
 
 }
-void ferVPTreeDump(bor_vptree_t *vp, FILE *out)
+void borVPTreeDump(bor_vptree_t *vp, FILE *out)
 {
     if (vp->root)
         dump(vp, vp->root, NULL, 0, out);
 }
 
 
-_fer_inline bor_real_t ferVPTreeDist(const bor_vptree_t *vp,
+_bor_inline bor_real_t borVPTreeDist(const bor_vptree_t *vp,
                                      const bor_vec_t *v1, const bor_vec_t *v2)
 {
     return vp->params.dist(vp->params.dim, v1, v2,
                            vp->params.dist_data);
 }
 
-static bor_real_t ferVPTreeDistCB(int d, const bor_vec_t *v1,
+static bor_real_t borVPTreeDistCB(int d, const bor_vec_t *v1,
                                   const bor_vec_t *v2, void *data)
 {
-    return ferVecDist(d, v1, v2);
+    return borVecDist(d, v1, v2);
 }
 
 
@@ -379,7 +379,7 @@ static int radiusVarCmp(const void *a, const void *b)
     bor_real_t f1 = *(bor_real_t *)a;
     bor_real_t f2 = *(bor_real_t *)b;
 
-    if (ferEq(f1, f2))
+    if (borEq(f1, f2))
         return 0;
     if (f1 < f2)
         return -1;
@@ -399,7 +399,7 @@ static void radiusVar(bor_vptree_t *vp,
         if (p == els[i]->p){
             distlen--;
         }else{
-            dist[j++] = ferVPTreeDist(vp, p, els[i]->p);
+            dist[j++] = borVPTreeDist(vp, p, els[i]->p);
         }
     }
 
@@ -445,7 +445,7 @@ static void bestVP(bor_vptree_t *vp,
             best_vp     = candidates[i]->p;
         }
     }
-    ferVecCopy(vp->params.dim, vp_out, best_vp);
+    borVecCopy(vp->params.dim, vp_out, best_vp);
 }
 
 static int reorganizeEls(bor_vptree_t *vp,
@@ -458,7 +458,7 @@ static int reorganizeEls(bor_vptree_t *vp,
 
     do {
         for (i = 0, cur = 0; i < els_len; i++){
-            d = ferVPTreeDist(vp, p, els[i]->p);
+            d = borVPTreeDist(vp, p, els[i]->p);
             if (d < radius){
                 if (cur != i){
                     BOR_SWAP(els[i], els[cur], tmpel);
@@ -484,7 +484,7 @@ static _bor_vptree_node_t *nodeNew(bor_vptree_t *vp)
     node->vp   = NULL;
     node->radius = BOR_ZERO;
     node->parent = node->left = node->right = NULL;
-    ferListInit(&node->els);
+    borListInit(&node->els);
     node->size = 0;
 
     return node;
@@ -495,7 +495,7 @@ static void nodeDel(bor_vptree_t *vp, _bor_vptree_node_t *n)
     if (n->left && n->right){
         nodeDel(vp, n->left);
         nodeDel(vp, n->right);
-        ferVecDel(n->vp);
+        borVecDel(n->vp);
     }
 
     BOR_FREE(n);
@@ -504,7 +504,7 @@ static void nodeDel(bor_vptree_t *vp, _bor_vptree_node_t *n)
 static void nodeAdd(bor_vptree_t *vp, _bor_vptree_node_t *n,
                     bor_vptree_el_t *el)
 {
-    ferListAppend(&n->els, &el->list);
+    borListAppend(&n->els, &el->list);
     n->size++;
     el->node = n;
 }
@@ -519,7 +519,7 @@ static _bor_vptree_node_t *nodeFindLeaf(bor_vptree_t *vp,
         // we are at leaf node
         return n;
     }else{
-        dist = ferVPTreeDist(vp, n->vp, el->p);
+        dist = borVPTreeDist(vp, n->vp, el->p);
         if (dist < n->radius)
             return nodeFindLeaf(vp, n->left, el);
         return nodeFindLeaf(vp, n->right, el);
@@ -554,8 +554,8 @@ static void nodeAddSplit(bor_vptree_t *vp,
 
     // create vantage point
     if (n->vp)
-        ferVecDel(n->vp);
-    n->vp = ferVecNew(vp->params.dim);
+        borVecDel(n->vp);
+    n->vp = borVecNew(vp->params.dim);
 
     // set the best vantage point
     dist = BOR_ALLOC_ARR(bor_real_t, n->size + 1);
@@ -567,7 +567,7 @@ static void nodeAddSplit(bor_vptree_t *vp,
     cur = reorganizeEls(vp, n->vp, n->radius, vp->els, n->size + 1);
     if (cur == 0 || cur == n->size + 1){
         // partitioning is not possible!
-        ferVecDel(n->vp);
+        borVecDel(n->vp);
         n->vp = NULL;
     }else{
         n->left = nodeNew(vp);
@@ -582,21 +582,21 @@ static void nodeAddSplit(bor_vptree_t *vp,
             nodeAdd(vp, n->right, vp->els[i]);
         }
 
-        ferListInit(&n->els);
+        borListInit(&n->els);
         n->size = 0;
     }
 }
 
 
 
-bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
+bor_vptree_t *borVPTreeBuild(const bor_vptree_params_t *params,
                              bor_vptree_el_t *_els, size_t els_len, size_t stride)
 {
     bor_vptree_t *vp;
     build_t build;
     size_t i;
 
-    vp = ferVPTreeNew(params);
+    vp = borVPTreeNew(params);
     vp->type = BOR_NN_VPTREE;
 
     build.vp   = vp;
@@ -604,7 +604,7 @@ bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
     build.ps   = BOR_ALLOC_ARR(bor_vptree_el_t *, vp->params.samplesize);
     build.ds   = BOR_ALLOC_ARR(bor_vptree_el_t *, vp->params.samplesize);
     build.dist = BOR_ALLOC_ARR(bor_real_t, els_len);
-    build.rand = ferRandMTNewAuto();
+    build.rand = borRandMTNewAuto();
     for (i = 0; i < els_len; i++){
         build.els[i] = _els;
         _els = (bor_vptree_el_t *)((char *)_els + stride);
@@ -616,7 +616,7 @@ bor_vptree_t *ferVPTreeBuild(const bor_vptree_params_t *params,
     BOR_FREE(build.dist);
     BOR_FREE(build.ps);
     BOR_FREE(build.ds);
-    ferRandMTDel(build.rand);
+    borRandMTDel(build.rand);
 
     return vp;
 }
@@ -639,7 +639,7 @@ static void buildSampleEls(build_t *build, bor_vptree_el_t **els_in, size_t els_
     size_t i, p;
 
     for (i = 0; i < len; i++){
-        p = ferRandMT(build->rand, 0, els_len);
+        p = borRandMT(build->rand, 0, els_len);
         els[i] = els_in[p];
     }
 }
@@ -658,7 +658,7 @@ static _bor_vptree_node_t *buildNode(build_t *build,
         buildAddEls(build->vp, node, els, els_len);
     }else{
         // create vantage point
-        node->vp = ferVecNew(build->vp->params.dim);
+        node->vp = borVecNew(build->vp->params.dim);
 
         // generate random sample of VPs and datas
         if (build->vp->params.samplesize < els_len){
@@ -682,7 +682,7 @@ static _bor_vptree_node_t *buildNode(build_t *build,
 
         if (cur == 0 || cur == els_len){
             buildAddEls(build->vp, node, els, els_len);
-            ferVecDel(node->vp);
+            borVecDel(node->vp);
             node->vp = NULL;
         }else{
             // create left and right descendants

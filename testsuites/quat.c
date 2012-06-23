@@ -9,87 +9,87 @@ TEST(quatCore)
     bor_quat_t *a, b;
     bor_vec3_t v1, v2;
 
-    a = ferQuatNew(0., 1., 3., 1.);
-    assertTrue(ferEq(ferQuatX(a), 0.));
-    assertTrue(ferEq(ferQuatY(a), 1.));
-    assertTrue(ferEq(ferQuatZ(a), 3.));
-    assertTrue(ferEq(ferQuatW(a), 1.));
+    a = borQuatNew(0., 1., 3., 1.);
+    assertTrue(borEq(borQuatX(a), 0.));
+    assertTrue(borEq(borQuatY(a), 1.));
+    assertTrue(borEq(borQuatZ(a), 3.));
+    assertTrue(borEq(borQuatW(a), 1.));
 
-    ferQuatSet(a, 1., 3., 4., 5.);
-    assertTrue(ferEq(ferQuatX(a), 1.));
-    assertTrue(ferEq(ferQuatY(a), 3.));
-    assertTrue(ferEq(ferQuatZ(a), 4.));
-    assertTrue(ferEq(ferQuatW(a), 5.));
+    borQuatSet(a, 1., 3., 4., 5.);
+    assertTrue(borEq(borQuatX(a), 1.));
+    assertTrue(borEq(borQuatY(a), 3.));
+    assertTrue(borEq(borQuatZ(a), 4.));
+    assertTrue(borEq(borQuatW(a), 5.));
 
-    ferQuatSetX(a, 2.);
-    assertTrue(ferEq(ferQuatX(a), 2.));
-    assertTrue(ferEq(ferQuatY(a), 3.));
-    assertTrue(ferEq(ferQuatZ(a), 4.));
-    assertTrue(ferEq(ferQuatW(a), 5.));
+    borQuatSetX(a, 2.);
+    assertTrue(borEq(borQuatX(a), 2.));
+    assertTrue(borEq(borQuatY(a), 3.));
+    assertTrue(borEq(borQuatZ(a), 4.));
+    assertTrue(borEq(borQuatW(a), 5.));
 
-    ferQuatSetY(a, 2.);
-    assertTrue(ferEq(ferQuatX(a), 2.));
-    assertTrue(ferEq(ferQuatY(a), 2.));
-    assertTrue(ferEq(ferQuatZ(a), 4.));
-    assertTrue(ferEq(ferQuatW(a), 5.));
+    borQuatSetY(a, 2.);
+    assertTrue(borEq(borQuatX(a), 2.));
+    assertTrue(borEq(borQuatY(a), 2.));
+    assertTrue(borEq(borQuatZ(a), 4.));
+    assertTrue(borEq(borQuatW(a), 5.));
 
-    ferQuatSetZ(a, 2.);
-    assertTrue(ferEq(ferQuatX(a), 2.));
-    assertTrue(ferEq(ferQuatY(a), 2.));
-    assertTrue(ferEq(ferQuatZ(a), 2.));
-    assertTrue(ferEq(ferQuatW(a), 5.));
+    borQuatSetZ(a, 2.);
+    assertTrue(borEq(borQuatX(a), 2.));
+    assertTrue(borEq(borQuatY(a), 2.));
+    assertTrue(borEq(borQuatZ(a), 2.));
+    assertTrue(borEq(borQuatW(a), 5.));
 
-    ferQuatSetW(a, 2.);
-    assertTrue(ferEq(ferQuatX(a), 2.));
-    assertTrue(ferEq(ferQuatY(a), 2.));
-    assertTrue(ferEq(ferQuatZ(a), 2.));
-    assertTrue(ferEq(ferQuatW(a), 2.));
+    borQuatSetW(a, 2.);
+    assertTrue(borEq(borQuatX(a), 2.));
+    assertTrue(borEq(borQuatY(a), 2.));
+    assertTrue(borEq(borQuatZ(a), 2.));
+    assertTrue(borEq(borQuatW(a), 2.));
 
-    assertTrue(ferEq(ferQuatLen2(a), 4. * 4.));
+    assertTrue(borEq(borQuatLen2(a), 4. * 4.));
 
-    ferQuatScale(a, 0.5);
-    assertTrue(ferEq(ferQuatX(a), 1.));
-    assertTrue(ferEq(ferQuatY(a), 1.));
-    assertTrue(ferEq(ferQuatZ(a), 1.));
-    assertTrue(ferEq(ferQuatW(a), 1.));
+    borQuatScale(a, 0.5);
+    assertTrue(borEq(borQuatX(a), 1.));
+    assertTrue(borEq(borQuatY(a), 1.));
+    assertTrue(borEq(borQuatZ(a), 1.));
+    assertTrue(borEq(borQuatW(a), 1.));
 
-    ferQuatNormalize(a);
-    assertTrue(ferEq(ferQuatX(a), .5));
-    assertTrue(ferEq(ferQuatY(a), .5));
-    assertTrue(ferEq(ferQuatZ(a), .5));
-    assertTrue(ferEq(ferQuatW(a), .5));
+    borQuatNormalize(a);
+    assertTrue(borEq(borQuatX(a), .5));
+    assertTrue(borEq(borQuatY(a), .5));
+    assertTrue(borEq(borQuatZ(a), .5));
+    assertTrue(borEq(borQuatW(a), .5));
 
-    ferQuatSet(&b, 2., 3., 4., 5.);
-    ferQuatMul(a, &b);
-    assertTrue(ferEq(ferQuatX(a), 4.));
-    assertTrue(ferEq(ferQuatY(a), 3.));
-    assertTrue(ferEq(ferQuatZ(a), 5.));
-    assertTrue(ferEq(ferQuatW(a), -2.));
+    borQuatSet(&b, 2., 3., 4., 5.);
+    borQuatMul(a, &b);
+    assertTrue(borEq(borQuatX(a), 4.));
+    assertTrue(borEq(borQuatY(a), 3.));
+    assertTrue(borEq(borQuatZ(a), 5.));
+    assertTrue(borEq(borQuatW(a), -2.));
 
-    ferQuatSet(a, 1., 2., 1., 2.);
-    ferQuatInvert(a);
-    assertTrue(ferEq(ferQuatX(a), -.1));
-    assertTrue(ferEq(ferQuatY(a), -.2));
-    assertTrue(ferEq(ferQuatZ(a), -.1));
-    assertTrue(ferEq(ferQuatW(a),  .2));
+    borQuatSet(a, 1., 2., 1., 2.);
+    borQuatInvert(a);
+    assertTrue(borEq(borQuatX(a), -.1));
+    assertTrue(borEq(borQuatY(a), -.2));
+    assertTrue(borEq(borQuatZ(a), -.1));
+    assertTrue(borEq(borQuatW(a),  .2));
 
-    ferVec3Set(&v1, 0, 0, 1);
-    ferQuatSetAngleAxis(a, M_PI_2, &v1);
-    assertTrue(ferEq(ferQuatX(a), 0.));
-    assertTrue(ferEq(ferQuatY(a), 0.));
-    assertTrue(ferEq(ferQuatZ(a), BOR_SQRT(2.)/2.));
-    assertTrue(ferEq(ferQuatW(a), BOR_SQRT(2.)/2.));
+    borVec3Set(&v1, 0, 0, 1);
+    borQuatSetAngleAxis(a, M_PI_2, &v1);
+    assertTrue(borEq(borQuatX(a), 0.));
+    assertTrue(borEq(borQuatY(a), 0.));
+    assertTrue(borEq(borQuatZ(a), BOR_SQRT(2.)/2.));
+    assertTrue(borEq(borQuatW(a), BOR_SQRT(2.)/2.));
 
-    ferVec3Set(&v2, 1., 0., 1.);
-    ferQuatRotVec(&v2, a);
-    assertTrue(ferEq(ferQuatX(a), 0.));
-    assertTrue(ferEq(ferQuatY(a), 0.));
-    assertTrue(ferEq(ferQuatZ(a), BOR_SQRT(2.)/2.));
-    assertTrue(ferEq(ferQuatW(a), BOR_SQRT(2.)/2.));
-    assertTrue(ferEq(ferVec3Y(&v2), 1.));
-    assertTrue(ferEq(ferVec3Z(&v2), 1.));
+    borVec3Set(&v2, 1., 0., 1.);
+    borQuatRotVec(&v2, a);
+    assertTrue(borEq(borQuatX(a), 0.));
+    assertTrue(borEq(borQuatY(a), 0.));
+    assertTrue(borEq(borQuatZ(a), BOR_SQRT(2.)/2.));
+    assertTrue(borEq(borQuatW(a), BOR_SQRT(2.)/2.));
+    assertTrue(borEq(borVec3Y(&v2), 1.));
+    assertTrue(borEq(borVec3Z(&v2), 1.));
 
-    ferQuatDel(a);
+    borQuatDel(a);
 }
 
 
@@ -100,7 +100,7 @@ TEST(quatLen2)
 
     printf("# ---- len2 ----\n");
     for (i = 0; i < quats_len; i++){
-        l = ferQuatLen2(&quats[i]);
+        l = borQuatLen2(&quats[i]);
         printf("# %g\n", l);
     }
     printf("# ---- len2 end ----\n\n");
@@ -113,7 +113,7 @@ TEST(quatLen)
 
     printf("# ---- len ----\n");
     for (i = 0; i < quats_len; i++){
-        l = ferQuatLen(&quats[i]);
+        l = borQuatLen(&quats[i]);
         printf("# %g\n", l);
     }
     printf("# ---- len end ----\n\n");
@@ -126,9 +126,9 @@ TEST(quatNormalize)
 
     printf("# ---- normalize ----\n");
     for (i = 0; i < quats_len; i++){
-        ferQuatCopy(&q, &quats[i]);
-        ferQuatNormalize(&q);
-        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
+        borQuatCopy(&q, &quats[i]);
+        borQuatNormalize(&q);
+        printf("# %g %g %g %g\n", borQuatX(&q), borQuatY(&q), borQuatZ(&q), borQuatW(&q));
     }
     printf("# ---- normalize end ----\n\n");
 }
@@ -140,9 +140,9 @@ TEST(quatScale)
 
     printf("# ---- scale ----\n");
     for (i = 0; i < quats_len; i++){
-        ferQuatCopy(&q, &quats[i]);
-        ferQuatScale(&q, ferQuatX(&quats[i]));
-        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
+        borQuatCopy(&q, &quats[i]);
+        borQuatScale(&q, borQuatX(&quats[i]));
+        printf("# %g %g %g %g\n", borQuatX(&q), borQuatY(&q), borQuatZ(&q), borQuatW(&q));
     }
     printf("# ---- scale end ----\n\n");
 }
@@ -154,11 +154,11 @@ TEST(quatMul)
 
     printf("# ---- mul ----\n");
     for (i = 0; i < quats_len - 1; i++){
-        ferQuatCopy(&q, &quats[i]);
-        ferQuatMul(&q, &quats[i + 1]);
-        ferQuatMul2(&q2, &quats[i], &quats[i + 1]);
-        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
-        printf("# %g %g %g %g\n", ferQuatX(&q2), ferQuatY(&q2), ferQuatZ(&q2), ferQuatW(&q2));
+        borQuatCopy(&q, &quats[i]);
+        borQuatMul(&q, &quats[i + 1]);
+        borQuatMul2(&q2, &quats[i], &quats[i + 1]);
+        printf("# %g %g %g %g\n", borQuatX(&q), borQuatY(&q), borQuatZ(&q), borQuatW(&q));
+        printf("# %g %g %g %g\n", borQuatX(&q2), borQuatY(&q2), borQuatZ(&q2), borQuatW(&q2));
     }
     printf("# ---- mul end ----\n\n");
 }
@@ -171,11 +171,11 @@ TEST(quatInvert)
 
     printf("# ---- invert ----\n");
     for (i = 0; i < quats_len; i++){
-        ferQuatCopy(&q, &quats[i]);
-        ferQuatInvert(&q);
-        ferQuatInvert2(&q2, &quats[i]);
-        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
-        printf("# %g %g %g %g\n", ferQuatX(&q2), ferQuatY(&q2), ferQuatZ(&q2), ferQuatW(&q2));
+        borQuatCopy(&q, &quats[i]);
+        borQuatInvert(&q);
+        borQuatInvert2(&q2, &quats[i]);
+        printf("# %g %g %g %g\n", borQuatX(&q), borQuatY(&q), borQuatZ(&q), borQuatW(&q));
+        printf("# %g %g %g %g\n", borQuatX(&q2), borQuatY(&q2), borQuatZ(&q2), borQuatW(&q2));
     }
     printf("# ---- invert end ----\n\n");
 }
@@ -187,9 +187,9 @@ TEST(quatRotVec)
 
     printf("# ---- rot vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){
-        ferVec3Copy(&v, &vecs[j]);
-        ferQuatRotVec(&v, &quats[i]);
-        printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
+        borVec3Copy(&v, &vecs[j]);
+        borQuatRotVec(&v, &quats[i]);
+        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
     }
     printf("# ---- rot vec end ----\n\n");
 }
@@ -203,10 +203,10 @@ TEST(quatAngleAxis)
 
     printf("# ---- angle axis vec ----\n");
     for (i = 0, j = 0; i < quats_len && j < vecs_len; i++, j++){
-        ferVec3Copy(&v, &vecs[j]);
-        a = ferQuatX(&quats[i]) * M_PI_2;
-        ferQuatSetAngleAxis(&q, a, &v);
-        printf("# %g %g %g %g\n", ferQuatX(&q), ferQuatY(&q), ferQuatZ(&q), ferQuatW(&q));
+        borVec3Copy(&v, &vecs[j]);
+        a = borQuatX(&quats[i]) * M_PI_2;
+        borQuatSetAngleAxis(&q, a, &v);
+        printf("# %g %g %g %g\n", borQuatX(&q), borQuatY(&q), borQuatZ(&q), borQuatW(&q));
     }
     printf("# ---- angle axis end ----\n\n");
 }

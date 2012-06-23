@@ -16,27 +16,27 @@ static int pcContains(bor_pc_t *pc, const bor_vec2_t *v)
     bor_pc_it_t it;
     const bor_vec_t *w;
 
-    ferPCItInit(&it, pc);
-    while (!ferPCItEnd(&it)){
-        w = ferPCItGet(&it);
-        if (ferVec2Eq((const bor_vec2_t *)w, v))
+    borPCItInit(&it, pc);
+    while (!borPCItEnd(&it)){
+        w = borPCItGet(&it);
+        if (borVec2Eq((const bor_vec2_t *)w, v))
             return 1;
 
-        ferPCItNext(&it);
+        borPCItNext(&it);
     }
     return 0;
 }
 
 static void pcPrint(bor_pc_t *pc)
 {
-    size_t i, j, len = ferPCLen(pc);
+    size_t i, j, len = borPCLen(pc);
     const bor_vec_t *w;
 
     for (i = 0; i < len; i++){
-        w = ferPCGet(pc, i);
+        w = borPCGet(pc, i);
 
         for (j = 0; j < pc->dim; j++){
-            fprintf(stdout, "%f ", (float)ferVecGet(w, j));
+            fprintf(stdout, "%f ", (float)borVecGet(w, j));
         }
         fprintf(stdout, "\n");
     }
@@ -49,30 +49,30 @@ TEST(ppcPermutate)
     size_t i;
 
     for (i = 0; i < 1000; i++){
-        ferVec2Set(&v[i], i, 0.);
+        borVec2Set(&v[i], i, 0.);
     }
 
-    pc = ferPCNew2(2, 12);
+    pc = borPCNew2(2, 12);
 
-    ferPCAdd(pc, (bor_vec_t *)&v[0]);
-    ferPCPermutate(pc);
-    assertEquals(1, ferPCLen(pc));
+    borPCAdd(pc, (bor_vec_t *)&v[0]);
+    borPCPermutate(pc);
+    assertEquals(1, borPCLen(pc));
     assertTrue(pcContains(pc, &v[0]));
 
-    ferPCAdd(pc, (bor_vec_t *)&v[1]);
-    ferPCAdd(pc, (bor_vec_t *)&v[2]);
-    assertEquals(3, ferPCLen(pc));
-    assertTrue(pcContains(pc, &v[0]));
-    assertTrue(pcContains(pc, &v[1]));
-    assertTrue(pcContains(pc, &v[2]));
-    ferPCPermutate(pc);
+    borPCAdd(pc, (bor_vec_t *)&v[1]);
+    borPCAdd(pc, (bor_vec_t *)&v[2]);
+    assertEquals(3, borPCLen(pc));
     assertTrue(pcContains(pc, &v[0]));
     assertTrue(pcContains(pc, &v[1]));
     assertTrue(pcContains(pc, &v[2]));
+    borPCPermutate(pc);
+    assertTrue(pcContains(pc, &v[0]));
+    assertTrue(pcContains(pc, &v[1]));
+    assertTrue(pcContains(pc, &v[2]));
 
-    ferPCAdd(pc, (bor_vec_t *)&v[3]);
-    assertEquals(4, ferPCLen(pc));
-    ferPCPermutate(pc);
+    borPCAdd(pc, (bor_vec_t *)&v[3]);
+    assertEquals(4, borPCLen(pc));
+    borPCPermutate(pc);
     assertTrue(pcContains(pc, &v[0]));
     assertTrue(pcContains(pc, &v[1]));
     assertTrue(pcContains(pc, &v[2]));
@@ -80,30 +80,30 @@ TEST(ppcPermutate)
 
 
     for (i = 4; i < 169; i++){
-        ferPCAdd(pc, (bor_vec_t *)&v[i]);
+        borPCAdd(pc, (bor_vec_t *)&v[i]);
     }
-    assertEquals(ferPCLen(pc), 169);
-    ferPCPermutate(pc);
+    assertEquals(borPCLen(pc), 169);
+    borPCPermutate(pc);
     for (i = 0; i < 169; i++){
         assertTrue(pcContains(pc, &v[i]));
     }
 
 
     for (i = 169; i < 1000; i++){
-        ferPCAdd(pc, (bor_vec_t *)&v[i]);
+        borPCAdd(pc, (bor_vec_t *)&v[i]);
     }
-    assertEquals(ferPCLen(pc), 1000);
-    ferPCPermutate(pc);
+    assertEquals(borPCLen(pc), 1000);
+    borPCPermutate(pc);
     for (i = 0; i < 1000; i++){
         assertTrue(pcContains(pc, &v[i]));
     }
 
     // test some basic operation on the points
     for (i = 0; i < 10; i++){
-        ferVec2Add2(&w, (bor_vec2_t *)ferPCGet(pc, 0), (bor_vec2_t *)ferPCGet(pc, 1));
+        borVec2Add2(&w, (bor_vec2_t *)borPCGet(pc, 0), (bor_vec2_t *)borPCGet(pc, 1));
     }
 
-    ferPCDel(pc);
+    borPCDel(pc);
 }
 
 TEST(ppcFromFile)
@@ -111,16 +111,16 @@ TEST(ppcFromFile)
     bor_pc_t *pc;
     size_t added;
 
-    pc = ferPCNew(7);
+    pc = borPCNew(7);
 
-    added = ferPCAddFromFile(pc, "asdfg");
+    added = borPCAddFromFile(pc, "asdfg");
     assertEquals(added, 0);
 
-    added = ferPCAddFromFile(pc, "data-test-cd-spheres.trans.txt");
+    added = borPCAddFromFile(pc, "data-test-cd-spheres.trans.txt");
     assertEquals(added, 5000);
     printf("\n----- pcFromFile ----\n");
     pcPrint(pc);
     printf("\n----- pcFromFile END ----\n");
 
-    ferPCDel(pc);
+    borPCDel(pc);
 }

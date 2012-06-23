@@ -19,11 +19,11 @@
 #include <boruvka/vec4.h>
 #include <boruvka/dbg.h>
 
-static BOR_VEC4(__fer_vec4_origin, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
-const bor_vec4_t *fer_vec4_origin = &__fer_vec4_origin;
+static BOR_VEC4(__bor_vec4_origin, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
+const bor_vec4_t *bor_vec4_origin = &__bor_vec4_origin;
 
 
-bor_vec4_t *ferVec4New(bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
+bor_vec4_t *borVec4New(bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
 {
     bor_vec4_t *v;
 
@@ -32,16 +32,16 @@ bor_vec4_t *ferVec4New(bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
 #else /* BOR_SSE */
     v = BOR_ALLOC(bor_vec4_t);
 #endif /* BOR_SSE */
-    ferVec4Set(v, x, y, z, w);
+    borVec4Set(v, x, y, z, w);
     return v;
 }
 
-void ferVec4Del(bor_vec4_t *v)
+void borVec4Del(bor_vec4_t *v)
 {
     BOR_FREE(v);
 }
 
-bor_vec4_t *ferVec4ArrNew(size_t num_vecs)
+bor_vec4_t *borVec4ArrNew(size_t num_vecs)
 {
     bor_vec4_t *vs;
 
@@ -54,7 +54,7 @@ bor_vec4_t *ferVec4ArrNew(size_t num_vecs)
     return vs;
 }
 
-void ferVec4ArrDel(bor_vec4_t *v)
+void borVec4ArrDel(bor_vec4_t *v)
 {
     BOR_FREE(v);
 }

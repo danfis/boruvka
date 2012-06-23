@@ -48,15 +48,15 @@
 
 # define DBG_VEC3(vec, prefix) do {\
     fprintf(stderr, DBG_PROLOGUE "%s :: %s[" BOR_REAL_STR " " BOR_REAL_STR " " BOR_REAL_STR "]\n", \
-            __func__, prefix, ferVec3X(vec), \
-                              ferVec3Y(vec), \
-                              ferVec3Z(vec)); \
+            __func__, prefix, borVec3X(vec), \
+                              borVec3Y(vec), \
+                              borVec3Z(vec)); \
     fflush(stderr); \
     } while (0)
 
 # define DBGV3(vec) do { \
         fprintf(stderr, DBG_PROLOGUE "%s :: " #vec " = ", __func__); \
-        ferVec3Print((vec), stderr); \
+        borVec3Print((vec), stderr); \
         fprintf(stderr, "\n"); \
         fflush(stderr); \
     } while (0)

@@ -15,8 +15,8 @@ TEST(vecInit)
 {
     bor_vec_t *vec;
 
-    vec = ferVecNew(34);
-    ferVecDel(vec);
+    vec = borVecNew(34);
+    borVecDel(vec);
 }
 
 static void prVec(size_t len, const char *prefix, const bor_vec_t *v)
@@ -27,7 +27,7 @@ static void prVec(size_t len, const char *prefix, const bor_vec_t *v)
 
     fprintf(stdout, "[");
     for (i = 0; i < len; i++){
-        fprintf(stdout, " %g", ferVecGet(v, i));
+        fprintf(stdout, " %g", borVecGet(v, i));
     }
     fprintf(stdout, " ]\n");
 }
@@ -40,53 +40,53 @@ TEST(vecOperators)
 
     printf("---- vecOperators ---\n");
 
-    ferVecSetAll(6, v, 1.);
+    borVecSetAll(6, v, 1.);
     prVec(6, "v: ", v);
-    ferVecSetZero(6, v);
+    borVecSetZero(6, v);
     prVec(6, "v: ", v);
     printf("\n");
 
-    ferVecSet(v, 0, 1.);
-    ferVecSet(v, 1, 2.);
-    ferVecSet(v, 2, 1.4);
-    ferVecSet(v, 3, -.6);
-    ferVecSet(v, 4, 8.3);
-    ferVecSet(v, 5, 11.);
+    borVecSet(v, 0, 1.);
+    borVecSet(v, 1, 2.);
+    borVecSet(v, 2, 1.4);
+    borVecSet(v, 3, -.6);
+    borVecSet(v, 4, 8.3);
+    borVecSet(v, 5, 11.);
     prVec(6, "v: ", v);
-    assertTrue(ferEq(ferVecLen2(6, v), 197.21));
+    assertTrue(borEq(borVecLen2(6, v), 197.21));
 
-    ferVecSet(w, 0, 3.);
-    ferVecSet(w, 1, 1.);
-    ferVecSet(w, 2, 9.4);
-    ferVecSet(w, 3, -3.3);
-    ferVecSet(w, 4, 1.2);
-    ferVecSet(w, 5, 14.);
+    borVecSet(w, 0, 3.);
+    borVecSet(w, 1, 1.);
+    borVecSet(w, 2, 9.4);
+    borVecSet(w, 3, -3.3);
+    borVecSet(w, 4, 1.2);
+    borVecSet(w, 5, 14.);
     prVec(6, "w: ", w);
 
 
-    ferVecAdd2(6, u, v, w);
+    borVecAdd2(6, u, v, w);
     prVec(6, "u = v + w ", u);
-    ferVecAdd(6, u, v);
+    borVecAdd(6, u, v);
     prVec(6, "u += v    ", u);
-    ferVecSub2(6, u, v, w);
+    borVecSub2(6, u, v, w);
     prVec(6, "u = v - w ", u);
-    ferVecSub(6, u, v);
+    borVecSub(6, u, v);
     prVec(6, "u -= v    ", u);
-    ferVecAddConst2(6, u, v, 10.);
+    borVecAddConst2(6, u, v, 10.);
     prVec(6, "u = v + 10 ", u);
-    ferVecAddConst(6, u, 100.);
+    borVecAddConst(6, u, 100.);
     prVec(6, "u += 100   ", u);
-    ferVecSubConst2(6, u, v, 10.);
+    borVecSubConst2(6, u, v, 10.);
     prVec(6, "u = v - 10 ", u);
-    ferVecSubConst(6, u, 100.);
+    borVecSubConst(6, u, 100.);
     prVec(6, "u -= 100   ", u);
 
-    ferVecScale(6, u, 2.);
+    borVecScale(6, u, 2.);
     prVec(6, "u *= 2    ", u);
     printf("\n");
 
-    ferVecMulComp2(6, u, v, w);
+    borVecMulComp2(6, u, v, w);
     prVec(6, "u = v .* w ", u);
-    ferVecMulComp(6, u, w);
+    borVecMulComp(6, u, w);
     prVec(6, "u .*= w    ", u);
 }

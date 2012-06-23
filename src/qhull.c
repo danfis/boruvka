@@ -10,7 +10,7 @@
 #define BOR_QHULL_OUTPUT_LINE_MAX_LEN 1024
 
 /** Creates new qhull mesh3 */
-static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices);
+static bor_qhull_mesh3_t *borQHullMesh3New(size_t vertices);
 
 /** Deletes dymanically allocated vertices, edges and faces */
 static void mesh3DelVert(bor_mesh3_vertex_t *v, void *data);
@@ -24,23 +24,23 @@ static int writePC33(bor_pc_t *pc, int fd);
 static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd);
 
 
-void ferQHullMesh3Del(bor_qhull_mesh3_t *m)
+void borQHullMesh3Del(bor_qhull_mesh3_t *m)
 {
     if (m->mesh){
-        ferMesh3Del2(m->mesh, mesh3DelVert, NULL,
+        borMesh3Del2(m->mesh, mesh3DelVert, NULL,
                               mesh3DelEdge, NULL,
                               mesh3DelFace, NULL);
     }
 
     if (m->vecs){
-        ferVec3ArrDel(m->vecs);
+        borVec3ArrDel(m->vecs);
     }
     BOR_FREE(m);
 }
 
 
 
-bor_qdelaunay_t *ferQDelaunayNew(void)
+bor_qdelaunay_t *borQDelaunayNew(void)
 {
     bor_qdelaunay_t *q;
 
@@ -51,21 +51,21 @@ bor_qdelaunay_t *ferQDelaunayNew(void)
     return q;
 }
 
-void ferQDelaunayDel(bor_qdelaunay_t *q)
+void borQDelaunayDel(bor_qdelaunay_t *q)
 {
     if (q->bin_path)
         BOR_FREE(q->bin_path);
     BOR_FREE(q);
 }
 
-void ferQDelaunaySetPath(bor_qdelaunay_t *q, const char *path)
+void borQDelaunaySetPath(bor_qdelaunay_t *q, const char *path)
 {
     if (q->bin_path)
         BOR_FREE(q->bin_path);
     q->bin_path = strdup(path);
 }
 
-bor_qhull_mesh3_t *ferQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc)
+bor_qhull_mesh3_t *borQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc)
 {
     int pipe_points[2];
     int pipe_result[2];
@@ -143,15 +143,15 @@ bor_qhull_mesh3_t *ferQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc)
     return mesh;
 }
 
-static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
+static bor_qhull_mesh3_t *borQHullMesh3New(size_t vertices)
 {
     bor_qhull_mesh3_t *m;
 
     m = BOR_ALLOC(bor_qhull_mesh3_t);
 
-    m->mesh = ferMesh3New();
+    m->mesh = borMesh3New();
 
-    m->vecs = ferVec3ArrNew(vertices);
+    m->vecs = borVec3ArrNew(vertices);
     m->vecs_len = vertices;
 
     return m;
@@ -186,15 +186,15 @@ static int writePC33(bor_pc_t *pc, int fd)
     fprintf(fout, "3\n");
 
     // then write number of points
-    fprintf(fout, "%d\n", (int)ferPCLen(pc));
+    fprintf(fout, "%d\n", (int)borPCLen(pc));
 
     // and write all points
-    ferPCItInit(&pcit, (bor_pc_t *)pc);
-    while (!ferPCItEnd(&pcit)){
-        v = (bor_vec3_t *)ferPCItGet(&pcit);
-        fprintf(fout, "%g %g %g\n", ferVec3X(v), ferVec3Y(v), ferVec3Z(v));
+    borPCItInit(&pcit, (bor_pc_t *)pc);
+    while (!borPCItEnd(&pcit)){
+        v = (bor_vec3_t *)borPCItGet(&pcit);
+        fprintf(fout, "%g %g %g\n", borVec3X(v), borVec3Y(v), borVec3Z(v));
 
-        ferPCItNext(&pcit);
+        borPCItNext(&pcit);
     }
 
     fclose(fout);
@@ -234,8 +234,8 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
     }
 
     // alloc mesh
-    qmesh = ferQHullMesh3New(vertices);
-    mesh = ferQHullMesh3(qmesh);
+    qmesh = borQHullMesh3New(vertices);
+    mesh = borQHullMesh3(qmesh);
 
     // allocate index array for vertices
     verts = BOR_ALLOC_ARR(bor_mesh3_vertex_t *, vertices);
@@ -246,11 +246,11 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
             break;
         }
 
-        ferVec3Set(&qmesh->vecs[i], x, y, z);
+        borVec3Set(&qmesh->vecs[i], x, y, z);
 
         vert = BOR_ALLOC(bor_mesh3_vertex_t);
-        ferMesh3VertexSetCoords(vert, &qmesh->vecs[i]);
-        ferMesh3AddVertex(mesh, vert);
+        borMesh3VertexSetCoords(vert, &qmesh->vecs[i]);
+        borMesh3AddVertex(mesh, vert);
         verts[i] = vert;
 
         //fprintf(stdout, "[%d] %lg %lg %lg\n", i, x, y, z);
@@ -266,10 +266,10 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
         for (j = 0; j < 3; j++){
             for (k = j + 1; k < 4; k++){
                 // create new edge only if it is not already there
-                edge = ferMesh3VertexCommonEdge(verts[id[j]], verts[id[k]]);
+                edge = borMesh3VertexCommonEdge(verts[id[j]], verts[id[k]]);
                 if (!edge){
                     edge = BOR_ALLOC(bor_mesh3_edge_t);
-                    ferMesh3AddEdge(mesh, edge, verts[id[j]], verts[id[k]]);
+                    borMesh3AddEdge(mesh, edge, verts[id[j]], verts[id[k]]);
                 }
             }
         }

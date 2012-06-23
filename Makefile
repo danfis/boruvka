@@ -54,7 +54,7 @@ ifeq '$(USE_OPENCL)' 'yes'
 endif
 
 
-BIN_TARGETS = fer-qdelaunay
+BIN_TARGETS = bor-qdelaunay
 
 
 OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj))
@@ -74,7 +74,7 @@ libboruvka.a: $(OBJS)
 boruvka/config.h: boruvka/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
-bin/fer-%: bin/%-main.c libboruvka.a
+bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 bin/%.o: bin/%.c bin/%.h
 	$(CC) $(CFLAGS) -c -o $@ $<

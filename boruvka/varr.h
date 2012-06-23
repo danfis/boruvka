@@ -40,7 +40,7 @@ extern "C" {
     func_prefix ## name
 
 #define _BOR_VARR_DECL_INIT(type, sprefix, fprefix) \
-    _fer_inline void _BOR_VARR_FUNC(fprefix, Init) \
+    _bor_inline void _BOR_VARR_FUNC(fprefix, Init) \
                         (_BOR_VARR_STRUCT(sprefix) *arr, \
                          size_t init_size)
 
@@ -59,19 +59,19 @@ typedef struct _bor_varr_t bor_varr_t;
  * Initializes array, {init_size} is initial number of elements and
  * {elemsize} is size (in bytes) of a single element in array.
  */
-void ferVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize);
+void borVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize);
 
 /**
  * Free all allocated memory
  */
-void ferVArrDestroy(bor_varr_t *arr);
+void borVArrDestroy(bor_varr_t *arr);
 
 /**
  * Expands array, factor-times more memory will be allocated.
  * Note, that "realloc" is used, so the elements can change place in the
  * memory.
  */
-void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
+void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 
 
 /**
@@ -95,32 +95,32 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 /**
  * Define typed init (inline) function.
  * ~~~~
- * _fer_inline {type} {func_name}({struct_name} *arr, size_t init_size);
+ * _bor_inline {type} {func_name}({struct_name} *arr, size_t init_size);
  */
 #define BOR_VARR_INIT(struct_name, func_name) \
-    _fer_inline void func_name(struct_name *arr, size_t init_size) \
+    _bor_inline void func_name(struct_name *arr, size_t init_size) \
     { \
-        ferVArrInit((bor_varr_t *)arr, init_size, sizeof(*(arr)->arr)); \
+        borVArrInit((bor_varr_t *)arr, init_size, sizeof(*(arr)->arr)); \
     }
 
 /**
  * Define typed destroy (inline) function.
  * ~~~~
- * _fer_inline {type} {func_name}({struct_name} *arr);
+ * _bor_inline {type} {func_name}({struct_name} *arr);
  */
 #define BOR_VARR_DESTROY(struct_name, func_name) \
-    _fer_inline void func_name(struct_name *arr) \
+    _bor_inline void func_name(struct_name *arr) \
     { \
-        ferVArrDestroy((bor_varr_t *)arr); \
+        borVArrDestroy((bor_varr_t *)arr); \
     }
 
 /**
  * Define typed get (inline) function.
  * ~~~~
- * _fer_inline {type} {func_name}(const {struct_name} *arr, size_t i);
+ * _bor_inline {type} {func_name}(const {struct_name} *arr, size_t i);
  */
 #define BOR_VARR_GET(type, struct_name, func_name) \
-    _fer_inline type func_name(const struct_name *arr, size_t i) \
+    _bor_inline type func_name(const struct_name *arr, size_t i) \
     { \
         return arr->arr[i]; \
     }
@@ -128,10 +128,10 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 /**
  * Define typed set (inline) function.
  * ~~~~
- * _fer_inline void {func_name}({struct_name} *arr, size_t i, {type} val);
+ * _bor_inline void {func_name}({struct_name} *arr, size_t i, {type} val);
  */
 #define BOR_VARR_SET(type, struct_name, func_name) \
-    _fer_inline void func_name(const struct_name *arr, size_t i, type val) \
+    _bor_inline void func_name(const struct_name *arr, size_t i, type val) \
     { \
         arr->arr[i] = val; \
     }
@@ -141,13 +141,13 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * The element is added at the end of the array and index of the element in
  * array is returned.
  * ~~~~
- * _fer_inline siez_t {func_name}({struct_name} *arr, {type} val);
+ * _bor_inline siez_t {func_name}({struct_name} *arr, {type} val);
  */
 #define BOR_VARR_ADD(type, struct_name, func_name) \
-    _fer_inline size_t func_name(struct_name *arr, type val) \
+    _bor_inline size_t func_name(struct_name *arr, type val) \
     { \
         if (arr->len == arr->alloc) \
-            ferVArrExpand((bor_varr_t *)arr, 2, sizeof(type)); \
+            borVArrExpand((bor_varr_t *)arr, 2, sizeof(type)); \
         arr->arr[arr->len] = val; \
         return arr->len++; \
     }
@@ -158,10 +158,10 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * from array, so that last element is moved to this position and the array
  * is shrinked.
  * ~~~~
- * _fer_inline void {func_name}({struct_name) *arr, size_t i);
+ * _bor_inline void {func_name}({struct_name) *arr, size_t i);
  */
 #define BOR_VARR_REMOVE(struct_name, func_name) \
-    _fer_inline void func_name(struct_name *arr, size_t i) \
+    _bor_inline void func_name(struct_name *arr, size_t i) \
     { \
         arr->arr[i] = arr->arr[--arr->len]; \
     }

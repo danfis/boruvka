@@ -38,13 +38,13 @@ extern "C" {
 union _bor_vec4_t {
     __m128 v;
     float f[4];
-} fer_aligned(16) fer_packed;
+} bor_aligned(16) bor_packed;
 typedef union _bor_vec4_t bor_vec4_t;
 # else /* BOR_SSE_SINGLE */
 union _bor_vec4_t {
     __m128d v[2];
     double f[4];
-} fer_aligned(16) fer_packed;
+} bor_aligned(16) bor_packed;
 typedef union _bor_vec4_t bor_vec4_t;
 # endif /* BOR_SSE_SINGLE */
 #else /* BOR_SSE */
@@ -59,7 +59,7 @@ typedef struct _bor_vec4_t bor_vec4_t;
 /**
  * Holds origin (0,0,0,0) - this variable is meant to be read-only!
  */
-extern const bor_vec4_t *fer_vec4_origin;
+extern const bor_vec4_t *bor_vec4_origin;
 
 
 # define BOR_VEC4_STATIC(x, y, z, w) \
@@ -76,130 +76,130 @@ extern const bor_vec4_t *fer_vec4_origin;
 /**
  * Allocate and initialize new vector.
  */
-bor_vec4_t *ferVec4New(bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
+bor_vec4_t *borVec4New(bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
 
 /**
  * Delete vector.
  */
-void ferVec4Del(bor_vec4_t *);
+void borVec4Del(bor_vec4_t *);
 
 /**
  * Allocates array of vectors.
  * Use this function instead of classical malloc() due to alignement that
  * could be required if you use SSE version of library.
- * Use ferVec4ArrDel() to free allocated memory.
+ * Use borVec4ArrDel() to free allocated memory.
  */
-bor_vec4_t *ferVec4ArrNew(size_t num_vecs);
-void ferVec4ArrDel(bor_vec4_t *);
+bor_vec4_t *borVec4ArrNew(size_t num_vecs);
+void borVec4ArrDel(bor_vec4_t *);
 
 /**
  * Returns memory aligned to vector size.
  * This can be useful if you have somewhere allocated memory but you want
  * to use it for vectors and you use SSE version of library.
  */
-_fer_inline bor_vec4_t *ferVec4Align(void *mem);
+_bor_inline bor_vec4_t *borVec4Align(void *mem);
 
 /**
  * Clone given bor_vec4_t. This does deep copy.
  */
-_fer_inline bor_vec4_t *ferVec4Clone(const bor_vec4_t *v);
+_bor_inline bor_vec4_t *borVec4Clone(const bor_vec4_t *v);
 
 /**
  * v = w
  */
-_fer_inline void ferVec4Copy(bor_vec4_t *v, const bor_vec4_t *w);
+_bor_inline void borVec4Copy(bor_vec4_t *v, const bor_vec4_t *w);
 
 
-_fer_inline bor_real_t ferVec4X(const bor_vec4_t *v);
-_fer_inline bor_real_t ferVec4Y(const bor_vec4_t *v);
-_fer_inline bor_real_t ferVec4Z(const bor_vec4_t *v);
-_fer_inline bor_real_t ferVec4W(const bor_vec4_t *v);
-_fer_inline bor_real_t ferVec4Get(const bor_vec4_t *v, int d);
+_bor_inline bor_real_t borVec4X(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4Y(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4Z(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4W(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4Get(const bor_vec4_t *v, int d);
 
-_fer_inline void ferVec4SetX(bor_vec4_t *v, bor_real_t val);
-_fer_inline void ferVec4SetY(bor_vec4_t *v, bor_real_t val);
-_fer_inline void ferVec4SetZ(bor_vec4_t *v, bor_real_t val);
-_fer_inline void ferVec4SetW(bor_vec4_t *v, bor_real_t val);
-_fer_inline void ferVec4Set(bor_vec4_t *v, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
-_fer_inline void ferVec4SetCoord(bor_vec4_t *v, int d, bor_real_t val);
+_bor_inline void borVec4SetX(bor_vec4_t *v, bor_real_t val);
+_bor_inline void borVec4SetY(bor_vec4_t *v, bor_real_t val);
+_bor_inline void borVec4SetZ(bor_vec4_t *v, bor_real_t val);
+_bor_inline void borVec4SetW(bor_vec4_t *v, bor_real_t val);
+_bor_inline void borVec4Set(bor_vec4_t *v, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
+_bor_inline void borVec4SetCoord(bor_vec4_t *v, int d, bor_real_t val);
 
 
 /**
  * Returns true if a and b equal.
  */
-_fer_inline int ferVec4Eq(const bor_vec4_t *a, const bor_vec4_t *b);
-_fer_inline int ferVec4NEq(const bor_vec4_t *a, const bor_vec4_t *b);
-_fer_inline int ferVec4Eq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
-_fer_inline int ferVec4NEq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
-_fer_inline int ferVec4IsZero(const bor_vec4_t *a);
+_bor_inline int borVec4Eq(const bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline int borVec4NEq(const bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline int borVec4Eq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
+_bor_inline int borVec4NEq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w);
+_bor_inline int borVec4IsZero(const bor_vec4_t *a);
 
 
 /**
  * Returns squared length of vector.
  */
-_fer_inline bor_real_t ferVec4Len2(const bor_vec4_t *v);
-_fer_inline bor_real_t ferVec4Len(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4Len2(const bor_vec4_t *v);
+_bor_inline bor_real_t borVec4Len(const bor_vec4_t *v);
 
 /**
  * Returns squared distance between a and b.
  */
-_fer_inline bor_real_t ferVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b);
-_fer_inline bor_real_t ferVec4Dist(const bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline bor_real_t borVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline bor_real_t borVec4Dist(const bor_vec4_t *a, const bor_vec4_t *b);
 
 
 /**
  * Adds coordinates of vector w to vector v.
  * v = v + w
  */
-_fer_inline void ferVec4Add(bor_vec4_t *v, const bor_vec4_t *w);
+_bor_inline void borVec4Add(bor_vec4_t *v, const bor_vec4_t *w);
 
 /**
  * d = v + w
  */
-_fer_inline void ferVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w);
+_bor_inline void borVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w);
 
 
 /**
  * Substracts coordinates of vector w from vector v.
  * v = v - w
  */
-_fer_inline void ferVec4Sub(bor_vec4_t *v, const bor_vec4_t *w);
+_bor_inline void borVec4Sub(bor_vec4_t *v, const bor_vec4_t *w);
 
 /**
  * d = v - w
  */
-_fer_inline void ferVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w);
+_bor_inline void borVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w);
 
-_fer_inline void ferVec4AddConst(bor_vec4_t *v, bor_real_t f);
-_fer_inline void ferVec4AddConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f);
-_fer_inline void ferVec4SubConst(bor_vec4_t *v, bor_real_t f);
-_fer_inline void ferVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f);
+_bor_inline void borVec4AddConst(bor_vec4_t *v, bor_real_t f);
+_bor_inline void borVec4AddConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f);
+_bor_inline void borVec4SubConst(bor_vec4_t *v, bor_real_t f);
+_bor_inline void borVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f);
 
 /**
  * d = d * k;
  */
-_fer_inline void ferVec4Scale(bor_vec4_t *d, bor_real_t k);
+_bor_inline void borVec4Scale(bor_vec4_t *d, bor_real_t k);
 
 /**
  * d = v * k;
  */
-_fer_inline void ferVec4Scale2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t k);
+_bor_inline void borVec4Scale2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t k);
 
 /**
  * Scales vector v to given length.
  */
-_fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len);
+_bor_inline void borVec4ScaleToLen(bor_vec4_t *v, bor_real_t len);
 
 /**
  * Normalizes given vector to unit length.
  */
-_fer_inline void ferVec4Normalize(bor_vec4_t *d);
+_bor_inline void borVec4Normalize(bor_vec4_t *d);
 
 
 /**
  * Dot product of two vectors.
  */
-_fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline bor_real_t borVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b);
 
 /**
  * Multiplies vectors component wise:
@@ -208,7 +208,7 @@ _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b);
  * a.z = a.z * b.z
  * a.w = a.w * b.w
  */
-_fer_inline void ferVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b);
+_bor_inline void borVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b);
 
 /**
  * a.x = b.x * c.x
@@ -216,148 +216,148 @@ _fer_inline void ferVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b);
  * a.z = b.z * c.z
  * a.w = b.w * c.w
  */
-_fer_inline void ferVec4MulComp2(bor_vec4_t *a, const bor_vec4_t *b, const bor_vec4_t *c);
+_bor_inline void borVec4MulComp2(bor_vec4_t *a, const bor_vec4_t *b, const bor_vec4_t *c);
 
 
 /**
  * Prints vector to *out* in form "x y z w".
  */
-_fer_inline void ferVec4Print(const bor_vec4_t *v, FILE *out);
+_bor_inline void borVec4Print(const bor_vec4_t *v, FILE *out);
 
 
 
 /**** INLINES ****/
-_fer_inline bor_vec4_t *ferVec4Align(void *mem)
+_bor_inline bor_vec4_t *borVec4Align(void *mem)
 {
 #ifdef BOR_SSE
-    return (bor_vec4_t *)ferAlign(mem, 16);
+    return (bor_vec4_t *)borAlign(mem, 16);
 #else /* BOR_SSE */
     return (bor_vec4_t *)mem;
 #endif /* BOR_SSE */
 }
 
-_fer_inline bor_vec4_t *ferVec4Clone(const bor_vec4_t *v)
+_bor_inline bor_vec4_t *borVec4Clone(const bor_vec4_t *v)
 {
-    return ferVec4New(ferVec4X(v), ferVec4Y(v), ferVec4Z(v), ferVec4W(v));
+    return borVec4New(borVec4X(v), borVec4Y(v), borVec4Z(v), borVec4W(v));
 }
 
-_fer_inline bor_real_t ferVec4Get(const bor_vec4_t *v, int d)
+_bor_inline bor_real_t borVec4Get(const bor_vec4_t *v, int d)
 {
     return v->f[d];
 }
 
-_fer_inline bor_real_t ferVec4X(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4X(const bor_vec4_t *v)
 {
     return v->f[0];
 }
 
-_fer_inline bor_real_t ferVec4Y(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4Y(const bor_vec4_t *v)
 {
     return v->f[1];
 }
 
-_fer_inline bor_real_t ferVec4Z(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4Z(const bor_vec4_t *v)
 {
     return v->f[2];
 }
 
-_fer_inline bor_real_t ferVec4W(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4W(const bor_vec4_t *v)
 {
     return v->f[3];
 }
 
-_fer_inline int ferVec4Eq(const bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline int borVec4Eq(const bor_vec4_t *a, const bor_vec4_t *b)
 {
-    return ferEq(ferVec4X(a), ferVec4X(b))
-            && ferEq(ferVec4Y(a), ferVec4Y(b))
-            && ferEq(ferVec4Z(a), ferVec4Z(b))
-            && ferEq(ferVec4W(a), ferVec4W(b));
+    return borEq(borVec4X(a), borVec4X(b))
+            && borEq(borVec4Y(a), borVec4Y(b))
+            && borEq(borVec4Z(a), borVec4Z(b))
+            && borEq(borVec4W(a), borVec4W(b));
 }
 
-_fer_inline int ferVec4NEq(const bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline int borVec4NEq(const bor_vec4_t *a, const bor_vec4_t *b)
 {
-    return !ferVec4Eq(a, b);
+    return !borVec4Eq(a, b);
 }
 
-_fer_inline int ferVec4Eq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
+_bor_inline int borVec4Eq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
 {
-    return ferEq(ferVec4X(a), x)
-            && ferEq(ferVec4Y(a), y)
-            && ferEq(ferVec4Z(a), z)
-            && ferEq(ferVec4W(a), w);
+    return borEq(borVec4X(a), x)
+            && borEq(borVec4Y(a), y)
+            && borEq(borVec4Z(a), z)
+            && borEq(borVec4W(a), w);
 }
 
-_fer_inline int ferVec4NEq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
+_bor_inline int borVec4NEq2(const bor_vec4_t *a, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
 {
-    return !ferVec4Eq2(a, x, y, z, w);
+    return !borVec4Eq2(a, x, y, z, w);
 }
 
-_fer_inline int ferVec4IsZero(const bor_vec4_t *a)
+_bor_inline int borVec4IsZero(const bor_vec4_t *a)
 {
-    return ferIsZero(ferVec4X(a))
-            && ferIsZero(ferVec4Y(a))
-            && ferIsZero(ferVec4Z(a))
-            && ferIsZero(ferVec4W(a));
+    return borIsZero(borVec4X(a))
+            && borIsZero(borVec4Y(a))
+            && borIsZero(borVec4Z(a))
+            && borIsZero(borVec4W(a));
 }
 
-_fer_inline bor_real_t ferVec4Len2(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4Len2(const bor_vec4_t *v)
 {
-    return ferVec4Dot(v, v);
+    return borVec4Dot(v, v);
 }
-_fer_inline bor_real_t ferVec4Len(const bor_vec4_t *v)
+_bor_inline bor_real_t borVec4Len(const bor_vec4_t *v)
 {
-    return BOR_SQRT(ferVec4Len2(v));
+    return BOR_SQRT(borVec4Len2(v));
 }
 
-_fer_inline bor_real_t ferVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline bor_real_t borVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b)
 {
     bor_vec4_t ab;
-    ferVec4Sub2(&ab, a, b);
-    return ferVec4Len2(&ab);
+    borVec4Sub2(&ab, a, b);
+    return borVec4Len2(&ab);
 }
-_fer_inline bor_real_t ferVec4Dist(const bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline bor_real_t borVec4Dist(const bor_vec4_t *a, const bor_vec4_t *b)
 {
-    return BOR_SQRT(ferVec4Dist2(a, b));
+    return BOR_SQRT(borVec4Dist2(a, b));
 }
 
-_fer_inline void ferVec4Set(bor_vec4_t *v, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
+_bor_inline void borVec4Set(bor_vec4_t *v, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
 {
     v->f[0] = x;
     v->f[1] = y;
     v->f[2] = z;
     v->f[3] = w;
 }
-_fer_inline void ferVec4SetCoord(bor_vec4_t *v, int d, bor_real_t val)
+_bor_inline void borVec4SetCoord(bor_vec4_t *v, int d, bor_real_t val)
 {
     v->f[d] = val;
 }
 
-_fer_inline void ferVec4SetX(bor_vec4_t *v, bor_real_t val)
+_bor_inline void borVec4SetX(bor_vec4_t *v, bor_real_t val)
 {
     v->f[0] = val;
 }
 
-_fer_inline void ferVec4SetY(bor_vec4_t *v, bor_real_t val)
+_bor_inline void borVec4SetY(bor_vec4_t *v, bor_real_t val)
 {
     v->f[1] = val;
 }
 
-_fer_inline void ferVec4SetZ(bor_vec4_t *v, bor_real_t val)
+_bor_inline void borVec4SetZ(bor_vec4_t *v, bor_real_t val)
 {
     v->f[2] = val;
 }
 
-_fer_inline void ferVec4SetW(bor_vec4_t *v, bor_real_t val)
+_bor_inline void borVec4SetW(bor_vec4_t *v, bor_real_t val)
 {
     v->f[3] = val;
 }
 
-_fer_inline void ferVec4Copy(bor_vec4_t *v, const bor_vec4_t *w)
+_bor_inline void borVec4Copy(bor_vec4_t *v, const bor_vec4_t *w)
 {
     *v = *w;
 }
 
-_fer_inline void ferVec4Add(bor_vec4_t *v, const bor_vec4_t *w)
+_bor_inline void borVec4Add(bor_vec4_t *v, const bor_vec4_t *w)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -374,7 +374,7 @@ _fer_inline void ferVec4Add(bor_vec4_t *v, const bor_vec4_t *w)
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
+_bor_inline void borVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -391,7 +391,7 @@ _fer_inline void ferVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4Sub(bor_vec4_t *v, const bor_vec4_t *w)
+_bor_inline void borVec4Sub(bor_vec4_t *v, const bor_vec4_t *w)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -407,7 +407,7 @@ _fer_inline void ferVec4Sub(bor_vec4_t *v, const bor_vec4_t *w)
     v->f[3] -= w->f[3];
 #endif /* BOR_SSE */
 }
-_fer_inline void ferVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
+_bor_inline void borVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -424,7 +424,7 @@ _fer_inline void ferVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4AddConst(bor_vec4_t *v, bor_real_t f)
+_bor_inline void borVec4AddConst(bor_vec4_t *v, bor_real_t f)
 {
     v->f[0] += f;
     v->f[1] += f;
@@ -432,7 +432,7 @@ _fer_inline void ferVec4AddConst(bor_vec4_t *v, bor_real_t f)
     v->f[3] += f;
 }
 
-_fer_inline void ferVec4AddConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f)
+_bor_inline void borVec4AddConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f)
 {
     d->f[0] = v->f[0] + f;
     d->f[1] = v->f[1] + f;
@@ -440,7 +440,7 @@ _fer_inline void ferVec4AddConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t
     d->f[3] = v->f[3] + f;
 }
 
-_fer_inline void ferVec4SubConst(bor_vec4_t *v, bor_real_t f)
+_bor_inline void borVec4SubConst(bor_vec4_t *v, bor_real_t f)
 {
     v->f[0] -= f;
     v->f[1] -= f;
@@ -448,7 +448,7 @@ _fer_inline void ferVec4SubConst(bor_vec4_t *v, bor_real_t f)
     v->f[3] -= f;
 }
 
-_fer_inline void ferVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f)
+_bor_inline void borVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t f)
 {
     d->f[0] = v->f[0] - f;
     d->f[1] = v->f[1] - f;
@@ -457,7 +457,7 @@ _fer_inline void ferVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t
 }
 
 
-_fer_inline void ferVec4Scale(bor_vec4_t *d, bor_real_t _k)
+_bor_inline void borVec4Scale(bor_vec4_t *d, bor_real_t _k)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -478,7 +478,7 @@ _fer_inline void ferVec4Scale(bor_vec4_t *d, bor_real_t _k)
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4Scale2(bor_vec4_t *d, const bor_vec4_t *a, bor_real_t _k)
+_bor_inline void borVec4Scale2(bor_vec4_t *d, const bor_vec4_t *a, bor_real_t _k)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -499,13 +499,13 @@ _fer_inline void ferVec4Scale2(bor_vec4_t *d, const bor_vec4_t *a, bor_real_t _k
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
+_bor_inline void borVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
     bor_vec4_t k, l;
 
-    k.v = _mm_set1_ps(ferVec4Len2(v));
+    k.v = _mm_set1_ps(borVec4Len2(v));
     k.v = _mm_sqrt_ps(k.v);
     l.v = _mm_set1_ps(len);
     k.v = _mm_div_ps(k.v, l.v);
@@ -513,7 +513,7 @@ _fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
 # else /* BOR_SSE_SINGLE */
     __m128d k, l;
 
-    k = _mm_set1_pd(ferVec4Len2(v));
+    k = _mm_set1_pd(borVec4Len2(v));
     k = _mm_sqrt_pd(k);
     l = _mm_set1_pd(len);
     k = _mm_div_pd(k, l);
@@ -521,35 +521,35 @@ _fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
     v->v[1] = _mm_div_pd(v->v[1], k);
 # endif /* BOR_SSE_SINGLE */
 #else /* BOR_SSE */
-    bor_real_t k = len * ferRsqrt(ferVec4Len2(v));
-    ferVec4Scale(v, k);
+    bor_real_t k = len * borRsqrt(borVec4Len2(v));
+    borVec4Scale(v, k);
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4Normalize(bor_vec4_t *d)
+_bor_inline void borVec4Normalize(bor_vec4_t *d)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
     bor_vec4_t k;
 
-    k.v = _mm_set1_ps(ferVec4Len2(d));
+    k.v = _mm_set1_ps(borVec4Len2(d));
     k.v = _mm_sqrt_ps(k.v);
     d->v = _mm_div_ps(d->v, k.v);
 # else /* BOR_SSE_SINGLE */
     __m128d k;
 
-    k = _mm_set1_pd(ferVec4Len2(d));
+    k = _mm_set1_pd(borVec4Len2(d));
     k = _mm_sqrt_pd(k);
     d->v[0] = _mm_div_pd(d->v[0], k);
     d->v[1] = _mm_div_pd(d->v[1], k);
 # endif /* BOR_SSE_SINGLE */
 #else /* BOR_SSE */
-    bor_real_t k = ferRsqrt(ferVec4Len2(d));
-    ferVec4Scale(d, k);
+    bor_real_t k = borRsqrt(borVec4Len2(d));
+    borVec4Scale(d, k);
 #endif /* BOR_SSE */
 }
 
-_fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline bor_real_t borVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -585,7 +585,7 @@ _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b)
+_bor_inline void borVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b)
 {
 #ifdef BOR_SSE
 # ifdef BOR_SSE_SINGLE
@@ -602,18 +602,18 @@ _fer_inline void ferVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b)
 #endif /* BOR_SSE */
 }
 
-_fer_inline void ferVec4MulComp2(bor_vec4_t *a, const bor_vec4_t *b, const bor_vec4_t *c)
+_bor_inline void borVec4MulComp2(bor_vec4_t *a, const bor_vec4_t *b, const bor_vec4_t *c)
 {
-    ferVec4Copy(a, b);
-    ferVec4MulComp(a, c);
+    borVec4Copy(a, b);
+    borVec4MulComp(a, c);
 }
 
 
-_fer_inline void ferVec4Print(const bor_vec4_t *v, FILE *out)
+_bor_inline void borVec4Print(const bor_vec4_t *v, FILE *out)
 {
     fprintf(out, "%g %g %g %g",
-            (double)ferVec4X(v), (double)ferVec4Y(v),
-            (double)ferVec4Z(v), (double)ferVec4W(v));
+            (double)borVec4X(v), (double)borVec4Y(v),
+            (double)borVec4Z(v), (double)borVec4W(v));
 }
 
 #ifdef __cplusplus

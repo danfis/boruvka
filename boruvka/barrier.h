@@ -40,17 +40,17 @@ typedef struct _bor_barrier_t bor_barrier_t;
 /**
  * Creates new barrier
  */
-bor_barrier_t *ferBarrierNew(uint16_t goal);
+bor_barrier_t *borBarrierNew(uint16_t goal);
 
 /**
  * Deletes barrier
  */
-void ferBarrierDel(bor_barrier_t *b);
+void borBarrierDel(bor_barrier_t *b);
 
 /**
  * Block on barrier
  */
-void ferBarrier(bor_barrier_t *b);
+void borBarrier(bor_barrier_t *b);
 
 #ifdef __cplusplus
 } /* extern "C" */
