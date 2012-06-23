@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <boruvka/alloc.h>
 
-#ifdef FER_MEMCHECK
+#ifdef BOR_MEMCHECK
 #include <boruvka/list.h>
 
 /** currently allocated memory */
@@ -46,16 +46,16 @@ void ferFreeCheck(void *_ptr)
     cur_alloc -= ((info_t *)ptr)->size;
     free(ptr);
 }
-#endif /* FER_MEMCHECK */
+#endif /* BOR_MEMCHECK */
 
 
 void *ferRealloc(void *ptr, size_t size)
 {
     void *ret;
    
-#ifndef FER_MEMCHECK
+#ifndef BOR_MEMCHECK
     ret = realloc(ptr, size);
-#else /* FER_MEMCHECK */
+#else /* BOR_MEMCHECK */
     ret = realloc(ptr, size + sizeof(info_t));
     if (ret){
         ((info_t *)ret)->size = size;
@@ -65,7 +65,7 @@ void *ferRealloc(void *ptr, size_t size)
         if (cur_alloc > max_alloc)
             max_alloc = cur_alloc;
     }
-#endif /* FER_MEMCHECK */
+#endif /* BOR_MEMCHECK */
 
     if (ret == NULL && size != 0){
         fprintf(stderr, "Fatal error: Allocation of memory failed!\n");
@@ -73,12 +73,12 @@ void *ferRealloc(void *ptr, size_t size)
         exit(-1);
     }
 
-#ifdef FER_MEMCHECK
+#ifdef BOR_MEMCHECK
     if (!reg_at_exit){
         atexit(stats);
         reg_at_exit = 1;
     }
-#endif /* FER_MEMCHECK */
+#endif /* BOR_MEMCHECK */
 
     return ret;
 }

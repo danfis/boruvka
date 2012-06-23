@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VEC4_H__
-#define __FER_VEC4_H__
+#ifndef __BOR_VEC4_H__
+#define __BOR_VEC4_H__
 
 #include <stdio.h>
 #include <boruvka/core.h>
@@ -33,26 +33,26 @@ extern "C" {
  */
 
 /** vvvvv */
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
 union _bor_vec4_t {
     __m128 v;
     float f[4];
 } fer_aligned(16) fer_packed;
 typedef union _bor_vec4_t bor_vec4_t;
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
 union _bor_vec4_t {
     __m128d v[2];
     double f[4];
 } fer_aligned(16) fer_packed;
 typedef union _bor_vec4_t bor_vec4_t;
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
 struct _bor_vec4_t {
     bor_real_t f[4];
 };
 typedef struct _bor_vec4_t bor_vec4_t;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 /** ^^^^^ */
 
 
@@ -62,11 +62,11 @@ typedef struct _bor_vec4_t bor_vec4_t;
 extern const bor_vec4_t *fer_vec4_origin;
 
 
-# define FER_VEC4_STATIC(x, y, z, w) \
+# define BOR_VEC4_STATIC(x, y, z, w) \
     { .f = { (x), (y), (z), (w) } }
 
-#define FER_VEC4(name, x, y, z, w) \
-    bor_vec4_t name = FER_VEC4_STATIC((x), (y), (z), (w))
+#define BOR_VEC4(name, x, y, z, w) \
+    bor_vec4_t name = BOR_VEC4_STATIC((x), (y), (z), (w))
 
 /**
  * Functions
@@ -229,11 +229,11 @@ _fer_inline void ferVec4Print(const bor_vec4_t *v, FILE *out);
 /**** INLINES ****/
 _fer_inline bor_vec4_t *ferVec4Align(void *mem)
 {
-#ifdef FER_SSE
+#ifdef BOR_SSE
     return (bor_vec4_t *)ferAlign(mem, 16);
-#else /* FER_SSE */
+#else /* BOR_SSE */
     return (bor_vec4_t *)mem;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline bor_vec4_t *ferVec4Clone(const bor_vec4_t *v)
@@ -306,7 +306,7 @@ _fer_inline bor_real_t ferVec4Len2(const bor_vec4_t *v)
 }
 _fer_inline bor_real_t ferVec4Len(const bor_vec4_t *v)
 {
-    return FER_SQRT(ferVec4Len2(v));
+    return BOR_SQRT(ferVec4Len2(v));
 }
 
 _fer_inline bor_real_t ferVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b)
@@ -317,7 +317,7 @@ _fer_inline bor_real_t ferVec4Dist2(const bor_vec4_t *a, const bor_vec4_t *b)
 }
 _fer_inline bor_real_t ferVec4Dist(const bor_vec4_t *a, const bor_vec4_t *b)
 {
-    return FER_SQRT(ferVec4Dist2(a, b));
+    return BOR_SQRT(ferVec4Dist2(a, b));
 }
 
 _fer_inline void ferVec4Set(bor_vec4_t *v, bor_real_t x, bor_real_t y, bor_real_t z, bor_real_t w)
@@ -359,69 +359,69 @@ _fer_inline void ferVec4Copy(bor_vec4_t *v, const bor_vec4_t *w)
 
 _fer_inline void ferVec4Add(bor_vec4_t *v, const bor_vec4_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     v->v = _mm_add_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     v->v[0] = _mm_add_pd(v->v[0], w->v[0]);
     v->v[1] = _mm_add_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     v->f[0] += w->f[0];
     v->f[1] += w->f[1];
     v->f[2] += w->f[2];
     v->f[3] += w->f[3];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4Add2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     d->v = _mm_add_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     d->v[0] = _mm_add_pd(v->v[0], w->v[0]);
     d->v[1] = _mm_add_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = v->f[0] + w->f[0];
     d->f[1] = v->f[1] + w->f[1];
     d->f[2] = v->f[2] + w->f[2];
     d->f[3] = v->f[3] + w->f[3];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4Sub(bor_vec4_t *v, const bor_vec4_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     v->v = _mm_sub_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     v->v[0] = _mm_sub_pd(v->v[0], w->v[0]);
     v->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     v->f[0] -= w->f[0];
     v->f[1] -= w->f[1];
     v->f[2] -= w->f[2];
     v->f[3] -= w->f[3];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 _fer_inline void ferVec4Sub2(bor_vec4_t *d, const bor_vec4_t *v, const bor_vec4_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     d->v = _mm_sub_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     d->v[0] = _mm_sub_pd(v->v[0], w->v[0]);
     d->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = v->f[0] - w->f[0];
     d->f[1] = v->f[1] - w->f[1];
     d->f[2] = v->f[2] - w->f[2];
     d->f[3] = v->f[3] - w->f[3];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4AddConst(bor_vec4_t *v, bor_real_t f)
@@ -459,50 +459,50 @@ _fer_inline void ferVec4SubConst2(bor_vec4_t *d, const bor_vec4_t *v, bor_real_t
 
 _fer_inline void ferVec4Scale(bor_vec4_t *d, bor_real_t _k)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec4_t k;
     k.v = _mm_set1_ps(_k);
     d->v = _mm_mul_ps(d->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
     k = _mm_set1_pd(_k);
     d->v[0] = _mm_mul_pd(d->v[0], k);
     d->v[1] = _mm_mul_pd(d->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] *= _k;
     d->f[1] *= _k;
     d->f[2] *= _k;
     d->f[3] *= _k;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4Scale2(bor_vec4_t *d, const bor_vec4_t *a, bor_real_t _k)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec4_t k;
     k.v = _mm_set1_ps(_k);
     d->v = _mm_mul_ps(a->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
     k = _mm_set1_pd(_k);
     d->v[0] = _mm_mul_pd(a->v[0], k);
     d->v[1] = _mm_mul_pd(a->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = a->f[0] * _k;
     d->f[1] = a->f[1] * _k;
     d->f[2] = a->f[2] * _k;
     d->f[3] = a->f[3] * _k;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec4_t k, l;
 
     k.v = _mm_set1_ps(ferVec4Len2(v));
@@ -510,7 +510,7 @@ _fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
     l.v = _mm_set1_ps(len);
     k.v = _mm_div_ps(k.v, l.v);
     v->v = _mm_div_ps(v->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k, l;
 
     k = _mm_set1_pd(ferVec4Len2(v));
@@ -519,40 +519,40 @@ _fer_inline void ferVec4ScaleToLen(bor_vec4_t *v, bor_real_t len)
     k = _mm_div_pd(k, l);
     v->v[0] = _mm_div_pd(v->v[0], k);
     v->v[1] = _mm_div_pd(v->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t k = len * ferRsqrt(ferVec4Len2(v));
     ferVec4Scale(v, k);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4Normalize(bor_vec4_t *d)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec4_t k;
 
     k.v = _mm_set1_ps(ferVec4Len2(d));
     k.v = _mm_sqrt_ps(k.v);
     d->v = _mm_div_ps(d->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
 
     k = _mm_set1_pd(ferVec4Len2(d));
     k = _mm_sqrt_pd(k);
     d->v[0] = _mm_div_pd(d->v[0], k);
     d->v[1] = _mm_div_pd(d->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t k = ferRsqrt(ferVec4Len2(d));
     ferVec4Scale(d, k);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec4_t dot, t;
 
     dot.v = _mm_mul_ps(a->v, b->v);
@@ -562,7 +562,7 @@ _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
     dot.v = _mm_add_ps(dot.v, t.v);
 
     return dot.f[0];
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     bor_vec4_t dot;
 
     dot.v[0] = _mm_mul_pd(a->v[0], b->v[0]);
@@ -572,8 +572,8 @@ _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
     dot.v[0] = _mm_add_pd(dot.v[0], dot.v[1]);
 
     return dot.f[0];
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t dot;
 
     dot  = a->f[0] * b->f[0];
@@ -582,24 +582,24 @@ _fer_inline bor_real_t ferVec4Dot(const bor_vec4_t *a, const bor_vec4_t *b)
     dot += a->f[3] * b->f[3];
 
     return dot;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4MulComp(bor_vec4_t *a, const bor_vec4_t *b)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     a->v = _mm_mul_ps(a->v, b->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     a->v[0] = _mm_mul_pd(a->v[0], b->v[0]);
     a->v[1] = _mm_mul_pd(a->v[1], b->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     a->f[0] *= b->f[0];
     a->f[1] *= b->f[1];
     a->f[2] *= b->f[2];
     a->f[3] *= b->f[3];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec4MulComp2(bor_vec4_t *a, const bor_vec4_t *b, const bor_vec4_t *c)
@@ -620,4 +620,4 @@ _fer_inline void ferVec4Print(const bor_vec4_t *v, FILE *out)
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_VEC4_H__ */
+#endif /* __BOR_VEC4_H__ */

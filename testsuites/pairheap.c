@@ -21,7 +21,7 @@ static el_t *randomEls(size_t num)
 
     ferRandInit(&r);
 
-    els = FER_ALLOC_ARR(el_t, num);
+    els = BOR_ALLOC_ARR(el_t, num);
     for (i = 0; i < num; i++){
         val = ferRand(&r, -500., 500.);
         els[i].val = val;
@@ -71,7 +71,7 @@ static void checkCorrect(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
@@ -124,7 +124,7 @@ static void checkCorrect2(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){
@@ -181,7 +181,7 @@ static void checkCorrect3(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     heap = ferPairHeapNew(ltEl, NULL);
     for (i = 0; i < num; i++){

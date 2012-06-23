@@ -59,11 +59,11 @@ int ferOptsAdd(const char *long_name, char short_name,
         return -1;
 
     opts_len += 1;
-    opts = FER_REALLOC_ARR(opts, bor_opt_t *, opts_len);
+    opts = BOR_REALLOC_ARR(opts, bor_opt_t *, opts_len);
 
 
     i = opts_len - 1;
-    opts[i] = FER_ALLOC(bor_opt_t);
+    opts[i] = BOR_ALLOC(bor_opt_t);
     opts[i]->long_name  = long_name;
     opts[i]->short_name = short_name;
     opts[i]->type       = type;
@@ -71,7 +71,7 @@ int ferOptsAdd(const char *long_name, char short_name,
     opts[i]->callback   = callback;
     opts[i]->desc       = NULL;
 
-    if (opts[i]->type == FER_OPTS_NONE && opts[i]->set)
+    if (opts[i]->type == BOR_OPTS_NONE && opts[i]->set)
         *(int *)opts[i]->set = 0;
 
     return i;
@@ -91,7 +91,7 @@ int ferOptsAddDesc(const char *long_name, char short_name,
     opt = opts[id];
     if (desc){
         desclen = strlen(desc);
-        opt->desc = FER_ALLOC_ARR(char, desclen + 1);
+        opt->desc = BOR_ALLOC_ARR(char, desclen + 1);
         strcpy(opt->desc, desc);
     }
 
@@ -104,10 +104,10 @@ void ferOptsClear(void)
 
     for (i = 0; i < opts_len; i++){
         if (opts[i]->desc)
-            FER_FREE(opts[i]->desc);
-        FER_FREE(opts[i]);
+            BOR_FREE(opts[i]->desc);
+        BOR_FREE(opts[i]);
     }
-    FER_FREE(opts);
+    BOR_FREE(opts);
     opts = NULL;
     opts_len = 0;
 }
@@ -128,7 +128,7 @@ int ferOpts(int *argc, char **argv)
 
         if (opt){
             // found corresponding option
-            if (opt->type == FER_OPTS_NONE){
+            if (opt->type == BOR_OPTS_NONE){
                 // option has no argument
                 optNoArg(opt);
             }else{
@@ -169,7 +169,7 @@ static bor_opt_t *findOpt(char *_arg)
                 opt = findOptShort(*arg);
                 if (arg[1] == 0x0){
                     return opt;
-                }else if (opt->type == FER_OPTS_NONE){
+                }else if (opt->type == BOR_OPTS_NONE){
                     optNoArg(opt);
                 }else{
                     fprintf(stderr, "Invalid option %s.\n", _arg);
@@ -358,17 +358,17 @@ static int optArgStr(bor_opt_t *opt, const char *arg)
 static int optArg(bor_opt_t *opt, const char *arg)
 {
     switch(opt->type){
-        case FER_OPTS_LONG:
+        case BOR_OPTS_LONG:
             return optArgLong(opt, arg);
-        case FER_OPTS_INT:
+        case BOR_OPTS_INT:
             return optArgInt(opt, arg);
-        case FER_OPTS_REAL:
+        case BOR_OPTS_REAL:
             return optArgReal(opt, arg);
-        case FER_OPTS_STR:
+        case BOR_OPTS_STR:
             return optArgStr(opt, arg);
-        case FER_OPTS_SIZE_T:
+        case BOR_OPTS_SIZE_T:
             return optArgSizeT(opt, arg);
-        case FER_OPTS_V2:
+        case BOR_OPTS_V2:
             return optArgV2(opt, arg);
         default:
             return -1;
@@ -435,25 +435,25 @@ static void printName(bor_opt_t *opt, size_t len, FILE *out)
 static void printType(bor_opt_t *opt, FILE *out)
 {
     switch(opt->type){
-        case FER_OPTS_NONE:
+        case BOR_OPTS_NONE:
             fprintf(out, "    ");
             break;
-        case FER_OPTS_LONG:
+        case BOR_OPTS_LONG:
             fprintf(out, "long");
             break;
-        case FER_OPTS_INT:
+        case BOR_OPTS_INT:
             fprintf(out, "int ");
             break;
-        case FER_OPTS_REAL:
+        case BOR_OPTS_REAL:
             fprintf(out, "flt ");
             break;
-        case FER_OPTS_STR:
+        case BOR_OPTS_STR:
             fprintf(out, "str ");
             break;
-        case FER_OPTS_SIZE_T:
+        case BOR_OPTS_SIZE_T:
             fprintf(out, "uint");
             break;
-        case FER_OPTS_V2:
+        case BOR_OPTS_V2:
             fprintf(out, "vec2");
             break;
     }

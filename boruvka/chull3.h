@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_CHULL3_H__
-#define __FER_CHULL3_H__
+#ifndef __BOR_CHULL3_H__
+#define __BOR_CHULL3_H__
 
 #include <boruvka/mesh3.h>
 #include <boruvka/list.h>
@@ -82,7 +82,7 @@ _fer_inline size_t ferCHull3NumPoints(const bor_chull3_t *h)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_CHULL_H__ */
+#endif /* __BOR_CHULL_H__ */
 
 
 

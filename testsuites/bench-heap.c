@@ -20,7 +20,7 @@ static el_t *randomEls(size_t num)
 
     ferRandInit(&r);
 
-    els = FER_ALLOC_ARR(el_t, num);
+    els = BOR_ALLOC_ARR(el_t, num);
     for (i = 0; i < num; i++){
         val = ferRand(&r, -50., 50.);
         els[i].val = val;

@@ -198,8 +198,8 @@ TEST(mat3Tr)
     ferVec2Set(&v, 1., 1.);
     ferMat3SetRot(&tr, M_PI_4);
     ferMat3MulVec2(&w, &tr, &v);
-    assertTrue(ferEq(ferVec2X(&w), FER_ZERO));
-    assertTrue(ferEq(ferVec2Y(&w), FER_SQRT(2.)));
+    assertTrue(ferEq(ferVec2X(&w), BOR_ZERO));
+    assertTrue(ferEq(ferVec2Y(&w), BOR_SQRT(2.)));
 
 
     // ------
@@ -216,8 +216,8 @@ TEST(mat3Tr)
     ferVec2Set(&v, .5, .3);
     ferMat3Rot(&tr, M_PI_4);
     ferMat3MulVec2(&w, &tr, &v);
-    assertTrue(ferEq(ferVec2X(&w), FER_ZERO));
-    assertTrue(ferEq(ferVec2Y(&w), 2. * FER_SQRT(2.)));
+    assertTrue(ferEq(ferVec2X(&w), BOR_ZERO));
+    assertTrue(ferEq(ferVec2Y(&w), 2. * BOR_SQRT(2.)));
 
 
     ferVec2Set(&v, .5, .3);
@@ -227,8 +227,8 @@ TEST(mat3Tr)
     ferMat3TrScale(&tr, 2.);
     ferMat3Rot(&tr, -M_PI_4);
     ferMat3MulVec2(&w, &tr, &v);
-    assertTrue(ferEq(ferVec2X(&w), 2 * FER_SQRT(2.)));
-    assertTrue(ferEq(ferVec2Y(&w), FER_ZERO));
+    assertTrue(ferEq(ferVec2X(&w), 2 * BOR_SQRT(2.)));
+    assertTrue(ferEq(ferVec2Y(&w), BOR_ZERO));
 
     /*
     DBG("%g", ferMat3Get(&tr, 0, 0));
@@ -236,6 +236,6 @@ TEST(mat3Tr)
     DBG("%g", ferMat3DotRow(&tr, 1, -1.2, 5, 1));
     DBG("%g", ferMat3DotRow(&tr, 2, -1.2, 5, 1));
 
-    DBG("w: %.10g %.10g %.10g", ferVec2X(&w), ferVec2Y(&w), FER_EPS);
+    DBG("w: %.10g %.10g %.10g", ferVec2X(&w), ferVec2Y(&w), BOR_EPS);
     */
 }

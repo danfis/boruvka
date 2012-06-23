@@ -20,8 +20,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_RAND_MT_H__
-#define __FER_RAND_MT_H__
+#ifndef __BOR_RAND_MT_H__
+#define __BOR_RAND_MT_H__
 
 #include <stdint.h>
 #include <boruvka/core.h>
@@ -31,9 +31,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 /** Length of state vector */
-#define FER_RAND_MT_N 624
+#define BOR_RAND_MT_N 624
 /** Period */
-#define FER_RAND_MT_M 397
+#define BOR_RAND_MT_M 397
 
 /**
  * RandMT - Mersenne Twister Random Number Generator
@@ -53,7 +53,7 @@ extern "C" {
  * Modeling and Computer Simulation, Vol. 8, No. 1, January 1998, pp 3-30.
  */
 struct _bor_rand_mt_t {
-    uint32_t state[FER_RAND_MT_N]; /*!< Internal state */
+    uint32_t state[BOR_RAND_MT_N]; /*!< Internal state */
     uint32_t *next;                /*!< Next value from state[] */
     int left;                      /*!< Number of values left before reload
                                         needed */
@@ -213,4 +213,4 @@ _fer_inline double ferRandMTNormal(bor_rand_mt_t *g, double mean, double stddev)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_RAND_MT_H__ */
+#endif /* __BOR_RAND_MT_H__ */

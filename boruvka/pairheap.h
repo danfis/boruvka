@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_PAIRHEAP_H__
-#define __FER_PAIRHEAP_H__
+#ifndef __BOR_PAIRHEAP_H__
+#define __BOR_PAIRHEAP_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -143,7 +143,7 @@ _fer_inline bor_pairheap_node_t *ferPairHeapMin(bor_pairheap_t *ph)
         item = ferListNext(&ph->root);
     }
 
-    el = FER_LIST_ENTRY(item, bor_pairheap_node_t, list);
+    el = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
     return el;
 }
 
@@ -179,6 +179,6 @@ _fer_inline bor_pairheap_node_t *ferPairHeapExtractMin(bor_pairheap_t *ph)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_PAIRHEAP_H__ */
+#endif /* __BOR_PAIRHEAP_H__ */
 
 

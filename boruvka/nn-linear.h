@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_NN_LINEAR_H__
-#define __FER_NN_LINEAR_H__
+#ifndef __BOR_NN_LINEAR_H__
+#define __BOR_NN_LINEAR_H__
 
 #include <boruvka/list.h>
 #include <boruvka/vec.h>
@@ -158,4 +158,4 @@ _fer_inline void ferNNLinearUpdate(bor_nn_linear_t *nn, bor_nn_linear_el_t *el)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_NN_LINEAR_H__ */
+#endif /* __BOR_NN_LINEAR_H__ */

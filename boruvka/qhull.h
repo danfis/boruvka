@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_QHULL_H__
-#define __FER_QHULL_H__
+#ifndef __BOR_QHULL_H__
+#define __BOR_QHULL_H__
 
 #include <boruvka/core.h>
 #include <boruvka/pc.h>
@@ -26,7 +26,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /** Default path to qdelaunay binary */
-#define FER_QDELAUNAY_BIN_PATH "/usr/bin/qdelaunay"
+#define BOR_QDELAUNAY_BIN_PATH "/usr/bin/qdelaunay"
 
 /**
  * Qhull - Wrappers around qhull software tool
@@ -112,5 +112,5 @@ _fer_inline const char *ferQDelaunayPath(const bor_qdelaunay_t *q)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_QHULL_H__ */
+#endif /* __BOR_QHULL_H__ */
 

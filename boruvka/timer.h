@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_TIMER_H__
-#define __FER_TIMER_H__
+#ifndef __BOR_TIMER_H__
+#define __BOR_TIMER_H__
 
 #include <boruvka/core.h>
 #include <time.h>
@@ -249,7 +249,7 @@ _fer_inline unsigned long ferTimerElapsedInH(const bor_timer_t *t)
 _fer_inline bor_real_t ferTimerElapsedInSF(const bor_timer_t *t)
 {
     bor_real_t time;
-    time  = t->t_elapsed.tv_nsec / FER_REAL(1000000000.);
+    time  = t->t_elapsed.tv_nsec / BOR_REAL(1000000000.);
     time += t->t_elapsed.tv_sec;
     return time;
 }
@@ -258,5 +258,5 @@ _fer_inline bor_real_t ferTimerElapsedInSF(const bor_timer_t *t)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_TIMER_H__ */
+#endif /* __BOR_TIMER_H__ */
 

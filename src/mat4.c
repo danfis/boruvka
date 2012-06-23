@@ -24,34 +24,34 @@
 static bor_real_t ferMat4Subdet(const bor_mat4_t *m, size_t i, size_t j);
 
 
-static FER_MAT4(__fer_mat4_identity, FER_ONE, FER_ZERO, FER_ZERO, FER_ZERO,
-                                     FER_ZERO, FER_ONE, FER_ZERO, FER_ZERO,
-                                     FER_ZERO, FER_ZERO, FER_ONE, FER_ZERO,
-                                     FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
+static BOR_MAT4(__fer_mat4_identity, BOR_ONE, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                     BOR_ZERO, BOR_ONE, BOR_ZERO, BOR_ZERO,
+                                     BOR_ZERO, BOR_ZERO, BOR_ONE, BOR_ZERO,
+                                     BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
 const bor_mat4_t *fer_mat4_identity = &__fer_mat4_identity;
 
-static FER_MAT4(__fer_mat4_zero, FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
-                                 FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
-                                 FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO,
-                                 FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO);
+static BOR_MAT4(__fer_mat4_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                 BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                 BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                 BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
 const bor_mat4_t *fer_mat4_zero = &__fer_mat4_zero;
 
 bor_mat4_t *ferMat4New(void)
 {
     bor_mat4_t *m;
 
-#ifdef FER_SSE
-    m = FER_ALLOC_ALIGN(bor_mat4_t, 16);
-#else /* FER_SSE */
-    m = FER_ALLOC(bor_mat4_t);
-#endif /* FER_SSE */
+#ifdef BOR_SSE
+    m = BOR_ALLOC_ALIGN(bor_mat4_t, 16);
+#else /* BOR_SSE */
+    m = BOR_ALLOC(bor_mat4_t);
+#endif /* BOR_SSE */
 
     return m;
 }
 
 void ferMat4Del(bor_mat4_t *m)
 {
-    FER_FREE(m);
+    BOR_FREE(m);
 }
 
 int ferMat4Inv2(bor_mat4_t *m, const bor_mat4_t *a)

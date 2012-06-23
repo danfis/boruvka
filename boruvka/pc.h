@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_PC_H__
-#define __FER_PC_H__
+#ifndef __BOR_PC_H__
+#define __BOR_PC_H__
 
 #include <boruvka/vec.h>
 #include <boruvka/rand-mt.h>
@@ -25,9 +25,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef FER_PC_MIN_CHUNK_SIZE
-# define FER_PC_MIN_CHUNK_SIZE (1024 * 1024)
-#endif /* FER_PC_MIN_CHUNK_SIZE */
+#ifndef BOR_PC_MIN_CHUNK_SIZE
+# define BOR_PC_MIN_CHUNK_SIZE (1024 * 1024)
+#endif /* BOR_PC_MIN_CHUNK_SIZE */
 
 /**
  * Point Cloud
@@ -43,7 +43,7 @@ struct _bor_pc_t {
     size_t len;      /*! Overall number of points */
 
     size_t min_chunk_size; /*!< min number of points per chunk, by default
-                                FER_PC_MIN_CHUNK_SIZE */
+                                BOR_PC_MIN_CHUNK_SIZE */
 
     bor_rand_mt_t *rand;
 };
@@ -164,7 +164,7 @@ _fer_inline size_t ferPCLen(const bor_pc_t *pc)
 _fer_inline void ferPCItInit(bor_pc_it_t *it, bor_pc_t *pc)
 {
     it->pc = pc;
-    it->mem = FER_LIST_ENTRY(ferListNext(&pc->head), bor_pc_mem_t, list);
+    it->mem = BOR_LIST_ENTRY(ferListNext(&pc->head), bor_pc_mem_t, list);
     it->pos = 0;
 }
 
@@ -184,7 +184,7 @@ _fer_inline void ferPCItNext(bor_pc_it_t *it)
     it->pos++;
     if (it->pos >= it->mem->len
             && ferListNext(&it->mem->list) != &it->pc->head){
-        it->mem = FER_LIST_ENTRY(ferListNext(&it->mem->list), bor_pc_mem_t, list);
+        it->mem = BOR_LIST_ENTRY(ferListNext(&it->mem->list), bor_pc_mem_t, list);
         it->pos = 0;
     }
 }
@@ -192,7 +192,7 @@ _fer_inline void ferPCItNext(bor_pc_it_t *it)
 _fer_inline void ferPCItPrev(bor_pc_it_t *it)
 {
     if (it->pos == 0 && ferListPrev(&it->mem->list) != &it->pc->head){
-        it->mem = FER_LIST_ENTRY(ferListPrev(&it->mem->list), bor_pc_mem_t, list);
+        it->mem = BOR_LIST_ENTRY(ferListPrev(&it->mem->list), bor_pc_mem_t, list);
         it->pos = it->mem->len - 1;
     }else{
         it->pos--;
@@ -203,5 +203,5 @@ _fer_inline void ferPCItPrev(bor_pc_it_t *it)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_PC_H__ */
+#endif /* __BOR_PC_H__ */
 

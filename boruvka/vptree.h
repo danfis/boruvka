@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VPTREE_H__
-#define __FER_VPTREE_H__
+#ifndef __BOR_VPTREE_H__
+#define __BOR_VPTREE_H__
 
 #include <boruvka/core.h>
 #include <boruvka/vec.h>
@@ -178,7 +178,7 @@ void ferVPTreeDump(bor_vptree_t *vp, FILE *out);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_VPTREE_H__ */
+#endif /* __BOR_VPTREE_H__ */
 
 
 

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_OPTS_H__
-#define __FER_OPTS_H__
+#ifndef __BOR_OPTS_H__
+#define __BOR_OPTS_H__
 
 #include <stdio.h>
 #include <boruvka/core.h>
@@ -50,8 +50,8 @@ extern "C" {
  *     int i;
  *
  *     // define options
- *     ferOptsAdd("opt1", 'o', FER_OPTS_REAL, (void *)&opt1, NULL);
- *     ferOptsAdd("help", 'h', FER_OPTS_NONE, (void *)&help, FER_OPTS_CB(helpcb));
+ *     ferOptsAdd("opt1", 'o', BOR_OPTS_REAL, (void *)&opt1, NULL);
+ *     ferOptsAdd("help", 'h', BOR_OPTS_NONE, (void *)&help, BOR_OPTS_CB(helpcb));
  *
  *     // parse options
  *     ferOpts(&argc, argv);
@@ -100,49 +100,49 @@ extern "C" {
  *        if it wasn't.
  *     2. .callback must have type void (*)(const char *long_name, char short_name)
  */
-#define FER_OPTS_NONE 0x00
+#define BOR_OPTS_NONE 0x00
 
 /**
  * Long type.
  *     1. .set must have type [long *]
  *     2. .callback must have type void (*)(const char *long_name, char short_name, long val)
  */
-#define FER_OPTS_LONG 0x01
+#define BOR_OPTS_LONG 0x01
 
 /**
  * Int.
  *     1. .set - [int *]
  *     2. .callback - void (*)(const char *long_name, char short_name, int val)
  */
-#define FER_OPTS_INT 0x02
+#define BOR_OPTS_INT 0x02
 
 /**
  * Real.
  *     1. .set - [bor_real_t *]
  *     2. .callback - void (*)(const char *long_name, char short_name, bor_real_t val)
  */
-#define FER_OPTS_REAL 0x03
+#define BOR_OPTS_REAL 0x03
 
 /**
  * String.
  *     1. .set - [const char **]
  *     2. .callback - void (*)(const char *long_name, char short_name, const char *)
  */
-#define FER_OPTS_STR 0x04
+#define BOR_OPTS_STR 0x04
 
 /**
  * size_t.
  *     1. .set - [size_t *]
  *     2. .callback - void (*)(const char *long_name, char short_name, size_t)
  */
-#define FER_OPTS_SIZE_T 0x05
+#define BOR_OPTS_SIZE_T 0x05
 
 /**
  * 2-D vector.
  *     1. .set - [bor_vec2_t *]
  *     2. .callback - void (*)(const char *long_name, char short_name, const bor_vec2_t *)
  */
-#define FER_OPTS_V2 0x06
+#define BOR_OPTS_V2 0x06
 
 /** ^^^^ */
 
@@ -154,7 +154,7 @@ extern "C" {
 /**
  * Use this macro for passing callback to ferOptsAdd().
  */
-#define FER_OPTS_CB(func) (void (*)(void))(func)
+#define BOR_OPTS_CB(func) (void (*)(void))(func)
  
 /**
  * Adds description of an option:
@@ -203,4 +203,4 @@ void ferOptsPrint(FILE *out, const char *lineprefix);
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_OPTS_H__ */
+#endif /* __BOR_OPTS_H__ */

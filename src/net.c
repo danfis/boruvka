@@ -21,13 +21,13 @@
 bor_net_node_t *ferNetNodeNew(void)
 {
     bor_net_node_t *n;
-    n = FER_ALLOC(bor_net_node_t);
+    n = BOR_ALLOC(bor_net_node_t);
     return n;
 }
 
 void ferNetNodeDel(bor_net_node_t *v)
 {
-    FER_FREE(v);
+    BOR_FREE(v);
 }
 
 bor_net_edge_t *ferNetNodeCommonEdge(const bor_net_node_t *v1,
@@ -40,12 +40,12 @@ bor_net_edge_t *ferNetNodeCommonEdge(const bor_net_node_t *v1,
 
     // set v1 as node with less edges
     if (ferNetNodeEdgesLen(v2) < ferNetNodeEdgesLen(v1)){
-        FER_SWAP(v1, v2, vtmp);
+        BOR_SWAP(v1, v2, vtmp);
     }
 
-    FER_LIST_FOR_EACH(&v1->edges, item){
+    BOR_LIST_FOR_EACH(&v1->edges, item){
         mitem = ferListMFromList(item);
-        e = FER_LIST_M_ENTRY(item, bor_net_edge_t, nlist, mitem->mark);
+        e = BOR_LIST_M_ENTRY(item, bor_net_edge_t, nlist, mitem->mark);
         if (v2 == ferNetEdgeNode(e, 0)
                 || v2 == ferNetEdgeNode(e, 1)){
             return e;
@@ -59,13 +59,13 @@ bor_net_edge_t *ferNetNodeCommonEdge(const bor_net_node_t *v1,
 bor_net_edge_t *ferNetEdgeNew(void)
 {
     bor_net_edge_t *e;
-    e = FER_ALLOC(bor_net_edge_t);
+    e = BOR_ALLOC(bor_net_edge_t);
     return e;
 }
 
 void ferNetEdgeDel(bor_net_edge_t *e)
 {
-    FER_FREE(e);
+    BOR_FREE(e);
 }
 
 /** Returns true if two given edges have exactly one common node */
@@ -109,7 +109,7 @@ int ferNetEdgeTriCheck(const bor_net_edge_t *e1,
 bor_net_t *ferNetNew(void)
 {
     bor_net_t *m;
-    m = FER_ALLOC(bor_net_t);
+    m = BOR_ALLOC(bor_net_t);
 
     ferListInit(&m->nodes);
     m->nodes_len = 0;
@@ -135,7 +135,7 @@ void ferNetDel2(bor_net_t *m,
     // disedgeect all edges
     while (!ferListEmpty(&m->edges)){
         item = ferListNext(&m->edges);
-        e = FER_LIST_ENTRY(item, bor_net_edge_t, list);
+        e = BOR_LIST_ENTRY(item, bor_net_edge_t, list);
         ferNetRemoveEdge(m, e);
 
         if (deledge){
@@ -146,7 +146,7 @@ void ferNetDel2(bor_net_t *m,
     // disedgeect all vertices
     while (!ferListEmpty(&m->nodes)){
         item = ferListNext(&m->nodes);
-        v = FER_LIST_ENTRY(item, bor_net_node_t, list);
+        v = BOR_LIST_ENTRY(item, bor_net_node_t, list);
         ferNetRemoveNode(m, v);
 
         if (delnode){
@@ -154,7 +154,7 @@ void ferNetDel2(bor_net_t *m,
         }
     }
 
-    FER_FREE(m);
+    BOR_FREE(m);
 }
 
 void ferNetAddNode(bor_net_t *m, bor_net_node_t *v)
@@ -217,8 +217,8 @@ void ferNetTraverseNode(bor_net_t *net,
     bor_list_t *item;
     bor_net_node_t *n;
 
-    FER_LIST_FOR_EACH(&net->nodes, item){
-        n = FER_LIST_ENTRY(item, bor_net_node_t, list);
+    BOR_LIST_FOR_EACH(&net->nodes, item){
+        n = BOR_LIST_ENTRY(item, bor_net_node_t, list);
         cb(net, n, data);
     }
 }
@@ -230,8 +230,8 @@ void ferNetTraverseEdge(bor_net_t *net,
     bor_list_t *item;
     bor_net_edge_t *e;
 
-    FER_LIST_FOR_EACH(&net->edges, item){
-        e = FER_LIST_ENTRY(item, bor_net_edge_t, list);
+    BOR_LIST_FOR_EACH(&net->edges, item){
+        e = BOR_LIST_ENTRY(item, bor_net_edge_t, list);
         cb(net, e, data);
     }
 }

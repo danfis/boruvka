@@ -68,7 +68,7 @@ static void radixSortCountFinal(const bor_radix_sort_t *m,
         val = radixSortVal(&m[i], shift);
         ++counter[val];
 
-        if (m[i].key < FER_ZERO)
+        if (m[i].key < BOR_ZERO)
             ++(*negative);
     }
 }
@@ -144,7 +144,7 @@ void ferRadixSort(bor_radix_sort_t *rs, bor_radix_sort_t *rs_tmp, size_t rslen)
         radixSortSort(src, dst, rslen, counter, shift);
 
         shift += 8;
-        FER_SWAP(src, dst, tmp);
+        BOR_SWAP(src, dst, tmp);
     }
 
     radixSortCountFinal(src, rslen, counter, &negative, shift);
@@ -209,7 +209,7 @@ static void radixSortPtrCountFinal(void * const*m,
         val = radixSortPtrVal(m[i], offset, shift);
         ++counter[val];
 
-        if (radixSortPtrKey(m[i], offset) < FER_ZERO)
+        if (radixSortPtrKey(m[i], offset) < BOR_ZERO)
             ++(*negative);
     }
 }
@@ -291,7 +291,7 @@ void ferRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
         radixSortPtrSort(src, dst, arrlen, offset, counter, shift);
 
         shift += 8;
-        FER_SWAP(src, dst, tmp);
+        BOR_SWAP(src, dst, tmp);
     }
 
     radixSortPtrCountFinal(src, arrlen, offset, counter, &negative, shift);

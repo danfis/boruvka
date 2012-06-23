@@ -11,8 +11,8 @@ static void treeDump(bor_list_t *fl, size_t spaces)
     bor_fibo_node_t *n;
     size_t i;
 
-    FER_LIST_FOR_EACH(fl, item){
-        n = FER_LIST_ENTRY(item, bor_fibo_node_t, list);
+    BOR_LIST_FOR_EACH(fl, item){
+        n = BOR_LIST_ENTRY(item, bor_fibo_node_t, list);
         for (i = 0; i < spaces; i++){
             fprintf(stdout, " ");
         }
@@ -46,7 +46,7 @@ static el_t *randomEls(size_t num)
 
     ferRandInit(&r);
 
-    els = FER_ALLOC_ARR(el_t, num);
+    els = BOR_ALLOC_ARR(el_t, num);
     for (i = 0; i < num; i++){
         val = ferRand(&r, -500., 500.);
         els[i].val = val;
@@ -96,7 +96,7 @@ static void checkCorrect(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     fibo = ferFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){
@@ -149,7 +149,7 @@ static void checkCorrect2(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     fibo = ferFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){
@@ -206,7 +206,7 @@ static void checkCorrect3(int ID, size_t num)
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
-    ids = FER_ALLOC_ARR(int, num);
+    ids = BOR_ALLOC_ARR(int, num);
 
     fibo = ferFiboNew(ltEl, NULL);
     for (i = 0; i < num; i++){

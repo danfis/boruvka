@@ -30,7 +30,7 @@ static el_t *elsNew(size_t len)
     bor_real_t x, y;
     el_t *ns;
 
-    ns = FER_ALLOC_ARR(el_t, arr_len);
+    ns = BOR_ALLOC_ARR(el_t, arr_len);
     for (i = 0; i < len; i++){
         x = ferRand(&r, -15., 15.);
         y = ferRand(&r, -20., 20.);
@@ -67,11 +67,11 @@ static void testCorrect(void)
     params.gug.expand_rate = 2.;
     params.gug.aabb = range;
 
-    params.type = FER_NN_LINEAR;
+    params.type = BOR_NN_LINEAR;
     linear = ferNNNew(&params);
-    params.type = FER_NN_GUG;
+    params.type = BOR_NN_GUG;
     gug    = ferNNNew(&params);
-    params.type = FER_NN_VPTREE;
+    params.type = BOR_NN_VPTREE;
     vp     = ferNNNew(&params);
 
     ns = elsNew(arr_len);
@@ -113,7 +113,7 @@ static void testCorrect(void)
         }
     }
 
-    FER_FREE(ns);
+    BOR_FREE(ns);
     ferNNDel(linear);
     ferNNDel(gug);
     ferNNDel(vp);
@@ -145,11 +145,11 @@ static void bench(void)
     params.gug.expand_rate = 2.;
     params.gug.aabb = range;
 
-    params.type = FER_NN_LINEAR;
+    params.type = BOR_NN_LINEAR;
     linear = ferNNNew(&params);
-    params.type = FER_NN_GUG;
+    params.type = BOR_NN_GUG;
     gug    = ferNNNew(&params);
-    params.type = FER_NN_VPTREE;
+    params.type = BOR_NN_VPTREE;
     vp     = ferNNNew(&params);
 
     ns = elsNew(arr_len);
@@ -200,7 +200,7 @@ static void bench(void)
         ferTimerPrintElapsed(&timer, stderr, " - [%d] - vptree -                \n", k);
     }
 
-    FER_FREE(ns);
+    BOR_FREE(ns);
     ferNNDel(linear);
     ferNNDel(gug);
     ferNNDel(vp);

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_SORT_H__
-#define __FER_SORT_H__
+#ifndef __BOR_SORT_H__
+#define __BOR_SORT_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -65,4 +65,4 @@ void ferInsertSortList(bor_list_t *list, fer_list_sort_lt cb, void *data);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_SORT_H__ */
+#endif /* __BOR_SORT_H__ */

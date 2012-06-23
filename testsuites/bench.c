@@ -22,7 +22,7 @@ __attribute__((noinline)) static void add(void)
     bor_vec3_t v;
     bor_real_t d = 0;
 
-    ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){
@@ -43,7 +43,7 @@ __attribute__((noinline)) static void sub(void)
     bor_vec3_t v;
     bor_real_t d = 0;
 
-    ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     cuTimerStart();
     for (j = 0; j < REPEATS; j++){
         for (i = 0; i < vecs_len; i++){

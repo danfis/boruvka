@@ -185,7 +185,7 @@ TEST(gugNearest2)
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el_t, c);
-                near[1] = FER_LIST_ENTRY(nsl[j], el_t, list);
+                near[1] = BOR_LIST_ENTRY(nsl[j], el_t, list);
                 assertEquals(near[0], near[1]);
             }
         }
@@ -198,7 +198,7 @@ TEST(gugNearest2)
 
 
 struct _el6_t {
-    FER_VEC(v, 6);
+    BOR_VEC(v, 6);
     bor_gug_el_t c;
     bor_list_t list;
 };
@@ -242,7 +242,7 @@ static bor_real_t dist62(void *item1, bor_list_t *item2, void *_)
 
 TEST(gugNearest6)
 {
-    FER_VEC(v, 6);
+    BOR_VEC(v, 6);
     bor_list_t head;
     el6_t ns[N_LEN];
     bor_gug_el_t *nsc[5];
@@ -283,7 +283,7 @@ TEST(gugNearest6)
 
             for (j = 0; j < k + 1; j++){
                 near[0] = fer_container_of(nsc[j], el6_t, c);
-                near[1] = FER_LIST_ENTRY(nsl[j], el6_t, list);
+                near[1] = BOR_LIST_ENTRY(nsl[j], el6_t, list);
                 assertEquals(near[0], near[1]);
             }
         }

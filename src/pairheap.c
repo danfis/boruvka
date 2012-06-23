@@ -22,7 +22,7 @@ bor_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data)
 {
     bor_pairheap_t *ph;
 
-    ph = FER_ALLOC(bor_pairheap_t);
+    ph = BOR_ALLOC(bor_pairheap_t);
     ferListInit(&ph->root);
     ph->lt = less_than;
     ph->data = data;
@@ -32,7 +32,7 @@ bor_pairheap_t *ferPairHeapNew(fer_pairheap_lt less_than, void *data)
 
 void ferPairHeapDel(bor_pairheap_t *ph)
 {
-    FER_FREE(ph);
+    BOR_FREE(ph);
 }
 
 void ferPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n)
@@ -41,8 +41,8 @@ void ferPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n)
     bor_list_t *list, *item, *item_tmp;
 
     list = &n->children;
-    FER_LIST_FOR_EACH_SAFE(list, item, item_tmp){
-        c = FER_LIST_ENTRY(item, bor_pairheap_node_t, list);
+    BOR_LIST_FOR_EACH_SAFE(list, item, item_tmp){
+        c = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
 
         // remove from n
         ferListDel(&c->list);
@@ -66,8 +66,8 @@ void __ferPairHeapConsolidate(bor_pairheap_t *ph)
     item_next = ferListNext(item);
     while (item != root && item_next != root){
         // get nodes
-        n1 = FER_LIST_ENTRY(item, bor_pairheap_node_t, list);
-        n2 = FER_LIST_ENTRY(item_next, bor_pairheap_node_t, list);
+        n1 = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
+        n2 = BOR_LIST_ENTRY(item_next, bor_pairheap_node_t, list);
 
         // compare them
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
@@ -90,8 +90,8 @@ void __ferPairHeapConsolidate(bor_pairheap_t *ph)
     item_next = ferListNext(item);
     while (item != root && item_next != root){
         // get nodes
-        n1 = FER_LIST_ENTRY(item, bor_pairheap_node_t, list);
-        n2 = FER_LIST_ENTRY(item_next, bor_pairheap_node_t, list);
+        n1 = BOR_LIST_ENTRY(item, bor_pairheap_node_t, list);
+        n2 = BOR_LIST_ENTRY(item_next, bor_pairheap_node_t, list);
 
         if (ph->lt(n1, n2, ph->data)){ // n1 < n2
             ferListDel(&n2->list);

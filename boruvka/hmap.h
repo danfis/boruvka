@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_HMAP_H__
-#define __FER_HMAP_H__
+#ifndef __BOR_HMAP_H__
+#define __BOR_HMAP_H__
 
 #include <boruvka/list.h>
 
@@ -177,4 +177,4 @@ _fer_inline void ferHMapIDPut(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_HMAP_H__ */
+#endif /* __BOR_HMAP_H__ */

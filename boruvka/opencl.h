@@ -14,16 +14,16 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_OPENCL_H__
-#define __FER_OPENCL_H__
+#ifndef __BOR_OPENCL_H__
+#define __BOR_OPENCL_H__
 
 #include <stdio.h>
 #include <CL/opencl.h>
 #include <boruvka/core.h>
 
-#ifndef FER_OPENCL
+#ifndef BOR_OPENCL
 # error "Fermat is not compiled with OpenCL support!"
-#endif /* FER_OPENCL */
+#endif /* BOR_OPENCL */
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,45 +55,45 @@ typedef struct _bor_cl_t bor_cl_t;
 /**
  * Allocates array on device.
  */
-#define FER_CL_ALLOC_ARR(cl, type, count) \
+#define BOR_CL_ALLOC_ARR(cl, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), NULL, CL_MEM_READ_WRITE)
-#define FER_CL_ALLOC_ARR_RO(cl, type, count) \
+#define BOR_CL_ALLOC_ARR_RO(cl, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), NULL, CL_MEM_READ_ONLY)
-#define FER_CL_ALLOC_ARR_WO(cl, type, count) \
+#define BOR_CL_ALLOC_ARR_WO(cl, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), NULL, CL_MEM_WRITE_ONLY)
 
 /**
  * Allocates array on device and copy there data from provided host memory.
  */
-#define FER_CL_CLONE_FROM_HOST(cl, src, type, count) \
+#define BOR_CL_CLONE_FROM_HOST(cl, src, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), (void *)(src), CL_MEM_READ_WRITE)
-#define FER_CL_CLONE_FROM_HOST_RO(cl, src, type, count) \
+#define BOR_CL_CLONE_FROM_HOST_RO(cl, src, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), (void *)(src), CL_MEM_READ_ONLY)
-#define FER_CL_CLONE_FROM_HOST_WO(cl, src, type, count) \
+#define BOR_CL_CLONE_FROM_HOST_WO(cl, src, type, count) \
     (type *)ferCLAlloc((cl), sizeof(type) * (count), (void *)(src), CL_MEM_WRITE_ONLY)
 
-#define FER_CL_MEM_MAP(cl, src, type, count) \
+#define BOR_CL_MEM_MAP(cl, src, type, count) \
     (type *)ferCLMemMap((cl), (src), sizeof(type) * (count), CL_MEM_READ_WRITE)
-#define FER_CL_MEM_MAP_RO(cl, src, type, count) \
+#define BOR_CL_MEM_MAP_RO(cl, src, type, count) \
     (type *)ferCLMemMap((cl), (src), sizeof(type) * (count), CL_MEM_READ_ONLY)
-#define FER_CL_MEM_MAP_WO(cl, src, type, count) \
+#define BOR_CL_MEM_MAP_WO(cl, src, type, count) \
     (type *)ferCLMemMap((cl), (src), sizeof(type) * (count), CL_MEM_WRITE_ONLY)
 
-#define FER_CL_COPY_FROM_HOST(cl, src, dst, type, count) \
+#define BOR_CL_COPY_FROM_HOST(cl, src, dst, type, count) \
     ferCLCopyFromHost((cl), (src), (dst), sizeof(type) * count)
-#define FER_CL_COPY_TO_HOST(cl, src, dst, type, count) \
+#define BOR_CL_COPY_TO_HOST(cl, src, dst, type, count) \
     ferCLCopyToHost((cl), (src), (dst), sizeof(type) * count)
 
 /**
  * Allocates memory on host and copy there data from device memory.
  */
-#define FER_CL_CLONE_TO_HOST(cl, src, type, count) \
+#define BOR_CL_CLONE_TO_HOST(cl, src, type, count) \
     (type *)ferCLCloneToHost(cl, src, sizeof(type) * (count))
 
 /**
  * Free memory allocated on device.
  */
-#define FER_CL_FREE(cl, ptr) \
+#define BOR_CL_FREE(cl, ptr) \
     clReleaseMemObject((void *)(ptr))
 
 
@@ -145,7 +145,7 @@ _fer_inline cl_kernel ferCLKernel(const bor_cl_t *cl, size_t i);
 /**
  * Setting kernel's arg_idx's argument - on size of value must be spcified.
  */
-#define FER_CL_KERNEL_SET_ARG(cl, kernel, arg_idx, value) \
+#define BOR_CL_KERNEL_SET_ARG(cl, kernel, arg_idx, value) \
     ferCLKernelSetArg((cl), (kernel), (arg_idx), sizeof(value), (const void *)&(value))
 
 /**
@@ -204,5 +204,5 @@ _fer_inline cl_kernel ferCLKernel(const bor_cl_t *cl, size_t i)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_OPENCL_H__ */
+#endif /* __BOR_OPENCL_H__ */
 

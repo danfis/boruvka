@@ -20,7 +20,7 @@ TEST(sortRadixPtr)
     ferRandInit(&rnd);
 
     for (i = 0; i < len; i++){
-        arr[i] = FER_ALLOC(struct rs_t);
+        arr[i] = BOR_ALLOC(struct rs_t);
         arr[i]->i = i;
         arr[i]->key = ferRand(&rnd, -10., 10.);
     }
@@ -40,6 +40,6 @@ TEST(sortRadixPtr)
     }
 
     for (i = 0; i < len; i++){
-        FER_FREE(arr[i]);
+        BOR_FREE(arr[i]);
     }
 }

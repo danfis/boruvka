@@ -38,18 +38,18 @@ struct _bor_cfg_parser_t {
 typedef struct _bor_cfg_parser_t bor_cfg_parser_t;
 
 
-#define FER_CFG_PARAM \
+#define BOR_CFG_PARAM \
     char *name; \
     uint8_t type; \
     bor_list_t hmap
 struct _bor_cfg_param_t {
-    FER_CFG_PARAM;
+    BOR_CFG_PARAM;
 };
 typedef struct _bor_cfg_param_t bor_cfg_param_t;
 
 #define CFG_PARAM(type, ctype) \
     struct _bor_cfg_param_ ## type ## _t { \
-        FER_CFG_PARAM; \
+        BOR_CFG_PARAM; \
         ctype val; \
     }; \
     typedef struct _bor_cfg_param_ ## type ## _t bor_cfg_param_ ## type ## _t
@@ -61,14 +61,14 @@ CFG_PARAM(v3, bor_vec3_t);
 
 
 struct _bor_cfg_param_arr_t {
-    FER_CFG_PARAM;
+    BOR_CFG_PARAM;
     void *val;
     size_t len;
 };
 typedef struct _bor_cfg_param_arr_t bor_cfg_param_arr_t;
 #define CFG_PARAM_ARR(type, ctype) \
     struct _bor_cfg_param_ ## type ## _arr_t { \
-        FER_CFG_PARAM; \
+        BOR_CFG_PARAM; \
         ctype *val; \
         size_t len; \
     }; \
@@ -101,35 +101,35 @@ static void __dumpParams(bor_cfg_t *c)
     bor_cfg_param_t *p;
 
     for (i = 0; i < (int)c->params->size; i++){
-        FER_LIST_FOR_EACH(c->params->table + i, item){
-            p = FER_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+        BOR_LIST_FOR_EACH(c->params->table + i, item){
+            p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
             fprintf(stdout, "[%04d]: `%s', %02x:", i, p->name, p->type);
 
-            if (p->type == FER_CFG_PARAM_STR){
+            if (p->type == BOR_CFG_PARAM_STR){
                 fprintf(stdout, "s: `%s'", ((bor_cfg_param_str_t *)p)->val);
-            }else if (p->type == FER_CFG_PARAM_FLT){
+            }else if (p->type == BOR_CFG_PARAM_FLT){
                 fprintf(stdout, "f: %f", (float)((bor_cfg_param_flt_t *)p)->val);
-            }else if (p->type == FER_CFG_PARAM_V2){
+            }else if (p->type == BOR_CFG_PARAM_V2){
                 fprintf(stdout, "v2: ");
                 ferVec2Print(&((bor_cfg_param_v2_t *)p)->val, stdout);
-            }else if (p->type == FER_CFG_PARAM_V3){
+            }else if (p->type == BOR_CFG_PARAM_V3){
                 fprintf(stdout, "v3: ");
                 ferVec3Print(&((bor_cfg_param_v3_t *)p)->val, stdout);
-            }else if (p->type == (FER_CFG_PARAM_STR | FER_CFG_PARAM_ARR)){
+            }else if (p->type == (BOR_CFG_PARAM_STR | BOR_CFG_PARAM_ARR)){
                 bor_cfg_param_str_arr_t *ps = (bor_cfg_param_str_arr_t *)p;
 
                 fprintf(stdout, "s[%d]:", ps->len);
                 for (j = 0; j < ps->len; j++){
                     fprintf(stdout, " `%s'", ps->val[j]);
                 }
-            }else if (p->type == (FER_CFG_PARAM_FLT | FER_CFG_PARAM_ARR)){
+            }else if (p->type == (BOR_CFG_PARAM_FLT | BOR_CFG_PARAM_ARR)){
                 bor_cfg_param_flt_arr_t *pf = (bor_cfg_param_flt_arr_t *)p;
 
                 fprintf(stdout, "f[%d]:", pf->len);
                 for (j = 0; j < pf->len; j++){
                     fprintf(stdout, " %f", (float)pf->val[j]);
                 }
-            }else if (p->type == (FER_CFG_PARAM_V2 | FER_CFG_PARAM_ARR)){
+            }else if (p->type == (BOR_CFG_PARAM_V2 | BOR_CFG_PARAM_ARR)){
                 bor_cfg_param_v2_arr_t *pv2 = (bor_cfg_param_v2_arr_t *)p;
 
                 fprintf(stdout, "v2[%d]:", pv2->len);
@@ -138,7 +138,7 @@ static void __dumpParams(bor_cfg_t *c)
                     ferVec2Print(&pv2->val[j], stdout);
                     fprintf(stdout, ")");
                 }
-            }else if (p->type == (FER_CFG_PARAM_V3 | FER_CFG_PARAM_ARR)){
+            }else if (p->type == (BOR_CFG_PARAM_V3 | BOR_CFG_PARAM_ARR)){
                 bor_cfg_param_v3_arr_t *pv3 = (bor_cfg_param_v3_arr_t *)p;
 
                 fprintf(stdout, "v3[%d]:", pv3->len);
@@ -167,7 +167,7 @@ bor_cfg_t *ferCfgRead(const char *filename)
         return NULL;
     }
 
-    c = FER_ALLOC(bor_cfg_t);
+    c = BOR_ALLOC(bor_cfg_t);
     c->params = ferHMapNew(1023, hmapHash, hmapEq, c);
 
     // init parser
@@ -200,13 +200,13 @@ void ferCfgDel(bor_cfg_t *c)
 
     while (!ferListEmpty(&list)){
         item = ferListNext(&list);
-        p = FER_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+        p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
         ferListDel(item);
         ferCfgParamDel(p);
     }
 
     ferHMapDel(c->params);
-    FER_FREE(c);
+    BOR_FREE(c);
 }
 
 int ferCfgHaveParam(const bor_cfg_t *c, const char *name)
@@ -227,22 +227,22 @@ uint8_t ferCfgParamType(const bor_cfg_t *c, const char *name)
 
     item = ferHMapGet(c->params, &q.hmap);
     if (!item)
-        return FER_CFG_PARAM_NONE;
+        return BOR_CFG_PARAM_NONE;
 
-    p = FER_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
     return p->type;
 }
 
 
 int ferCfgParamIsArr(const bor_cfg_t *c, const char *name)
 {
-    return (ferCfgParamType(c, name) & FER_CFG_PARAM_ARR) == FER_CFG_PARAM_ARR;
+    return (ferCfgParamType(c, name) & BOR_CFG_PARAM_ARR) == BOR_CFG_PARAM_ARR;
 }
 
 #define PARAM_IS_FN(Type, TYPE) \
     int ferCfgParamIs ## Type(const bor_cfg_t *c, const char *name) \
     { \
-        return (ferCfgParamType(c, name) & (0xff >> 1)) == FER_CFG_PARAM_ ## TYPE; \
+        return (ferCfgParamType(c, name) & (0xff >> 1)) == BOR_CFG_PARAM_ ## TYPE; \
     }
 PARAM_IS_FN(Str, STR)
 PARAM_IS_FN(Flt, FLT)
@@ -258,7 +258,7 @@ PARAM_IS_FN(V3, V3)
     { \
         bor_cfg_param_ ## type ## _t *v; \
         \
-        v = (bor_cfg_param_ ## type ## _t *)ferCfgParamByType(c, name, FER_CFG_PARAM_ ## TYPE); \
+        v = (bor_cfg_param_ ## type ## _t *)ferCfgParamByType(c, name, BOR_CFG_PARAM_ ## TYPE); \
         if (!v) \
             return -1; \
         \
@@ -277,7 +277,7 @@ PARAM_IS_FN(V3, V3)
         bor_cfg_param_ ## type ## _arr_t *v; \
         \
         v = (bor_cfg_param_ ## type ## _arr_t *)ferCfgParamByType(c, name, \
-                                        FER_CFG_PARAM_ ## TYPE | FER_CFG_PARAM_ARR); \
+                                        BOR_CFG_PARAM_ ## TYPE | BOR_CFG_PARAM_ARR); \
         if (!v) \
             return -1; \
         \
@@ -426,7 +426,7 @@ static const char *_ferCfgScanNext(const char *format, char *name, char *type)
 static uint32_t hmapHash(bor_list_t *key, void *data)
 {
     bor_cfg_param_t *p;
-    p = FER_LIST_ENTRY(key, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(key, bor_cfg_param_t, hmap);
     return ferHashDJB2(p->name);
 }
 
@@ -434,8 +434,8 @@ static int hmapEq(const bor_list_t *k1, const bor_list_t *k2, void *data)
 {
     bor_cfg_param_t *p1, *p2;
 
-    p1 = FER_LIST_ENTRY(k1, bor_cfg_param_t, hmap);
-    p2 = FER_LIST_ENTRY(k2, bor_cfg_param_t, hmap);
+    p1 = BOR_LIST_ENTRY(k1, bor_cfg_param_t, hmap);
+    p2 = BOR_LIST_ENTRY(k2, bor_cfg_param_t, hmap);
     return strcmp(p1->name, p2->name) == 0;
 }
 
@@ -446,22 +446,22 @@ static void ferCfgParamDel(bor_cfg_param_t *p)
     bor_cfg_param_str_arr_t *str_arr;
     size_t i;
 
-    if (p->type == FER_CFG_PARAM_STR){
+    if (p->type == BOR_CFG_PARAM_STR){
         str = (bor_cfg_param_str_t *)p;
         free(str->val);
-    }else if (p->type == (FER_CFG_PARAM_ARR | FER_CFG_PARAM_STR)){
+    }else if (p->type == (BOR_CFG_PARAM_ARR | BOR_CFG_PARAM_STR)){
         str_arr = (bor_cfg_param_str_arr_t *)p;
         for (i = 0; i < str_arr->len; i++){
             free(str_arr->val[i]);
         }
-        FER_FREE(str_arr->val);
-    }else if ((p->type & FER_CFG_PARAM_ARR) == FER_CFG_PARAM_ARR){
+        BOR_FREE(str_arr->val);
+    }else if ((p->type & BOR_CFG_PARAM_ARR) == BOR_CFG_PARAM_ARR){
         arr = (bor_cfg_param_arr_t *)p;
-        FER_FREE(arr->val);
+        BOR_FREE(arr->val);
     }
 
     free(p->name);
-    FER_FREE(p);
+    BOR_FREE(p);
 }
 
 static bor_cfg_param_t *ferCfgParam(const bor_cfg_t *c, const char *name)
@@ -474,7 +474,7 @@ static bor_cfg_param_t *ferCfgParam(const bor_cfg_t *c, const char *name)
     if (!item)
         return NULL;
 
-    p = FER_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
     return p;
 }
 
@@ -598,9 +598,9 @@ static void parseName(bor_cfg_t *c, bor_cfg_parser_t *parser)
         if (parser->tok != T_ ## TYPE){ \
             fprintf(stderr, "Fermat :: Cfg :: Invalid value on line %d.\n", parser->val.lineno); \
         }else{ \
-            p = FER_ALLOC(bor_cfg_param_ ## ttype ## _t); \
+            p = BOR_ALLOC(bor_cfg_param_ ## ttype ## _t); \
             SET_NAME(p, parser); \
-            p->type = FER_CFG_PARAM_ ## TYPE; \
+            p->type = BOR_CFG_PARAM_ ## TYPE; \
             CP; \
             ferCfgParamInsert(c, (bor_cfg_param_t *)p); \
             NEXT(parser); \
@@ -618,9 +618,9 @@ PARSE_FN(Int, int, INT, p->val = parser->val.integer)
         bor_cfg_param_v ## SIZE ## _t *p; \
         int i; \
         \
-        p = FER_ALLOC(bor_cfg_param_v ## SIZE ## _t); \
+        p = BOR_ALLOC(bor_cfg_param_v ## SIZE ## _t); \
         SET_NAME(p, parser); \
-        p->type = FER_CFG_PARAM_V ## SIZE; \
+        p->type = BOR_CFG_PARAM_V ## SIZE; \
         ferCfgParamInsert(c, (bor_cfg_param_t *)p); \
         \
         for (i = 0; i < SIZE; i++){ \
@@ -634,7 +634,7 @@ PARSE_FN(Int, int, INT, p->val = parser->val.integer)
         } \
         \
         for (; i < SIZE; i++){ \
-            ferVecSet((bor_vec_t *)&p->val, i, FER_ZERO); \
+            ferVecSet((bor_vec_t *)&p->val, i, BOR_ZERO); \
         } \
     }
 PARSE_FN_VEC(2)
@@ -647,13 +647,13 @@ PARSE_FN_VEC(3)
         bor_cfg_param_ ## ttype ## _arr_t *p; \
         int i, len; \
         \
-        p = FER_ALLOC(bor_cfg_param_ ## ttype ## _arr_t); \
+        p = BOR_ALLOC(bor_cfg_param_ ## ttype ## _arr_t); \
         SET_NAME(p, parser); \
-        p->type = FER_CFG_PARAM_ ## TYPE | FER_CFG_PARAM_ARR; \
+        p->type = BOR_CFG_PARAM_ ## TYPE | BOR_CFG_PARAM_ARR; \
         ferCfgParamInsert(c, (bor_cfg_param_t *)p); \
         \
         len = atoi(parser->val.type + 3); \
-        p->val = FER_ALLOC_ARR(ctype, len); \
+        p->val = BOR_ALLOC_ARR(ctype, len); \
         p->len = len; \
         \
         for (i = 0; i < len; i++){ \
@@ -673,7 +673,7 @@ PARSE_FN_VEC(3)
 PARSE_FN_ARR(Str, str, STR, char *, 
              p->val[i] = strndup(parser->val.str + 1, parser->val.strlen - 2),
              NULL)
-PARSE_FN_ARR(Flt, flt, FLT, bor_real_t, p->val[i] = parser->val.flt, FER_ZERO)
+PARSE_FN_ARR(Flt, flt, FLT, bor_real_t, p->val[i] = parser->val.flt, BOR_ZERO)
 PARSE_FN_ARR(Int, int, INT, int, p->val[i] = parser->val.integer, 0)
 
 
@@ -683,13 +683,13 @@ PARSE_FN_ARR(Int, int, INT, int, p->val[i] = parser->val.integer, 0)
         bor_cfg_param_v ## SIZE ## _arr_t *p; \
         int i, j, len, ok; \
         \
-        p = FER_ALLOC(bor_cfg_param_v ## SIZE ## _arr_t); \
+        p = BOR_ALLOC(bor_cfg_param_v ## SIZE ## _arr_t); \
         SET_NAME(p, parser); \
-        p->type = FER_CFG_PARAM_V ## SIZE | FER_CFG_PARAM_ARR; \
+        p->type = BOR_CFG_PARAM_V ## SIZE | BOR_CFG_PARAM_ARR; \
         ferCfgParamInsert(c, (bor_cfg_param_t *)p); \
         \
         len = atoi(parser->val.type + 4); \
-        p->val = FER_ALLOC_ARR(bor_vec ## SIZE ## _t, len); \
+        p->val = BOR_ALLOC_ARR(bor_vec ## SIZE ## _t, len); \
         p->len = len; \
         \
         ok = 1; \

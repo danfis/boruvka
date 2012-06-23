@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_BARRIER_H__
-#define __FER_BARRIER_H__
+#ifndef __BOR_BARRIER_H__
+#define __BOR_BARRIER_H__
 
 #include <pthread.h>
 #include <boruvka/core.h>
@@ -56,6 +56,6 @@ void ferBarrier(bor_barrier_t *b);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_BARRIER_H__ */
+#endif /* __BOR_BARRIER_H__ */
 
 

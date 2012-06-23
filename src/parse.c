@@ -38,7 +38,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
         ++str;
 
     c = *str;
-    *val = FER_ZERO;
+    *val = BOR_ZERO;
 
     /* process sign */
     if (c == '-'){
@@ -57,7 +57,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
         if (c < 48 || c > 57)
             return -1;
 
-        *val = *val * FER_REAL(10.) + (c - 48);
+        *val = *val * BOR_REAL(10.) + (c - 48);
         c = *++str;
     }
 
@@ -70,8 +70,8 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
     /* process decimal part */
     if (c == '.'){
         c = *++str;
-        mult = FER_REAL(0.1);
-        fract = FER_ZERO;
+        mult = BOR_REAL(0.1);
+        fract = BOR_ZERO;
         while (c != 0 && NOT_WS(c) && str < strend){
             /* skip to next part */
             if (c == 'e' || c == 'E')
@@ -82,7 +82,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
                 return -1;
 
             fract = fract + mult * (c - 48);
-            mult *= FER_REAL(0.1);
+            mult *= BOR_REAL(0.1);
             c = *++str;
         }
         *val += fract;
@@ -90,7 +90,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
 
     /* apply negative flag */
     if (negative)
-        *val = *val * FER_REAL(-1.);
+        *val = *val * BOR_REAL(-1.);
 
     if (!NOT_WS(c) || str >= strend){
         if (next)
@@ -103,7 +103,7 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
     if (c == 'e' || c == 'E'){
         c = *++str;
         negative = 0;
-        num = FER_ZERO;
+        num = BOR_ZERO;
 
         if (c == '-'){
             negative = 1;
@@ -115,16 +115,16 @@ int ferParseReal(const char *str, const char *strend, bor_real_t *val, char **ne
             if (c < 48 || c > 57)
                 return -1;
 
-            num = num * FER_REAL(10.) + (c - 48);
+            num = num * BOR_REAL(10.) + (c - 48);
             c = *++str;
             has_e = 1;
         }
 
         if (negative)
-            num *= FER_REAL(-1.);
+            num *= BOR_REAL(-1.);
 
         if (has_e){
-            mult = FER_POW(FER_REAL(10.), num);
+            mult = BOR_POW(BOR_REAL(10.), num);
             *val *= mult;
         }
     }

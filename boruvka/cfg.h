@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_CFG_H__
-#define __FER_CFG_H__
+#ifndef __BOR_CFG_H__
+#define __BOR_CFG_H__
 
 #include <boruvka/hmap.h>
 #include <boruvka/vec2.h>
@@ -71,13 +71,13 @@ typedef struct _bor_cfg_t bor_cfg_t;
  */
 
 /** vvvv */
-#define FER_CFG_PARAM_NONE 0x00
-#define FER_CFG_PARAM_STR 0x01
-#define FER_CFG_PARAM_INT 0x02
-#define FER_CFG_PARAM_FLT 0x03
-#define FER_CFG_PARAM_V2  0x04
-#define FER_CFG_PARAM_V3  0x05
-#define FER_CFG_PARAM_ARR 0x80
+#define BOR_CFG_PARAM_NONE 0x00
+#define BOR_CFG_PARAM_STR 0x01
+#define BOR_CFG_PARAM_INT 0x02
+#define BOR_CFG_PARAM_FLT 0x03
+#define BOR_CFG_PARAM_V2  0x04
+#define BOR_CFG_PARAM_V3  0x05
+#define BOR_CFG_PARAM_ARR 0x80
 /** ^^^^ */
 
 /**
@@ -101,7 +101,7 @@ void ferCfgDel(bor_cfg_t *c);
 int ferCfgHaveParam(const bor_cfg_t *c, const char *name);
 
 /**
- * Returns type of param or FER_CFG_PARAM_NONE if no such parameter exists.
+ * Returns type of param or BOR_CFG_PARAM_NONE if no such parameter exists.
  */
 uint8_t ferCfgParamType(const bor_cfg_t *c, const char *name);
 
@@ -242,4 +242,4 @@ int ferCfgScan(const bor_cfg_t *c, const char *format, ...);
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_CFG_H__ */
+#endif /* __BOR_CFG_H__ */

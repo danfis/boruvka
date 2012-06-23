@@ -77,15 +77,15 @@ TEST(quatCore)
     ferQuatSetAngleAxis(a, M_PI_2, &v1);
     assertTrue(ferEq(ferQuatX(a), 0.));
     assertTrue(ferEq(ferQuatY(a), 0.));
-    assertTrue(ferEq(ferQuatZ(a), FER_SQRT(2.)/2.));
-    assertTrue(ferEq(ferQuatW(a), FER_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatZ(a), BOR_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatW(a), BOR_SQRT(2.)/2.));
 
     ferVec3Set(&v2, 1., 0., 1.);
     ferQuatRotVec(&v2, a);
     assertTrue(ferEq(ferQuatX(a), 0.));
     assertTrue(ferEq(ferQuatY(a), 0.));
-    assertTrue(ferEq(ferQuatZ(a), FER_SQRT(2.)/2.));
-    assertTrue(ferEq(ferQuatW(a), FER_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatZ(a), BOR_SQRT(2.)/2.));
+    assertTrue(ferEq(ferQuatW(a), BOR_SQRT(2.)/2.));
     assertTrue(ferEq(ferVec3Y(&v2), 1.));
     assertTrue(ferEq(ferVec3Z(&v2), 1.));
 

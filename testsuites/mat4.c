@@ -204,17 +204,17 @@ TEST(mat4Tr)
     ferVec3Set(&axis, 0., 0., 1.);
     ferMat4SetRot(&tr, M_PI_4, &axis);
     ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), FER_ZERO));
-    assertTrue(ferEq(ferVec3Y(&w), FER_SQRT(2.)));
-    assertTrue(ferEq(ferVec3Z(&w), FER_ZERO));
+    assertTrue(ferEq(ferVec3X(&w), BOR_ZERO));
+    assertTrue(ferEq(ferVec3Y(&w), BOR_SQRT(2.)));
+    assertTrue(ferEq(ferVec3Z(&w), BOR_ZERO));
 
     ferVec3Set(&v, 1., 0., 1.);
     ferVec3Set(&axis, 0., 1., 0.);
     ferMat4SetRot(&tr, M_PI_4, &axis);
     ferMat4MulVec3(&w, &tr, &v);
-    assertTrue(ferEq(ferVec3X(&w), FER_SQRT(2.)));
-    assertTrue(ferEq(ferVec3Y(&w), FER_ZERO));
-    assertTrue(ferEq(ferVec3Z(&w), FER_ZERO));
+    assertTrue(ferEq(ferVec3X(&w), BOR_SQRT(2.)));
+    assertTrue(ferEq(ferVec3Y(&w), BOR_ZERO));
+    assertTrue(ferEq(ferVec3Z(&w), BOR_ZERO));
 
 
     // ------
@@ -241,6 +241,6 @@ TEST(mat4Tr)
     ferMat4Rot(&tr, M_PI_4, &axis);
     ferMat4MulVec3(&w, &tr, &v);
     assertTrue(ferEq(ferVec3X(&w), 0.));
-    assertTrue(ferEq(ferVec3Y(&w), 2. * FER_SQRT(2)));
+    assertTrue(ferEq(ferVec3Y(&w), 2. * BOR_SQRT(2)));
     assertTrue(ferEq(ferVec3Z(&w), 2.));
 }

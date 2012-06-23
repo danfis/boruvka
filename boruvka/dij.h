@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_DIJ_H__
-#define __FER_DIJ_H__
+#ifndef __BOR_DIJ_H__
+#define __BOR_DIJ_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -26,9 +26,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#define FER_DIJ_STATE_UNKNOWN 0
-#define FER_DIJ_STATE_CLOSED  1
-#define FER_DIJ_STATE_OPEN    2
+#define BOR_DIJ_STATE_UNKNOWN 0
+#define BOR_DIJ_STATE_CLOSED  1
+#define BOR_DIJ_STATE_OPEN    2
 
 /**
  * Dij - Dijkstra Algorithm
@@ -163,13 +163,13 @@ void ferDijPath(bor_dij_node_t *endnode, bor_list_t *list);
 /**** INLINES ****/
 _fer_inline void ferDijNodeInit(bor_dij_node_t *n)
 {
-    n->state = FER_DIJ_STATE_UNKNOWN;
-    n->dist  = FER_REAL_MAX;
+    n->state = BOR_DIJ_STATE_UNKNOWN;
+    n->dist  = BOR_REAL_MAX;
 }
 
 _fer_inline int ferDijNodeClosed(const bor_dij_node_t *n)
 {
-    return n->state == FER_DIJ_STATE_CLOSED;
+    return n->state == BOR_DIJ_STATE_CLOSED;
 }
 
 _fer_inline bor_real_t ferDijDist(const bor_dij_node_t *n)
@@ -191,7 +191,7 @@ _fer_inline void ferDijNodeAdd(bor_dij_node_t *n,
 
 _fer_inline bor_dij_node_t *ferDijNodeFromList(bor_list_t *item)
 {
-    return FER_LIST_ENTRY(item, bor_dij_node_t, _list);
+    return BOR_LIST_ENTRY(item, bor_dij_node_t, _list);
 }
 
 
@@ -205,6 +205,6 @@ _fer_inline void ferDijOpsInit(bor_dij_ops_t *ops)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_DIJ_H__ */
+#endif /* __BOR_DIJ_H__ */
 
 

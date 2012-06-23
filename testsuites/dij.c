@@ -52,7 +52,7 @@ static void dumpPath(node_t *endnode, FILE *out)
 
     fprintf(out, "Points:\n");
     size = 0;
-    FER_LIST_FOR_EACH(&list, item){
+    BOR_LIST_FOR_EACH(&list, item){
         n = ferDijNodeFromList(item);
         node = fer_container_of(n, node_t, dij);
         fprintf(out, "%g %g\n", ferVec2X(&node->v), ferVec2Y(&node->v));

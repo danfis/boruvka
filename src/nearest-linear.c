@@ -32,10 +32,10 @@ size_t ferNearestLinear(bor_list_t *list, void *p,
     if (num == 0)
         return 0;
 
-    dists = FER_ALLOC_ARR(bor_real_t, num);
+    dists = BOR_ALLOC_ARR(bor_real_t, num);
     len = 0;
 
-    FER_LIST_FOR_EACH(list, item){
+    BOR_LIST_FOR_EACH(list, item){
         dist = dist_cb(p, item, data);
 
         if (len < num){
@@ -52,7 +52,7 @@ size_t ferNearestLinear(bor_list_t *list, void *p,
         }
     }
 
-    FER_FREE(dists);
+    BOR_FREE(dists);
     return len;
 }
 
@@ -65,8 +65,8 @@ static void bubbleUp(bor_real_t *dists, bor_list_t **nearest, size_t len)
     // don't worry, len can never be zero
     for (i = len - 1; i > 0; i--){
         if (dists[i] < dists[i - 1]){
-            FER_SWAP(dists[i], dists[i - 1], tmpd);
-            FER_SWAP(nearest[i], nearest[i - 1], tmpn);
+            BOR_SWAP(dists[i], dists[i - 1], tmpd);
+            BOR_SWAP(nearest[i], nearest[i - 1], tmpn);
         }else{
             break;
         }

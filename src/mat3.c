@@ -18,32 +18,32 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-static FER_MAT3(__fer_mat3_identity, FER_ONE, FER_ZERO, FER_ZERO,
-                                     FER_ZERO, FER_ONE, FER_ZERO,
-                                     FER_ZERO, FER_ZERO, FER_ONE);
+static BOR_MAT3(__fer_mat3_identity, BOR_ONE, BOR_ZERO, BOR_ZERO,
+                                     BOR_ZERO, BOR_ONE, BOR_ZERO,
+                                     BOR_ZERO, BOR_ZERO, BOR_ONE);
 const bor_mat3_t *fer_mat3_identity = &__fer_mat3_identity;
 
-static FER_MAT3(__fer_mat3_zero, FER_ZERO, FER_ZERO, FER_ZERO,
-                                 FER_ZERO, FER_ZERO, FER_ZERO,
-                                 FER_ZERO, FER_ZERO, FER_ZERO);
+static BOR_MAT3(__fer_mat3_zero, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                 BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                                 BOR_ZERO, BOR_ZERO, BOR_ZERO);
 const bor_mat3_t *fer_mat3_zero = &__fer_mat3_zero;
 
 bor_mat3_t *ferMat3New(void)
 {
     bor_mat3_t *m;
 
-#ifdef FER_SSE
-    m = FER_ALLOC_ALIGN(bor_mat3_t, 16);
-#else /* FER_SSE */
-    m = FER_ALLOC(bor_mat3_t);
-#endif /* FER_SSE */
+#ifdef BOR_SSE
+    m = BOR_ALLOC_ALIGN(bor_mat3_t, 16);
+#else /* BOR_SSE */
+    m = BOR_ALLOC(bor_mat3_t);
+#endif /* BOR_SSE */
 
     return m;
 }
 
 void ferMat3Del(bor_mat3_t *m)
 {
-    FER_FREE(m);
+    BOR_FREE(m);
 }
 
 
@@ -76,10 +76,10 @@ int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
         if (ferEq(ferMat3Get(eigen, row, row), ferMat3Get(eigen, col, col))){
             angle = M_PI_2;
         }else{
-            y = FER_REAL(2.) * ferMat3Get(&m, row, col);
+            y = BOR_REAL(2.) * ferMat3Get(&m, row, col);
             x = ferMat3Get(&m, row, row) - ferMat3Get(&m, col, col);
-            angle = FER_ATAN(y / x);
-            angle *= ferRecp(FER_REAL(2.));
+            angle = BOR_ATAN(y / x);
+            angle *= ferRecp(BOR_REAL(2.));
         }
 
         upper  = ferMat3Get(&m, 0, 1);
@@ -90,17 +90,17 @@ int ferMat3Eigen(const bor_mat3_t *_m, bor_mat3_t *eigen,
 
         // set rotation matrix
         if (i % 3 == 0){
-            ferMat3Set(&rot, FER_COS(angle), -FER_SIN(angle), FER_ZERO,
-                             FER_SIN(angle), FER_COS(angle), FER_ZERO,
-                             FER_ZERO, FER_ZERO, FER_ONE);
+            ferMat3Set(&rot, BOR_COS(angle), -BOR_SIN(angle), BOR_ZERO,
+                             BOR_SIN(angle), BOR_COS(angle), BOR_ZERO,
+                             BOR_ZERO, BOR_ZERO, BOR_ONE);
         }else if (i % 3 == 1){
-            ferMat3Set(&rot, FER_COS(angle), FER_ZERO, -FER_SIN(angle),
-                             FER_ZERO, FER_ONE, FER_ZERO,
-                             FER_SIN(angle), FER_ZERO, FER_COS(angle));
+            ferMat3Set(&rot, BOR_COS(angle), BOR_ZERO, -BOR_SIN(angle),
+                             BOR_ZERO, BOR_ONE, BOR_ZERO,
+                             BOR_SIN(angle), BOR_ZERO, BOR_COS(angle));
         }else{
-            ferMat3Set(&rot, FER_ONE, FER_ZERO, FER_ZERO,
-                             FER_ZERO, FER_COS(angle), -FER_SIN(angle),
-                             FER_ZERO, FER_SIN(angle), FER_COS(angle));
+            ferMat3Set(&rot, BOR_ONE, BOR_ZERO, BOR_ZERO,
+                             BOR_ZERO, BOR_COS(angle), -BOR_SIN(angle),
+                             BOR_ZERO, BOR_SIN(angle), BOR_COS(angle));
         }
 
         // rotate matrix

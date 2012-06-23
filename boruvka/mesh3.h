@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_MESH3_H__
-#define __FER_MESH3_H__
+#ifndef __BOR_MESH3_H__
+#define __BOR_MESH3_H__
 
 #include <stdio.h>
 #include <boruvka/core.h>
@@ -344,17 +344,17 @@ _fer_inline bor_mesh3_vertex_t *ferMesh3FaceOtherVertex(bor_mesh3_face_t *f,
  *   // note: mesh hold pointer to bor_mesh3_t
  *   bor_list_t *item;
  *   bor_mesh3_vertex_t *v;
- *   FER_LIST_FOR_EACH(ferMesh3Vertices(mesh), item) {
- *       v = FER_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
+ *   BOR_LIST_FOR_EACH(ferMesh3Vertices(mesh), item) {
+ *       v = BOR_LIST_ENTRY(item, bor_mesh3_vertex_t, list);
  *       // here you have vertex stored in v
  *       ...
  *   }
  * ~~~~
  *
  * Similar approach can be used for edges and faces, only different type is
- * used in FER_LIST_ENTRY():
+ * used in BOR_LIST_ENTRY():
  * ~~~~
- *   FER_LIST_ENTRY(item, fer_mesh3_{edge,face}_t, list);
+ *   BOR_LIST_ENTRY(item, fer_mesh3_{edge,face}_t, list);
  * ~~~~
  *
  * TODO: Maybe some macros could be provided for iteration over vertices,
@@ -517,9 +517,9 @@ _fer_inline int ferMesh3VertexHasEdge(const bor_mesh3_vertex_t *v,
     bor_list_m_t *mitem;
     bor_mesh3_edge_t *edge;
 
-    FER_LIST_FOR_EACH(&v->edges, item){
+    BOR_LIST_FOR_EACH(&v->edges, item){
         mitem = ferListMFromList(item);
-        edge = FER_LIST_M_ENTRY(item, bor_mesh3_edge_t, vlist, mitem->mark);
+        edge = BOR_LIST_M_ENTRY(item, bor_mesh3_edge_t, vlist, mitem->mark);
         if (edge == e)
             return 1;
     }
@@ -588,7 +588,7 @@ _fer_inline bor_mesh3_edge_t *ferMesh3EdgeFromVertexList(bor_list_t *l)
     bor_mesh3_edge_t *e;
 
     m = ferListMFromList(l);
-    e = FER_LIST_M_ENTRY(l, bor_mesh3_edge_t, vlist, m->mark);
+    e = BOR_LIST_M_ENTRY(l, bor_mesh3_edge_t, vlist, m->mark);
 
     return e;
 }
@@ -699,5 +699,5 @@ _fer_inline bor_list_t *ferMesh3Faces(bor_mesh3_t *m)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_MESH3_H__ */
+#endif /* __BOR_MESH3_H__ */
 

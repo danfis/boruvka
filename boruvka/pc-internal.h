@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_PC_INTERNAL_H__
-#define __FER_PC_INTERNAL_H__
+#ifndef __BOR_PC_INTERNAL_H__
+#define __BOR_PC_INTERNAL_H__
 
 #include <boruvka/list.h>
 
@@ -89,5 +89,5 @@ _fer_inline int ferPCMemFull(const bor_pc_mem_t *m)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_PC_INTERNAL_H__ */
+#endif /* __BOR_PC_INTERNAL_H__ */
 

@@ -40,8 +40,8 @@ bor_nn_linear_t *ferNNLinearNew(const bor_nn_linear_params_t *params)
 {
     bor_nn_linear_t *nn;
 
-    nn = FER_ALLOC(bor_nn_linear_t);
-    nn->type = FER_NN_LINEAR;
+    nn = BOR_ALLOC(bor_nn_linear_t);
+    nn->type = BOR_NN_LINEAR;
     ferListInit(&nn->list);
     nn->params = *params;
 
@@ -51,7 +51,7 @@ bor_nn_linear_t *ferNNLinearNew(const bor_nn_linear_params_t *params)
 void ferNNLinearDel(bor_nn_linear_t *nn)
 {
     ferListInit(&nn->list);
-    FER_FREE(nn);
+    BOR_FREE(nn);
 }
 
 size_t ferNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t num,
@@ -65,11 +65,11 @@ size_t ferNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t 
     if (num == 0)
         return 0;
 
-    dists = FER_ALLOC_ARR(bor_real_t, num);
+    dists = BOR_ALLOC_ARR(bor_real_t, num);
     len = 0;
 
-    FER_LIST_FOR_EACH(&nn->list, item){
-        el = FER_LIST_ENTRY(item, bor_nn_linear_el_t, list);
+    BOR_LIST_FOR_EACH(&nn->list, item){
+        el = BOR_LIST_ENTRY(item, bor_nn_linear_el_t, list);
         dist = nn->params.dist(nn->params.dim, p, el->p, nn->params.dist_data);
 
         if (len < num){
@@ -86,7 +86,7 @@ size_t ferNNLinearNearest(const bor_nn_linear_t *nn, const bor_vec_t *p, size_t 
         }
     }
 
-    FER_FREE(dists);
+    BOR_FREE(dists);
     return len;
 }
 
@@ -106,7 +106,7 @@ static void bubbleUp(bor_nn_linear_el_t **els, size_t len)
     // don't worry, len can never be zero
     for (i = len - 1; i > 0; i--){
         if (els[i]->dist < els[i - 1]->dist){
-            FER_SWAP(els[i], els[i - 1], tmpn);
+            BOR_SWAP(els[i], els[i - 1], tmpn);
         }else{
             break;
         }

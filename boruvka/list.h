@@ -15,8 +15,8 @@
  */
 
 
-#ifndef __FER_LIST_H__
-#define __FER_LIST_H__
+#ifndef __BOR_LIST_H__
+#define __BOR_LIST_H__
 
 #include <string.h>
 #include <boruvka/core.h>
@@ -90,8 +90,8 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * bor_list_t *item;
  * struct member_t *m;
  *
- * FER_LIST_FOR_EACH(&head.head, item){
- *     m = FER_LIST_ENTRY(item, struct member_t, list);
+ * BOR_LIST_FOR_EACH(&head.head, item){
+ *     m = BOR_LIST_ENTRY(item, struct member_t, list);
  *     ....
  * }
  * ~~~~~
@@ -108,17 +108,17 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * 
  * Example:
  * ~~~~~
- * static FER_LIST(name);
+ * static BOR_LIST(name);
  * void main()
  * {
  *     bor_list_t *item;
  *
- *     FER_LIST_FOR_EACH(&name, item){
+ *     BOR_LIST_FOR_EACH(&name, item){
  *      ...
  *     }
  * }
  */
-#define FER_LIST(name) \
+#define BOR_LIST(name) \
     bor_list_t name = { &name, &name }
 
 /**
@@ -127,16 +127,16 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * {type}: the type of the struct this is embedded in.
  * {member}: the name of the list_struct within the struct.
  */
-#define FER_LIST_ENTRY(ptr, type, member) \
+#define BOR_LIST_ENTRY(ptr, type, member) \
     fer_container_of(ptr, type, member)
 
-#define FER_LIST_M_ENTRY(ptr, type, member, offset) \
+#define BOR_LIST_M_ENTRY(ptr, type, member, offset) \
     (type *)((char *)fer_container_of(ptr, type, member) - (sizeof(bor_list_m_t) * offset))
 
 /**
  * Iterates over list.
  */
-#define FER_LIST_FOR_EACH(list, item) \
+#define BOR_LIST_FOR_EACH(list, item) \
         for (item = (list)->next; \
              _fer_prefetch((item)->next), item != (list); \
              item = (item)->next)
@@ -144,7 +144,7 @@ typedef struct _bor_list_m_t bor_list_m_t;
 /**
  * Iterates over list safe against remove of list entry
  */
-#define FER_LIST_FOR_EACH_SAFE(list, item, tmp) \
+#define BOR_LIST_FOR_EACH_SAFE(list, item, tmp) \
 	    for (item = (list)->next, tmp = (item)->next; \
              item != (list); \
 		     item = tmp, tmp = (item)->next)
@@ -155,10 +155,10 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * {head}:   the head for your list.
  * {member}: the name of the list_struct within the struct.
  */
-#define FER_LIST_FOR_EACH_ENTRY(head, postype, pos, member) \
-	for (pos = FER_LIST_ENTRY((head)->next, postype, member);	\
+#define BOR_LIST_FOR_EACH_ENTRY(head, postype, pos, member) \
+	for (pos = BOR_LIST_ENTRY((head)->next, postype, member);	\
 	     _fer_prefetch(pos->member.next), &pos->member != (head); 	\
-	     pos = FER_LIST_ENTRY(pos->member.next, postype, member))
+	     pos = BOR_LIST_ENTRY(pos->member.next, postype, member))
 
 /**
  * Iterates over list of given type safe against removal of list entry
@@ -167,11 +167,11 @@ typedef struct _bor_list_m_t bor_list_m_t;
  * {head}:	the head for your list.
  * {member}:the name of the list_struct within the struct.
  */
-#define FER_LIST_FOR_EACH_ENTRY_SAFE(head, postype, pos, ntype, n, member)         \
-    for (pos = FER_LIST_ENTRY((head)->next, postype, member),             \
-		 n = FER_LIST_ENTRY(pos->member.next, postype, member);	\
+#define BOR_LIST_FOR_EACH_ENTRY_SAFE(head, postype, pos, ntype, n, member)         \
+    for (pos = BOR_LIST_ENTRY((head)->next, postype, member),             \
+		 n = BOR_LIST_ENTRY(pos->member.next, postype, member);	\
 	     &pos->member != (head); 					\
-	     pos = n, n = FER_LIST_ENTRY(n->member.next, ntype, member))
+	     pos = n, n = BOR_LIST_ENTRY(n->member.next, ntype, member))
 
 
 /**
@@ -288,7 +288,7 @@ _fer_inline size_t ferListSize(const bor_list_t *head)
     bor_list_t *item;
     size_t size = 0;
 
-    FER_LIST_FOR_EACH(head, item){
+    BOR_LIST_FOR_EACH(head, item){
         size++;
     }
 
@@ -320,4 +320,4 @@ _fer_inline bor_list_m_t *ferListMFromList(bor_list_t *l)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_LIST_H__ */
+#endif /* __BOR_LIST_H__ */

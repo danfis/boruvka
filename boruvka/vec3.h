@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VEC3_H__
-#define __FER_VEC3_H__
+#ifndef __BOR_VEC3_H__
+#define __BOR_VEC3_H__
 
 #include <stdio.h>
 #include <boruvka/core.h>
@@ -33,26 +33,26 @@ extern "C" {
  */
 
 /** vvvvv */
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
 union _bor_vec3_t {
     __m128 v;
     float f[4];
 } fer_aligned(16) fer_packed;
 typedef union _bor_vec3_t bor_vec3_t;
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
 union _bor_vec3_t {
     __m128d v[2];
     double f[4];
 } fer_aligned(16) fer_packed;
 typedef union _bor_vec3_t bor_vec3_t;
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
 struct _bor_vec3_t {
     bor_real_t f[4];
 };
 typedef struct _bor_vec3_t bor_vec3_t;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 /** ^^^^^ */
 
 
@@ -72,11 +72,11 @@ extern const bor_vec3_t *fer_vec3_axis[3];
 extern bor_vec3_t *fer_points_on_sphere;
 extern size_t fer_points_on_sphere_len;
 
-# define FER_VEC3_STATIC(x, y, z) \
-    { .f = { (x), (y), (z), FER_ZERO } }
+# define BOR_VEC3_STATIC(x, y, z) \
+    { .f = { (x), (y), (z), BOR_ZERO } }
 
-#define FER_VEC3(name, x, y, z) \
-    bor_vec3_t name = FER_VEC3_STATIC((x), (y), (z))
+#define BOR_VEC3(name, x, y, z) \
+    bor_vec3_t name = BOR_VEC3_STATIC((x), (y), (z))
 
 /**
  * Functions
@@ -455,11 +455,11 @@ int ferVec3TriTriIntersect(const bor_vec3_t *p1, const bor_vec3_t *q1,
 /**** INLINES ****/
 _fer_inline bor_vec3_t *ferVec3Align(void *mem)
 {
-#ifdef FER_SSE
+#ifdef BOR_SSE
     return (bor_vec3_t *)ferAlign(mem, 16);
-#else /* FER_SSE */
+#else /* BOR_SSE */
     return (bor_vec3_t *)mem;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline bor_vec3_t *ferVec3Clone(const bor_vec3_t *v)
@@ -524,7 +524,7 @@ _fer_inline bor_real_t ferVec3Len2(const bor_vec3_t *v)
 }
 _fer_inline bor_real_t ferVec3Len(const bor_vec3_t *v)
 {
-    return FER_SQRT(ferVec3Len2(v));
+    return BOR_SQRT(ferVec3Len2(v));
 }
 
 _fer_inline bor_real_t ferVec3Dist2(const bor_vec3_t *a, const bor_vec3_t *b)
@@ -535,7 +535,7 @@ _fer_inline bor_real_t ferVec3Dist2(const bor_vec3_t *a, const bor_vec3_t *b)
 }
 _fer_inline bor_real_t ferVec3Dist(const bor_vec3_t *a, const bor_vec3_t *b)
 {
-    return FER_SQRT(ferVec3Dist2(a, b));
+    return BOR_SQRT(ferVec3Dist2(a, b));
 }
 
 _fer_inline void ferVec3Set(bor_vec3_t *v, bor_real_t x, bor_real_t y, bor_real_t z)
@@ -576,34 +576,34 @@ _fer_inline void ferVec3Copy(bor_vec3_t *v, const bor_vec3_t *w)
 
 _fer_inline void ferVec3Add(bor_vec3_t *v, const bor_vec3_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     v->v = _mm_add_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     v->v[0] = _mm_add_pd(v->v[0], w->v[0]);
     v->v[1] = _mm_add_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     v->f[0] += w->f[0];
     v->f[1] += w->f[1];
     v->f[2] += w->f[2];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3Add2(bor_vec3_t *d, const bor_vec3_t *v, const bor_vec3_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     d->v = _mm_add_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     d->v[0] = _mm_add_pd(v->v[0], w->v[0]);
     d->v[1] = _mm_add_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = v->f[0] + w->f[0];
     d->f[1] = v->f[1] + w->f[1];
     d->f[2] = v->f[2] + w->f[2];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3AddScaled(bor_vec3_t *d, bor_real_t f, const bor_vec3_t *w)
@@ -615,33 +615,33 @@ _fer_inline void ferVec3AddScaled(bor_vec3_t *d, bor_real_t f, const bor_vec3_t 
 
 _fer_inline void ferVec3Sub(bor_vec3_t *v, const bor_vec3_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     v->v = _mm_sub_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     v->v[0] = _mm_sub_pd(v->v[0], w->v[0]);
     v->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     v->f[0] -= w->f[0];
     v->f[1] -= w->f[1];
     v->f[2] -= w->f[2];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 _fer_inline void ferVec3Sub2(bor_vec3_t *d, const bor_vec3_t *v, const bor_vec3_t *w)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     d->v = _mm_sub_ps(v->v, w->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     d->v[0] = _mm_sub_pd(v->v[0], w->v[0]);
     d->v[1] = _mm_sub_pd(v->v[1], w->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = v->f[0] - w->f[0];
     d->f[1] = v->f[1] - w->f[1];
     d->f[2] = v->f[2] - w->f[2];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3AddConst(bor_vec3_t *v, bor_real_t f)
@@ -674,48 +674,48 @@ _fer_inline void ferVec3SubConst2(bor_vec3_t *d, const bor_vec3_t *v, bor_real_t
 
 _fer_inline void ferVec3Scale(bor_vec3_t *d, bor_real_t _k)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t k;
     k.v = _mm_set1_ps(_k);
     d->v = _mm_mul_ps(d->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
     k = _mm_set1_pd(_k);
     d->v[0] = _mm_mul_pd(d->v[0], k);
     d->v[1] = _mm_mul_pd(d->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] *= _k;
     d->f[1] *= _k;
     d->f[2] *= _k;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3Scale2(bor_vec3_t *d, const bor_vec3_t *a, bor_real_t _k)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t k;
     k.v = _mm_set1_ps(_k);
     d->v = _mm_mul_ps(a->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
     k = _mm_set1_pd(_k);
     d->v[0] = _mm_mul_pd(a->v[0], k);
     d->v[1] = _mm_mul_pd(a->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = a->f[0] * _k;
     d->f[1] = a->f[1] * _k;
     d->f[2] = a->f[2] * _k;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3ScaleToLen(bor_vec3_t *v, bor_real_t len)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t k, l;
 
     k.v = _mm_set1_ps(ferVec3Len2(v));
@@ -723,7 +723,7 @@ _fer_inline void ferVec3ScaleToLen(bor_vec3_t *v, bor_real_t len)
     l.v = _mm_set1_ps(len);
     k.v = _mm_div_ps(k.v, l.v);
     v->v = _mm_div_ps(v->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k, l;
 
     k = _mm_set1_pd(ferVec3Len2(v));
@@ -732,63 +732,63 @@ _fer_inline void ferVec3ScaleToLen(bor_vec3_t *v, bor_real_t len)
     k = _mm_div_pd(k, l);
     v->v[0] = _mm_div_pd(v->v[0], k);
     v->v[1] = _mm_div_pd(v->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t k = len * ferRsqrt(ferVec3Len2(v));
     ferVec3Scale(v, k);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3Normalize(bor_vec3_t *d)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t k;
 
     k.v = _mm_set1_ps(ferVec3Len2(d));
     k.v = _mm_sqrt_ps(k.v);
     d->v = _mm_div_ps(d->v, k.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     __m128d k;
 
     k = _mm_set1_pd(ferVec3Len2(d));
     k = _mm_sqrt_pd(k);
     d->v[0] = _mm_div_pd(d->v[0], k);
     d->v[1] = _mm_div_pd(d->v[1], k);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t k = ferRsqrt(ferVec3Len2(d));
     ferVec3Scale(d, k);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline bor_real_t ferVec3Dot(const bor_vec3_t *a, const bor_vec3_t *b)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t dot, t;
 
     dot.v = _mm_mul_ps(a->v, b->v);
-    dot.f[3] = FER_ZERO;
+    dot.f[3] = BOR_ZERO;
     t.v = _mm_shuffle_ps(dot.v, dot.v, _MM_SHUFFLE(2, 3, 0, 1));
     dot.v = _mm_add_ps(dot.v, t.v);
     t.v = _mm_shuffle_ps(dot.v, dot.v, _MM_SHUFFLE(1, 0, 3, 2));
     dot.v = _mm_add_ps(dot.v, t.v);
 
     return dot.f[0];
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     bor_vec3_t dot;
 
     dot.v[0] = _mm_mul_pd(a->v[0], b->v[0]);
     dot.v[1] = _mm_mul_pd(a->v[1], b->v[1]);
-    dot.f[3] = FER_ZERO;
+    dot.f[3] = BOR_ZERO;
     dot.v[0] = _mm_add_pd(dot.v[0], dot.v[1]);
     dot.v[1] = _mm_shuffle_pd(dot.v[0], dot.v[0], _MM_SHUFFLE2(0, 1));
     dot.v[0] = _mm_add_pd(dot.v[0], dot.v[1]);
 
     return dot.f[0];
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     bor_real_t dot;
 
     dot  = a->f[0] * b->f[0];
@@ -796,23 +796,23 @@ _fer_inline bor_real_t ferVec3Dot(const bor_vec3_t *a, const bor_vec3_t *b)
     dot += a->f[2] * b->f[2];
 
     return dot;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3MulComp(bor_vec3_t *a, const bor_vec3_t *b)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     a->v = _mm_mul_ps(a->v, b->v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     a->v[0] = _mm_mul_pd(a->v[0], b->v[0]);
     a->v[1] = _mm_mul_pd(a->v[1], b->v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     a->f[0] *= b->f[0];
     a->f[1] *= b->f[1];
     a->f[2] *= b->f[2];
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3MulComp2(bor_vec3_t *a, const bor_vec3_t *b, const bor_vec3_t *c)
@@ -823,8 +823,8 @@ _fer_inline void ferVec3MulComp2(bor_vec3_t *a, const bor_vec3_t *b, const bor_v
 
 _fer_inline void ferVec3Cross(bor_vec3_t *d, const bor_vec3_t *a, const bor_vec3_t *b)
 {
-#ifdef FER_SSE
-# ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE
+# ifdef BOR_SSE_SINGLE
     bor_vec3_t v0, v1, v2, v3;
 
     v0.v = a->v;
@@ -841,7 +841,7 @@ _fer_inline void ferVec3Cross(bor_vec3_t *d, const bor_vec3_t *a, const bor_vec3
     v2.v = _mm_mul_ps(v2.v, v3.v);
 
     d->v = _mm_sub_ps(v0.v, v2.v);
-# else /* FER_SSE_SINGLE */
+# else /* BOR_SSE_SINGLE */
     bor_vec3_t v0, v1, v2, v3;
 
     ferVec3Copy(&v0, a);
@@ -865,12 +865,12 @@ _fer_inline void ferVec3Cross(bor_vec3_t *d, const bor_vec3_t *a, const bor_vec3
 
     d->v[0] = _mm_sub_pd(v0.v[0], v2.v[0]);
     d->v[1] = _mm_sub_pd(v0.v[1], v2.v[1]);
-# endif /* FER_SSE_SINGLE */
-#else /* FER_SSE */
+# endif /* BOR_SSE_SINGLE */
+#else /* BOR_SSE */
     d->f[0] = (a->f[1] * b->f[2]) - (a->f[2] * b->f[1]);
     d->f[1] = (a->f[2] * b->f[0]) - (a->f[0] * b->f[2]);
     d->f[2] = (a->f[0] * b->f[1]) - (a->f[1] * b->f[0]);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 }
 
 _fer_inline void ferVec3Print(const bor_vec3_t *v, FILE *out)
@@ -930,4 +930,4 @@ _fer_inline bor_real_t ferVec3Volume6(const bor_vec3_t *a,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_VEC3_H__ */
+#endif /* __BOR_VEC3_H__ */

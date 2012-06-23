@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VEC_H__
-#define __FER_VEC_H__
+#ifndef __BOR_VEC_H__
+#define __BOR_VEC_H__
 
 #include <boruvka/core.h>
 #include <boruvka/vec2.h>
@@ -37,13 +37,13 @@ typedef bor_real_t bor_vec_t;
 /**
  * Static declaration of vector.
  */
-#define FER_VEC(name, size) \
+#define BOR_VEC(name, size) \
     bor_vec_t name[size]
 
 /**
  * Static declaration of array of vectors.
  */
-#define FER_VEC_ARR(name, size, arrsize) \
+#define BOR_VEC_ARR(name, size, arrsize) \
     bor_vec_t name[arrsize][size]
 
 
@@ -248,7 +248,7 @@ _fer_inline bor_real_t ferVecLen2(size_t size, const bor_vec_t *v)
 }
 _fer_inline bor_real_t ferVecLen(size_t size, const bor_vec_t *v)
 {
-    return FER_SQRT(ferVecLen2(size, v));
+    return BOR_SQRT(ferVecLen2(size, v));
 }
 
 _fer_inline bor_real_t ferVecDist2(size_t size, const bor_vec_t *a, const bor_vec_t *b)
@@ -256,17 +256,17 @@ _fer_inline bor_real_t ferVecDist2(size_t size, const bor_vec_t *a, const bor_ve
     bor_real_t f, dot;
     size_t i;
 
-    dot = FER_ZERO;
+    dot = BOR_ZERO;
     for (i = 0; i < size; i++){
         f = a[i] - b[i];
-        dot += FER_SQ(f);
+        dot += BOR_SQ(f);
     }
 
     return dot;
 }
 _fer_inline bor_real_t ferVecDist(size_t size, const bor_vec_t *a, const bor_vec_t *b)
 {
-    return FER_SQRT(ferVecDist2(size, a, b));
+    return BOR_SQRT(ferVecDist2(size, a, b));
 }
 
 _fer_inline void ferVecSet(bor_vec_t *v, size_t d, bor_real_t val)
@@ -284,7 +284,7 @@ _fer_inline void ferVecSetAll(size_t size, bor_vec_t *v, bor_real_t val)
 
 _fer_inline void ferVecSetZero(size_t size, bor_vec_t *v)
 {
-    ferVecSetAll(size, v, FER_ZERO);
+    ferVecSetAll(size, v, BOR_ZERO);
 }
 
 _fer_inline int ferVecEq(size_t size, const bor_vec_t *v, const bor_vec_t *w)
@@ -387,7 +387,7 @@ _fer_inline bor_real_t ferVecDot(size_t size, const bor_vec_t *a, const bor_vec_
     bor_real_t dot;
     size_t i;
 
-    dot = FER_ZERO;
+    dot = BOR_ZERO;
     for (i = 0; i < size; i++){
         dot += a[i] * b[i];
     }
@@ -436,4 +436,4 @@ _fer_inline bor_real_t ferVecSum(size_t size, const bor_vec_t *v)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_VEC_H__ */
+#endif /* __BOR_VEC_H__ */

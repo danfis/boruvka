@@ -40,7 +40,7 @@ static uint32_t hash(time_t t, clock_t c);
 bor_rand_mt_t *ferRandMTNew(uint32_t seed)
 {
     bor_rand_mt_t *r;
-    r = FER_ALLOC(bor_rand_mt_t);
+    r = BOR_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseed(r, seed);
 
@@ -51,7 +51,7 @@ bor_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen)
 {
     bor_rand_mt_t *r;
 
-    r = FER_ALLOC(bor_rand_mt_t);
+    r = BOR_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseed2(r, seed, seedlen);
 
@@ -61,7 +61,7 @@ bor_rand_mt_t *ferRandMTNew2(uint32_t *seed, uint32_t seedlen)
 bor_rand_mt_t *ferRandMTNewAuto(void)
 {
     bor_rand_mt_t *r;
-    r = FER_ALLOC(bor_rand_mt_t);
+    r = BOR_ALLOC(bor_rand_mt_t);
 
     ferRandMTReseedAuto(r);
 
@@ -70,7 +70,7 @@ bor_rand_mt_t *ferRandMTNewAuto(void)
 
 void ferRandMTDel(bor_rand_mt_t *r)
 {
-    FER_FREE(r);
+    BOR_FREE(r);
 }
 
 void ferRandMTReseed(bor_rand_mt_t *r, uint32_t seed)
@@ -83,7 +83,7 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
 {
     register int i = 1;
     register uint32_t j = 0;
-    register int k = FER_MAX(FER_RAND_MT_N, seedlen);
+    register int k = BOR_MAX(BOR_RAND_MT_N, seedlen);
 
     // Seed the generator with an array of uint32's
     // There are 2^19937-1 possible initial states.  This function allows
@@ -101,8 +101,8 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
         ++i;
         ++j;
 
-        if (i >= FER_RAND_MT_N){
-            r->state[0] = r->state[FER_RAND_MT_N - 1];
+        if (i >= BOR_RAND_MT_N){
+            r->state[0] = r->state[BOR_RAND_MT_N - 1];
             i = 1;
         }
 
@@ -110,14 +110,14 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
             j = 0;
     }
 
-    for(k = FER_RAND_MT_N - 1; k; --k){
+    for(k = BOR_RAND_MT_N - 1; k; --k){
         r->state[i] ^= ((r->state[i-1] ^ (r->state[i-1] >> 30)) * 1566083941UL);
         r->state[i] -= i;
         r->state[i] &= 0xffffffffUL;
 
         ++i;
-        if (i >= FER_RAND_MT_N){
-            r->state[0] = r->state[FER_RAND_MT_N - 1];
+        if (i >= BOR_RAND_MT_N){
+            r->state[0] = r->state[BOR_RAND_MT_N - 1];
             i = 1;
         }
     }
@@ -130,7 +130,7 @@ void ferRandMTReseed2(bor_rand_mt_t *r, uint32_t *seed, uint32_t seedlen)
 void ferRandMTReseedAuto(bor_rand_mt_t *r)
 {
     FILE *urandom;
-    uint32_t bigSeed[FER_RAND_MT_N];
+    uint32_t bigSeed[BOR_RAND_MT_N];
     register uint32_t *s;
     register int i;
     register int success;
@@ -139,13 +139,13 @@ void ferRandMTReseedAuto(bor_rand_mt_t *r)
     urandom = fopen("/dev/urandom", "rb");
     if (urandom){
         s = bigSeed;
-        i = FER_RAND_MT_N;
+        i = BOR_RAND_MT_N;
         success = 1;
         while (success && i--)
             success = fread(s++, sizeof(uint32_t), 1, urandom);
         fclose(urandom);
         if (success){
-            ferRandMTReseed2(r, bigSeed, FER_RAND_MT_N);
+            ferRandMTReseed2(r, bigSeed, BOR_RAND_MT_N);
         }
     }
     
@@ -163,7 +163,7 @@ _fer_inline void ferRandMTInit(bor_rand_mt_t *g, uint32_t seed)
     register uint32_t *r = g->state;
     register int i = 1;
     *s++ = seed & 0xffffffffUL;
-    for( ; i < FER_RAND_MT_N; ++i )
+    for( ; i < BOR_RAND_MT_N; ++i )
     {
         *s++ = ( 1812433253UL * ( *r ^ (*r >> 30) ) + i ) & 0xffffffffUL;
         r++;
@@ -174,16 +174,16 @@ void __ferRandMTReload(bor_rand_mt_t *r)
 {
     // Generate N new values in state
     // Made clearer and faster by Matthew Bellew (matthew.bellew@home.com)
-    static const int MmN = (int)FER_RAND_MT_M - (int)FER_RAND_MT_N;
+    static const int MmN = (int)BOR_RAND_MT_M - (int)BOR_RAND_MT_N;
     register uint32_t *p = r->state;
     register int i;
-    for(i = FER_RAND_MT_N - FER_RAND_MT_M; i--; ++p)
-        *p = twist(p[FER_RAND_MT_M], p[0], p[1]);
-    for(i = FER_RAND_MT_M; --i; ++p)
+    for(i = BOR_RAND_MT_N - BOR_RAND_MT_M; i--; ++p)
+        *p = twist(p[BOR_RAND_MT_M], p[0], p[1]);
+    for(i = BOR_RAND_MT_M; --i; ++p)
         *p = twist(p[MmN], p[0], p[1]);
     *p = twist(p[MmN], p[0], r->state[0]);
     
-    r->left = FER_RAND_MT_N;
+    r->left = BOR_RAND_MT_N;
     r->next = r->state;
 }
 

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_MAT4_H__
-#define __FER_MAT4_H__
+#ifndef __BOR_MAT4_H__
+#define __BOR_MAT4_H__
 
 #include <boruvka/core.h>
 #include <boruvka/vec3.h>
@@ -45,7 +45,7 @@ extern const bor_mat4_t *fer_mat4_identity;
  */
 extern const bor_mat4_t *fer_mat4_zero;
 
-#define FER_MAT4_STATIC(f11, f12, f13, f14, \
+#define BOR_MAT4_STATIC(f11, f12, f13, f14, \
                         f21, f22, f23, f24, \
                         f31, f32, f33, f34, \
                         f41, f42, f43, f44) \
@@ -54,11 +54,11 @@ extern const bor_mat4_t *fer_mat4_zero;
              (f31), (f32), (f33), (f34), \
              (f41), (f42), (f43), (f44) } }
 
-#define FER_MAT4(name, f11, f12, f13, f14, \
+#define BOR_MAT4(name, f11, f12, f13, f14, \
                        f21, f22, f23, f24, \
                        f31, f32, f33, f34, \
                        f41, f42, f43, f44) \
-    bor_mat4_t name = FER_MAT4_STATIC((f11), (f12), (f13), (f14), \
+    bor_mat4_t name = BOR_MAT4_STATIC((f11), (f12), (f13), (f14), \
                                       (f21), (f22), (f23), (f24), \
                                       (f31), (f32), (f33), (f34), \
                                       (f41), (f42), (f43), (f44))
@@ -432,39 +432,39 @@ _fer_inline void ferMat4Set(bor_mat4_t *m,
 
 _fer_inline void ferMat4SetIdentity(bor_mat4_t *m)
 {
-    ferMat4Set(m, FER_ONE, FER_ZERO, FER_ZERO, FER_ZERO,
-                  FER_ZERO, FER_ONE, FER_ZERO, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ONE, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat4Set(m, BOR_ONE, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, BOR_ONE, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ONE, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat4SetZero(bor_mat4_t *m)
 {
-    ferMat4SetAll(m, FER_ZERO);
+    ferMat4SetAll(m, BOR_ZERO);
 }
 
 _fer_inline void ferMat4SetScale(bor_mat4_t *m, bor_real_t s)
 {
-    ferMat4Set(m, s, FER_ZERO, FER_ZERO, FER_ZERO,
-                  FER_ZERO, s, FER_ZERO, FER_ZERO,
-                  FER_ZERO, FER_ZERO, s, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat4Set(m, s, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, s, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, s, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat4SetDiag(bor_mat4_t *m, bor_real_t s)
 {
-    ferMat4Set(m, s, FER_ZERO, FER_ZERO, FER_ZERO,
-                  FER_ZERO, s, FER_ZERO, FER_ZERO,
-                  FER_ZERO, FER_ZERO, s, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ZERO, s);
+    ferMat4Set(m, s, BOR_ZERO, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, s, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, s, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ZERO, s);
 }
 
 _fer_inline void ferMat4SetTranslate(bor_mat4_t *m, const bor_vec3_t *v)
 {
-    ferMat4Set(m, FER_ONE, FER_ZERO, FER_ZERO, ferVec3X(v),
-                  FER_ZERO, FER_ONE, FER_ZERO, ferVec3Y(v),
-                  FER_ZERO, FER_ZERO, FER_ONE, ferVec3Z(v),
-                  FER_ZERO, FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat4Set(m, BOR_ONE, BOR_ZERO, BOR_ZERO, ferVec3X(v),
+                  BOR_ZERO, BOR_ONE, BOR_ZERO, ferVec3Y(v),
+                  BOR_ZERO, BOR_ZERO, BOR_ONE, ferVec3Z(v),
+                  BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat4SetRot(bor_mat4_t *m,
@@ -478,9 +478,9 @@ _fer_inline void ferMat4SetRot(bor_mat4_t *m,
     z2 = ferVec3Z(axis) * ferVec3Z(axis);
     len2 = x2 + y2 + z2;
 
-    k2   = FER_COS(angle);
-    k1   = (FER_ONE - k2) / len2;
-    k3   = FER_SIN(angle) / FER_SQRT(len2);
+    k2   = BOR_COS(angle);
+    k1   = (BOR_ONE - k2) / len2;
+    k3   = BOR_SIN(angle) / BOR_SQRT(len2);
     k1xy = k1 * ferVec3X(axis) * ferVec3Y(axis);
     k1xz = k1 * ferVec3X(axis) * ferVec3Z(axis);
     k1yz = k1 * ferVec3Y(axis) * ferVec3Z(axis);
@@ -491,22 +491,22 @@ _fer_inline void ferMat4SetRot(bor_mat4_t *m,
     m->f[0] = k1 * x2 + k2;
     m->f[1] = k1xy - k3z;
     m->f[2] = k1xz + k3y;
-    m->f[3] = FER_ZERO;
+    m->f[3] = BOR_ZERO;
 
     m->f[4] = k1xy + k3z;
     m->f[5] = k1 * y2 + k2;
     m->f[6] = k1yz - k3x;
-    m->f[7] = FER_ZERO;
+    m->f[7] = BOR_ZERO;
 
     m->f[8] = k1xy - k3y;
     m->f[9] = k1yz + k3x;
     m->f[10] = k1 * z2 + k2;
-    m->f[11] = FER_ZERO;
+    m->f[11] = BOR_ZERO;
 
-    m->f[12] = FER_ZERO;
-    m->f[13] = FER_ZERO;
-    m->f[14] = FER_ZERO;
-    m->f[15] = FER_ONE;
+    m->f[12] = BOR_ZERO;
+    m->f[13] = BOR_ZERO;
+    m->f[14] = BOR_ZERO;
+    m->f[15] = BOR_ONE;
 }
 
 _fer_inline void ferMat4TrScale(bor_mat4_t *m, bor_real_t s)
@@ -819,7 +819,7 @@ _fer_inline void ferMat4MulVec3(bor_vec3_t *v, const bor_mat4_t *m,
     ferVec4SetX(&w, ferVec3X(_w));
     ferVec4SetY(&w, ferVec3Y(_w));
     ferVec4SetZ(&w, ferVec3Z(_w));
-    ferVec4SetW(&w, FER_ONE);
+    ferVec4SetW(&w, BOR_ONE);
 
     ferVec3SetX(v, ferVec4Dot(m->v + 0, &w));
     ferVec3SetY(v, ferVec4Dot(m->v + 1, &w));
@@ -866,4 +866,4 @@ _fer_inline bor_real_t ferMat4DotRow(const bor_mat4_t *m, size_t r,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_MAT4_H__ */
+#endif /* __BOR_MAT4_H__ */

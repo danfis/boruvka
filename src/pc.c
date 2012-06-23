@@ -28,14 +28,14 @@
 
 bor_pc_t *ferPCNew(size_t dim)
 {
-    return ferPCNew2(dim, FER_PC_MIN_CHUNK_SIZE);
+    return ferPCNew2(dim, BOR_PC_MIN_CHUNK_SIZE);
 }
 
 bor_pc_t *ferPCNew2(size_t dim, size_t min_chunk_size)
 {
     bor_pc_t *pc;
 
-    pc = FER_ALLOC(bor_pc_t);
+    pc = BOR_ALLOC(bor_pc_t);
     pc->dim = dim;
     ferListInit(&pc->head);
     pc->len = 0;
@@ -53,15 +53,15 @@ void ferPCDel(bor_pc_t *pc)
     bor_list_t *item, *tmp;
     bor_pc_mem_t *mem;
 
-    FER_LIST_FOR_EACH_SAFE(&pc->head, item, tmp){
-        mem = FER_LIST_ENTRY(item, bor_pc_mem_t, list);
+    BOR_LIST_FOR_EACH_SAFE(&pc->head, item, tmp){
+        mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
         ferPCMemDel(mem);
     }
 
     if (pc->rand)
         ferRandMTDel(pc->rand);
 
-    FER_FREE(pc);
+    BOR_FREE(pc);
 }
 
 void ferPCAdd(bor_pc_t *pc, const bor_vec_t *v)
@@ -70,13 +70,13 @@ void ferPCAdd(bor_pc_t *pc, const bor_vec_t *v)
     bor_pc_mem_t *mem;
 
     item = ferListPrev(&pc->head);
-    mem = FER_LIST_ENTRY(item, bor_pc_mem_t, list);
+    mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
     if (ferListEmpty(&pc->head) || ferPCMemFull(mem)){
-#ifdef FER_SSE
+#ifdef BOR_SSE
         mem = ferPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 16);
-#else /* FER_SSE */
+#else /* BOR_SSE */
         mem = ferPCMemNew(pc->min_chunk_size, sizeof(bor_vec_t) * pc->dim, 0);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
         ferListAppend(&pc->head, &mem->list);
     }
 
@@ -96,8 +96,8 @@ bor_vec_t *ferPCGet(bor_pc_t *pc, size_t n)
         return NULL;
 
     pos = 0;
-    FER_LIST_FOR_EACH(&pc->head, item){
-        mem = FER_LIST_ENTRY(item, bor_pc_mem_t, list);
+    BOR_LIST_FOR_EACH(&pc->head, item){
+        mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
         if (pos + mem->len > n){
             p = ferPCMemGet2(mem, n - pos, bor_vec_t, sizeof(bor_vec_t) * pc->dim);
             break;
@@ -128,7 +128,7 @@ static void ferPCPermutateOther(bor_pc_mem_t *mem_from, size_t from,
     while (pos >= mem->len){
         pos -= mem->len;
         item = ferListNext(&mem->list);
-        mem = FER_LIST_ENTRY(item, bor_pc_mem_t, list);
+        mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
     }
 
     *other = mem;
@@ -153,8 +153,8 @@ void ferPCPermutate(bor_pc_t *pc)
     // iterate over all positions in all chunks consequently from beginning
     // and choose some point from rest of point cloud (from positions _after_
     // the current one) and swap points
-    FER_LIST_FOR_EACH(&pc->head, item){
-        cur_mem = FER_LIST_ENTRY(item, bor_pc_mem_t, list);
+    BOR_LIST_FOR_EACH(&pc->head, item){
+        cur_mem = BOR_LIST_ENTRY(item, bor_pc_mem_t, list);
         for (cur_pos = 0; cur_pos < cur_mem->len && pc_len - cur_pos > 1; cur_pos++){
             // choose other point for swapping
             ferPCPermutateOther(cur_mem, cur_pos + 1, pc_len, pc->rand,
@@ -254,8 +254,8 @@ void ferPCAABB(const bor_pc_t *pc, bor_real_t *aabb)
     const bor_vec_t *v;
 
     for (i = 0; i < pc->dim; i++){
-        aabb[2 * i] = FER_REAL_MAX;
-        aabb[2 * i + 1] = -FER_REAL_MAX;
+        aabb[2 * i] = BOR_REAL_MAX;
+        aabb[2 * i + 1] = -BOR_REAL_MAX;
     }
 
     ferPCItInit(&it, (bor_pc_t *)pc);

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_RAND_H__
-#define __FER_RAND_H__
+#ifndef __BOR_RAND_H__
+#define __BOR_RAND_H__
 
 #include <stdlib.h>
 #include <time.h>
@@ -77,4 +77,4 @@ _fer_inline bor_real_t ferRand(bor_rand_t *r, bor_real_t from, bor_real_t to)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_RAND_H__ */
+#endif /* __BOR_RAND_H__ */

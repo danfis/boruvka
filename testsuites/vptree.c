@@ -22,7 +22,7 @@ static bor_real_t build2Dist(void *item1, bor_list_t *item2,
                              void *data)
 {
     bor_vec2_t *p = (bor_vec2_t *)item1;
-    el_t *el = FER_LIST_ENTRY(item2, el_t, list);
+    el_t *el = BOR_LIST_ENTRY(item2, el_t, list);
 
     return ferVec2Dist(p, &el->w);
 }
@@ -107,7 +107,7 @@ static bor_real_t build3Dist(void *item1, bor_list_t *item2,
                              void *data)
 {
     bor_vec3_t *p = (bor_vec3_t *)item1;
-    el3_t *el = FER_LIST_ENTRY(item2, el3_t, list);
+    el3_t *el = BOR_LIST_ENTRY(item2, el3_t, list);
 
     return ferVec3Dist(p, &el->w);
 }

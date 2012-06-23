@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_MAT3_H__
-#define __FER_MAT3_H__
+#ifndef __BOR_MAT3_H__
+#define __BOR_MAT3_H__
 
 #include <boruvka/core.h>
 #include <boruvka/vec2.h>
@@ -45,17 +45,17 @@ extern const bor_mat3_t *fer_mat3_identity;
  */
 extern const bor_mat3_t *fer_mat3_zero;
 
-#define FER_MAT3_STATIC(f11, f12, f13, \
+#define BOR_MAT3_STATIC(f11, f12, f13, \
                         f21, f22, f23, \
                         f31, f32, f33) \
-    { .f = { (f11), (f12), (f13), FER_ZERO, \
-             (f21), (f22), (f23), FER_ZERO, \
-             (f31), (f32), (f33), FER_ZERO } }
+    { .f = { (f11), (f12), (f13), BOR_ZERO, \
+             (f21), (f22), (f23), BOR_ZERO, \
+             (f31), (f32), (f33), BOR_ZERO } }
 
-#define FER_MAT3(name, f11, f12, f13, \
+#define BOR_MAT3(name, f11, f12, f13, \
                        f21, f22, f23, \
                        f31, f32, f33) \
-    bor_mat3_t name = FER_MAT3_STATIC(f11, f12, f13, \
+    bor_mat3_t name = BOR_MAT3_STATIC(f11, f12, f13, \
                                       f21, f22, f23, \
                                       f31, f32, f33)
 
@@ -485,62 +485,62 @@ _fer_inline void ferMat3SetRows(bor_mat3_t *m,
 
 _fer_inline void ferMat3SetIdentity(bor_mat3_t *m)
 {
-    ferMat3Set(m, FER_ONE, FER_ZERO, FER_ZERO,
-                  FER_ZERO, FER_ONE, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat3Set(m, BOR_ONE, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, BOR_ONE, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat3SetZero(bor_mat3_t *m)
 {
-    ferMat3SetAll(m, FER_ZERO);
+    ferMat3SetAll(m, BOR_ZERO);
 }
 
 _fer_inline void ferMat3SetScale(bor_mat3_t *m, bor_real_t s)
 {
-    ferMat3Set(m, s, FER_ZERO, FER_ZERO,
-                  FER_ZERO, s, FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat3Set(m, s, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, s, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat3SetDiag(bor_mat3_t *m, bor_real_t s)
 {
-    ferMat3Set(m, s, FER_ZERO, FER_ZERO,
-                  FER_ZERO, s, FER_ZERO,
-                  FER_ZERO, FER_ZERO, s);
+    ferMat3Set(m, s, BOR_ZERO, BOR_ZERO,
+                  BOR_ZERO, s, BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, s);
 }
 
 _fer_inline void ferMat3SetTranslate(bor_mat3_t *m, const bor_vec2_t *v)
 {
-    ferMat3Set(m, FER_ONE, FER_ZERO, ferVec2X(v),
-                  FER_ZERO, FER_ONE, ferVec2Y(v),
-                  FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat3Set(m, BOR_ONE, BOR_ZERO, ferVec2X(v),
+                  BOR_ZERO, BOR_ONE, ferVec2Y(v),
+                  BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat3SetRot(bor_mat3_t *m, bor_real_t angle)
 {
-    ferMat3Set(m, FER_COS(angle), -FER_SIN(angle), FER_ZERO,
-                  FER_SIN(angle),  FER_COS(angle), FER_ZERO,
-                  FER_ZERO, FER_ZERO, FER_ONE);
+    ferMat3Set(m, BOR_COS(angle), -BOR_SIN(angle), BOR_ZERO,
+                  BOR_SIN(angle),  BOR_COS(angle), BOR_ZERO,
+                  BOR_ZERO, BOR_ZERO, BOR_ONE);
 }
 
 _fer_inline void ferMat3SetRot3D(bor_mat3_t *m,
                                  bor_real_t ax, bor_real_t ay, bor_real_t az)
 {
-    m->f[0] = FER_COS(ay) * FER_COS(az);
-    m->f[1]  = -FER_COS(ax) * FER_SIN(az);
-    m->f[1] += FER_SIN(ax) * FER_SIN(ay) * FER_COS(az);
-    m->f[2]  = FER_SIN(ax) * FER_SIN(az);
-    m->f[2] += FER_COS(ax) * FER_SIN(ay) * FER_COS(az);
+    m->f[0] = BOR_COS(ay) * BOR_COS(az);
+    m->f[1]  = -BOR_COS(ax) * BOR_SIN(az);
+    m->f[1] += BOR_SIN(ax) * BOR_SIN(ay) * BOR_COS(az);
+    m->f[2]  = BOR_SIN(ax) * BOR_SIN(az);
+    m->f[2] += BOR_COS(ax) * BOR_SIN(ay) * BOR_COS(az);
 
-    m->f[4] = FER_COS(ay) * FER_SIN(az);
-    m->f[5]  = FER_COS(ax) * FER_COS(az);
-    m->f[5] += FER_SIN(ax) * FER_SIN(ay) * FER_SIN(az);
-    m->f[6]  = -FER_SIN(ax) * FER_COS(az);
-    m->f[6] += FER_COS(ax) * FER_SIN(ay) * FER_SIN(az);
+    m->f[4] = BOR_COS(ay) * BOR_SIN(az);
+    m->f[5]  = BOR_COS(ax) * BOR_COS(az);
+    m->f[5] += BOR_SIN(ax) * BOR_SIN(ay) * BOR_SIN(az);
+    m->f[6]  = -BOR_SIN(ax) * BOR_COS(az);
+    m->f[6] += BOR_COS(ax) * BOR_SIN(ay) * BOR_SIN(az);
 
-    m->f[8] = -FER_SIN(ay);
-    m->f[9] = FER_SIN(ax) * FER_COS(ay);
-    m->f[10] = FER_COS(ax) * FER_COS(ay);
+    m->f[8] = -BOR_SIN(ay);
+    m->f[9] = BOR_SIN(ax) * BOR_COS(ay);
+    m->f[10] = BOR_COS(ax) * BOR_COS(ay);
 }
 
 _fer_inline void ferMat3TrScale(bor_mat3_t *m, bor_real_t s)
@@ -897,7 +897,7 @@ _fer_inline void ferMat3MulVec2(bor_vec2_t *v, const bor_mat3_t *m,
     bor_real_t denom;
     bor_vec3_t w;
 
-    ferVec3Set(&w, ferVec2X(_w), ferVec2Y(_w), FER_ONE);
+    ferVec3Set(&w, ferVec2X(_w), ferVec2Y(_w), BOR_ONE);
 
     ferVec2SetX(v, ferMat3DotRow(m, 0, &w));
     ferVec2SetY(v, ferMat3DotRow(m, 1, &w));
@@ -912,7 +912,7 @@ _fer_inline void ferMat3Abs2(bor_mat3_t *dst, const bor_mat3_t *src)
 
     for (i = 0; i < 3 * 4;){
         for (j = 0; j < 3; j++, i++){
-            dst->f[i] = FER_FABS(src->f[i]);
+            dst->f[i] = BOR_FABS(src->f[i]);
         }
         i++;
     }
@@ -956,4 +956,4 @@ _fer_inline bor_real_t ferMat3DotRow(const bor_mat3_t *m, size_t row,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_MAT3_H__ */
+#endif /* __BOR_MAT3_H__ */

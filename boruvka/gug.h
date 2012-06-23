@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_GUG_H__
-#define __FER_GUG_H__
+#ifndef __BOR_GUG_H__
+#define __BOR_GUG_H__
 
 #include <boruvka/list.h>
 #include <boruvka/vec.h>
@@ -326,8 +326,8 @@ _fer_inline size_t __ferGUGCoordsToID(const bor_gug_t *cs,
         f  = ferVecGet(p, i) + cs->shift[i];
         f *= cs->edge_recp;
 
-        tmp = FER_MAX((int)f, 0);
-        tmp = FER_MIN(tmp, cs->dim[i] - 1);
+        tmp = BOR_MAX((int)f, 0);
+        tmp = BOR_MIN(tmp, cs->dim[i] - 1);
 
         id  += tmp * mul;
         mul *= cs->dim[i];
@@ -340,4 +340,4 @@ _fer_inline size_t __ferGUGCoordsToID(const bor_gug_t *cs,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_GUG_H__ */
+#endif /* __BOR_GUG_H__ */

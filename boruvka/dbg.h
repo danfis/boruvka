@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_DBG_H__
-#define __FER_DBG_H__
+#ifndef __BOR_DBG_H__
+#define __BOR_DBG_H__
 
 /**
  * Some macros which can be used for printing debug info to stderr if macro
@@ -47,7 +47,7 @@
     } while (0)
 
 # define DBG_VEC3(vec, prefix) do {\
-    fprintf(stderr, DBG_PROLOGUE "%s :: %s[" FER_REAL_STR " " FER_REAL_STR " " FER_REAL_STR "]\n", \
+    fprintf(stderr, DBG_PROLOGUE "%s :: %s[" BOR_REAL_STR " " BOR_REAL_STR " " BOR_REAL_STR "]\n", \
             __func__, prefix, ferVec3X(vec), \
                               ferVec3Y(vec), \
                               ferVec3Z(vec)); \
@@ -79,4 +79,4 @@
 # define ERR2(str)
 #endif
 
-#endif /* __FER_DBG_H__ */
+#endif /* __BOR_DBG_H__ */

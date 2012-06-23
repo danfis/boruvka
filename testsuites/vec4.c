@@ -28,7 +28,7 @@ TEST(vec4Add)
     size_t i;
 
     printf("# ---- add ----\n");
-    ferVec4Set(&v, FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs4_len; i++){
         ferVec4Add(&v, &vecs4[i]);
         printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));
@@ -42,7 +42,7 @@ TEST(vec4Sub)
     size_t i;
 
     printf("# ---- sub ----\n");
-    ferVec4Set(&v, FER_ZERO, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec4Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs4_len; i++){
         ferVec4Sub(&v, &vecs4[i]);
         printf("# %g %g %g %g\n", ferVec4X(&v), ferVec4Y(&v), ferVec4Z(&v), ferVec4W(&v));

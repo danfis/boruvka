@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_CORE_H__
-#define __FER_CORE_H__
+#ifndef __BOR_CORE_H__
+#define __BOR_CORE_H__
 
 #include <math.h>
 #include <float.h>
@@ -24,7 +24,7 @@
 #include <boruvka/config.h>
 #include <boruvka/compiler.h>
 
-#ifdef FER_SSE
+#ifdef BOR_SSE
 # include <immintrin.h>
 #endif
 
@@ -38,13 +38,13 @@ extern "C" {
  */
 
 
-#ifndef FER_SINGLE
-# ifndef FER_DOUBLE
-#  error You must define FER_SINGLE or FER_DOUBLE
-# endif /* FER_DOUBLE */
-#endif /* FER_SINGLE */
+#ifndef BOR_SINGLE
+# ifndef BOR_DOUBLE
+#  error You must define BOR_SINGLE or BOR_DOUBLE
+# endif /* BOR_DOUBLE */
+#endif /* BOR_SINGLE */
 
-#ifdef FER_SSE
+#ifdef BOR_SSE
 union _bor_sse_t {
     __m128 m;
     __m128d md;
@@ -52,80 +52,80 @@ union _bor_sse_t {
     double d[2];
 } fer_aligned(16) fer_packed;
 typedef union _bor_sse_t bor_sse_t;
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 
 
-#ifdef FER_SINGLE
-# ifdef FER_DOUBLE
-#  error You can define either FER_SINGLE or FER_DOUBLE, not both!
-# endif /* FER_DOUBLE */
+#ifdef BOR_SINGLE
+# ifdef BOR_DOUBLE
+#  error You can define either BOR_SINGLE or BOR_DOUBLE, not both!
+# endif /* BOR_DOUBLE */
 
 typedef float bor_real_t;
 typedef uint32_t bor_uint_t;
 
-/*# define FER_EPS 1E-6 */
-# define FER_EPS FLT_EPSILON  /*!< epsilon */
-# define FER_REAL_MAX FLT_MAX /*!< maximal real value */
-# define FER_REAL_MIN FLT_MIN /*!< minimal real value */
+/*# define BOR_EPS 1E-6 */
+# define BOR_EPS FLT_EPSILON  /*!< epsilon */
+# define BOR_REAL_MAX FLT_MAX /*!< maximal real value */
+# define BOR_REAL_MIN FLT_MIN /*!< minimal real value */
 
-# define FER_REAL_STR "%.30f"
+# define BOR_REAL_STR "%.30f"
 
-# define FER_REAL(x)     (x ## f)          /*!< form a constant */
+# define BOR_REAL(x)     (x ## f)          /*!< form a constant */
 
-# ifdef FER_SSE
-#  define FER_SQRT(x)     (__ferSqrt(x))   /*!< square root */
-# else /* FER_SSE */
-#  define FER_SQRT(x)     (sqrtf(x))
-# endif /* FER_SSE */
+# ifdef BOR_SSE
+#  define BOR_SQRT(x)     (__ferSqrt(x))   /*!< square root */
+# else /* BOR_SSE */
+#  define BOR_SQRT(x)     (sqrtf(x))
+# endif /* BOR_SSE */
 
-# define FER_FABS(x)     (fabsf(x))        /*!< absolute value */
-# define FER_FMAX(x, y)  (fmaxf((x), (y))) /*!< maximum of two floats */
-# define FER_FMIN(x, y)  (fminf((x), (y))) /*!< minimum of two floats */
-# define FER_CBRT(x)     (cbrtf(x)         /*!< cube root */
-# define FER_COS(x)      (cosf(x))         /*!< cosine */
-# define FER_SIN(x)      (sinf(x))         /*!< sine */
-# define FER_ACOS(x)     (acosf(x))        /*!< arc cosine */
-# define FER_ASIN(x)     (asinf(x))        /*!< arc sine */
-# define FER_ATAN2(y, x) (atan2f(y, x))    /*!< arc tangent of y/x */
-# define FER_ATAN(x)     (atanf(x))        /*!< arc tangent of y/x */
-# define FER_POW(x, y)   (powf((x), (y)))  /*!< power function */
-# define FER_EXP(x)      (expf(x))         /*!< e exponential */
+# define BOR_FABS(x)     (fabsf(x))        /*!< absolute value */
+# define BOR_FMAX(x, y)  (fmaxf((x), (y))) /*!< maximum of two floats */
+# define BOR_FMIN(x, y)  (fminf((x), (y))) /*!< minimum of two floats */
+# define BOR_CBRT(x)     (cbrtf(x)         /*!< cube root */
+# define BOR_COS(x)      (cosf(x))         /*!< cosine */
+# define BOR_SIN(x)      (sinf(x))         /*!< sine */
+# define BOR_ACOS(x)     (acosf(x))        /*!< arc cosine */
+# define BOR_ASIN(x)     (asinf(x))        /*!< arc sine */
+# define BOR_ATAN2(y, x) (atan2f(y, x))    /*!< arc tangent of y/x */
+# define BOR_ATAN(x)     (atanf(x))        /*!< arc tangent of y/x */
+# define BOR_POW(x, y)   (powf((x), (y)))  /*!< power function */
+# define BOR_EXP(x)      (expf(x))         /*!< e exponential */
 
-#endif /* FER_SINGLE */
+#endif /* BOR_SINGLE */
 
-#ifdef FER_DOUBLE
+#ifdef BOR_DOUBLE
 typedef double bor_real_t;
 typedef uint64_t bor_uint_t;
 
-/*# define FER_EPS 1E-10*/
-# define FER_EPS DBL_EPSILON
-# define FER_REAL_MAX DBL_MAX
-# define FER_REAL_MIN DBL_MIN
+/*# define BOR_EPS 1E-10*/
+# define BOR_EPS DBL_EPSILON
+# define BOR_REAL_MAX DBL_MAX
+# define BOR_REAL_MIN DBL_MIN
 
-# define FER_REAL_STR "%.30lf"
+# define BOR_REAL_STR "%.30lf"
 
-# define FER_REAL(x)     (x ## f)
+# define BOR_REAL(x)     (x ## f)
 
-# ifdef FER_SSE
-#  define FER_SQRT(x)     (__ferSqrt(x))
-# else /* FER_SSE */
-#  define FER_SQRT(x)     (sqrt(x))
-# endif /* FER_SSE */
+# ifdef BOR_SSE
+#  define BOR_SQRT(x)     (__ferSqrt(x))
+# else /* BOR_SSE */
+#  define BOR_SQRT(x)     (sqrt(x))
+# endif /* BOR_SSE */
 
-# define FER_FABS(x)     (fabs(x))
-# define FER_FMAX(x, y)  (fmax((x), (y)))
-# define FER_FMIN(x, y)  (fmin((x), (y)))
-# define FER_CBRT(x)     (cbrt(x)
-# define FER_COS(x)      (cos(x))
-# define FER_SIN(x)      (sin(x))
-# define FER_ACOS(x)     (acos(x))
-# define FER_ASIN(x)     (asin(x))
-# define FER_ATAN2(y, x) (atan2(y, x))
-# define FER_ATAN(x)     (atan(x))
-# define FER_POW(x, y)   (pow((x), (y)))
-# define FER_EXP(x)      (exp(x))
+# define BOR_FABS(x)     (fabs(x))
+# define BOR_FMAX(x, y)  (fmax((x), (y)))
+# define BOR_FMIN(x, y)  (fmin((x), (y)))
+# define BOR_CBRT(x)     (cbrt(x)
+# define BOR_COS(x)      (cos(x))
+# define BOR_SIN(x)      (sin(x))
+# define BOR_ACOS(x)     (acos(x))
+# define BOR_ASIN(x)     (asin(x))
+# define BOR_ATAN2(y, x) (atan2(y, x))
+# define BOR_ATAN(x)     (atan(x))
+# define BOR_POW(x, y)   (pow((x), (y)))
+# define BOR_EXP(x)      (exp(x))
 
-#endif /* FER_DOUBLE */
+#endif /* BOR_DOUBLE */
 
 union _bor_real_uint_t {
     bor_real_t f;
@@ -134,27 +134,27 @@ union _bor_real_uint_t {
 typedef union _bor_real_uint_t bor_real_uint_t;
 
 
-#define FER_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
-#define FER_MAX(x, y) ((x) > (y) ? (x) : (y)) /*!< maximum */
-#define FER_SQ(x)     ((x) * (x))             /*!< square */
-#define FER_POWL(x, y) (powl((x), (y)))       /*!< power function */
+#define BOR_MIN(x, y) ((x) < (y) ? (x) : (y)) /*!< minimum */
+#define BOR_MAX(x, y) ((x) > (y) ? (x) : (y)) /*!< maximum */
+#define BOR_SQ(x)     ((x) * (x))             /*!< square */
+#define BOR_POWL(x, y) (powl((x), (y)))       /*!< power function */
 
-#define FER_ONE FER_REAL(1.)  /*!< unit constant */
-#define FER_ZERO FER_REAL(0.) /*!< zero contant */
+#define BOR_ONE BOR_REAL(1.)  /*!< unit constant */
+#define BOR_ZERO BOR_REAL(0.) /*!< zero contant */
 
 
 /**
  * Swaps {a} and {b} using given temporary variable {tmp}.
  */
-#define FER_SWAP(a, b, tmp) \
+#define BOR_SWAP(a, b, tmp) \
     (tmp) = (a); \
     (a) = (b); \
     (b) = (tmp)
 
 
-#ifdef FER_SSE
+#ifdef BOR_SSE
 _fer_inline bor_real_t __ferSqrt(bor_real_t val);
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 
 /**
  * Returns sign of value.
@@ -198,28 +198,28 @@ _fer_inline void *ferAlign(void *mem, int alignment);
 _fer_inline bor_uint_t ferRealAsUInt(bor_real_t x);
 
 /***** INLINES *****/
-#ifdef FER_SSE
+#ifdef BOR_SSE
 _fer_inline bor_real_t __ferSqrt(bor_real_t val)
 {
     bor_sse_t m;
 
-#ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE_SINGLE
     m.m = _mm_set1_ps(val);
     m.m = _mm_sqrt_ps(m.m);
     return m.f[0];
-#else /* FER_SSE_SINGLE */
+#else /* BOR_SSE_SINGLE */
     m.md = _mm_set1_pd(val);
     m.md = _mm_sqrt_pd(m.md);
     return m.d[0];
-#endif /* FER_SSE_SINGLE */
+#endif /* BOR_SSE_SINGLE */
 }
-#endif /* FER_SSE */
+#endif /* BOR_SSE */
 
 _fer_inline int ferSign(bor_real_t val)
 {
     if (ferIsZero(val)){
         return 0;
-    }else if (val < FER_ZERO){
+    }else if (val < BOR_ZERO){
         return -1;
     }
     return 1;
@@ -227,24 +227,24 @@ _fer_inline int ferSign(bor_real_t val)
 
 _fer_inline int ferIsZero(bor_real_t val)
 {
-    return FER_FABS(val) < FER_EPS;
+    return BOR_FABS(val) < BOR_EPS;
 }
 
 _fer_inline int ferEq(bor_real_t _a, bor_real_t _b)
 {
     bor_real_t ab;
 
-    ab = FER_FABS(_a - _b);
-    if (ab < FER_EPS)
+    ab = BOR_FABS(_a - _b);
+    if (ab < BOR_EPS)
         return 1;
 
     bor_real_t a, b;
-    a = FER_FABS(_a);
-    b = FER_FABS(_b);
+    a = BOR_FABS(_a);
+    b = BOR_FABS(_b);
     if (b > a){
-        return ab < FER_EPS * b;
+        return ab < BOR_EPS * b;
     }else{
-        return ab < FER_EPS * a;
+        return ab < BOR_EPS * a;
     }
 }
 
@@ -255,26 +255,26 @@ _fer_inline int ferNEq(bor_real_t a, bor_real_t b)
 
 _fer_inline bor_real_t ferRecp(bor_real_t v)
 {
-#ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE_SINGLE
     bor_sse_t m;
     m.m = _mm_set1_ps(v);
     m.m = _mm_rcp_ps(m.m);
     return m.f[0];
-#else /* FER_SSE_SINGLE */
-    return FER_ONE / v;
-#endif /* FER_SSE_SINGLE */
+#else /* BOR_SSE_SINGLE */
+    return BOR_ONE / v;
+#endif /* BOR_SSE_SINGLE */
 }
 
 _fer_inline bor_real_t ferRsqrt(bor_real_t v)
 {
-#ifdef FER_SSE_SINGLE
+#ifdef BOR_SSE_SINGLE
     bor_sse_t m;
     m.m = _mm_set1_ps(v);
     m.m = _mm_rsqrt_ps(m.m);
     return m.f[0];
-#else /* FER_SSE_SINGLE */
-    return FER_ONE / FER_SQRT(v);
-# endif /* FER_SSE_SINGLE */
+#else /* BOR_SSE_SINGLE */
+    return BOR_ONE / BOR_SQRT(v);
+# endif /* BOR_SSE_SINGLE */
 }
 
 _fer_inline void *ferAlign(void *mem, int align)
@@ -299,4 +299,4 @@ _fer_inline bor_uint_t ferRealAsUInt(bor_real_t x)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_CORE_H__ */
+#endif /* __BOR_CORE_H__ */

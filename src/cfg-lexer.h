@@ -15,8 +15,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_CFG_LEXER_H__
-#define __FER_CFG_LEXER_H__
+#ifndef __BOR_CFG_LEXER_H__
+#define __BOR_CFG_LEXER_H__
 
 struct _bor_cfg_lex_t {
     const char *str;
@@ -51,5 +51,5 @@ typedef struct _bor_cfg_lex_t bor_cfg_lex_t;
 #define T_IS_VAL(tok) \
     ((tok & 0x4000) == 0x4000)
 
-#endif /* __FER_CFG_LEXER_H__ */
+#endif /* __BOR_CFG_LEXER_H__ */
 

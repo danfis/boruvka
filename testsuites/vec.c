@@ -34,9 +34,9 @@ static void prVec(size_t len, const char *prefix, const bor_vec_t *v)
 
 TEST(vecOperators)
 {
-    FER_VEC(u, 6);
-    FER_VEC(v, 6);
-    FER_VEC(w, 6);
+    BOR_VEC(u, 6);
+    BOR_VEC(v, 6);
+    BOR_VEC(w, 6);
 
     printf("---- vecOperators ---\n");
 

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_PARSE_H__
-#define __FER_PARSE_H__
+#ifndef __BOR_PARSE_H__
+#define __BOR_PARSE_H__
 
 #include <boruvka/vec2.h>
 #include <boruvka/vec3.h>
@@ -69,4 +69,4 @@ int ferParseLong(const char *str, const char *strend, long *val, char **next);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_PARSE_H__ */
+#endif /* __BOR_PARSE_H__ */

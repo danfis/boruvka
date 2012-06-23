@@ -34,8 +34,8 @@ bor_hmap_t *ferHMapNew(size_t size,
     bor_hmap_t *hmap;
     size_t i;
 
-    hmap = FER_ALLOC(bor_hmap_t);
-    hmap->table = FER_ALLOC_ARR(bor_list_t, size);
+    hmap = BOR_ALLOC(bor_hmap_t);
+    hmap->table = BOR_ALLOC_ARR(bor_list_t, size);
     hmap->size = size;
 
     hmap->hash = hash_func;
@@ -65,8 +65,8 @@ void ferHMapDel(bor_hmap_t *h)
         }
     }
 
-    FER_FREE(h->table);
-    FER_FREE(h);
+    BOR_FREE(h->table);
+    BOR_FREE(h);
 }
 
 
@@ -84,7 +84,7 @@ bor_list_t *ferHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
     bor_list_t *item;
 
-    FER_LIST_FOR_EACH(&m->table[id], item){
+    BOR_LIST_FOR_EACH(&m->table[id], item){
         if (m->eq(key1, item, m->data))
             return item;
     }

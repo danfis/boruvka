@@ -21,39 +21,39 @@
 #include <boruvka/mat3.h>
 #include <boruvka/dbg.h>
 
-FER_VEC2(__fer_vec2_origin, FER_ZERO, FER_ZERO);
+BOR_VEC2(__fer_vec2_origin, BOR_ZERO, BOR_ZERO);
 const bor_vec2_t *fer_vec2_origin = &__fer_vec2_origin;
-FER_VEC2(__fer_vec2_01, FER_ZERO, FER_ONE);
+BOR_VEC2(__fer_vec2_01, BOR_ZERO, BOR_ONE);
 const bor_vec2_t *fer_vec2_01 = &__fer_vec2_01;
-FER_VEC2(__fer_vec2_10, FER_ONE, FER_ZERO);
+BOR_VEC2(__fer_vec2_10, BOR_ONE, BOR_ZERO);
 const bor_vec2_t *fer_vec2_10 = &__fer_vec2_10;
-FER_VEC2(__fer_vec2_11, FER_ONE, FER_ONE);
+BOR_VEC2(__fer_vec2_11, BOR_ONE, BOR_ONE);
 const bor_vec2_t *fer_vec2_11 = &__fer_vec2_11;
 
 bor_vec2_t *ferVec2New(bor_real_t x, bor_real_t y)
 {
     bor_vec2_t *v;
 
-#ifdef FER_SSE
-    v = FER_ALLOC_ALIGN(bor_vec2_t, 16);
-#else /* FER_SSE */
-    v = FER_ALLOC(bor_vec2_t);
-#endif /* FER_SSE */
+#ifdef BOR_SSE
+    v = BOR_ALLOC_ALIGN(bor_vec2_t, 16);
+#else /* BOR_SSE */
+    v = BOR_ALLOC(bor_vec2_t);
+#endif /* BOR_SSE */
     ferVec2Set(v, x, y);
     return v;
 }
 
 void ferVec2Del(bor_vec2_t *v)
 {
-    FER_FREE(v);
+    BOR_FREE(v);
 }
 
 _fer_inline void _ferVec2Rot(const bor_vec2_t *v, bor_real_t angle,
                              bor_real_t *x, bor_real_t *y)
 {
     bor_real_t cosa, sina;
-    cosa = FER_COS(angle);
-    sina = FER_SIN(angle);
+    cosa = BOR_COS(angle);
+    sina = BOR_SIN(angle);
 
     *x = ferVec2X(v) * cosa - ferVec2Y(v) * sina;
     *y = ferVec2X(v) * sina + ferVec2Y(v) * cosa;
@@ -107,23 +107,23 @@ bor_real_t ferVec2Angle(const bor_vec2_t *a, const bor_vec2_t *b, const bor_vec2
 
     num   = ferVec2Dot(&v, &w);
     denom = ferVec2Len2(&v) * ferVec2Len2(&w);
-    denom = FER_SQRT(denom);
+    denom = BOR_SQRT(denom);
     ang   = num / denom;
 
-    if (ang > FER_ONE)
-        ang = FER_ONE;
-    if (ang < -FER_ONE)
-        ang = -FER_ONE;
+    if (ang > BOR_ONE)
+        ang = BOR_ONE;
+    if (ang < -BOR_ONE)
+        ang = -BOR_ONE;
 
-    return FER_ACOS(ang);
+    return BOR_ACOS(ang);
 }
 
 
 /** Returns true if given number is between 0 and 1 inclusive. */
 _fer_inline int num01(bor_real_t n)
 {
-    if (ferEq(n, FER_ZERO) || ferEq(n, FER_ONE)
-        || (n > FER_ZERO && n < FER_ONE))
+    if (ferEq(n, BOR_ZERO) || ferEq(n, BOR_ONE)
+        || (n > BOR_ZERO && n < BOR_ONE))
         return 1;
     return 0;
 }
@@ -144,7 +144,7 @@ int ferVec2IntersectPoint(const bor_vec2_t *a, const bor_vec2_t *b,
     y2y1 = ferVec2Y(b) - ferVec2Y(a);
 
     factor = y4y3 * x2x1 - x4x3 * y2y1;
-    if (ferEq(factor, FER_ZERO))
+    if (ferEq(factor, BOR_ZERO))
         return -1; // segments are parallel
 
     ua = (x4x3 * y1y3 - y4y3 * x1x3) / factor;
@@ -173,13 +173,13 @@ int ferVec2ProjectionPointOntoSegment(const bor_vec2_t *a, const bor_vec2_t *b,
     cxax = ferVec2X(c) - ferVec2X(a);
     cyay = ferVec2Y(c) - ferVec2Y(a);
 
-    if (ferEq(ux, FER_ZERO) && ferEq(uy, FER_ZERO)){
+    if (ferEq(ux, BOR_ZERO) && ferEq(uy, BOR_ZERO)){
         return -1;
-    }else if (ferEq(ux, FER_ZERO)){
+    }else if (ferEq(ux, BOR_ZERO)){
         xx = ferVec2X(a);
         xy = ferVec2Y(c);
         k = (xy - ferVec2Y(a)) / uy;
-    }else if (ferEq(uy, FER_ZERO)){
+    }else if (ferEq(uy, BOR_ZERO)){
         xx = ferVec2X(c);
         xy = ferVec2Y(a);
         k = (xx - ferVec2X(a)) / ux;
@@ -196,7 +196,7 @@ int ferVec2ProjectionPointOntoSegment(const bor_vec2_t *a, const bor_vec2_t *b,
         ferVec2Copy(x, a);
     }else if (ferVec2Eq2(b, xx, xy)){
         ferVec2Copy(x, b);
-    }else if (k > FER_ZERO && k < FER_ONE){
+    }else if (k > BOR_ZERO && k < BOR_ONE){
         ferVec2Set(x, xx, xy);
     }else{
         return -1;
@@ -295,10 +295,10 @@ _fer_inline int liesIn(const bor_vec2_t *a, const bor_vec2_t *b,
     areabc = ferVec2Area2(b, c, x);
     areacd = ferVec2Area2(c, d, x);
     areada = ferVec2Area2(d, a, x);
-    if (ferNEq(areaab, FER_ZERO) && areaab > FER_ZERO
-        && ferNEq(areabc, FER_ZERO) && areabc > FER_ZERO
-        && ferNEq(areacd, FER_ZERO) && areacd > FER_ZERO
-        && ferNEq(areada, FER_ZERO) && areada > FER_ZERO){
+    if (ferNEq(areaab, BOR_ZERO) && areaab > BOR_ZERO
+        && ferNEq(areabc, BOR_ZERO) && areabc > BOR_ZERO
+        && ferNEq(areacd, BOR_ZERO) && areacd > BOR_ZERO
+        && ferNEq(areada, BOR_ZERO) && areada > BOR_ZERO){
         liesin = 1;
     }
 
@@ -380,7 +380,7 @@ bor_real_t ferVec2AngleSameDir(const bor_vec2_t *a, const bor_vec2_t *b)
 
     if (ferVec2Collinear(origin, a, b)){
         if (ferVec2LiesOn(a, origin, b) || ferVec2LiesOn(b, origin, a)){
-            angle = FER_ZERO;
+            angle = BOR_ZERO;
         }else{
             angle = M_PI;
         }
@@ -447,7 +447,7 @@ static int __ferVec2BoxBoxOverlapAxis(const bor_vec2_t *axis,
     for (i = 0; i < 4; i++){
         ferVec2Sub2(&s, &pts[i], p);
         dot = ferVec2Dot(axis, &s);
-        if (dot > FER_ZERO){
+        if (dot > BOR_ZERO){
             ++pos;
         }else{
             ++neg;

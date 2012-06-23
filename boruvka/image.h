@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_IMAGE_H__
-#define __FER_IMAGE_H__
+#ifndef __BOR_IMAGE_H__
+#define __BOR_IMAGE_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -94,4 +94,4 @@ void ferImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_IMAGE_H__ */
+#endif /* __BOR_IMAGE_H__ */

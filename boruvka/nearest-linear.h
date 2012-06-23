@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_NEAREST_LINEAR_H__
-#define __FER_NEAREST_LINEAR_H__
+#ifndef __BOR_NEAREST_LINEAR_H__
+#define __BOR_NEAREST_LINEAR_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -53,5 +53,5 @@ size_t ferNearestLinear(bor_list_t *list, void *p,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_NEAREST_LINEAR_H__ */
+#endif /* __BOR_NEAREST_LINEAR_H__ */
 

@@ -23,13 +23,13 @@
 bor_vec_t *ferVecNew(size_t size)
 {
     bor_vec_t *v;
-    v = FER_ALLOC_ARR(bor_vec_t, size);
+    v = BOR_ALLOC_ARR(bor_vec_t, size);
     return v;
 }
 
 void ferVecDel(bor_vec_t *v)
 {
-    FER_FREE(v);
+    BOR_FREE(v);
 }
 
 void ferVecSetN(size_t size, bor_vec_t *v, ...)

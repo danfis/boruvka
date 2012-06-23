@@ -16,7 +16,7 @@ print('')
 
 print('bor_mat4_t mat4s[] = {')
 for m in mat4s:
-    print('    FER_MAT4_STATIC({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}),'.format(*m))
+    print('    BOR_MAT4_STATIC({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}),'.format(*m))
 print('};')
 print('size_t mat4s_len = sizeof(mat4s) / sizeof(bor_mat4_t);')
 

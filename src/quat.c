@@ -21,12 +21,12 @@ void ferQuatSetEuler(bor_quat_t *q, bor_real_t yaw, bor_real_t pitch, bor_real_t
     bor_real_t c1, c2, c3, s1, s2, s3;
     bor_real_t w, x, y, z;
 
-    c1 = FER_COS(yaw / FER_REAL(2.));
-    c2 = FER_COS(pitch / FER_REAL(2.));
-    c3 = FER_COS(roll / FER_REAL(2.));
-    s1 = FER_SIN(yaw / FER_REAL(2.));
-    s2 = FER_SIN(pitch / FER_REAL(2.));
-    s3 = FER_SIN(roll / FER_REAL(2.));
+    c1 = BOR_COS(yaw / BOR_REAL(2.));
+    c2 = BOR_COS(pitch / BOR_REAL(2.));
+    c3 = BOR_COS(roll / BOR_REAL(2.));
+    s1 = BOR_SIN(yaw / BOR_REAL(2.));
+    s2 = BOR_SIN(pitch / BOR_REAL(2.));
+    s3 = BOR_SIN(roll / BOR_REAL(2.));
 
     w = c1 * c2 * c3 - s1 * s2 * s3;
     x = s1 * s2 * c3 + c1 * c2 * s3;

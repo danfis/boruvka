@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_FIBO_H__
-#define __FER_FIBO_H__
+#ifndef __BOR_FIBO_H__
+#define __BOR_FIBO_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -24,7 +24,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define FER_FIBO_CONS_SIZE (sizeof(unsigned int) << 3)
+#define BOR_FIBO_CONS_SIZE (sizeof(unsigned int) << 3)
 
 /**
  * Fibo - Fibonnacci Heap (priority queue)
@@ -52,7 +52,7 @@ typedef int (*fer_fibo_lt)(const bor_fibo_node_t *n1,
 struct _bor_fibo_t {
     bor_list_t root;      /*!< List of root nodes */
     bor_fibo_node_t *min; /*!< Minimal node */
-    bor_fibo_node_t *cons[FER_FIBO_CONS_SIZE]; /*!< Consolidation array
+    bor_fibo_node_t *cons[BOR_FIBO_CONS_SIZE]; /*!< Consolidation array
                                                     with bitlength(degree)
                                                     elements */
     unsigned int max_degree; /*!< Maximal degree used in .cons */
@@ -153,5 +153,5 @@ _fer_inline void ferFiboUpdate(bor_fibo_t *f, bor_fibo_node_t *n)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_FIBO_H__ */
+#endif /* __BOR_FIBO_H__ */
 

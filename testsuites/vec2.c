@@ -92,9 +92,9 @@ TEST(vec2Length)
     ferVec2Set(v[1], 6., 4.);
     ferVec2Set(v[2], 1., 1.);
 
-    assertTrue(ferEq(FER_SQRT(ferVec2Len2(v[0])), 10.));
-    assertTrue(ferEq(ferVec2Len2(v[1]), FER_REAL(52.)));
-    assertTrue(ferEq(ferVec2Dist2(v[1], v[2]), FER_REAL(34.)));
+    assertTrue(ferEq(BOR_SQRT(ferVec2Len2(v[0])), 10.));
+    assertTrue(ferEq(ferVec2Len2(v[1]), BOR_REAL(52.)));
+    assertTrue(ferEq(ferVec2Dist2(v[1], v[2]), BOR_REAL(34.)));
 
     assertTrue(ferEq(ferVec2Dist2(v[1], v[2]), ferVec2Dist2(v[2], v[1])));
 
@@ -382,9 +382,9 @@ TEST(vec2AngleSameDir)
     printf("----\n");
 
     ferVec2Sub2(t, v[1], v[0]);
-    ferVec2Scale(t, 1./FER_SQRT(ferVec2Len2(t)));
+    ferVec2Scale(t, 1./BOR_SQRT(ferVec2Len2(t)));
     ferVec2Sub2(p, v[3], v[2]);
-    ferVec2Scale(p, 1./FER_SQRT(ferVec2Len2(p)));
+    ferVec2Scale(p, 1./BOR_SQRT(ferVec2Len2(p)));
     assertTrue(ferVec2Eq(t, p));
 
 
@@ -417,9 +417,9 @@ TEST(vec2AngleSameDir)
     printf("----\n");
 
     ferVec2Sub2(t, v[1], v[0]);
-    ferVec2Scale(t, 1./FER_SQRT(ferVec2Len2(t)));
+    ferVec2Scale(t, 1./BOR_SQRT(ferVec2Len2(t)));
     ferVec2Sub2(p, v[2], v[3]);
-    ferVec2Scale(p, 1./FER_SQRT(ferVec2Len2(p)));
+    ferVec2Scale(p, 1./BOR_SQRT(ferVec2Len2(p)));
     assertTrue(ferVec2Eq(t, p));
 
 
@@ -452,9 +452,9 @@ TEST(vec2AngleSameDir)
     printf("----\n");
 
     ferVec2Sub2(t, v[0], v[1]);
-    ferVec2Scale(t, 1./FER_SQRT(ferVec2Len2(t)));
+    ferVec2Scale(t, 1./BOR_SQRT(ferVec2Len2(t)));
     ferVec2Sub2(p, v[2], v[3]);
-    ferVec2Scale(p, 1./FER_SQRT(ferVec2Len2(p)));
+    ferVec2Scale(p, 1./BOR_SQRT(ferVec2Len2(p)));
     assertTrue(ferVec2Eq(t, p));
 
 
@@ -467,7 +467,7 @@ TEST(vec2Add)
     bor_vec2_t v;
 
     printf("# ---- add ----\n");
-    ferVec2Set(&v, FER_ZERO, FER_ZERO);
+    ferVec2Set(&v, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs2_len; i++){
         ferVec2Add(&v, &vecs2[i]);
         printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));
@@ -481,7 +481,7 @@ TEST(vec2Sub)
     bor_vec2_t v;
 
     printf("# ---- sub ----\n");
-    ferVec2Set(&v, FER_ZERO, FER_ZERO);
+    ferVec2Set(&v, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs2_len; i++){
         ferVec2Sub(&v, &vecs2[i]);
         printf("# %g %g\n", ferVec2X(&v), ferVec2Y(&v));

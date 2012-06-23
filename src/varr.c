@@ -27,7 +27,7 @@ void ferVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize)
 
 void ferVArrDestroy(bor_varr_t *arr)
 {
-    FER_FREE(arr->arr);
+    BOR_FREE(arr->arr);
 }
 
 void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize)

@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_COMPILER_H__
-#define __FER_COMPILER_H__
+#ifndef __BOR_COMPILER_H__
+#define __BOR_COMPILER_H__
 
 #include <stddef.h>
 
@@ -44,15 +44,15 @@
  * Marks inline function.
  */
 #ifdef __GNUC__
-#  ifdef FER_DEBUG
+#  ifdef BOR_DEBUG
 #    define _fer_inline static
-#  else /* FER_DEBUG */
+#  else /* BOR_DEBUG */
 #    ifdef __NO_INLINE__
 #      define _fer_inline static
 #    else /* __NO_INLINE */
 #      define _fer_inline static inline __attribute__((always_inline))
 #    endif /* __NO_INLINE */
-#  endif /* FER_DEBUG */
+#  endif /* BOR_DEBUG */
 #else /* __GNUC__ */
 # define _fer_inline static inline
 #endif /* __GNUC__ */
@@ -101,4 +101,4 @@
 
 /** ^^^^ */
 
-#endif /* __FER_COMPILER_H__ */
+#endif /* __BOR_COMPILER_H__ */

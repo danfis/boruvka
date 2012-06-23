@@ -16,8 +16,8 @@ static void randList(bor_list_t *head)
     bor_list_t *item;
     struct linear_t *it;
 
-    FER_LIST_FOR_EACH(head, item){
-        it = FER_LIST_ENTRY(item, struct linear_t, list);
+    BOR_LIST_FOR_EACH(head, item){
+        it = BOR_LIST_ENTRY(item, struct linear_t, list);
         it->num = ferRand(&r, -10, 10);
     }
 }
@@ -28,10 +28,10 @@ static bor_real_t linearDist(void *item1, bor_list_t *item2, void *_)
     struct linear_t *it;
 
     r1 = *(bor_real_t *)item1;
-    it = FER_LIST_ENTRY(item2, struct linear_t, list);
+    it = BOR_LIST_ENTRY(item2, struct linear_t, list);
     r2 = it->num;
 
-    return FER_SQ(r1 - r2);
+    return BOR_SQ(r1 - r2);
 }
 
 /*
@@ -41,8 +41,8 @@ static void prList(bor_list_t *head)
     struct linear_t *it;
 
     fprintf(stdout, "#");
-    FER_LIST_FOR_EACH(head, item){
-        it = FER_LIST_ENTRY(item, struct linear_t, list);
+    BOR_LIST_FOR_EACH(head, item){
+        it = BOR_LIST_ENTRY(item, struct linear_t, list);
         fprintf(stdout, " %g", it->num);
     }
     fprintf(stdout, "\n");
@@ -55,7 +55,7 @@ static void prNearest(bor_list_t **nearest, size_t len)
 
     fprintf(stdout, "#");
     for (i = 0; i < len; i++){
-        it = FER_LIST_ENTRY(nearest[i], struct linear_t, list);
+        it = BOR_LIST_ENTRY(nearest[i], struct linear_t, list);
         fprintf(stdout, " %g", it->num);
     }
     fprintf(stdout, "\n");

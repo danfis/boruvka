@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_VARR_H__
-#define __FER_VARR_H__
+#ifndef __BOR_VARR_H__
+#define __BOR_VARR_H__
 
 #include <boruvka/core.h>
 
@@ -23,25 +23,25 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define _FER_VARR_STRUCT(struct_prefix) \
+#define _BOR_VARR_STRUCT(struct_prefix) \
     struct_prefix##_varr_t
-#define _FER_VARR_STRUCT2(struct_prefix) \
+#define _BOR_VARR_STRUCT2(struct_prefix) \
     _##struct_prefix##_varr_t
 
-#define _FER_VARR_DECL_STRUCT(type, struct_prefix) \
-    struct _FER_VARR_STRUCT2(struct_prefix) { \
+#define _BOR_VARR_DECL_STRUCT(type, struct_prefix) \
+    struct _BOR_VARR_STRUCT2(struct_prefix) { \
         type *arr; \
         size_t len; \
         size_t alloc; \
     }; \
-    typedef struct _FER_VARR_STRUCT2(struct_prefix) _FER_VARR_STRUCT(struct_prefix)
+    typedef struct _BOR_VARR_STRUCT2(struct_prefix) _BOR_VARR_STRUCT(struct_prefix)
 
-#define _FER_VARR_FUNC(func_prefix, name) \
+#define _BOR_VARR_FUNC(func_prefix, name) \
     func_prefix ## name
 
-#define _FER_VARR_DECL_INIT(type, sprefix, fprefix) \
-    _fer_inline void _FER_VARR_FUNC(fprefix, Init) \
-                        (_FER_VARR_STRUCT(sprefix) *arr, \
+#define _BOR_VARR_DECL_INIT(type, sprefix, fprefix) \
+    _fer_inline void _BOR_VARR_FUNC(fprefix, Init) \
+                        (_BOR_VARR_STRUCT(sprefix) *arr, \
                          size_t init_size)
 
 /**
@@ -84,7 +84,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * };
  * typedef struct _{struct_name) {struct_name};
  */
-#define FER_VARR_STRUCT(type, struct_name) \
+#define BOR_VARR_STRUCT(type, struct_name) \
     struct _##struct_name { \
         type *arr; \
         size_t len; \
@@ -97,7 +97,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline {type} {func_name}({struct_name} *arr, size_t init_size);
  */
-#define FER_VARR_INIT(struct_name, func_name) \
+#define BOR_VARR_INIT(struct_name, func_name) \
     _fer_inline void func_name(struct_name *arr, size_t init_size) \
     { \
         ferVArrInit((bor_varr_t *)arr, init_size, sizeof(*(arr)->arr)); \
@@ -108,7 +108,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline {type} {func_name}({struct_name} *arr);
  */
-#define FER_VARR_DESTROY(struct_name, func_name) \
+#define BOR_VARR_DESTROY(struct_name, func_name) \
     _fer_inline void func_name(struct_name *arr) \
     { \
         ferVArrDestroy((bor_varr_t *)arr); \
@@ -119,7 +119,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline {type} {func_name}(const {struct_name} *arr, size_t i);
  */
-#define FER_VARR_GET(type, struct_name, func_name) \
+#define BOR_VARR_GET(type, struct_name, func_name) \
     _fer_inline type func_name(const struct_name *arr, size_t i) \
     { \
         return arr->arr[i]; \
@@ -130,7 +130,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline void {func_name}({struct_name} *arr, size_t i, {type} val);
  */
-#define FER_VARR_SET(type, struct_name, func_name) \
+#define BOR_VARR_SET(type, struct_name, func_name) \
     _fer_inline void func_name(const struct_name *arr, size_t i, type val) \
     { \
         arr->arr[i] = val; \
@@ -143,7 +143,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline siez_t {func_name}({struct_name} *arr, {type} val);
  */
-#define FER_VARR_ADD(type, struct_name, func_name) \
+#define BOR_VARR_ADD(type, struct_name, func_name) \
     _fer_inline size_t func_name(struct_name *arr, type val) \
     { \
         if (arr->len == arr->alloc) \
@@ -160,7 +160,7 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * _fer_inline void {func_name}({struct_name) *arr, size_t i);
  */
-#define FER_VARR_REMOVE(struct_name, func_name) \
+#define BOR_VARR_REMOVE(struct_name, func_name) \
     _fer_inline void func_name(struct_name *arr, size_t i) \
     { \
         arr->arr[i] = arr->arr[--arr->len]; \
@@ -171,18 +171,18 @@ void ferVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * Makes definition of init, destroy, get, set, add, and remove
  * functions with specified prefix as ({prefix}Init, {prefix}Destroy, ...).
  */
-#define FER_VARR_DECL(type, struct_name, func_prefix) \
-    FER_VARR_STRUCT(type, struct_name) \
-    FER_VARR_INIT(struct_name, func_prefix ## Init) \
-    FER_VARR_DESTROY(struct_name, func_prefix ## Destroy) \
-    FER_VARR_GET(type, struct_name, func_prefix ## Get) \
-    FER_VARR_SET(type, struct_name, func_prefix ## Set) \
-    FER_VARR_ADD(type, struct_name, func_prefix ## Add) \
-    FER_VARR_REMOVE(struct_name, func_prefix ## Remove)
+#define BOR_VARR_DECL(type, struct_name, func_prefix) \
+    BOR_VARR_STRUCT(type, struct_name) \
+    BOR_VARR_INIT(struct_name, func_prefix ## Init) \
+    BOR_VARR_DESTROY(struct_name, func_prefix ## Destroy) \
+    BOR_VARR_GET(type, struct_name, func_prefix ## Get) \
+    BOR_VARR_SET(type, struct_name, func_prefix ## Set) \
+    BOR_VARR_ADD(type, struct_name, func_prefix ## Add) \
+    BOR_VARR_REMOVE(struct_name, func_prefix ## Remove)
 
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_VARR_H__ */
+#endif /* __BOR_VARR_H__ */

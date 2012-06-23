@@ -7,7 +7,7 @@
 
 
 /** Maximal length of line  */
-#define FER_QHULL_OUTPUT_LINE_MAX_LEN 1024
+#define BOR_QHULL_OUTPUT_LINE_MAX_LEN 1024
 
 /** Creates new qhull mesh3 */
 static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices);
@@ -35,7 +35,7 @@ void ferQHullMesh3Del(bor_qhull_mesh3_t *m)
     if (m->vecs){
         ferVec3ArrDel(m->vecs);
     }
-    FER_FREE(m);
+    BOR_FREE(m);
 }
 
 
@@ -44,9 +44,9 @@ bor_qdelaunay_t *ferQDelaunayNew(void)
 {
     bor_qdelaunay_t *q;
 
-    q = FER_ALLOC(bor_qdelaunay_t);
+    q = BOR_ALLOC(bor_qdelaunay_t);
 
-    q->bin_path = strdup(FER_QDELAUNAY_BIN_PATH);
+    q->bin_path = strdup(BOR_QDELAUNAY_BIN_PATH);
 
     return q;
 }
@@ -54,14 +54,14 @@ bor_qdelaunay_t *ferQDelaunayNew(void)
 void ferQDelaunayDel(bor_qdelaunay_t *q)
 {
     if (q->bin_path)
-        FER_FREE(q->bin_path);
-    FER_FREE(q);
+        BOR_FREE(q->bin_path);
+    BOR_FREE(q);
 }
 
 void ferQDelaunaySetPath(bor_qdelaunay_t *q, const char *path)
 {
     if (q->bin_path)
-        FER_FREE(q->bin_path);
+        BOR_FREE(q->bin_path);
     q->bin_path = strdup(path);
 }
 
@@ -147,7 +147,7 @@ static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
 {
     bor_qhull_mesh3_t *m;
 
-    m = FER_ALLOC(bor_qhull_mesh3_t);
+    m = BOR_ALLOC(bor_qhull_mesh3_t);
 
     m->mesh = ferMesh3New();
 
@@ -159,17 +159,17 @@ static bor_qhull_mesh3_t *ferQHullMesh3New(size_t vertices)
 
 static void mesh3DelVert(bor_mesh3_vertex_t *v, void *data)
 {
-    FER_FREE(v);
+    BOR_FREE(v);
 }
 
 static void mesh3DelEdge(bor_mesh3_edge_t *e, void *data)
 {
-    FER_FREE(e);
+    BOR_FREE(e);
 }
 
 static void mesh3DelFace(bor_mesh3_face_t *f, void *data)
 {
-    FER_FREE(f);
+    BOR_FREE(f);
 }
 
 static int writePC33(bor_pc_t *pc, int fd)
@@ -238,7 +238,7 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
     mesh = ferQHullMesh3(qmesh);
 
     // allocate index array for vertices
-    verts = FER_ALLOC_ARR(bor_mesh3_vertex_t *, vertices);
+    verts = BOR_ALLOC_ARR(bor_mesh3_vertex_t *, vertices);
 
     // read points and create vertices
     for (i = 0; i < vertices; i++){
@@ -248,7 +248,7 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
 
         ferVec3Set(&qmesh->vecs[i], x, y, z);
 
-        vert = FER_ALLOC(bor_mesh3_vertex_t);
+        vert = BOR_ALLOC(bor_mesh3_vertex_t);
         ferMesh3VertexSetCoords(vert, &qmesh->vecs[i]);
         ferMesh3AddVertex(mesh, vert);
         verts[i] = vert;
@@ -268,7 +268,7 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
                 // create new edge only if it is not already there
                 edge = ferMesh3VertexCommonEdge(verts[id[j]], verts[id[k]]);
                 if (!edge){
-                    edge = FER_ALLOC(bor_mesh3_edge_t);
+                    edge = BOR_ALLOC(bor_mesh3_edge_t);
                     ferMesh3AddEdge(mesh, edge, verts[id[j]], verts[id[k]]);
                 }
             }
@@ -278,7 +278,7 @@ static bor_qhull_mesh3_t *qdelaunayToMesh3(int fd)
     }
 
     if (verts)
-        FER_FREE(verts);
+        BOR_FREE(verts);
 
     fclose(fin);
     return qmesh;

@@ -35,7 +35,7 @@ static bor_real_t dist2(void *item1, bor_list_t *item2,
                         void *data)
 {
     bor_vec2_t *p = (bor_vec2_t *)item1;
-    el_t *el = FER_LIST_ENTRY(item2, el_t, list);
+    el_t *el = BOR_LIST_ENTRY(item2, el_t, list);
 
     return ferVec2Dist(p, &el->w);
 }
@@ -120,9 +120,9 @@ TEST(nnAdd)
     params.gug.max_dens = 0.1;
     params.gug.expand_rate = 1.3;
 
-    _nnAdd(FER_NN_LINEAR, &params);
-    _nnAdd(FER_NN_VPTREE, &params);
-    _nnAdd(FER_NN_GUG, &params);
+    _nnAdd(BOR_NN_LINEAR, &params);
+    _nnAdd(BOR_NN_VPTREE, &params);
+    _nnAdd(BOR_NN_GUG, &params);
 }
 
 static void _nnAddRm(uint8_t type, bor_nn_params_t *params)
@@ -180,7 +180,7 @@ TEST(nnAddRm)
     params.gug.max_dens = 0.1;
     params.gug.expand_rate = 1.3;
 
-    _nnAddRm(FER_NN_LINEAR, &params);
-    _nnAddRm(FER_NN_VPTREE, &params);
-    _nnAddRm(FER_NN_GUG, &params);
+    _nnAddRm(BOR_NN_LINEAR, &params);
+    _nnAddRm(BOR_NN_VPTREE, &params);
+    _nnAddRm(BOR_NN_GUG, &params);
 }

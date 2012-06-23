@@ -27,7 +27,7 @@ bor_dij_t *ferDijNew(const bor_dij_ops_t *ops)
 {
     bor_dij_t *dij;
 
-    dij = FER_ALLOC(bor_dij_t);
+    dij = BOR_ALLOC(bor_dij_t);
     dij->ops   = *ops;
 
     dij->heap = NULL;
@@ -39,7 +39,7 @@ void ferDijDel(bor_dij_t *dij)
 {
     if (dij->heap)
         ferPairHeapDel(dij->heap);
-    FER_FREE(dij);
+    BOR_FREE(dij);
 }
 
 int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
@@ -57,9 +57,9 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
     dij->heap = ferPairHeapNew(heapLT, NULL);
 
     // push start node on heap
-    start->dist = FER_ZERO;
+    start->dist = BOR_ZERO;
     start->prev = NULL;
-    start->state = FER_DIJ_STATE_OPEN;
+    start->state = BOR_DIJ_STATE_OPEN;
     ferPairHeapAdd(dij->heap, &start->_heap);
 
     // run algorithm
@@ -69,7 +69,7 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
         node = fer_container_of(heapnode, bor_dij_node_t, _heap);
 
         // set state to CLOSED
-        node->state = FER_DIJ_STATE_CLOSED;
+        node->state = BOR_DIJ_STATE_CLOSED;
 
         // we found end point - terminate algorithm
         if (node == end)
@@ -82,12 +82,12 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
         // let user's function to fill list with nodes
         dij->ops.expand(node, &list, dij->ops.data);
         // iterate over all nodes in list
-        FER_LIST_FOR_EACH(&list, item){
-            nextnode = FER_LIST_ENTRY(item, bor_dij_node_t, _list);
+        BOR_LIST_FOR_EACH(&list, item){
+            nextnode = BOR_LIST_ENTRY(item, bor_dij_node_t, _list);
 
             // skip closed nodes
             // user shouldn't put them in list, but to be sure...
-            if (fer_unlikely(nextnode->state == FER_DIJ_STATE_CLOSED))
+            if (fer_unlikely(nextnode->state == BOR_DIJ_STATE_CLOSED))
                 continue;
 
             // Relax operation.
@@ -95,7 +95,7 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
             // Let assume that nextnode->dist is always higher than dist if
             // nextnode wasn't touched until now - user was responsible to
             // call ferDijNodeInit() function which sets .dist to
-            // FER_REAL_MAX.
+            // BOR_REAL_MAX.
             if (dist < nextnode->dist){
                 // store new distance
                 nextnode->dist = dist;
@@ -103,11 +103,11 @@ int ferDijRun(bor_dij_t *dij, bor_dij_node_t *start,
 
                 // and update its position in heap or add it on heap if it
                 // is not already on heap
-                if (nextnode->state == FER_DIJ_STATE_OPEN){
+                if (nextnode->state == BOR_DIJ_STATE_OPEN){
                     ferPairHeapDecreaseKey(dij->heap, &nextnode->_heap);
                 }else{
                     ferPairHeapAdd(dij->heap, &nextnode->_heap);
-                    nextnode->state = FER_DIJ_STATE_OPEN;
+                    nextnode->state = BOR_DIJ_STATE_OPEN;
                 }
             }
         }

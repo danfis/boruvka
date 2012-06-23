@@ -30,7 +30,7 @@ TEST(vec3Add)
     size_t i;
 
     printf("# ---- add ----\n");
-    ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs_len; i++){
         ferVec3Add(&v, &vecs[i]);
         printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
@@ -44,7 +44,7 @@ TEST(vec3Sub)
     size_t i;
 
     printf("# ---- sub ----\n");
-    ferVec3Set(&v, FER_ZERO, FER_ZERO, FER_ZERO);
+    ferVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
     for (i = 0; i < vecs_len; i++){
         ferVec3Sub(&v, &vecs[i]);
         printf("# %g %g %g\n", ferVec3X(&v), ferVec3Y(&v), ferVec3Z(&v));
@@ -680,7 +680,7 @@ TEST(vec3ProjToPlane)
     ferVec3Set(&v[3], 1., 0., 0.);
     ferVec3Set(&v[4], 0., 1., 0.);
     ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferEq(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]), FER_ZERO));
+    assertTrue(ferEq(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]), BOR_ZERO));
     assertTrue(ferVec3Eq(&v[0], &v[5]));
 
     ferVec3Set(&v[1], 0., 0., 1.);
@@ -688,7 +688,7 @@ TEST(vec3ProjToPlane)
     ferVec3Set(&v[3], 1., 0., 0.);
     ferVec3Set(&v[4], 0., 1., 0.);
     ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     assertTrue(ferVec3Eq(&v[0], &v[5]));
 
     ferVec3Set(&v[1], 0., 0., -1.);
@@ -696,7 +696,7 @@ TEST(vec3ProjToPlane)
     ferVec3Set(&v[3], 1., 0., 0.);
     ferVec3Set(&v[4], 0., 1., 0.);
     ferVec3Set(&v[5], 0., 0., 0.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     assertTrue(ferVec3Eq(&v[0], &v[5]));
 
     ferVec3Set(&v[1], 0., 0., 1.);
@@ -704,7 +704,7 @@ TEST(vec3ProjToPlane)
     ferVec3Set(&v[3], 1., -1., -1.);
     ferVec3Set(&v[4], -1., 1., -1.);
     ferVec3Set(&v[5], 0., 0., -1.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     assertTrue(ferVec3Eq(&v[0], &v[5]));
 
     ferVec3Set(&v[1], 0.5, 10., 0.5);
@@ -712,27 +712,27 @@ TEST(vec3ProjToPlane)
     ferVec3Set(&v[3], -1., 0., 1.);
     ferVec3Set(&v[4], -1., 0., -1.);
     ferVec3Set(&v[5], 0.5, 0., 0.5);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     assertTrue(ferVec3Eq(&v[0], &v[5]));
 
     ferVec3Set(&v[1], 0.5, 10., 0.5);
     ferVec3Set(&v[2], -1., -1., -1.);
     ferVec3Set(&v[3], 1., 1., 1.);
     ferVec3Set(&v[4], 0., 0., 0.);
-    assertFalse(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertFalse(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
 
     ferVec3Set(&v[1], 0., 0., 1.);
     ferVec3Set(&v[2], -1., -1., -1.);
     ferVec3Set(&v[3], 1., 1., 1.);
     ferVec3Set(&v[4], -1., 1., 1.);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     projToPlanePrint(v, 1);
 
     ferVec3Set(&v[1], 3., -2., 1.);
     ferVec3Set(&v[2], -1., -2., -1.);
     ferVec3Set(&v[3], 1., 2., 1.8);
     ferVec3Set(&v[4], -1.4, 1., 1.2);
-    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > FER_ZERO);
+    assertTrue(ferVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
     projToPlanePrint(v, 2);
 }
 

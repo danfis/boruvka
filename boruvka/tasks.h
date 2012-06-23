@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_TASKS_H__
-#define __FER_TASKS_H__
+#ifndef __BOR_TASKS_H__
+#define __BOR_TASKS_H__
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -136,4 +136,4 @@ _fer_inline size_t ferTasksSize(const bor_tasks_t *t)
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_TASKS_H__ */
+#endif /* __BOR_TASKS_H__ */

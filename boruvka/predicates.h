@@ -15,8 +15,8 @@
  */
 
 
-#ifndef __FER_PREDICATES_H__
-#define __FER_PREDICATES_H__
+#ifndef __BOR_PREDICATES_H__
+#define __BOR_PREDICATES_H__
 
 #include <boruvka/core.h>
 #include <boruvka/vec2.h>
@@ -180,4 +180,4 @@ bor_real_t ferPredInSphere(const bor_pred_t *pred,
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_PREDICATES_H__ */
+#endif /* __BOR_PREDICATES_H__ */

@@ -23,8 +23,8 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
-#define FER_IMAGE_PGMF 2
-#define FER_IMAGE_PPMF 3
+#define BOR_IMAGE_PGMF 2
+#define BOR_IMAGE_PPMF 3
 
 
 #define CHECKWS(c) \
@@ -104,13 +104,13 @@ bor_image_pnmf_t *ferImagePNMF(const char *filename)
 
         if (strncmp((const char *)file, "P5", 2) == 0){
             size = width * height * sizeof(float);
-            type = FER_IMAGE_PGMF;
+            type = BOR_IMAGE_PGMF;
         }else{
             size = width * height * sizeof(float) * 3;
-            type = FER_IMAGE_PPMF;
+            type = BOR_IMAGE_PPMF;
         }
 
-        img = _FER_ALLOC_MEMORY(bor_image_pnmf_t, NULL, sizeof(bor_image_pnmf_t) * size);
+        img = _BOR_ALLOC_MEMORY(bor_image_pnmf_t, NULL, sizeof(bor_image_pnmf_t) * size);
         img->type   = type;
         img->width  = width;
         img->height = height;
@@ -119,10 +119,10 @@ bor_image_pnmf_t *ferImagePNMF(const char *filename)
         len = width * height;
         if (maxval <= 255){
             for (i = 0; i < len; i++){
-                if (img->type == FER_IMAGE_PGMF){
+                if (img->type == BOR_IMAGE_PGMF){
                     img->data[i] = (float)*(unsigned char *)data / (float)maxval;
                     ++data;
-                }else if (img->type == FER_IMAGE_PPMF){
+                }else if (img->type == BOR_IMAGE_PPMF){
                     img->data[3 * i]     = (float)*(unsigned char *)data / (float)maxval;
                     ++data;
                     img->data[3 * i + 1] = (float)*(unsigned char *)data / (float)maxval;
@@ -151,7 +151,7 @@ bor_image_pnmf_t *ferImagePNMF(const char *filename)
 
 void ferImagePNMFDel(bor_image_pnmf_t *img)
 {
-    FER_FREE(img);
+    BOR_FREE(img);
 }
 
 void ferImagePNMFSave(bor_image_pnmf_t *img, const char *filename)
@@ -167,12 +167,12 @@ void ferImagePNMFSave(bor_image_pnmf_t *img, const char *filename)
 
     len = img->width * img->height;
 
-    if (img->type == FER_IMAGE_PGMF){
+    if (img->type == BOR_IMAGE_PGMF){
         fprintf(fout, "P5\n%d %d\n255\n", img->width, img->height);
         for (i = 0; i < len; i++){
             fprintf(fout, "%c", (char)(img->data[i] * 255));
         }
-    }else if (img->type == FER_IMAGE_PPMF){
+    }else if (img->type == BOR_IMAGE_PPMF){
         fprintf(fout, "P6\n%d %d\n255\n", img->width, img->height);
         for (i = 0; i < len; i++){
             fprintf(fout, "%c", (char)(img->data[3 * i] * 255));
@@ -233,7 +233,7 @@ void ferImagePNMFSetGray(const bor_image_pnmf_t *img, int row, int col, float gr
 void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
                          float *r, float *g, float *b)
 {
-    if (img->type == FER_IMAGE_PGMF){
+    if (img->type == BOR_IMAGE_PGMF){
         grayToRGB(img->data[pos], r, g, b);
     }else{
         pos *= 3;
@@ -246,7 +246,7 @@ void ferImagePNMFGetRGB2(const bor_image_pnmf_t *img, int pos,
 void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
                          float r, float g, float b)
 {
-    if (img->type == FER_IMAGE_PGMF){
+    if (img->type == BOR_IMAGE_PGMF){
         img->data[pos] = rgbToGray(r, g, b);
     }else{
         pos *= 3;
@@ -258,7 +258,7 @@ void ferImagePNMFSetRGB2(const bor_image_pnmf_t *img, int pos,
 
 float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos)
 {
-    if (img->type == FER_IMAGE_PGMF){
+    if (img->type == BOR_IMAGE_PGMF){
         return img->data[pos];
     }else{
         pos *= 3;
@@ -268,7 +268,7 @@ float ferImagePNMFGetGray2(const bor_image_pnmf_t *img, int pos)
 
 void ferImagePNMFSetGray2(const bor_image_pnmf_t *img, int pos, float gr)
 {
-    if (img->type == FER_IMAGE_PGMF){
+    if (img->type == BOR_IMAGE_PGMF){
         img->data[pos] = gr;
     }else{
         pos *= 3;

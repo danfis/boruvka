@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_NET_H__
-#define __FER_NET_H__
+#ifndef __BOR_NET_H__
+#define __BOR_NET_H__
 
 #include <boruvka/core.h>
 #include <boruvka/list.h>
@@ -283,7 +283,7 @@ _fer_inline int ferNetNodeHasEdge(const bor_net_node_t *v,
     bor_list_t *item;
     bor_net_edge_t *edge;
 
-    FER_LIST_FOR_EACH(&v->edges, item){
+    BOR_LIST_FOR_EACH(&v->edges, item){
         edge = ferNetEdgeFromNodeList(item);
         if (edge == e)
             return 1;
@@ -321,7 +321,7 @@ _fer_inline bor_net_edge_t *ferNetEdgeFromNodeList(bor_list_t *l)
     bor_net_edge_t *e;
 
     m = ferListMFromList(l);
-    e = FER_LIST_M_ENTRY(l, bor_net_edge_t, nlist, m->mark);
+    e = BOR_LIST_M_ENTRY(l, bor_net_edge_t, nlist, m->mark);
 
     return e;
 }
@@ -351,6 +351,6 @@ _fer_inline bor_list_t *ferNetEdges(bor_net_t *n)
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* __FER_NET_H__ */
+#endif /* __BOR_NET_H__ */
 
 

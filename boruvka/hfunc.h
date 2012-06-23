@@ -14,8 +14,8 @@
  *  See the License for more information.
  */
 
-#ifndef __FER_HFUNC_H__
-#define __FER_HFUNC_H__
+#ifndef __BOR_HFUNC_H__
+#define __BOR_HFUNC_H__
 
 #include <boruvka/list.h>
 
@@ -60,5 +60,5 @@ uint32_t ferHashSDBM(const char *str);
 }
 #endif /* __cplusplus */
 
-#endif /* __FER_HFUNC_H__ */
+#endif /* __BOR_HFUNC_H__ */
 
