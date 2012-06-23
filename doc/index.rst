@@ -13,12 +13,4 @@ Welcome to Fermat's documentation!
    geom.rst
    nearest.rst
    par.rst
-   gnn.rst
-   plan.rst
    various.rst
-
-.. toctree::
-   :maxdepth: 1
-
-   cd.rst
-

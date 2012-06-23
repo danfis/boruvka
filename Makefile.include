@@ -92,10 +92,6 @@ USE_MEMCHECK ?= no
 
 USE_SSE    ?= no
 USE_OPENCL ?= auto
-USE_RAPID  ?= auto
-USE_ODE    ?= auto
-USE_SDL    ?= auto
-USE_SDL_IMAGE ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -130,78 +126,7 @@ ifeq '$(USE_OPENCL)' 'yes'
   CONFIG_FLAGS += -DUSE_OPENCL
 endif
 
-
-ifeq '$(USE_RAPID)' 'auto'
-  ifeq '$(RAPID_CFLAGS)' ''
-    USE_RAPID = $(shell if test -f /usr/lib/libRAPID.a; then echo "yes"; else echo "no"; fi;)
-  else
-    USE_RAPID = yes
-  endif
-endif
-
-RAPID_CFLAGS   ?=
-RAPID_LDFLAGS  ?= -lRAPID
-ifeq '$(USE_RAPID)' 'yes'
-  RAPID_CFLAGS += -DHAVE_RAPID
-else
-  RAPID_CFLAGS  :=
-  RAPID_LDFLAGS :=
-endif
-
-ifeq '$(USE_ODE)' 'auto'
-  ifeq '$(ODE_CFLAGS)' ''
-    USE_ODE = $(shell if ode-config --version >/dev/null 2>&1; then echo 'yes'; else echo 'no'; fi)
-  else
-    USE_ODE = yes
-  endif
-ODE_CFLAGS  ?= $(shell ode-config --cflags)
-ODE_LDFLAGS ?= $(shell ode-config --libs)
-ODE_DRAWSTUFF ?= -ldrawstuff -lX11 -lGL -lGLU
-endif
-
-ifeq '$(USE_SDL)' 'auto'
-  ifeq '$(SDL_CFLAGS)' ''
-    USE_SDL = $(shell if pkg-config sdl --exists; then echo 'yes'; else echo 'no'; fi)
-  else
-    USE_SDL = yes
-  endif
-
-SDL_CFLAGS  ?= $(shell pkg-config sdl --cflags)
-SDL_LDFLAGS ?= $(shell pkg-config sdl --libs)
-endif
-
-ifeq '$(USE_SDL)' 'auto'
-  ifeq '$(SDL_CFLAGS)' ''
-    USE_SDL = $(shell if pkg-config sdl --exists; then echo 'yes'; else echo 'no'; fi)
-  else
-    USE_SDL = yes
-  endif
-
-SDL_CFLAGS  ?= $(shell pkg-config sdl --cflags)
-SDL_LDFLAGS ?= $(shell pkg-config sdl --libs)
-endif
-
-ifeq '$(USE_SDL_IMAGE)' 'auto'
-  ifeq '$(SDL_IMAGE_CFLAGS)' ''
-    USE_SDL_IMAGE = $(shell if pkg-config SDL_image --exists; then echo 'yes'; else echo 'no'; fi)
-  else
-    USE_SDL_IMAGE = yes
-  endif
-
-SDL_IMAGE_CFLAGS  ?= $(shell pkg-config SDL_image --cflags)
-SDL_IMAGE_LDFLAGS ?= $(shell pkg-config SDL_image --libs)
-endif
-
-
-EXAMPLES ?= no
 BINS     ?= yes
-
-
-# for testing
-USE_OZCOLLIDE ?= no
-OZCOLLIDE_CFLAGS ?=
-OZCOLLIDE_LDFLAGS ?= -lozcollide
-
 
 ifneq '$(CC_NOT_GCC)' 'yes'
   CFLAGS += -std=gnu99 -ffast-math
@@ -213,13 +138,6 @@ LDFLAGS += $(SYSTEM_LDFLAGS)
 PYTHON_CFLAGS  ?= $(shell $(PYTHON_CONFIG) --includes)
 PYTHON_LDFLAGS ?= $(shell $(PYTHON_CONFIG) --libs)
 
-CD_TIME_MEASURE ?= no
-ifeq '$(CD_TIME_MEASURE)' 'yes'
-  CONFIG_FLAGS += -DCD_TIME_MEASURE
-endif
-
-CHECKTARGETS = 
-check-dep: $(CHECKTARGETS)
 
 PREFIX     ?= /usr/local
 INCLUDEDIR ?= include

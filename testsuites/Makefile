@@ -14,42 +14,20 @@ CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-l
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-TARGETS = libdata.a test bench-heap test-rand-mt test-nn
+TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
 ifeq '$(USE_OPENCL)' 'yes'
-  TARGETS += test-surf-match
   LDFLAGS += $(OPENCL_LDFLAGS)
   CFLAGS  += $(OPENCL_CFLAGS)
 endif
-
-TARGETS += test-cd-spheres test-cd-trimesh
-
-ifeq '$(USE_ODE)' 'yes'
-  TARGETS += test-cd-ode
-endif
-
-
-USE_OZCOLLIDE = no
-OZCOLLIDE_CFLAGS = -I/home/danfis/tmp/ozcollide
-OZCOLLIDE_LDFLAGS = -L/home/danfis/tmp/ozcollide/ozcollide -lozcollide
-
-ifeq '$(USE_OZCOLLIDE)' 'yes'
-  OZCOLLIDE_CFLAGS += -DHAVE_OZCOLLIDE
-else
-  OZCOLLIDE_CFLAGS  :=
-  OZCOLLIDE_LDFLAGS :=
-endif
-
-
 
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        mat3.o mat4.o gug.o mesh3.o nearest.o \
-       fibo.o pairheap.o dij.o cd.o cd-sphere-grid.o chull3.o \
+       fibo.o pairheap.o dij.o chull3.o \
        tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
-            data-mat3.o data-mat4.o data-bunny.o \
-			data-protein-big.o data-protein-small.o
+            data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
 
 
@@ -70,16 +48,6 @@ test-rand-mt: test-rand-mt.c libdata.a
 
 test-nn: test-nn.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-test-surf-match: test-surf-match.c libdata.a
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
-
-test-cd-spheres: test-cd-spheres.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(OZCOLLIDE_CFLAGS) -o $@ $< $(LDFLAGS) $(OZCOLLIDE_LDFLAGS)
-test-cd-trimesh: test-cd-trimesh.cpp libdata.a
-	$(CXX) $(CXXFLAGS) $(RAPID_CFLAGS) -o $@ $^ $(LDFLAGS) $(RAPID_LDFLAGS)
-test-cd-ode: test-cd-ode.c libdata.a
-	$(CC) $(CFLAGS) $(ODE_CFLAGS) -o $@ $< $(LDFLAGS) $(ODE_LDFLAGS) $(ODE_DRAWSTUFF) -lstdc++
 
 bench-heap: $(BENCH_HEAP)
 bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a

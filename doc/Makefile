@@ -24,18 +24,9 @@ RSTS += mesh3 net qhull chull3
 
 RSTS += fibo pairheap dij
 
-RSTS += gng gng-eu gsrm
-RSTS += prm rrt gnnp
-
-RSTS += ga
-RSTS += nnbp
-
 RSTS += tasks task-pool hmap hfunc barrier
 
 RSTS += opencl
-RSTS += surf-matching
-
-RSTS += cd-params cd-cd cd-geom cd-ode
 
 RSTS := $(foreach header,$(RSTS),fer-$(header).h.rst)
 

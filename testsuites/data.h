@@ -26,15 +26,6 @@ extern size_t mat3s_len;
 extern fer_mat4_t mat4s[];
 extern size_t mat4s_len;
 
-extern fer_vec3_t protein_big_center[];
-extern fer_real_t protein_big_radius[];
-extern size_t protein_big_len;
-
-extern fer_vec3_t protein_small_center[];
-extern fer_real_t protein_small_radius[];
-extern size_t protein_small_len;
-
-
 extern fer_vec3_t *bunny_coords;
 extern size_t bunny_coords_len;
 extern unsigned int *bunny_ids;
