@@ -17,47 +17,49 @@
 -include Makefile.local
 -include Makefile.include
 
+SO_VERSION = 0
+
 CFLAGS += -I.
 CXXFLAGS += -I.
 LDFLAGS += -L. -lboruvka -lm -lrt
 
-TARGETS = libboruvka.a
-OBJS  = alloc.o
-OBJS += cfg.o cfg-lexer.o
-OBJS += opts.o
-OBJS += varr.o
-OBJS += sort.o
+TARGETS  = libboruvka.a
 
-OBJS += quat.o vec4.o vec3.o vec2.o vec.o
-OBJS += mat4.o mat3.o
-OBJS += predicates.o
-OBJS += sort.o
-
-OBJS += pc.o pc-internal.o
-
-OBJS += gug.o nearest-linear.o
-OBJS += vptree.o
-OBJS += nn-linear.o
-
-OBJS += mesh3.o net.o qhull.o chull3.o
-
-OBJS += fibo.o pairheap.o dij.o
-
-OBJS += tasks.o task-pool.o hmap.o hfunc.o barrier.o
-
-OBJS += rand-mt.o timer.o parse.o
-
-OBJS += image.o
+OBJS  = alloc
+OBJS += cfg cfg-lexer
+OBJS += opts
+OBJS += varr
+OBJS += quat vec4 vec3 vec2 vec
+OBJS += mat4 mat3
+OBJS += predicates
+OBJS += sort
+OBJS += pc pc-internal
+OBJS += gug
+OBJS += nearest-linear
+OBJS += vptree
+OBJS += nn-linear
+OBJS += mesh3 net qhull chull3
+OBJS += fibo pairheap dij
+OBJS += tasks task-pool
+OBJS += hmap hfunc
+OBJS += barrier
+OBJS += rand-mt
+OBJS += timer
+OBJS += parse
+OBJS += image
 
 ifeq '$(USE_OPENCL)' 'yes'
-  OBJS += opencl.o
+  OBJS += opencl
+  CFLAGS  += $(OPENCL_CFLAGS)
+  LDFLAGS += $(OPENCL_LDFLAGS)
 endif
 
 
 BIN_TARGETS = bor-qdelaunay
 
 
-OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj))
+OBJS_PIC        := $(foreach obj,$(OBJS),.objs/$(obj).pic.o)
+OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj).o)
 BIN_TARGETS     := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
 
@@ -65,11 +67,21 @@ ifeq '$(BINS)' 'yes'
   TARGETS += $(BIN_TARGETS)
 endif
 
+ifeq '$(DYNAMIC)' 'yes'
+  TARGETS += libboruvka.so
+endif
+
 all: $(TARGETS)
 
 libboruvka.a: $(OBJS)
 	ar cr $@ $(OBJS)
 	ranlib $@
+
+libboruvka.so: libboruvka.so.$(SO_VERSION)
+	ln -s $< $@
+
+libboruvka.so.$(SO_VERSION): $(OBJS_PIC)
+	$(CC) $(CFLAGS) -shared -Wl,-soname,$@ -o $@ $(OBJS_PIC)
 
 boruvka/config.h: boruvka/config.h.m4
 	$(M4) $(CONFIG_FLAGS) $< >$@
@@ -84,6 +96,14 @@ examples/%: examples/%.c libboruvka.a
 
 src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 	$(FLEX) -f -t $< >$@
+
+.objs/cfg.pic.o: src/cfg.c boruvka/cfg.h boruvka/config.h src/cfg-lexer.c
+	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
+.objs/%.pic.o: src/%.c boruvka/%.h boruvka/config.h
+	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
+.objs/%.pic.o: src/%.c boruvka/config.h
+	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
+
 .objs/cfg.o: src/cfg.c boruvka/cfg.h boruvka/config.h src/cfg-lexer.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c boruvka/%.h boruvka/config.h
@@ -104,8 +124,12 @@ src/cd-sap-gpu-cl.c: src/cd-sap-gpu.cl
 install:
 	mkdir -p $(PREFIX)/$(INCLUDEDIR)/boruvka
 	mkdir -p $(PREFIX)/$(LIBDIR)
-	cp -r boruvka/* $(PREFIX)/$(INCLUDEDIR)/boruvka/
-	cp libboruvka.a $(PREFIX)/$(LIBDIR)
+	mkdir -p $(PREFIX)/$(BINDIR)
+	cp boruvka/*.h $(PREFIX)/$(INCLUDEDIR)/boruvka/
+	cp -f libboruvka.a $(PREFIX)/$(LIBDIR)/
+	cp -f libboruvka.so.$(SO_VERSION) $(PREFIX)/$(LIBDIR)/
+	ln -s $(PREFIX)/$(LIBDIR)/libboruvka.so.$(SO_VERSION) $(PREFIX)/$(LIBDIR)/libboruvka.so
+	cp -f $(BIN_TARGETS) $(PREFIX)/$(BINDIR)/
 
 clean:
 	rm -f $(OBJS)
@@ -113,6 +137,8 @@ clean:
 	rm -f .objs/*.o
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
+	rm -f libboruvka.so
+	rm -f libboruvka.so.*
 	rm -f boruvka/config.h
 	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
@@ -169,6 +195,7 @@ help:
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"
 	@echo "    LIBDIR     - Directory where library will be installed (PREFIX/LIBDIR)          (=$(LIBDIR))"
+	@echo "    BINDIR     - Directory where binaries will be installed (PREFIX/BINDIR)         (=$(BINDIR))"
 	@echo ""
 	@echo "Variables:"
 	@echo "  Note that most of can be preset or changed by user"

@@ -127,6 +127,7 @@ ifeq '$(USE_OPENCL)' 'yes'
 endif
 
 BINS     ?= yes
+DYNAMIC  ?= no
 
 ifneq '$(CC_NOT_GCC)' 'yes'
   CFLAGS += -std=gnu99 -ffast-math
@@ -142,5 +143,6 @@ PYTHON_LDFLAGS ?= $(shell $(PYTHON_CONFIG) --libs)
 PREFIX     ?= /usr/local
 INCLUDEDIR ?= include
 LIBDIR     ?= lib
+BINDIR     ?= bin
 
 .DEFAULT_GOAL := all
