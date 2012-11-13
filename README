@@ -1,9 +1,13 @@
 Boruvka
 ========
 
+Boruvka is C library implementing some basic mathematical routines as well
+as some basic low level algorithms.
+
 License
 --------
 Boruvka is licensed under OSI-approved 3-clause BSD License, text of license
 is distributed along with source code in BSD-LICENSE file.
 Each file should include license notice, the rest should be considered as
 licensed under 3-clause BSD License.
+
