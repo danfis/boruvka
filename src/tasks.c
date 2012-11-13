@@ -69,9 +69,12 @@ bor_tasks_t *borTasksNew(size_t num_threads)
     t->threads_len = 0;
     t->next_id     = 1;
 
-    pthread_mutex_init(&t->lock, NULL);
-    sem_init(&t->full, 0, 0);
-    sem_init(&t->empty, 0, QUEUE_SIZE);
+    if (pthread_mutex_init(&t->lock, NULL) != 0)
+        return NULL;
+    if (sem_init(&t->full, 0, 0) != 0)
+        return NULL;
+    if (sem_init(&t->empty, 0, QUEUE_SIZE) != 0)
+        return NULL;
 
     for (i = 0; i < num_threads; i++){
         th = threadNew(t);
