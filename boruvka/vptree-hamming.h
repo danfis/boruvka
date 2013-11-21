@@ -44,7 +44,7 @@ struct _bor_vptree_hamming_el_t;
 /** ^^^^ */
 
 struct _bor_vptree_hamming_params_t {
-    size_t size;          /*!< Byte-length of keys (not bit-length!) */
+    size_t size;          /*!< Byte-length of keys (not bit-length!). Default: 1 */
     int minsize;          /*!< Minimal number of elements in leaf node. Default: 1 */
     int maxsize;          /*!< Maximal number of elements in leaf node. Default: 2 */
     int samplesize;       /*!< Size of the samples used in *Build()
@@ -60,8 +60,8 @@ void borVPTreeHammingParamsInit(bor_vptree_hamming_params_t *params);
 
 
 struct __bor_vptree_hamming_node_t {
-    char *vp; /*!< Vantage point */
-    unsigned int radius;
+    unsigned char *vp; /*!< Vantage point */
+    int radius;
     struct __bor_vptree_hamming_node_t *left, *right; /*!< Left and right subtree */
     struct __bor_vptree_hamming_node_t *parent;
     bor_list_t els;    /*!< List of elements */
@@ -70,9 +70,6 @@ struct __bor_vptree_hamming_node_t {
 typedef struct __bor_vptree_hamming_node_t _bor_vptree_hamming_node_t;
 
 struct _bor_vptree_hamming_t {
-    // TODO
-    uint8_t type; /*!< Type of NN search algorithm. See boruvka/nn.h */
-
     bor_vptree_hamming_params_t params;
     _bor_vptree_hamming_node_t *root;
 
@@ -90,7 +87,7 @@ typedef struct _bor_vptree_hamming_t bor_vptree_hamming_t;
  * TODO: Example
  */
 struct _bor_vptree_hamming_el_t {
-    char *data;
+    const unsigned char *p;
     bor_list_t list;    /*!< Connection into node's list of elements */
     _bor_vptree_hamming_node_t *node; /*!< Back reference to owner of this element */
 };
@@ -98,9 +95,13 @@ typedef struct _bor_vptree_hamming_el_t bor_vptree_hamming_el_t;
 
 /**
  * Initialize element struct.
- * This must be called before added to vp-tree
+ * This must be called before added to vp-tree.
+ * Data are NOT copied, it is caller's responsibility to take care of
+ * alloc/dealloc. Usualy bor_vptree_hamming_el_t structure will be part of
+ * some other struct, where data are stored.
  */
-void borVPTreeHammingElInit(bor_vptree_hamming_el_t *el, const char *data);
+void borVPTreeHammingElInit(bor_vptree_hamming_el_t *el,
+                            const unsigned char *data);
 
 
 
@@ -114,15 +115,6 @@ void borVPTreeHammingElInit(bor_vptree_hamming_el_t *el, const char *data);
  */
 bor_vptree_hamming_t *borVPTreeHammingNew(const bor_vptree_hamming_params_t *params);
 
-#if 0
-/**
- * Builds vp-tree from array of elements
- * TODO: Example
- */
-bor_vptree_t *borVPTreeBuild(const bor_vptree_params_t *params,
-                             bor_vptree_el_t *els, size_t els_len, size_t stride);
-#endif
-
 /**
  * Deletes vp-tree
  */
@@ -131,18 +123,20 @@ void borVPTreeHammingDel(bor_vptree_hamming_t *vp);
 /**
  * Adds element to the vp-tree
  */
-void borVPTreeHammingAdd(bor_vptree_hamming_t *vp, bor_vptree_hamming_el_t *el);
+void borVPTreeHammingAdd(bor_vptree_hamming_t *vp,
+                         bor_vptree_hamming_el_t *el);
 
-#if 0
 /**
  * Removes element from vp-tree
  */
-void borVPTreeRemove(bor_vptree_t *vp, bor_vptree_el_t *el);
+void borVPTreeHammingRemove(bor_vptree_hamming_t *vp,
+                            bor_vptree_hamming_el_t *el);
 
 /**
  * Updates position of element in vp-tree.
  */
-void borVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
+void borVPTreeHammingUpdate(bor_vptree_hamming_t *vp,
+                            bor_vptree_hamming_el_t *el);
 
 /**
  * Finds {num} nearest elements to given point {p}.
@@ -151,10 +145,12 @@ void borVPTreeUpdate(bor_vptree_t *vp, bor_vptree_el_t *el);
  * elements. This array is filled with pointers to elements that are
  * nearest to point {p}. Number of found elements is returned.
  */
-size_t borVPTreeNearest(const bor_vptree_t *vp, const bor_vec_t *p, size_t num,
-                        bor_vptree_el_t **els);
+size_t borVPTreeHammingNearest(const bor_vptree_hamming_t *vp,
+                               const unsigned char *p, size_t num,
+                               bor_vptree_hamming_el_t **els);
 
 
+#if 0
 void borVPTreeDump(bor_vptree_t *vp, FILE *out);
 #endif
 
