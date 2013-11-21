@@ -37,6 +37,7 @@ OBJS += pc pc-internal
 OBJS += gug
 OBJS += nearest-linear
 OBJS += vptree
+OBJS += vptree-hamming
 OBJS += nn-linear
 OBJS += mesh3 net qhull chull3
 OBJS += fibo pairheap dij
