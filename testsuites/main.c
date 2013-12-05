@@ -18,6 +18,7 @@
 #include "tasks.h"
 #include "task-pool.h"
 #include "vptree.h"
+#include "vptree-hamming.h"
 #include "nn.h"
 #include "cfg.h"
 #include "opts.h"
@@ -36,6 +37,7 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSGUG),
     TEST_SUITE_ADD(TSVPTree),
+    TEST_SUITE_ADD(TSVPTreeHamming),
     TEST_SUITE_ADD(TSNN),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),

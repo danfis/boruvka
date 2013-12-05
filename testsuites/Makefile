@@ -14,7 +14,8 @@ CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-l
 CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
-TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
+#TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
+TARGETS = libdata.a test
 ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
   CFLAGS  += $(OPENCL_CFLAGS)
@@ -25,7 +26,8 @@ BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        mat3.o mat4.o gug.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o chull3.o \
-       tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o
+       tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
+	   vptree-hamming.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
