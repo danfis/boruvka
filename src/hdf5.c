@@ -256,3 +256,12 @@ size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data)
         *data = (int *)dset->data;
     return size;
 }
+
+size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data)
+{
+#ifdef BOR_SINGLE
+    return borH5DatasetLoadFloat(dset, data);
+#else /* BOR_SINGLE */
+    return borH5DatasetLoadDouble(dset, data);
+#endif /* BOR_SINGLE */
+}

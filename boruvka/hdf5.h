@@ -111,4 +111,10 @@ size_t borH5DatasetLoadDouble(bor_h5dset_t *dset, double **data);
  */
 size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data);
 
+/**
+ * Similar to borH5DatasetLoadFloat() but configured data type (float or
+ * double) is used.
+ */
+size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data);
+
 #endif /* __BOR_HDF5_H__ */
