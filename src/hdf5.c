@@ -83,7 +83,11 @@ int borH5FileClose(bor_h5file_t *hf)
 bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
 {
     hid_t dset_id;
+    hid_t dspace_id;
     bor_h5dset_t *dset;
+    int ndims;
+    hsize_t *dims;
+    int i;
 
     dset_id = H5Dopen2(hf->file_id, path, H5P_DEFAULT);
     if (dset_id < 0){
@@ -91,10 +95,41 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
         return NULL;
     }
 
+    // get dataspace of dataset
+    dspace_id = H5Dget_space(dset_id);
+    if (dspace_id < 0){
+        // TODO: Error report
+        return NULL;
+    }
+
+    // get number of dimensions
+    ndims = H5Sget_simple_extent_ndims(dspace_id);
+    if (ndims < 0){
+        // TODO: Error report
+        return NULL;
+    }
+
+    // get dimensions
+    dims = BOR_ALLOC_ARR(hsize_t, ndims);
+    if (H5Sget_simple_extent_dims(dspace_id, dims, NULL) < 0){
+        // TODO: Error report
+        BOR_FREE(dims);
+        return NULL;
+    }
+
     dset = BOR_ALLOC(bor_h5dset_t);
     dset->dset_id = dset_id;
     dset->hf      = hf;
     borListAppend(&hf->dset, &dset->list);
+
+    // write dataspace info
+    dset->ndims = ndims;
+    dset->dims = BOR_ALLOC_ARR(size_t, ndims);
+    for (i = 0; i < ndims; i++){
+        dset->dims[i] = dims[i];
+    }
+
+    BOR_FREE(dims);
 
     return dset;
 }
@@ -106,6 +141,7 @@ int borH5DatasetClose(bor_h5dset_t *dset)
         return -1;
 
     }else{
+        BOR_FREE(dset->dims);
         borListDel(&dset->list);
         BOR_FREE(dset);
         return 0;

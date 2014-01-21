@@ -32,6 +32,11 @@ struct _bor_h5dset_t {
     hid_t dset_id;            /*!< Identified of the dataset */
     struct _bor_h5file_t *hf; /*!< Back reference to HDF file */
     bor_list_t list;          /*!< Connector to the list of datasets */
+
+    size_t ndims; /*!< Number of dimensions of the dataset (e.g., 1 for
+                       vector, 2 for 2-D matrix, ...) */
+    size_t *dims; /*!< Size of the dataset in each dimension (e.g., matrix
+                       3x5 would have .ndims = 2 and .dims = {3, 5} */
 };
 typedef struct _bor_h5dset_t bor_h5dset_t;
 
@@ -63,6 +68,8 @@ int borH5FileClose(bor_h5file_t *hf);
 
 /**
  * Returns an existing dataset from HDF file identified by a path.
+ * Note that dims, ndism members of struct are filled with apropriate
+ * values and you can use them directly.
  */
 bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path);
 

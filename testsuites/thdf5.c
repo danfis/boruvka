@@ -18,6 +18,10 @@ TEST(hdf5OpenR)
     dset = borH5DatasetOpen(&hf, "train/x");
     assertNotEquals(dset, NULL);
 
+    assertEquals(dset->ndims, 2);
+    assertEquals(dset->dims[0], 100);
+    assertEquals(dset->dims[1], 40000);
+
     // get number of elements in dataset
     size = borH5DatasetNumElements(dset);
     assertEquals(size, 4000000);
