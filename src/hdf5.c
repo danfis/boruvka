@@ -217,7 +217,7 @@ static size_t load(bor_h5dset_t *dset, hid_t type,
 
     // (re)allocate the internal buffer
     if (dset->data_size < size){
-        dset->data = _BOR_ALLOC_MEMORY(void, dset->data, size);
+        dset->data      = _BOR_ALLOC_MEMORY(void, dset->data, size);
         dset->data_size = size;
     }
 
@@ -279,7 +279,12 @@ static size_t loadRegion(bor_h5dset_t *dset, hid_t type, size_t elsize,
     BOR_FREE(hstart);
     BOR_FREE(hcount);
 
-    return load(dset, type, elsize, size, memspace, filespace);
+    size = load(dset, type, elsize, size, memspace, filespace);
+
+    H5Sclose(memspace);
+    H5Sclose(filespace);
+
+    return size;
 }
 
 
