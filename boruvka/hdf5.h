@@ -29,6 +29,7 @@
 struct _bor_h5file_t;
 
 struct _bor_h5dset_t {
+    char *path;               /*!< Path to dataset */
     hid_t dset_id;            /*!< Identified of the dataset */
     struct _bor_h5file_t *hf; /*!< Back reference to HDF file */
     bor_list_t list;          /*!< Connector to the list of datasets */
@@ -37,6 +38,7 @@ struct _bor_h5dset_t {
                        vector, 2 for 2-D matrix, ...) */
     size_t *dims; /*!< Size of the dataset in each dimension (e.g., matrix
                        3x5 would have .ndims = 2 and .dims = {3, 5} */
+    size_t num_elements; /*!< Overall number of elements in dataset */
 };
 typedef struct _bor_h5dset_t bor_h5dset_t;
 
@@ -45,6 +47,12 @@ struct _bor_h5file_t {
     bor_list_t dset; /*!< List of datasets */
 };
 typedef struct _bor_h5file_t bor_h5file_t;
+
+
+/**
+ * Enables/Disables error reporting to stderr.
+ */
+void borH5EnableErrorReports(int enable);
 
 /**
  * Opens a new file and initializes a given bor_h5file_t structure.
@@ -79,16 +87,11 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path);
 int borH5DatasetClose(bor_h5dset_t *dset);
 
 /**
- * Returns number of elements stored in dataset.
- */
-size_t borH5DatasetNumElements(bor_h5dset_t *dset);
-
-/**
  * The entire dataset is stored in provided buffer.
  * All data elements are converted to float.
  * The provided data array must be large enough -- it is callers
  * responsibility to know how much memory must be allocated
- * (see borH5DatasetNumElements()).
+ * (see dset->num_elements).
  *
  * Returns 0 on success.
  */

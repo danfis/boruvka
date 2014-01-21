@@ -23,9 +23,8 @@ TEST(hdf5OpenR)
     assertEquals(dset->dims[1], 40000);
 
     // get number of elements in dataset
-    size = borH5DatasetNumElements(dset);
-    assertEquals(size, 4000000);
-    fprintf(stderr, "size: %lu\n", size);
+    size = dset->num_elements;
+    assertEquals(dset->num_elements, 4000000);
 
     // allocate memory buffer
     dataf = BOR_ALLOC_ARR(float, size);

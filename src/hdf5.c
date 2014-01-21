@@ -16,9 +16,43 @@
 
 #include <sys/stat.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "boruvka/alloc.h"
 #include "boruvka/hdf5.h"
+
+
+/** Set to true if reporting on stderr should be enabled */
+static int __bor_h5_enable_error_reports = 1;
+
+
+#define ERR(format, ...) \
+    error(__func__, format, __VA_ARGS__)
+#define ERR2(msg) \
+    error2(__func__, msg)
+
+/** Prints error to stderr */
+static void error(const char *func, const char *format, ...)
+{
+    va_list ap;
+
+    if (__bor_h5_enable_error_reports){
+        va_start(ap, format);
+        fprintf(stderr, "HDF5 Error[%s] :: ", func);
+        vfprintf(stderr, format, ap);
+        va_end(ap);
+        fprintf(stderr, "\n");
+        fflush(stderr);
+    }
+}
+static void error2(const char *func, const char *msg)
+{
+    if (__bor_h5_enable_error_reports){
+        fprintf(stderr, "HDF5 Error[%s] :: %s\n", func, msg);
+        fflush(stderr);
+    }
+}
 
 /** Returns true if file exists */
 static int fileExist(const char *fn)
@@ -27,6 +61,12 @@ static int fileExist(const char *fn)
     if (stat(fn, &st) == 0 && S_ISREG(st.st_mode))
         return 1;
     return 0;
+}
+
+
+void borH5EnableErrorReports(int enable)
+{
+    __bor_h5_enable_error_reports = enable;
 }
 
 int borH5FileOpen(bor_h5file_t *hf, const char *fn, const char *mode)
@@ -45,10 +85,13 @@ int borH5FileOpen(bor_h5file_t *hf, const char *fn, const char *mode)
         }else{
             hf->file_id = H5Fcreate(fn, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
         }
+    }else{
+        ERR("Unknown mode `%s'", mode);
+        return -1;
     }
 
     if (hf->file_id < 0){
-        // TODO: Error report
+        ERR("Could not open file `%s' in mode `%s'", fn, mode);
         return -1;
     }
 
@@ -66,13 +109,12 @@ int borH5FileClose(bor_h5file_t *hf)
     while (!borListEmpty(&hf->dset)){
         dset = BOR_LIST_ENTRY(borListNext(&hf->dset), bor_h5dset_t, list);
         if (borH5DatasetClose(dset) != 0){
-            // TODO: Error report
             return -1;
         }
     }
 
     if (H5Fclose(hf->file_id) < 0){
-        // TODO: Error report
+        ERR2("Could not close HDF file.");
         return -1;
     }
 
@@ -91,33 +133,34 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
 
     dset_id = H5Dopen2(hf->file_id, path, H5P_DEFAULT);
     if (dset_id < 0){
-        // TODO: Error report
+        ERR("Could not open dataset `%s'", path);
         return NULL;
     }
 
     // get dataspace of dataset
     dspace_id = H5Dget_space(dset_id);
     if (dspace_id < 0){
-        // TODO: Error report
+        ERR("Cannot obtain dataspace from dataset `%s'", path);
         return NULL;
     }
 
     // get number of dimensions
     ndims = H5Sget_simple_extent_ndims(dspace_id);
     if (ndims < 0){
-        // TODO: Error report
+        ERR("Cannot determine number of dimensions of dataset `%s'", path);
         return NULL;
     }
 
     // get dimensions
     dims = BOR_ALLOC_ARR(hsize_t, ndims);
     if (H5Sget_simple_extent_dims(dspace_id, dims, NULL) < 0){
-        // TODO: Error report
+        ERR("Cannot determine dimensions of dataset `%s'", path);
         BOR_FREE(dims);
         return NULL;
     }
 
     dset = BOR_ALLOC(bor_h5dset_t);
+    dset->path    = strdup(path);
     dset->dset_id = dset_id;
     dset->hf      = hf;
     borListAppend(&hf->dset, &dset->list);
@@ -129,6 +172,11 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
         dset->dims[i] = dims[i];
     }
 
+    dset->num_elements = 1;
+    for (i = 0; i < ndims; i++){
+        dset->num_elements *= dims[i];
+    }
+
     BOR_FREE(dims);
 
     return dset;
@@ -137,36 +185,16 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
 int borH5DatasetClose(bor_h5dset_t *dset)
 {
     if (H5Dclose(dset->dset_id) < 0){
-        // TODO: Error report
+        ERR("Could not close dataset `%s'", dset->path);
         return -1;
 
     }else{
+        BOR_FREE(dset->path);
         BOR_FREE(dset->dims);
         borListDel(&dset->list);
         BOR_FREE(dset);
         return 0;
     }
-}
-
-size_t borH5DatasetNumElements(bor_h5dset_t *dset)
-{
-    hid_t dspace;
-    hssize_t num_els;
-
-    // open dataspace
-    dspace = H5Dget_space(dset->dset_id);
-    if (dspace < 0){
-        // TODO: Error report
-        return 0;
-    }
-
-    // determine number of elements in dataspace
-    num_els = H5Sget_simple_extent_npoints(dspace);
-
-    // close dataspace
-    H5Sclose(dspace);
-
-    return num_els;
 }
 
 static int datasetRead(bor_h5dset_t *dset, hid_t type, void *data)
@@ -175,7 +203,7 @@ static int datasetRead(bor_h5dset_t *dset, hid_t type, void *data)
 
     err = H5Dread(dset->dset_id, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
     if (err < 0){
-        // TODO: Error report
+        ERR("Could not read data from dataset `%s'", dset->path);
         return -1;
     }
 
