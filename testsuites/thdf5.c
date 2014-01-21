@@ -95,6 +95,44 @@ TEST(hdf5Mat)
     borH5FileClose(&hf);
 }
 
+TEST(hdf5MatRowRange)
+{
+    bor_h5file_t hf;
+    bor_h5dset_t *dset;
+    bor_gsl_matrix *mat;
+
+    // open data file
+    assertEquals(borH5FileOpen(&hf, "hdf5.h5", "r"), 0);
+
+    // open dataset
+    dset = borH5DatasetOpen(&hf, "train/x");
+    assertNotEquals(dset, NULL);
+
+    assertEquals(dset->ndims, 2);
+    assertEquals(dset->dims[0], 100);
+    assertEquals(dset->dims[1], 40000);
+
+    mat = borH5DatasetLoadMatRowRange(dset, 1, 3);
+    assertEquals(mat->size1, 3);
+    assertEquals(mat->size2, 40000);
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 0, 1000), 0.0156862754));
+
+    mat = borH5DatasetLoadMatRowRange(dset, 0, 2);
+    assertEquals(mat->size1, 2);
+    assertEquals(mat->size2, 40000);
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 0, 0), 0.0078431377f));
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 0, 10), 0.0392156877));
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 1, 1000), 0.0156862754));
+
+
+    mat = borH5DatasetLoadMatRowRange(dset, 95, 5);
+    assertEquals(mat->size1, 5);
+    assertEquals(mat->size2, 40000);
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 4, 39999), 0.0117647061f));
+
+    borH5FileClose(&hf);
+}
+
 TEST(hdf5Region)
 {
     bor_h5file_t hf;

@@ -188,6 +188,14 @@ bor_gsl_vector *borH5DatasetLoadVec(bor_h5dset_t *dset);
  */
 bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset);
 
+/**
+ * Loads and returns in form of GSL matrix a specified range of rows.
+ * It is assumed that the corresponding HDF data are 2-D (dset->ndims == 2).
+ * The row range is defined by starting row and number of rows that
+ * follows.
+ */
+bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
+                                            size_t start, size_t num);
 #endif /* BOR_GSL */
 
 #endif /* __BOR_HDF5_H__ */

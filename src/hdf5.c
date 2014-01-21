@@ -397,4 +397,22 @@ bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset)
     return &dset->gsl.mat.matrix;
 }
 
+bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
+                                            size_t start, size_t num)
+{
+    size_t dstart[2], dcount[2];
+
+    if (dset->ndims != 2)
+        return NULL;
+
+    dstart[0] = start;
+    dstart[1] = 0;
+    dcount[0] = num;
+    dcount[1] = dset->dims[1];
+    borH5DatasetLoadRegionReal(dset, dstart, dcount, NULL);
+    dset->gsl.mat = bor_gsl_matrix_view_array((bor_real_t *)dset->data,
+                                              num, dset->dims[1]);
+    return &dset->gsl.mat.matrix;
+}
+
 #endif /* BOR_GSL */
