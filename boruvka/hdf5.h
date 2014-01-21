@@ -39,6 +39,9 @@ struct _bor_h5dset_t {
     size_t *dims; /*!< Size of the dataset in each dimension (e.g., matrix
                        3x5 would have .ndims = 2 and .dims = {3, 5} */
     size_t num_elements; /*!< Overall number of elements in dataset */
+
+    void *data;
+    size_t data_size;
 };
 typedef struct _bor_h5dset_t bor_h5dset_t;
 
@@ -87,24 +90,25 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path);
 int borH5DatasetClose(bor_h5dset_t *dset);
 
 /**
- * The entire dataset is stored in provided buffer.
- * All data elements are converted to float.
- * The provided data array must be large enough -- it is callers
- * responsibility to know how much memory must be allocated
- * (see dset->num_elements).
- *
- * Returns 0 on success.
+ * Loads the *whole* data of the dataset into internal memory considering
+ * conversion to the float data type (in this case, for other types see
+ * similar functions).
+ * The function returns number of elements loaded and if data argument is
+ * non-NULL the pointer to data array is also returned.
+ * Note that data are stored internaly (see dset->data*) and although you
+ * can read/write as you wish you should not free the data block.
  */
-int borH5DatasetReadFloat(bor_h5dset_t *dset, float *data);
+size_t borH5DatasetLoadFloat(bor_h5dset_t *dset, float **data);
 
 /**
- * Similar to borH5DatasetReadFloat() but data are converted to double.
+ * Simliar to borH5DatasetLoadFloat() but double type is used for
+ * conversion.
  */
-int borH5DatasetReadDouble(bor_h5dset_t *dset, float *data);
+size_t borH5DatasetLoadDouble(bor_h5dset_t *dset, double **data);
 
 /**
- * Simliar to borH5DatasetReadFloat() but data are converted to int.
+ * Simliar to borH5DatasetLoadFloat() but int type is used.
  */
-int borH5DatasetReadInt(bor_h5dset_t *dset, int *data);
+size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data);
 
 #endif /* __BOR_HDF5_H__ */

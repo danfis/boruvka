@@ -177,6 +177,9 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
         dset->num_elements *= dims[i];
     }
 
+    dset->data = NULL;
+    dset->data_size = 0;
+
     BOR_FREE(dims);
 
     return dset;
@@ -191,36 +194,65 @@ int borH5DatasetClose(bor_h5dset_t *dset)
     }else{
         BOR_FREE(dset->path);
         BOR_FREE(dset->dims);
+
+        if (dset->data)
+            BOR_FREE(dset->data);
+
         borListDel(&dset->list);
         BOR_FREE(dset);
         return 0;
     }
 }
 
-static int datasetRead(bor_h5dset_t *dset, hid_t type, void *data)
+
+static size_t loadAll(bor_h5dset_t *dset, hid_t type, size_t elsize)
 {
     herr_t err;
+    size_t size;
 
-    err = H5Dread(dset->dset_id, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+    // determine size of the array
+    size = elsize * dset->num_elements;
+
+    // (re)allocate the internal buffer
+    if (dset->data_size < size)
+        dset->data = _BOR_ALLOC_MEMORY(void, dset->data, size);
+
+    // read data from dataset
+    err = H5Dread(dset->dset_id, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset->data);
     if (err < 0){
         ERR("Could not read data from dataset `%s'", dset->path);
         return -1;
     }
 
-    return 0;
+    return dset->num_elements;
 }
 
-int borH5DatasetReadFloat(bor_h5dset_t *dset, float *data)
+size_t borH5DatasetLoadFloat(bor_h5dset_t *dset, float **data)
 {
-    return datasetRead(dset, H5T_NATIVE_FLOAT, data);
+    size_t size;
+
+    size = loadAll(dset, H5T_NATIVE_FLOAT, sizeof(float));
+    if (data)
+        *data = (float *)dset->data;
+    return size;
 }
 
-int borH5DatasetReadDouble(bor_h5dset_t *dset, float *data)
+size_t borH5DatasetLoadDouble(bor_h5dset_t *dset, double **data)
 {
-    return datasetRead(dset, H5T_NATIVE_DOUBLE, data);
+    size_t size;
+
+    size = loadAll(dset, H5T_NATIVE_DOUBLE, sizeof(double));
+    if (data)
+        *data = (double *)dset->data;
+    return size;
 }
 
-int borH5DatasetReadInt(bor_h5dset_t *dset, int *data)
+size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data)
 {
-    return datasetRead(dset, H5T_NATIVE_INT, data);
+    size_t size;
+
+    size = loadAll(dset, H5T_NATIVE_INT, sizeof(int));
+    if (data)
+        *data = (int *)dset->data;
+    return size;
 }
