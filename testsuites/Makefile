@@ -33,9 +33,11 @@ OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
 BENCH_OBJS =
 
 ifeq '$(USE_HDF5)' 'yes'
+ifeq '$(USE_GSL)' 'yes'
   OBJS += thdf5.o
-  CFLAGS += $(HDF5_CFLAGS)
-  LDFLAGS += $(HDF5_LDFLAGS)
+  CFLAGS += $(HDF5_CFLAGS) $(GSL_CFLAGS)
+  LDFLAGS += $(HDF5_LDFLAGS) $(GSL_LDFLAGS)
+endif
 endif
 
 

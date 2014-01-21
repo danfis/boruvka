@@ -93,6 +93,7 @@ USE_MEMCHECK ?= no
 USE_SSE    ?= no
 USE_OPENCL ?= auto
 USE_HDF5   ?= auto
+USE_GSL    ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -138,7 +139,22 @@ endif
 ifeq '$(USE_HDF5)' 'yes'
   HDF5_CFLAGS ?=
   HDF5_LDFLAGS ?= -lhdf5
-  CONFIG_FLAGS ?= -DUSE_HDF5
+  CONFIG_FLAGS += -DUSE_HDF5
+endif
+
+
+ifeq '$(USE_GSL)' 'auto'
+  ifeq '$(GSL_CFLAGS)' ''
+    USE_GSL = $(shell if pkg-config --exists gsl; then echo "yes"; else echo "no"; fi;)
+  else
+    USE_GSL = yes
+  endif
+endif
+
+ifeq '$(USE_GSL)' 'yes'
+  GSL_CFLAGS ?= $(shell pkg-config --cflags gsl)
+  GSL_LDFLAGS ?= $(shell pkg-config --libs gsl)
+  CONFIG_FLAGS += -DUSE_GSL
 endif
 
 BINS     ?= yes

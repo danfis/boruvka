@@ -61,6 +61,11 @@ ifeq '$(USE_HDF5)' 'yes'
   LDFLAGS += $(HDF5_LDFLAGS)
 endif
 
+ifeq '$(USE_GSL)' 'yes'
+  CFLAGS  += $(GSL_CFLAGS)
+  LDFLAGS += $(GSL_LDFLAGS)
+endif
+
 
 BIN_TARGETS = bor-qdelaunay
 
@@ -201,6 +206,7 @@ help:
 	@echo "                               By default, auto detection is used."
 	@echo "                               This option depends on USE_SINGLE set to 'yes'"
 	@echo "    USE_HDF5     'yes'/'no'  - Use HDF5 data format  (=$(USE_HDF5))"
+	@echo "    USE_GSL      'yes'/'no'  - Use GNU Scientific Library (=$(USE_GSL))"
 	@echo ""
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"
@@ -220,5 +226,7 @@ help:
 	@echo "    OPENCL_LDFLAGS    = $(OPENCL_LDFLAGS)"
 	@echo "    HDF5_CFLAGS       = $(HDF5_CFLAGS)"
 	@echo "    HDF5_LDFLAGS      = $(HDF5_LDFLAGS)"
+	@echo "    GSL_CFLAGS       = $(GSL_CFLAGS)"
+	@echo "    GSL_LDFLAGS      = $(GSL_LDFLAGS)"
 
 .PHONY: all clean check check-valgrind help doc install analyze examples

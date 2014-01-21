@@ -265,3 +265,27 @@ size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data)
     return borH5DatasetLoadDouble(dset, data);
 #endif /* BOR_SINGLE */
 }
+
+
+
+#ifdef BOR_GSL
+
+bor_gsl_vector *borH5DatasetLoadVec(bor_h5dset_t *dset)
+{
+    borH5DatasetLoadReal(dset, NULL);
+    dset->gsl.vec = bor_gsl_vector_view_array((bor_real_t *)dset->data, dset->num_elements);
+    return &dset->gsl.vec.vector;
+}
+
+bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset)
+{
+    if (dset->ndims != 2)
+        return NULL;
+
+    borH5DatasetLoadReal(dset, NULL);
+    dset->gsl.mat = bor_gsl_matrix_view_array((bor_real_t *)dset->data,
+                                              dset->dims[0], dset->dims[1]);
+    return &dset->gsl.mat.matrix;
+}
+
+#endif /* BOR_GSL */

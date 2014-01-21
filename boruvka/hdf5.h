@@ -21,10 +21,19 @@
 #ifndef __BOR_HDF5_H__
 #define __BOR_HDF5_H__
 
+#include <boruvka/core.h>
+
+#ifndef BOR_HDF5
+# error "Boruvka is not compiled with HDF5 support!"
+#endif /* BOR_HDF5 */
+
 #include <hdf5.h>
 
-#include <boruvka/core.h>
 #include <boruvka/list.h>
+
+#ifdef BOR_GSL
+# include <boruvka/gsl.h>
+#endif /* BOR_GSL */
 
 struct _bor_h5file_t;
 
@@ -40,8 +49,16 @@ struct _bor_h5dset_t {
                        3x5 would have .ndims = 2 and .dims = {3, 5} */
     size_t num_elements; /*!< Overall number of elements in dataset */
 
-    void *data;
-    size_t data_size;
+    void *data;       /*!< Internal storage for loaded data */
+    size_t data_size; /*!< Size of .data array */
+
+
+#ifdef BOR_GSL
+    union {
+        bor_gsl_vector_view vec; /*!< Vector view to .data */
+        bor_gsl_matrix_view mat; /*!< Matrix view to .data */
+    } gsl;
+#endif /* BOR_GSL */
 };
 typedef struct _bor_h5dset_t bor_h5dset_t;
 
@@ -116,5 +133,23 @@ size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data);
  * double) is used.
  */
 size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data);
+
+
+#ifdef BOR_GSL
+
+/**
+ * Loads *whole* dataset into gsl vector.
+ * Note: The returned vector is managed internally. *Do not free it*.
+ */
+bor_gsl_vector *borH5DatasetLoadVec(bor_h5dset_t *dset);
+
+/**
+ * Loads *whole* dataset into gsl matrix. The dataset's dimensions are use
+ * for matrix which means that dataset must have .ndims == 2.
+ * Note: The returned matrix in managed internally.
+ */
+bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset);
+
+#endif /* BOR_GSL */
 
 #endif /* __BOR_HDF5_H__ */
