@@ -134,6 +134,44 @@ size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data);
  */
 size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data);
 
+/**
+ * Loads (hyper-)rectangular region from the dataset into internal data
+ * array. The region is defined by a pair {start} and {count} both must
+ * have dset->ndims elements. {start} defines start of the region and
+ * {count} defines number of desired elements in each dimension.
+ * Data are converted to the float data type and for the returned data
+ * block holds same rules as in case of borH5DatasetLoadFloat() function
+ * (in fact the very same data array is used).
+ */
+size_t borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
+                                   const size_t *start,
+                                   const size_t *count,
+                                   float **data);
+
+/**
+ * Same as borH5DatasetLoadRegionFloat() but in doubles.
+ */
+size_t borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
+                                    const size_t *start,
+                                    const size_t *count,
+                                    double **data);
+
+/**
+ * Same as borH5DatasetLoadRegionFloat() but int type is used.
+ */
+size_t borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
+                                 const size_t *start,
+                                 const size_t *count,
+                                 int **data);
+
+/**
+ * Same as borH5DatasetLoadRegionFloat() but pre-configured floating point
+ * type is used (bor_real_t).
+ */
+size_t borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
+                                  const size_t *start,
+                                  const size_t *count,
+                                  bor_real_t **data);
 
 #ifdef BOR_GSL
 

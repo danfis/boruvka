@@ -205,27 +205,83 @@ int borH5DatasetClose(bor_h5dset_t *dset)
 }
 
 
-static size_t loadAll(bor_h5dset_t *dset, hid_t type, size_t elsize)
+static size_t load(bor_h5dset_t *dset, hid_t type,
+                   size_t elsize, size_t num_els,
+                   hid_t memspace, hid_t filespace)
 {
     herr_t err;
     size_t size;
 
     // determine size of the array
-    size = elsize * dset->num_elements;
+    size = elsize * num_els;
 
     // (re)allocate the internal buffer
-    if (dset->data_size < size)
+    if (dset->data_size < size){
         dset->data = _BOR_ALLOC_MEMORY(void, dset->data, size);
+        dset->data_size = size;
+    }
 
     // read data from dataset
-    err = H5Dread(dset->dset_id, type, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset->data);
+    err = H5Dread(dset->dset_id, type, memspace, filespace, H5P_DEFAULT, dset->data);
     if (err < 0){
         ERR("Could not read data from dataset `%s'", dset->path);
         return -1;
     }
 
-    return dset->num_elements;
+    return num_els;
 }
+
+static size_t loadAll(bor_h5dset_t *dset, hid_t type, size_t elsize)
+{
+    return load(dset, type, elsize, dset->num_elements, H5S_ALL, H5S_ALL);
+}
+
+static size_t loadRegion(bor_h5dset_t *dset, hid_t type, size_t elsize,
+                         const size_t *start, const size_t *count)
+{
+    hid_t filespace, memspace;
+    herr_t err;
+    size_t size, i;
+    hsize_t *hstart, *hcount, hsize;
+
+    // copy dataspace from dataset
+    filespace = H5Dget_space(dset->dset_id);
+
+    // convert to HDF acceptable types
+    size = 1;
+    hstart = BOR_ALLOC_ARR(hsize_t, dset->ndims);
+    hcount = BOR_ALLOC_ARR(hsize_t, dset->ndims);
+    for (i = 0; i < dset->ndims; i++){
+        hstart[i] = start[i];
+        hcount[i] = count[i];
+        size *= count[i];
+    }
+
+    // define hyperslab in file dataset
+    err = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hstart, NULL, hcount, NULL);
+    if (err < 0){
+        BOR_FREE(hstart);
+        BOR_FREE(hcount);
+        ERR("Could not select hyperslab in dataset `%s'", dset->path);
+        return 0;
+    }
+
+    // create memspace as 1-D array
+    hsize = size;
+    memspace = H5Screate_simple(1, &hsize, &hsize);
+    if (memspace < 0){
+        BOR_FREE(hstart);
+        BOR_FREE(hcount);
+        ERR("Could not create a memory selection for dataset `%s'", dset->path);
+        return 0;
+    }
+
+    BOR_FREE(hstart);
+    BOR_FREE(hcount);
+
+    return load(dset, type, elsize, size, memspace, filespace);
+}
+
 
 size_t borH5DatasetLoadFloat(bor_h5dset_t *dset, float **data)
 {
@@ -263,6 +319,59 @@ size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data)
     return borH5DatasetLoadFloat(dset, data);
 #else /* BOR_SINGLE */
     return borH5DatasetLoadDouble(dset, data);
+#endif /* BOR_SINGLE */
+}
+
+
+
+size_t borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
+                                   const size_t *start,
+                                   const size_t *count,
+                                   float **data)
+{
+    size_t size;
+
+    size = loadRegion(dset, H5T_NATIVE_FLOAT, sizeof(float), start, count);
+    if (data)
+        *data = (float *)dset->data;
+    return size;
+}
+
+size_t borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
+                                    const size_t *start,
+                                    const size_t *count,
+                                    double **data)
+{
+    size_t size;
+
+    size = loadRegion(dset, H5T_NATIVE_DOUBLE, sizeof(double), start, count);
+    if (data)
+        *data = (double *)dset->data;
+    return size;
+}
+
+size_t borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
+                                 const size_t *start,
+                                 const size_t *count,
+                                 int **data)
+{
+    size_t size;
+
+    size = loadRegion(dset, H5T_NATIVE_INT, sizeof(int), start, count);
+    if (data)
+        *data = (int *)dset->data;
+    return size;
+}
+
+size_t borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
+                                  const size_t *start,
+                                  const size_t *count,
+                                  bor_real_t **data)
+{
+#ifdef BOR_SINGLE
+    return borH5DatasetLoadRegionFloat(dset, start, count, data);
+#else /* BOR_SINGLE */
+    return borH5DatasetLoadRegionDouble(dset, start, count, data);
 #endif /* BOR_SINGLE */
 }
 

@@ -94,3 +94,33 @@ TEST(hdf5Mat)
 
     borH5FileClose(&hf);
 }
+
+TEST(hdf5Region)
+{
+    bor_h5file_t hf;
+    bor_h5dset_t *dset;
+    bor_real_t *data;
+    size_t start[2], count[2], size;
+
+    // open data file
+    assertEquals(borH5FileOpen(&hf, "hdf5.h5", "r"), 0);
+
+    // open dataset
+    dset = borH5DatasetOpen(&hf, "train/x");
+    assertNotEquals(dset, NULL);
+
+    assertEquals(dset->ndims, 2);
+    assertEquals(dset->dims[0], 100);
+    assertEquals(dset->dims[1], 40000);
+
+    start[0] = 0;
+    start[1] = 10;
+    count[0] = 2;
+    count[1] = 1000;
+    size = borH5DatasetLoadRegionReal(dset, start, count, &data);
+    assertEquals(size, 2000);
+    assertTrue(borEq(data[0], 0.0392156877));
+    assertTrue(borEq(data[1990], 0.0156862754));
+
+    borH5FileClose(&hf);
+}
