@@ -92,6 +92,7 @@ USE_MEMCHECK ?= no
 
 USE_SSE    ?= no
 USE_OPENCL ?= auto
+USE_HDF5   ?= auto
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -124,6 +125,20 @@ ifeq '$(USE_OPENCL)' 'yes'
   OPENCL_CFLAGS  ?=
   OPENCL_LDFLAGS ?= -lOpenCL
   CONFIG_FLAGS += -DUSE_OPENCL
+endif
+
+ifeq '$(USE_HDF5)' 'auto'
+  ifeq '$(HDF5_CFLAGS)' ''
+    USE_HDF5 = $(shell if test -f /usr/include/hdf5.h; then echo "yes"; else echo "no"; fi;)
+  else
+    USE_HDF5 = yes
+  endif
+endif
+
+ifeq '$(USE_HDF5)' 'yes'
+  HDF5_CFLAGS ?=
+  HDF5_LDFLAGS ?= -lhdf5
+  CONFIG_FLAGS ?= -DUSE_HDF5
 endif
 
 BINS     ?= yes

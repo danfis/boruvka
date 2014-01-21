@@ -32,6 +32,12 @@ OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
 
+ifeq '$(USE_HDF5)' 'yes'
+  OBJS += thdf5.o
+  CFLAGS += $(HDF5_CFLAGS)
+  LDFLAGS += $(HDF5_LDFLAGS)
+endif
+
 
 all: $(TARGETS)
 

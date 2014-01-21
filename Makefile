@@ -55,6 +55,12 @@ ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
 endif
 
+ifeq '$(USE_HDF5)' 'yes'
+  OBJS += hdf5
+  CFLAGS  += $(HDF5_CFLAGS)
+  LDFLAGS += $(HDF5_LDFLAGS)
+endif
+
 
 BIN_TARGETS = bor-qdelaunay
 
@@ -194,6 +200,7 @@ help:
 	@echo "    USE_OPENCL   'yes'/'no'  - Use OpenCL library    (=$(USE_OPENCL))"
 	@echo "                               By default, auto detection is used."
 	@echo "                               This option depends on USE_SINGLE set to 'yes'"
+	@echo "    USE_HDF5     'yes'/'no'  - Use HDF5 data format  (=$(USE_HDF5))"
 	@echo ""
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"
@@ -211,5 +218,7 @@ help:
 	@echo "    PYTHON_LDFLAGS    = $(PYTHON_LDFLAGS)"
 	@echo "    OPENCL_CFLAGS     = $(OPENCL_CFLAGS)"
 	@echo "    OPENCL_LDFLAGS    = $(OPENCL_LDFLAGS)"
+	@echo "    HDF5_CFLAGS       = $(HDF5_CFLAGS)"
+	@echo "    HDF5_LDFLAGS      = $(HDF5_LDFLAGS)"
 
 .PHONY: all clean check check-valgrind help doc install analyze examples
