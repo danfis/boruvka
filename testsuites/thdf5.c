@@ -29,6 +29,8 @@ TEST(hdf5OpenR)
     assertEquals(borH5DatasetLoadFloat(dset, &dataf), size);
     assertTrue(borEq(dataf[0], 0.0078431377f));
     assertTrue(borEq(dataf[size - 1], 0.0117647061f));
+    assertTrue(borEq(dataf[10], 0.0392156877));
+    assertTrue(borEq(dataf[41000], 0.0156862754));
 
     assertEquals(borH5DatasetLoadInt(dset, &datai), size);
     assertEquals(datai[0], 0);
@@ -58,6 +60,8 @@ TEST(hdf5Vec)
     assertEquals(vec->size, 4000000);
     assertTrue(borEq(bor_gsl_vector_get(vec, 0), 0.0078431377f));
     assertTrue(borEq(bor_gsl_vector_get(vec, 3999999), 0.0117647061f));
+    assertTrue(borEq(bor_gsl_vector_get(vec, 10), 0.0392156877));
+    assertTrue(borEq(bor_gsl_vector_get(vec, 41000), 0.0156862754));
 
     borH5DatasetClose(dset);
     borH5FileClose(&hf);
@@ -85,6 +89,8 @@ TEST(hdf5Mat)
     assertEquals(mat->size2, 40000);
     assertTrue(borEq(bor_gsl_matrix_get(mat, 0, 0), 0.0078431377f));
     assertTrue(borEq(bor_gsl_matrix_get(mat, 99, 39999), 0.0117647061f));
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 0, 10), 0.0392156877));
+    assertTrue(borEq(bor_gsl_matrix_get(mat, 1, 1000), 0.0156862754));
 
     borH5FileClose(&hf);
 }
