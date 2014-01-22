@@ -147,6 +147,7 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
     // get number of dimensions
     ndims = H5Sget_simple_extent_ndims(dspace_id);
     if (ndims < 0){
+        H5Dclose(dspace_id);
         ERR("Cannot determine number of dimensions of dataset `%s'", path);
         return NULL;
     }
@@ -154,10 +155,14 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
     // get dimensions
     dims = BOR_ALLOC_ARR(hsize_t, ndims);
     if (H5Sget_simple_extent_dims(dspace_id, dims, NULL) < 0){
+        H5Dclose(dspace_id);
         ERR("Cannot determine dimensions of dataset `%s'", path);
         BOR_FREE(dims);
         return NULL;
     }
+
+    // close dataspace, we don't need it anymore
+    H5Dclose(dspace_id);
 
     dset = BOR_ALLOC(bor_h5dset_t);
     dset->path    = strdup(path);
@@ -270,6 +275,7 @@ static size_t loadRegion(bor_h5dset_t *dset, hid_t type, size_t elsize,
     hsize = size;
     memspace = H5Screate_simple(1, &hsize, &hsize);
     if (memspace < 0){
+        H5Sclose(filespace);
         BOR_FREE(hstart);
         BOR_FREE(hcount);
         ERR("Could not create a memory selection for dataset `%s'", dset->path);
