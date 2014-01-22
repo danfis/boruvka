@@ -147,7 +147,7 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
     // get number of dimensions
     ndims = H5Sget_simple_extent_ndims(dspace_id);
     if (ndims < 0){
-        H5Dclose(dspace_id);
+        H5Sclose(dspace_id);
         ERR("Cannot determine number of dimensions of dataset `%s'", path);
         return NULL;
     }
@@ -162,7 +162,7 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
     }
 
     // close dataspace, we don't need it anymore
-    H5Dclose(dspace_id);
+    H5Sclose(dspace_id);
 
     dset = BOR_ALLOC(bor_h5dset_t);
     dset->path    = strdup(path);
@@ -294,95 +294,83 @@ static size_t loadRegion(bor_h5dset_t *dset, hid_t type, size_t elsize,
 }
 
 
-size_t borH5DatasetLoadFloat(bor_h5dset_t *dset, float **data)
+float *borH5DatasetLoadFloat(bor_h5dset_t *dset, size_t *size)
 {
-    size_t size;
-
-    size = loadAll(dset, H5T_NATIVE_FLOAT, sizeof(float));
-    if (data)
-        *data = (float *)dset->data;
-    return size;
+    *size = loadAll(dset, H5T_NATIVE_FLOAT, sizeof(float));
+    if (*size == 0)
+        return NULL;
+    return (float *)dset->data;
 }
 
-size_t borH5DatasetLoadDouble(bor_h5dset_t *dset, double **data)
+double *borH5DatasetLoadDouble(bor_h5dset_t *dset, size_t *size)
 {
-    size_t size;
-
-    size = loadAll(dset, H5T_NATIVE_DOUBLE, sizeof(double));
-    if (data)
-        *data = (double *)dset->data;
-    return size;
+    *size = loadAll(dset, H5T_NATIVE_DOUBLE, sizeof(double));
+    if (*size == 0)
+        return NULL;
+    return (double *)dset->data;
 }
 
-size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data)
+int *borH5DatasetLoadInt(bor_h5dset_t *dset, size_t *size)
 {
-    size_t size;
-
-    size = loadAll(dset, H5T_NATIVE_INT, sizeof(int));
-    if (data)
-        *data = (int *)dset->data;
-    return size;
+    *size = loadAll(dset, H5T_NATIVE_INT, sizeof(float));
+    if (*size == 0)
+        return NULL;
+    return (int *)dset->data;
 }
 
-size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data)
+bor_real_t *borH5DatasetLoadReal(bor_h5dset_t *dset, size_t *size)
 {
 #ifdef BOR_SINGLE
-    return borH5DatasetLoadFloat(dset, data);
+    return borH5DatasetLoadFloat(dset, size);
 #else /* BOR_SINGLE */
-    return borH5DatasetLoadDouble(dset, data);
+    return borH5DatasetLoadDouble(dset, size);
 #endif /* BOR_SINGLE */
 }
 
 
 
-size_t borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
+float *borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
                                    const size_t *start,
                                    const size_t *count,
-                                   float **data)
+                                   size_t *size)
 {
-    size_t size;
-
-    size = loadRegion(dset, H5T_NATIVE_FLOAT, sizeof(float), start, count);
-    if (data)
-        *data = (float *)dset->data;
-    return size;
+    *size = loadRegion(dset, H5T_NATIVE_FLOAT, sizeof(float), start, count);
+    if (*size == 0)
+        return NULL;
+    return (float *)dset->data;
 }
 
-size_t borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
-                                    const size_t *start,
-                                    const size_t *count,
-                                    double **data)
+double *borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
+                                     const size_t *start,
+                                     const size_t *count,
+                                     size_t *size)
 {
-    size_t size;
-
-    size = loadRegion(dset, H5T_NATIVE_DOUBLE, sizeof(double), start, count);
-    if (data)
-        *data = (double *)dset->data;
-    return size;
+    *size = loadRegion(dset, H5T_NATIVE_DOUBLE, sizeof(double), start, count);
+    if (*size == 0)
+        return NULL;
+    return (double *)dset->data;
 }
 
-size_t borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
-                                 const size_t *start,
-                                 const size_t *count,
-                                 int **data)
+int *borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
+                               const size_t *start,
+                               const size_t *count,
+                               size_t *size)
 {
-    size_t size;
-
-    size = loadRegion(dset, H5T_NATIVE_INT, sizeof(int), start, count);
-    if (data)
-        *data = (int *)dset->data;
-    return size;
+    *size = loadRegion(dset, H5T_NATIVE_INT, sizeof(int), start, count);
+    if (*size == 0)
+        return NULL;
+    return (int *)dset->data;
 }
 
-size_t borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
-                                  const size_t *start,
-                                  const size_t *count,
-                                  bor_real_t **data)
+bor_real_t *borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
+                                       const size_t *start,
+                                       const size_t *count,
+                                       size_t *size)
 {
 #ifdef BOR_SINGLE
-    return borH5DatasetLoadRegionFloat(dset, start, count, data);
+    return borH5DatasetLoadRegionFloat(dset, start, count, size);
 #else /* BOR_SINGLE */
-    return borH5DatasetLoadRegionDouble(dset, start, count, data);
+    return borH5DatasetLoadRegionDouble(dset, start, count, size);
 #endif /* BOR_SINGLE */
 }
 
@@ -392,17 +380,21 @@ size_t borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
 
 bor_gsl_vector *borH5DatasetLoadVec(bor_h5dset_t *dset)
 {
-    borH5DatasetLoadReal(dset, NULL);
-    dset->gsl.vec = bor_gsl_vector_view_array((bor_real_t *)dset->data, dset->num_elements);
+    size_t size;
+
+    borH5DatasetLoadReal(dset, &size);
+    dset->gsl.vec = bor_gsl_vector_view_array((bor_real_t *)dset->data, size);
     return &dset->gsl.vec.vector;
 }
 
 bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset)
 {
+    size_t size;
+
     if (dset->ndims != 2)
         return NULL;
 
-    borH5DatasetLoadReal(dset, NULL);
+    borH5DatasetLoadReal(dset, &size);
     dset->gsl.mat = bor_gsl_matrix_view_array((bor_real_t *)dset->data,
                                               dset->dims[0], dset->dims[1]);
     return &dset->gsl.mat.matrix;
@@ -411,7 +403,7 @@ bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset)
 bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
                                             size_t start, size_t num)
 {
-    size_t dstart[2], dcount[2];
+    size_t dstart[2], dcount[2], size;
 
     if (dset->ndims != 2)
         return NULL;
@@ -420,7 +412,7 @@ bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
     dstart[1] = 0;
     dcount[0] = num;
     dcount[1] = dset->dims[1];
-    borH5DatasetLoadRegionReal(dset, dstart, dcount, NULL);
+    borH5DatasetLoadRegionReal(dset, dstart, dcount, &size);
     dset->gsl.mat = bor_gsl_matrix_view_array((bor_real_t *)dset->data,
                                               num, dset->dims[1]);
     return &dset->gsl.mat.matrix;

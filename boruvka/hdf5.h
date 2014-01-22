@@ -110,29 +110,29 @@ int borH5DatasetClose(bor_h5dset_t *dset);
  * Loads the *whole* data of the dataset into internal memory considering
  * conversion to the float data type (in this case, for other types see
  * similar functions).
- * The function returns number of elements loaded and if data argument is
- * non-NULL the pointer to data array is also returned.
+ * The function returns pointer to the data array and the size of the array
+ * (via {size} arguments).
  * Note that data are stored internaly (see dset->data*) and although you
  * can read/write as you wish you should not free the data block.
  */
-size_t borH5DatasetLoadFloat(bor_h5dset_t *dset, float **data);
+float *borH5DatasetLoadFloat(bor_h5dset_t *dset, size_t *size);
 
 /**
  * Simliar to borH5DatasetLoadFloat() but double type is used for
  * conversion.
  */
-size_t borH5DatasetLoadDouble(bor_h5dset_t *dset, double **data);
+double *borH5DatasetLoadDouble(bor_h5dset_t *dset, size_t *size);
 
 /**
  * Simliar to borH5DatasetLoadFloat() but int type is used.
  */
-size_t borH5DatasetLoadInt(bor_h5dset_t *dset, int **data);
+int *borH5DatasetLoadInt(bor_h5dset_t *dset, size_t *size);
 
 /**
  * Similar to borH5DatasetLoadFloat() but configured data type (float or
  * double) is used.
  */
-size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data);
+bor_real_t *borH5DatasetLoadReal(bor_h5dset_t *dset, size_t *size);
 
 /**
  * Loads (hyper-)rectangular region from the dataset into internal data
@@ -143,35 +143,35 @@ size_t borH5DatasetLoadReal(bor_h5dset_t *dset, bor_real_t **data);
  * block holds same rules as in case of borH5DatasetLoadFloat() function
  * (in fact the very same data array is used).
  */
-size_t borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
+float *borH5DatasetLoadRegionFloat(bor_h5dset_t *dset,
                                    const size_t *start,
                                    const size_t *count,
-                                   float **data);
+                                   size_t *size);
 
 /**
  * Same as borH5DatasetLoadRegionFloat() but in doubles.
  */
-size_t borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
-                                    const size_t *start,
-                                    const size_t *count,
-                                    double **data);
+double *borH5DatasetLoadRegionDouble(bor_h5dset_t *dset,
+                                     const size_t *start,
+                                     const size_t *count,
+                                     size_t *size);
 
 /**
  * Same as borH5DatasetLoadRegionFloat() but int type is used.
  */
-size_t borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
-                                 const size_t *start,
-                                 const size_t *count,
-                                 int **data);
+int *borH5DatasetLoadRegionInt(bor_h5dset_t *dset,
+                               const size_t *start,
+                               const size_t *count,
+                               size_t *size);
 
 /**
  * Same as borH5DatasetLoadRegionFloat() but pre-configured floating point
  * type is used (bor_real_t).
  */
-size_t borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
-                                  const size_t *start,
-                                  const size_t *count,
-                                  bor_real_t **data);
+bor_real_t *borH5DatasetLoadRegionReal(bor_h5dset_t *dset,
+                                       const size_t *start,
+                                       const size_t *count,
+                                       size_t *size);
 
 #ifdef BOR_GSL
 

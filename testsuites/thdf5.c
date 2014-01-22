@@ -30,20 +30,38 @@ TEST(hdf5OpenR)
     size_t size;
     float *dataf;
     int *datai;
+    double *datad;
+    bor_real_t *datar;
 
     // get number of elements in dataset
     size = dset->num_elements;
     assertEquals(dset->num_elements, 4000000);
 
-    assertEquals(borH5DatasetLoadFloat(dset, &dataf), size);
+    dataf = borH5DatasetLoadFloat(dset, &size);
+    assertEquals(size, dset->num_elements);
     assertTrue(borEq(dataf[0], 0.0078431377f));
     assertTrue(borEq(dataf[size - 1], 0.0117647061f));
     assertTrue(borEq(dataf[10], 0.0392156877));
     assertTrue(borEq(dataf[41000], 0.0156862754));
 
-    assertEquals(borH5DatasetLoadInt(dset, &datai), size);
+    datai = borH5DatasetLoadInt(dset, &size);
+    assertEquals(dset->num_elements, size);
     assertEquals(datai[0], 0);
     assertEquals(datai[size - 1], 0);
+
+    datad = borH5DatasetLoadDouble(dset, &size);
+    assertEquals(size, dset->num_elements);
+    assertTrue(borEq(datad[0], 0.0078431377f));
+    assertTrue(borEq(datad[size - 1], 0.0117647061f));
+    assertTrue(borEq(datad[10], 0.0392156877));
+    assertTrue(borEq(datad[41000], 0.0156862754));
+
+    datar = borH5DatasetLoadReal(dset, &size);
+    assertEquals(size, dset->num_elements);
+    assertTrue(borEq(datar[0], 0.0078431377f));
+    assertTrue(borEq(datar[size - 1], 0.0117647061f));
+    assertTrue(borEq(datar[10], 0.0392156877));
+    assertTrue(borEq(datar[41000], 0.0156862754));
 }
 
 TEST(hdf5Vec)
@@ -107,15 +125,33 @@ TEST(hdf5MatRowRange)
 
 TEST(hdf5Region)
 {
-    bor_real_t *data;
+    float *dataf;
+    double *datad;
+    int *datai;
+    bor_real_t *datar;
     size_t start[2], count[2], size;
 
     start[0] = 0;
     start[1] = 10;
     count[0] = 2;
     count[1] = 1000;
-    size = borH5DatasetLoadRegionReal(dset, start, count, &data);
+    datar = borH5DatasetLoadRegionReal(dset, start, count, &size);
     assertEquals(size, 2000);
-    assertTrue(borEq(data[0], 0.0392156877));
-    assertTrue(borEq(data[1990], 0.0156862754));
+    assertTrue(borEq(datar[0], 0.0392156877));
+    assertTrue(borEq(datar[1990], 0.0156862754));
+
+    dataf = borH5DatasetLoadRegionFloat(dset, start, count, &size);
+    assertEquals(size, 2000);
+    assertTrue(borEq(dataf[0], 0.0392156877));
+    assertTrue(borEq(dataf[1990], 0.0156862754));
+
+    datad = borH5DatasetLoadRegionDouble(dset, start, count, &size);
+    assertEquals(size, 2000);
+    assertTrue(borEq(datad[0], 0.0392156877));
+    assertTrue(borEq(datad[1990], 0.0156862754));
+
+    datai = borH5DatasetLoadRegionInt(dset, start, count, &size);
+    assertEquals(size, 2000);
+    assertEquals(datai[0], 0);
+    assertEquals(datai[1990], 0);
 }
