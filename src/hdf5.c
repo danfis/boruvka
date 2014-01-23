@@ -454,12 +454,98 @@ static int selectHyperslab2D(hid_t space_id, hsize_t start1, hsize_t start2,
     return 0;
 }
 
+static int groupExists(hid_t file_id, const char *path)
+{
+    H5E_auto2_t func;
+    void *data;
+    hid_t gid;
+
+    // save current state
+    H5Eget_auto2(H5E_DEFAULT, &func, &data);
+    // reset auto error reporting
+    H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
+
+    gid = H5Gopen2(file_id, path, H5P_DEFAULT);
+    if (gid < 0){
+        H5Eset_auto2(H5E_DEFAULT, func, data);
+        return 0;
+    }
+
+    H5Eset_auto2(H5E_DEFAULT, func, data);
+    H5Gclose(gid);
+
+    return 1;
+}
+
+static int createGroupPathToDataset(hid_t file_id, const char *path)
+{
+    hid_t gid;
+    hid_t prop;
+    herr_t err;
+    int len;
+    char *gpath;
+
+    // first find last '/' in path
+    for (len = strlen(path) - 1; len >= 0 && path[len] != '/'; --len);
+
+    // if there is no '/' the path is path to dataset than there are no
+    // groups
+    if (len < 0)
+        return 0;
+
+
+    // create a group path
+    gpath = BOR_ALLOC_ARR(char, len + 1);
+    strncpy(gpath, path, len);
+    gpath[len] = 0;
+
+    // check whether group exists or not
+    if (groupExists(file_id, gpath)){
+        BOR_FREE(gpath);
+        return 0;
+    }
+
+    // force creation of intermediate groups in path
+    prop = H5Pcreate(H5P_LINK_CREATE);
+    if (prop < 0){
+        ERR2("Could not create group-create property.");
+        BOR_FREE(gpath);
+        return -1;
+    }
+
+    err = H5Pset_create_intermediate_group(prop, 1);
+    if (err < 0){
+        ERR2("Could not set intermediate group creation property.");
+        H5Pclose(prop);
+        BOR_FREE(gpath);
+        return -1;
+    }
+
+    // create the group along with intermediate groups
+    gid = H5Gcreate2(file_id, gpath, prop, H5P_DEFAULT, H5P_DEFAULT);
+    if (gid < 0){
+        ERR("Could not create group `%s'", gpath);
+        H5Pclose(prop);
+        BOR_FREE(gpath);
+        return -1;
+    }
+
+    BOR_FREE(gpath);
+    H5Pclose(prop);
+    H5Gclose(gid);
+
+    return 0;
+}
+
 int borH5WriteMat(bor_h5file_t *file, const char *path,
                   const bor_gsl_matrix *mat)
 {
     hid_t dspace_id, memspace_id;
     hid_t dset_id;
     herr_t err;
+
+    if (createGroupPathToDataset(file->file_id, path) != 0)
+        return -1;
 
     // create dataspace with same dimensions as the matrix
     dspace_id = createSpace2D(mat->size1, mat->size2);

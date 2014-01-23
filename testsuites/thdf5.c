@@ -213,5 +213,32 @@ TEST(hdf5WriteMat)
     eqMat(&mview.matrix, mat2);
     borH5DatasetClose(dset2);
 
+
+    // write matrix in group(s)
+    assertEquals(borH5WriteMat(&f, "g1/g2/g3/mat", mat), 0);
+
+    dset2 = borH5DatasetOpen(&f, "g1/g2/g3/mat");
+    mat2 = borH5DatasetLoadMat(dset2);
+    eqMat(mat, mat2);
+    borH5DatasetClose(dset2);
+
+
+    mview = bor_gsl_matrix_submatrix(mat, 0, 10, 2, 1000);
+    assertEquals(borH5WriteMat(&f, "/g1/g2/g4/submatrix", &mview.matrix), 0);
+
+    dset2 = borH5DatasetOpen(&f, "/g1/g2/g4/submatrix");
+    mat2 = borH5DatasetLoadMat(dset2);
+    eqMat(&mview.matrix, mat2);
+    borH5DatasetClose(dset2);
+
+
+    mview = bor_gsl_matrix_submatrix(mat, 10, 100, 4, 2000);
+    assertEquals(borH5WriteMat(&f, "/g1/g2/g4/submatrix2", &mview.matrix), 0);
+
+    dset2 = borH5DatasetOpen(&f, "/g1/g2/g4/submatrix2");
+    mat2 = borH5DatasetLoadMat(dset2);
+    eqMat(&mview.matrix, mat2);
+    borH5DatasetClose(dset2);
+
     borH5FileClose(&f);
 }
