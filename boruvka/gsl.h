@@ -65,6 +65,7 @@
 
 # define bor_gsl_matrix_view gsl_matrix_float_view
 # define bor_gsl_matrix_view_array gsl_matrix_float_view_array
+# define bor_gsl_matrix_submatrix gsl_matrix_float_submatrix
 
 # define bor_gsl_mat_dot_vec gsl_blas_sgemv
 
@@ -87,6 +88,7 @@
 
 # define bor_gsl_vector_view gsl_vector_view
 # define bor_gsl_vector_view_array gsl_vector_view_array
+# define bor_gsl_matrix_submatrix gsl_matrix_submatrix
 
 # define bor_gsl_matrix gsl_matrix
 # define bor_gsl_matrix_alloc gsl_matrix_alloc

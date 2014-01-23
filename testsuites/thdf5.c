@@ -155,3 +155,63 @@ TEST(hdf5Region)
     assertEquals(datai[0], 0);
     assertEquals(datai[1990], 0);
 }
+
+static int eqMat(bor_gsl_matrix *mat1, bor_gsl_matrix *mat2)
+{
+    size_t i, j;
+
+    assertEquals(mat2->size1, mat1->size1);
+    if (mat2->size1 != mat1->size1)
+        return 0;
+
+    assertEquals(mat2->size2, mat1->size2);
+    if (mat2->size2 != mat1->size2)
+        return 0;
+
+    for (i = 0; i < mat1->size1; i++){
+        for (j = 0; j < mat1->size2; j++){
+            assertTrue(borEq(bor_gsl_matrix_get(mat1, i, j),
+                             bor_gsl_matrix_get(mat2, i, j)));
+            if (!borEq(bor_gsl_matrix_get(mat1, i, j),
+                             bor_gsl_matrix_get(mat2, i, j)))
+                return 0;
+        }
+    }
+
+    return 1;
+}
+
+TEST(hdf5WriteMat)
+{
+    bor_h5file_t f;
+    bor_gsl_matrix *mat, *mat2;
+    bor_gsl_matrix_view mview;
+    bor_h5dset_t *dset, *dset2;
+
+    dset = borH5DatasetOpen(&hf, "/train/x");
+    assertNotEquals(dset, NULL);
+    mat = borH5DatasetLoadMat(dset);
+    assertNotEquals(mat, NULL);
+
+    borH5FileOpen(&f, "tmp.hdf5.h5", "w");
+
+    // write dataset with simple path and check what is written
+    assertEquals(borH5WriteMat(&f, "simple", mat), 0);
+
+    dset2 = borH5DatasetOpen(&f, "simple");
+    mat2 = borH5DatasetLoadMat(dset2);
+    eqMat(mat, mat2);
+    borH5DatasetClose(dset2);
+
+
+    // write submatrix to simple path
+    mview = bor_gsl_matrix_submatrix(mat, 0, 10, 2, 1000);
+    assertEquals(borH5WriteMat(&f, "submatrix", &mview.matrix), 0);
+
+    dset2 = borH5DatasetOpen(&f, "submatrix");
+    mat2 = borH5DatasetLoadMat(dset2);
+    eqMat(&mview.matrix, mat2);
+    borH5DatasetClose(dset2);
+
+    borH5FileClose(&f);
+}

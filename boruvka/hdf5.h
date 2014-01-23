@@ -196,6 +196,14 @@ bor_gsl_matrix *borH5DatasetLoadMat(bor_h5dset_t *dset);
  */
 bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
                                             size_t start, size_t num);
+
+/**
+ * Writes a given matrix to the dataset specified by path.
+ * Return 0 on success.
+ */
+int borH5WriteMat(bor_h5file_t *file, const char *path,
+                  const bor_gsl_matrix *mat);
+
 #endif /* BOR_GSL */
 
 #endif /* __BOR_HDF5_H__ */

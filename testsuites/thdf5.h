@@ -10,6 +10,8 @@ TEST(hdf5Mat);
 TEST(hdf5MatRowRange);
 TEST(hdf5Region);
 
+TEST(hdf5WriteMat);
+
 TEST_SUITE(TSHDF5) {
     TEST_ADD(hdf5SetUp),
 
@@ -18,6 +20,8 @@ TEST_SUITE(TSHDF5) {
     TEST_ADD(hdf5Mat),
     TEST_ADD(hdf5MatRowRange),
     TEST_ADD(hdf5Region),
+
+    TEST_ADD(hdf5WriteMat),
 
     TEST_ADD(hdf5TearDown),
     TEST_SUITE_CLOSURE

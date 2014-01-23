@@ -22,6 +22,11 @@
 #include "boruvka/alloc.h"
 #include "boruvka/hdf5.h"
 
+#ifdef BOR_SINGLE
+# define H5T_NATIVE_REAL H5T_NATIVE_FLOAT
+#else /* BOR_SINGLE */
+# define H5T_NATIVE_REAL H5T_NATIVE_DOUBLE;
+#endif /* BOR_SINGLE */
 
 /** Set to true if reporting on stderr should be enabled */
 static int __bor_h5_enable_error_reports = 1;
@@ -416,6 +421,104 @@ bor_gsl_matrix *borH5DatasetLoadMatRowRange(bor_h5dset_t *dset,
     dset->gsl.mat = bor_gsl_matrix_view_array((bor_real_t *)dset->data,
                                               num, dset->dims[1]);
     return &dset->gsl.mat.matrix;
+}
+
+/** Creates a simple 2-D dataspace */
+static hid_t createSpace2D(hsize_t dim1, hsize_t dim2)
+{
+    hsize_t dims[2] = {dim1, dim2};
+    hid_t id;
+
+    id = H5Screate_simple(2, dims, NULL);
+    if (id < 0){
+        ERR2("Could not create a 2-D dataspace.");
+    }
+
+    return id;
+}
+
+/** Selects a simple hyperslab in specified dataspace. No stride or block
+ *  features are used. */
+static int selectHyperslab2D(hid_t space_id, hsize_t start1, hsize_t start2,
+                                             hsize_t cnt1, hsize_t cnt2)
+{
+    herr_t err;
+    hsize_t start[2] = {start1, start2};
+    hsize_t cnt[2] = {cnt1, cnt2};
+
+    err = H5Sselect_hyperslab(space_id, H5S_SELECT_SET, start, NULL, cnt, NULL);
+    if (err < 0){
+        ERR2("Could not select 2-D hyperslab.");
+        return -1;
+    }
+    return 0;
+}
+
+int borH5WriteMat(bor_h5file_t *file, const char *path,
+                  const bor_gsl_matrix *mat)
+{
+    hid_t dspace_id, memspace_id;
+    hid_t dset_id;
+    herr_t err;
+
+    // create dataspace with same dimensions as the matrix
+    dspace_id = createSpace2D(mat->size1, mat->size2);
+    if (dspace_id < 0)
+        return -1;
+
+    // set up memspace
+    if (mat->tda == mat->size2){
+        memspace_id = H5S_ALL;
+
+    }else{
+        // This means that the matrix is in fact submatrix.
+        // So, we create a dataspace that covers the whole matrix (in fact
+        // even more than that because there is offset within a matrix).
+        // Then we set up hyperslab to cover only the "upper right" region
+        // of this big matrix. For more info see GSL manual regarding
+        // definition of the matrix structure.
+
+        memspace_id = createSpace2D(mat->size1, mat->tda);
+        if (memspace_id < 0){
+            H5Sclose(dspace_id);
+            return -1;
+        }
+
+        if (selectHyperslab2D(memspace_id, 0, 0, mat->size1, mat->size2) != 0){
+            H5Sclose(dspace_id);
+            H5Sclose(memspace_id);
+            return -1;
+        }
+    }
+
+    // create dataset
+    dset_id = H5Dcreate2(file->file_id, path, H5T_NATIVE_REAL, dspace_id,
+                         H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    if (dset_id < 0){
+        H5Sclose(dspace_id);
+        if (memspace_id != H5S_ALL)
+            H5Sclose(memspace_id);
+        ERR("Could not create a dataset `%s'", path);
+        return -1;
+    }
+
+    // write data to dataset
+    err = H5Dwrite(dset_id, H5T_NATIVE_REAL, memspace_id, H5S_ALL, H5P_DEFAULT, mat->data);
+    if (err < 0){
+        H5Sclose(dspace_id);
+        if (memspace_id != H5S_ALL)
+            H5Sclose(memspace_id);
+        H5Dclose(dset_id);
+        ERR("Could not write data to dataset `%s'", path);
+        return -1;
+    }
+
+    H5Dclose(dset_id);
+    H5Sclose(dspace_id);
+    if (memspace_id != H5S_ALL)
+        H5Sclose(memspace_id);
+
+    return 0;
 }
 
 #endif /* BOR_GSL */
