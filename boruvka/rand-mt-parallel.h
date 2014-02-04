@@ -78,6 +78,12 @@ _bor_inline double borRandMTParallel(bor_rand_mt_parallel_t *r, int thread_id,
 _bor_inline double borRandMTParallel01(bor_rand_mt_parallel_t *r, int thread_id);
 
 
+/**
+ * Returns number from a normal (Gaussian) distribution.
+ */
+_bor_inline double borRandMTParallelNormal(bor_rand_mt_parallel_t *r, int thid,
+                                           double mean, double stddev);
+
 /** Refills a thread's pool.
  *  For internal use only. */
 void __borRandMTParallelRefill(bor_rand_mt_parallel_t *r, int thread_id);
@@ -96,6 +102,23 @@ _bor_inline double borRandMTParallel01(bor_rand_mt_parallel_t *r, int thread_id)
     if (r->next[thread_id] == r->size)
         __borRandMTParallelRefill(r, thread_id);
     return r->pool[thread_id][r->next[thread_id]++];
+}
+
+_bor_inline double borRandMTParallelNormal(bor_rand_mt_parallel_t *g, int thid,
+                                           double mean, double stddev)
+{
+    /* Return a real number from a normal (Gaussian) distribution with given */
+    /* mean and standard deviation by polar form of Box-Muller transformation */
+    double x, y, r;
+    do
+    {
+        x = 2.0 * borRandMTParallel01(g, thid) - 1.0;
+        y = 2.0 * borRandMTParallel01(g, thid) - 1.0;
+        r = x * x + y * y;
+    }
+    while ( r >= 1.0 || r == 0.0 );
+    double s = sqrt( -2.0 * log(r) / r );
+    return mean + x * s * stddev;
 }
 
 #ifdef __cplusplus
