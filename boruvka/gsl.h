@@ -46,6 +46,7 @@
 
 # define bor_gsl_vector_view gsl_vector_float_view
 # define bor_gsl_vector_view_array gsl_vector_float_view_array
+# define bor_gsl_vector_subvector gsl_vector_float_subvector
 
 # define bor_gsl_matrix gsl_matrix_float
 # define bor_gsl_matrix_alloc gsl_matrix_float_alloc
@@ -64,10 +65,15 @@
 # define bor_gsl_matrix_add_constant gsl_matrix_float_add_constant
 
 # define bor_gsl_matrix_view gsl_matrix_float_view
+# define bor_gsl_matrix_const_view gsl_matrix_float_const_view
 # define bor_gsl_matrix_view_array gsl_matrix_float_view_array
 # define bor_gsl_matrix_submatrix gsl_matrix_float_submatrix
+# define bor_gsl_matrix_const_submatrix gsl_matrix_float_const_submatrix
+# define bor_gsl_matrix_row gsl_matrix_float_row
+# define bor_gsl_matrix_column gsl_matrix_float_column
 
-# define bor_gsl_mat_dot_vec gsl_blas_sgemv
+# define bor_gsl_blas_gemm gsl_blas_sgemm
+# define bor_gsl_blas_gemv gsl_blas_sgemv
 
 #else /* BOR_SINGLE */
 # define bor_gsl_vector gsl_vector
@@ -88,7 +94,7 @@
 
 # define bor_gsl_vector_view gsl_vector_view
 # define bor_gsl_vector_view_array gsl_vector_view_array
-# define bor_gsl_matrix_submatrix gsl_matrix_submatrix
+# define bor_gsl_vector_subvector gsl_vector_subvector
 
 # define bor_gsl_matrix gsl_matrix
 # define bor_gsl_matrix_alloc gsl_matrix_alloc
@@ -107,9 +113,15 @@
 # define bor_gsl_matrix_add_constant gsl_matrix_add_constant
 
 # define bor_gsl_matrix_view gsl_matrix_view
+# define bor_gsl_matrix_const_view gsl_matrix_const_view
 # define bor_gsl_matrix_view_array gsl_matrix_view_array
+# define bor_gsl_matrix_submatrix gsl_matrix_submatrix
+# define bor_gsl_matrix_const_submatrix gsl_matrix_const_submatrix
+# define bor_gsl_matrix_row gsl_matrix_row
+# define bor_gsl_matrix_column gsl_matrix_column
 
-# define bor_gsl_mat_dot_vec gsl_blas_dgemv
+# define bor_gsl_blas_gemm gsl_blas_dgemm
+# define bor_gsl_blas_gemv gsl_blas_dgemv
 
 #endif /* BOR_SINGLE */
 
