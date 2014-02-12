@@ -43,6 +43,7 @@
 # define bor_gsl_vector_div gsl_vector_float_div
 # define bor_gsl_vector_scale gsl_vector_float_scale
 # define bor_gsl_vector_add_constant gsl_vector_float_add_consant
+# define bor_gsl_vector_memcpy gsl_vector_float_memcpy
 
 # define bor_gsl_vector_view gsl_vector_float_view
 # define bor_gsl_vector_view_array gsl_vector_float_view_array
@@ -63,6 +64,7 @@
 # define bor_gsl_matrix_div_elements gsl_matrix_float_div_elements
 # define bor_gsl_matrix_scale gsl_matrix_float_scale
 # define bor_gsl_matrix_add_constant gsl_matrix_float_add_constant
+# define bor_gsl_matrix_memcpy gsl_matrix_float_memcpy
 
 # define bor_gsl_matrix_view gsl_matrix_float_view
 # define bor_gsl_matrix_const_view gsl_matrix_float_const_view
@@ -91,6 +93,7 @@
 # define bor_gsl_vector_div gsl_vector_div
 # define bor_gsl_vector_scale gsl_vector_scale
 # define bor_gsl_vector_add_constant gsl_vector_add_consant
+# define bor_gsl_vector_memcpy gsl_vector_memcpy
 
 # define bor_gsl_vector_view gsl_vector_view
 # define bor_gsl_vector_view_array gsl_vector_view_array
@@ -111,6 +114,7 @@
 # define bor_gsl_matrix_div_elements gsl_matrix_div_elements
 # define bor_gsl_matrix_scale gsl_matrix_scale
 # define bor_gsl_matrix_add_constant gsl_matrix_add_constant
+# define bor_gsl_matrix_memcpy gsl_matrix_memcpy
 
 # define bor_gsl_matrix_view gsl_matrix_view
 # define bor_gsl_matrix_const_view gsl_matrix_const_view
