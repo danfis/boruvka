@@ -103,6 +103,11 @@ _bor_inline size_t borHMapSize(const bor_hmap_t *t);
 _bor_inline void borHMapPut(bor_hmap_t *m, bor_list_t *key1);
 
 /**
+ * Same as borHMapPut() but does not resize hash table.
+ */
+_bor_inline void borHMapPutNoResize(bor_hmap_t *m, bor_list_t *key1);
+
+/**
  * Returns a key from hash map that equals to {key1} or NULL if there is no
  * such key.
  *
@@ -133,6 +138,13 @@ _bor_inline uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1);
  * Put key with specified id into hash map.
  */
 _bor_inline void borHMapIDPut(bor_hmap_t *m, uint32_t id, bor_list_t *key1);
+
+/**
+ * Same as borHMapIDPut() but does not resize hash table.
+ */
+_bor_inline void borHMapIDPutNoResize(bor_hmap_t *m,
+                                      uint32_t id,
+                                      bor_list_t *key1);
 
 /**
  * Returns a key from hash map that have given {id} and equals to {key1} or
@@ -173,6 +185,13 @@ _bor_inline void borHMapPut(bor_hmap_t *m, bor_list_t *key1)
     borHMapIDPut(m, id, key1);
 }
 
+_bor_inline void borHMapPutNoResize(bor_hmap_t *m, bor_list_t *key1)
+{
+    uint32_t id;
+    id = borHMapID(m, key1);
+    borHMapIDPutNoResize(m, id, key1);
+}
+
 _bor_inline bor_list_t *borHMapGet(const bor_hmap_t *m, bor_list_t *key1)
 {
     uint32_t id;
@@ -204,11 +223,22 @@ _bor_inline void borHMapIDPut(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
     // resize table if necessary
     if (m->resizable && m->num_elements + 1 > m->size){
         size = borHMapNextPrime(m->num_elements + 1);
-        if (size > m->size)
+        if (size > m->size){
             borHMapResize(m, size);
+
+            // re-compute bucket id because of resize
+            id = borHMapID(m, key1);
+        }
     }
 
     // put item into table
+    borHMapIDPutNoResize(m, id, key1);
+}
+
+_bor_inline void borHMapIDPutNoResize(bor_hmap_t *m,
+                                      uint32_t id,
+                                      bor_list_t *key1)
+{
     borListAppend(&m->table[id], key1);
     ++m->num_elements;
 }

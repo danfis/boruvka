@@ -61,8 +61,10 @@ bor_hmap_t *borHMapNewResizable(bor_hmap_hash_fn hash_func,
                                 void *userdata)
 {
     bor_hmap_t *hmap;
+    size_t size;
 
-    hmap = borHMapNew(BOR_HMAP_INITIAL_SIZE, hash_func, eq_func, userdata);
+    size = borHMapNextPrime(BOR_HMAP_INITIAL_SIZE);
+    hmap = borHMapNew(size, hash_func, eq_func, userdata);
     hmap->resizable = 1;
 
     return hmap;
@@ -127,6 +129,10 @@ void borHMapResize(bor_hmap_t *m, size_t size)
     m->size  = size;
     m->num_elements = 0;
 
+    for (i = 0; i < m->size; i++){
+        borListInit(m->table + i);
+    }
+
     for (i = 0; i < old_size; i++){
         while (!borListEmpty(&old_table[i])){
             // remove item from the old table
@@ -134,9 +140,11 @@ void borHMapResize(bor_hmap_t *m, size_t size)
             borListDel(item);
 
             // insert it into a new table
-            borHMapPut(m, item);
+            borHMapPutNoResize(m, item);
         }
     }
+
+    BOR_FREE(old_table);
 }
 
 static int _eq(const bor_list_t *key1, const bor_list_t *key2, void *userdata)
