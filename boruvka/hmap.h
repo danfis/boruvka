@@ -118,7 +118,7 @@ void borHMapGather(bor_hmap_t *m, bor_list_t *list);
 /**
  * Returns ID of given key corresponding to the hash map
  */
-uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1);
+_bor_inline uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1);
 
 /**
  * Put key with specified id into hash map.
@@ -138,7 +138,7 @@ bor_list_t *borHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1);
  * Removes key with given {id} from hash map.
  * Return 0 if such a key was stored in hash map and -1 otherwise.
  */
-int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1);
+_bor_inline int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1);
 
 /**** INLINES ****/
 _bor_inline size_t borHMapSize(const bor_hmap_t *t)
@@ -167,10 +167,32 @@ _bor_inline int borHMapRemove(bor_hmap_t *m, bor_list_t *key1)
     return borHMapIDRemove(m, id, key1);
 }
 
+_bor_inline uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1)
+{
+    uint32_t id;
+
+    id = m->hash(key1, m->data);
+    id = id % m->size;
+
+    return id;
+}
+
 _bor_inline void borHMapIDPut(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
     // put item into table
     borListAppend(&m->table[id], key1);
+}
+
+_bor_inline int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
+{
+    bor_list_t *item;
+
+    item = borHMapIDGet(m, id, key1);
+    if (item){
+        borListDel(item);
+        return 0;
+    }
+    return -1;
 }
 
 #ifdef __cplusplus

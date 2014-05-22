@@ -69,17 +69,6 @@ void borHMapDel(bor_hmap_t *h)
     BOR_FREE(h);
 }
 
-
-uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1)
-{
-    uint32_t id;
-
-    id = m->hash(key1, m->data);
-    id = id % m->size;
-
-    return id;
-}
-
 bor_list_t *borHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
     bor_list_t *item;
@@ -90,18 +79,6 @@ bor_list_t *borHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1)
     }
 
     return NULL;
-}
-
-int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
-{
-    bor_list_t *item;
-
-    item = borHMapIDGet(m, id, key1);
-    if (item){
-        borListDel(item);
-        return 0;
-    }
-    return -1;
 }
 
 void borHMapGather(bor_hmap_t *m, bor_list_t *list)
