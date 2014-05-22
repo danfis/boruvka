@@ -18,6 +18,8 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
+#define BOR_HMAP_INITIAL_SIZE 100
+
 
 struct _bor_hmap_el_t {
     bor_list_t list;
@@ -37,6 +39,8 @@ bor_hmap_t *borHMapNew(size_t size,
     hmap = BOR_ALLOC(bor_hmap_t);
     hmap->table = BOR_ALLOC_ARR(bor_list_t, size);
     hmap->size = size;
+    hmap->resizable = 0;
+    hmap->num_elements = 0;
 
     hmap->hash = hash_func;
     hmap->eq   = eq_func;
@@ -48,6 +52,18 @@ bor_hmap_t *borHMapNew(size_t size,
     for (i = 0; i < hmap->size; i++){
         borListInit(hmap->table + i);
     }
+
+    return hmap;
+}
+
+bor_hmap_t *borHMapNewResizable(bor_hmap_hash_fn hash_func,
+                                bor_hmap_eq_fn eq_func,
+                                void *userdata)
+{
+    bor_hmap_t *hmap;
+
+    hmap = borHMapNew(BOR_HMAP_INITIAL_SIZE, hash_func, eq_func, userdata);
+    hmap->resizable = 1;
 
     return hmap;
 }
@@ -93,8 +109,35 @@ void borHMapGather(bor_hmap_t *m, bor_list_t *list)
             borListAppend(list, item);
         }
     }
+    m->num_elements = 0;
 }
 
+void borHMapResize(bor_hmap_t *m, size_t size)
+{
+    bor_list_t *old_table, *item;
+    size_t old_size;
+    size_t i;
+
+    // remember old table and old size
+    old_table = m->table;
+    old_size  = m->size;
+
+    // create a new empty table
+    m->table = BOR_ALLOC_ARR(bor_list_t, size);
+    m->size  = size;
+    m->num_elements = 0;
+
+    for (i = 0; i < old_size; i++){
+        while (!borListEmpty(&old_table[i])){
+            // remove item from the old table
+            item = borListNext(&old_table[i]);
+            borListDel(item);
+
+            // insert it into a new table
+            borHMapPut(m, item);
+        }
+    }
+}
 
 static int _eq(const bor_list_t *key1, const bor_list_t *key2, void *userdata)
 {

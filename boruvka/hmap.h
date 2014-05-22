@@ -58,6 +58,8 @@ typedef int (*bor_hmap_eq_fn)(const bor_list_t *key1, const bor_list_t *key2,
 struct _bor_hmap_t {
     bor_list_t *table;
     size_t size;
+    int resizable;
+    size_t num_elements;
 
     bor_hmap_hash_fn hash;
     bor_hmap_eq_fn eq;
@@ -77,6 +79,13 @@ bor_hmap_t *borHMapNew(size_t size,
                        bor_hmap_hash_fn hash_func,
                        bor_hmap_eq_fn eq_func,
                        void *userdata);
+
+/**
+ * Creates a resizable version of hash table.
+ */
+bor_hmap_t *borHMapNewResizable(bor_hmap_hash_fn hash_func,
+                                bor_hmap_eq_fn eq_func,
+                                void *userdata);
 
 /**
  * Deletes table - content of table is not touched.
@@ -140,6 +149,17 @@ bor_list_t *borHMapIDGet(const bor_hmap_t *m, uint32_t id, bor_list_t *key1);
  */
 _bor_inline int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1);
 
+/**
+ * Tries to resize hash table to the new size.
+ */
+void borHMapResize(bor_hmap_t *m, size_t size);
+
+/**
+ * Returns next prime that no lower than hint.
+ */
+_bor_inline size_t borHMapNextPrime(size_t hint);
+
+
 /**** INLINES ****/
 _bor_inline size_t borHMapSize(const bor_hmap_t *t)
 {
@@ -179,8 +199,18 @@ _bor_inline uint32_t borHMapID(const bor_hmap_t *m, bor_list_t *key1)
 
 _bor_inline void borHMapIDPut(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
 {
+    size_t size;
+
+    // resize table if necessary
+    if (m->resizable && m->num_elements + 1 > m->size){
+        size = borHMapNextPrime(m->num_elements + 1);
+        if (size > m->size)
+            borHMapResize(m, size);
+    }
+
     // put item into table
     borListAppend(&m->table[id], key1);
+    ++m->num_elements;
 }
 
 _bor_inline int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
@@ -190,9 +220,30 @@ _bor_inline int borHMapIDRemove(bor_hmap_t *m, uint32_t id, bor_list_t *key1)
     item = borHMapIDGet(m, id, key1);
     if (item){
         borListDel(item);
+        --m->num_elements;
         return 0;
     }
     return -1;
+}
+
+_bor_inline size_t borHMapNextPrime(size_t hint)
+{
+    static size_t primes[] = {
+        5ul,         53ul,         97ul,         193ul,       389ul,
+        769ul,       1543ul,       3079ul,       6151ul,      12289ul,
+        24593ul,     49157ul,      98317ul,      196613ul,    393241ul,
+        786433ul,    1572869ul,    3145739ul,    6291469ul,   12582917ul,
+        25165843ul,  50331653ul,   100663319ul,  201326611ul, 402653189ul,
+        805306457ul, 1610612741ul, 3221225473ul, 4294967291ul
+    };
+    static size_t primes_size = sizeof(primes) / sizeof(size_t);
+
+    size_t i;
+    for (i = 0; i < primes_size; ++i){
+        if (primes[i] >= hint)
+            return primes[i];
+    }
+    return primes[primes_size - 1];
 }
 
 #ifdef __cplusplus
