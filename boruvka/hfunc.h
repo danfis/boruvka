@@ -58,13 +58,16 @@ uint32_t borHashSDBM(const char *str);
 
 /**
  * Computes fnv-1a 32-bit hash for the buffer of the given size.
+ * Taken from www.isthe.com/chongo/src/fnv/hash_32a.c.
  */
 uint32_t borFnv1a32(const void *buf, size_t size);
 
 /**
  * Computes fnv-1a 64-bit hash for the buffer of the given size.
+ * Taken from www.isthe.com/chongo/src/fnv/hash_64a.c.
  */
 uint64_t borFnv1a64(const void *buf, size_t size);
+
 
 #ifdef __cplusplus
 }
