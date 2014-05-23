@@ -37,3 +37,22 @@ TEST(hfuncMurmur3)
                (unsigned long long)val32);
     }
 }
+
+TEST(hfuncCityHash)
+{
+    size_t i;
+    uint32_t val32;
+    uint64_t val64;
+
+    for (i = 0; i < 1000; ++i){
+        val32 = borCityHash_32(&vecs[i], sizeof(bor_vec2_t));
+        printf("CityHash32: %lu %llu\n",
+               (unsigned long)i,
+               (unsigned long long)val32);
+
+        val64 = borCityHash_64(&vecs[i], sizeof(bor_vec2_t));
+        printf("CityHash64: %lu %llu\n",
+               (unsigned long)i,
+               (unsigned long long)val64);
+    }
+}

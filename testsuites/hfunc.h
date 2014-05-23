@@ -3,10 +3,12 @@
 
 TEST(hfuncFnv);
 TEST(hfuncMurmur3);
+TEST(hfuncCityHash);
 
 TEST_SUITE(TSHFunc) {
     TEST_ADD(hfuncFnv),
     TEST_ADD(hfuncMurmur3),
+    TEST_ADD(hfuncCityHash),
     TEST_SUITE_CLOSURE
 };
 

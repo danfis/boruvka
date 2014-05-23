@@ -44,6 +44,7 @@ OBJS += fibo pairheap dij
 OBJS += tasks task-pool
 OBJS += hmap hfunc
 OBJS += htable
+OBJS += google-city-hash
 OBJS += barrier
 OBJS += rand-mt rand-mt-parallel
 OBJS += timer

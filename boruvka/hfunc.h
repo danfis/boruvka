@@ -74,6 +74,18 @@ uint64_t borFnv1a_64(const void *buf, size_t size);
  */
 uint32_t borMurmur3_32(const void *buf, size_t size);
 
+/**
+ * CityHash 32-bit hash function.
+ * Taken from https://code.google.com/p/cityhash.
+ */
+uint32_t borCityHash_32(const void *buf, size_t size);
+
+/**
+ * CityHash 64-bit hash function.
+ * Taken from https://code.google.com/p/cityhash.
+ */
+uint32_t borCityHash_64(const void *buf, size_t size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
