@@ -43,6 +43,7 @@ OBJS += mesh3 net qhull chull3
 OBJS += fibo pairheap dij
 OBJS += tasks task-pool
 OBJS += hmap hfunc
+OBJS += htable
 OBJS += barrier
 OBJS += rand-mt rand-mt-parallel
 OBJS += timer
