@@ -17,7 +17,7 @@
 #ifndef __BOR_CFG_H__
 #define __BOR_CFG_H__
 
-#include <boruvka/hmap.h>
+#include <boruvka/htable.h>
 #include <boruvka/vec2.h>
 #include <boruvka/vec3.h>
 
@@ -61,7 +61,7 @@ extern "C" {
  */
 
 struct _bor_cfg_t {
-    bor_hmap_t *params;
+    bor_htable_t *params;
 };
 typedef struct _bor_cfg_t bor_cfg_t;
 

@@ -147,7 +147,6 @@ TEST(cfg1format)
 {
     bor_cfg_t *cfg;
     cfg1_format_t f;
-    size_t i;
 
     cfg = borCfgRead("cfg1.cfg");
     if (!cfg)

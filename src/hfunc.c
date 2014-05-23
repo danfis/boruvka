@@ -97,3 +97,95 @@ uint32_t borHashSDBM(const char *str)
 
     return hash;
 }
+
+
+#define FNV1A_32_INIT ((uint32_t)0x811c9dc5ULL)
+#define FNV1A_64_INIT ((uint64_t)0xcbf29ce484222325ULL)
+
+uint32_t borFnv1a_32(const void *_buf, size_t size)
+{
+    unsigned char *buf = (unsigned char *)_buf;
+    unsigned char *end = buf + size;
+    uint32_t val = FNV1A_32_INIT;
+
+    while (buf < end){
+        val ^= (uint32_t)*buf++;
+        val += (val<<1) + (val<<4) + (val<<7) + (val<<8) + (val<<24);
+    }
+
+    return val;
+}
+
+
+uint64_t borFnv1a_64(const void *_buf, size_t size)
+{
+    unsigned char *buf = (unsigned char *)_buf;
+    unsigned char *end = buf + size;
+    uint64_t val = FNV1A_64_INIT;
+
+    while (buf < end){
+        val ^= (uint64_t)*buf++;
+        val += (val << 1) + (val << 4) + (val << 5) +
+		       (val << 7) + (val << 8) + (val << 40);
+    }
+
+    return val;
+}
+
+
+#define MURMUR3_SEED 3145739
+
+_bor_inline uint32_t rotl32(uint32_t x, int8_t r)
+{
+    return (x << r) | (x >> (32 - r));
+}
+
+_bor_inline uint32_t fmix32(uint32_t h)
+{
+    h ^= h >> 16;
+    h *= 0x85ebca6b;
+    h ^= h >> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >> 16;
+
+    return h;
+}
+
+uint32_t borMurmur3_32(const void *_buf, size_t size)
+{
+    const unsigned char *buf = (const unsigned char *)_buf;
+    int num_blocks = size / 4;
+    const uint32_t *blocks = (const uint32_t *)(buf + num_blocks*4);
+    const unsigned char* tail = (const unsigned char *)(buf + num_blocks*4);
+    uint32_t h1 = MURMUR3_SEED;
+    uint32_t c1 = 0xcc9e2d51;
+    uint32_t c2 = 0x1b873593;
+    int i;
+
+    for (i = -num_blocks; i; ++i){
+        uint32_t k1 = blocks[i];
+
+        k1 *= c1;
+        k1 = rotl32(k1,15);
+        k1 *= c2;
+
+        h1 ^= k1;
+        h1 = rotl32(h1,13); 
+        h1 = h1*5+0xe6546b64;
+    }
+
+
+    uint32_t k1 = 0;
+
+    switch (size & 3){
+        case 3: k1 ^= tail[2] << 16;
+        case 2: k1 ^= tail[1] << 8;
+        case 1: k1 ^= tail[0];
+                k1 *= c1; k1 = rotl32(k1, 15); k1 *= c2; h1 ^= k1;
+    }
+
+    h1 ^= size;
+    h1 = fmix32(h1);
+
+    return h1;
+}

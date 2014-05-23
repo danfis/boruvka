@@ -56,6 +56,36 @@ uint32_t borHashDJB2(const char *str);
 uint32_t borHashSDBM(const char *str);
 
 
+/**
+ * Computes fnv-1a 32-bit hash for the buffer of the given size.
+ * Taken from www.isthe.com/chongo/src/fnv/hash_32a.c.
+ */
+uint32_t borFnv1a_32(const void *buf, size_t size);
+
+/**
+ * Computes fnv-1a 64-bit hash for the buffer of the given size.
+ * Taken from www.isthe.com/chongo/src/fnv/hash_64a.c.
+ */
+uint64_t borFnv1a_64(const void *buf, size_t size);
+
+/**
+ * Murmur3 32-bit hash function.
+ * Taken from https://github.com/PeterScott/murmur3.
+ */
+uint32_t borMurmur3_32(const void *buf, size_t size);
+
+/**
+ * CityHash 32-bit hash function.
+ * Taken from https://code.google.com/p/cityhash.
+ */
+uint32_t borCityHash_32(const void *buf, size_t size);
+
+/**
+ * CityHash 64-bit hash function.
+ * Taken from https://code.google.com/p/cityhash.
+ */
+uint32_t borCityHash_64(const void *buf, size_t size);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
