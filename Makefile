@@ -50,6 +50,7 @@ OBJS += rand-mt rand-mt-parallel
 OBJS += timer
 OBJS += parse
 OBJS += image
+OBJS += segmarr
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
