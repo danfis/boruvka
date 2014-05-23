@@ -41,7 +41,7 @@ typedef struct _bor_cfg_parser_t bor_cfg_parser_t;
 #define BOR_CFG_PARAM \
     char *name; \
     uint8_t type; \
-    bor_list_t hmap
+    bor_list_t htable
 struct _bor_cfg_param_t {
     BOR_CFG_PARAM;
 };
@@ -81,8 +81,8 @@ CFG_PARAM_ARR(v3, bor_vec3_t);
 
 
 
-static uint32_t hmapHash(bor_list_t *key, void *data);
-static int hmapEq(const bor_list_t *k1, const bor_list_t *k2, void *data);
+static uint64_t htableHash(const bor_list_t *key, void *data);
+static int htableEq(const bor_list_t *k1, const bor_list_t *k2, void *data);
 
 static void borCfgParamDel(bor_cfg_param_t *p);
 static bor_cfg_param_t *borCfgParam(const bor_cfg_t *c, const char *name);
@@ -168,7 +168,7 @@ bor_cfg_t *borCfgRead(const char *filename)
     }
 
     c = BOR_ALLOC(bor_cfg_t);
-    c->params = borHMapNew(1023, hmapHash, hmapEq, c);
+    c->params = borHTableNew(htableHash, htableEq, c);
 
     // init parser
     if (yylex_init_extra(&parser.val, &parser.scanner) != 0){
@@ -196,16 +196,16 @@ void borCfgDel(bor_cfg_t *c)
     bor_cfg_param_t *p;
 
     borListInit(&list);
-    borHMapGather(c->params, &list);
+    borHTableGather(c->params, &list);
 
     while (!borListEmpty(&list)){
         item = borListNext(&list);
-        p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+        p = BOR_LIST_ENTRY(item, bor_cfg_param_t, htable);
         borListDel(item);
         borCfgParamDel(p);
     }
 
-    borHMapDel(c->params);
+    borHTableDel(c->params);
     BOR_FREE(c);
 }
 
@@ -215,7 +215,7 @@ int borCfgHaveParam(const bor_cfg_t *c, const char *name)
     bor_cfg_param_t q;
     q.name = (char *)name;
 
-    item = borHMapGet(c->params, &q.hmap);
+    item = borHTableFind(c->params, &q.htable);
     return item != NULL;
 }
 
@@ -225,11 +225,11 @@ uint8_t borCfgParamType(const bor_cfg_t *c, const char *name)
     bor_cfg_param_t *p, q;
     q.name = (char *)name;
 
-    item = borHMapGet(c->params, &q.hmap);
+    item = borHTableFind(c->params, &q.htable);
     if (!item)
         return BOR_CFG_PARAM_NONE;
 
-    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, htable);
     return p->type;
 }
 
@@ -423,19 +423,19 @@ static const char *_borCfgScanNext(const char *format, char *name, char *type)
 
 
 
-static uint32_t hmapHash(bor_list_t *key, void *data)
+static uint64_t htableHash(const bor_list_t *key, void *data)
 {
     bor_cfg_param_t *p;
-    p = BOR_LIST_ENTRY(key, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(key, bor_cfg_param_t, htable);
     return borHashDJB2(p->name);
 }
 
-static int hmapEq(const bor_list_t *k1, const bor_list_t *k2, void *data)
+static int htableEq(const bor_list_t *k1, const bor_list_t *k2, void *data)
 {
     bor_cfg_param_t *p1, *p2;
 
-    p1 = BOR_LIST_ENTRY(k1, bor_cfg_param_t, hmap);
-    p2 = BOR_LIST_ENTRY(k2, bor_cfg_param_t, hmap);
+    p1 = BOR_LIST_ENTRY(k1, bor_cfg_param_t, htable);
+    p2 = BOR_LIST_ENTRY(k2, bor_cfg_param_t, htable);
     return strcmp(p1->name, p2->name) == 0;
 }
 
@@ -470,11 +470,11 @@ static bor_cfg_param_t *borCfgParam(const bor_cfg_t *c, const char *name)
     bor_cfg_param_t *p, q;
     q.name = (char *)name;
 
-    item = borHMapGet(c->params, &q.hmap);
+    item = borHTableFind(c->params, &q.htable);
     if (!item)
         return NULL;
 
-    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, hmap);
+    p = BOR_LIST_ENTRY(item, bor_cfg_param_t, htable);
     return p;
 }
 
@@ -491,7 +491,7 @@ static bor_cfg_param_t *borCfgParamByType(const bor_cfg_t *c, const char *name,
 
 static void borCfgParamInsert(bor_cfg_t *c, bor_cfg_param_t *p)
 {
-    borHMapPut(c->params, &p->hmap);
+    borHTableInsert(c->params, &p->htable);
 }
 
 

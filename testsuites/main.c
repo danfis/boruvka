@@ -23,7 +23,6 @@
 #include "cfg.h"
 #include "opts.h"
 #include "sort.h"
-#include "hmap.h"
 #include "htable.h"
 #include "hfunc.h"
 
@@ -60,7 +59,6 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSSort),
 
-    TEST_SUITE_ADD(TSHMap),
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
 
