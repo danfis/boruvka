@@ -25,6 +25,7 @@
 #include "sort.h"
 #include "htable.h"
 #include "hfunc.h"
+#include "segmarr.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -61,6 +62,8 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
+
+    TEST_SUITE_ADD(TSSegmArr),
 
     TEST_SUITES_CLOSURE
 };
