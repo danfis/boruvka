@@ -143,7 +143,7 @@ TEST(htableFindAll)
         found = borHTableFindAll(h, &els[i].htable, &fels, &size);
         assertTrue(size > 0);
         assertTrue(found > 0);
-        assertEquals(foud, size);
+        assertEquals(found, size);
         if (els[i].val == 1651122
                 || els[i].val == 743913
                 || els[i].val == 1996293){
@@ -157,4 +157,51 @@ TEST(htableFindAll)
     borHTableDel(h);
 
     printf("---- htableFindAll END ----\n");
+}
+
+TEST(htableInsertUnique)
+{
+    bor_htable_t *h;
+    bor_list_t **fels;
+    bor_list_t *ins;
+    el_t fel;
+    size_t i, size, found;
+
+    printf("---- htableInsertUnique ----\n");
+
+    h = borHTableNew(hash, eq, NULL);
+
+    for (i = 0; i < els_len; ++i){
+        ins = borHTableInsertUnique(h, &els[i].htable);
+        if ((els[i].val == 1651122 && i >= 13994)
+                || (els[i].val == 743913 && i >= 80422)
+                || (els[i].val == 1996293 && i >= 4423)){
+            assertNotEquals(ins, NULL);
+        }
+    }
+
+    fels = BOR_ALLOC_ARR(bor_list_t *, 1);
+    for (i = 0; i < els_len / 2; ++i){
+        size = 1;
+        found = borHTableFindAll(h, &els[i].htable, &fels, &size);
+        assertEquals(size, 1);
+        assertEquals(found, 1);
+    }
+    BOR_FREE(fels);
+
+    fel.val = 0;
+    ins = borHTableFind(h, &fel.htable);
+    assertEquals(ins, NULL);
+
+    fel.val = 121;
+    ins = borHTableFind(h, &fel.htable);
+    assertEquals(ins, NULL);
+
+    fel.val = 16500;
+    ins = borHTableFind(h, &fel.htable);
+    assertEquals(ins, NULL);
+
+    borHTableDel(h);
+
+    printf("---- htableInsertUnique END ----\n");
 }

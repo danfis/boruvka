@@ -106,6 +106,7 @@ size_t borHTableFindAll(const bor_htable_t *m, const bor_list_t *key1,
                 (*out_arr) = BOR_REALLOC_ARR(*out_arr, bor_list_t *,
                                              found_size);
                 (*out_arr)[found_size - 1] = item;
+
             }else if (found_size <= *size){
                 (*out_arr)[found_size - 1] = item;
             }

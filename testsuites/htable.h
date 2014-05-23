@@ -5,12 +5,14 @@ TEST(htableSetUp);
 TEST(htableTearDown);
 TEST(htableBasic);
 TEST(htableFindAll);
+TEST(htableInsertUnique);
 
 TEST_SUITE(TSHTable) {
     TEST_ADD(htableSetUp),
 
     TEST_ADD(htableBasic),
     TEST_ADD(htableFindAll),
+    TEST_ADD(htableInsertUnique),
 
     TEST_ADD(htableTearDown),
     TEST_SUITE_CLOSURE

@@ -30,13 +30,6 @@ extern "C" {
  * See bor_hash_table_t.
  */
 
-/**
- * Example
- * --------
- *
- * TODO
- */
-
 
 /**
  * Definition of the hash key type.
@@ -106,15 +99,24 @@ _bor_inline size_t borHTableSize(const bor_htable_t *t);
 _bor_inline size_t borHTableNumElements(const bor_htable_t *t);
 
 /**
- * Insert key into hash table.
- */
-_bor_inline void borHTableInsert(bor_htable_t *m, bor_list_t *key1);
-
-/**
  * Fill given {list} with all elements from hash table.
  * After calling this, hash table will be empty.
  */
 void borHTableGather(bor_htable_t *m, bor_list_t *list);
+
+/**
+ * Insert an element into the hash table.
+ */
+_bor_inline void borHTableInsert(bor_htable_t *m, bor_list_t *key1);
+
+/**
+ * Insert an element into the hash table only if the same element isn't
+ * already there.
+ * Returns the equal element if already on hash table or NULL the given
+ * element was inserted.
+ */
+_bor_inline bor_list_t *borHTableInsertUnique(bor_htable_t *m,
+                                              bor_list_t *key1);
 
 /**
  * Same as borHTableInsert() but does not resize hash table.
@@ -219,6 +221,21 @@ _bor_inline void borHTableInsert(bor_htable_t *m, bor_list_t *key1)
     size_t bucket;
     bucket = borHTableBucket(m, key1);
     borHTableInsertBucket(m, bucket, key1);
+}
+
+_bor_inline bor_list_t *borHTableInsertUnique(bor_htable_t *m,
+                                              bor_list_t *key1)
+{
+    size_t bucket;
+    bor_list_t *item;
+
+    bucket = borHTableBucket(m, key1);
+    item = borHTableFindBucket(m, bucket, key1);
+    if (item == NULL){
+        borHTableInsertBucket(m, bucket, key1);
+    }
+
+    return item;
 }
 
 _bor_inline void borHTableInsertNoResize(bor_htable_t *m, bor_list_t *key1)

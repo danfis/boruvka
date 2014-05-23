@@ -3797,3 +3797,5 @@
 ---- htableBasic END ----
 ---- htableFindAll ----
 ---- htableFindAll END ----
+---- htableInsertUnique ----
+---- htableInsertUnique END ----
