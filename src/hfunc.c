@@ -97,3 +97,37 @@ uint32_t borHashSDBM(const char *str)
 
     return hash;
 }
+
+
+#define FNV1A_32_INIT ((uint32_t)0x811c9dc5ULL)
+#define FNV1A_64_INIT ((uint64_t)0xcbf29ce484222325ULL)
+
+uint32_t borFnv1a32(const void *_buf, size_t size)
+{
+    unsigned char *buf = (unsigned char *)_buf;
+    unsigned char *end = buf + size;
+    uint32_t val = FNV1A_32_INIT;
+
+    while (buf < end){
+        val ^= (uint32_t)*buf++;
+        val += (val<<1) + (val<<4) + (val<<7) + (val<<8) + (val<<24);
+    }
+
+    return val;
+}
+
+
+uint64_t borFnv1a64(const void *_buf, size_t size)
+{
+    unsigned char *buf = (unsigned char *)_buf;
+    unsigned char *end = buf + size;
+    uint64_t val = FNV1A_64_INIT;
+
+    while (buf < end){
+        val ^= (uint64_t)*buf++;
+        val += (val << 1) + (val << 4) + (val << 5) +
+		       (val << 7) + (val << 8) + (val << 40);
+    }
+
+    return val;
+}

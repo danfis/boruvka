@@ -25,6 +25,7 @@
 #include "sort.h"
 #include "hmap.h"
 #include "htable.h"
+#include "hfunc.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -61,6 +62,7 @@ TEST_SUITES {
 
     TEST_SUITE_ADD(TSHMap),
     TEST_SUITE_ADD(TSHTable),
+    TEST_SUITE_ADD(TSHFunc),
 
     TEST_SUITES_CLOSURE
 };
