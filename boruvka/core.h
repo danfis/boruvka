@@ -90,6 +90,7 @@ typedef uint32_t bor_uint_t;
 # define BOR_ATAN(x)     (atanf(x))        /*!< arc tangent of y/x */
 # define BOR_POW(x, y)   (powf((x), (y)))  /*!< power function */
 # define BOR_EXP(x)      (expf(x))         /*!< e exponential */
+# define BOR_LOG(x)      (logf(x))         /*!< natural logarithm */
 
 #endif /* BOR_SINGLE */
 
@@ -124,6 +125,7 @@ typedef uint64_t bor_uint_t;
 # define BOR_ATAN(x)     (atan(x))
 # define BOR_POW(x, y)   (pow((x), (y)))
 # define BOR_EXP(x)      (exp(x))
+# define BOR_LOG(x)      (log(x))
 
 #endif /* BOR_DOUBLE */
 

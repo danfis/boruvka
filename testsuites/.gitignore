@@ -17,5 +17,6 @@ test-cd-spheres
 test-cd-trimesh
 test-cd-ode
 test-cd-ode.meas
+tmp.hdf5.h5
 
 

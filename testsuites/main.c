@@ -26,6 +26,7 @@
 #include "htable.h"
 #include "hfunc.h"
 #include "segmarr.h"
+#include "thdf5.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -37,33 +38,25 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPC),
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
-
     TEST_SUITE_ADD(TSGUG),
     TEST_SUITE_ADD(TSVPTree),
     TEST_SUITE_ADD(TSVPTreeHamming),
     TEST_SUITE_ADD(TSNN),
     TEST_SUITE_ADD(TSMesh3),
     TEST_SUITE_ADD(TSNearest),
-
     TEST_SUITE_ADD(TSFibo),
     TEST_SUITE_ADD(TSPairHeap),
-
     TEST_SUITE_ADD(TSDij),
-
     TEST_SUITE_ADD(TSCHull3),
-
     TEST_SUITE_ADD(TSTasks),
     TEST_SUITE_ADD(TSTaskPool),
-
     TEST_SUITE_ADD(TSCfg),
     TEST_SUITE_ADD(TSOpts),
-
     TEST_SUITE_ADD(TSSort),
-
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
-
     TEST_SUITE_ADD(TSSegmArr),
+    TEST_SUITE_ADD(TSHDF5),
 
     TEST_SUITES_CLOSURE
 };
