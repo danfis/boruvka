@@ -17,8 +17,13 @@ bor_segmarr_t *borSegmArrNew(size_t el_size, size_t els_per_segm)
 
 void borSegmArrDel(bor_segmarr_t *arr)
 {
-    if (arr->segm)
+    size_t i;
+
+    if (arr->segm){
+        for (i = 0; i < arr->num_segm; ++i)
+            BOR_FREE(arr->segm[i]);
         BOR_FREE(arr->segm);
+    }
     BOR_FREE(arr);
 }
 
