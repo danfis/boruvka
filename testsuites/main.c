@@ -26,7 +26,9 @@
 #include "htable.h"
 #include "hfunc.h"
 #include "segmarr.h"
-#include "thdf5.h"
+#ifdef BOR_HDF5
+# include "thdf5.h"
+#endif /* BOR_HDF5 */
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -56,7 +58,9 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
     TEST_SUITE_ADD(TSSegmArr),
+#ifdef BOR_HDF5
     TEST_SUITE_ADD(TSHDF5),
+#endif /* BOR_HDF5 */
 
     TEST_SUITES_CLOSURE
 };
