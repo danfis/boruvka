@@ -36,22 +36,22 @@ extern "C" {
 
 
 struct _bor_segmarr_t {
-    size_t el_size;    /*!< Size of a single element. */
-    size_t segm_size;  /*!< Size of one segment as number of elements it
-                            can hold. */
-    char **segm;       /*!< Array of segments. */
-    size_t num_segm;   /*!< Number of segments. */
-    size_t alloc_segm; /*!< Number of actually allocated segment slots */
+    size_t el_size;       /*!< Size of a single element in bytes. */
+    size_t segm_size;     /*!< Size of one segment in bytes */
+    size_t els_per_segm;  /*!< Size of one segment as number of elements it
+                               can hold. */
+    char **segm;          /*!< Array of segments. */
+    size_t num_segm;      /*!< Number of segments. */
+    size_t alloc_segm;    /*!< Number of actually allocated segment slots */
 };
 typedef struct _bor_segmarr_t bor_segmarr_t;
 
 /**
  * Creates and initializes a new segmented array.
- * The parameter el_size is size of a single element that will be stored in
- * the array and the els_per_segm parameter set number of elements per one
- * segment.
+ * The parameter {el_size} is a size of a single emelent that will be stored
+ * in the array, the {segment_size} parameter is size of one segment.
  */
-bor_segmarr_t *borSegmArrNew(size_t el_size, size_t els_per_segm);
+bor_segmarr_t *borSegmArrNew(size_t el_size, size_t segment_size);
 
 /**
  * Frees all allocated memory of segmented array.
@@ -73,8 +73,8 @@ void borSegmArrExpandSegments(bor_segmarr_t *arr, size_t num_segs);
 /**** INLINES ****/
 _bor_inline void *borSegmArrGet(bor_segmarr_t *arr, size_t i)
 {
-    size_t segm_id = i / arr->segm_size;
-    size_t offset  = (i % arr->segm_size) * arr->el_size;
+    size_t segm_id = i / arr->els_per_segm;
+    size_t offset  = (i % arr->els_per_segm) * arr->el_size;
 
     if (segm_id >= arr->num_segm)
         borSegmArrExpandSegments(arr, segm_id + 1);

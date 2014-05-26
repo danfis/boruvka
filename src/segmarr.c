@@ -1,16 +1,20 @@
 #include "boruvka/segmarr.h"
 #include "boruvka/alloc.h"
 
-bor_segmarr_t *borSegmArrNew(size_t el_size, size_t els_per_segm)
+bor_segmarr_t *borSegmArrNew(size_t el_size, size_t segm_size)
 {
     bor_segmarr_t *arr;
 
+    if (el_size > segm_size)
+        return NULL;
+
     arr = BOR_ALLOC(bor_segmarr_t);
-    arr->el_size    = el_size;
-    arr->segm_size  = els_per_segm;
-    arr->segm       = NULL;
-    arr->num_segm   = 0;
-    arr->alloc_segm = 0;
+    arr->el_size      = el_size;
+    arr->segm_size    = segm_size;
+    arr->els_per_segm = segm_size / el_size;
+    arr->segm         = NULL;
+    arr->num_segm     = 0;
+    arr->alloc_segm   = 0;
 
     return arr;
 }
@@ -49,6 +53,6 @@ void borSegmArrExpandSegments(bor_segmarr_t *arr, size_t num_segs)
 
     // allocate all needed segments
     for (; arr->num_segm < num_segs; ++arr->num_segm){
-        arr->segm[arr->num_segm] = BOR_ALLOC_ARR(char, arr->el_size * arr->segm_size);
+        arr->segm[arr->num_segm] = BOR_ALLOC_ARR(char, arr->segm_size);
     }
 }

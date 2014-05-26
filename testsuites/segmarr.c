@@ -13,6 +13,7 @@ TEST(segmarrTest)
     bor_vec2_t *v2;
 
     arr = borSegmArrNew(sizeof(bor_vec2_t), 1024);
+    assertNotEquals(arr, NULL);
 
     for (i = 0; i < vecs2_len; ++i){
         v2 = borSegmArrGet(arr, i);
