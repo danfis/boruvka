@@ -65,6 +65,12 @@ extern "C" {
 #define BOR_REALLOC_ARR(ptr, type, num_elements) \
     _BOR_ALLOC_MEMORY(type, ptr, sizeof(type) * (num_elements))
 
+/**
+ * Allocate array of elements of given type initialized to zero.
+ */
+#define BOR_CALLOC_ARR(type, num_elements) \
+    (type *)calloc((num_elements), sizeof(type))
+
 #ifndef BOR_MEMCHECK
 # define BOR_FREE(ptr) free(ptr) /*!< Deallocates memory */
 #else /* BOR_MEMCHECK */
