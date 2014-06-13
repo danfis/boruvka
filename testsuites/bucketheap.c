@@ -102,6 +102,63 @@ static void checkCorrect(int ID, size_t num)
     fclose(fout2);
 }
 
+static void checkCorrect2(int ID, size_t num)
+{
+    el_t *els, *el;
+    int *ids;
+    bor_bucketheap_t *heap;
+    bor_bucketheap_node_t *n;
+    size_t i;
+    FILE *fout1, *fout2;
+    char fn[300];
+    bor_rand_t r;
+
+    borRandInit(&r);
+
+    sprintf(fn, "regressions/tmp.TSBucketHeap.rand-%d.out", ID);
+    fout1 = fopen(fn, "w");
+    sprintf(fn, "regressions/TSBucketHeap.rand-%d.out", ID);
+    fout2 = fopen(fn, "w");
+
+    els = randomEls(num);
+    ids = BOR_ALLOC_ARR(int, num);
+
+    heap = borBucketHeapNew(elKey, NULL);
+    for (i = 0; i < num; i++){
+        borBucketHeapAdd(heap, &els[i].node);
+    }
+
+    for (i = 0; i < num; i += 10){
+        els[i].val -= borRand(&r, 1, 100);
+        els[i].val = BOR_MAX(els[i].val, 0);
+        borBucketHeapDecreaseKey(heap, &els[i].node);
+    }
+
+    i = 0;
+    while (!borBucketHeapEmpty(heap)){
+        n = borBucketHeapExtractMin(heap);
+        el = bor_container_of(n, el_t, node);
+        fprintf(fout1, "%d\n", el->val);
+
+        el = bor_container_of(n, el_t, node);
+        ids[i] = el->id;
+        i++;
+    }
+
+    qsort(els, num, sizeof(el_t), cmpIncEl);
+    for (i = 0; i < num; i++){
+        fprintf(fout2, "%d\n", els[i].val);
+    }
+
+
+    borBucketHeapDel(heap);
+    free(els);
+    free(ids);
+
+    fclose(fout1);
+    fclose(fout2);
+}
+
 
 static void checkCorrect3(int ID, size_t num)
 {

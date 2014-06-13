@@ -1,6 +1,7 @@
 regressions/tmp.*
 regressions/TSFibo.rand-*
 regressions/TSPairHeap.rand-*
+regressions/TSBucketHeap.rand-*
 regressions/TSCD.geom.*
 bench-out/*
 *.o

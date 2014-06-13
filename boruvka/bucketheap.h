@@ -91,6 +91,14 @@ void borBucketHeapAdd(bor_bucketheap_t *bh, bor_bucketheap_node_t *n);
 _bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh);
 
 /**
+ * Update position of node in heap in case its value was decreased.
+ * If value wasn't decreased (or you are not sure) call borBucketHeapUpdate()
+ * instead.
+ */
+_bor_inline void borBucketHeapDecreaseKey(bor_bucketheap_t *bh,
+                                          bor_bucketheap_node_t *n);
+
+/**
  * Updates position of node in heap.
  */
 _bor_inline void borBucketHeapUpdate(bor_bucketheap_t *bh,
@@ -133,6 +141,12 @@ _bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh)
     borBucketHeapRemove(bh, n);
 
     return n;
+}
+
+_bor_inline void borBucketHeapDecreaseKey(bor_bucketheap_t *bh,
+                                          bor_bucketheap_node_t *n)
+{
+    borBucketHeapUpdate(bh, n);
 }
 
 _bor_inline void borBucketHeapUpdate(bor_bucketheap_t *bh,
