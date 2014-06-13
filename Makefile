@@ -41,6 +41,7 @@ OBJS += vptree-hamming
 OBJS += nn-linear
 OBJS += mesh3 net qhull chull3
 OBJS += fibo pairheap dij
+OBJS += bucketheap
 OBJS += tasks task-pool
 OBJS += hfunc
 OBJS += htable

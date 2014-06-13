@@ -13,6 +13,7 @@
 #include "nearest.h"
 #include "fibo.h"
 #include "pairheap.h"
+#include "bucketheap.h"
 #include "dij.h"
 #include "chull3.h"
 #include "tasks.h"
@@ -48,6 +49,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSNearest),
     TEST_SUITE_ADD(TSFibo),
     TEST_SUITE_ADD(TSPairHeap),
+    TEST_SUITE_ADD(TSBucketHeap),
     TEST_SUITE_ADD(TSDij),
     TEST_SUITE_ADD(TSCHull3),
     TEST_SUITE_ADD(TSTasks),
