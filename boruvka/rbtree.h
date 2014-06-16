@@ -113,12 +113,12 @@ bor_rbtree_node_t *borRBTreeFindNearestGE(bor_rbtree_t *rbtree,
 /**
  * Returns next higher node.
  */
-bor_rbtree_node_t *borRBTreeNext(bor_rbtree_node_t *n);
+_bor_inline bor_rbtree_node_t *borRBTreeNext(bor_rbtree_node_t *n);
 
 /**
  * Returns previous smaller node.
  */
-bor_rbtree_node_t *borRBTreePrev(bor_rbtree_node_t *n);
+_bor_inline bor_rbtree_node_t *borRBTreePrev(bor_rbtree_node_t *n);
 
 /**
  * Minimal node from the tree.
@@ -170,6 +170,42 @@ _bor_inline bor_rbtree_node_t *borRBTreeExtractMin(bor_rbtree_t *rbtree);
 _bor_inline int borRBTreeEmpty(const bor_rbtree_t *rbtree)
 {
     return rbtree->root == NULL;
+}
+
+_bor_inline bor_rbtree_node_t *borRBTreeNext(bor_rbtree_node_t *elm)
+{
+    if (elm->rbe_right) {
+        elm = elm->rbe_right;
+        while (elm->rbe_left)
+            elm = elm->rbe_left;
+    }else{
+        if (elm->rbe_parent && elm == elm->rbe_parent->rbe_left){
+            elm = elm->rbe_parent;
+        }else{
+            while (elm->rbe_parent && elm == elm->rbe_parent->rbe_right)
+                elm = elm->rbe_parent;
+            elm = elm->rbe_parent;
+        }
+    }
+    return elm;
+}
+
+bor_rbtree_node_t *borRBTreePrev(bor_rbtree_node_t *elm)
+{
+    if (elm->rbe_left) {
+        elm = elm->rbe_left;
+        while (elm->rbe_right)
+            elm = elm->rbe_right;
+    }else{
+        if (elm->rbe_parent && elm == elm->rbe_parent->rbe_right){
+            elm = elm->rbe_parent;
+        }else{
+            while (elm->rbe_parent && elm == elm->rbe_parent->rbe_left)
+                elm = elm->rbe_parent;
+            elm = elm->rbe_parent;
+        }
+    }
+    return elm;
 }
 
 _bor_inline bor_rbtree_node_t *borRBTreeMin(bor_rbtree_t *rbtree)
