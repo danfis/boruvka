@@ -52,6 +52,7 @@ OBJS += timer
 OBJS += parse
 OBJS += image
 OBJS += segmarr
+OBJS += rbtree
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
