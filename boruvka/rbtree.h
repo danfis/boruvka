@@ -123,12 +123,12 @@ bor_rbtree_node_t *borRBTreePrev(bor_rbtree_node_t *n);
 /**
  * Minimal node from the tree.
  */
-bor_rbtree_node_t *borRBTreeMin(bor_rbtree_t *rbtree);
+_bor_inline bor_rbtree_node_t *borRBTreeMin(bor_rbtree_t *rbtree);
 
 /**
  * Maximal node from the tree.
  */
-bor_rbtree_node_t *borRBTreeMax(bor_rbtree_t *rbtree);
+_bor_inline bor_rbtree_node_t *borRBTreeMax(bor_rbtree_t *rbtree);
 
 /**
  * Removes and returns minimal node from heap.
@@ -170,6 +170,30 @@ _bor_inline bor_rbtree_node_t *borRBTreeExtractMin(bor_rbtree_t *rbtree);
 _bor_inline int borRBTreeEmpty(const bor_rbtree_t *rbtree)
 {
     return rbtree->root == NULL;
+}
+
+_bor_inline bor_rbtree_node_t *borRBTreeMin(bor_rbtree_t *rbtree)
+{
+    bor_rbtree_node_t *tmp = rbtree->root;
+    bor_rbtree_node_t *parent = NULL;
+
+    while (tmp) {
+        parent = tmp;
+        tmp = tmp->rbe_left;
+    }
+    return parent;
+}
+
+_bor_inline bor_rbtree_node_t *borRBTreeMax(bor_rbtree_t *rbtree)
+{
+    bor_rbtree_node_t *tmp = rbtree->root;
+    bor_rbtree_node_t *parent = NULL;
+
+    while (tmp) {
+        parent = tmp;
+        tmp = tmp->rbe_right;
+    }
+    return parent;
 }
 
 _bor_inline bor_rbtree_node_t *borRBTreeExtractMin(bor_rbtree_t *rbtree)

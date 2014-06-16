@@ -395,29 +395,3 @@ bor_rbtree_node_t *borRBTreePrev(bor_rbtree_node_t *elm)
     }
     return (elm);
 }
-
-bor_rbtree_node_t *borRBTreeMin(bor_rbtree_t *rbtree)
-{
-    // TODO: Inline
-    bor_rbtree_node_t *tmp = rbtree->root;
-    bor_rbtree_node_t *parent = NULL;
-
-    while (tmp) {
-        parent = tmp;
-        tmp = RB_LEFT(tmp);
-    }
-    return (parent);
-}
-
-bor_rbtree_node_t *borRBTreeMax(bor_rbtree_t *rbtree)
-{
-    // TODO: Inline
-    bor_rbtree_node_t *tmp = rbtree->root;
-    bor_rbtree_node_t *parent = NULL;
-
-    while (tmp) {
-        parent = tmp;
-        tmp = RB_RIGHT(tmp);
-    }
-    return (parent);
-}
