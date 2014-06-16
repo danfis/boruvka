@@ -275,7 +275,7 @@ _bor_inline bor_rbtree_node_t *borRBTreeMax(bor_rbtree_t *rbtree)
 _bor_inline bor_rbtree_node_t *borRBTreeExtractMin(bor_rbtree_t *rbtree)
 {
     bor_rbtree_node_t *n;
-    n = borRBTreeExtractMin(rbtree);
+    n = borRBTreeMin(rbtree);
     if (n)
         borRBTreeRemove(rbtree, n);
     return n;
