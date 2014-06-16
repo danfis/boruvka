@@ -100,14 +100,14 @@ bor_rbtree_node_t *borRBTreeRemove(bor_rbtree_t *rbtree,
 /**
  * Finds the node with the same key as elm.
  */
-bor_rbtree_node_t *borRBTreeFind(bor_rbtree_t *rbtree,
-                                 bor_rbtree_node_t *elm);
+_bor_inline bor_rbtree_node_t *borRBTreeFind(bor_rbtree_t *rbtree,
+                                             bor_rbtree_node_t *elm);
 
 /**
  * Finds the first node greater than or equal to the search key.
  */
-bor_rbtree_node_t *borRBTreeFindNearestGE(bor_rbtree_t *rbtree,
-                                          bor_rbtree_node_t *elm);
+_bor_inline bor_rbtree_node_t *borRBTreeFindNearestGE(bor_rbtree_t *rbtree,
+                                                      bor_rbtree_node_t *elm);
 
 
 /**
@@ -170,6 +170,46 @@ _bor_inline bor_rbtree_node_t *borRBTreeExtractMin(bor_rbtree_t *rbtree);
 _bor_inline int borRBTreeEmpty(const bor_rbtree_t *rbtree)
 {
     return rbtree->root == NULL;
+}
+
+_bor_inline bor_rbtree_node_t *borRBTreeFind(bor_rbtree_t *rbtree,
+                                             bor_rbtree_node_t *elm)
+{
+    bor_rbtree_node_t *tmp = rbtree->root;
+    int comp;
+
+    while (tmp) {
+        comp = rbtree->cmp(elm, tmp, rbtree->data);
+        if (comp < 0){
+            tmp = tmp->rbe_left;
+        }else if (comp > 0){
+            tmp = tmp->rbe_right;
+        }else{
+            return tmp;
+        }
+    }
+    return NULL;
+}
+
+_bor_inline bor_rbtree_node_t *borRBTreeFindNearestGE(bor_rbtree_t *rbtree,
+                                                      bor_rbtree_node_t *elm)
+{
+    bor_rbtree_node_t *tmp = rbtree->root;
+    bor_rbtree_node_t *res = NULL;
+    int comp;
+
+    while (tmp) {
+        comp = rbtree->cmp(elm, tmp, rbtree->data);
+        if (comp < 0) {
+            res = tmp;
+            tmp = tmp->rbe_left;
+        }else if (comp > 0){
+            tmp = tmp->rbe_right;
+        }else{
+            return tmp;
+        }
+    }
+    return res;
 }
 
 _bor_inline bor_rbtree_node_t *borRBTreeNext(bor_rbtree_node_t *elm)
