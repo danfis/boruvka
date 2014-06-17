@@ -53,6 +53,7 @@ OBJS += parse
 OBJS += image
 OBJS += segmarr
 OBJS += rbtree
+OBJS += splaytree
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
