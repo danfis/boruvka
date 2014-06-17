@@ -14,6 +14,7 @@
 #include "fibo.h"
 #include "pairheap.h"
 #include "rbtree.h"
+#include "rbtree_int.h"
 #include "splaytree.h"
 #include "bucketheap.h"
 #include "dij.h"
@@ -52,6 +53,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSFibo),
     TEST_SUITE_ADD(TSPairHeap),
     TEST_SUITE_ADD(TSRBTree),
+    TEST_SUITE_ADD(TSRBTreeInt),
     TEST_SUITE_ADD(TSSplayTree),
     TEST_SUITE_ADD(TSBucketHeap),
     TEST_SUITE_ADD(TSDij),
