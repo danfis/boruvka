@@ -175,3 +175,49 @@ TEST(rbtreeRemove)
     BOR_FREE(els);
     borRBTreeDel(rbtree);
 }
+
+TEST(rbtreeFind)
+{
+    el_t *els, *el;
+    size_t i, r, j, size = 10000;
+    bor_rand_t rnd;
+    bor_rbtree_t *rbtree;
+    bor_rbtree_node_t *n, *tmpn;
+
+    borRandInit(&rnd);
+
+    rbtree = borRBTreeNew(rbCmp, NULL);
+
+    els = randomEls(size);
+    for (i = 0; i < size; ++i){
+        n = borRBTreeInsert(rbtree, &els[i].node);
+        if (n == NULL){
+            els[i].ins = 1;
+        }else{
+            els[i].ins = 0;
+        }
+    }
+
+    for (i = 0; i < size; ++i){
+        r = borRand(&rnd, 0., size);
+        n = borRBTreeFind(rbtree, &els[r].node);
+        assertNotEquals(n, NULL);
+        el = bor_container_of(n, el_t, node);
+        assertEquals(el->val, els[r].val);
+        for (j = 0; j < size; ++j){
+            if (els[j].val == el->val){
+                assertTrue(els[j].ins);
+                break;
+            }
+        }
+    }
+
+
+    BOR_RBTREE_FOR_EACH_REVERSE_SAFE(rbtree, n, tmpn){
+        borRBTreeRemove(rbtree, n);
+    }
+    assertTrue(borRBTreeEmpty(rbtree));
+
+    BOR_FREE(els);
+    borRBTreeDel(rbtree);
+}
