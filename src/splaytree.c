@@ -154,7 +154,6 @@ bor_splaytree_node_t *borSplayTreeRemove(bor_splaytree_t *head,
 bor_splaytree_node_t *borSplayTreeFind(bor_splaytree_t *head,
                                        bor_splaytree_node_t *elm)
 {
-    // TODO: inline
     if (SPLAY_EMPTY(head))                        
         return(NULL);                        
     splay(head, elm);
@@ -166,7 +165,6 @@ bor_splaytree_node_t *borSplayTreeFind(bor_splaytree_t *head,
 bor_splaytree_node_t *borSplayTreeNext(bor_splaytree_t *head,
                                        bor_splaytree_node_t *elm)
 {
-    // TODO: inline
     splay(head, elm);
     if (SPLAY_RIGHT(elm) != NULL) {
         elm = SPLAY_RIGHT(elm);
@@ -181,7 +179,6 @@ bor_splaytree_node_t *borSplayTreeNext(bor_splaytree_t *head,
 bor_splaytree_node_t *borSplayTreePrev(bor_splaytree_t *head,
                                        bor_splaytree_node_t *elm)
 {
-    // TODO: inline
     splay(head, elm);
     if (SPLAY_LEFT(elm) != NULL) {
         elm = SPLAY_LEFT(elm);
