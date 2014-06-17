@@ -150,7 +150,7 @@ _bor_inline bor_rbtree_int_node_t *borRBTreeIntExtractMin(bor_rbtree_int_t *rbtr
 /**
  * Returns a key value of the node as was inserted into the tree.
  */
-_bor_inline int borRBTreeKey(const bor_rbtree_int_node_t *n);
+_bor_inline int borRBTreeIntKey(const bor_rbtree_int_node_t *n);
 
 #define BOR_RBTREE_INT_FOR_EACH(rbtree, node) \
     for ((node) = borRBTreeIntMin(rbtree); \
@@ -275,7 +275,7 @@ _bor_inline bor_rbtree_int_node_t *borRBTreeIntExtractMin(bor_rbtree_int_t *rbtr
     return n;
 }
 
-_bor_inline int borRBTreeKey(const bor_rbtree_int_node_t *n)
+_bor_inline int borRBTreeIntKey(const bor_rbtree_int_node_t *n)
 {
     int key;
 

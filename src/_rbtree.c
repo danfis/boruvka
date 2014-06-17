@@ -277,7 +277,7 @@ RB_NODE *RB_REMOVE(RB_TREE *rbtree, RB_NODE *elm)
             rbtree->root = child;
         if (RB_PARENT(elm) == old)
             parent = elm;
-        *elm = *old;
+        RB_CP(elm, old);
         if (RB_PARENT(old)) {
             if (RB_LEFT(RB_PARENT(old)) == old)
                 RB_LEFT(RB_PARENT(old)) = elm;

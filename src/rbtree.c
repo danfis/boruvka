@@ -25,6 +25,7 @@
 #define RB_REMOVE borRBTreeRemove
 #define RB_SET_UP_KEY
 #define RB_CMP rbtree->cmp(n, parent, rbtree->data)
+#define RB_CP(dst, src) *(dst) = *(src);
 
 #define RB_BLACK 0
 #define RB_RED   1
