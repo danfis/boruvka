@@ -164,34 +164,34 @@ bor_splaytree_node_t *borSplayTreeMax(bor_splaytree_t *splaytree);
 _bor_inline bor_splaytree_node_t *borSplayTreeExtractMin(bor_splaytree_t *splaytree);
 
 
-#define BOR_SPLAYTREE_FOR_EACH(splaytree, node) \
-    for ((node) = borSplayTreeMin(splaytree); \
+#define BOR_SPLAYTREE_FOR_EACH(tree, node) \
+    for ((node) = borSplayTreeMin(tree); \
          (node) != NULL; \
-         (node) = borSplayTreeNext((splaytree), (node)))
+         (node) = borSplayTreeNext((tree), (node)))
 
 #define BOR_SPLAYTREE_FOR_EACH_FROM(tree, node) \
     for (; \
          (node) != NULL; \
-         (node) = borSplayTreeNext(node))
+         (node) = borSplayTreeNext((tree), (node)))
 
-#define BOR_SPLAYTREE_FOR_EACH_SAFE(splaytree, node, tmp) \
-    for ((node) = borSplayTreeMin(splaytree); \
-         (node) != NULL && ((tmp) = borSplayTreeNext(node), (node) != NULL); \
+#define BOR_SPLAYTREE_FOR_EACH_SAFE(tree, node, tmp) \
+    for ((node) = borSplayTreeMin(tree); \
+         (node) != NULL && ((tmp) = borSplayTreeNext((tree), (node)), 1); \
          (node) = (tmp))
 
-#define BOR_SPLAYTREE_FOR_EACH_REVERSE(splaytree, node) \
-    for ((node) = borSplayTreeMax(splaytree); \
+#define BOR_SPLAYTREE_FOR_EACH_REVERSE(tree, node) \
+    for ((node) = borSplayTreeMax(tree); \
          (node) != NULL; \
-         (node) = borSplayTreePrev((splaytree), (node)))
+         (node) = borSplayTreePrev((tree), (node)))
 
 #define BOR_SPLAYTREE_FOR_EACH_REVERSE_FROM(tree, node) \
     for (; \
          (node) != NULL; \
-         (node) = borSplayTreePrev(node))
+         (node) = borSplayTreePrev((tree), (node)))
 
-#define BOR_SPLAYTREE_FOR_EACH_REVERSE_SAFE(splaytree, node, tmp) \
-    for ((node) = borSplayTreeMax(splaytree); \
-         (node) != NULL && ((tmp) = borSplayTreePrev(node), (node) != NULL); \
+#define BOR_SPLAYTREE_FOR_EACH_REVERSE_SAFE(tree, node, tmp) \
+    for ((node) = borSplayTreeMax(tree); \
+         (node) != NULL && ((tmp) = borSplayTreePrev((tree), (node)), 1); \
          (node) = (tmp))
 
 /**** INLINES ****/
