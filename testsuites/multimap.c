@@ -124,7 +124,6 @@ TEST(multimapIntInsert)
 
 TEST(multimapIntRemove)
 {
-    return;
     el_int_t *els, *el;
     size_t i, size = 10000;
     bor_multimap_int_t *mm;
