@@ -90,19 +90,21 @@ bor_list_t *borMultiMapIntFind(bor_multimap_int_t *mm, int key);
  * Returns a list of values associated with the minimal key in map.
  * See BOR_MULTIMAP_INT_MIN_FOR_EACH().
  */
-bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm);
+bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm, int *key);
 
 /**
  * Removes from the multimap and returns the node associated with the
  * minimal key. This function returns the node in FIFO manner.
  */
-bor_multimap_int_node_t *borMultiMapIntExtractMinNodeFifo(bor_multimap_int_t *mm);
+bor_multimap_int_node_t *borMultiMapIntExtractMinNodeFifo(
+            bor_multimap_int_t *mm, int *key);
 
 /**
  * Removes from the multimap and returns the node associated with the
  * minimal key. This function returns the node in LIFO manner.
  */
-bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(bor_multimap_int_t *mm);
+bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(
+            bor_multimap_int_t *mm, int *key);
 
 /**
  * Iterates over all values associated with the specified key.
@@ -116,10 +118,11 @@ bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(bor_multimap_int_t *mm
 /**
  * Iterates over all values associated with the minimal key.
  * The argument {list} is used for storing list's head and in {node} will
- * be available pointer to the bor_multimap_int_node_t.
+ * be available pointer to the bor_multimap_int_node_t. To the argument
+ * {min_key} will be stored value of the minimal key.
  */
-#define BOR_MULTIMAP_INT_MIN_FOR_EACH(multimap, list, node) \
-    if (((list) = borMultiMapIntMin(multimap)) != NULL) \
+#define BOR_MULTIMAP_INT_MIN_FOR_EACH(multimap, list, node, min_key) \
+    if (((list) = borMultiMapIntMin(multimap, &(min_key))) != NULL) \
         BOR_LIST_FOR_EACH(list, node)
 
 /**** INLINES: ****/

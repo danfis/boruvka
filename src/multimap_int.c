@@ -30,8 +30,22 @@ bor_multimap_int_t *borMultiMapIntNew(void)
 
 void borMultiMapIntDel(bor_multimap_int_t *mm)
 {
-    if (mm->tree)
+    bor_rbtree_int_node_t *tree_node, *tmp;
+    bor_multimap_int_keynode_t *keynode;
+
+    if (mm->tree){
+        BOR_RBTREE_INT_FOR_EACH_SAFE(mm->tree, tree_node, tmp){
+            // TODO: This can be done more efficiently but requires support
+            // from rb-tree
+            borRBTreeIntRemove(mm->tree, tree_node);
+            keynode = bor_container_of(tree_node,
+                                       bor_multimap_int_keynode_t, node);
+            BOR_FREE(keynode);
+        }
+
         borRBTreeIntDel(mm->tree);
+    }
+
     if (mm->pre_keynode)
         BOR_FREE(mm->pre_keynode);
     BOR_FREE(mm);
@@ -100,7 +114,7 @@ bor_list_t *borMultiMapIntFind(bor_multimap_int_t *mm, int key)
     return &keynode->nodes;
 }
 
-bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm)
+bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm, int *key)
 {
     bor_multimap_int_keynode_t *keynode;
     bor_rbtree_int_node_t *kn;
@@ -110,26 +124,31 @@ bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm)
         return NULL;
 
     keynode = bor_container_of(kn, bor_multimap_int_keynode_t, node);
+    if (key)
+        *key = borRBTreeIntKey(kn);
+
     return &keynode->nodes;
 }
 
-bor_multimap_int_node_t *borMultiMapIntExtractMinNodeFifo(bor_multimap_int_t *mm)
+bor_multimap_int_node_t *borMultiMapIntExtractMinNodeFifo(
+            bor_multimap_int_t *mm, int *key)
 {
     bor_list_t *nodes;
     bor_multimap_int_node_t *node;
 
-    nodes = borMultiMapIntMin(mm);
+    nodes = borMultiMapIntMin(mm, key);
     node = borListNext(nodes);
     borMultiMapIntRemove(mm, node);
     return node;
 }
 
-bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(bor_multimap_int_t *mm)
+bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(
+            bor_multimap_int_t *mm, int *key)
 {
     bor_list_t *nodes;
     bor_multimap_int_node_t *node;
 
-    nodes = borMultiMapIntMin(mm);
+    nodes = borMultiMapIntMin(mm, key);
     node = borListPrev(nodes);
     borMultiMapIntRemove(mm, node);
     return node;
