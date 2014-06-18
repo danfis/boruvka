@@ -180,5 +180,3 @@ _bor_inline bor_pairheap_node_t *borPairHeapExtractMin(bor_pairheap_t *ph)
 #endif /* __cplusplus */
 
 #endif /* __BOR_PAIRHEAP_H__ */
-
-
