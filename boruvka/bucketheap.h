@@ -31,23 +31,23 @@ extern "C" {
  */
 
 /** vvvv */
+
+/**
+ * Connector to the bucket heap.
+ */
 typedef bor_list_t bor_bucketheap_node_t;
 
 /**
- * Callback that returns the key under which the node should be stored.
+ * Type of the key used for the heap. It must be unsigned integer type.
  */
-typedef unsigned long (*bor_bucketheap_key)(const bor_bucketheap_node_t *node,
-                                            void *data);
+typedef unsigned long bor_bucketheap_key_t;
 
 struct _bor_bucketheap_t {
-    bor_segmarr_t *bucket;     /*!< Array of buckets, index of bucket is
-                                    the key value. */
-    unsigned long bucket_size; /*!< Number of buckets */
-    size_t node_size;          /*!< Number of nodes in the heap */
-    unsigned long lowest_key;  /*!< Lowest key so far */
-
-    bor_bucketheap_key key;    /*!< Key callback */
-    void *data;                /*!< Data for the .key callback */
+    bor_segmarr_t *bucket;            /*!< Array of buckets, index of
+                                           bucket is the key value. */
+    bor_bucketheap_key_t bucket_size; /*!< Number of buckets */
+    size_t node_size;                 /*!< Number of nodes in the heap */
+    bor_bucketheap_key_t lowest_key;  /*!< Lowest key so far */
 };
 typedef struct _bor_bucketheap_t bor_bucketheap_t;
 /** ^^^^ */
@@ -61,7 +61,7 @@ typedef struct _bor_bucketheap_t bor_bucketheap_t;
 /**
  * Creates new empty Bucket Heap.
  */
-bor_bucketheap_t *borBucketHeapNew(bor_bucketheap_key key, void *data);
+bor_bucketheap_t *borBucketHeapNew(void);
 
 
 /**
@@ -77,18 +77,22 @@ _bor_inline int borBucketHeapEmpty(const bor_bucketheap_t *bh);
 
 /**
  * Returns minimal node.
+ * If the {key} is non NULL it is filled with the corresponding key value.
  */
-_bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh);
+_bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh,
+                                                    bor_bucketheap_key_t *key);
 
 /**
  * Adds node to heap.
  */
-void borBucketHeapAdd(bor_bucketheap_t *bh, bor_bucketheap_node_t *n);
+void borBucketHeapAdd(bor_bucketheap_t *bh, bor_bucketheap_key_t key,
+                      bor_bucketheap_node_t *n);
 
 /**
  * Removes and returns minimal node from heap.
  */
-_bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh);
+_bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh,
+                                                           bor_bucketheap_key_t *key);
 
 /**
  * Update position of node in heap in case its value was decreased.
@@ -96,13 +100,15 @@ _bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh)
  * instead.
  */
 _bor_inline void borBucketHeapDecreaseKey(bor_bucketheap_t *bh,
-                                          bor_bucketheap_node_t *n);
+                                          bor_bucketheap_node_t *n,
+                                          bor_bucketheap_key_t new_key);
 
 /**
  * Updates position of node in heap.
  */
 _bor_inline void borBucketHeapUpdate(bor_bucketheap_t *bh,
-                                     bor_bucketheap_node_t *n);
+                                     bor_bucketheap_node_t *n,
+                                     bor_bucketheap_key_t new_key);
 
 /**
  * Del node from heap.
@@ -117,7 +123,8 @@ _bor_inline int borBucketHeapEmpty(const bor_bucketheap_t *bh)
     return bh->node_size == 0;
 }
 
-_bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh)
+_bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh,
+                                                    bor_bucketheap_key_t *key)
 {
     bor_list_t *bucket;
 
@@ -130,30 +137,36 @@ _bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh)
         bucket = borSegmArrGet(bh->bucket, bh->lowest_key);
     }
 
+    if (key)
+        *key = bh->lowest_key;
+
     return borListPrev(bucket);
 }
 
-_bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh)
+_bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh,
+                                                           bor_bucketheap_key_t *key)
 {
     bor_bucketheap_node_t *n;
 
-    n = borBucketHeapMin(bh);
+    n = borBucketHeapMin(bh, key);
     borBucketHeapRemove(bh, n);
 
     return n;
 }
 
 _bor_inline void borBucketHeapDecreaseKey(bor_bucketheap_t *bh,
-                                          bor_bucketheap_node_t *n)
+                                          bor_bucketheap_node_t *n,
+                                          bor_bucketheap_key_t key)
 {
-    borBucketHeapUpdate(bh, n);
+    borBucketHeapUpdate(bh, n, key);
 }
 
 _bor_inline void borBucketHeapUpdate(bor_bucketheap_t *bh,
-                                     bor_bucketheap_node_t *n)
+                                     bor_bucketheap_node_t *n,
+                                     bor_bucketheap_key_t key)
 {
     borBucketHeapRemove(bh, n);
-    borBucketHeapAdd(bh, n);
+    borBucketHeapAdd(bh, key, n);
 }
 
 _bor_inline void borBucketHeapRemove(bor_bucketheap_t *bh,

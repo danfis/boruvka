@@ -44,13 +44,6 @@ static int cmpIncEl(const void *i1, const void *i2)
     return 1;
 }
 
-static unsigned long elKey(const bor_bucketheap_node_t *n1, void *_)
-{
-    el_t *el;
-    el = bor_container_of(n1, el_t, node);
-    return el->val;
-}
-
 
 static void checkCorrect(int ID, size_t num)
 {
@@ -58,6 +51,7 @@ static void checkCorrect(int ID, size_t num)
     int *ids;
     bor_bucketheap_t *heap;
     bor_bucketheap_node_t *n;
+    bor_bucketheap_key_t key;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
@@ -70,17 +64,18 @@ static void checkCorrect(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = borBucketHeapNew(elKey, NULL);
+    heap = borBucketHeapNew();
     for (i = 0; i < num; i++){
-        borBucketHeapAdd(heap, &els[i].node);
+        borBucketHeapAdd(heap, els[i].val, &els[i].node);
     }
 
     i = 0;
     while (!borBucketHeapEmpty(heap)){
-        n = borBucketHeapExtractMin(heap);
+        n = borBucketHeapExtractMin(heap, &key);
         //if (num == 100)
         //    heapDump(heap);
         el = bor_container_of(n, el_t, node);
+        assertEquals(el->val, key);
         fprintf(fout1, "%d\n", el->val);
 
         el = bor_container_of(n, el_t, node);
@@ -123,20 +118,20 @@ static void checkCorrect2(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = borBucketHeapNew(elKey, NULL);
+    heap = borBucketHeapNew();
     for (i = 0; i < num; i++){
-        borBucketHeapAdd(heap, &els[i].node);
+        borBucketHeapAdd(heap, els[i].val, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
         els[i].val -= borRand(&r, 1, 100);
         els[i].val = BOR_MAX(els[i].val, 0);
-        borBucketHeapDecreaseKey(heap, &els[i].node);
+        borBucketHeapDecreaseKey(heap, &els[i].node, els[i].val);
     }
 
     i = 0;
     while (!borBucketHeapEmpty(heap)){
-        n = borBucketHeapExtractMin(heap);
+        n = borBucketHeapExtractMin(heap, NULL);
         el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
@@ -181,19 +176,19 @@ static void checkCorrect3(int ID, size_t num)
     els = randomEls(num);
     ids = BOR_ALLOC_ARR(int, num);
 
-    heap = borBucketHeapNew(elKey, NULL);
+    heap = borBucketHeapNew();
     for (i = 0; i < num; i++){
-        borBucketHeapAdd(heap, &els[i].node);
+        borBucketHeapAdd(heap, els[i].val, &els[i].node);
     }
 
     for (i = 0; i < num; i += 10){
         els[i].val += borRand(&r, 1, 100);
-        borBucketHeapUpdate(heap, &els[i].node);
+        borBucketHeapUpdate(heap, &els[i].node, els[i].val);
     }
 
     i = 0;
     while (!borBucketHeapEmpty(heap)){
-        n = borBucketHeapExtractMin(heap);
+        n = borBucketHeapExtractMin(heap, NULL);
         el = bor_container_of(n, el_t, node);
         fprintf(fout1, "%d\n", el->val);
 
