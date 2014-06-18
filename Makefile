@@ -55,6 +55,7 @@ OBJS += segmarr
 OBJS += rbtree
 OBJS += rbtree_int
 OBJS += splaytree
+OBJS += multimap_int
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl

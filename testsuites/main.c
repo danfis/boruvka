@@ -30,6 +30,7 @@
 #include "htable.h"
 #include "hfunc.h"
 #include "segmarr.h"
+#include "multimap.h"
 #ifdef BOR_HDF5
 # include "thdf5.h"
 #endif /* BOR_HDF5 */
@@ -66,6 +67,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
     TEST_SUITE_ADD(TSSegmArr),
+    TEST_SUITE_ADD(TSMultiMap),
 #ifdef BOR_HDF5
     TEST_SUITE_ADD(TSHDF5),
 #endif /* BOR_HDF5 */
