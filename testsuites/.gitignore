@@ -1,6 +1,6 @@
 regressions/tmp.*
 regressions/TSFibo.rand-*
-regressions/TSPairHeap.rand-*
+regressions/TSPairHeap*rand-*
 regressions/TSBucketHeap.rand-*
 regressions/TSCD.geom.*
 bench-out/*
@@ -19,5 +19,3 @@ test-cd-trimesh
 test-cd-ode
 test-cd-ode.meas
 tmp.hdf5.h5
-
-

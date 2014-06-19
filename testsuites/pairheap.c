@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "cu.h"
 #include <boruvka/pairheap.h>
+#include <boruvka/pairheap_nonintrusive_int.h>
 #include <boruvka/rand.h>
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
@@ -218,6 +219,48 @@ static void checkCorrect3(int ID, size_t num)
     fclose(fout2);
 }
 
+static void checkCorrectNonIntrusiveInt(int ID, size_t num)
+{
+    el_t *els, *el;
+    int key;
+    bor_pairheap_nonintr_int_t *heap;
+    size_t i;
+    FILE *fout1, *fout2;
+    char fn[300];
+
+    sprintf(fn, "regressions/tmp.TSPairHeapNonIntrInt.rand-%d.out", ID);
+    fout1 = fopen(fn, "w");
+    sprintf(fn, "regressions/TSPairHeapNonIntrInt.rand-%d.out", ID);
+    fout2 = fopen(fn, "w");
+
+    els = randomEls(num);
+
+    heap = borPairHeapNonIntrIntNew();
+    for (i = 0; i < num; i++){
+        borPairHeapNonIntrIntAdd(heap, els[i].val, &els[i]);
+    }
+
+    i = 0;
+    while (!borPairHeapNonIntrIntEmpty(heap)){
+        el = borPairHeapNonIntrIntExtractMin(heap, &key);
+        //if (num == 100)
+        //    heapDump(heap);
+        assertEquals(el->val, key);
+        fprintf(fout1, "%d\n", el->val);
+    }
+
+    qsort(els, num, sizeof(el_t), cmpIncEl);
+    for (i = 0; i < num; i++){
+        fprintf(fout2, "%d\n", els[i].val);
+    }
+
+    borPairHeapNonIntrIntDel(heap);
+    free(els);
+
+    fclose(fout1);
+    fclose(fout2);
+}
+
 TEST(pairheap1)
 {
     //checkCorrect(0, 100);
@@ -259,4 +302,20 @@ TEST(pairheapClear)
     borPairHeapClear(heap, clearFn, NULL);
 
     borPairHeapDel(heap);
+}
+
+TEST(pairheapNonIntrusiveInt)
+{
+    checkCorrectNonIntrusiveInt(1, 500);
+    checkCorrectNonIntrusiveInt(2, 5000);
+
+    bor_pairheap_nonintr_int_t *heap;
+
+    heap = borPairHeapNonIntrIntNew();
+    borPairHeapNonIntrIntAdd(heap, 1, (void *)0x1);
+    borPairHeapNonIntrIntAdd(heap, 2, (void *)0x2);
+    borPairHeapNonIntrIntAdd(heap, 0, (void *)0x3);
+    borPairHeapNonIntrIntAdd(heap, 10, (void *)0x4);
+    borPairHeapNonIntrIntAdd(heap, 11, (void *)0x5);
+    borPairHeapNonIntrIntDel(heap);
 }
