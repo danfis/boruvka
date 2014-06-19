@@ -48,6 +48,12 @@ typedef int (*bor_pairheap_lt)(const bor_pairheap_node_t *n1,
                                const bor_pairheap_node_t *n2,
                                void *data);
 
+/**
+ * Callback for borPairHeapClear() function.
+ */
+typedef void (*bor_pairheap_clear)(bor_pairheap_node_t *n,
+                                   void *data);
+
 struct _bor_pairheap_t {
     bor_list_t root; /*!< List of root nodes. In fact, pairing heap has
                           always one root node, but we need this to make
@@ -113,6 +119,15 @@ _bor_inline void borPairHeapUpdate(bor_pairheap_t *ph, bor_pairheap_node_t *n);
  * Del node from heap.
  */
 void borPairHeapRemove(bor_pairheap_t *ph, bor_pairheap_node_t *n);
+
+/**
+ * Removes all data from the heap call for each disconnected node a given
+ * callback. There is no guarantee for any particular order of the removed
+ * nodes.
+ */
+void borPairHeapClear(bor_pairheap_t *ph,
+                      bor_pairheap_clear clear_fn,
+                      void *user_data);
 
 
 /**

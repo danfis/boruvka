@@ -104,3 +104,32 @@ void __borPairHeapConsolidate(bor_pairheap_t *ph)
         item_next = borListNext(item);
     }
 }
+
+static void recursiveClear(bor_pairheap_node_t *node,
+                           bor_pairheap_clear clear_fn,
+                           void *user_data)
+{
+    bor_list_t *lnode, *ltmp;
+    bor_pairheap_node_t *ch_node;
+
+    BOR_LIST_FOR_EACH_SAFE(&node->children, lnode, ltmp){
+        ch_node = BOR_LIST_ENTRY(lnode, bor_pairheap_node_t, list);
+        recursiveClear(ch_node, clear_fn, user_data);
+    }
+
+    borListDel(&node->list);
+    clear_fn(node, user_data);
+}
+
+void borPairHeapClear(bor_pairheap_t *ph,
+                      bor_pairheap_clear clear_fn,
+                      void *user_data)
+{
+    bor_list_t *lnode, *ltmp;
+    bor_pairheap_node_t *node;
+
+    BOR_LIST_FOR_EACH_SAFE(&ph->root, lnode, ltmp){
+        node = BOR_LIST_ENTRY(lnode, bor_pairheap_node_t, list);
+        recursiveClear(node, clear_fn, user_data);
+    }
+}

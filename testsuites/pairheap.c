@@ -235,3 +235,28 @@ TEST(pairheap1)
     checkCorrect3(9, 500000);
 }
 
+static void clearFn(bor_pairheap_node_t *node,
+                    void *data)
+{
+    el_t *el = bor_container_of(node, el_t, node);
+    BOR_FREE(el);
+}
+
+TEST(pairheapClear)
+{
+    size_t i, size = 10000;
+    el_t *el;
+    bor_pairheap_t *heap;
+
+    heap = borPairHeapNew(ltEl, NULL);
+
+    for (i = 0; i < size; ++i){
+        el = BOR_ALLOC(el_t);
+        el->val = i;
+        borPairHeapAdd(heap, &el->node);
+    }
+
+    borPairHeapClear(heap, clearFn, NULL);
+
+    borPairHeapDel(heap);
+}
