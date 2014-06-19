@@ -1,7 +1,13 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
 #include "boruvka/alloc.h"
 #include "boruvka/bucketheap.h"
+
+/** Maximal key the bucket-heap will accept.
+ *  This value serve as a protection from excessively high memory
+ *  allocations which can come when a bucket-heap is used unwisely. */
+#define BOR_BUCKETHEAP_EXCESSIVELY_HIGH_KEY (1024u * 1024u * 1024u)
 
 static size_t pagesize(void)
 {
@@ -17,7 +23,7 @@ bor_bucketheap_t *borBucketHeapNew(void)
     bh->bucket = borSegmArrNew(sizeof(bor_list_t), segm_size);
     bh->bucket_size = 0;
     bh->node_size = 0;
-    bh->lowest_key = ULONG_MAX;
+    bh->lowest_key = INT_MAX;
 
     return bh;
 }
@@ -30,11 +36,20 @@ void borBucketHeapDel(bor_bucketheap_t *bh)
     BOR_FREE(bh);
 }
 
-void borBucketHeapAdd(bor_bucketheap_t *bh, bor_bucketheap_key_t key,
+void borBucketHeapAdd(bor_bucketheap_t *bh, int key,
                       bor_bucketheap_node_t *n)
 {
-    bor_bucketheap_key_t i;
+    int i;
     bor_list_t *bucket;
+
+    if ((unsigned)key > BOR_BUCKETHEAP_EXCESSIVELY_HIGH_KEY){
+        fprintf(stderr, "BucketHeap Error: The key %d is excessively high"
+                        " and the bucket-heap won't\n"
+                        "accept it. It would require at least %lu bytes to"
+                        " allocate (probably more).\n",
+                        key, sizeof(bor_list_t) * key);
+        exit(-1);
+    }
 
     if (key >= bh->bucket_size){
         for (i = bh->bucket_size; i <= key; ++i){
