@@ -57,6 +57,7 @@ OBJS += rbtree
 OBJS += rbtree_int
 OBJS += splaytree
 OBJS += multimap_int
+OBJS += fifo
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl

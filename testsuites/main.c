@@ -31,6 +31,7 @@
 #include "hfunc.h"
 #include "segmarr.h"
 #include "multimap.h"
+#include "fifo.h"
 #ifdef BOR_HDF5
 # include "thdf5.h"
 #endif /* BOR_HDF5 */
@@ -68,6 +69,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSHFunc),
     TEST_SUITE_ADD(TSSegmArr),
     TEST_SUITE_ADD(TSMultiMap),
+    TEST_SUITE_ADD(TSFifo),
 #ifdef BOR_HDF5
     TEST_SUITE_ADD(TSHDF5),
 #endif /* BOR_HDF5 */
