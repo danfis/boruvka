@@ -51,7 +51,7 @@ static void checkCorrect(int ID, size_t num)
     int *ids;
     bor_bucketheap_t *heap;
     bor_bucketheap_node_t *n;
-    bor_bucketheap_key_t key;
+    int key;
     size_t i;
     FILE *fout1, *fout2;
     char fn[300];
