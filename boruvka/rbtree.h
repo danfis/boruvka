@@ -108,6 +108,16 @@ bor_rbtree_t *borRBTreeNew(bor_rbtree_cmp cmp, void *data);
 void borRBTreeDel(bor_rbtree_t *rbtree);
 
 /**
+ * In-place initialization of RB-Tree.
+ */
+void borRBTreeInit(bor_rbtree_t *rbtree, bor_rbtree_cmp cmp, void *data);
+
+/**
+ * Pair free() function for borRBTreeInit().
+ */
+void borRBTreeFree(bor_rbtree_t *rbtree);
+
+/**
  * Returns true if the tree is empty.
  */
 _bor_inline int borRBTreeEmpty(const bor_rbtree_t *rbtree);

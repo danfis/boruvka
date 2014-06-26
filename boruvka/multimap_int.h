@@ -46,7 +46,7 @@ struct _bor_multimap_int_keynode_t {
 typedef struct _bor_multimap_int_keynode_t bor_multimap_int_keynode_t;
 
 struct _bor_multimap_int_t {
-    bor_rbtree_int_t *tree;
+    bor_rbtree_int_t tree;
     bor_multimap_int_keynode_t *pre_keynode; /*!< Preallocated key-node */
 };
 typedef struct _bor_multimap_int_t bor_multimap_int_t;
@@ -128,7 +128,7 @@ bor_multimap_int_node_t *borMultiMapIntExtractMinNodeLifo(
 /**** INLINES: ****/
 _bor_inline int borMultiMapIntEmpty(const bor_multimap_int_t *mm)
 {
-    return borRBTreeIntEmpty(mm->tree);
+    return borRBTreeIntEmpty(&mm->tree);
 }
 
 #ifdef __cplusplus

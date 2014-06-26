@@ -86,12 +86,21 @@ typedef struct _bor_rbtree_int_t bor_rbtree_int_t;
  */
 bor_rbtree_int_t *borRBTreeIntNew(void);
 
-
 /**
  * Deletes a rbtree.
  * Note that individual nodes are not disconnected from the tree.
  */
 void borRBTreeIntDel(bor_rbtree_int_t *rbtree);
+
+/**
+ * In-place initialization of RB-tree
+ */
+void borRBTreeIntInit(bor_rbtree_int_t *rbtree);
+
+/**
+ * Pair free() for borRBTreeInit().
+ */
+void borRBTreeIntFree(bor_rbtree_int_t *rbtree);
 
 /**
  * Returns true if the tree is empty.

@@ -22,7 +22,7 @@ bor_multimap_int_t *borMultiMapIntNew(void)
     bor_multimap_int_t *mm;
 
     mm = BOR_ALLOC(bor_multimap_int_t);
-    mm->tree = borRBTreeIntNew();
+    borRBTreeIntInit(&mm->tree);
     mm->pre_keynode = BOR_ALLOC(bor_multimap_int_keynode_t);
     borListInit(&mm->pre_keynode->nodes);
     return mm;
@@ -33,18 +33,16 @@ void borMultiMapIntDel(bor_multimap_int_t *mm)
     bor_rbtree_int_node_t *tree_node, *tmp;
     bor_multimap_int_keynode_t *keynode;
 
-    if (mm->tree){
-        BOR_RBTREE_INT_FOR_EACH_SAFE(mm->tree, tree_node, tmp){
-            // TODO: This can be done more efficiently but requires support
-            // from rb-tree
-            borRBTreeIntRemove(mm->tree, tree_node);
-            keynode = bor_container_of(tree_node,
-                                       bor_multimap_int_keynode_t, node);
-            BOR_FREE(keynode);
-        }
-
-        borRBTreeIntDel(mm->tree);
+    BOR_RBTREE_INT_FOR_EACH_SAFE(&mm->tree, tree_node, tmp){
+        // TODO: This can be done more efficiently but requires support
+        // from rb-tree
+        borRBTreeIntRemove(&mm->tree, tree_node);
+        keynode = bor_container_of(tree_node,
+                                   bor_multimap_int_keynode_t, node);
+        BOR_FREE(keynode);
     }
+
+    borRBTreeIntFree(&mm->tree);
 
     if (mm->pre_keynode)
         BOR_FREE(mm->pre_keynode);
@@ -57,7 +55,7 @@ void borMultiMapIntInsert(bor_multimap_int_t *mm,
     bor_multimap_int_keynode_t *keynode;
     bor_rbtree_int_node_t *kn;
 
-    kn = borRBTreeIntInsert(mm->tree, key, &mm->pre_keynode->node);
+    kn = borRBTreeIntInsert(&mm->tree, key, &mm->pre_keynode->node);
     if (kn == NULL){
         // A new key-node was inserted, so pre-allocate a next key-node and
         // remember the old one.
@@ -96,7 +94,7 @@ void borMultiMapIntRemove(bor_multimap_int_t *mm,
     // infere the main key-node structure from it.
     if (borListEmpty(node_list)){
         keynode = BOR_LIST_ENTRY(node_list, bor_multimap_int_keynode_t, nodes);
-        borRBTreeIntRemove(mm->tree, &keynode->node);
+        borRBTreeIntRemove(&mm->tree, &keynode->node);
         BOR_FREE(keynode);
     }
 }
@@ -106,7 +104,7 @@ bor_list_t *borMultiMapIntFind(bor_multimap_int_t *mm, int key)
     bor_multimap_int_keynode_t *keynode;
     bor_rbtree_int_node_t *kn;
 
-    kn = borRBTreeIntFind(mm->tree, key);
+    kn = borRBTreeIntFind(&mm->tree, key);
     if (kn == NULL)
         return NULL;
 
@@ -119,7 +117,7 @@ bor_list_t *borMultiMapIntMin(bor_multimap_int_t *mm, int *key)
     bor_multimap_int_keynode_t *keynode;
     bor_rbtree_int_node_t *kn;
 
-    kn = borRBTreeIntMin(mm->tree);
+    kn = borRBTreeIntMin(&mm->tree);
     if (kn == NULL)
         return NULL;
 

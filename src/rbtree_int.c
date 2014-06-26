@@ -56,7 +56,17 @@ RB_TREE *borRBTreeIntNew(void)
     RB_TREE *rb;
 
     rb = BOR_ALLOC(RB_TREE);
-    rb->root = NULL;
+    borRBTreeIntInit(rb);
 
     return rb;
+}
+
+void borRBTreeIntInit(bor_rbtree_int_t *rbtree)
+{
+    rbtree->root = NULL;
+}
+
+void borRBTreeIntFree(bor_rbtree_int_t *rbtree)
+{
+    rbtree->root = NULL;
 }

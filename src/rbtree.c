@@ -48,9 +48,21 @@ RB_TREE *borRBTreeNew(bor_rbtree_cmp cmp, void *data)
     RB_TREE *rb;
 
     rb = BOR_ALLOC(RB_TREE);
+    borRBTreeInit(rb, cmp, data);
+
+    return rb;
+}
+
+void borRBTreeInit(bor_rbtree_t *rb, bor_rbtree_cmp cmp, void *data)
+{
     rb->root = NULL;
     rb->cmp  = cmp;
     rb->data = data;
+}
 
-    return rb;
+void borRBTreeFree(bor_rbtree_t *rb)
+{
+    rb->root = NULL;
+    rb->cmp  = NULL;
+    rb->data = NULL;
 }
