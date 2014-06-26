@@ -38,11 +38,11 @@ extern "C" {
 typedef bor_list_t bor_bucketheap_node_t;
 
 struct _bor_bucketheap_t {
-    bor_segmarr_t *bucket;            /*!< Array of buckets, index of
-                                           bucket is the key value. */
-    int bucket_size; /*!< Number of buckets */
-    size_t node_size;                 /*!< Number of nodes in the heap */
-    int lowest_key;  /*!< Lowest key so far */
+    bor_segmarr_t *bucket; /*!< Array of buckets, index of bucket is the
+                                key value. */
+    int bucket_size;       /*!< Number of buckets */
+    size_t node_size;      /*!< Number of nodes in the heap */
+    int lowest_key;        /*!< Lowest key so far */
 };
 typedef struct _bor_bucketheap_t bor_bucketheap_t;
 /** ^^^^ */
@@ -71,7 +71,8 @@ void borBucketHeapDel(bor_bucketheap_t *bh);
 _bor_inline int borBucketHeapEmpty(const bor_bucketheap_t *bh);
 
 /**
- * Returns minimal node.
+ * Returns minimal node. The nodes with identical key are returned in FIFO
+ * order.
  * If the {key} is non NULL it is filled with the corresponding key value.
  */
 _bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh,
@@ -135,7 +136,7 @@ _bor_inline bor_bucketheap_node_t *borBucketHeapMin(bor_bucketheap_t *bh,
     if (key)
         *key = bh->lowest_key;
 
-    return borListPrev(bucket);
+    return borListNext(bucket);
 }
 
 _bor_inline bor_bucketheap_node_t *borBucketHeapExtractMin(bor_bucketheap_t *bh,
