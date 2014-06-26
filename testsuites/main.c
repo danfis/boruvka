@@ -33,7 +33,9 @@
 #include "multimap.h"
 #include "fifo.h"
 #ifdef BOR_HDF5
+#ifdef BOR_GSL
 # include "thdf5.h"
+#endif /* BOR_GSL */
 #endif /* BOR_HDF5 */
 
 TEST_SUITES {
@@ -71,7 +73,9 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSMultiMap),
     TEST_SUITE_ADD(TSFifo),
 #ifdef BOR_HDF5
+#ifdef BOR_GSL
     TEST_SUITE_ADD(TSHDF5),
+#endif /* BOR_GSL */
 #endif /* BOR_HDF5 */
 
     TEST_SUITES_CLOSURE
