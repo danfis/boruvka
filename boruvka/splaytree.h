@@ -108,6 +108,16 @@ bor_splaytree_t *borSplayTreeNew(bor_splaytree_cmp cmp, void *data);
 void borSplayTreeDel(bor_splaytree_t *splaytree);
 
 /**
+ * In-place initialization.
+ */
+void borSplayTreeInit(bor_splaytree_t *st, bor_splaytree_cmp cmp, void *data);
+
+/**
+ * Pair free() for borSplayTreeInit().
+ */
+void borSplayTreeFree(bor_splaytree_t *st);
+
+/**
  * Returns true if the tree is empty.
  */
 _bor_inline int borSplayTreeEmpty(const bor_splaytree_t *splaytree);

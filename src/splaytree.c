@@ -61,15 +61,27 @@ bor_splaytree_t *borSplayTreeNew(bor_splaytree_cmp cmp, void *data)
     bor_splaytree_t *st;
 
     st = BOR_ALLOC(bor_splaytree_t);
-    st->root = NULL;
-    st->cmp = cmp;
-    st->data = data;
+    borSplayTreeInit(st, cmp, data);
     return st;
 }
 
 void borSplayTreeDel(bor_splaytree_t *splaytree)
 {
     BOR_FREE(splaytree);
+}
+
+void borSplayTreeInit(bor_splaytree_t *st, bor_splaytree_cmp cmp, void *data)
+{
+    st->root = NULL;
+    st->cmp = cmp;
+    st->data = data;
+}
+
+void borSplayTreeFree(bor_splaytree_t *st)
+{
+    st->root = NULL;
+    st->cmp = NULL;
+    st->data = NULL;
 }
 
 static void splay(bor_splaytree_t *head, bor_splaytree_node_t *elm)
