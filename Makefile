@@ -56,6 +56,7 @@ OBJS += segmarr
 OBJS += rbtree
 OBJS += rbtree_int
 OBJS += splaytree
+OBJS += splaytree_int
 OBJS += multimap_int
 OBJS += fifo
 
