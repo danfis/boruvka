@@ -36,17 +36,32 @@ bor_fifo_t *borFifoNewSize(size_t el_size, size_t buf_size)
     bor_fifo_t *fifo;
 
     fifo = BOR_ALLOC(bor_fifo_t);
-    fifo->segm_size = buf_size;
-    fifo->el_size   = el_size;
-    fifoReset(fifo);
+    borFifoInitSize(fifo, el_size, buf_size);
 
     return fifo;
 }
 
 void borFifoDel(bor_fifo_t *fifo)
 {
-    borFifoClear(fifo);
+    borFifoFree(fifo);
     BOR_FREE(fifo);
+}
+
+void borFifoInit(bor_fifo_t *fifo, size_t el_size)
+{
+    borFifoInitSize(fifo, el_size, BOR_FIFO_BUF_SIZE);
+}
+
+void borFifoInitSize(bor_fifo_t *fifo, size_t el_size, size_t buf_size)
+{
+    fifo->segm_size = buf_size;
+    fifo->el_size   = el_size;
+    fifoReset(fifo);
+}
+
+void borFifoFree(bor_fifo_t *fifo)
+{
+    borFifoClear(fifo);
 }
 
 void borFifoClear(bor_fifo_t *fifo)

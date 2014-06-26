@@ -77,6 +77,21 @@ bor_fifo_t *borFifoNewSize(size_t el_size, size_t buf_size);
 void borFifoDel(bor_fifo_t *fifo);
 
 /**
+ * In-place initialization of fifo structure
+ */
+void borFifoInit(bor_fifo_t *fifo, size_t el_size);
+
+/**
+ * In-place initialization with specified buffer size.
+ */
+void borFifoInitSize(bor_fifo_t *fifo, size_t el_size, size_t buf_size);
+
+/**
+ * Frees allocated resources.
+ */
+void borFifoFree(bor_fifo_t *fifo);
+
+/**
  * Returns true if the FIFO is empty.
  */
 _bor_inline int borFifoEmpty(const bor_fifo_t *fifo);
