@@ -233,7 +233,7 @@ _bor_inline bor_rbtree_int_node_t *borRBTreeIntNext(bor_rbtree_int_node_t *elm)
     return elm;
 }
 
-bor_rbtree_int_node_t *borRBTreeIntPrev(bor_rbtree_int_node_t *elm)
+_bor_inline bor_rbtree_int_node_t *borRBTreeIntPrev(bor_rbtree_int_node_t *elm)
 {
     if (elm->left) {
         elm = elm->left;
