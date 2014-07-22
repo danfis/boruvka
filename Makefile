@@ -59,6 +59,7 @@ OBJS += splaytree
 OBJS += splaytree_int
 OBJS += multimap_int
 OBJS += fifo
+OBJS += lifo
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl

@@ -32,6 +32,7 @@
 #include "segmarr.h"
 #include "multimap.h"
 #include "fifo.h"
+#include "lifo.h"
 #ifdef BOR_HDF5
 #ifdef BOR_GSL
 # include "thdf5.h"
@@ -72,6 +73,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSSegmArr),
     TEST_SUITE_ADD(TSMultiMap),
     TEST_SUITE_ADD(TSFifo),
+    TEST_SUITE_ADD(TSLifo),
 #ifdef BOR_HDF5
 #ifdef BOR_GSL
     TEST_SUITE_ADD(TSHDF5),

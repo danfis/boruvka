@@ -28,7 +28,8 @@ OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        fibo.o pairheap.o dij.o chull3.o \
        tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
 	   vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
-	   rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o
+	   rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
+	   lifo.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
