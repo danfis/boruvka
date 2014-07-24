@@ -16,6 +16,7 @@
 #include "rbtree.h"
 #include "rbtree_int.h"
 #include "splaytree.h"
+#include "splaytree_int.h"
 #include "bucketheap.h"
 #include "dij.h"
 #include "chull3.h"
@@ -60,6 +61,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSRBTree),
     TEST_SUITE_ADD(TSRBTreeInt),
     TEST_SUITE_ADD(TSSplayTree),
+    TEST_SUITE_ADD(TSSplayTreeInt),
     TEST_SUITE_ADD(TSBucketHeap),
     TEST_SUITE_ADD(TSDij),
     TEST_SUITE_ADD(TSCHull3),
