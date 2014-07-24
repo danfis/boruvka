@@ -58,6 +58,11 @@ extern "C" {
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef BOR_SPLAY_KEY_EQ
+# define BOR_SPLAY_KEY_EQ(head, key1, key2) \
+    (BOR_SPLAY_KEY_CMP((head), (key1), (key2)) == 0)
+#endif /* BOR_SPLAY_KEY_EQ */
+
 #define BOR_SPLAY_LEFT(elm)   (elm)->spe_left
 #define BOR_SPLAY_RIGHT(elm)  (elm)->spe_right
 #define BOR_SPLAY_ROOT(head)  (head)->root
@@ -107,7 +112,8 @@ _bor_inline void borSplayFree(BOR_SPLAY_TREE_T *head)
     head->root = NULL;
 }
 
-_bor_inline void borSplay(BOR_SPLAY_TREE_T *head, int key)
+_bor_inline void borSplay(BOR_SPLAY_TREE_T *head,
+                          BOR_SPLAY_KEY_T key)
 {
     BOR_SPLAY_TREE_NODE_T __node, *__left, *__right, *__tmp;
     int __comp;
@@ -115,12 +121,12 @@ _bor_inline void borSplay(BOR_SPLAY_TREE_T *head, int key)
     BOR_SPLAY_LEFT(&__node) = BOR_SPLAY_RIGHT(&__node) = NULL;
     __left = __right = &__node;
 
-    while ((__comp = (key - (head)->root->key)) != 0) {
+    while ((__comp = BOR_SPLAY_KEY_CMP(head, key, BOR_SPLAY_NODE_KEY((head)->root))) != 0) {
         if (__comp < 0) {
             __tmp = BOR_SPLAY_LEFT((head)->root);
             if (__tmp == NULL)
                 break;
-            if ((key - __tmp->key) < 0){
+            if (BOR_SPLAY_KEY_CMP(head, key, BOR_SPLAY_NODE_KEY(__tmp)) < 0){
                 BOR_SPLAY_ROTATE_RIGHT(head, __tmp);
                 if (BOR_SPLAY_LEFT((head)->root) == NULL)
                     break;
@@ -130,7 +136,7 @@ _bor_inline void borSplay(BOR_SPLAY_TREE_T *head, int key)
             __tmp = BOR_SPLAY_RIGHT((head)->root);
             if (__tmp == NULL)
                 break;
-            if ((key - __tmp->key) > 0){
+            if (BOR_SPLAY_KEY_CMP(head, key, BOR_SPLAY_NODE_KEY(__tmp)) > 0){
                 BOR_SPLAY_ROTATE_LEFT(head, __tmp);
                 if (BOR_SPLAY_RIGHT((head)->root) == NULL)
                     break;
@@ -142,17 +148,17 @@ _bor_inline void borSplay(BOR_SPLAY_TREE_T *head, int key)
 }
 
 _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayInsert(BOR_SPLAY_TREE_T *head,
-                                                  int key,
+                                                  BOR_SPLAY_KEY_T key,
                                                   BOR_SPLAY_TREE_NODE_T *elm)
 {
-    elm->key = key;
+    BOR_SPLAY_NODE_SET_KEY(elm, key);
 
     if (BOR_SPLAY_EMPTY(head)) {
         BOR_SPLAY_LEFT(elm) = BOR_SPLAY_RIGHT(elm) = NULL;
     } else {
         int __comp;
         borSplay(head, key);
-        __comp = key - head->root->key;
+        __comp = BOR_SPLAY_KEY_CMP(head, key, BOR_SPLAY_NODE_KEY(head->root));
         if(__comp < 0) {
             BOR_SPLAY_LEFT(elm) = BOR_SPLAY_LEFT((head)->root);
             BOR_SPLAY_RIGHT(elm) = (head)->root;
@@ -174,14 +180,14 @@ _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayRemove(BOR_SPLAY_TREE_T *head,
     BOR_SPLAY_TREE_NODE_T *__tmp;
     if (BOR_SPLAY_EMPTY(head))
         return (NULL);
-    borSplay(head, elm->key);
-    if (elm->key == (head)->root->key) {
+    borSplay(head, BOR_SPLAY_NODE_KEY(elm));
+    if (BOR_SPLAY_KEY_EQ(head, BOR_SPLAY_NODE_KEY(elm), BOR_SPLAY_NODE_KEY((head)->root))) {
         if (BOR_SPLAY_LEFT((head)->root) == NULL) {
             (head)->root = BOR_SPLAY_RIGHT((head)->root);
         } else {
             __tmp = BOR_SPLAY_RIGHT((head)->root);
             (head)->root = BOR_SPLAY_LEFT((head)->root);
-            borSplay(head, elm->key);
+            borSplay(head, BOR_SPLAY_NODE_KEY(elm));
             BOR_SPLAY_RIGHT((head)->root) = __tmp;
         }
         return (elm);
@@ -190,20 +196,20 @@ _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayRemove(BOR_SPLAY_TREE_T *head,
 }
 
 _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayFind(BOR_SPLAY_TREE_T *head,
-                                                int key)
+                                                BOR_SPLAY_KEY_T key)
 {
     if (BOR_SPLAY_EMPTY(head))
         return(NULL);
     borSplay(head, key);
-    if (key == (head)->root->key)
+    if (BOR_SPLAY_KEY_EQ(head, key, BOR_SPLAY_NODE_KEY((head)->root)))
         return (head->root);
     return (NULL);
 }
 
 _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayNext(BOR_SPLAY_TREE_T *head,
-                                           BOR_SPLAY_TREE_NODE_T *elm)
+                                                BOR_SPLAY_TREE_NODE_T *elm)
 {
-    borSplay(head, elm->key);
+    borSplay(head, BOR_SPLAY_NODE_KEY(elm));
     if (BOR_SPLAY_RIGHT(elm) != NULL) {
         elm = BOR_SPLAY_RIGHT(elm);
         while (BOR_SPLAY_LEFT(elm) != NULL) {
@@ -215,9 +221,9 @@ _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayNext(BOR_SPLAY_TREE_T *head,
 }
 
 _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayPrev(BOR_SPLAY_TREE_T *head,
-                                           BOR_SPLAY_TREE_NODE_T *elm)
+                                                BOR_SPLAY_TREE_NODE_T *elm)
 {
-    borSplay(head, elm->key);
+    borSplay(head, BOR_SPLAY_NODE_KEY(elm));
     if (BOR_SPLAY_LEFT(elm) != NULL) {
         elm = BOR_SPLAY_LEFT(elm);
         while (BOR_SPLAY_RIGHT(elm) != NULL) {

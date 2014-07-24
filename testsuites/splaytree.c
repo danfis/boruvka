@@ -119,6 +119,8 @@ TEST(splaytreeInsert)
     for (i = 0; i < size; ++i){
         borSplayTreeInsert(splaytree, &els[i].node);
         assertFalse(borSplayTreeEmpty(splaytree));
+        bor_splaytree_node_t *node = borSplayTreeMin(splaytree);
+        el_t *el = bor_container_of(node, el_t, node);
     }
     checkOrderAsc(splaytree, els, size);
     checkOrderDesc(splaytree, els, size);

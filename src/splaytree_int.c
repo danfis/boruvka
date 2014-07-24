@@ -19,6 +19,11 @@
 
 #define BOR_SPLAY_TREE_NODE_T bor_splaytree_int_node_t
 #define BOR_SPLAY_TREE_T bor_splaytree_int_t
+#define BOR_SPLAY_KEY_T int
+#define BOR_SPLAY_NODE_KEY(node) (node)->key
+#define BOR_SPLAY_NODE_SET_KEY(node, Key) ((node)->key = (Key))
+#define BOR_SPLAY_KEY_CMP(head, key1, key2) ((key1) - (key2))
+#define BOR_SPLAY_KEY_EQ(head, key1, key2) ((key1) == (key2))
 #include "boruvka/splaytree_def.h"
 
 bor_splaytree_int_t *borSplayTreeIntNew(void)
@@ -26,7 +31,7 @@ bor_splaytree_int_t *borSplayTreeIntNew(void)
     bor_splaytree_int_t *st;
 
     st = BOR_ALLOC(bor_splaytree_int_t);
-    borSplayInit(st);
+    borSplayTreeIntInit(st);
     return st;
 }
 
