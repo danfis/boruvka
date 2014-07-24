@@ -2,11 +2,11 @@
 #include <cu/cu.h>
 #include <boruvka/alloc.h>
 #include <boruvka/rand.h>
-#include <boruvka/splaytree.h>
+#include <boruvka/splaytree_int.h>
 
 struct _el_t {
     int val;
-    bor_splaytree_node_t node;
+    bor_splaytree_int_node_t node;
     int id;
     int ins;
 };
@@ -45,11 +45,11 @@ static int sortCmpDesc(const void *i1, const void *i2)
     return b - a;
 }
 
-static void checkOrderAsc(bor_splaytree_t *splaytree, el_t *els, size_t num)
+static void checkOrderAsc(bor_splaytree_int_t *splaytree, el_t *els, size_t num)
 {
     int *vals, curval;
     size_t i;
-    bor_splaytree_node_t *node;
+    bor_splaytree_int_node_t *node;
     el_t *el;
 
     vals = BOR_ALLOC_ARR(int, num);
@@ -58,10 +58,11 @@ static void checkOrderAsc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     }
     qsort(vals, num, sizeof(int), sortCmpAsc);
 
-    node = borSplayTreeMin(splaytree);
+    node = borSplayTreeIntMin(splaytree);
     el = bor_container_of(node, el_t, node);
+    assertEquals(node->key, el->val);
     i = 0;
-    BOR_SPLAYTREE_FOR_EACH(splaytree, node){
+    BOR_SPLAYTREE_INT_FOR_EACH(splaytree, node){
         curval = vals[i];
         el = bor_container_of(node, el_t, node);
         assertEquals(el->val, curval);
@@ -71,11 +72,11 @@ static void checkOrderAsc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     BOR_FREE(vals);
 }
 
-static void checkOrderDesc(bor_splaytree_t *splaytree, el_t *els, size_t num)
+static void checkOrderDesc(bor_splaytree_int_t *splaytree, el_t *els, size_t num)
 {
     int *vals, curval;
     size_t i;
-    bor_splaytree_node_t *node;
+    bor_splaytree_int_node_t *node;
     el_t *el;
 
     vals = BOR_ALLOC_ARR(int, num);
@@ -84,10 +85,11 @@ static void checkOrderDesc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     }
     qsort(vals, num, sizeof(int), sortCmpDesc);
 
-    node = borSplayTreeMin(splaytree);
+    node = borSplayTreeIntMin(splaytree);
     el = bor_container_of(node, el_t, node);
+    assertEquals(node->key, el->val);
     i = 0;
-    BOR_SPLAYTREE_FOR_EACH_REVERSE(splaytree, node){
+    BOR_SPLAYTREE_INT_FOR_EACH_REVERSE(splaytree, node){
         curval = vals[i];
         el = bor_container_of(node, el_t, node);
         assertEquals(el->val, curval);
@@ -97,49 +99,40 @@ static void checkOrderDesc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     BOR_FREE(vals);
 }
 
-static int stCmp(const bor_splaytree_node_t *n1,
-                 const bor_splaytree_node_t *n2,
-                 void *_)
-{
-    el_t *e1 = bor_container_of(n1, el_t, node);
-    el_t *e2 = bor_container_of(n2, el_t, node);
-    return e1->val - e2->val;
-}
-
-TEST(splaytreeInsert)
+TEST(splaytreeIntInsert)
 {
     el_t *els;
     size_t i, size = 10000;
-    bor_splaytree_t *splaytree;
+    bor_splaytree_int_t *splaytree;
 
-    splaytree = borSplayTreeNew(stCmp, NULL);
-    assertTrue(borSplayTreeEmpty(splaytree));
+    splaytree = borSplayTreeIntNew();
+    assertTrue(borSplayTreeIntEmpty(splaytree));
 
     els = randomEls(size);
     for (i = 0; i < size; ++i){
-        borSplayTreeInsert(splaytree, &els[i].node);
-        assertFalse(borSplayTreeEmpty(splaytree));
+        borSplayTreeIntInsert(splaytree, els[i].val, &els[i].node);
+        assertFalse(borSplayTreeIntEmpty(splaytree));
     }
     checkOrderAsc(splaytree, els, size);
     checkOrderDesc(splaytree, els, size);
 
     BOR_FREE(els);
-    borSplayTreeDel(splaytree);
+    borSplayTreeIntDel(splaytree);
 }
 
-TEST(splaytreeRemove)
+TEST(splaytreeIntRemove)
 {
     el_t *els;
     size_t i, size = 10000;
-    bor_splaytree_t *splaytree;
-    bor_splaytree_node_t *n, *tmpn;
+    bor_splaytree_int_t *splaytree;
+    bor_splaytree_int_node_t *n, *tmpn;
 
-    splaytree = borSplayTreeNew(stCmp, NULL);
-    assertTrue(borSplayTreeEmpty(splaytree));
+    splaytree = borSplayTreeIntNew();
+    assertTrue(borSplayTreeIntEmpty(splaytree));
 
     els = randomEls(size);
     for (i = 0; i < size; ++i){
-        n = borSplayTreeInsert(splaytree, &els[i].node);
+        n = borSplayTreeIntInsert(splaytree, els[i].val, &els[i].node);
         if (n == NULL){
             els[i].ins = 1;
         }else{
@@ -147,44 +140,44 @@ TEST(splaytreeRemove)
         }
     }
 
-    assertFalse(borSplayTreeEmpty(splaytree));
+    assertFalse(borSplayTreeIntEmpty(splaytree));
     for (i = 0; i < size; ++i){
         if (!els[i].ins)
             continue;
-        borSplayTreeRemove(splaytree, &els[i].node);
-        n = borSplayTreeFind(splaytree, &els[i].node);
+        borSplayTreeIntRemove(splaytree, &els[i].node);
+        n = borSplayTreeIntFind(splaytree, els[i].val);
         assertEquals(n, NULL);
     }
-    assertTrue(borSplayTreeEmpty(splaytree));
+    assertTrue(borSplayTreeIntEmpty(splaytree));
 
     for (i = 0; i < size; ++i){
-        n = borSplayTreeInsert(splaytree, &els[i].node);
+        n = borSplayTreeIntInsert(splaytree, els[i].val, &els[i].node);
     }
 
-    BOR_SPLAYTREE_FOR_EACH_SAFE(splaytree, n, tmpn){
-        borSplayTreeRemove(splaytree, n);
+    BOR_SPLAYTREE_INT_FOR_EACH_SAFE(splaytree, n, tmpn){
+        borSplayTreeIntRemove(splaytree, n);
     }
-    assertTrue(borSplayTreeEmpty(splaytree));
+    assertTrue(borSplayTreeIntEmpty(splaytree));
 
     BOR_FREE(els);
-    borSplayTreeDel(splaytree);
+    borSplayTreeIntDel(splaytree);
 }
 
-TEST(splaytreeFind)
+TEST(splaytreeIntFind)
 {
     el_t *els, *el;
     size_t i, r, j, size = 10000;
     bor_rand_t rnd;
-    bor_splaytree_t *splaytree;
-    bor_splaytree_node_t *n, *tmpn;
+    bor_splaytree_int_t *splaytree;
+    bor_splaytree_int_node_t *n, *tmpn;
 
     borRandInit(&rnd);
 
-    splaytree = borSplayTreeNew(stCmp, NULL);
+    splaytree = borSplayTreeIntNew();
 
     els = randomEls(size);
     for (i = 0; i < size; ++i){
-        n = borSplayTreeInsert(splaytree, &els[i].node);
+        n = borSplayTreeIntInsert(splaytree, els[i].val, &els[i].node);
         if (n == NULL){
             els[i].ins = 1;
         }else{
@@ -194,7 +187,7 @@ TEST(splaytreeFind)
 
     for (i = 0; i < size; ++i){
         r = borRand(&rnd, 0., size);
-        n = borSplayTreeFind(splaytree, &els[r].node);
+        n = borSplayTreeIntFind(splaytree, els[r].val);
         assertNotEquals(n, NULL);
         el = bor_container_of(n, el_t, node);
         assertEquals(el->val, els[r].val);
@@ -207,11 +200,11 @@ TEST(splaytreeFind)
     }
 
 
-    BOR_SPLAYTREE_FOR_EACH_REVERSE_SAFE(splaytree, n, tmpn){
-        borSplayTreeRemove(splaytree, n);
+    BOR_SPLAYTREE_INT_FOR_EACH_REVERSE_SAFE(splaytree, n, tmpn){
+        borSplayTreeIntRemove(splaytree, n);
     }
-    assertTrue(borSplayTreeEmpty(splaytree));
+    assertTrue(borSplayTreeIntEmpty(splaytree));
 
     BOR_FREE(els);
-    borSplayTreeDel(splaytree);
+    borSplayTreeIntDel(splaytree);
 }
