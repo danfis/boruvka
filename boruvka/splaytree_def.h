@@ -32,6 +32,8 @@ extern "C" {
  * boruvka library. The purpose of this is to provided macro-driven
  * definition of splay-tree routines that can be modified to your own goal.
  *
+ * How to use this file, see splaytree and splaytree_int modules.
+ *
  * The code was adopted from the FreeBSD's sys/tree.h:
  *
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
