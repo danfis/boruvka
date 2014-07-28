@@ -153,7 +153,7 @@ _bor_inline BOR_SPLAY_TREE_NODE_T *borSplayInsert(BOR_SPLAY_TREE_T *head,
                                                   BOR_SPLAY_KEY_T key,
                                                   BOR_SPLAY_TREE_NODE_T *elm)
 {
-    BOR_SPLAY_NODE_SET_KEY(elm, key);
+    BOR_SPLAY_NODE_SET_KEY(head, elm, key);
 
     if (BOR_SPLAY_EMPTY(head)) {
         BOR_SPLAY_LEFT(elm) = BOR_SPLAY_RIGHT(elm) = NULL;

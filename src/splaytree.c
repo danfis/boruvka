@@ -21,7 +21,7 @@
 #define BOR_SPLAY_TREE_T bor_splaytree_t
 #define BOR_SPLAY_KEY_T const bor_splaytree_node_t *
 #define BOR_SPLAY_NODE_KEY(node) (node)
-#define BOR_SPLAY_NODE_SET_KEY(node, key)
+#define BOR_SPLAY_NODE_SET_KEY(head, node, key)
 #define BOR_SPLAY_KEY_CMP(head, key1, key2) \
     (head)->cmp((key1), (key2), (head)->data)
 #include "boruvka/splaytree_def.h"
