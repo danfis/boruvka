@@ -92,6 +92,12 @@
 #endif /* __GNUC__ */
 
 
+#ifdef __GNUC__
+# define BOR_UNUSED(f) f __attribute__((unused))
+#else /* __GNUC__ */
+# define BOR_UNUSED(f)
+#endif /* __GNUC__ */
+
 #ifdef __ICC
 /* disable unused parameter warning */
 # pragma warning(disable:869)
