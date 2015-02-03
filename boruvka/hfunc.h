@@ -86,6 +86,18 @@ uint32_t borCityHash_32(const void *buf, size_t size);
  */
 uint64_t borCityHash_64(const void *buf, size_t size);
 
+/**
+ * FastHash hash function.
+ * Taken from https://code.google.com/p/fast-hash.
+ */
+uint64_t borFastHash_64(const void *buf, size_t size, uint64_t seed);
+
+/**
+ * FastHash hash function.
+ * Taken from https://code.google.com/p/fast-hash.
+ */
+uint32_t borFastHash_32(const void *buf, size_t size, uint32_t seed);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

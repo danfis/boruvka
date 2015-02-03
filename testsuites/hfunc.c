@@ -56,3 +56,22 @@ TEST(hfuncCityHash)
                (unsigned long long)val64);
     }
 }
+
+TEST(hfuncFastHash)
+{
+    size_t i;
+    uint32_t val32;
+    uint64_t val64;
+
+    for (i = 0; i < 1000; ++i){
+        val32 = borFastHash_32(&vecs[i], sizeof(bor_vec2_t), 111);
+        printf("FastHash32: %lu %llu\n",
+               (unsigned long)i,
+               (unsigned long long)val32);
+
+        val64 = borFastHash_64(&vecs[i], sizeof(bor_vec2_t), 111);
+        printf("FastHash64: %lu %llu\n",
+               (unsigned long)i,
+               (unsigned long long)val64);
+    }
+}
