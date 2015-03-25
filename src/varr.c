@@ -22,7 +22,7 @@ void borVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize)
 {
     arr->len   = 0;
     arr->alloc = init_size;
-    arr->arr   = borRealloc(NULL, arr->alloc * elemsize);
+    arr->arr   = BOR_MALLOC(arr->alloc * elemsize);
 }
 
 void borVArrDestroy(bor_varr_t *arr)
@@ -33,5 +33,5 @@ void borVArrDestroy(bor_varr_t *arr)
 void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize)
 {
     arr->alloc *= factor;
-    arr->arr = borRealloc(arr->arr, arr->alloc * elemsize);
+    arr->arr = BOR_REALLOC(arr->arr, arr->alloc * elemsize);
 }

@@ -46,7 +46,7 @@ bor_qdelaunay_t *borQDelaunayNew(void)
 
     q = BOR_ALLOC(bor_qdelaunay_t);
 
-    q->bin_path = strdup(BOR_QDELAUNAY_BIN_PATH);
+    q->bin_path = BOR_STRDUP(BOR_QDELAUNAY_BIN_PATH);
 
     return q;
 }
@@ -62,7 +62,7 @@ void borQDelaunaySetPath(bor_qdelaunay_t *q, const char *path)
 {
     if (q->bin_path)
         BOR_FREE(q->bin_path);
-    q->bin_path = strdup(path);
+    q->bin_path = BOR_STRDUP(path);
 }
 
 bor_qhull_mesh3_t *borQDelaunayMesh3(bor_qdelaunay_t *q, const bor_pc_t *pc)

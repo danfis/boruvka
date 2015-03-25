@@ -41,7 +41,7 @@ bor_pc_mem_t *borPCMemNew(size_t min_size, size_t elsize, int align)
     memsize  = (memsize + 1) * __bor_page_size;
 
     // allocated memory
-    mem = borRealloc(NULL, memsize);
+    mem = BOR_MALLOC(memsize);
 
     // set up structure, .data will point _after_ struct in memory (lets
     // assume that allocated memory is always more than size of

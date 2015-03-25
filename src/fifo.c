@@ -150,7 +150,7 @@ _bor_inline void fifoInitElPtrs(bor_fifo_t *fifo, bor_fifo_segm_t *segm,
 _bor_inline bor_fifo_segm_t *segmNew(bor_fifo_t *fifo)
 {
     bor_fifo_segm_t *segm;
-    segm = (bor_fifo_segm_t *)borRealloc(NULL, fifo->segm_size);
+    segm = (bor_fifo_segm_t *)BOR_MALLOC(fifo->segm_size);
     segm->next = NULL;
     return segm;
 }

@@ -141,7 +141,7 @@ _bor_inline void lifoAddSegment(bor_lifo_t *lifo)
 {
     bor_lifo_segm_t *segm;
 
-    segm = (bor_lifo_segm_t *)borRealloc(NULL, lifo->segm_size);
+    segm = (bor_lifo_segm_t *)BOR_MALLOC(lifo->segm_size);
     segm->prev = lifo->back;
     lifo->back = segm;
     lifoResetBack(lifo);
