@@ -75,7 +75,14 @@ extern "C" {
  * Raw memory allocation.
  */
 #define BOR_MALLOC(size) \
-    return borRealloc(NULL, (size))
+    borRealloc(NULL, (size))
+
+/**
+ * Wrapped strdup() for consistency in memory allocation.
+ */
+#define BOR_STRDUP(str) \
+    strdup((str))
+
 
 #ifndef BOR_MEMCHECK
 # define BOR_FREE(ptr) free(ptr) /*!< Deallocates memory */
