@@ -4,6 +4,7 @@
 ifdef(`USE_SINGLE', `#define BOR_SINGLE')
 ifdef(`USE_DOUBLE', `#define BOR_DOUBLE')
 ifdef(`USE_MEMCHECK', `#define BOR_MEMCHECK')
+ifdef(`USE_MEMCHECK', `#define BOR_MEMCHECK_REPORT_THRESHOLD' MEMCHECK_REPORT_THRESHOLD)
 ifdef(`USE_SSE', `#define BOR_SSE')
 ifdef(`USE_SSE', `ifdef(`USE_SINGLE', `#define BOR_SSE_SINGLE', `#define BOR_SSE_DOUBLE')')
 ifdef(`DEBUG', `#define BOR_DEBUG')

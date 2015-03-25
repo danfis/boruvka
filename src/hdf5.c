@@ -170,7 +170,7 @@ bor_h5dset_t *borH5DatasetOpen(bor_h5file_t *hf, const char *path)
     H5Sclose(dspace_id);
 
     dset = BOR_ALLOC(bor_h5dset_t);
-    dset->path    = strdup(path);
+    dset->path    = BOR_STRDUP(path);
     dset->dset_id = dset_id;
     dset->hf      = hf;
     borListAppend(&hf->dset, &dset->list);

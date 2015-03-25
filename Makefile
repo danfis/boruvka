@@ -214,6 +214,7 @@ help:
 	@echo "    USE_SINGLE   'yes'       - Use single precision  (=$(USE_SINGLE))"
 	@echo "    USE_DOUBLE   'yes'       - Use double precision  (=$(USE_DOUBLE))"
 	@echo "    USE_MEMCHECK 'yes'/'no'  - Use memory checking during allocation (=$(USE_MEMCHECK))"
+	@echo "    MEMCHECK_REPORT_THRESHOLD - Limit above which memory usage is reported to stderr (=$(MEMCHECK_REPORT_THRESHOLD))"
 	@echo "    USE_SSE      'yes'/'no'  - Use SSE instructions  (=$(USE_SSE))"
 	@echo "    USE_OPENCL   'yes'/'no'  - Use OpenCL library    (=$(USE_OPENCL))"
 	@echo "                               By default, auto detection is used."
