@@ -96,3 +96,16 @@ void *borAllocAlign(size_t size, size_t alignment)
     return mem;
 }
 
+void *borCalloc(size_t nmemb, size_t size)
+{
+    void *ret;
+
+    ret = calloc(nmemb, size);
+    if (ret == NULL && size != 0){
+        fprintf(stderr, "Fatal error: Allocation of memory failed!\n");
+        fflush(stderr);
+        exit(-1);
+    }
+
+    return ret;
+}

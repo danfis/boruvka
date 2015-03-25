@@ -69,7 +69,13 @@ extern "C" {
  * Allocate array of elements of given type initialized to zero.
  */
 #define BOR_CALLOC_ARR(type, num_elements) \
-    (type *)calloc((num_elements), sizeof(type))
+    (type *)borCalloc((num_elements), sizeof(type))
+
+/**
+ * Raw memory allocation.
+ */
+#define BOR_MALLOC(size) \
+    return borRealloc(NULL, (size))
 
 #ifndef BOR_MEMCHECK
 # define BOR_FREE(ptr) free(ptr) /*!< Deallocates memory */
@@ -79,6 +85,7 @@ extern "C" {
 
 void *borRealloc(void *ptr, size_t size);
 void *borAllocAlign(size_t size, size_t alignment);
+void *borCalloc(size_t nmemb, size_t size);
 
 #ifdef BOR_MEMCHECK
 void borFreeCheck(void *ptr);
