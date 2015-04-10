@@ -53,6 +53,7 @@ OBJS += timer
 OBJS += parse
 OBJS += image
 OBJS += segmarr
+OBJS += extarr
 OBJS += rbtree
 OBJS += rbtree_int
 OBJS += splaytree
