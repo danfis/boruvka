@@ -1,6 +1,8 @@
 #ifndef __BOR_CONFIG_H__
 #define __BOR_CONFIG_H__
 
+#include <boruvka/config_endian.h>
+
 ifdef(`USE_SINGLE', `#define BOR_SINGLE')
 ifdef(`USE_DOUBLE', `#define BOR_DOUBLE')
 ifdef(`USE_MEMCHECK', `#define BOR_MEMCHECK')

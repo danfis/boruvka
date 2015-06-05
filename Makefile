@@ -109,7 +109,13 @@ libboruvka.so: libboruvka.so.$(SO_VERSION)
 libboruvka.so.$(SO_VERSION): $(OBJS_PIC)
 	$(CC) $(CFLAGS) -shared -Wl,-soname,$@ -o $@ $(OBJS_PIC)
 
-boruvka/config.h: boruvka/config.h.m4
+boruvka/config_endian.h: boruvka/config_endian.h.m4
+	echo 'int main(int argc, char *arvg[]) { int x = 1; return *(char *)&x; }' >__end.c
+	$(CC) $(CFLAGS) -o __end __end.c
+	./__end && $(M4) -DBIG $< >$@ || $(M4) -DLITTLE $< >$@
+	rm -f __end.c __end
+
+boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
 bin/bor-%: bin/%-main.c libboruvka.a
@@ -165,7 +171,7 @@ clean:
 	rm -f $(BIN_TARGETS)
 	rm -f libboruvka.so
 	rm -f libboruvka.so.*
-	rm -f boruvka/config.h
+	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;

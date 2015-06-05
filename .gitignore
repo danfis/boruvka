@@ -4,6 +4,7 @@
 *.o
 *~
 config.h
+config_endian.h
 bor-*
 src/*-cl.c
 src/cfg-lexer.c
