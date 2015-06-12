@@ -39,6 +39,11 @@ static int queueInitSem(bor_ring_queue_t *q)
     return 0;
 }
 
+_bor_inline int queueNextId(int id, int size)
+{
+    return (id + 1) % size;
+}
+
 void borRingQueueInit(bor_ring_queue_t *q, int ring_size)
 {
     q->buf = BOR_ALLOC_ARR(void *, ring_size);
@@ -62,17 +67,15 @@ static void queueExtend(bor_ring_queue_t *q)
     int i;
 
     buf = BOR_ALLOC_ARR(void *, q->size * 2);
-    for (i = 0; q->head != q->tail; ++i)
+    for (i = 0; q->head != q->tail; ++i){
         buf[i] = q->buf[q->head];
+        q->head = queueNextId(q->head, q->size);
+    }
     BOR_FREE(q->buf);
     q->buf = buf;
     q->head = 0;
     q->tail = i;
-}
-
-_bor_inline int queueNextId(int id, int size)
-{
-    return (id + 1) % size;
+    q->size *= 2;
 }
 
 void borRingQueuePush(bor_ring_queue_t *q, void *data)
