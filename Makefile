@@ -62,6 +62,7 @@ OBJS += multimap_int
 OBJS += fifo
 OBJS += fifo-sem
 OBJS += lifo
+OBJS += ring_queue
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
