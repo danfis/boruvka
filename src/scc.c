@@ -18,7 +18,6 @@
 #include "boruvka/alloc.h"
 
 struct _scc_dfs_t {
-    int *neighbor;
     int cur_index;
     int *index;
     int *lowlink;
@@ -82,7 +81,6 @@ static void sccTarjan(bor_scc_t *scc, int start_node)
     int i, node;
 
     // Initialize structure for Tarjan's algorithm
-    dfs.neighbor = BOR_ALLOC_ARR(int, scc->node_size);
     dfs.cur_index = 0;
     dfs.index    = BOR_ALLOC_ARR(int, 4 * scc->node_size);
     dfs.lowlink  = dfs.index + scc->node_size;
@@ -104,7 +102,6 @@ static void sccTarjan(bor_scc_t *scc, int start_node)
     }
 
     BOR_FREE(dfs.index);
-    BOR_FREE(dfs.neighbor);
 }
 
 
