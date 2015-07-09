@@ -39,6 +39,7 @@
 # include "thdf5.h"
 #endif /* BOR_GSL */
 #endif /* BOR_HDF5 */
+#include "scc.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -81,6 +82,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSHDF5),
 #endif /* BOR_GSL */
 #endif /* BOR_HDF5 */
+    TEST_SUITE_ADD(TSSCC),
 
     TEST_SUITES_CLOSURE
 };

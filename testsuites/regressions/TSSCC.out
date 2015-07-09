@@ -1,0 +1,8 @@
+---- graph1 ----
+Component 0: 5 6
+Component 1: 2 3 7
+Component 2: 0 1 4
+---- graph1 END ----
+---- graph1 - 5 ----
+Component 0: 5 6
+---- graph1 - 5 END ----

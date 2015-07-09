@@ -63,6 +63,7 @@ OBJS += fifo
 OBJS += fifo-sem
 OBJS += lifo
 OBJS += ring_queue
+OBJS += scc
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
