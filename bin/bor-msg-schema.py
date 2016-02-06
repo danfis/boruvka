@@ -134,13 +134,15 @@ class Member(object):
         salloc_offset = '-1'
         ssub = 'NULL'
 
+        if self.type == 'struct':
+            stype = '_BOR_MSG_SCHEMA_MSG'
+            ssub = '&schema_{0}'.format(self.struct.name)
+
         if self.is_arr:
             stype = '_BOR_MSG_SCHEMA_ARR_BASE + ' + stype
             ssize_offset = foffset.format('{0}_size'.format(self.name))
             salloc_offset = foffset.format('{0}_alloc'.format(self.name))
 
-        if self.type == 'struct':
-            ssub = '&schema_{0}'.format(self.struct.name)
 
         sline = '{{{0}, {1}, {2}, {3}, {4}}}'.format(stype, soffset,
                                                      ssize_offset,
@@ -196,22 +198,22 @@ class Struct(object):
         default = [m.cDefaultVal() for m in self.members]
         fout.write('static {0} ___{0}_default = '.format(self.name))
         fout.write(self.cDefaultVal())
-        fout.write('\n')
+        fout.write(';\n')
 
     def genCSchema(self, fout):
         fields = [m.cSchema(self.name) for m in self.members]
         fields = ['    ' + x for x in fields]
         fields = ',\n'.join(fields)
 
-        fout.write('static bor_msg_schema_field_t __{0}_fields[] = {{\n'.format(self.name))
+        fout.write('static bor_msg_schema_field_t ___{0}_fields[] = {{\n'.format(self.name))
         fout.write(fields + '\n')
         fout.write('};\n');
         fout.write('static bor_msg_schema_t schema_{0} = {{\n'.format(self.name))
-        fout.write('    {0}.\n'.format(self.sid))
+        fout.write('    {0},\n'.format(self.sid))
         fout.write('    sizeof({0}),\n'.format(self.name))
-        fout.write('    sizeof(__{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
-        fout.write('    __{0}_fields,\n'.format(self.name))
-        fout.write('    &__{0}_default\n'.format(self.name))
+        fout.write('    sizeof(___{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
+        fout.write('    ___{0}_fields,\n'.format(self.name))
+        fout.write('    &___{0}_default\n'.format(self.name))
         fout.write('};\n');
         fout.write('\n')
 

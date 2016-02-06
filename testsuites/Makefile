@@ -29,7 +29,7 @@ OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
        vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
        rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
-       lifo.o splaytree_int.o scc.o
+       lifo.o splaytree_int.o scc.o msg-schema.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
@@ -67,6 +67,12 @@ bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a
 bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
+msg-schema.struct.h: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --struct <$< >$@
+msg-schema.schema.c: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --schema <$< >$@
+msg-schema.o: msg-schema.c msg-schema.h msg-schema.struct.h msg-schema.schema.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.c
