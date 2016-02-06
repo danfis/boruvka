@@ -133,20 +133,24 @@ class Member(object):
         ssize_offset = '-1'
         salloc_offset = '-1'
         ssub = 'NULL'
+        sdefault = '(void *)(((char *)&___{0}_default) + {1})'.format(struct_name, soffset)
 
         if self.type == 'struct':
             stype = '_BOR_MSG_SCHEMA_MSG'
             ssub = '&schema_{0}'.format(self.struct.name)
+            sdefault = 'NULL'
 
         if self.is_arr:
             stype = '_BOR_MSG_SCHEMA_ARR_BASE + ' + stype
             ssize_offset = foffset.format('{0}_size'.format(self.name))
             salloc_offset = foffset.format('{0}_alloc'.format(self.name))
+            sdefault = 'NULL'
 
 
-        sline = '{{{0}, {1}, {2}, {3}, {4}}}'.format(stype, soffset,
+        sline = '{{{0}, {1}, {2}, {3}, {4}, {5}}}'.format(stype, soffset,
                                                      ssize_offset,
-                                                     salloc_offset, ssub)
+                                                     salloc_offset, ssub,
+                                                     sdefault)
         return sline
 
 class Struct(object):

@@ -55,6 +55,7 @@ struct _bor_msg_schema_field_t {
     int size_offset;
     int alloc_offset;
     const bor_msg_schema_t *sub;
+    const void *default_val;
 };
 typedef struct _bor_msg_schema_field_t bor_msg_schema_field_t;
 
@@ -63,7 +64,7 @@ struct _bor_msg_schema_t {
     int struct_bytesize;
     int size;
     const bor_msg_schema_field_t *schema;
-    void *default_msg;
+    const void *default_msg;
 };
 
 /**
@@ -75,6 +76,11 @@ struct _bor_msg_schema_t {
  */
 int borMsgEncode(const void *msg, const bor_msg_schema_t *schema,
                  unsigned char **buf, int *bufsize);
+
+/**
+ * Returns type of the message.
+ */
+int borMsgDecodeType(const unsigned char *buf, int bufsize);
 
 /**
  * Decodes buffer to the message.
