@@ -99,10 +99,9 @@ class Member(object):
             asterix = '*'
 
         line = '    {0} {1}{2};{3}\n'
-        if len(self.comment) > 0:
-            comm = ' /*!< {0} */'.format(' '.join(self.comment))
-        else:
-            comm = ''
+        comm = ''
+        if self.comment is not None:
+            comm = self.comment
         if self.type == 'struct':
             line = line.format(self.struct.name, asterix, self.name, comm)
         else:
@@ -149,14 +148,15 @@ class Member(object):
         return sline
 
 class Struct(object):
-    def __init__(self, name, sid, comment):
+    def __init__(self, name, sid):
         self.name = name
         if sid.startswith('0x'):
             self.sid = int(sid, 16)
         else:
             self.sid = int(sid)
-        self.comment = comment
         self.members = []
+        self.before = ''
+        self.after = ''
 
         STRUCTS[self.name] = self
 
@@ -172,21 +172,20 @@ class Struct(object):
         m = Member(len(self.members), name, type, default, comment)
         self.members += [m]
 
-    def finalize(self):
-        pass
+    def finalize(self, before):
+        self.before = before
+
+    def addAfter(self, after):
+        self.after = after
 
     def genCStruct(self, fout):
-        if len(self.comment) > 0:
-            fout.write('/**\n')
-            for comm in self.comment:
-                fout.write(' * {0}\n'.format(comm))
-            fout.write(' */\n')
+        fout.write(self.before)
         fout.write('struct _{0} {{\n'.format(self.name))
         for m in self.members:
             m.genCStructMember(fout)
         fout.write('};\n')
         fout.write('typedef struct _{0} {0};\n'.format(self.name))
-        fout.write('\n')
+        fout.write(self.after)
 
     def cDefaultVal(self):
         val = [m.cDefaultVal() for m in self.members]
@@ -219,41 +218,52 @@ class Struct(object):
 def parseStructs():
     structs = []
     s = None
-    comment = []
+    comment_line = None
+    before = ''
+    after = ''
+    linebuf = ''
     for i, line in enumerate(sys.stdin):
-        comment_idx = line.find('#')
-        if comment_idx >= 0:
-            comment += [line[comment_idx+1:].strip()]
-            line = line[:comment_idx]
-        line = line.strip()
-        line = line.strip(';')
-        line = line.strip()
-        sline = line.split()
+        if s is not None:
+            idx = line.find(';')
+            if idx >= 0:
+                comment_line = line[idx+1:].strip('\n')
+                line = line[:idx]
+            line = line.strip()
+            sline = line.split()
+        else:
+            sline = line.strip().split()
 
-        if len(sline) == 0:
-            continue
-
-        if len(sline) == 4 and sline[0] == 'struct' and sline[-1] == '{':
-            s = Struct(sline[1], sline[2], comment)
+        if len(sline) == 4 and sline[0] == 'msg' and sline[-1] == '{':
+            s = Struct(sline[1], sline[2])
             structs += [s]
-            comment = []
+            before = linebuf
+            linebuf = ''
 
         elif s is not None and len(sline) >= 2:
             if len(sline) == 3:
                 sline[2] = sline[2].strip('}{')
-                s.addMember(sline[0], sline[1], sline[2], comment)
+                s.addMember(sline[0], sline[1], sline[2], comment_line)
             else:
-                s.addMember(sline[0], sline[1], comment = comment)
-            comment = []
+                s.addMember(sline[0], sline[1], comment = comment_line)
+            comment_line = None
 
         elif s is not None and len(sline) == 1 and sline[0] == '}':
-            s.finalize()
+            s.finalize(before)
             s = None
 
-        else:
+        elif s is not None and len(sline) == 0:
+            continue
+
+        elif s is not None:
             print('Error: Invalid input line {0}: {1}'.format(i + 1, line),
                   file = sys.stderr)
             sys.exit(-1)
+
+        else:
+            linebuf += line
+
+    structs[-1].addAfter(linebuf)
+
     return structs
 
 def genCStruct(structs, fout):
