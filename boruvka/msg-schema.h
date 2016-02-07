@@ -119,13 +119,11 @@ int borMsgEncode(const void *msg, const bor_msg_schema_t *schema,
                  unsigned char **buf, int *bufsize);
 
 /**
- * Decodes buffer to the message.
- * Output message struct *msg is re-allocated if it needs more memory and
- * in that case *msgsize is also changed accordingly.
- * Returns a detected type of message or -1 if an error occured.
+ * Decodes buffer into the message.
+ * Returns 0 on success.
  */
 int borMsgDecode(const unsigned char *buf, int bufsize,
-                 void **msg, int *msgsize);
+                 void *msg, const bor_msg_schema_t *schema);
 
 #ifdef __cplusplus
 } /* extern "C" */
