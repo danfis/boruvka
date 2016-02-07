@@ -153,6 +153,11 @@ class Member(object):
                                                      sdefault)
         return sline
 
+    def cHeaderMacro(self, idx, struct_name):
+        s = '#define MSG_HEADER_{0}_{1} {2}'
+        s = s.format(struct_name, self.name, idx)
+        return s
+
 class Struct(object):
     def __init__(self, name):
         self.name = name
@@ -213,6 +218,11 @@ class Struct(object):
         fout.write('    &___{0}_default\n'.format(self.name))
         fout.write('};\n');
         fout.write('\n')
+
+    def genCHeaderMacros(self, fout):
+        f = [m.cHeaderMacro(i, self.name) for i, m in enumerate(self.members)]
+        fout.write('\n'.join(f))
+        fout.write('\n\n')
 
 def parseStructs():
     structs = []
@@ -276,6 +286,7 @@ def genCSchema(structs, fout):
     fout.write('\n')
     for s in structs:
         s.genCSchema(fout)
+        s.genCHeaderMacros(fout)
 
 if __name__ == '__main__':
     opts = ['--struct', '--schema']

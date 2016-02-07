@@ -95,7 +95,21 @@ void borMsgDel(void *msg, const bor_msg_schema_t *schema);
 int borMsgSetHeader(void *msg, const bor_msg_schema_t *schema);
 
 /**
+ * Set the specified field as changed manually using generated HEADER_*
+ * macros.
+ */
+void borMsgSetHeaderField(void *msg, const bor_msg_schema_t *schema,
+                          unsigned int field_header_macro);
+
+/**
+ * Opposite to borMsgSetHeaderField().
+ */
+void borMsgUnsetHeaderField(void *msg, const bor_msg_schema_t *schema,
+                            unsigned int field_header_macro);
+
+/**
  * Encodes msg according to its schema into buffer *buf.
+ * Msg's header must be properly set.
  * Buffer *buf is re-allocated if it needs more memory and it that case
  * *bufsize is changed to the new size.
  * Returns number of bytes used for encoding message or -1 if an error

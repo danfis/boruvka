@@ -365,6 +365,18 @@ int borMsgSetHeader(void *msg, const bor_msg_schema_t *schema)
     return change;
 }
 
+void borMsgSetHeaderField(void *msg, const bor_msg_schema_t *schema,
+                          unsigned int idx)
+{
+    FIELD(msg, schema->header_offset, HEADER_TYPE) |= (1u << idx);
+}
+
+void borMsgUnsetHeaderField(void *msg, const bor_msg_schema_t *schema,
+                            unsigned int idx)
+{
+    FIELD(msg, schema->header_offset, HEADER_TYPE) &= ~(1u << idx);
+}
+
 int borMsgEncode(const void *msg, const bor_msg_schema_t *schema,
                  unsigned char **buf, int *bufsize)
 {

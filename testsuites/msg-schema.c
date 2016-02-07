@@ -133,6 +133,12 @@ TEST(testMsgSchemaHeader)
     assertEquals(msg.__msg_header, 0xf);
     assertEquals(msg.subs[0].__msg_header, 1);
     assertEquals(msg.subs[1].__msg_header, 0x5);
+
+
+    borMsgSetHeaderField(&msg, &schema_test_msg_t, MSG_HEADER_test_msg_t_lval);
+    assertEquals(msg.__msg_header, 0x1f);
+    borMsgUnsetHeaderField(&msg, &schema_test_msg_t, MSG_HEADER_test_msg_t_dval);
+    assertEquals(msg.__msg_header, 0x1d);
     borMsgFree(&msg, &schema_test_msg_t);
 }
 
