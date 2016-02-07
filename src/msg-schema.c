@@ -57,6 +57,13 @@
 #define CONV_ENDIAN(msg, offset, type) \
     FIELD((msg), (offset), type) = CONV_END_##type(FIELD((msg), (offset), type))
 
+#define pack754_32(f) (pack754((f), 32, 8))
+#define pack754_64(f) (pack754((f), 64, 11))
+#define unpack754_32(i) (unpack754((i), 32, 8))
+#define unpack754_64(i) (unpack754((i), 64, 11))
+static uint64_t pack754(long double f, unsigned bits, unsigned expbits);
+static long double unpack754(uint64_t i, unsigned bits, unsigned expbits);
+
 #if !defined(BOR_LITTLE_ENDIAN) && !defined(BOR_BIG_ENDIAN)
 # error "Cannot determie endianness!!"
 #endif
@@ -128,17 +135,140 @@ _bor_inline void wArrLen(wbuf_t *wbuf, int _len)
     W(wbuf, &len, ARR_LEN_TYPE_SIZE);
 }
 
-_bor_inline void wField(wbuf_t *wbuf, const void *msg, int offset, int size)
+#define W_FIELD(wbuf, msg, offset, from_type, to_type) \
+    if (sizeof(from_type) == sizeof(to_type)){ \
+        W(wbuf, FIELD_PTR(msg, offset), sizeof(from_type)); \
+    }else{ \
+        to_type v = FIELD(msg, offset, from_type); \
+        W(wbuf, &v, sizeof(v)); \
+    }
+
+_bor_inline void wFieldFloat(wbuf_t *wbuf, const void *msg, int offset)
 {
-    void *v = FIELD_PTR(msg, offset);
-    W(wbuf, v, size);
+    uint64_t v = pack754_64(FIELD(msg, offset, float));
+    W(wbuf, &v, sizeof(v));
+}
+
+_bor_inline void wFieldDouble(wbuf_t *wbuf, const void *msg, int offset)
+{
+    uint64_t v = pack754_64(FIELD(msg, offset, double));
+    W(wbuf, &v, sizeof(v));
+}
+
+_bor_inline void wField(wbuf_t *wbuf, const void *msg, int offset, int type)
+{
+    switch (type){
+        case _BOR_MSG_SCHEMA_CHAR:
+            W_FIELD(wbuf, msg, offset, char, int8_t);
+            break;
+        case _BOR_MSG_SCHEMA_UCHAR:
+            W_FIELD(wbuf, msg, offset, unsigned char, uint8_t);
+            break;
+        case _BOR_MSG_SCHEMA_SHORT:
+            W_FIELD(wbuf, msg, offset, short, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_USHORT:
+            W_FIELD(wbuf, msg, offset, unsigned short, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT:
+            W_FIELD(wbuf, msg, offset, int, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT:
+            W_FIELD(wbuf, msg, offset, unsigned int, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_LONG:
+            W_FIELD(wbuf, msg, offset, long, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_ULONG:
+            W_FIELD(wbuf, msg, offset, unsigned long, uint64_t);
+            break;
+        case _BOR_MSG_SCHEMA_FLOAT:
+            wFieldFloat(wbuf, msg, offset);
+            break;
+        case _BOR_MSG_SCHEMA_DOUBLE:
+            wFieldDouble(wbuf, msg, offset);
+            break;
+        default:
+            W(wbuf, FIELD_PTR(msg, offset), type_size[type]);
+    }
+}
+
+#define W_ARR_EL(wbuf, msg, offset, len, from_type, to_type) \
+    if (sizeof(from_type) == sizeof(to_type)){ \
+        W(wbuf, FIELD(msg, offset, void *), sizeof(to_type) * len); \
+    }else{ \
+        to_type v; \
+        from_type *arr = FIELD((msg), (offset), from_type *); \
+        int i; \
+        \
+        for (i = 0; i < (len); ++i){ \
+            v = arr[i]; \
+            W(wbuf, &v, sizeof(v)); \
+        } \
+    }
+
+_bor_inline void wArrFloat(wbuf_t *wbuf, const void *msg, int offset, int len)
+{
+    uint64_t v;
+    float *arr = FIELD((msg), (offset), float *);
+    int i;
+
+    for (i = 0; i < len; ++i){
+        v = pack754_64(arr[i]);
+        W(wbuf, &v, sizeof(v));
+    }
+}
+
+_bor_inline void wArrDouble(wbuf_t *wbuf, const void *msg, int offset, int len)
+{
+    uint64_t v;
+    double *arr = FIELD((msg), (offset), double *);
+    int i;
+
+    for (i = 0; i < len; ++i){
+        v = pack754_64(arr[i]);
+        W(wbuf, &v, sizeof(v));
+    }
 }
 
 _bor_inline void wArr(wbuf_t *wbuf, const void *msg, int offset,
-                      int len, int size)
+                      int len, int type)
 {
     wArrLen(wbuf, len);
-    W(wbuf, FIELD(msg, offset, void *), size * len);
+    switch (type){
+        case _BOR_MSG_SCHEMA_CHAR:
+            W_ARR_EL(wbuf, msg, offset, len, char, int8_t);
+            break;
+        case _BOR_MSG_SCHEMA_UCHAR:
+            W_ARR_EL(wbuf, msg, offset, len, unsigned char, uint8_t);
+            break;
+        case _BOR_MSG_SCHEMA_SHORT:
+            W_ARR_EL(wbuf, msg, offset, len, short, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_USHORT:
+            W_ARR_EL(wbuf, msg, offset, len, unsigned short, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT:
+            W_ARR_EL(wbuf, msg, offset, len, int, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT:
+            W_ARR_EL(wbuf, msg, offset, len, unsigned int, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_LONG:
+            W_ARR_EL(wbuf, msg, offset, len, long, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_ULONG:
+            W_ARR_EL(wbuf, msg, offset, len, unsigned long, uint64_t);
+            break;
+        case _BOR_MSG_SCHEMA_FLOAT:
+            wArrFloat(wbuf, msg, offset, len);
+            break;
+        case _BOR_MSG_SCHEMA_DOUBLE:
+            wArrDouble(wbuf, msg, offset, len);
+            break;
+        default:
+            W(wbuf, FIELD(msg, offset, void *), type_size[type] * len);
+    }
 }
 
 _bor_inline void wMsgArr(wbuf_t *wbuf, const void *msg, int offset,
@@ -180,6 +310,61 @@ _bor_inline int rArrLen(unsigned char **rbuf)
     return len;
 }
 
+static uint64_t pack754(long double f, unsigned bits, unsigned expbits)
+{
+    long double fnorm;
+    int shift;
+    long long sign, exp, significand;
+    unsigned significandbits = bits - expbits - 1; // -1 for sign bit
+
+    if (f == 0.0) return 0; // get this special case out of the way
+
+    // check sign and begin normalization
+    if (f < 0) { sign = 1; fnorm = -f; }
+    else { sign = 0; fnorm = f; }
+
+    // get the normalized form of f and track the exponent
+    shift = 0;
+    while(fnorm >= 2.0) { fnorm /= 2.0; shift++; }
+    while(fnorm < 1.0) { fnorm *= 2.0; shift--; }
+    fnorm = fnorm - 1.0;
+
+    // calculate the binary form (non-float) of the significand data
+    significand = fnorm * ((1LL<<significandbits) + 0.5f);
+
+    // get the biased exponent
+    exp = shift + ((1<<(expbits-1)) - 1); // shift + bias
+
+    // return the final answer
+    return (sign<<(bits-1)) | (exp<<(bits-expbits-1)) | significand;
+}
+
+static long double unpack754(uint64_t i, unsigned bits, unsigned expbits)
+{
+    long double result;
+    long long shift;
+    unsigned bias;
+    unsigned significandbits = bits - expbits - 1; // -1 for sign bit
+
+    if (i == 0) return 0.0;
+
+    // pull the significand
+    result = (i&((1LL<<significandbits)-1)); // mask
+    result /= (1LL<<significandbits); // convert back to float
+    result += 1.0f; // add the one back on
+
+    // deal with the exponent
+    bias = (1<<(expbits-1)) - 1;
+    shift = ((i>>significandbits)&((1LL<<expbits)-1)) - bias;
+    while(shift > 0) { result *= 2.0; shift--; }
+    while(shift < 0) { result /= 2.0; shift++; }
+
+    // sign it
+    result *= (i>>(bits-1))&1? -1.0: 1.0;
+
+    return result;
+}
+
 static void encode(wbuf_t *wbuf, const void *msg,
                    const bor_msg_schema_t *schema)
 {
@@ -194,7 +379,7 @@ static void encode(wbuf_t *wbuf, const void *msg,
             field = schema->field + i;
 
             if (field->type < MAX_TYPE_ID){
-                wField(wbuf, msg, field->offset, type_size[field->type]);
+                wField(wbuf, msg, field->offset, field->type);
 
             }else if (field->type == _BOR_MSG_SCHEMA_MSG){
                 sub_msg = FIELD_PTR(msg, field->offset);
@@ -205,7 +390,7 @@ static void encode(wbuf_t *wbuf, const void *msg,
                 len = FIELD(msg, field->size_offset, int);
 
                 if (type < MAX_TYPE_ID){
-                    wArr(wbuf, msg, field->offset, len, type_size[type]);
+                    wArr(wbuf, msg, field->offset, len, type);
 
                 }else{
                     wMsgArr(wbuf, msg, field->offset, len, field->schema);
