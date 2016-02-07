@@ -21,6 +21,8 @@
 #include "boruvka/alloc.h"
 
 #define HEADER_TYPE uint32_t
+#define HEADER_TO_LE htole32
+#define HEADER_TO_H le32toh
 #define ARR_LEN_TYPE uint32_t
 #define ARR_LEN_TYPE_SIZE sizeof(ARR_LEN_TYPE)
 #define ARR_LEN_TO_LE htole32
@@ -39,6 +41,8 @@
 # define CHECK_ENDIAN(header) (((header) & (0x1u << 31u)) == (0x1u << 31u))
 # define CONV_END_int32_t be32toh
 # define CONV_END_int64_t be64toh
+# define CONV_HEADER(header)
+# define CONV_ARR_LEN(len)
 #endif
 
 #ifdef BOR_BIG_ENDIAN
@@ -46,6 +50,8 @@
 # define CHECK_ENDIAN(header) (((header) & (0x1u << 31u)) == 0u)
 # define CONV_END_int32_t le32toh
 # define CONV_END_int64_t le64toh
+# define CONV_HEADER(header) ((header) = HEADER_TO_LE(header))
+# define CONV_ARR_LEN(len) ((len) = ARR_LEN_TO_LE(len))
 #endif
 
 #define CONV_ENDIAN(msg, offset, type) \
@@ -86,8 +92,15 @@ struct _wbuf_t {
 typedef struct _wbuf_t wbuf_t;
 
 
-static int encode(wbuf_t *wbuf, const void *msg,
-                  const bor_msg_schema_t *_schema);
+static void encode(wbuf_t *wbuf, const void *msg,
+                   const bor_msg_schema_t *_schema);
+
+_bor_inline int cmpFieldDefault(const void *msg,
+                                const bor_msg_schema_field_t *field)
+{
+    return memcmp(field->default_val, FIELD_PTR(msg, field->offset),
+                  type_size[field->type]);
+}
 
 _bor_inline void W(wbuf_t *wbuf, void *data, int size)
 {
@@ -101,38 +114,18 @@ _bor_inline void W(wbuf_t *wbuf, void *data, int size)
     wbuf->w += size;
 }
 
-_bor_inline void wUnrollEmptyMsg(wbuf_t *wbuf)
+_bor_inline void wHeader(wbuf_t *wbuf, HEADER_TYPE header)
 {
-    (wbuf)->w -= sizeof(uint32_t);
-}
-
-_bor_inline void wHeader(wbuf_t *wbuf, int header_idx, uint32_t header)
-{
-    uint32_t *wheader = (uint32_t *)(wbuf->buf + header_idx);
-
     SET_ENDIAN(header);
-#ifdef BOR_BIG_ENDIAN
-    header = htole32(header);
-#endif
-    *wheader = header;
+    CONV_HEADER(header);
+    W(wbuf, &header, sizeof(HEADER_TYPE));
 }
 
-_bor_inline int wPrepareHeader(wbuf_t *wbuf)
+_bor_inline void wArrLen(wbuf_t *wbuf, int _len)
 {
-    uint32_t h = 0;
-    int idx = wbuf->w;
-    W(wbuf, &h, sizeof(h));
-    return idx;
-}
-
-_bor_inline void wArrLen(wbuf_t *wbuf, int len)
-{
-    ARR_LEN_TYPE len32 = len;
-
-#ifdef BOR_BIG_ENDIAN
-    len32 = ARR_LEN_TO_LE(len32);
-#endif
-    W(wbuf, &len32, ARR_LEN_TYPE_SIZE);
+    ARR_LEN_TYPE len = _len;
+    CONV_ARR_LEN(len);
+    W(wbuf, &len, ARR_LEN_TYPE_SIZE);
 }
 
 _bor_inline void wField(wbuf_t *wbuf, const void *msg, int offset, int size)
@@ -164,13 +157,6 @@ _bor_inline void wMsgArr(wbuf_t *wbuf, const void *msg, int offset,
     }
 }
 
-_bor_inline int cmpFieldDefault(const void *msg,
-                                const bor_msg_schema_field_t *field)
-{
-    return memcmp(field->default_val, FIELD_PTR(msg, field->offset),
-                  type_size[field->type]);
-}
-
 _bor_inline uint32_t rHeader(unsigned char **rbuf)
 {
     uint32_t header;
@@ -194,57 +180,41 @@ _bor_inline int rArrLen(unsigned char **rbuf)
     return len;
 }
 
-static int encode(wbuf_t *wbuf, const void *msg,
-                  const bor_msg_schema_t *schema)
+static void encode(wbuf_t *wbuf, const void *msg,
+                   const bor_msg_schema_t *schema)
 {
     const bor_msg_schema_field_t *field;
     const void *sub_msg;
-    HEADER_TYPE header = 0u;
-    int i, type, len, header_idx;
+    HEADER_TYPE header = FIELD(msg, schema->header_offset, HEADER_TYPE);
+    int i, type, len;
 
-    // Prepare space for the header header
-    header_idx = wPrepareHeader(wbuf);
-
+    wHeader(wbuf, header);
     for (i = 0; i < schema->field_size; ++i){
-        field = schema->field + i;
+        if (header & 0x1u){
+            field = schema->field + i;
 
-        if (field->type < MAX_TYPE_ID){
-            // Skip default values
-            if (cmpFieldDefault(msg, field) == 0)
-                continue;
+            if (field->type < MAX_TYPE_ID){
+                wField(wbuf, msg, field->offset, type_size[field->type]);
 
-            wField(wbuf, msg, field->offset, type_size[field->type]);
-            SET_HEADER(header, i);
+            }else if (field->type == _BOR_MSG_SCHEMA_MSG){
+                sub_msg = FIELD_PTR(msg, field->offset);
+                encode(wbuf, sub_msg, field->schema);
 
-        }else if (field->type == _BOR_MSG_SCHEMA_MSG){
-            sub_msg = FIELD_PTR(msg, field->offset);
-            if (encode(wbuf, sub_msg, field->schema) != 0){
-                SET_HEADER(header, i);
-            }else{
-                wUnrollEmptyMsg(wbuf);
-            }
+            }else if (field->type >= _BOR_MSG_SCHEMA_ARR_BASE){
+                type = field->type - _BOR_MSG_SCHEMA_ARR_BASE;
+                len = FIELD(msg, field->size_offset, int);
 
-        }else if (field->type >= _BOR_MSG_SCHEMA_ARR_BASE){
-            type = field->type - _BOR_MSG_SCHEMA_ARR_BASE;
-            len = FIELD(msg, field->size_offset, int);
+                if (type < MAX_TYPE_ID){
+                    wArr(wbuf, msg, field->offset, len, type_size[type]);
 
-            // Skip empty arrays
-            if (len <= 0)
-                continue;
-
-            if (type < MAX_TYPE_ID){
-                wArr(wbuf, msg, field->offset, len, type_size[type]);
-                SET_HEADER(header, i);
-
-            }else{
-                wMsgArr(wbuf, msg, field->offset, len, field->schema);
-                SET_HEADER(header, i);
+                }else{
+                    wMsgArr(wbuf, msg, field->offset, len, field->schema);
+                }
             }
         }
-    }
 
-    wHeader(wbuf, header_idx, header);
-    return header & ~(1u << 31u);
+        header >>= 1u;
+    }
 }
 
 static void msgArrSetHeader(void *msg, int offset, int len,
