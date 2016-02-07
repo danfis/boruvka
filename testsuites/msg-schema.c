@@ -40,6 +40,102 @@ TEST(testMsgSchemaInit)
     borMsgDel(submsg, &schema_test_submsg_t);
 }
 
+TEST(testMsgSchemaHeader)
+{
+    test_msg_t msg;
+
+    borMsgInit(&msg, &schema_test_msg_t);
+    borMsgSetHeader(&msg, &schema_test_msg_t);
+    assertEquals(msg.ival, -1);
+    assertEquals(msg.dval, NULL);
+    assertEquals(msg.dval_size, 0);
+    assertEquals(msg.dval_alloc, 0);
+    assertEquals(msg.subs, NULL);
+    assertEquals(msg.subs_size, 0);
+    assertEquals(msg.subs_alloc, 0);
+    assertEquals(msg.lval, NULL);
+    assertEquals(msg.lval_size, 0);
+    assertEquals(msg.lval_alloc, 0);
+    assertEquals(msg.sub.__msg_header, 0);
+    assertEquals(msg.__msg_header, 0);
+
+    msg.ival = 10;
+    borMsgSetHeader(&msg, &schema_test_msg_t);
+    assertEquals(msg.ival, 10);
+    assertEquals(msg.dval, NULL);
+    assertEquals(msg.dval_size, 0);
+    assertEquals(msg.dval_alloc, 0);
+    assertEquals(msg.subs, NULL);
+    assertEquals(msg.subs_size, 0);
+    assertEquals(msg.subs_alloc, 0);
+    assertEquals(msg.lval, NULL);
+    assertEquals(msg.lval_size, 0);
+    assertEquals(msg.lval_alloc, 0);
+    assertEquals(msg.sub.__msg_header, 0);
+    assertEquals(msg.__msg_header, 1);
+
+    msg.dval_size = 5;
+    msg.dval = BOR_ALLOC_ARR(double, msg.dval_size);
+    msg.sub.i16val = 13;
+    msg.sub.arr_size = 3;
+    msg.sub.arr = BOR_ALLOC_ARR(int, msg.sub.arr_size);
+    borMsgSetHeader(&msg, &schema_test_msg_t);
+    assertEquals(msg.ival, 10);
+    assertNotEquals(msg.dval, NULL);
+    assertEquals(msg.dval_size, 5);
+    assertEquals(msg.dval_alloc, 0);
+    assertEquals(msg.subs, NULL);
+    assertEquals(msg.subs_size, 0);
+    assertEquals(msg.subs_alloc, 0);
+    assertEquals(msg.lval, NULL);
+    assertEquals(msg.lval_size, 0);
+    assertEquals(msg.lval_alloc, 0);
+    assertEquals(msg.sub.__msg_header, 0xc);
+    assertEquals(msg.__msg_header, 7);
+
+
+    msg.subs_size = 2;
+    msg.subs = BOR_ALLOC_ARR(test_submsg_t, msg.subs_size);
+    borMsgInit(msg.subs + 0, &schema_test_submsg_t);
+    borMsgInit(msg.subs + 1, &schema_test_submsg_t);
+    borMsgSetHeader(&msg, &schema_test_msg_t);
+    assertEquals(msg.ival, 10);
+    assertNotEquals(msg.dval, NULL);
+    assertEquals(msg.dval_size, 5);
+    assertEquals(msg.dval_alloc, 0);
+    assertNotEquals(msg.subs, NULL);
+    assertEquals(msg.subs_size, 2);
+    assertEquals(msg.subs_alloc, 0);
+    assertEquals(msg.lval, NULL);
+    assertEquals(msg.lval_size, 0);
+    assertEquals(msg.lval_alloc, 0);
+    assertEquals(msg.sub.__msg_header, 0xc);
+    assertEquals(msg.__msg_header, 0xf);
+    assertEquals(msg.subs[0].__msg_header, 0);
+    assertEquals(msg.subs[1].__msg_header, 0);
+
+
+    msg.subs[0].sval = 10;
+    msg.subs[1].sval = 10;
+    msg.subs[1].i16val = 12;
+    borMsgSetHeader(&msg, &schema_test_msg_t);
+    assertEquals(msg.ival, 10);
+    assertNotEquals(msg.dval, NULL);
+    assertEquals(msg.dval_size, 5);
+    assertEquals(msg.dval_alloc, 0);
+    assertNotEquals(msg.subs, NULL);
+    assertEquals(msg.subs_size, 2);
+    assertEquals(msg.subs_alloc, 0);
+    assertEquals(msg.lval, NULL);
+    assertEquals(msg.lval_size, 0);
+    assertEquals(msg.lval_alloc, 0);
+    assertEquals(msg.sub.__msg_header, 0xc);
+    assertEquals(msg.__msg_header, 0xf);
+    assertEquals(msg.subs[0].__msg_header, 1);
+    assertEquals(msg.subs[1].__msg_header, 0x5);
+    borMsgFree(&msg, &schema_test_msg_t);
+}
+
 TEST(testMsgSchema)
 {
     /*
