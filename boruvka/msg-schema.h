@@ -54,18 +54,45 @@ struct _bor_msg_schema_field_t {
     int offset;
     int size_offset;
     int alloc_offset;
-    const bor_msg_schema_t *sub;
+    const bor_msg_schema_t *schema;
     const void *default_val;
 };
 typedef struct _bor_msg_schema_field_t bor_msg_schema_field_t;
 
 struct _bor_msg_schema_t {
-    int msg_type;
+    int header_offset;
     int struct_bytesize;
-    int size;
-    const bor_msg_schema_field_t *schema;
+    const bor_msg_schema_field_t *field;
+    int field_size;
     const void *default_msg;
 };
+
+/**
+ * Initializes msg to default values.
+ */
+void borMsgInit(void *msg, const bor_msg_schema_t *schema);
+
+/**
+ * Frees allocated memory in arrays.
+ */
+void borMsgFree(void *msg, const bor_msg_schema_t *schema);
+
+/**
+ * Allocates a new initialized msg according to schema.
+ */
+void *borMsgNew(const bor_msg_schema_t *schema);
+
+/**
+ * Deletes msg.
+ */
+void borMsgDel(void *msg, const bor_msg_schema_t *schema);
+
+/**
+ * Set header so it accounts for the fields that differ from the default
+ * values.
+ * Returns number of changed fields.
+ */
+int borMsgSetHeader(void *msg, const bor_msg_schema_t *schema);
 
 /**
  * Encodes msg according to its schema into buffer *buf.
@@ -76,11 +103,6 @@ struct _bor_msg_schema_t {
  */
 int borMsgEncode(const void *msg, const bor_msg_schema_t *schema,
                  unsigned char **buf, int *bufsize);
-
-/**
- * Returns type of the message.
- */
-int borMsgDecodeType(const unsigned char *buf, int bufsize);
 
 /**
  * Decodes buffer to the message.

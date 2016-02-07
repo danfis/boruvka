@@ -64,7 +64,7 @@ ZEROS = {
 STRUCTS = {}
 
 MAX_MEMBERS = 31
-MAX_SID = 255
+HEADER_TYPE = 'uint32_t'
 
 class Member(object):
     def __init__(self, id, name, type, default, comment):
@@ -154,21 +154,13 @@ class Member(object):
         return sline
 
 class Struct(object):
-    def __init__(self, name, sid):
+    def __init__(self, name):
         self.name = name
-        if sid.startswith('0x'):
-            self.sid = int(sid, 16)
-        else:
-            self.sid = int(sid)
         self.members = []
         self.before = ''
         self.after = ''
 
         STRUCTS[self.name] = self
-
-        if self.sid > MAX_SID:
-            print('Error: Maximal struct ID is 255!', file = sys.stderr)
-            sys.exit(-1)
 
     def addMember(self, name, type, default = None, comment = None):
         if len(self.members) == MAX_MEMBERS:
@@ -187,6 +179,7 @@ class Struct(object):
     def genCStruct(self, fout):
         fout.write(self.before)
         fout.write('struct _{0} {{\n'.format(self.name))
+        fout.write('    {0} __msg_header;\n'.format(HEADER_TYPE))
         for m in self.members:
             m.genCStructMember(fout)
         fout.write('};\n')
@@ -195,7 +188,7 @@ class Struct(object):
 
     def cDefaultVal(self):
         val = [m.cDefaultVal() for m in self.members]
-        val = '{ ' + ', '.join(val) + ' }'
+        val = '{ 0, ' + ', '.join(val) + ' }'
         return val
 
     def genCDefault(self, fout):
@@ -213,10 +206,10 @@ class Struct(object):
         fout.write(fields + '\n')
         fout.write('};\n');
         fout.write('static bor_msg_schema_t schema_{0} = {{\n'.format(self.name))
-        fout.write('    {0},\n'.format(self.sid))
+        fout.write('    0,\n')
         fout.write('    sizeof({0}),\n'.format(self.name))
-        fout.write('    sizeof(___{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
         fout.write('    ___{0}_fields,\n'.format(self.name))
+        fout.write('    sizeof(___{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
         fout.write('    &___{0}_default\n'.format(self.name))
         fout.write('};\n');
         fout.write('\n')
@@ -239,8 +232,8 @@ def parseStructs():
         else:
             sline = line.strip().split()
 
-        if len(sline) == 4 and sline[0] == 'msg' and sline[-1] == '{':
-            s = Struct(sline[1], sline[2])
+        if len(sline) == 3 and sline[0] == 'msg' and sline[-1] == '{':
+            s = Struct(sline[1])
             structs += [s]
             before = linebuf
             linebuf = ''

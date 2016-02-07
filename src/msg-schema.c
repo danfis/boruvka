@@ -20,6 +20,7 @@
 #include "boruvka/msg-schema.h"
 #include "boruvka/alloc.h"
 
+#define HEADER_TYPE uint32_t
 #define ARR_LEN_TYPE uint32_t
 #define ARR_LEN_TYPE_SIZE sizeof(ARR_LEN_TYPE)
 #define ARR_LEN_TO_LE htole32
@@ -124,12 +125,6 @@ _bor_inline int wPrepareHeader(wbuf_t *wbuf)
     return idx;
 }
 
-_bor_inline void wMsgType(wbuf_t *wbuf, const bor_msg_schema_t *schema)
-{
-    unsigned char t = schema->msg_type;
-    W(wbuf, &t, sizeof(t));
-}
-
 _bor_inline void wArrLen(wbuf_t *wbuf, int len)
 {
     ARR_LEN_TYPE len32 = len;
@@ -204,14 +199,14 @@ static int encode(wbuf_t *wbuf, const void *msg,
 {
     const bor_msg_schema_field_t *field;
     const void *sub_msg;
-    uint32_t header = 0u;
+    HEADER_TYPE header = 0u;
     int i, type, len, header_idx;
 
     // Prepare space for the header header
     header_idx = wPrepareHeader(wbuf);
 
-    for (i = 0; i < schema->size; ++i){
-        field = schema->schema + i;
+    for (i = 0; i < schema->field_size; ++i){
+        field = schema->field + i;
 
         if (field->type < MAX_TYPE_ID){
             // Skip default values
@@ -223,7 +218,7 @@ static int encode(wbuf_t *wbuf, const void *msg,
 
         }else if (field->type == _BOR_MSG_SCHEMA_MSG){
             sub_msg = FIELD_PTR(msg, field->offset);
-            if (encode(wbuf, sub_msg, field->sub) != 0){
+            if (encode(wbuf, sub_msg, field->schema) != 0){
                 SET_HEADER(header, i);
             }else{
                 wUnrollEmptyMsg(wbuf);
@@ -242,7 +237,7 @@ static int encode(wbuf_t *wbuf, const void *msg,
                 SET_HEADER(header, i);
 
             }else{
-                wMsgArr(wbuf, msg, field->offset, len, field->sub);
+                wMsgArr(wbuf, msg, field->offset, len, field->schema);
                 SET_HEADER(header, i);
             }
         }
@@ -252,24 +247,134 @@ static int encode(wbuf_t *wbuf, const void *msg,
     return header & ~(1u << 31u);
 }
 
+static void msgArrSetHeader(void *msg, int offset, int len,
+                            const bor_msg_schema_t *sub_schema)
+{
+    int i, size;
+    void *submsg;
+
+    size = sub_schema->struct_bytesize;
+
+    submsg = FIELD(msg, offset, void *);
+    for (i = 0; i < len; ++i){
+        borMsgSetHeader(submsg, sub_schema);
+        submsg = ((char *)submsg) + size;
+    }
+}
+
+static void msgArrFree(void *msg, int offset, int len,
+                       const bor_msg_schema_t *sub_schema)
+{
+    int i, size;
+    void *submsg;
+
+    size = sub_schema->struct_bytesize;
+
+    submsg = FIELD(msg, offset, void *);
+    for (i = 0; i < len; ++i){
+        borMsgFree(submsg, sub_schema);
+        submsg = ((char *)submsg) + size;
+    }
+}
+
+void borMsgInit(void *msg, const bor_msg_schema_t *schema)
+{
+    memcpy(msg, schema->default_msg, schema->struct_bytesize);
+}
+
+void borMsgFree(void *msg, const bor_msg_schema_t *schema)
+{
+    const bor_msg_schema_field_t *field;
+    int i, type, len;
+
+    for (i = 0; i < schema->field_size; ++i){
+        field = schema->field + i;
+
+        if (field->type == _BOR_MSG_SCHEMA_MSG){
+            borMsgFree(FIELD_PTR(msg, field->offset), field->schema);
+
+        }else if (field->type >= _BOR_MSG_SCHEMA_ARR_BASE){
+            type = field->type - _BOR_MSG_SCHEMA_ARR_BASE;
+            len = FIELD(msg, field->size_offset, int);
+
+            if (len <= 0)
+                continue;
+
+            if (type == _BOR_MSG_SCHEMA_MSG)
+                msgArrFree(msg, field->offset, len, field->schema);
+            BOR_FREE(FIELD(msg, field->offset, void *));
+        }
+    }
+
+    FIELD(msg, schema->header_offset, HEADER_TYPE) = 0;
+}
+
+void *borMsgNew(const bor_msg_schema_t *schema)
+{
+    void *msg;
+
+    msg = (void *)BOR_ALLOC_ARR(char, schema->struct_bytesize);
+    borMsgInit(msg, schema);
+    return msg;
+}
+
+void borMsgDel(void *msg, const bor_msg_schema_t *schema)
+{
+    borMsgFree(msg, schema);
+    BOR_FREE(msg);
+}
+
+int borMsgSetHeader(void *msg, const bor_msg_schema_t *schema)
+{
+    const bor_msg_schema_field_t *field;
+    void *sub_msg;
+    HEADER_TYPE header = 0u;
+    int i, type, len, change = 0;
+
+    for (i = 0; i < schema->field_size; ++i){
+        field = schema->field + i;
+
+        if (field->type < MAX_TYPE_ID){
+            if (cmpFieldDefault(msg, field) != 0){
+                SET_HEADER(header, i);
+                change += 1;
+            }
+
+        }else if (field->type == _BOR_MSG_SCHEMA_MSG){
+            sub_msg = FIELD_PTR(msg, field->offset);
+            if (borMsgSetHeader(sub_msg, field->schema) > 0){
+                SET_HEADER(header, i);
+                change += 1;
+            }
+
+        }else if (field->type >= _BOR_MSG_SCHEMA_ARR_BASE){
+            type = field->type - _BOR_MSG_SCHEMA_ARR_BASE;
+            len = FIELD(msg, field->size_offset, int);
+
+            if (len <= 0)
+                continue;
+
+            SET_HEADER(header, i);
+            change += 1;
+            if (type >= MAX_TYPE_ID)
+                msgArrSetHeader(msg, field->offset, len, field->schema);
+        }
+    }
+
+    FIELD(msg, schema->header_offset, HEADER_TYPE) = header;
+    return change;
+}
+
 int borMsgEncode(const void *msg, const bor_msg_schema_t *schema,
                  unsigned char **buf, int *bufsize)
 {
     wbuf_t wbuf = { *buf, *bufsize, 0 };
 
-    wMsgType(&wbuf, schema);
     encode(&wbuf, msg, schema);
 
     *buf = wbuf.buf;
     *bufsize = wbuf.size;
     return wbuf.w;
-}
-
-int borMsgDecodeType(const unsigned char *buf, int bufsize)
-{
-    if (bufsize == 0)
-        return -1;
-    return (int)*((unsigned char *)buf);
 }
 
 int borMsgDecode(const unsigned char *buf, int bufsize,

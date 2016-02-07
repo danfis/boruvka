@@ -7,8 +7,42 @@
 #include "msg-schema.struct.h"
 #include "msg-schema.schema.c"
 
+TEST(testMsgSchemaInit)
+{
+    test_msg_t msg;
+    test_submsg_t *submsg;
+    int i;
+
+    borMsgInit(&msg, &schema_test_msg_t);
+    msg.dval_size = 10;
+    msg.dval = BOR_ALLOC_ARR(double, msg.dval_size);
+    borMsgFree(&msg, &schema_test_msg_t);
+
+    borMsgInit(&msg, &schema_test_msg_t);
+    msg.subs_size = 3;
+    msg.subs = BOR_ALLOC_ARR(test_submsg_t, msg.subs_size);
+    for (i = 0; i < 3; ++i){
+        submsg = msg.subs + i;
+        borMsgInit(submsg, &schema_test_submsg_t);
+        if (i == 2){
+            submsg->arr_size = 4;
+            submsg->arr = BOR_ALLOC_ARR(int, 4);
+        }
+    }
+    borMsgFree(&msg, &schema_test_msg_t);
+
+    submsg = borMsgNew(&schema_test_submsg_t);
+    borMsgDel(submsg, &schema_test_submsg_t);
+
+    submsg = borMsgNew(&schema_test_submsg_t);
+    submsg->arr_size = 12;
+    submsg->arr = BOR_ALLOC_ARR(int, 12);
+    borMsgDel(submsg, &schema_test_submsg_t);
+}
+
 TEST(testMsgSchema)
 {
+    /*
     test_msg_t msg;
     unsigned char *buf;
     int bufsize, encsize;
@@ -24,11 +58,10 @@ TEST(testMsgSchema)
     bufsize = 0;
     encsize = borMsgEncode(&msg, &schema_test_msg_t, &buf, &bufsize);
 
-    assertEquals(borMsgDecodeType(buf, bufsize), 2);
-
     msg2 = NULL;
     msg2size = 0;
     msgtype = borMsgDecode(buf, bufsize, (void **)&msg2, &msg2size);
     assertEquals(msgtype, 2);
     //assertEquals(memcmp(&msg, msg2, sizeof(test_msg_t)), 0);
+    */
 }
