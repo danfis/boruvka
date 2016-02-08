@@ -63,7 +63,7 @@ ZEROS = {
 
 STRUCTS = {}
 
-MAX_MEMBERS = 31
+MAX_MEMBERS = 32
 HEADER_TYPE = 'uint32_t'
 
 class Member(object):
