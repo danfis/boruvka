@@ -253,7 +253,7 @@ _bor_inline void rField(unsigned char **rbuf, void *msg, int off, int type,
         case _BOR_MSG_SCHEMA_FLOAT:
             if (change_end){
                 FIELD(msg, off, float) =
-                    CONV_END_int64_t(unpack754_64(*((uint64_t *)*rbuf)));
+                    unpack754_64(CONV_END_int64_t(*((uint64_t *)*rbuf)));
             }else{
                 FIELD(msg, off, float) = unpack754_64(*((uint64_t *)*rbuf));
             }
@@ -261,7 +261,7 @@ _bor_inline void rField(unsigned char **rbuf, void *msg, int off, int type,
         case _BOR_MSG_SCHEMA_DOUBLE:
             if (change_end){
                 FIELD(msg, off, double) =
-                    CONV_END_int64_t(unpack754_64(*((uint64_t *)*rbuf)));
+                    unpack754_64(CONV_END_int64_t(*((uint64_t *)*rbuf)));
             }else{
                 FIELD(msg, off, double) = unpack754_64(*((uint64_t *)*rbuf));
             }
@@ -323,7 +323,7 @@ _bor_inline void rArrFloat(unsigned char **rbuf, void *msg, int offset, int len,
 
     for (i = 0; i < len; ++i){
         if (change_end){
-            buf[i] = CONV_END_int64_t(unpack754_64(arr[i]));
+            buf[i] = unpack754_64(CONV_END_int64_t(arr[i]));
         }else{
             buf[i] = unpack754_64(arr[i]);
         }
@@ -352,7 +352,7 @@ _bor_inline void rArrDouble(unsigned char **rbuf, void *msg, int offset, int len
 
     for (i = 0; i < len; ++i){
         if (change_end){
-            buf[i] = CONV_END_int64_t(unpack754_64(arr[i]));
+            buf[i] = unpack754_64(CONV_END_int64_t(arr[i]));
         }else{
             buf[i] = unpack754_64(arr[i]);
         }
