@@ -891,6 +891,8 @@ int borMsgDecode(const unsigned char *buf, int bufsize,
 {
     unsigned char *rbuf;
     rbuf = (unsigned char *)buf;
+
+    borMsgInit(msg, schema);
     decode(&rbuf, msg, schema);
     return 0;
 }

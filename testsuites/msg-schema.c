@@ -6,10 +6,12 @@
 
 #include "msg-schema.struct.h"
 #include "msg-schema.schema.c"
+#include "msg-schema-common.h"
 
 TEST(testMsgSchemaInit)
 {
     test_msg_t msg;
+    test_msg2_t msg2;
     test_submsg_t *submsg;
     int i;
 
@@ -38,6 +40,11 @@ TEST(testMsgSchemaInit)
     submsg->arr_size = 12;
     submsg->arr = BOR_ALLOC_ARR(int, 12);
     borMsgDel(submsg, &schema_test_submsg_t);
+
+    for (i = 0; i < 10; ++i){
+        msg2Rand(&msg2);
+        borMsgFree(&msg2, &schema_test_msg2_t);
+    }
 }
 
 TEST(testMsgSchemaHeader)
@@ -144,26 +151,25 @@ TEST(testMsgSchemaHeader)
 
 TEST(testMsgSchema)
 {
-    /*
-    test_msg_t msg;
+    test_msg2_t m1, m2;
     unsigned char *buf;
-    int bufsize, encsize;
-    test_msg_t *msg2;
-    int msg2size, msgtype;
-
-    memcpy(&msg, schema_test_msg_t.default_msg, sizeof(test_msg_t));
-    msg.sub.sval = 10;
-    msg.sub.lval_neco = 100938452453L;
-    msg.sub.i16val = -123;
+    int i, bufsize, size;
 
     buf = NULL;
     bufsize = 0;
-    encsize = borMsgEncode(&msg, &schema_test_msg_t, &buf, &bufsize);
+    for (i = 0; i < 100; ++i){
+        msg2Rand(&m1);
+        borMsgSetHeader(&m1, &schema_test_msg2_t);
 
-    msg2 = NULL;
-    msg2size = 0;
-    msgtype = borMsgDecode(buf, bufsize, (void **)&msg2, &msg2size);
-    assertEquals(msgtype, 2);
-    //assertEquals(memcmp(&msg, msg2, sizeof(test_msg_t)), 0);
-    */
+        size = borMsgEncode(&m1, &schema_test_msg2_t, &buf, &bufsize);
+
+        borMsgDecode(buf, size, &m2, &schema_test_msg2_t);
+        assertTrue(msg2Eq(&m1, &m2));
+
+        borMsgFree(&m1, &schema_test_msg2_t);
+        borMsgFree(&m2, &schema_test_msg2_t);
+    }
+
+    if (buf != NULL)
+        BOR_FREE(buf);
 }

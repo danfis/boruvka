@@ -17,6 +17,7 @@
 #ifndef __BOR_MSG_SCHEMA_H__
 #define __BOR_MSG_SCHEMA_H__
 
+#include <boruvka/core.h>
 #include <boruvka/compiler.h>
 
 #ifdef __cplusplus
