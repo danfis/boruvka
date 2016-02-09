@@ -24,3 +24,4 @@ msg-schema.schema.c
 msg-schema-gen
 msg-schema-regen
 msg-schema-cmp
+msg-schema-print

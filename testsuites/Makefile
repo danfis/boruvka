@@ -15,7 +15,7 @@ CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
 #TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
-TARGETS = libdata.a test
+TARGETS = libdata.a test msg-schema-gen msg-schema-print
 ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
   CFLAGS  += $(OPENCL_CFLAGS)
@@ -72,6 +72,8 @@ msg-schema-gen: msg-schema-gen.c msg-schema-common.o
 msg-schema-regen: msg-schema-regen.c msg-schema-common.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 msg-schema-cmp: msg-schema-cmp.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+msg-schema-print: msg-schema-print.c msg-schema-common.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 msg-schema.struct.h: msg-schema.sch ../bin/bor-msg-schema.py

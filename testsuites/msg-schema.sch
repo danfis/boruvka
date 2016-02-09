@@ -31,7 +31,7 @@ msg test_msg2_arr_t {
     ac char[];
     auc uchar[];
     as short[];
-    aus short[];
+    aus ushort[];
     ai int[];
     aui uint[];
     al long[];
@@ -52,7 +52,7 @@ msg test_msg2_t {
     c char;
     uc uchar;
     s short;
-    us short;
+    us ushort;
     i int;
     ui uint;
     l long;

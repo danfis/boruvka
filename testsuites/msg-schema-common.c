@@ -95,11 +95,14 @@ int msg2Eq(const test_msg2_t *a, const test_msg2_t *b)
 }
 
 #define RNDF(m, rnd, member) \
-    m->member = borRand(&rnd, 0, 1E5)
+    if (borRand(&rnd, 0., 1.) > 0.5) \
+        m->member = borRand(&rnd, 0, 1E5)
 #define RNDARR(m, rnd, member) \
     do { \
+        if (borRand(&rnd, 0., 1.) < 0.5) \
+            break; \
         int i; \
-        m->member##_size = borRand(&rnd, 0, 10000); \
+        m->member##_size = borRand(&rnd, 0, 1000); \
         m->member##_alloc = m->member##_size; \
         if (m->member##_alloc > 0){ \
             m->member = (void *)BOR_ALLOC_ARR(char, sizeof(*m->member) * m->member##_alloc); \
@@ -185,3 +188,113 @@ void msg2Rand(test_msg2_t *m)
     msg2ArrRand(&m->subarr);
 }
 
+#define PR(msg, out, member) \
+    fprintf((out), #member ": %ld\n", (long)(msg)->member)
+#define PRU(msg, out, member) \
+    fprintf((out), #member ": %lu\n", (unsigned long)(msg)->member)
+#define PRF(msg, out, member) \
+    fprintf((out), #member ": %lf\n", (double)(msg)->member)
+#define PRA(msg, out, member) \
+    do { \
+        int i; \
+        fprintf((out), #member "_size: %d\n", (msg)->member##_size); \
+        fprintf((out), #member "_alloc: %d\n", (msg)->member##_alloc); \
+        fprintf((out), #member ":"); \
+        for (i = 0; i < (msg)->member##_size; ++i) \
+            fprintf((out), " %ld", (long)(msg)->member[i]); \
+        fprintf((out), "\n"); \
+    } while (0)
+#define PRAU(msg, out, member) \
+    do { \
+        int i; \
+        fprintf((out), #member "_size: %d\n", (msg)->member##_size); \
+        fprintf((out), #member "_alloc: %d\n", (msg)->member##_alloc); \
+        fprintf((out), #member ":"); \
+        for (i = 0; i < (msg)->member##_size; ++i) \
+            fprintf((out), " %lu", (unsigned long)(msg)->member[i]); \
+        fprintf((out), "\n"); \
+    } while (0)
+#define PRAF(msg, out, member) \
+    do { \
+        int i; \
+        fprintf((out), #member "_size: %d\n", (msg)->member##_size); \
+        fprintf((out), #member "_alloc: %d\n", (msg)->member##_alloc); \
+        fprintf((out), #member ":"); \
+        for (i = 0; i < (msg)->member##_size; ++i) \
+            fprintf((out), " %lf", (double)(msg)->member[i]); \
+        fprintf((out), "\n"); \
+    } while (0)
+
+void msgSubPrint(const test_submsg_t *m, FILE *out)
+{
+    fprintf(out, "__header: %x\n", (int)m->__msg_header);
+    PR(m, out, lval_neco);
+    PR(m, out, i16val);
+    PRA(m, out, arr);
+}
+
+void msg2ArrPrint(const test_msg2_arr_t *m, FILE *out)
+{
+    fprintf(out, "__header: %x\n", (int)m->__msg_header);
+    PRA(m, out, ai8);
+    PRAU(m, out, au8);
+    PRA(m, out, ai16);
+    PRAU(m, out, au16);
+    PRA(m, out, ai32);
+    PRAU(m, out, au32);
+    PRA(m, out, ai64);
+    PRAU(m, out, au64);
+    PRA(m, out, ac);
+    PRAU(m, out, auc);
+    PRA(m, out, as);
+    PRAU(m, out, aus);
+    PRA(m, out, ai);
+    PRAU(m, out, aui);
+    PRA(m, out, al);
+    PRAU(m, out, aul);
+    PRAF(m, out, af);
+    PRAF(m, out, ad);
+}
+
+void msg2Print(const test_msg2_t *m, FILE *out)
+{
+    int i;
+
+    fprintf(out, "__header: %x\n", (int)m->__msg_header);
+    PR(m, out, i8);
+    PRU(m, out, u8);
+    PR(m, out, i16);
+    PRU(m, out, u16);
+    PR(m, out, i32);
+    PRU(m, out, u32);
+    PR(m, out, i64);
+    PRU(m, out, u64);
+    PR(m, out, c);
+    PRU(m, out, uc);
+    PR(m, out, s);
+    PRU(m, out, us);
+    PR(m, out, i);
+    PRU(m, out, ui);
+    PR(m, out, l);
+    PRU(m, out, ul);
+    PRF(m, out, f);
+    PRF(m, out, d);
+
+    fprintf(out, "sub >>>\n");
+    msgSubPrint(&m->sub, out);
+    fprintf(out, "<<< sub\n");
+
+    fprintf(out, "subs_size: %d\n", m->subs_size);
+    fprintf(out, "subs_alloc: %d\n", m->subs_alloc);
+    for (i = 0; i < m->subs_size; ++i){
+        fprintf(out, "[%d]subs >>>\n", i);
+        msgSubPrint(m->subs + i, out);
+        fprintf(out, "[%d]<<< subs\n", i);
+    }
+
+    fprintf(out, "subarr >>>\n");
+    msg2ArrPrint(&m->subarr, out);
+    fprintf(out, "<<< subarr\n");
+
+    fprintf(out, "us: %d %d\n", (int)m->us, (int)sizeof(unsigned short));
+}
