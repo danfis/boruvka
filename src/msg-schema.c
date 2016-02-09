@@ -41,6 +41,24 @@
 # define UNCONV_HEADER(header)
 # define CONV_ARR_LEN(len)
 # define UNCONV_ARR_LEN(len)
+
+# define TO_LE_int8_t(x) x
+# define TO_LE_uint8_t(x) x
+# define TO_LE_int16_t(x) x
+# define TO_LE_uint16_t(x) x
+# define TO_LE_int32_t(x) x
+# define TO_LE_uint32_t(x) x
+# define TO_LE_int64_t(x) x
+# define TO_LE_uint64_t(x) x
+
+# define TO_H_int8_t(x) x
+# define TO_H_uint8_t(x) x
+# define TO_H_int16_t(x) x
+# define TO_H_uint16_t(x) x
+# define TO_H_int32_t(x) x
+# define TO_H_uint32_t(x) x
+# define TO_H_int64_t(x) x
+# define TO_H_uint64_t(x) x
 #endif
 
 #ifdef BOR_BIG_ENDIAN
@@ -122,7 +140,7 @@ _bor_inline int cmpFieldDefault(const void *msg,
                   type_size[field->type]);
 }
 
-_bor_inline void W(wbuf_t *wbuf, void *data, int size)
+_bor_inline void W(wbuf_t *wbuf, const void *data, int size)
 {
     if (wbuf->w + size > wbuf->size){
         wbuf->size *= 2;
@@ -164,341 +182,337 @@ _bor_inline int rArrLen(unsigned char **rbuf)
     return len;
 }
 
-#ifdef BOR_LITTLE_ENDIAN
-# define W_FIELD(wbuf, msg, offset, from_type, to_type) \
+#define W_FIELD(wbuf, data, from_type, to_type) \
     do { \
-    if (sizeof(from_type) == sizeof(to_type)){ \
-        W(wbuf, FIELD_PTR(msg, offset), sizeof(from_type)); \
-    }else{ \
-        to_type v = FIELD(msg, offset, from_type); \
+        to_type v = *(from_type *)data; \
+        v = TO_LE_##to_type(v); \
         W(wbuf, &v, sizeof(v)); \
-    } \
     } while (0)
-#else /* BOR_LITTLE_ENDIAN */
-# define W_FIELD(wbuf, msg, offset, from_type, to_type) \
+
+#define W_FIELD_FLT(wbuf, data, from_type) \
     do { \
-    to_type v = FIELD(msg, offset, from_type); \
-    v = TO_LE_##to_type(v); \
-    W(wbuf, &v, sizeof(v)); \
+        from_type f = *(from_type *)data; \
+        uint64_t v = pack754_64(f); \
+        v = TO_LE_uint64_t(v); \
+        W(wbuf, &v, sizeof(v)); \
     } while (0)
-#endif /* BOR_LITTLE_ENDIAN */
 
-_bor_inline void wFieldFloat(wbuf_t *wbuf, const void *msg, int offset)
+void wField(wbuf_t *wbuf, const void *msg, int offset, int type)
 {
-    uint64_t v = pack754_64(FIELD(msg, offset, float));
-#ifdef BOR_BIG_ENDIAN
-    v = TO_LE_int64_t(v);
-#endif /* BOR_BIG_ENDIAN */
-    W(wbuf, &v, sizeof(v));
-}
+    const void *data = FIELD_PTR(msg, offset);
 
-_bor_inline void wFieldDouble(wbuf_t *wbuf, const void *msg, int offset)
-{
-    uint64_t v = pack754_64(FIELD(msg, offset, double));
-#ifdef BOR_BIG_ENDIAN
-    v = TO_LE_int64_t(v);
-#endif /* BOR_BIG_ENDIAN */
-    W(wbuf, &v, sizeof(v));
-}
-
-_bor_inline void wField(wbuf_t *wbuf, const void *msg, int offset, int type)
-{
     switch (type){
+#ifdef BOR_BIG_ENDIAN
+        case _BOR_MSG_SCHEMA_INT16:
+            W_FIELD(wbuf, data, int16_t, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT16:
+            W_FIELD(wbuf, data, uint16_t, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT32:
+            W_FIELD(wbuf, data, int32_t, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT32:
+            W_FIELD(wbuf, data, uint32_t, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT64:
+            W_FIELD(wbuf, data, int64_t, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT64:
+            W_FIELD(wbuf, data, uint64_t, uint64_t);
+            break;
+#endif /* BOR_BIG_ENDIAN */
         case _BOR_MSG_SCHEMA_CHAR:
-            W_FIELD(wbuf, msg, offset, char, int8_t);
+            W_FIELD(wbuf, data, char, int8_t);
             break;
         case _BOR_MSG_SCHEMA_UCHAR:
-            W_FIELD(wbuf, msg, offset, unsigned char, uint8_t);
+            W_FIELD(wbuf, data, unsigned char, uint8_t);
             break;
         case _BOR_MSG_SCHEMA_SHORT:
-            W_FIELD(wbuf, msg, offset, short, int16_t);
+            W_FIELD(wbuf, data, short, int16_t);
             break;
         case _BOR_MSG_SCHEMA_USHORT:
-            W_FIELD(wbuf, msg, offset, unsigned short, uint16_t);
+            W_FIELD(wbuf, data, unsigned short, uint16_t);
             break;
         case _BOR_MSG_SCHEMA_INT:
-            W_FIELD(wbuf, msg, offset, int, int32_t);
+            W_FIELD(wbuf, data, int, int32_t);
             break;
         case _BOR_MSG_SCHEMA_UINT:
-            W_FIELD(wbuf, msg, offset, unsigned int, uint32_t);
+            W_FIELD(wbuf, data, unsigned int, uint32_t);
             break;
         case _BOR_MSG_SCHEMA_LONG:
-            W_FIELD(wbuf, msg, offset, long, int64_t);
+            W_FIELD(wbuf, data, long, int64_t);
             break;
         case _BOR_MSG_SCHEMA_ULONG:
-            W_FIELD(wbuf, msg, offset, unsigned long, uint64_t);
+            W_FIELD(wbuf, data, unsigned long, uint64_t);
             break;
         case _BOR_MSG_SCHEMA_FLOAT:
-            wFieldFloat(wbuf, msg, offset);
+            W_FIELD_FLT(wbuf, data, float);
             break;
         case _BOR_MSG_SCHEMA_DOUBLE:
-            wFieldDouble(wbuf, msg, offset);
+            W_FIELD_FLT(wbuf, data, double);
             break;
         default:
-            W(wbuf, FIELD_PTR(msg, offset), type_size[type]);
+            W(wbuf, data, type_size[type]);
     }
 }
 
-#ifdef BOR_LITTLE_ENDIAN
-# define R_FIELD(rbuf, msg, off, to_type, from_type) \
-    FIELD(msg, off, to_type) = *((from_type *)*rbuf)
-#else /* BOR_LITTLE_ENDIAN */
-# define R_FIELD(rbuf, msg, off, to_type, from_type) \
-    FIELD(msg, off, to_type) = TO_H_##from_type(*((from_type *)*rbuf))
-#endif /* BOR_LITTLE_ENDIAN */
+#define R_FIELD(rbuf, dst, to_type, from_type) \
+    *((to_type *)dst) = TO_H_##from_type(*((from_type *)*rbuf))
+
+#define R_FIELD_FLT(rbuf, dst, to_type) \
+    do { \
+        uint64_t v = *((uint64_t *)*rbuf); \
+        v = TO_H_uint64_t(v); \
+        *((to_type *)dst) = unpack754_64(v); \
+    } while (0)
 
 _bor_inline void rField(unsigned char **rbuf, void *msg, int off, int type)
 {
     int size = type_size[type];
+    void *dst = FIELD_PTR(msg, off);
 
     switch (type){
+#ifdef BOR_BIG_ENDIAN
+        case _BOR_MSG_SCHEMA_INT16:
+            R_FIELD(rbuf, dst, int16_t, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT16:
+            R_FIELD(rbuf, dst, uint16_t, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT32:
+            R_FIELD(rbuf, dst, int32_t, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT32:
+            R_FIELD(rbuf, dst, uint32_t, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT64:
+            R_FIELD(rbuf, dst, int64_t, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT64:
+            R_FIELD(rbuf, dst, uint64_t, uint64_t);
+            break;
+#endif /* BOR_BIG_ENDIAN */
         case _BOR_MSG_SCHEMA_CHAR:
-            R_FIELD(rbuf, msg, off, char, int8_t);
+            R_FIELD(rbuf, dst, char, int8_t);
             break;
         case _BOR_MSG_SCHEMA_UCHAR:
-            R_FIELD(rbuf, msg, off, unsigned char, uint8_t);
+            R_FIELD(rbuf, dst, unsigned char, uint8_t);
             break;
         case _BOR_MSG_SCHEMA_SHORT:
-            R_FIELD(rbuf, msg, off, short, int16_t);
+            R_FIELD(rbuf, dst, short, int16_t);
             break;
         case _BOR_MSG_SCHEMA_USHORT:
-            R_FIELD(rbuf, msg, off, unsigned short, uint16_t);
+            R_FIELD(rbuf, dst, unsigned short, uint16_t);
             break;
         case _BOR_MSG_SCHEMA_INT:
-            R_FIELD(rbuf, msg, off, int, int32_t);
+            R_FIELD(rbuf, dst, int, int32_t);
             break;
         case _BOR_MSG_SCHEMA_UINT:
-            R_FIELD(rbuf, msg, off, unsigned int, uint32_t);
+            R_FIELD(rbuf, dst, unsigned int, uint32_t);
             break;
         case _BOR_MSG_SCHEMA_LONG:
-            R_FIELD(rbuf, msg, off, long, int64_t);
+            R_FIELD(rbuf, dst, long, int64_t);
             break;
         case _BOR_MSG_SCHEMA_ULONG:
-            R_FIELD(rbuf, msg, off, unsigned long, uint64_t);
+            R_FIELD(rbuf, dst, unsigned long, uint64_t);
             break;
         case _BOR_MSG_SCHEMA_FLOAT:
-#ifdef BOR_LITTLE_ENDIAN
-            FIELD(msg, off, float) = unpack754_64(*((uint64_t *)*rbuf));
-#else /* BOR_LITTLE_ENDIAN */
-            FIELD(msg, off, float) =
-                unpack754_64(TO_H_int64_t(*((uint64_t *)*rbuf)));
-#endif /* BOR_LITTLE_ENDIAN */
+            R_FIELD_FLT(rbuf, dst, float);
             break;
         case _BOR_MSG_SCHEMA_DOUBLE:
-#ifdef BOR_LITTLE_ENDIAN
-            FIELD(msg, off, double) = unpack754_64(*((uint64_t *)*rbuf));
-#else /* BOR_LITTLE_ENDIAN */
-            FIELD(msg, off, double) =
-                unpack754_64(TO_H_int64_t(*((uint64_t *)*rbuf)));
-#endif /* BOR_LITTLE_ENDIAN */
+            R_FIELD_FLT(rbuf, dst, double);
             break;
         default:
-            memcpy(FIELD_PTR(msg, off), *rbuf, size);
+            memcpy(dst, *rbuf, size);
     }
     *rbuf += size;
 }
 
+
 #ifdef BOR_LITTLE_ENDIAN
-# define W_ARR_EL(wbuf, msg, offset, len, from_type, to_type) \
+# define ARR_FAST_COND(from, to) sizeof(from) == sizeof(to)
+#else /* BOR_LITTLE_ENDIAN */
+# define ARR_FAST_COND(from, to) (sizeof(from) == sizeof(to)) && sizeof(from) == 1
+#endif /* BOR_LITTLE_ENDIAN */
+
+#define W_ARR(wbuf, arr, len, from_type, to_type) \
     do { \
-    if (sizeof(from_type) == sizeof(to_type)){ \
-        W(wbuf, FIELD(msg, offset, void *), sizeof(to_type) * len); \
-    }else{ \
-        to_type v; \
-        from_type *arr = FIELD((msg), (offset), from_type *); \
+        if (ARR_FAST_COND(from_type, to_type)){ \
+            W(wbuf, arr, sizeof(to_type) * len); \
+        }else{ \
+            to_type v; \
+            from_type *arr2 = (from_type *)arr; \
+            int i; \
+            \
+            for (i = 0; i < (len); ++i){ \
+                v = arr2[i]; \
+                v = TO_LE_##to_type(v); \
+                W(wbuf, &v, sizeof(v)); \
+            } \
+        } \
+    } while (0)
+
+#define W_ARR_FLT(wbuf, arr, len, from_type) \
+    do { \
+        uint64_t v; \
+        from_type *arr2 = (from_type *)arr; \
         int i; \
         \
         for (i = 0; i < (len); ++i){ \
-            v = arr[i]; \
+            v = pack754_64(arr2[i]); \
+            v = TO_LE_uint64_t(v); \
             W(wbuf, &v, sizeof(v)); \
         } \
-    } \
     } while (0)
-
-#else /* BOR_LITTLE_ENDIAN */
-# define W_ARR_EL(wbuf, msg, offset, len, from_type, to_type) \
-    do { \
-    to_type v; \
-    from_type *arr = FIELD((msg), (offset), from_type *); \
-    int i; \
-    \
-    for (i = 0; i < (len); ++i){ \
-        v = arr[i]; \
-        v = TO_LE_##to_type(v); \
-        W(wbuf, &v, sizeof(v)); \
-    } \
-    } while (0)
-#endif /* BOR_LITTLE_ENDIAN */
-
-#ifdef BOR_LITTLE_ENDIAN
-# define R_ARR_EL(rbuf, msg, offset, len, to_type, from_type) \
-    do { \
-    if (sizeof(from_type) == sizeof(to_type)){ \
-        to_type *buf = BOR_ALLOC_ARR(to_type, len); \
-        memcpy(buf, *rbuf, sizeof(to_type) * len); \
-        FIELD(msg, offset, to_type *) = buf; \
-    }else{ \
-        to_type *buf = BOR_ALLOC_ARR(to_type, len); \
-        from_type *arr = (from_type *)*rbuf; \
-        int i; \
-        \
-        for (i = 0; i < (len); ++i){ \
-            buf[i] = arr[i]; \
-        } \
-        FIELD(msg, offset, to_type *) = buf; \
-    } \
-    } while (0)
-
-#else /* BOR_LITTLE_ENDIAN */
-# define R_ARR_EL(rbuf, msg, offset, len, to_type, from_type) \
-    do { \
-    to_type *buf = BOR_ALLOC_ARR(to_type, len); \
-    from_type *arr = (from_type *)*rbuf; \
-    int i; \
-    \
-    for (i = 0; i < (len); ++i){ \
-        buf[i] = TO_H_##from_type(arr[i]); \
-    } \
-    FIELD(msg, offset, to_type *) = buf; \
-    } while (0)
-#endif /* BOR_LITTLE_ENDIAN */
-
-_bor_inline void wArrFloat(wbuf_t *wbuf, const void *msg, int offset, int len)
-{
-    uint64_t v;
-    float *arr = FIELD((msg), (offset), float *);
-    int i;
-
-    for (i = 0; i < len; ++i){
-        v = pack754_64(arr[i]);
-#ifdef BOR_BIG_ENDIAN
-        v = TO_LE_int64_t(v);
-#endif /* BOR_BIG_ENDIAN */
-        W(wbuf, &v, sizeof(v));
-    }
-}
-
-_bor_inline void rArrFloat(unsigned char **rbuf, void *msg, int offset, int len)
-{
-    float *buf = BOR_ALLOC_ARR(float, len);
-    uint64_t *arr = (uint64_t *)*rbuf;
-    int i;
-
-    for (i = 0; i < len; ++i){
-#ifdef BOR_LITTLE_ENDIAN
-        buf[i] = unpack754_64(arr[i]);
-#else /* BOR_LITTLE_ENDIAN */
-        buf[i] = unpack754_64(TO_H_int64_t(arr[i]));
-#endif /* BOR_LITTLE_ENDIAN */
-    }
-    FIELD(msg, offset, float *) = buf;
-}
-
-_bor_inline void wArrDouble(wbuf_t *wbuf, const void *msg, int offset, int len)
-{
-    uint64_t v;
-    double *arr = FIELD((msg), (offset), double *);
-    int i;
-
-    for (i = 0; i < len; ++i){
-        v = pack754_64(arr[i]);
-#ifdef BOR_BIG_ENDIAN
-        v = TO_LE_int64_t(v);
-#endif /* BOR_BIG_ENDIAN */
-        W(wbuf, &v, sizeof(v));
-    }
-}
-
-_bor_inline void rArrDouble(unsigned char **rbuf, void *msg, int offset, int len)
-{
-    double *buf = BOR_ALLOC_ARR(double, len);
-    uint64_t *arr = (uint64_t *)*rbuf;
-    int i;
-
-    for (i = 0; i < len; ++i){
-#ifdef BOR_LITTLE_ENDIAN
-        buf[i] = unpack754_64(arr[i]);
-#else /* BOR_LITTLE_ENDIAN */
-        buf[i] = unpack754_64(TO_H_int64_t(arr[i]));
-#endif /* BOR_LITTLE_ENDIAN */
-    }
-    FIELD(msg, offset, double *) = buf;
-}
 
 _bor_inline void wArr(wbuf_t *wbuf, const void *msg, int offset,
                       int len, int type)
 {
+    const void *arr = FIELD(msg, offset, void *);
+
     wArrLen(wbuf, len);
     switch (type){
+#ifdef BOR_BIG_ENDIAN
+        case _BOR_MSG_SCHEMA_INT16:
+            W_ARR(wbuf, arr, len, int16_t, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT16:
+            W_ARR(wbuf, arr, len, uint16_t, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT32:
+            W_ARR(wbuf, arr, len, int32_t, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT32:
+            W_ARR(wbuf, arr, len, uint32_t, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT64:
+            W_ARR(wbuf, arr, len, int64_t, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT64:
+            W_ARR(wbuf, arr, len, uint64_t, uint64_t);
+            break;
+#endif /* BOR_BIG_ENDIAN */
         case _BOR_MSG_SCHEMA_CHAR:
-            W_ARR_EL(wbuf, msg, offset, len, char, int8_t);
+            W_ARR(wbuf, arr, len, char, int8_t);
             break;
         case _BOR_MSG_SCHEMA_UCHAR:
-            W_ARR_EL(wbuf, msg, offset, len, unsigned char, uint8_t);
+            W_ARR(wbuf, arr, len, unsigned char, uint8_t);
             break;
         case _BOR_MSG_SCHEMA_SHORT:
-            W_ARR_EL(wbuf, msg, offset, len, short, int16_t);
+            W_ARR(wbuf, arr, len, short, int16_t);
             break;
         case _BOR_MSG_SCHEMA_USHORT:
-            W_ARR_EL(wbuf, msg, offset, len, unsigned short, uint16_t);
+            W_ARR(wbuf, arr, len, unsigned short, uint16_t);
             break;
         case _BOR_MSG_SCHEMA_INT:
-            W_ARR_EL(wbuf, msg, offset, len, int, int32_t);
+            W_ARR(wbuf, arr, len, int, int32_t);
             break;
         case _BOR_MSG_SCHEMA_UINT:
-            W_ARR_EL(wbuf, msg, offset, len, unsigned int, uint32_t);
+            W_ARR(wbuf, arr, len, unsigned int, uint32_t);
             break;
         case _BOR_MSG_SCHEMA_LONG:
-            W_ARR_EL(wbuf, msg, offset, len, long, int64_t);
+            W_ARR(wbuf, arr, len, long, int64_t);
             break;
         case _BOR_MSG_SCHEMA_ULONG:
-            W_ARR_EL(wbuf, msg, offset, len, unsigned long, uint64_t);
+            W_ARR(wbuf, arr, len, unsigned long, uint64_t);
             break;
         case _BOR_MSG_SCHEMA_FLOAT:
-            wArrFloat(wbuf, msg, offset, len);
+            W_ARR_FLT(wbuf, arr, len, float);
             break;
         case _BOR_MSG_SCHEMA_DOUBLE:
-            wArrDouble(wbuf, msg, offset, len);
+            W_ARR_FLT(wbuf, arr, len, double);
             break;
         default:
             W(wbuf, FIELD(msg, offset, void *), type_size[type] * len);
     }
 }
 
+#define R_ARR(rbuf, msg, offset, len, to_type, from_type) \
+    do { \
+        to_type *buf = BOR_ALLOC_ARR(to_type, len); \
+        if (ARR_FAST_COND(from_type, to_type)){ \
+            memcpy(buf, *rbuf, sizeof(to_type) * len); \
+            FIELD(msg, offset, to_type *) = buf; \
+        }else{ \
+            from_type *arr = (from_type *)*rbuf; \
+            int i; \
+            \
+            for (i = 0; i < (len); ++i){ \
+                buf[i] = TO_H_##from_type(arr[i]); \
+            } \
+            FIELD(msg, offset, to_type *) = buf; \
+        } \
+    } while (0)
+
+#define R_ARR_FLT(rbuf, msg, offset, len, to_type) \
+    do { \
+        to_type *buf = BOR_ALLOC_ARR(to_type, len); \
+        uint64_t v, *arr = (uint64_t *)*rbuf; \
+        int i; \
+        \
+        for (i = 0; i < (len); ++i){ \
+            v = arr[i]; \
+            v = TO_H_uint64_t(v); \
+            buf[i] = unpack754_64(v); \
+        } \
+        FIELD(msg, offset, to_type *) = buf; \
+    } while (0)
+
 _bor_inline void rArr(unsigned char **rbuf, void *msg, int offset, int len,
                       int size_off, int alloc_off, int type)
 {
     int size = type_size[type];
     switch (type){
+#ifdef BOR_BIG_ENDIAN
+        case _BOR_MSG_SCHEMA_INT16:
+            R_ARR(rbuf, msg, offset, len, int16_t, int16_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT16:
+            R_ARR(rbuf, msg, offset, len, uint16_t, uint16_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT32:
+            R_ARR(rbuf, msg, offset, len, int32_t, int32_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT32:
+            R_ARR(rbuf, msg, offset, len, uint32_t, uint32_t);
+            break;
+        case _BOR_MSG_SCHEMA_INT64:
+            R_ARR(rbuf, msg, offset, len, int64_t, int64_t);
+            break;
+        case _BOR_MSG_SCHEMA_UINT64:
+            R_ARR(rbuf, msg, offset, len, uint64_t, uint64_t);
+            break;
+#endif /* BOR_BIG_ENDIAN */
         case _BOR_MSG_SCHEMA_CHAR:
-            R_ARR_EL(rbuf, msg, offset, len, char, int8_t);
+            R_ARR(rbuf, msg, offset, len, char, int8_t);
             break;
         case _BOR_MSG_SCHEMA_UCHAR:
-            R_ARR_EL(rbuf, msg, offset, len, unsigned char, uint8_t);
+            R_ARR(rbuf, msg, offset, len, unsigned char, uint8_t);
             break;
         case _BOR_MSG_SCHEMA_SHORT:
-            R_ARR_EL(rbuf, msg, offset, len, short, int16_t);
+            R_ARR(rbuf, msg, offset, len, short, int16_t);
             break;
         case _BOR_MSG_SCHEMA_USHORT:
-            R_ARR_EL(rbuf, msg, offset, len, unsigned short, uint16_t);
+            R_ARR(rbuf, msg, offset, len, unsigned short, uint16_t);
             break;
         case _BOR_MSG_SCHEMA_INT:
-            R_ARR_EL(rbuf, msg, offset, len, int, int32_t);
+            R_ARR(rbuf, msg, offset, len, int, int32_t);
             break;
         case _BOR_MSG_SCHEMA_UINT:
-            R_ARR_EL(rbuf, msg, offset, len, unsigned int, uint32_t);
+            R_ARR(rbuf, msg, offset, len, unsigned int, uint32_t);
             break;
         case _BOR_MSG_SCHEMA_LONG:
-            R_ARR_EL(rbuf, msg, offset, len, long, int64_t);
+            R_ARR(rbuf, msg, offset, len, long, int64_t);
             break;
         case _BOR_MSG_SCHEMA_ULONG:
-            R_ARR_EL(rbuf, msg, offset, len, unsigned long, uint64_t);
+            R_ARR(rbuf, msg, offset, len, unsigned long, uint64_t);
             break;
         case _BOR_MSG_SCHEMA_FLOAT:
-            rArrFloat(rbuf, msg, offset, len);
+            R_ARR_FLT(rbuf, msg, offset, len, float);
             break;
         case _BOR_MSG_SCHEMA_DOUBLE:
-            rArrDouble(rbuf, msg, offset, len);
+            R_ARR_FLT(rbuf, msg, offset, len, double);
             break;
         default:
             {
@@ -541,6 +555,7 @@ _bor_inline void rMsgArr(unsigned char **rbuf, void *msg, int offset, int len,
 
     wbuf = buf;
     for (i = 0; i < len; ++i){
+        borMsgInit(wbuf, schema);
         decode(rbuf, wbuf, schema);
         wbuf = (((char *)wbuf) + size);
     }
@@ -646,12 +661,11 @@ static void decode(unsigned char **rbuf, void *msg,
                    const bor_msg_schema_t *schema)
 {
     const bor_msg_schema_field_t *field;
-    uint32_t header, header2;
+    uint32_t header;
     void *sub_msg;
     int type, i, len;
 
-    bzero(msg, schema->struct_bytesize);
-    header = header2 = rHeader(rbuf);
+    header = rHeader(rbuf);
     FIELD(msg, schema->header_offset, HEADER_TYPE) = header;
 
     for (i = 0; i < schema->field_size; ++i){
