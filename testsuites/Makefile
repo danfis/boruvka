@@ -67,6 +67,13 @@ bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a
 bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
+msg-schema-gen: msg-schema-gen.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+msg-schema-regen: msg-schema-regen.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+msg-schema-cmp: msg-schema-cmp.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
 msg-schema.struct.h: msg-schema.sch ../bin/bor-msg-schema.py
 	../bin/bor-msg-schema.py --struct <$< >$@
 msg-schema.schema.c: msg-schema.sch ../bin/bor-msg-schema.py

@@ -9,15 +9,17 @@
     do { \
     if (a->member != b->member){ \
         fprintf(stderr, "DIFF on member %s\n", #member); \
-        return 0; \
     } \
     } while (0)
 
 #define EQARR(a, b, member) \
+    do { \
     if (a->member##_size != b->member##_size) return 0; \
     if (a->member##_alloc != b->member##_alloc) return 0; \
-    if (memcmp(a->member, b->member, sizeof(*a->member) * a->member##_size) != 0) \
-        return 0
+    if (memcmp(a->member, b->member, sizeof(*a->member) * a->member##_size) != 0){ \
+        fprintf(stderr, "DIFF on member %s\n", #member); \
+    } \
+    } while (0)
 
 int msgSubEq(const test_submsg_t *a, const test_submsg_t *b)
 {
@@ -93,7 +95,7 @@ int msg2Eq(const test_msg2_t *a, const test_msg2_t *b)
 }
 
 #define RNDF(m, rnd, member) \
-    m->member = borRand(&rnd, -1E5, 1E5)
+    m->member = borRand(&rnd, 0, 1E5)
 #define RNDARR(m, rnd, member) \
     do { \
         int i; \
@@ -103,7 +105,7 @@ int msg2Eq(const test_msg2_t *a, const test_msg2_t *b)
             m->member = (void *)BOR_ALLOC_ARR(char, sizeof(*m->member) * m->member##_alloc); \
         } \
         for (i = 0; i < m->member##_size; ++i){ \
-            m->member[i] = borRand(&rnd, -1E5, 1E5); \
+            m->member[i] = borRand(&rnd, 0, 1E5); \
         } \
     } while (0)
 
