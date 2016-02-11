@@ -15,7 +15,7 @@ CHECK_REG=cu/check-regressions
 CHECK_TS ?=
 
 #TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
-TARGETS = libdata.a test msg-schema-gen msg-schema-print
+TARGETS = libdata.a test
 ifeq '$(USE_OPENCL)' 'yes'
   LDFLAGS += $(OPENCL_LDFLAGS)
   CFLAGS  += $(OPENCL_CFLAGS)
@@ -68,13 +68,13 @@ bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 msg-schema-gen: msg-schema-gen.c msg-schema-common.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
 msg-schema-regen: msg-schema-regen.c msg-schema-common.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
 msg-schema-cmp: msg-schema-cmp.c msg-schema-common.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
 msg-schema-print: msg-schema-print.c msg-schema-common.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
 
 msg-schema.struct.h: msg-schema.sch ../bin/bor-msg-schema.py
 	../bin/bor-msg-schema.py --struct <$< >$@
@@ -96,6 +96,20 @@ check: all
 	$(PYTHON2) $(CHECK_REG) regressions
 	@echo ""
 
+check-msg-schema: msg-schema-gen msg-schema-print
+	@echo "Checking msg-schema..."
+	@(i=0; while [ $$i != 100 ]; do \
+        ./msg-schema-gen tmp.test-msg >tmp.test-msg.txt; \
+        ./msg-schema-print tmp.test-msg >tmp.test-msg.2.txt; \
+        if ! diff tmp.test-msg.txt tmp.test-msg.2.txt >/dev/null; then \
+            echo "FAIL. See tmp.test-msg* files."; \
+            exit -1; \
+        fi; \
+        rm tmp.test-msg tmp.test-msg.txt tmp.test-msg.2.txt; \
+        i=$$(($$i + 1)); \
+    done;)
+	@echo "OK"
+
 check-valgrind: all
 	valgrind -q --leak-check=full --show-reachable=yes --trace-children=yes \
              --error-limit=no \
@@ -116,6 +130,7 @@ clean:
 	rm -f tmp.*
 	rm -f regressions/tmp.*
 	rm -f $(BENCH_HEAP)
+	rm -f msg-schema-{gen,regen,print,cmp}
 
 .PHONY: all clean check check-valgrind cu bench-heap
 	
