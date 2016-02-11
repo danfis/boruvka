@@ -19,8 +19,8 @@ test-cd-trimesh
 test-cd-ode
 test-cd-ode.meas
 tmp.hdf5.h5
-msg-schema.struct.h
-msg-schema.schema.c
+msg-schema.gen.h
+msg-schema.gen.c
 msg-schema-gen
 msg-schema-regen
 msg-schema-cmp

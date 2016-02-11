@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <boruvka/msg-schema.h>
-#include "msg-schema.struct.h"
+#include "msg-schema.gen.h"
 
 int msgSubEq(const test_submsg_t *a, const test_submsg_t *b);
 int msg2ArrEq(const test_msg2_arr_t *a, const test_msg2_arr_t *b);

@@ -181,6 +181,8 @@ clean:
 	
 check:
 	$(MAKE) -C testsuites check
+check-msg-schema:
+	$(MAKE) -C testsuites check-msg-schema
 check-valgrind:
 	$(MAKE) -C testsuites check-valgrind
 

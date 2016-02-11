@@ -138,7 +138,7 @@ class Member(object):
 
         if self.type == 'struct':
             stype = '_BOR_MSG_SCHEMA_MSG'
-            ssub = '&schema_{0}'.format(self.struct.name)
+            ssub = '&___{0}_schema'.format(self.struct.name)
             sdefault = 'NULL'
 
         if self.is_arr:
@@ -155,7 +155,7 @@ class Member(object):
         return sline
 
     def cHeaderMacro(self, idx, struct_name):
-        s = '#define MSG_HEADER_{0}_{1} {2}'
+        s = '#define BOR_MSG_HEADER_{0}_{1} {2}'
         s = s.format(struct_name, self.name, idx)
         return s
 
@@ -190,6 +190,7 @@ class Struct(object):
             m.genCStructMember(fout)
         fout.write('};\n')
         fout.write('typedef struct _{0} {0};\n'.format(self.name))
+        fout.write('extern bor_msg_schema_t *{0}_schema;\n'.format(self.name))
         fout.write(self.after)
 
     def cDefaultVal(self):
@@ -211,13 +212,14 @@ class Struct(object):
         fout.write('static bor_msg_schema_field_t ___{0}_fields[] = {{\n'.format(self.name))
         fout.write(fields + '\n')
         fout.write('};\n');
-        fout.write('static bor_msg_schema_t schema_{0} = {{\n'.format(self.name))
+        fout.write('static bor_msg_schema_t ___{0}_schema = {{\n'.format(self.name))
         fout.write('    0,\n')
         fout.write('    sizeof({0}),\n'.format(self.name))
         fout.write('    ___{0}_fields,\n'.format(self.name))
         fout.write('    sizeof(___{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
         fout.write('    &___{0}_default\n'.format(self.name))
         fout.write('};\n');
+        fout.write('bor_msg_schema_t *{0}_schema = &___{0}_schema;\n'.format(self.name))
         fout.write('\n')
 
     def genCHeaderMacros(self, fout):
@@ -276,28 +278,27 @@ def parseStructs():
 
     return structs
 
-def genCStruct(structs, fout):
+def genCH(structs, fout):
     for s in structs:
         s.genCStruct(fout)
+        s.genCHeaderMacros(fout)
 
-def genCSchema(structs, fout):
+def genCC(structs, fout):
     for s in structs:
         s.genCDefault(fout)
 
     fout.write('\n')
     for s in structs:
         s.genCSchema(fout)
-        s.genCHeaderMacros(fout)
 
 if __name__ == '__main__':
-    opts = ['--struct', '--schema']
+    opts = ['--h', '--c']
     if len(sys.argv) != 2 or sys.argv[1] not in opts:
-        print('Usage: {0} [--struct|--schema] <in.sch'.format(sys.argv[0]))
+        print('Usage: {0} [--h|--c] <in.sch'.format(sys.argv[0]))
         sys.exit(-1)
 
     structs = parseStructs()
-    if sys.argv[1] == '--struct':
-        genCStruct(structs, sys.stdout)
-
-    elif sys.argv[1] == '--schema':
-        genCSchema(structs, sys.stdout)
+    if sys.argv[1] == '--h':
+        genCH(structs, sys.stdout)
+    if sys.argv[1] == '--c':
+        genCC(structs, sys.stdout)

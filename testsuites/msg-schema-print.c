@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <boruvka/alloc.h>
 #include "msg-schema-common.h"
-#include "msg-schema.schema.c"
 
 
 int main(int argc, char *argv[])
@@ -30,10 +29,10 @@ int main(int argc, char *argv[])
     fread(buf, fsize, 1, fin);
     fclose(fin);
 
-    borMsgDecode(buf, fsize, &m, &schema_test_msg2_t);
+    borMsgDecode(buf, fsize, &m, test_msg2_t_schema);
     msg2Print(&m, stdout);
     BOR_FREE(buf);
-    borMsgFree(&m, &schema_test_msg2_t);
+    borMsgFree(&m, test_msg2_t_schema);
     return 0;
 }
 

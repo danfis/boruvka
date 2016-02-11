@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <boruvka/alloc.h>
 #include "msg-schema-common.h"
-#include "msg-schema.schema.c"
 
 
 int main(int argc, char *argv[])
@@ -19,11 +18,11 @@ int main(int argc, char *argv[])
     }
 
     msg2Rand(&msg);
-    borMsgSetHeader(&msg, &schema_test_msg2_t);
+    borMsgSetHeader(&msg, test_msg2_t_schema);
 
     buf = NULL;
     bufsize = 0;
-    size = borMsgEncode(&msg, &schema_test_msg2_t, &buf, &bufsize);
+    size = borMsgEncode(&msg, test_msg2_t_schema, &buf, &bufsize);
 
     fd = open(argv[1], O_WRONLY | O_CREAT, 0644);
     if (fd < 0){
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
     close(fd);
 
     msg2Print(&msg, stdout);
-    borMsgFree(&msg, &schema_test_msg2_t);
+    borMsgFree(&msg, test_msg2_t_schema);
     BOR_FREE(buf);
     return 0;
 }

@@ -76,11 +76,13 @@ msg-schema-cmp: msg-schema-cmp.c msg-schema-common.o
 msg-schema-print: msg-schema-print.c msg-schema-common.o
 	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
 
-msg-schema.struct.h: msg-schema.sch ../bin/bor-msg-schema.py
-	../bin/bor-msg-schema.py --struct <$< >$@
-msg-schema.schema.c: msg-schema.sch ../bin/bor-msg-schema.py
-	../bin/bor-msg-schema.py --schema <$< >$@
-msg-schema.o: msg-schema.c msg-schema.h msg-schema.struct.h msg-schema.schema.c
+msg-schema.gen.h: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --h <$< >$@
+msg-schema.gen.c: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --c <$< >$@
+msg-schema.o: msg-schema.c msg-schema.h msg-schema.gen.h msg-schema.gen.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+msg-schema-common.o: msg-schema-common.c msg-schema-common.h msg-schema.gen.h msg-schema.gen.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
