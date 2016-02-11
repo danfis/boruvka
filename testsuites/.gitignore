@@ -19,3 +19,9 @@ test-cd-trimesh
 test-cd-ode
 test-cd-ode.meas
 tmp.hdf5.h5
+msg-schema.gen.h
+msg-schema.gen.c
+msg-schema-gen
+msg-schema-regen
+msg-schema-cmp
+msg-schema-print

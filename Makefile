@@ -64,6 +64,7 @@ OBJS += fifo-sem
 OBJS += lifo
 OBJS += ring_queue
 OBJS += scc
+OBJS += msg-schema
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
@@ -180,6 +181,8 @@ clean:
 	
 check:
 	$(MAKE) -C testsuites check
+check-msg-schema:
+	$(MAKE) -C testsuites check-msg-schema
 check-valgrind:
 	$(MAKE) -C testsuites check-valgrind
 

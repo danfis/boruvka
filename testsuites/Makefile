@@ -29,7 +29,7 @@ OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o \
        tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
        vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
        rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
-       lifo.o splaytree_int.o scc.o
+       lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =
@@ -67,6 +67,23 @@ bench-heap-fibo: bench-heap-fibo.c bench-heap.c libdata.a
 bench-heap-pairheap: bench-heap-pairheap.c bench-heap.c libdata.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
+msg-schema-gen: msg-schema-gen.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
+msg-schema-regen: msg-schema-regen.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
+msg-schema-cmp: msg-schema-cmp.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
+msg-schema-print: msg-schema-print.c msg-schema-common.o
+	$(CC) $(CFLAGS) -o $@ $^ -L.. -lboruvka -lm
+
+msg-schema.gen.h: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --h <$< >$@
+msg-schema.gen.c: msg-schema.sch ../bin/bor-msg-schema.py
+	../bin/bor-msg-schema.py --c <$< >$@
+msg-schema.o: msg-schema.c msg-schema.h msg-schema.gen.h msg-schema.gen.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+msg-schema-common.o: msg-schema-common.c msg-schema-common.h msg-schema.gen.h msg-schema.gen.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 %.o: %.c
@@ -80,6 +97,20 @@ check: all
 	@echo "Checking regressions:";
 	$(PYTHON2) $(CHECK_REG) regressions
 	@echo ""
+
+check-msg-schema: msg-schema-gen msg-schema-print
+	@echo "Checking msg-schema..."
+	@(i=0; while [ $$i != 100 ]; do \
+        ./msg-schema-gen tmp.test-msg >tmp.test-msg.txt; \
+        ./msg-schema-print tmp.test-msg >tmp.test-msg.2.txt; \
+        if ! diff tmp.test-msg.txt tmp.test-msg.2.txt >/dev/null; then \
+            echo "FAIL. See tmp.test-msg* files."; \
+            exit -1; \
+        fi; \
+        rm tmp.test-msg tmp.test-msg.txt tmp.test-msg.2.txt; \
+        i=$$(($$i + 1)); \
+    done;)
+	@echo "OK"
 
 check-valgrind: all
 	valgrind -q --leak-check=full --show-reachable=yes --trace-children=yes \
@@ -101,6 +132,7 @@ clean:
 	rm -f tmp.*
 	rm -f regressions/tmp.*
 	rm -f $(BENCH_HEAP)
+	rm -f msg-schema-{gen,regen,print,cmp}
 
 .PHONY: all clean check check-valgrind cu bench-heap
 	
