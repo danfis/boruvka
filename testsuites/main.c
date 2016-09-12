@@ -4,6 +4,7 @@
 #include "vec2.h"
 #include "vec.h"
 #include "quat.h"
+#include "poly2.h"
 #include "pc3.h"
 #include "pc.h"
 #include "mat3.h"
@@ -52,6 +53,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSPC),
     TEST_SUITE_ADD(TSMat3),
     TEST_SUITE_ADD(TSMat4),
+    TEST_SUITE_ADD(TSPoly2),
     TEST_SUITE_ADD(TSGUG),
     TEST_SUITE_ADD(TSVPTree),
     TEST_SUITE_ADD(TSVPTreeHamming),

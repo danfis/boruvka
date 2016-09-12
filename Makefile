@@ -31,6 +31,7 @@ OBJS += opts
 OBJS += varr
 OBJS += quat vec4 vec3 vec2 vec
 OBJS += mat4 mat3
+OBJS += poly2
 OBJS += predicates
 OBJS += sort
 OBJS += pc pc-internal
