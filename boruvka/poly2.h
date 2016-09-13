@@ -51,11 +51,24 @@ typedef struct _bor_poly2_t bor_poly2_t;
  * Allocate and initialize a new polygon.
  */
 bor_poly2_t *borPoly2New(const bor_vec2_t *corners, int size);
+bor_poly2_t *borPoly2New2(const bor_vec2_t *corners, int *idx, int size);
 
 /**
  * Delete polygon.
  */
 void borPoly2Del(bor_poly2_t *);
+
+/**
+ * Initialize a new polygon.
+ */
+void borPoly2Init(bor_poly2_t *p, const bor_vec2_t *corners, int size);
+void borPoly2Init2(bor_poly2_t *p, const bor_vec2_t *corners,
+                   int *idx, int size);
+
+/**
+ * Free polygon structure.
+ */
+void borPoly2Free(bor_poly2_t *);
 
 /**
  * Returns true if the point v is inside the polygon.
