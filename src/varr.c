@@ -18,9 +18,11 @@
 #include <boruvka/varr.h>
 #include <boruvka/alloc.h>
 
+#define BOR_VARR_INIT_SIZE 2
+
 void borVArrInit(bor_varr_t *arr, size_t init_size, size_t elemsize)
 {
-    arr->len   = 0;
+    arr->size  = 0;
     arr->alloc = init_size;
     arr->arr   = BOR_MALLOC(arr->alloc * elemsize);
 }
@@ -32,6 +34,8 @@ void borVArrDestroy(bor_varr_t *arr)
 
 void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize)
 {
+    if (arr->alloc == 0)
+        arr->alloc = BOR_VARR_INIT_SIZE;
     arr->alloc *= factor;
     arr->arr = BOR_REALLOC(arr->arr, arr->alloc * elemsize);
 }

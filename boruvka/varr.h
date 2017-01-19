@@ -31,7 +31,7 @@ extern "C" {
 #define _BOR_VARR_DECL_STRUCT(type, struct_prefix) \
     struct _BOR_VARR_STRUCT2(struct_prefix) { \
         type *arr; \
-        size_t len; \
+        size_t size; \
         size_t alloc; \
     }; \
     typedef struct _BOR_VARR_STRUCT2(struct_prefix) _BOR_VARR_STRUCT(struct_prefix)
@@ -50,7 +50,7 @@ extern "C" {
  */
 struct _bor_varr_t {
     void *arr;
-    size_t len;
+    size_t size;
     size_t alloc;
 };
 typedef struct _bor_varr_t bor_varr_t;
@@ -79,7 +79,7 @@ void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
  * ~~~~
  * struct _{struct_name} {
  *     {type} *arr;
- *     size_t len;
+ *     size_t size;
  *     size_t alloc;
  * };
  * typedef struct _{struct_name) {struct_name};
@@ -87,7 +87,7 @@ void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 #define BOR_VARR_STRUCT(type, struct_name) \
     struct _##struct_name { \
         type *arr; \
-        size_t len; \
+        size_t size; \
         size_t alloc; \
     }; \
     typedef struct _##struct_name struct_name;
@@ -146,10 +146,10 @@ void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 #define BOR_VARR_ADD(type, struct_name, func_name) \
     _bor_inline size_t func_name(struct_name *arr, type val) \
     { \
-        if (arr->len == arr->alloc) \
+        if (arr->size == arr->alloc) \
             borVArrExpand((bor_varr_t *)arr, 2, sizeof(type)); \
-        arr->arr[arr->len] = val; \
-        return arr->len++; \
+        arr->arr[arr->size] = val; \
+        return arr->size++; \
     }
 
 
@@ -163,7 +163,7 @@ void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
 #define BOR_VARR_REMOVE(struct_name, func_name) \
     _bor_inline void func_name(struct_name *arr, size_t i) \
     { \
-        arr->arr[i] = arr->arr[--arr->len]; \
+        arr->arr[i] = arr->arr[--arr->size]; \
     }
 
 /**
@@ -175,6 +175,7 @@ void borVArrExpand(bor_varr_t *arr, size_t factor, size_t elemsize);
     BOR_VARR_STRUCT(type, struct_name) \
     BOR_VARR_INIT(struct_name, func_prefix ## Init) \
     BOR_VARR_DESTROY(struct_name, func_prefix ## Destroy) \
+    BOR_VARR_DESTROY(struct_name, func_prefix ## Free) \
     BOR_VARR_GET(type, struct_name, func_prefix ## Get) \
     BOR_VARR_SET(type, struct_name, func_prefix ## Set) \
     BOR_VARR_ADD(type, struct_name, func_prefix ## Add) \
