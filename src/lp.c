@@ -67,8 +67,33 @@ int borLPSolverAvailable(unsigned solver)
 
 bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
 {
-    /* TODO */
+    if (flags & BOR_LP_CPLEX){
+        return bor_lp_cplex.new(rows, cols, flags);
+    }else if (flags & BOR_LP_GUROBI){
+        return NULL;
+    }else if (flags & BOR_LP_LPSOLVE){
+        return bor_lp_lpsolve.new(rows, cols, flags);
+    }else if (flags & BOR_LP_GLPK){
+        return NULL;
+    }
+
+#ifdef BOR_CPLEX
+    return bor_lp_cplex.new(rows, cols, flags);
+#else /* BOR_CPLEX */
+#ifdef BOR_GUROBI
     return NULL;
+#else /* BOR_GUROBI */
+#ifdef BOR_LPSOLVE
+    return bor_lp_lpsolve.new(rows, cols, flags);
+#else /* BOR_LPSOLVE */
+#ifdef BOR_GLPK
+    return NULL;
+#else /* BOR_GLPK */
+    return bor_lp_not_available.new(rows, cols, flags);
+#endif /* BOR_GLPK */
+#endif /* BOR_LPSOLVE */
+#endif /* BOR_GUROBI */
+#endif /* BOR_CPLEX */
 }
 
 void borLPDel(bor_lp_t *lp)
@@ -173,7 +198,7 @@ static int noSolve(bor_lp_t *lp, double *val, double *obj)
 static void noWrite(bor_lp_t *lp, const char *fn)
 { noSolverExit(); }
 
-bor_lp_cls_t not_available = {
+bor_lp_cls_t bor_lp_not_available = {
     0, "",
     noNew,
     noDel,

@@ -67,6 +67,8 @@ OBJS += ring_queue
 OBJS += scc
 OBJS += msg-schema
 OBJS += lp
+OBJS += lp-cplex
+OBJS += lp-lpsolve
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
@@ -83,6 +85,23 @@ endif
 ifeq '$(USE_GSL)' 'yes'
   CFLAGS  += $(GSL_CFLAGS)
   LDFLAGS += $(GSL_LDFLAGS)
+endif
+
+ifeq '$(USE_CPLEX)' 'yes'
+  CFLAGS  += $(CPLEX_CFLAGS)
+  LDFLAGS += $(CPLEX_LDFLAGS)
+endif
+ifeq '$(USE_GUROBI)' 'yes'
+  CFLAGS  += $(GUROBI_CFLAGS)
+  LDFLAGS += $(GUROBI_LDFLAGS)
+endif
+ifeq '$(USE_LPSOLVE)' 'yes'
+  CFLAGS  += $(LPSOLVE_CFLAGS)
+  LDFLAGS += $(LPSOLVE_LDFLAGS)
+endif
+ifeq '$(USE_GLPK)' 'yes'
+  CFLAGS  += $(GLPK_CFLAGS)
+  LDFLAGS += $(GLPK_LDFLAGS)
 endif
 
 

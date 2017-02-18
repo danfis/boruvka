@@ -45,7 +45,9 @@ struct _bor_lp_t {
     bor_lp_cls_t *cls;
 };
 
-extern bor_lp_cls_t not_available;
+extern bor_lp_cls_t bor_lp_not_available;
+extern bor_lp_cls_t bor_lp_cplex;
+extern bor_lp_cls_t bor_lp_lpsolve;
 
 #ifdef __cplusplus
 }
