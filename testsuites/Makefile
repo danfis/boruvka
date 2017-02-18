@@ -135,4 +135,3 @@ clean:
 	rm -f msg-schema-{gen,regen,print,cmp}
 
 .PHONY: all clean check check-valgrind cu bench-heap
-	

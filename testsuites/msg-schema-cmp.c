@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     fread(buf, fsize, 1, fin);
     fclose(fin);
 
-    borMsgDecode(buf, fsize, &m1, test_msg2_t_schema);
+    borMsgDecode(buf, fsize, &m1, test_msg2_schema);
     BOR_FREE(buf);
 
     fin = fopen(argv[2], "rb");
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     fread(buf, fsize, 1, fin);
     fclose(fin);
 
-    borMsgDecode(buf, fsize, &m2, test_msg2_t_schema);
+    borMsgDecode(buf, fsize, &m2, test_msg2_schema);
     BOR_FREE(buf);
 
     if (msg2Eq(&m1, &m2)){

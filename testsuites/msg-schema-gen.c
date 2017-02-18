@@ -18,11 +18,11 @@ int main(int argc, char *argv[])
     }
 
     msg2Rand(&msg);
-    borMsgSetHeader(&msg, test_msg2_t_schema);
+    borMsgSetHeader(&msg, test_msg2_schema);
 
     buf = NULL;
     bufsize = 0;
-    size = borMsgEncode(&msg, test_msg2_t_schema, &buf, &bufsize);
+    size = borMsgEncode(&msg, test_msg2_schema, &buf, &bufsize);
 
     fd = open(argv[1], O_WRONLY | O_CREAT, 0644);
     if (fd < 0){
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     close(fd);
 
     msg2Print(&msg, stdout);
-    borMsgFree(&msg, test_msg2_t_schema);
+    borMsgFree(&msg, test_msg2_schema);
     BOR_FREE(buf);
     return 0;
 }

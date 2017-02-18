@@ -13,35 +13,35 @@ TEST(testMsgSchemaInit)
     test_submsg_t *submsg;
     int i;
 
-    borMsgInit(&msg, test_msg_t_schema);
+    borMsgInit(&msg, test_msg_schema);
     msg.dval_size = 10;
     msg.dval = BOR_ALLOC_ARR(double, msg.dval_size);
-    borMsgFree(&msg, test_msg_t_schema);
+    borMsgFree(&msg, test_msg_schema);
 
-    borMsgInit(&msg, test_msg_t_schema);
+    borMsgInit(&msg, test_msg_schema);
     msg.subs_size = 3;
     msg.subs = BOR_ALLOC_ARR(test_submsg_t, msg.subs_size);
     for (i = 0; i < 3; ++i){
         submsg = msg.subs + i;
-        borMsgInit(submsg, test_submsg_t_schema);
+        borMsgInit(submsg, test_submsg_schema);
         if (i == 2){
             submsg->arr_size = 4;
             submsg->arr = BOR_ALLOC_ARR(int, 4);
         }
     }
-    borMsgFree(&msg, test_msg_t_schema);
+    borMsgFree(&msg, test_msg_schema);
 
-    submsg = borMsgNew(test_submsg_t_schema);
-    borMsgDel(submsg, test_submsg_t_schema);
+    submsg = borMsgNew(test_submsg_schema);
+    borMsgDel(submsg, test_submsg_schema);
 
-    submsg = borMsgNew(test_submsg_t_schema);
+    submsg = borMsgNew(test_submsg_schema);
     submsg->arr_size = 12;
     submsg->arr = BOR_ALLOC_ARR(int, 12);
-    borMsgDel(submsg, test_submsg_t_schema);
+    borMsgDel(submsg, test_submsg_schema);
 
     for (i = 0; i < 10; ++i){
         msg2Rand(&msg2);
-        borMsgFree(&msg2, test_msg2_t_schema);
+        borMsgFree(&msg2, test_msg2_schema);
     }
 }
 
@@ -49,8 +49,8 @@ TEST(testMsgSchemaHeader)
 {
     test_msg_t msg;
 
-    borMsgInit(&msg, test_msg_t_schema);
-    borMsgSetHeader(&msg, test_msg_t_schema);
+    borMsgInit(&msg, test_msg_schema);
+    borMsgSetHeader(&msg, test_msg_schema);
     assertEquals(msg.ival, -1);
     assertEquals(msg.dval, NULL);
     assertEquals(msg.dval_size, 0);
@@ -65,7 +65,7 @@ TEST(testMsgSchemaHeader)
     assertEquals(msg.__msg_header, 0);
 
     msg.ival = 10;
-    borMsgSetHeader(&msg, test_msg_t_schema);
+    borMsgSetHeader(&msg, test_msg_schema);
     assertEquals(msg.ival, 10);
     assertEquals(msg.dval, NULL);
     assertEquals(msg.dval_size, 0);
@@ -84,7 +84,7 @@ TEST(testMsgSchemaHeader)
     msg.sub.i16val = 13;
     msg.sub.arr_size = 3;
     msg.sub.arr = BOR_ALLOC_ARR(int, msg.sub.arr_size);
-    borMsgSetHeader(&msg, test_msg_t_schema);
+    borMsgSetHeader(&msg, test_msg_schema);
     assertEquals(msg.ival, 10);
     assertNotEquals(msg.dval, NULL);
     assertEquals(msg.dval_size, 5);
@@ -101,9 +101,9 @@ TEST(testMsgSchemaHeader)
 
     msg.subs_size = 2;
     msg.subs = BOR_ALLOC_ARR(test_submsg_t, msg.subs_size);
-    borMsgInit(msg.subs + 0, test_submsg_t_schema);
-    borMsgInit(msg.subs + 1, test_submsg_t_schema);
-    borMsgSetHeader(&msg, test_msg_t_schema);
+    borMsgInit(msg.subs + 0, test_submsg_schema);
+    borMsgInit(msg.subs + 1, test_submsg_schema);
+    borMsgSetHeader(&msg, test_msg_schema);
     assertEquals(msg.ival, 10);
     assertNotEquals(msg.dval, NULL);
     assertEquals(msg.dval_size, 5);
@@ -123,7 +123,7 @@ TEST(testMsgSchemaHeader)
     msg.subs[0].sval = 10;
     msg.subs[1].sval = 10;
     msg.subs[1].i16val = 12;
-    borMsgSetHeader(&msg, test_msg_t_schema);
+    borMsgSetHeader(&msg, test_msg_schema);
     assertEquals(msg.ival, 10);
     assertNotEquals(msg.dval, NULL);
     assertEquals(msg.dval_size, 5);
@@ -140,11 +140,11 @@ TEST(testMsgSchemaHeader)
     assertEquals(msg.subs[1].__msg_header, 0x5);
 
 
-    borMsgSetHeaderField(&msg, test_msg_t_schema, BOR_MSG_HEADER_test_msg_t_lval);
+    borMsgSetHeaderField(&msg, test_msg_schema, BOR_MSG_HEADER_test_msg_lval);
     assertEquals(msg.__msg_header, 0x1f);
-    borMsgUnsetHeaderField(&msg, test_msg_t_schema, BOR_MSG_HEADER_test_msg_t_dval);
+    borMsgUnsetHeaderField(&msg, test_msg_schema, BOR_MSG_HEADER_test_msg_dval);
     assertEquals(msg.__msg_header, 0x1d);
-    borMsgFree(&msg, test_msg_t_schema);
+    borMsgFree(&msg, test_msg_schema);
 }
 
 TEST(testMsgSchema)
@@ -157,15 +157,15 @@ TEST(testMsgSchema)
     bufsize = 0;
     for (i = 0; i < 100; ++i){
         msg2Rand(&m1);
-        borMsgSetHeader(&m1, test_msg2_t_schema);
+        borMsgSetHeader(&m1, test_msg2_schema);
 
-        size = borMsgEncode(&m1, test_msg2_t_schema, &buf, &bufsize);
+        size = borMsgEncode(&m1, test_msg2_schema, &buf, &bufsize);
 
-        borMsgDecode(buf, size, &m2, test_msg2_t_schema);
+        borMsgDecode(buf, size, &m2, test_msg2_schema);
         assertTrue(msg2Eq(&m1, &m2));
 
-        borMsgFree(&m1, test_msg2_t_schema);
-        borMsgFree(&m2, test_msg2_t_schema);
+        borMsgFree(&m1, test_msg2_schema);
+        borMsgFree(&m2, test_msg2_schema);
     }
 
     if (buf != NULL)

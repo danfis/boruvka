@@ -117,7 +117,7 @@ void msgSubRand(test_submsg_t *m)
     bor_rand_t rnd;
     borRandInit(&rnd);
 
-    borMsgInit(m, test_submsg_t_schema);
+    borMsgInit(m, test_submsg_schema);
     RNDF(m, rnd, sval);
     RNDF(m, rnd, lval_neco);
     RNDF(m, rnd, i16val);
@@ -129,7 +129,7 @@ void msg2ArrRand(test_msg2_arr_t *m)
     bor_rand_t rnd;
     borRandInit(&rnd);
 
-    borMsgInit(m, test_msg2_arr_t_schema);
+    borMsgInit(m, test_msg2_arr_schema);
     RNDARR(m, rnd, ai8);
     RNDARR(m, rnd, au8);
     RNDARR(m, rnd, ai16);
@@ -156,7 +156,7 @@ void msg2Rand(test_msg2_t *m)
     bor_rand_t rnd;
     borRandInit(&rnd);
 
-    borMsgInit(m, test_msg2_t_schema);
+    borMsgInit(m, test_msg2_schema);
     RNDF(m, rnd, i8);
     RNDF(m, rnd, u8);
     RNDF(m, rnd, i16);

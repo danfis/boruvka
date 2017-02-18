@@ -104,7 +104,8 @@ class Member(object):
         if self.comment is not None:
             comm = self.comment
         if self.type == 'struct':
-            line = line.format(self.struct.name, asterix, self.name, comm)
+            line = line.format(self.struct.struct_name,
+                               asterix, self.name, comm)
         else:
             line = line.format(TYPES[self.type], asterix, self.name, comm)
         fout.write(line)
@@ -126,15 +127,17 @@ class Member(object):
 
         return ZEROS[self.type]
 
-    def cSchema(self, struct_name):
-        foffset = '_BOR_MSG_SCHEMA_OFFSET({0}, {{0}})'.format(struct_name)
+    def cSchema(self, struct):
+        foffset = '_BOR_MSG_SCHEMA_OFFSET({0}, {{0}})' \
+                        .format(struct.struct_name)
 
         stype = '_BOR_MSG_SCHEMA_' + self.type.upper()
         soffset = foffset.format(self.name)
         ssize_offset = '-1'
         salloc_offset = '-1'
         ssub = 'NULL'
-        sdefault = '(void *)(((char *)&___{0}_default) + {1})'.format(struct_name, soffset)
+        sdefault = '(void *)(((char *)&___{0}_default) + {1})' \
+                        .format(struct.name, soffset)
 
         if self.type == 'struct':
             stype = '_BOR_MSG_SCHEMA_MSG'
@@ -162,6 +165,7 @@ class Member(object):
 class Struct(object):
     def __init__(self, name):
         self.name = name
+        self.struct_name = name + '_t'
         self.members = []
         self.before = ''
         self.after = ''
@@ -184,12 +188,12 @@ class Struct(object):
 
     def genCStruct(self, fout):
         fout.write(self.before)
-        fout.write('struct _{0} {{\n'.format(self.name))
+        fout.write('struct _{0} {{\n'.format(self.struct_name))
         fout.write('    {0} __msg_header;\n'.format(HEADER_TYPE))
         for m in self.members:
             m.genCStructMember(fout)
         fout.write('};\n')
-        fout.write('typedef struct _{0} {0};\n'.format(self.name))
+        fout.write('typedef struct _{0} {0};\n'.format(self.struct_name))
         fout.write('extern bor_msg_schema_t *{0}_schema;\n'.format(self.name))
         fout.write(self.after)
 
@@ -200,12 +204,13 @@ class Struct(object):
 
     def genCDefault(self, fout):
         default = [m.cDefaultVal() for m in self.members]
-        fout.write('static {0} ___{0}_default = '.format(self.name))
+        fout.write('static {0} ___{1}_default = ' \
+                        .format(self.struct_name, self.name))
         fout.write(self.cDefaultVal())
         fout.write(';\n')
 
     def genCSchema(self, fout):
-        fields = [m.cSchema(self.name) for m in self.members]
+        fields = [m.cSchema(self) for m in self.members]
         fields = ['    ' + x for x in fields]
         fields = ',\n'.join(fields)
 
@@ -214,7 +219,7 @@ class Struct(object):
         fout.write('};\n');
         fout.write('static bor_msg_schema_t ___{0}_schema = {{\n'.format(self.name))
         fout.write('    0,\n')
-        fout.write('    sizeof({0}),\n'.format(self.name))
+        fout.write('    sizeof({0}),\n'.format(self.struct_name))
         fout.write('    ___{0}_fields,\n'.format(self.name))
         fout.write('    sizeof(___{0}_fields) / sizeof(bor_msg_schema_field_t),\n'.format(self.name))
         fout.write('    &___{0}_default\n'.format(self.name))

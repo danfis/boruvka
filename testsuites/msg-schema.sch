@@ -1,7 +1,7 @@
 #ifndef TEST_MSG_SCHEMA_STRUCT
 #define TEST_MSG_SCHEMA_STRUCT
 
-msg test_submsg_t {
+msg test_submsg {
     sval short; /*!< This is comment */
     lval_neco long;
     i16val int16;
@@ -11,15 +11,15 @@ msg test_submsg_t {
 /**
  * This is also comment
  */
-msg test_msg_t {
+msg test_msg {
     ival int {-1}; /*!< Default value is -1 */
     dval double[];
-    sub test_submsg_t;
-    subs test_submsg_t[];
+    sub test_submsg;
+    subs test_submsg[];
     lval double[];
 }
 
-msg test_msg2_arr_t {
+msg test_msg2_arr {
     ai8 int8[];
     au8 uint8[];
     ai16 int16[];
@@ -40,7 +40,7 @@ msg test_msg2_arr_t {
     ad double[];
 }
 
-msg test_msg2_t {
+msg test_msg2 {
     i8 int8 {-1};
     u8 uint8;
     i16 int16;
@@ -59,9 +59,9 @@ msg test_msg2_t {
     ul ulong {122};
     f float;
     d double;
-    sub test_submsg_t;
-    subs test_submsg_t[];
-    subarr test_msg2_arr_t;
+    sub test_submsg;
+    subs test_submsg[];
+    subarr test_msg2_arr;
 }
 
 #endif /* TEST_MSG_SCHEMA_STRUCT */
