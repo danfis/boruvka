@@ -15,4 +15,9 @@ ifdef(`USE_HDF5', `#define BOR_HDF5')
 ifdef(`USE_GSL', `#define BOR_GSL')
 ifdef(`CD_TIME_MEASURE', `#define BOR_CD_TIME_MEASURE')
 
+ifdef(`USE_CPLEX', `#define BOR_CPLEX')
+ifdef(`USE_GUROBI', `#define BOR_GUROBI')
+ifdef(`USE_LPSOLVE', `#define BOR_LPSOLVE')
+ifdef(`USE_GLPK', `#define BOR_GLPK')
+
 #endif /* __BOR_CONFIG_H__ */

@@ -21,8 +21,48 @@
 
 int borLPSolverAvailable(unsigned solver)
 {
-    // TODO
-    return 0;
+    if (solver & BOR_LP_CPLEX){
+#ifdef BOR_CPLEX
+        return 1;
+#else /* BOR_CPLEX */
+        return 0;
+#endif /* BOR_CPLEX */
+    }else if (solver & BOR_LP_GUROBI){
+#ifdef BOR_GUROBI
+        return 1;
+#else /* BOR_GUROBI */
+        return 0;
+#endif /* BOR_GUROBI */
+    }else if (solver & BOR_LP_LPSOLVE){
+#ifdef BOR_LPSOLVE
+        return 1;
+#else /* BOR_LPSOLVE */
+        return 0;
+#endif /* BOR_LPSOLVE */
+    }else if (solver & BOR_LP_GLPK){
+#ifdef BOR_GLPK
+        return 1;
+#else /* BOR_GLPK */
+        return 0;
+#endif /* BOR_GLPK */
+    }
+#ifdef BOR_CPLEX
+        return 1;
+#else /* BOR_CPLEX */
+#ifdef BOR_GUROBI
+        return 1;
+#else /* BOR_GUROBI */
+#ifdef BOR_LPSOLVE
+        return 1;
+#else /* BOR_LPSOLVE */
+#ifdef BOR_GLPK
+        return 1;
+#else /* BOR_GLPK */
+        return 0;
+#endif /* BOR_GLPK */
+#endif /* BOR_LPSOLVE */
+#endif /* BOR_GUROBI */
+#endif /* BOR_CPLEX */
 }
 
 bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
