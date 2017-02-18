@@ -246,6 +246,8 @@ _bor_inline void {0}Unset{1}({2} *msg)
 {{
     borMsgUnsetHeaderField(msg, {7}_schema, {8});
 }}
+void {0}Reserve{1}({2} *msg, int size);
+void {0}Resize{1}({2} *msg, int size);
 '''
         s = s.format(self.msg.func_prefix,
                      self.func_name,
@@ -286,6 +288,19 @@ void {0}SetArr{1}({2} *msg, const {3} *arr, int size)
     }}
     borMsgSetHeaderField(msg, {5}_schema, {6});
     memcpy(msg->{4}, arr, sizeof({3}) * size);
+    msg->{4}_size = size;
+}}
+void {0}Reserve{1}({2} *msg, int size)
+{{
+    if (msg->{4}_alloc >= size)
+        return;
+    msg->{4}_alloc = size;
+    msg->{4} = BOR_REALLOC_ARR(msg->{4}, {3}, msg->{4}_alloc);
+}}
+void {0}Resize{1}({2} *msg, int size)
+{{
+    borMsgSetHeaderField(msg, {5}_schema, {6});
+    {0}Reserve{1}(msg, size);
     msg->{4}_size = size;
 }}
 '''
@@ -333,6 +348,8 @@ _bor_inline void {0}Unset{1}({2} *msg)
 {{
     borMsgUnsetHeaderField(msg, {7}_schema, {8});
 }}
+void {0}Reserve{1}({2} *msg, int size);
+void {0}Resize{1}({2} *msg, int size);
 '''
         s = s.format(self.msg.func_prefix,
                      self.func_name,
@@ -372,6 +389,21 @@ void {0}Remove{1}({2} *msg, int idx)
 {{
     borMsgSetHeaderField(msg, {6}_schema, {7});
     return msg->{4} + idx;
+}}
+void {0}Reserve{1}({2} *msg, int size)
+{{
+    if (msg->{4}_alloc >= size)
+        return;
+    msg->{4}_alloc = size;
+    msg->{4} = BOR_REALLOC_ARR(msg->{4}, {3}, msg->{4}_alloc);
+}}
+void {0}Resize{1}({2} *msg, int size)
+{{
+    borMsgSetHeaderField(msg, {6}_schema, {7});
+    {0}Reserve{1}(msg, size);
+    for (int i = msg->{4}_size; i < size; ++i)
+        {5}Init(msg->{4} + i);
+    msg->{4}_size = size;
 }}
 '''
         s = s.format(self.msg.func_prefix,
