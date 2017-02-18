@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
     fread(buf, fsize, 1, fin);
     fclose(fin);
 
-    borMsgDecode(buf, fsize, &m, test_msg2_t_schema);
+    borMsgDecode(buf, fsize, &m, test_msg2_schema);
     msg2Print(&m, stdout);
     BOR_FREE(buf);
-    borMsgFree(&m, test_msg2_t_schema);
+    borMsgFree(&m, test_msg2_schema);
     return 0;
 }
 
