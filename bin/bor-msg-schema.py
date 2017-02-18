@@ -67,15 +67,31 @@ STRUCTS = {}
 MAX_MEMBERS = 32
 HEADER_TYPE = 'uint32_t'
 
+def toCamelCase(name, cap_first_letter = False):
+    cap = cap_first_letter
+    n = ''
+    for l in name:
+        if cap:
+            n += l.upper()
+            cap = False
+        elif l == '_':
+            cap = True
+        else:
+            n += l
+    return n
+
 class Member(object):
-    def __init__(self, id, name, type, default, comment):
+    def __init__(self, msg, id, name, type, default, comment):
+        self.msg = msg
         self.id = id
         self.name = name
+        self.func_name = toCamelCase(name, True)
         self.type = None
         self.default = default
         self.comment = comment
         self.is_arr = False
         self.struct = None
+        self.macro_name = '{0}_{1}'.format(msg.name.upper(), name.upper())
 
         basetype = type
         if type.endswith('[]'):
@@ -127,9 +143,9 @@ class Member(object):
 
         return ZEROS[self.type]
 
-    def cSchema(self, struct):
+    def cSchema(self):
         foffset = '_BOR_MSG_SCHEMA_OFFSET({0}, {{0}})' \
-                        .format(struct.struct_name)
+                        .format(self.msg.struct_name)
 
         stype = '_BOR_MSG_SCHEMA_' + self.type.upper()
         soffset = foffset.format(self.name)
@@ -137,7 +153,7 @@ class Member(object):
         salloc_offset = '-1'
         ssub = 'NULL'
         sdefault = '(void *)(((char *)&___{0}_default) + {1})' \
-                        .format(struct.name, soffset)
+                        .format(self.msg.name, soffset)
 
         if self.type == 'struct':
             stype = '_BOR_MSG_SCHEMA_MSG'
@@ -157,15 +173,261 @@ class Member(object):
                                                      sdefault)
         return sline
 
-    def cHeaderMacro(self, idx, struct_name):
-        s = '#define BOR_MSG_HEADER_{0}_{1} {2}'
-        s = s.format(struct_name, self.name, idx)
+    def cHeaderMacro(self):
+        s = '#define {0} {1}'
+        s = s.format(self.macro_name, self.id)
         return s
 
-class Struct(object):
+    def cFuncStruct(self):
+        s = '''_bor_inline const {0} *{1}Get{2}(const {3} *msg)
+{{
+    return &msg->{4};
+}}
+
+_bor_inline {0} *{1}Set{2}({3} *msg)
+{{
+    borMsgSetHeaderField(msg, {5}_schema, {6});
+    return &msg->{4};
+}}
+_bor_inline void {1}Unset{2}({3} *msg)
+{{
+    borMsgUnsetHeaderField(msg, {5}_schema, {6});
+}}
+'''
+        s = s.format(self.struct.struct_name,
+                     self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     self.name,
+                     self.msg.name,
+                     self.macro_name,
+                     self.struct.func_prefix)
+        return s
+
+    def cFuncArr(self):
+        s = '''_bor_inline int {0}Get{1}Size(const {2} *msg)
+{{
+    return msg->{3}_size;
+}}
+_bor_inline int {0}Get{1}Alloc(const {2} *msg)
+{{
+    return msg->{3}_alloc;
+}}
+_bor_inline {4} {0}GetElem{1}(const {2} *msg, int idx)
+{{
+    return msg->{3}[idx];
+}}
+
+_bor_inline const {4} *{0}Get{1}(const {2} *msg, int *size)
+{{
+    if (size != NULL)
+        *size = msg->{3}_size;
+    return msg->{3};
+}}
+#define {5}_{6}_FOR_EACH(MSG, VAL) \\
+    for (int i = 0; i < (MSG)->{3}_size && ((VAL) = (MSG)->{3}[i], 1); ++i)
+
+void {0}Add{1}({2} *msg, {4} val);
+void {0}Remove{1}({2} *msg, int idx);
+_bor_inline void {0}SetElem{1}({2} *msg, int idx, {4} val)
+{{
+    borMsgSetHeaderField(msg, {7}_schema, {8});
+    msg->{3}[idx] = val;
+}}
+_bor_inline {4} *{0}Set{1}({2} *msg, int *size)
+{{
+    borMsgSetHeaderField(msg, {7}_schema, {8});
+    if (size != NULL)
+        *size = msg->{3}_size;
+    return msg->{3};
+}}
+void {0}SetArr{1}({2} *msg, const {4} *arr, int size);
+_bor_inline void {0}Unset{1}({2} *msg)
+{{
+    borMsgUnsetHeaderField(msg, {7}_schema, {8});
+}}
+'''
+        s = s.format(self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     self.name,
+                     TYPES[self.type],
+                     self.msg.name.upper(),
+                     self.name.upper(),
+                     self.msg.name,
+                     self.macro_name)
+        return s
+
+    def cFuncArrImpl(self):
+        s = '''void {0}Add{1}({2} *msg, {3} val)
+{{
+    if (msg->{4}_size == msg->{4}_alloc){{
+        if (msg->{4}_alloc == 0)
+            msg->{4}_alloc = 1;
+        msg->{4}_alloc *= 2;
+        msg->{4} = BOR_REALLOC_ARR(msg->{4}, {3}, msg->{4}_alloc);
+    }}
+    borMsgSetHeaderField(msg, {5}_schema, {6});
+    msg->{4}[msg->{4}_size++] = val;
+}}
+void {0}Remove{1}({2} *msg, int idx)
+{{
+    for (int i = idx + 1; i < msg->{4}_size; ++i)
+        msg->{4}[i - 1] = msg->{4}[i];
+    --msg->{4}_size;
+    if (msg->{4}_size == 0)
+        borMsgUnsetHeaderField(msg, {5}_schema, {6});
+}}
+void {0}SetArr{1}({2} *msg, const {3} *arr, int size)
+{{
+    if (msg->{4}_alloc < size){{
+        msg->{4}_alloc = size;
+        msg->{4} = BOR_REALLOC_ARR(msg->{4}, {3}, msg->{4}_alloc);
+    }}
+    borMsgSetHeaderField(msg, {5}_schema, {6});
+    memcpy(msg->{4}, arr, sizeof({3}) * size);
+    msg->{4}_size = size;
+}}
+'''
+        s = s.format(self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     TYPES[self.type],
+                     self.name,
+                     self.msg.name,
+                     self.macro_name)
+        return s
+
+    def cFuncArrStruct(self):
+        s = '''_bor_inline int {0}Get{1}Size(const {2} *msg)
+{{
+    return msg->{3}_size;
+}}
+_bor_inline int {0}Get{1}Alloc(const {2} *msg)
+{{
+    return msg->{3}_alloc;
+}}
+_bor_inline const {4} *{0}GetElem{1}(const {2} *msg, int idx)
+{{
+    return msg->{3} + idx;
+}}
+
+_bor_inline const {4} *{0}Get{1}(const {2} *msg, int *size)
+{{
+    *size = msg->{3}_size;
+    return msg->{3};
+}}
+#define {5}_{6}_FOR_EACH(MSG, VAL) \\
+    for (int i = 0; i < (MSG)->{3}_size && ((VAL) = (MSG)->{3} + i, 1); ++i)
+
+{4} *{0}Add{1}({2} *msg);
+void {0}Remove{1}({2} *msg, int idx);
+{4} *{0}SetElem{1}({2} *msg, int idx);
+_bor_inline {4} *{0}Set{1}({2} *msg, int *size)
+{{
+    borMsgSetHeaderField(msg, {7}_schema, {8});
+    *size = msg->{3}_size;
+    return msg->{3};
+}}
+_bor_inline void {0}Unset{1}({2} *msg)
+{{
+    borMsgUnsetHeaderField(msg, {7}_schema, {8});
+}}
+'''
+        s = s.format(self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     self.name,
+                     self.struct.struct_name,
+                     self.msg.name.upper(),
+                     self.name.upper(),
+                     self.msg.name,
+                     self.macro_name)
+        return s
+
+    def cFuncArrStructImpl(self):
+        s = '''{3} *{0}Add{1}({2} *msg)
+{{
+    if (msg->{4}_size == msg->{4}_alloc){{
+        if (msg->{4}_alloc == 0)
+            msg->{4}_alloc = 1;
+        msg->{4}_alloc *= 2;
+        msg->{4} = BOR_REALLOC_ARR(msg->{4}, {3}, msg->{4}_alloc);
+        for (int i = msg->{4}_size; i < msg->{4}_alloc; ++i)
+            {5}Init(msg->{4} + i);
+    }}
+    borMsgSetHeaderField(msg, {6}_schema, {7});
+    return msg->{4} + msg->{4}_size++;
+}}
+void {0}Remove{1}({2} *msg, int idx)
+{{
+    {5}Free(msg->{4} + idx);
+    for (int i = idx + 1; i < msg->{4}_size; ++i)
+        msg->{4}[i - 1] = msg->{4}[i];
+    --msg->{4}_size;
+    if (msg->{4}_size == 0)
+        borMsgUnsetHeaderField(msg, {6}_schema, {7});
+}}
+{3} *{0}SetElem{1}({2} *msg, int idx)
+{{
+    borMsgSetHeaderField(msg, {6}_schema, {7});
+    return msg->{4} + idx;
+}}
+'''
+        s = s.format(self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     self.struct.struct_name,
+                     self.name,
+                     self.struct.func_prefix,
+                     self.msg.name,
+                     self.macro_name)
+        return s
+
+    def cFunc(self):
+        if self.is_arr and self.type == 'struct':
+            return self.cFuncArrStruct()
+        if self.is_arr:
+            return self.cFuncArr()
+        if self.type == 'struct':
+            return self.cFuncStruct()
+
+        s = '''_bor_inline {3} {0}Get{1}(const {2} *msg)
+{{
+    return msg->{4};
+}}
+
+_bor_inline void {0}Set{1}({2} *msg, {3} val)
+{{
+    borMsgSetHeaderField(msg, {5}_schema, {6});
+    msg->{4} = val;
+}}
+_bor_inline void {0}Unset{1}({2} *msg)
+{{
+    borMsgUnsetHeaderField(msg, {5}_schema, {6});
+}}
+'''
+        s = s.format(self.msg.func_prefix,
+                     self.func_name,
+                     self.msg.struct_name,
+                     TYPES[self.type],
+                     self.name,
+                     self.msg.name,
+                     self.macro_name)
+        return s
+
+    def cFuncImpl(self):
+        if self.is_arr and self.type == 'struct':
+            return self.cFuncArrStructImpl()
+        if self.is_arr:
+            return self.cFuncArrImpl()
+        return ''
+
+class Msg(object):
     def __init__(self, name):
         self.name = name
         self.struct_name = name + '_t'
+        self.func_prefix = toCamelCase(name)
         self.members = []
         self.before = ''
         self.after = ''
@@ -177,7 +439,7 @@ class Struct(object):
             print('Error: Exceeded maximal number of struct members ({0})!'
                     .format(MAX_MEMBERS), file = sys.stderr)
             sys.exit(-1)
-        m = Member(len(self.members), name, type, default, comment)
+        m = Member(self, len(self.members), name, type, default, comment)
         self.members += [m]
 
     def finalize(self, before):
@@ -210,7 +472,7 @@ class Struct(object):
         fout.write(';\n')
 
     def genCSchema(self, fout):
-        fields = [m.cSchema(self) for m in self.members]
+        fields = [m.cSchema() for m in self.members]
         fields = ['    ' + x for x in fields]
         fields = ',\n'.join(fields)
 
@@ -228,11 +490,55 @@ class Struct(object):
         fout.write('\n')
 
     def genCHeaderMacros(self, fout):
-        f = [m.cHeaderMacro(i, self.name) for i, m in enumerate(self.members)]
+        f = [m.cHeaderMacro() for m in self.members]
         fout.write('\n'.join(f))
         fout.write('\n\n')
 
-def parseStructs():
+    def genCFunc(self, fout):
+        s = '''
+_bor_inline void {0}Init({1} *msg)
+{{
+    borMsgInit(msg, {2}_schema);
+}}
+_bor_inline void {0}Free({1} *msg)
+{{
+    borMsgFree(msg, {2}_schema);
+}}
+_bor_inline {1} *{0}New(void)
+{{
+    return borMsgNew({2}_schema);
+}}
+_bor_inline void {0}Del({1} *msg)
+{{
+    borMsgDel(msg, {2}_schema);
+}}
+_bor_inline void {0}SetHeader({1} *msg)
+{{
+    borMsgSetHeader(msg, {2}_schema);
+}}
+_bor_inline int {0}Encode(const {1} *msg, unsigned char **buf, int *bufsize)
+{{
+    return borMsgEncode(msg, {2}_schema, buf, bufsize);
+}}
+_bor_inline int {0}Decode(unsigned char *buf, int bufsize, {1} *msg)
+{{
+    return borMsgDecode(buf, bufsize, msg, {2}_schema);
+}}
+'''
+        s = s.format(self.func_prefix,
+                     self.struct_name,
+                     self.name)
+        for m in self.members:
+            s += m.cFunc()
+        fout.write(s)
+
+    def genCFuncImpl(self, fout):
+        s = ''
+        for m in self.members:
+            s += m.cFuncImpl()
+        fout.write(s)
+
+def parseMsgs():
     structs = []
     s = None
     comment_line = None
@@ -251,7 +557,7 @@ def parseStructs():
             sline = line.strip().split()
 
         if len(sline) == 3 and sline[0] == 'msg' and sline[-1] == '{':
-            s = Struct(sline[1])
+            s = Msg(sline[1])
             structs += [s]
             before = linebuf
             linebuf = ''
@@ -288,6 +594,9 @@ def genCH(structs, fout):
         s.genCStruct(fout)
         s.genCHeaderMacros(fout)
 
+    for s in structs:
+        s.genCFunc(fout)
+
 def genCC(structs, fout):
     for s in structs:
         s.genCDefault(fout)
@@ -296,13 +605,17 @@ def genCC(structs, fout):
     for s in structs:
         s.genCSchema(fout)
 
+    fout.write('\n')
+    for s in structs:
+        s.genCFuncImpl(fout)
+
 if __name__ == '__main__':
     opts = ['--h', '--c']
     if len(sys.argv) != 2 or sys.argv[1] not in opts:
         print('Usage: {0} [--h|--c] <in.sch'.format(sys.argv[0]))
         sys.exit(-1)
 
-    structs = parseStructs()
+    structs = parseMsgs()
     if sys.argv[1] == '--h':
         genCH(structs, sys.stdout)
     if sys.argv[1] == '--c':

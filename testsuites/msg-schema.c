@@ -140,9 +140,9 @@ TEST(testMsgSchemaHeader)
     assertEquals(msg.subs[1].__msg_header, 0x5);
 
 
-    borMsgSetHeaderField(&msg, test_msg_schema, BOR_MSG_HEADER_test_msg_lval);
+    borMsgSetHeaderField(&msg, test_msg_schema, TEST_MSG_LVAL);
     assertEquals(msg.__msg_header, 0x1f);
-    borMsgUnsetHeaderField(&msg, test_msg_schema, BOR_MSG_HEADER_test_msg_dval);
+    borMsgUnsetHeaderField(&msg, test_msg_schema, TEST_MSG_DVAL);
     assertEquals(msg.__msg_header, 0x1d);
     borMsgFree(&msg, test_msg_schema);
 }

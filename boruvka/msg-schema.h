@@ -19,6 +19,7 @@
 
 #include <boruvka/core.h>
 #include <boruvka/compiler.h>
+#include <boruvka/alloc.h>
 
 #ifdef __cplusplus
 extern "C" {
