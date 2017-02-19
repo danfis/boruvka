@@ -35,6 +35,7 @@ static bor_lp_t *tspCreate(const double *dist, int num_cities, unsigned flags)
         }
     }
 
+    borLPSetVarRange(lp, ui, 0., 0.);
     for (i = 0; i < num_cities; ++i){
         for (j = 0; j < num_cities; ++j){
             if (i == j || i < 1 || j < 1)
@@ -84,6 +85,7 @@ static void tspTest(const double *dist, int num_cities, unsigned flags)
                 assertEquals((int)(objval[i] + 1E-8),
                              (int)(objval[j] + 1E-8));
                 for (k = 0; k < num_cities * num_cities + num_cities; ++k){
+                    //fprintf(stderr, "obj[%d]: %f %f\n", k, obj[i][k], obj[j][k]);
                     assertEquals((int)(obj[i][k] + 1E-8),
                                  (int)(obj[j][k] + 1E-8));
                 }

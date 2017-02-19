@@ -70,6 +70,9 @@ static bor_lp_t *new(int rows, int cols, unsigned flags)
         grbError(lp);
     }
 
+    if (GRBsetintparam(lp->env, "OutputFlag", 0) != 0)
+        grbError(lp);
+
     num_threads = BOR_LP_GET_NUM_THREADS(flags);
     if (num_threads == BOR_LP_NUM_THREADS_AUTO){
         if (GRBsetintparam(lp->env, "Threads", 0) != 0)
@@ -120,7 +123,7 @@ static void setVarRange(bor_lp_t *_lp, int i, double lb, double ub)
     lp_t *lp = LP(_lp);
     if (GRBsetdblattrelement(lp->model, "LB", i, lb) != 0)
         grbError(lp);
-    if (GRBsetdblattrelement(lp->model, "UP", i, ub) != 0)
+    if (GRBsetdblattrelement(lp->model, "UB", i, ub) != 0)
         grbError(lp);
 }
 
