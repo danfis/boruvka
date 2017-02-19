@@ -69,7 +69,6 @@ OBJS += msg-schema
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
-OBJS += lp-glpk
 OBJS += lp-gurobi
 
 ifeq '$(USE_OPENCL)' 'yes'
@@ -100,10 +99,6 @@ endif
 ifeq '$(USE_LPSOLVE)' 'yes'
   CFLAGS  += $(LPSOLVE_CFLAGS)
   LDFLAGS += $(LPSOLVE_LDFLAGS)
-endif
-ifeq '$(USE_GLPK)' 'yes'
-  CFLAGS  += $(GLPK_CFLAGS)
-  LDFLAGS += $(GLPK_LDFLAGS)
 endif
 
 
@@ -287,8 +282,5 @@ help:
 	@echo "    LPSOLVE_CFLAGS    = $(LPSOLVE_CFLAGS)"
 	@echo "    LPSOLVE_LDFLAGS   = $(LPSOLVE_LDFLAGS)"
 	@echo "    USE_LPSOLVE       = $(USE_LPSOLVE)"
-	@echo "    GLPK_CFLAGS       = $(GLPK_CFLAGS)"
-	@echo "    GLPK_LDFLAGS      = $(GLPK_LDFLAGS)"
-	@echo "    USE_GLPK          = $(USE_GLPK)"
 
 .PHONY: all clean check check-valgrind help doc install analyze examples

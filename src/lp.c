@@ -19,32 +19,29 @@
 #include "boruvka/lp.h"
 #include "_lp.h"
 
+#define SOLVER(flags) ((flags) & 0xf0u)
+
+
 int borLPSolverAvailable(unsigned solver)
 {
-    if (solver & BOR_LP_CPLEX){
+    if (SOLVER(solver) == BOR_LP_CPLEX){
 #ifdef BOR_CPLEX
         return 1;
 #else /* BOR_CPLEX */
         return 0;
 #endif /* BOR_CPLEX */
-    }else if (solver & BOR_LP_GUROBI){
+    }else if (SOLVER(solver) == BOR_LP_GUROBI){
 #ifdef BOR_GUROBI
         return 1;
 #else /* BOR_GUROBI */
         return 0;
 #endif /* BOR_GUROBI */
-    }else if (solver & BOR_LP_LPSOLVE){
+    }else if (SOLVER(solver) == BOR_LP_LPSOLVE){
 #ifdef BOR_LPSOLVE
         return 1;
 #else /* BOR_LPSOLVE */
         return 0;
 #endif /* BOR_LPSOLVE */
-    }else if (solver & BOR_LP_GLPK){
-#ifdef BOR_GLPK
-        return 1;
-#else /* BOR_GLPK */
-        return 0;
-#endif /* BOR_GLPK */
     }
 #ifdef BOR_CPLEX
         return 1;
@@ -55,11 +52,7 @@ int borLPSolverAvailable(unsigned solver)
 #ifdef BOR_LPSOLVE
         return 1;
 #else /* BOR_LPSOLVE */
-#ifdef BOR_GLPK
-        return 1;
-#else /* BOR_GLPK */
         return 0;
-#endif /* BOR_GLPK */
 #endif /* BOR_LPSOLVE */
 #endif /* BOR_GUROBI */
 #endif /* BOR_CPLEX */
@@ -67,14 +60,24 @@ int borLPSolverAvailable(unsigned solver)
 
 bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
 {
-    if (flags & BOR_LP_CPLEX){
+    if (SOLVER(flags) == BOR_LP_CPLEX){
+#ifdef BOR_CPLEX
         return bor_lp_cplex.new(rows, cols, flags);
-    }else if (flags & BOR_LP_GUROBI){
+#else /* BOR_CPLEX */
+        return bor_lp_not_available.new(rows, cols, flags);
+#endif /* BOR_CPLEX */
+    }else if (SOLVER(flags) == BOR_LP_GUROBI){
+#ifdef BOR_GUROBI
         return bor_lp_gurobi.new(rows, cols, flags);
-    }else if (flags & BOR_LP_LPSOLVE){
+#else /* BOR_GUROBI */
+        return bor_lp_not_available.new(rows, cols, flags);
+#endif /* BOR_GUROBI */
+    }else if (SOLVER(flags) == BOR_LP_LPSOLVE){
+#ifdef BOR_LPSOLVE
         return bor_lp_lpsolve.new(rows, cols, flags);
-    }else if (flags & BOR_LP_GLPK){
-        return bor_lp_glpk.new(rows, cols, flags);
+#else /* BOR_LPSOLVE */
+        return bor_lp_not_available.new(rows, cols, flags);
+#endif /* BOR_LPSOLVE */
     }
 
 #ifdef BOR_CPLEX
@@ -86,11 +89,7 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
 #ifdef BOR_LPSOLVE
     return bor_lp_lpsolve.new(rows, cols, flags);
 #else /* BOR_LPSOLVE */
-#ifdef BOR_GLPK
-    return bor_lp_glpk.new(rows, cols, flags);
-#else /* BOR_GLPK */
     return bor_lp_not_available.new(rows, cols, flags);
-#endif /* BOR_GLPK */
 #endif /* BOR_LPSOLVE */
 #endif /* BOR_GUROBI */
 #endif /* BOR_CPLEX */

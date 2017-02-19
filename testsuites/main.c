@@ -42,6 +42,7 @@
 #endif /* BOR_HDF5 */
 #include "scc.h"
 #include "msg-schema.h"
+#include "lp.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -87,6 +88,7 @@ TEST_SUITES {
 #endif /* BOR_HDF5 */
     TEST_SUITE_ADD(TSSCC),
     TEST_SUITE_ADD(TSMsgSchema),
+    TEST_SUITE_ADD(TSLP),
 
     TEST_SUITES_CLOSURE
 };

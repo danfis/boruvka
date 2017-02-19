@@ -51,6 +51,7 @@ static bor_lp_t *new(int rows, int cols, unsigned flags)
     lp_t *lp;
 
     lp = BOR_ALLOC(lp_t);
+    lp->cls.cls = &bor_lp_lpsolve;
     lp->lp = make_lp(rows, cols);
     if ((flags & 0x1u) == BOR_LP_MIN){
         set_minim(lp->lp);

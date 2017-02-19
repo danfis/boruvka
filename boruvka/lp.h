@@ -32,7 +32,6 @@ typedef struct _bor_lp_t bor_lp_t;
 #define BOR_LP_CPLEX   0x0010u
 #define BOR_LP_GUROBI  0x0020u
 #define BOR_LP_LPSOLVE 0x0030u
-#define BOR_LP_GLPK    0x0040u
 
 /**
  * Sets the number of parallel threads that will be invoked by a

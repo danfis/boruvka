@@ -18,6 +18,5 @@ ifdef(`CD_TIME_MEASURE', `#define BOR_CD_TIME_MEASURE')
 ifdef(`USE_CPLEX', `#define BOR_CPLEX')
 ifdef(`USE_GUROBI', `#define BOR_GUROBI')
 ifdef(`USE_LPSOLVE', `#define BOR_LPSOLVE')
-ifdef(`USE_GLPK', `#define BOR_GLPK')
 
 #endif /* __BOR_CONFIG_H__ */

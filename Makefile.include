@@ -196,17 +196,6 @@ else
   endif
 endif
 
-GLPK_CFLAGS ?=
-GLPK_LDFLAGS ?=
-ifneq '$(GLPK_CFLAGS)$(GLPK_LDFLAGS)' ''
-  USE_GLPK := yes
-else
-  ifeq '$(shell if test -f /usr/lib/libglpk.so; then echo "yes"; fi;)' 'yes'
-    GLPK_LDFLAGS = -lglpk
-    USE_GLPK := yes
-  endif
-endif
-
 ifeq '$(USE_CPLEX)' 'yes'
   CONFIG_FLAGS += -DUSE_CPLEX
 endif
@@ -215,9 +204,6 @@ ifeq '$(USE_GUROBI)' 'yes'
 endif
 ifeq '$(USE_LPSOLVE)' 'yes'
   CONFIG_FLAGS += -DUSE_LPSOLVE
-endif
-ifeq '$(USE_GLPK)' 'yes'
-  CONFIG_FLAGS += -DUSE_GLPK
 endif
 
 

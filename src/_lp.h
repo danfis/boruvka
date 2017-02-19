@@ -17,6 +17,8 @@
 #ifndef __BOR__LP_H__
 #define __BOR__LP_H__
 
+#include "boruvka/config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -49,10 +51,15 @@ struct _bor_lp_t {
 };
 
 extern bor_lp_cls_t bor_lp_not_available;
+#ifdef BOR_CPLEX
 extern bor_lp_cls_t bor_lp_cplex;
+#endif /* BOR_CPLEX */
+#ifdef BOR_GUROBI
 extern bor_lp_cls_t bor_lp_gurobi;
+#endif /* BOR_GUROBI */
+#ifdef BOR_LPSOLVE
 extern bor_lp_cls_t bor_lp_lpsolve;
-extern bor_lp_cls_t bor_lp_glpk;
+#endif /* BOR_LPSOLVE */
 
 #ifdef __cplusplus
 }

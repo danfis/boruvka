@@ -56,11 +56,13 @@ static void grbError(lp_t *lp)
 static bor_lp_t *new(int rows, int cols, unsigned flags)
 {
     lp_t *lp;
-    int sense, num_threads;
+    int ret, sense, num_threads;
 
     lp = BOR_ALLOC(lp_t);
-    if (GRBloadenv(&lp->env, NULL) != 0){
-        fprintf(stderr, "LP Gurobi Error: Could not create environment!\n");
+    lp->cls.cls = &bor_lp_gurobi;
+    if ((ret = GRBloadenv(&lp->env, NULL)) != 0){
+        fprintf(stderr, "LP Gurobi Error: Could not create environment"
+                        " (error-code: %d)!\n", ret);
         exit(-1);
     }
     if (GRBnewmodel(lp->env, &lp->model, NULL, cols,
@@ -264,6 +266,4 @@ bor_lp_cls_t bor_lp_gurobi = {
     lpSolve,
     lpWrite,
 };
-#else /* BOR_GUROBI */
-bor_lp_cls_t bor_lp_gurobi = bor_lp_not_available;
 #endif /* BOR_GUROBI */
