@@ -70,6 +70,7 @@ OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
 OBJS += lp-glpk
+OBJS += lp-gurobi
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl

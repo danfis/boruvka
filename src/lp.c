@@ -70,7 +70,7 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
     if (flags & BOR_LP_CPLEX){
         return bor_lp_cplex.new(rows, cols, flags);
     }else if (flags & BOR_LP_GUROBI){
-        return NULL;
+        return bor_lp_gurobi.new(rows, cols, flags);
     }else if (flags & BOR_LP_LPSOLVE){
         return bor_lp_lpsolve.new(rows, cols, flags);
     }else if (flags & BOR_LP_GLPK){
@@ -81,7 +81,7 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
     return bor_lp_cplex.new(rows, cols, flags);
 #else /* BOR_CPLEX */
 #ifdef BOR_GUROBI
-    return NULL;
+    return bor_lp_gurobi.new(rows, cols, flags);
 #else /* BOR_GUROBI */
 #ifdef BOR_LPSOLVE
     return bor_lp_lpsolve.new(rows, cols, flags);
