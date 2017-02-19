@@ -69,6 +69,7 @@ OBJS += msg-schema
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
+OBJS += lp-glpk
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl

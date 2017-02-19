@@ -74,7 +74,7 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
     }else if (flags & BOR_LP_LPSOLVE){
         return bor_lp_lpsolve.new(rows, cols, flags);
     }else if (flags & BOR_LP_GLPK){
-        return NULL;
+        return bor_lp_glpk.new(rows, cols, flags);
     }
 
 #ifdef BOR_CPLEX
@@ -87,7 +87,7 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags)
     return bor_lp_lpsolve.new(rows, cols, flags);
 #else /* BOR_LPSOLVE */
 #ifdef BOR_GLPK
-    return NULL;
+    return bor_lp_glpk.new(rows, cols, flags);
 #else /* BOR_GLPK */
     return bor_lp_not_available.new(rows, cols, flags);
 #endif /* BOR_GLPK */
