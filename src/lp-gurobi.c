@@ -56,7 +56,7 @@ static void grbError(lp_t *lp)
 static bor_lp_t *new(int rows, int cols, unsigned flags)
 {
     lp_t *lp;
-    int sense;
+    int sense, num_threads;
 
     lp = BOR_ALLOC(lp_t);
     if (GRBloadenv(&lp->env, NULL) != 0){
@@ -66,6 +66,18 @@ static bor_lp_t *new(int rows, int cols, unsigned flags)
     if (GRBnewmodel(lp->env, &lp->model, NULL, cols,
                     NULL, NULL, NULL, NULL, NULL) != 0){
         grbError(lp);
+    }
+
+    num_threads = BOR_LP_GET_NUM_THREADS(flags);
+    if (num_threads == BOR_LP_NUM_THREADS_AUTO){
+        if (GRBsetintparam(lp->env, "Threads", 0) != 0)
+            grbError(lp);
+    }else if (num_threads == 0){
+        if (GRBsetintparam(lp->env, "Threads", 1) != 0)
+            grbError(lp);
+    }else{
+        if (GRBsetintparam(lp->env, "Threads", num_threads) != 0)
+            grbError(lp);
     }
 
     if (rows > 0){

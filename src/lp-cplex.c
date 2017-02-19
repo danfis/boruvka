@@ -24,9 +24,6 @@
 #ifdef BOR_CPLEX
 # include <ilcplex/cplex.h>
 
-# define CPLEX_NUM_THREADS(flags) (((flags) >> 8u) & 0x3fu)
-# define CPLEX_NUM_THREADS_AUTO 0x3fu
-
 struct _lp_t {
     bor_lp_t cls;
     CPXENVptr env;
@@ -60,8 +57,8 @@ static bor_lp_t *new(int rows, int cols, unsigned flags)
         cplexErr(lp, st, "Could not open CPLEX environment");
 
     // Set number of processing threads
-    num_threads = CPLEX_NUM_THREADS(flags);
-    if (num_threads == CPLEX_NUM_THREADS_AUTO){
+    num_threads = BOR_LP_GET_NUM_THREADS(flags);
+    if (num_threads == BOR_LP_NUM_THREADS_AUTO){
         num_threads = 0;
     }else if (num_threads == 0){
         num_threads = 1;

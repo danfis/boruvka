@@ -21,6 +21,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+# define BOR_LP_GET_NUM_THREADS(flags) (((flags) >> 8u) & 0x3fu)
+# define BOR_LP_NUM_THREADS_AUTO 0x3fu
+
 struct _bor_lp_cls_t {
     int solver_id;
     const char *solver_name;
