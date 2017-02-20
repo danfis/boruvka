@@ -79,6 +79,14 @@ static void tspTest(const double *dist, int num_cities, unsigned flags)
         if (!avail[i])
             continue;
         lp = tspCreate(dist, num_cities, flags | solver[i]);
+        assertEquals(borLPSolverID(lp), solver[i]);
+        if (solver[i] == BOR_LP_CPLEX){
+            assertTrue(strcmp(borLPSolverName(lp), "cplex") == 0);
+        }else if (solver[i] == BOR_LP_GUROBI){
+            assertTrue(strcmp(borLPSolverName(lp), "gurobi") == 0);
+        }else if (solver[i] == BOR_LP_LPSOLVE){
+            assertTrue(strcmp(borLPSolverName(lp), "lpsolve") == 0);
+        }
         //borLPWrite(lp, "test.lp");
         ret[i] = borLPSolve(lp, objval + i, obj[i]);
         borLPDel(lp);

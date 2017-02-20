@@ -100,6 +100,16 @@ void borLPDel(bor_lp_t *lp)
     lp->cls->del(lp);
 }
 
+const char *borLPSolverName(const bor_lp_t *lp)
+{
+    return lp->cls->solver_name;
+}
+
+int borLPSolverID(const bor_lp_t *lp)
+{
+    return lp->cls->solver_id;
+}
+
 void borLPSetObj(bor_lp_t *lp, int i, double coef)
 {
     lp->cls->set_obj(lp, i, coef);

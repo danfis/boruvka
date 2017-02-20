@@ -70,6 +70,17 @@ bor_lp_t *borLPNew(int rows, int cols, unsigned flags);
 void borLPDel(bor_lp_t *lp);
 
 /**
+ * Returns name of the current LP solver.
+ */
+const char *borLPSolverName(const bor_lp_t *lp);
+
+/**
+ * Returns one of BOR_LP_{CPLEX,GUROBI,LPSOLVE} constants according to the
+ * current solver.
+ */
+int borLPSolverID(const bor_lp_t *lp);
+
+/**
  * Sets objective coeficient for i'th variable.
  */
 void borLPSetObj(bor_lp_t *lp, int i, double coef);
