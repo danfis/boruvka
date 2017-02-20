@@ -126,6 +126,23 @@ void borLPDelRows(bor_lp_t *lp, int begin, int end);
 int borLPNumRows(const bor_lp_t *lp);
 
 /**
+ * Adds cnt columns to the model.
+ */
+void borLPAddCols(bor_lp_t *lp, int cnt);
+
+/**
+ * Deletes columns with indexes between begin and end including both
+ * limits, i.e., first deleted column has index {begin} the last deleted
+ * column has index {end}.
+ */
+void borLPDelCols(bor_lp_t *lp, int begin, int end);
+
+/**
+ * Returns number of columns in model.
+ */
+int borLPNumCols(const bor_lp_t *lp);
+
+/**
  * Solves (I)LP problem.
  * Return 0 if problem was solved, -1 if the problem has no solution.
  * Objective value is returned via argument val and values of each variable

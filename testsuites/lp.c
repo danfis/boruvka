@@ -11,15 +11,25 @@ static bor_lp_t *tspCreate(const double *dist, int num_cities, unsigned flags)
     char sense;
     double rhs;
 
-    lp = borLPNew(0, num_cities * num_cities + num_cities, flags | BOR_LP_MIN);
+    lp = borLPNew(0, num_cities * num_cities, flags | BOR_LP_MIN);
     for (i = 0; i < num_cities * num_cities; ++i){
         borLPSetVarBinary(lp, i);
         borLPSetObj(lp, i, dist[i]);
     }
+    assertEquals(borLPNumCols(lp), num_cities * num_cities);
+    assertEquals(borLPNumRows(lp), 0);
+
+    borLPAddCols(lp, num_cities);
+    assertEquals(borLPNumCols(lp), num_cities * num_cities + num_cities);
     for (i = ui; i < ui + num_cities; ++i){
         borLPSetVarInt(lp, i);
         borLPSetVarRange(lp, i, 0., 1e10);
     }
+    borLPAddCols(lp, num_cities);
+    assertEquals(borLPNumCols(lp), num_cities * num_cities + 2 * num_cities);
+    borLPDelCols(lp, num_cities * num_cities + num_cities,
+                     num_cities * num_cities + 2 * num_cities - 1);
+    assertEquals(borLPNumCols(lp), num_cities * num_cities + num_cities);
 
     for (j = 0; j < num_cities; ++j){
         rhs = 1.;

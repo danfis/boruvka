@@ -202,6 +202,32 @@ static int numRows(const bor_lp_t *_lp)
     return CPXgetnumrows(lp->env, lp->lp);
 }
 
+static void addCols(bor_lp_t *_lp, int cnt)
+{
+    lp_t *lp = LP(_lp);
+    int st;
+
+    st = CPXnewcols(lp->env, lp->lp, cnt, NULL, NULL, NULL, NULL, NULL);
+    if (st != 0)
+        cplexErr(lp, st, "Could not add new columns.");
+}
+
+static void delCols(bor_lp_t *_lp, int begin, int end)
+{
+    lp_t *lp = LP(_lp);
+    int st;
+
+    st = CPXdelcols(lp->env, lp->lp, begin, end);
+    if (st != 0)
+        cplexErr(lp, st, "Could not delete columns.");
+}
+
+static int numCols(const bor_lp_t *_lp)
+{
+    lp_t *lp = LP(_lp);
+    return CPXgetnumcols(lp->env, lp->lp);
+}
+
 static int solve(bor_lp_t *_lp, double *val, double *obj)
 {
     lp_t *lp = LP(_lp);
@@ -256,6 +282,9 @@ bor_lp_cls_t bor_lp_cplex = {
     addRows,
     delRows,
     numRows,
+    addCols,
+    delCols,
+    numCols,
     solve,
     cpxWrite,
 };

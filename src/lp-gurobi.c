@@ -207,6 +207,43 @@ static int numRows(const bor_lp_t *_lp)
     return rows;
 }
 
+static void addCols(bor_lp_t *_lp, int cnt)
+{
+    lp_t *lp = LP(_lp);
+
+    if (GRBaddvars(lp->model, cnt, 0, NULL, NULL, NULL,
+                   NULL, NULL, NULL, NULL, NULL) != 0){
+        grbError(lp);
+    }
+    GRBupdatemodel(lp->model);
+}
+
+static void delCols(bor_lp_t *_lp, int begin, int end)
+{
+    lp_t *lp = LP(_lp);
+    int i, j, *ind;
+
+    ind = BOR_ALLOC_ARR(int, end - begin + 1);
+    for (j = 0, i = begin; i <= end; ++i, ++j)
+        ind[j] = i;
+
+    if (GRBdelvars(lp->model, end - begin + 1, ind) != 0){
+        BOR_FREE(ind);
+        grbError(lp);
+    }
+    GRBupdatemodel(lp->model);
+    BOR_FREE(ind);
+}
+
+static int numCols(const bor_lp_t *_lp)
+{
+    lp_t *lp = LP(_lp);
+    int cols;
+    if (GRBgetintattr(lp->model, "NumVars", &cols) != 0)
+        grbError(lp);
+    return cols;
+}
+
 static int lpSolve(bor_lp_t *_lp, double *val, double *obj)
 {
     lp_t *lp = LP(_lp);
@@ -266,6 +303,9 @@ bor_lp_cls_t bor_lp_gurobi = {
     addRows,
     delRows,
     numRows,
+    addCols,
+    delCols,
+    numCols,
     lpSolve,
     lpWrite,
 };

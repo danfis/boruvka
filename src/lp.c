@@ -150,6 +150,21 @@ int borLPNumRows(const bor_lp_t *lp)
     return lp->cls->num_rows(lp);
 }
 
+void borLPAddCols(bor_lp_t *lp, int cnt)
+{
+    lp->cls->add_cols(lp, cnt);
+}
+
+void borLPDelCols(bor_lp_t *lp, int begin, int end)
+{
+    lp->cls->del_cols(lp, begin, end);
+}
+
+int borLPNumCols(const bor_lp_t *lp)
+{
+    return lp->cls->num_cols(lp);
+}
+
 int borLPSolve(bor_lp_t *lp, double *val, double *obj)
 {
     return lp->cls->solve(lp, val, obj);
@@ -192,6 +207,12 @@ static void noDelRows(bor_lp_t *lp, int begin, int end)
 { noSolverExit(); }
 static int noNumRows(const bor_lp_t *lp)
 { noSolverExit(); }
+static void noAddCols(bor_lp_t *lp, int cnt)
+{ noSolverExit(); }
+static void noDelCols(bor_lp_t *lp, int begin, int end)
+{ noSolverExit(); }
+static int noNumCols(const bor_lp_t *lp)
+{ noSolverExit(); }
 static int noSolve(bor_lp_t *lp, double *val, double *obj)
 { noSolverExit(); }
 static void noWrite(bor_lp_t *lp, const char *fn)
@@ -211,6 +232,9 @@ bor_lp_cls_t bor_lp_not_available = {
     noAddRows,
     noDelRows,
     noNumRows,
+    noAddCols,
+    noDelCols,
+    noNumCols,
     noSolve,
     noWrite,
 };

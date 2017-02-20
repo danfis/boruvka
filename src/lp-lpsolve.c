@@ -144,6 +144,33 @@ static int numRows(const bor_lp_t *_lp)
     return get_Nrows(lp->lp);
 }
 
+static void addCols(bor_lp_t *_lp, int cnt)
+{
+    lp_t *lp = LP(_lp);
+    int i;
+
+    for (i = 0; i < cnt; ++i)
+        add_column(lp->lp, NULL);
+}
+
+static void delCols(bor_lp_t *_lp, int begin, int end)
+{
+    lp_t *lp = LP(_lp);
+    int i, size;
+
+    size = end - begin + 1;
+    size = BOR_MIN(size, get_Ncolumns(lp->lp));
+    for (i = 0; i < size; ++i){
+        del_column(lp->lp, begin);
+    }
+}
+
+static int numCols(const bor_lp_t *_lp)
+{
+    lp_t *lp = LP(_lp);
+    return get_Ncolumns(lp->lp);
+}
+
 static int lpSolve(bor_lp_t *_lp, double *val, double *obj)
 {
     lp_t *lp = LP(_lp);
@@ -190,6 +217,9 @@ bor_lp_cls_t bor_lp_lpsolve = {
     addRows,
     delRows,
     numRows,
+    addCols,
+    delCols,
+    numCols,
     lpSolve,
     lpWrite,
 };

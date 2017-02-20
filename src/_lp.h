@@ -41,6 +41,9 @@ struct _bor_lp_cls_t {
     void (*add_rows)(bor_lp_t *lp, int cnt, const double *rhs, const char *sense);
     void (*del_rows)(bor_lp_t *lp, int begin, int end);
     int (*num_rows)(const bor_lp_t *lp);
+    void (*add_cols)(bor_lp_t *lp, int cnt);
+    void (*del_cols)(bor_lp_t *lp, int begin, int end);
+    int (*num_cols)(const bor_lp_t *lp);
     int (*solve)(bor_lp_t *lp, double *val, double *obj);
     void (*write)(bor_lp_t *lp, const char *fn);
 };
