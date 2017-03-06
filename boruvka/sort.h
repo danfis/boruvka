@@ -86,6 +86,27 @@ void borInsertSort(void *base, size_t nmemb, size_t size,
                    bor_sort_cmp cmp, void *arg);
 void borInsertSortInt(int *base, size_t nmemb);
 
+/**
+ * BSD heapsort.
+ */
+void borHeapSort(void *base, size_t nmemb, size_t size,
+                 bor_sort_cmp cmp, void *arg);
+
+/**
+ * BSD mergesort.
+ * Requires size to be at least "sizeof(void *) / 2".
+ */
+int borMergeSort(void *base, size_t nmemb, size_t size,
+                 bor_sort_cmp cmp, void *carg);
+
+/**
+ * BSD kqsort.
+ * Uses recursion.
+ */
+void borQSort(void *base, size_t nmemb, size_t size,
+              bor_sort_cmp cmp, void *carg);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
