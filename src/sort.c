@@ -15,6 +15,7 @@
  */
 
 #include <boruvka/sort.h>
+#include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
 
@@ -337,3 +338,30 @@ void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
 }
 
 /**** INSERT SORT LIST END ****/
+
+void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
+                  bor_sort_key get_key, void *arg)
+{
+    int range = to - from + 1;
+    int cnt[range];
+    unsigned char *cur, *end, *tmp;
+    int i, key;
+
+    bzero(cnt, sizeof(int) * range);
+    for (cur = base, end = cur + (nmemb * size); cur != end; cur += size){
+        key = get_key(cur, arg) - from;
+        ++cnt[key];
+    }
+
+    for (i = 1; i < range; ++i)
+        cnt[i] += cnt[i - 1];
+
+    tmp = BOR_ALLOC_ARR(unsigned char, nmemb * size);
+    for (cur = base, end = cur + (nmemb * size); cur != end; cur += size){
+        key = get_key(cur, arg) - from;
+        --cnt[key];
+        memcpy(tmp + (cnt[key] * size), cur, size);
+    }
+    memcpy(base, tmp, nmemb * size);
+    BOR_FREE(tmp);
+}

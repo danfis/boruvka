@@ -61,6 +61,19 @@ typedef int (*bor_list_sort_lt)(bor_list_t *l1, bor_list_t *l2, void *data);
  */
 void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data);
 
+/**
+ * Function returning key for counting sort.
+ */
+typedef int (*bor_sort_key)(const void *, void *arg);
+
+/**
+ * Counting sort. Keys has to be between from and to including from and to.
+ * The range should be small enough to fit on stack.
+ */
+void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
+                  bor_sort_key key, void *arg);
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
