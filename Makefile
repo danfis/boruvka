@@ -37,6 +37,7 @@ OBJS += sort
 OBJS += heapsort
 OBJS += mergesort
 OBJS += qsort
+OBJS += listsort
 OBJS += pc pc-internal
 OBJS += gug
 OBJS += nearest-linear

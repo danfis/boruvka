@@ -107,6 +107,17 @@ void borQSort(void *base, size_t nmemb, size_t size,
               bor_sort_cmp cmp, void *carg);
 
 
+/**
+ * Compare function for list sort functions.
+ */
+typedef int (*bor_sort_list_cmp)(const bor_list_t *,
+                                 const bor_list_t *, void *arg);
+
+/**
+ * List sort based on merge sort (from BSD).
+ */
+void borListSort(bor_list_t *list, bor_sort_list_cmp cmp, void *carg);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
