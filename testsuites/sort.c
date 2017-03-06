@@ -119,3 +119,70 @@ TEST(sortCount)
     testSortCountRS(&rnd, 1000, 0, 100);
     testSortCountRS(&rnd, 10000, -15, 132);
 }
+
+static int cmpInt(const void *a, const void *b, void *_)
+{
+    return *(int *)a - *(int *)b;
+}
+
+static int cmpIntX(const void *a, const void *b, void *d)
+{
+    assertEquals((long)d, 12345L);
+    return cmpInt(a, b, NULL);
+}
+
+static void testInsertSortInt(bor_rand_t *rnd, int size, int from, int to)
+{
+    int *arr;
+    int i;
+
+    arr = BOR_ALLOC_ARR(int, size);
+    for (i = 0; i < size; ++i){
+        arr[i] = borRand(rnd, from, to);
+    }
+
+    borInsertSort(arr, size, sizeof(int), cmpInt, NULL);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1] <= arr[i]);
+    }
+
+    BOR_FREE(arr);
+}
+
+static void testInsertSortRS(bor_rand_t *rnd, int size, int from, int to)
+{
+    struct rs_t *arr;
+    int i;
+
+    arr = BOR_ALLOC_ARR(struct rs_t, size);
+    for (i = 0; i < size; ++i){
+        arr[i].key = borRand(rnd, from, to);
+        arr[i].i = arr[i].key;
+    }
+
+    borInsertSort(arr, size, sizeof(struct rs_t), cmpIntX, (void *)12345);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1].i <= arr[i].i);
+    }
+
+    BOR_FREE(arr);
+}
+
+TEST(sortInsert)
+{
+    bor_rand_t rnd;
+    borRandInit(&rnd);
+    testInsertSortInt(&rnd, 1, -10, 5);
+    testInsertSortInt(&rnd, 2, -10, 5);
+    testInsertSortInt(&rnd, 3, -10, 5);
+    testInsertSortInt(&rnd, 100, -10, 5);
+    testInsertSortInt(&rnd, 1000, 0, 100);
+    testInsertSortInt(&rnd, 1000, -15, 132);
+
+    testInsertSortRS(&rnd, 1, -10, 5);
+    testInsertSortRS(&rnd, 2, -10, 5);
+    testInsertSortRS(&rnd, 3, -10, 5);
+    testInsertSortRS(&rnd, 100, -10, 5);
+    testInsertSortRS(&rnd, 1000, 0, 100);
+    testInsertSortRS(&rnd, 1000, -15, 132);
+}

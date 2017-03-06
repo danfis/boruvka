@@ -74,6 +74,17 @@ void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
                   bor_sort_key key, void *arg);
 
 
+/**
+ * Compare function for sort functions.
+ */
+typedef int (*bor_sort_cmp)(const void *, const void *, void *arg);
+
+/**
+ * Insertion sort.
+ */
+void borInsertSort(void *base, size_t nmemb, size_t size,
+                   bor_sort_cmp cmp, void *arg);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */

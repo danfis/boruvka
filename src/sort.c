@@ -365,3 +365,63 @@ void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
     memcpy(base, tmp, nmemb * size);
     BOR_FREE(tmp);
 }
+
+_bor_inline void sort2(void *e1, void *e2, size_t size,
+                       bor_sort_cmp cmp, void *arg)
+{
+    if (cmp(e2, e1, arg) < 0){
+        unsigned char tmp[size];
+        memcpy(tmp, e1, size);
+        memcpy(e1, e2, size);
+        memcpy(e2, tmp, size);
+    }
+}
+
+_bor_inline void sort3(void *e1, void *e2, void *e3, size_t size,
+                       bor_sort_cmp cmp, void *arg)
+{
+    sort2(e1, e2, size, cmp, arg);
+    sort2(e2, e3, size, cmp, arg);
+    sort2(e1, e2, size, cmp, arg);
+}
+
+void borInsertSort(void *base, size_t nmemb, size_t size,
+                   bor_sort_cmp cmp, void *arg)
+{
+    unsigned char *begin = base, *cur, *end;
+    unsigned char *prev, *ins;
+    unsigned char tmp[size];
+
+    if (nmemb <= 1)
+        return;
+    if (nmemb == 2){
+        sort2(begin, begin + size, size, cmp, arg);
+        return;
+    }
+    if (nmemb == 3){
+        sort3(begin, begin + size, begin + size + size, size, cmp, arg);
+        return;
+    }
+
+    end = begin + (nmemb * size);
+    for (cur = begin + size; cur != end; cur += size){
+        prev = cur - size;
+
+        // Test whether current value is misplaced
+        if (cmp(cur, prev, arg) < 0){
+            // Remember the current value
+            memcpy(tmp, cur, size);
+
+            // Find its position backwards
+            for (ins = prev, prev -= size;
+                 prev >= begin && cmp(tmp, prev, arg) < 0;
+                 prev -= size, ins -= size);
+
+            // Move all values from ins to the right
+            memmove(ins + size, ins, cur - ins);
+
+            // Finally insert remembered value
+            memcpy(ins, tmp, size);
+        }
+    }
+}
