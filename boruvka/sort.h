@@ -50,18 +50,6 @@ void borRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
                      size_t offset, int descending);
 
 /**
- * Callback for list sorts.
- * Returns true if l1 < l2
- */
-typedef int (*bor_list_sort_lt)(bor_list_t *l1, bor_list_t *l2, void *data);
-
-/**
- * Insertion sort for lists.
- * It sorts the list in ascending order
- */
-void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data);
-
-/**
  * Function returning key for counting sort.
  */
 typedef int (*bor_sort_key)(const void *, void *arg);
@@ -117,6 +105,12 @@ typedef int (*bor_sort_list_cmp)(const bor_list_t *,
  * List sort based on merge sort (from BSD).
  */
 void borListSort(bor_list_t *list, bor_sort_list_cmp cmp, void *carg);
+
+/**
+ * Insertion sort for lists.
+ * It sorts the list in ascending order
+ */
+void borListInsertSort(bor_list_t *list, bor_sort_list_cmp cmp, void *data);
 
 #ifdef __cplusplus
 } /* extern "C" */

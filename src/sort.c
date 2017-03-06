@@ -302,7 +302,7 @@ void borRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
 /**** RADIX SORT PTR END ****/
 
 /**** INSERT SORT LIST ****/
-void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
+void borListInsertSort(bor_list_t *list, bor_sort_list_cmp cmp, void *data)
 {
     bor_list_t out;
     bor_list_t *cur, *item;
@@ -323,7 +323,7 @@ void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
 
         // find the place where to put it
         item = borListPrev(&out);
-        while (item != &out && cb(cur, item, data)){
+        while (item != &out && cmp(cur, item, data)){
             item = borListPrev(item);
         }
 
