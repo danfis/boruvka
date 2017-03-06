@@ -425,3 +425,21 @@ void borInsertSort(void *base, size_t nmemb, size_t size,
         }
     }
 }
+
+void borInsertSortInt(int *arr, size_t nmemb)
+{
+    int tmp, i, j;
+
+    if (nmemb <= 1)
+        return;
+
+    for (i = 1; i < nmemb; ++i){
+        if (arr[i] < arr[i - 1]){
+            tmp = arr[i];
+
+            for (j = i - 1; j >= 0 && arr[j] > arr[i]; --j)
+                arr[j + 1] = arr[j];
+            arr[j + 1] = tmp;
+        }
+    }
+}

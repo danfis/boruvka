@@ -84,6 +84,7 @@ typedef int (*bor_sort_cmp)(const void *, const void *, void *arg);
  */
 void borInsertSort(void *base, size_t nmemb, size_t size,
                    bor_sort_cmp cmp, void *arg);
+void borInsertSortInt(int *base, size_t nmemb);
 
 #ifdef __cplusplus
 } /* extern "C" */
