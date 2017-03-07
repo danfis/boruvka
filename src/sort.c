@@ -323,7 +323,7 @@ void borListInsertSort(bor_list_t *list, bor_sort_list_cmp cmp, void *data)
 
         // find the place where to put it
         item = borListPrev(&out);
-        while (item != &out && cmp(cur, item, data)){
+        while (item != &out && cmp(cur, item, data) < 0){
             item = borListPrev(item);
         }
 
@@ -437,7 +437,7 @@ void borInsertSortInt(int *arr, size_t nmemb)
         if (arr[i] < arr[i - 1]){
             tmp = arr[i];
 
-            for (j = i - 1; j >= 0 && arr[j] > arr[i]; --j)
+            for (j = i - 1; j >= 0 && arr[j] > tmp; --j)
                 arr[j + 1] = arr[j];
             arr[j + 1] = tmp;
         }
