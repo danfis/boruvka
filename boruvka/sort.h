@@ -94,6 +94,13 @@ int borMergeSort(void *base, size_t nmemb, size_t size,
 void borQSort(void *base, size_t nmemb, size_t size,
               bor_sort_cmp cmp, void *carg);
 
+/**
+ * Tim sort.
+ * This is just wrapper around https://github.com/patperry/timsort.
+ */
+int borTimSort(void *base, size_t nmemb, size_t size,
+               bor_sort_cmp cmp, void *carg);
+
 
 /**
  * Compare function for list sort functions.

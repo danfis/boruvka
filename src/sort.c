@@ -443,3 +443,12 @@ void borInsertSortInt(int *arr, size_t nmemb)
         }
     }
 }
+
+#ifndef BOR_TIMSORT
+int borTimSort(void *base, size_t nmemb, size_t size,
+               bor_sort_cmp cmp, void *carg)
+{
+    fprintf(stderr, "Fatal Error: TimSort is not compiled in!\n");
+    exit(-1);
+}
+#endif /* BOR_TIMSORT */

@@ -10,4 +10,5 @@ Boruvka is licensed under OSI-approved 3-clause BSD License, text of license
 is distributed along with source code in BSD-LICENSE file.
 Each file should include license notice, the rest should be considered as
 licensed under 3-clause BSD License.
-
+The exception is the timsort submodule that is licensed under Apache 2.0
+license (which can be excluded by setting USE_TIMSORT=no in Makefile).

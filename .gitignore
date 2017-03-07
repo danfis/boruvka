@@ -9,4 +9,6 @@ bor-*
 src/*-cl.c
 src/cfg-lexer.c
 src/cfg-lexer-gen.h
+src/timsort.c
+src/timsort-impl.h
 Makefile.local

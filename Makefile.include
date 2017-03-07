@@ -95,6 +95,7 @@ USE_SSE    ?= no
 USE_OPENCL ?= auto
 USE_HDF5   ?= auto
 USE_GSL    ?= auto
+USE_TIMSORT ?= yes
 
 
 ifeq '$(USE_SINGLE)' 'yes'
@@ -157,6 +158,10 @@ ifeq '$(USE_GSL)' 'yes'
   GSL_CFLAGS ?= $(shell pkg-config --cflags gsl)
   GSL_LDFLAGS ?= $(shell pkg-config --libs gsl)
   CONFIG_FLAGS += -DUSE_GSL
+endif
+
+ifeq '$(USE_TIMSORT)' 'yes'
+  CONFIG_FLAGS += -DUSE_TIMSORT
 endif
 
 BINS     ?= yes
