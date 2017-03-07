@@ -171,8 +171,8 @@ src/timsort.c: src/timsort/timsort.c src/timsort-impl.h
 		| $(SED) 's/comparator/bor_sort_cmp/g' >>$@
 src/timsort-impl.h: src/timsort/timsort-impl.h
 	$(SED) 's/comparator/bor_sort_cmp/g' <$< >$@
-src/timsort/timsort.c src/timsort/timsort-impl.h: timsort
-timsort:
+src/timsort/timsort.c src/timsort/timsort-impl.h: src/timsort/timsort.h
+src/timsort/timsort.h:
 	git submodule init
 	git submodule update
 
@@ -278,4 +278,4 @@ help:
 	@echo "    GSL_CFLAGS       = $(GSL_CFLAGS)"
 	@echo "    GSL_LDFLAGS      = $(GSL_LDFLAGS)"
 
-.PHONY: all clean check check-valgrind help doc install analyze examples timsort
+.PHONY: all clean check check-valgrind help doc install analyze examples

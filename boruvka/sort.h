@@ -103,6 +103,13 @@ int borTimSort(void *base, size_t nmemb, size_t size,
 
 
 /**
+ * Default sorting algorithm.
+ * Uses timsort if available or qsort if not.
+ */
+int borSort(void *base, size_t nmemb, size_t size,
+            bor_sort_cmp cmp, void *carg);
+
+/**
  * Compare function for list sort functions.
  */
 typedef int (*bor_sort_list_cmp)(const bor_list_t *,

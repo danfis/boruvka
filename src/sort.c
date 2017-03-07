@@ -452,3 +452,27 @@ int borTimSort(void *base, size_t nmemb, size_t size,
     exit(-1);
 }
 #endif /* BOR_TIMSORT */
+
+int borSort(void *base, size_t nmemb, size_t size,
+            bor_sort_cmp cmp, void *carg)
+{
+    if (nmemb <= 1)
+        return 0;
+    if (nmemb == 2){
+        char *begin = base;
+        sort2(begin, begin + size, size, cmp, carg);
+        return 0;
+    }
+    if (nmemb == 3){
+        char *begin = base;
+        sort3(begin, begin + size, begin + size + size, size, cmp, carg);
+        return 0;
+    }
+
+#ifndef BOR_TIMSORT
+    return borTimSort(base, nmemb, size, cmp, carg);
+#else /* BOR_TIMSORT */
+    borQSort(base, nmemb, size, cmp, carg);
+    return 0;
+#endif /* BOR_TIMSORT */
+}
