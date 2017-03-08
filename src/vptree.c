@@ -19,6 +19,7 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 #include <boruvka/nn.h>
+#include <boruvka/sort.h>
 
 
 /** Finds out radius and variance */
@@ -374,7 +375,7 @@ static bor_real_t borVPTreeDistCB(int d, const bor_vec_t *v1,
 
 
 
-static int radiusVarCmp(const void *a, const void *b)
+static int radiusVarCmp(const void *a, const void *b, void *_)
 {
     bor_real_t f1 = *(bor_real_t *)a;
     bor_real_t f2 = *(bor_real_t *)b;
@@ -410,7 +411,7 @@ static void radiusVar(bor_vptree_t *vp,
     }
 
 
-    qsort(dist, distlen, sizeof(bor_real_t), radiusVarCmp);
+    borSort(dist, distlen, sizeof(bor_real_t), radiusVarCmp, NULL);
 
     *radius = dist[distlen / 2];
     if (distlen % 2 == 0 && distlen > 0){

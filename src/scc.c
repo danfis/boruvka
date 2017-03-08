@@ -16,6 +16,7 @@
 
 #include "boruvka/scc.h"
 #include "boruvka/alloc.h"
+#include "boruvka/sort.h"
 
 struct _scc_dfs_t {
     int cur_index;
@@ -26,11 +27,6 @@ struct _scc_dfs_t {
     int stack_size;
 };
 typedef struct _scc_dfs_t scc_dfs_t;
-
-static int cmpInt(const void *a, const void *b)
-{
-    return (*(int *)a) - (*(int *)b);
-}
 
 static void sccTarjanStrongconnect(bor_scc_t *scc, scc_dfs_t *dfs, int node)
 {
@@ -68,7 +64,7 @@ static void sccTarjanStrongconnect(bor_scc_t *scc, scc_dfs_t *dfs, int node)
         // Copy node IDs from stack to the component
         memcpy(comp->node, dfs->stack + i, sizeof(int) * comp->node_size);
         if (comp->node_size > 1)
-            qsort(comp->node, comp->node_size, sizeof(int), cmpInt);
+            borSortByIntKey(comp->node, comp->node_size, sizeof(int), 0);
 
         // Shrink stack
         dfs->stack_size = i;

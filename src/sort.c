@@ -483,11 +483,11 @@ static int cmpIntKey(const void *a, const void *b, void *d)
     int i1 = *(int *)(((char *)a) + offset);
     int i2 = *(int *)(((char *)b) + offset);
 
-    if (i1 == i2)
-        return 0;
     if (i1 < i2)
         return -1;
-    return 1;
+    if (i1 > i2)
+        return 1;
+    return 0;
 }
 
 static int cmpLongKey(const void *a, const void *b, void *d)
@@ -496,7 +496,20 @@ static int cmpLongKey(const void *a, const void *b, void *d)
     long i1 = *(long *)(((char *)a) + offset);
     long i2 = *(long *)(((char *)b) + offset);
 
-    if (i1 == i2)
+    if (i1 < i2)
+        return -1;
+    if (i1 > i2)
+        return 1;
+    return 0;
+}
+
+static int cmpRealKey(const void *a, const void *b, void *d)
+{
+    long offset = (long)d;
+    bor_real_t i1 = *(bor_real_t *)(((char *)a) + offset);
+    bor_real_t i2 = *(bor_real_t *)(((char *)b) + offset);
+
+    if (borEq(i1, i2))
         return 0;
     if (i1 < i2)
         return -1;
@@ -511,4 +524,9 @@ int borSortByIntKey(void *base, size_t nmemb, size_t size, size_t offset)
 int borSortByLongKey(void *base, size_t nmemb, size_t size, size_t offset)
 {
     return borSort(base, nmemb, size, cmpLongKey, (void *)offset);
+}
+
+int borSortByRealKey(void *base, size_t nmemb, size_t size, size_t offset)
+{
+    return borSort(base, nmemb, size, cmpRealKey, (void *)offset);
 }

@@ -20,6 +20,7 @@
 #include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 #include <boruvka/nn.h>
+#include <boruvka/sort.h>
 
 /* DEBUG:
 static char bin_buf[33];
@@ -351,19 +352,6 @@ static int hammingDist(const unsigned char *p1,
 }
 
 
-static int radiusVarCmp(const void *a, const void *b)
-{
-    int f1 = *(int *)a;
-    int f2 = *(int *)b;
-
-    if (f1 == f2){
-        return 0;
-    }else if (f1 < f2){
-        return -1;
-    }else{
-        return 1;
-    }
-}
 static void radiusVar(bor_vptree_hamming_t *vp,
                       const unsigned char *p,
                       bor_vptree_hamming_el_t **els,
@@ -390,7 +378,7 @@ static void radiusVar(bor_vptree_hamming_t *vp,
     }
 
 
-    qsort(dist, distlen, sizeof(int), radiusVarCmp);
+    borSortByIntKey(dist, distlen, sizeof(int), 0);
 
     *radius = dist[distlen / 2];
     if (distlen % 2 == 0 && distlen > 0){

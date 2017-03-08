@@ -3,6 +3,7 @@
 #include <boruvka/alloc.h>
 #include <boruvka/rand.h>
 #include <boruvka/splaytree.h>
+#include <boruvka/sort.h>
 
 struct _el_t {
     int val;
@@ -31,14 +32,14 @@ static el_t *randomEls(size_t num)
     return els;
 }
 
-static int sortCmpAsc(const void *i1, const void *i2)
+static int sortCmpAsc(const void *i1, const void *i2, void *_)
 {
     int a = *(int *)i1;
     int b = *(int *)i2;
     return a - b;
 }
 
-static int sortCmpDesc(const void *i1, const void *i2)
+static int sortCmpDesc(const void *i1, const void *i2, void *_)
 {
     int a = *(int *)i1;
     int b = *(int *)i2;
@@ -56,7 +57,7 @@ static void checkOrderAsc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     for (i = 0; i < num; ++i){
         vals[i] = els[i].val;
     }
-    qsort(vals, num, sizeof(int), sortCmpAsc);
+    borSort(vals, num, sizeof(int), sortCmpAsc, NULL);
 
     node = borSplayTreeMin(splaytree);
     el = bor_container_of(node, el_t, node);
@@ -82,7 +83,7 @@ static void checkOrderDesc(bor_splaytree_t *splaytree, el_t *els, size_t num)
     for (i = 0; i < num; ++i){
         vals[i] = els[i].val;
     }
-    qsort(vals, num, sizeof(int), sortCmpDesc);
+    borSort(vals, num, sizeof(int), sortCmpDesc, NULL);
 
     node = borSplayTreeMin(splaytree);
     el = bor_container_of(node, el_t, node);

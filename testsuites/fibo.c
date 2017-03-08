@@ -3,6 +3,7 @@
 #include <boruvka/fibo.h>
 #include <boruvka/rand.h>
 #include <boruvka/alloc.h>
+#include <boruvka/sort.h>
 
 /*
 static void treeDump(bor_list_t *fl, size_t spaces)
@@ -56,19 +57,6 @@ static el_t *randomEls(size_t num)
     return els;
 }
 
-static int cmpIncEl(const void *i1, const void *i2)
-{
-    el_t *e1, *e2;
-    e1 = (el_t *)i1;
-    e2 = (el_t *)i2;
-
-    if (borEq(e1->val, e2->val))
-        return 0;
-    if (e1->val < e2->val)
-        return -1;
-    return 1;
-}
-
 static int ltEl(const bor_fibo_node_t *n1, const bor_fibo_node_t *n2, void *_)
 {
     el_t *el1, *el2;
@@ -116,7 +104,7 @@ static void checkCorrect(int ID, size_t num)
         i++;
     }
 
-    qsort(els, num, sizeof(el_t), cmpIncEl);
+    BOR_SORT_BY_INT_KEY(els, num, el_t, val);
     for (i = 0; i < num; i++){
         fprintf(fout2, "%d\n", els[i].val);
     }
@@ -172,7 +160,7 @@ static void checkCorrect2(int ID, size_t num)
         i++;
     }
 
-    qsort(els, num, sizeof(el_t), cmpIncEl);
+    BOR_SORT_BY_INT_KEY(els, num, el_t, val);
     for (i = 0; i < num; i++){
         fprintf(fout2, "%d\n", els[i].val);
     }
@@ -229,7 +217,7 @@ static void checkCorrect3(int ID, size_t num)
         i++;
     }
 
-    qsort(els, num, sizeof(el_t), cmpIncEl);
+    BOR_SORT_BY_INT_KEY(els, num, el_t, val);
     for (i = 0; i < num; i++){
         fprintf(fout2, "%d\n", els[i].val);
     }
