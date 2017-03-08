@@ -15,6 +15,7 @@
  */
 
 #include <boruvka/sort.h>
+#include <boruvka/alloc.h>
 #include <boruvka/dbg.h>
 
 
@@ -301,7 +302,7 @@ void borRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
 /**** RADIX SORT PTR END ****/
 
 /**** INSERT SORT LIST ****/
-void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
+void borListInsertSort(bor_list_t *list, bor_sort_list_cmp cmp, void *data)
 {
     bor_list_t out;
     bor_list_t *cur, *item;
@@ -322,7 +323,7 @@ void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
 
         // find the place where to put it
         item = borListPrev(&out);
-        while (item != &out && cb(cur, item, data)){
+        while (item != &out && cmp(cur, item, data) < 0){
             item = borListPrev(item);
         }
 
@@ -337,3 +338,141 @@ void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data)
 }
 
 /**** INSERT SORT LIST END ****/
+
+void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
+                  bor_sort_key get_key, void *arg)
+{
+    int range = to - from + 1;
+    int cnt[range];
+    unsigned char *cur, *end, *tmp;
+    int i, key;
+
+    bzero(cnt, sizeof(int) * range);
+    for (cur = base, end = cur + (nmemb * size); cur != end; cur += size){
+        key = get_key(cur, arg) - from;
+        ++cnt[key];
+    }
+
+    for (i = 1; i < range; ++i)
+        cnt[i] += cnt[i - 1];
+
+    tmp = BOR_ALLOC_ARR(unsigned char, nmemb * size);
+    for (cur = base, end = cur + (nmemb * size); cur != end; cur += size){
+        key = get_key(cur, arg) - from;
+        --cnt[key];
+        memcpy(tmp + (cnt[key] * size), cur, size);
+    }
+    memcpy(base, tmp, nmemb * size);
+    BOR_FREE(tmp);
+}
+
+_bor_inline void sort2(void *e1, void *e2, size_t size,
+                       bor_sort_cmp cmp, void *arg)
+{
+    if (cmp(e2, e1, arg) < 0){
+        unsigned char tmp[size];
+        memcpy(tmp, e1, size);
+        memcpy(e1, e2, size);
+        memcpy(e2, tmp, size);
+    }
+}
+
+_bor_inline void sort3(void *e1, void *e2, void *e3, size_t size,
+                       bor_sort_cmp cmp, void *arg)
+{
+    sort2(e1, e2, size, cmp, arg);
+    sort2(e2, e3, size, cmp, arg);
+    sort2(e1, e2, size, cmp, arg);
+}
+
+void borInsertSort(void *base, size_t nmemb, size_t size,
+                   bor_sort_cmp cmp, void *arg)
+{
+    unsigned char *begin = base, *cur, *end;
+    unsigned char *prev, *ins;
+    unsigned char tmp[size];
+
+    if (nmemb <= 1)
+        return;
+    if (nmemb == 2){
+        sort2(begin, begin + size, size, cmp, arg);
+        return;
+    }
+    if (nmemb == 3){
+        sort3(begin, begin + size, begin + size + size, size, cmp, arg);
+        return;
+    }
+
+    end = begin + (nmemb * size);
+    for (cur = begin + size; cur != end; cur += size){
+        prev = cur - size;
+
+        // Test whether current value is misplaced
+        if (cmp(cur, prev, arg) < 0){
+            // Remember the current value
+            memcpy(tmp, cur, size);
+
+            // Find its position backwards
+            for (ins = prev, prev -= size;
+                 prev >= begin && cmp(tmp, prev, arg) < 0;
+                 prev -= size, ins -= size);
+
+            // Move all values from ins to the right
+            memmove(ins + size, ins, cur - ins);
+
+            // Finally insert remembered value
+            memcpy(ins, tmp, size);
+        }
+    }
+}
+
+void borInsertSortInt(int *arr, size_t nmemb)
+{
+    int tmp, i, j;
+
+    if (nmemb <= 1)
+        return;
+
+    for (i = 1; i < nmemb; ++i){
+        if (arr[i] < arr[i - 1]){
+            tmp = arr[i];
+
+            for (j = i - 1; j >= 0 && arr[j] > tmp; --j)
+                arr[j + 1] = arr[j];
+            arr[j + 1] = tmp;
+        }
+    }
+}
+
+#ifndef BOR_TIMSORT
+int borTimSort(void *base, size_t nmemb, size_t size,
+               bor_sort_cmp cmp, void *carg)
+{
+    fprintf(stderr, "Fatal Error: TimSort is not compiled in!\n");
+    exit(-1);
+}
+#endif /* BOR_TIMSORT */
+
+int borSort(void *base, size_t nmemb, size_t size,
+            bor_sort_cmp cmp, void *carg)
+{
+    if (nmemb <= 1)
+        return 0;
+    if (nmemb == 2){
+        char *begin = base;
+        sort2(begin, begin + size, size, cmp, carg);
+        return 0;
+    }
+    if (nmemb == 3){
+        char *begin = base;
+        sort3(begin, begin + size, begin + size + size, size, cmp, carg);
+        return 0;
+    }
+
+#ifndef BOR_TIMSORT
+    return borTimSort(base, nmemb, size, cmp, carg);
+#else /* BOR_TIMSORT */
+    borQSort(base, nmemb, size, cmp, carg);
+    return 0;
+#endif /* BOR_TIMSORT */
+}

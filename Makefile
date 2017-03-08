@@ -34,6 +34,13 @@ OBJS += mat4 mat3
 OBJS += poly2
 OBJS += predicates
 OBJS += sort
+OBJS += heapsort
+OBJS += mergesort
+OBJS += qsort
+OBJS += listsort
+ifeq '$(USE_TIMSORT)' 'yes'
+OBJS += timsort
+endif
 OBJS += pc pc-internal
 OBJS += gug
 OBJS += nearest-linear
@@ -156,6 +163,19 @@ src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
 src/cd-sap-gpu-cl.c: src/cd-sap-gpu.cl
 	$(PYTHON) ./scripts/cl-to-c.py opencl_program <$< >$@
 
+src/timsort.c: src/timsort/timsort.c src/timsort-impl.h
+	echo "#define IS_TIMSORT_R" >$@
+	$(SED) 's/^#define TIMSORT timsort_r$$/#define TIMSORT borTimSort/' <$< \
+		| $(SED) 's/^typedef int (\*comparator.*//' \
+		| $(SED) 's|#include "timsort.h"|#include "boruvka/sort.h"|' \
+		| $(SED) 's/comparator/bor_sort_cmp/g' >>$@
+src/timsort-impl.h: src/timsort/timsort-impl.h
+	$(SED) 's/comparator/bor_sort_cmp/g' <$< >$@
+src/timsort/timsort.c src/timsort/timsort-impl.h: src/timsort/timsort.h
+src/timsort/timsort.h:
+	git submodule init
+	git submodule update
+
 
 install:
 	mkdir -p $(PREFIX)/$(INCLUDEDIR)/boruvka
@@ -177,6 +197,7 @@ clean:
 	rm -f libboruvka.so.*
 	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
+	rm -f src/timsort.c src/timsort-impl.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	
@@ -234,6 +255,7 @@ help:
 	@echo "                               This option depends on USE_SINGLE set to 'yes'"
 	@echo "    USE_HDF5     'yes'/'no'  - Use HDF5 data format  (=$(USE_HDF5))"
 	@echo "    USE_GSL      'yes'/'no'  - Use GNU Scientific Library (=$(USE_GSL))"
+	@echo "    USE_TIMSORT  'yes'/'no'  - Use Apache 2.0 licensed timsort (=$(USE_TIMSORT))"
 	@echo ""
 	@echo "    PREFIX     - Prefix where library will be installed                             (=$(PREFIX))"
 	@echo "    INCLUDEDIR - Directory where header files will be installed (PREFIX/INCLUDEDIR) (=$(INCLUDEDIR))"

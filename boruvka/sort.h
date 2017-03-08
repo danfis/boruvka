@@ -50,16 +50,81 @@ void borRadixSortPtr(void **arr, void **tmp_arr, size_t arrlen,
                      size_t offset, int descending);
 
 /**
- * Callback for list sorts.
- * Returns true if l1 < l2
+ * Function returning key for counting sort.
  */
-typedef int (*bor_list_sort_lt)(bor_list_t *l1, bor_list_t *l2, void *data);
+typedef int (*bor_sort_key)(const void *, void *arg);
+
+/**
+ * Counting sort. Keys has to be between from and to including from and to.
+ * The range should be small enough to fit on stack.
+ */
+void borCountSort(void *base, size_t nmemb, size_t size, int from, int to,
+                  bor_sort_key key, void *arg);
+
+
+/**
+ * Compare function for sort functions.
+ */
+typedef int (*bor_sort_cmp)(const void *, const void *, void *arg);
+
+/**
+ * Insertion sort.
+ */
+void borInsertSort(void *base, size_t nmemb, size_t size,
+                   bor_sort_cmp cmp, void *arg);
+void borInsertSortInt(int *base, size_t nmemb);
+
+/**
+ * BSD heapsort.
+ */
+void borHeapSort(void *base, size_t nmemb, size_t size,
+                 bor_sort_cmp cmp, void *arg);
+
+/**
+ * BSD mergesort.
+ * Requires size to be at least "sizeof(void *) / 2".
+ */
+int borMergeSort(void *base, size_t nmemb, size_t size,
+                 bor_sort_cmp cmp, void *carg);
+
+/**
+ * BSD kqsort.
+ * Uses recursion.
+ */
+void borQSort(void *base, size_t nmemb, size_t size,
+              bor_sort_cmp cmp, void *carg);
+
+/**
+ * Tim sort.
+ * This is just wrapper around https://github.com/patperry/timsort.
+ */
+int borTimSort(void *base, size_t nmemb, size_t size,
+               bor_sort_cmp cmp, void *carg);
+
+
+/**
+ * Default sorting algorithm.
+ * Uses timsort if available or qsort if not.
+ */
+int borSort(void *base, size_t nmemb, size_t size,
+            bor_sort_cmp cmp, void *carg);
+
+/**
+ * Compare function for list sort functions.
+ */
+typedef int (*bor_sort_list_cmp)(const bor_list_t *,
+                                 const bor_list_t *, void *arg);
+
+/**
+ * List sort based on merge sort (from BSD).
+ */
+void borListSort(bor_list_t *list, bor_sort_list_cmp cmp, void *carg);
 
 /**
  * Insertion sort for lists.
  * It sorts the list in ascending order
  */
-void borInsertSortList(bor_list_t *list, bor_list_sort_lt cb, void *data);
+void borListInsertSort(bor_list_t *list, bor_sort_list_cmp cmp, void *data);
 
 #ifdef __cplusplus
 } /* extern "C" */

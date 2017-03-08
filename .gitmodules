@@ -1,0 +1,3 @@
+[submodule "src/timsort"]
+	path = src/timsort
+	url = https://github.com/patperry/timsort
