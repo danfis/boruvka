@@ -10,6 +10,8 @@ TEST(sortMerge);
 TEST(sortQuick);
 TEST(sortTim);
 TEST(sort);
+TEST(sortByIntKey);
+TEST(sortByLongKey);
 TEST(sortListInsert);
 TEST(sortList);
 
@@ -22,6 +24,8 @@ TEST_SUITE(TSSort) {
     TEST_ADD(sortQuick),
     TEST_ADD(sortTim),
     TEST_ADD(sort),
+    TEST_ADD(sortByIntKey),
+    TEST_ADD(sortByLongKey),
     TEST_ADD(sortListInsert),
     TEST_ADD(sortList),
 

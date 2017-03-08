@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 #include <cu/cu.h>
 #include <boruvka/sort.h>
 #include <boruvka/rand.h>
@@ -246,9 +247,9 @@ TEST(sortInsert)
     borRandInit(&rnd);
     testSortInt(&rnd, 1, -10, 5, borInsertSort);
     testSortInt(&rnd, 2, -10, 5, borInsertSort);
-    testSortInt(&rnd, 3, -10, 5, borInsertSort);
+    testSortInt(&rnd, 3, INT_MIN / 100, INT_MAX / 100, borInsertSort);
     testSortInt(&rnd, 100, -10, 5, borInsertSort);
-    testSortInt(&rnd, 1000, 0, 100, borInsertSort);
+    testSortInt(&rnd, 1000, 0, INT_MAX / 100, borInsertSort);
     testSortInt(&rnd, 1000, -15, 132, borInsertSort);
 
     testSortRS(&rnd, 1, -10, 5, borInsertSort, 0);
@@ -256,14 +257,14 @@ TEST(sortInsert)
     testSortRS(&rnd, 3, -10, 5, borInsertSort, 0);
     testSortRS(&rnd, 100, -10, 5, borInsertSort, 1);
     testSortRS(&rnd, 1000, 0, 100, borInsertSort, 0);
-    testSortRS(&rnd, 1000, -15, 132, borInsertSort, 0);
+    testSortRS(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borInsertSort, 0);
 
-    testSortIntSpec(&rnd, 1, -10, 5, borInsertSortInt);
+    testSortIntSpec(&rnd, 1, 10, 5, borInsertSortInt);
     testSortIntSpec(&rnd, 2, -10, 5, borInsertSortInt);
     testSortIntSpec(&rnd, 3, -10, 5, borInsertSortInt);
     testSortIntSpec(&rnd, 100, -10, 5, borInsertSortInt);
     testSortIntSpec(&rnd, 1000, 0, 100, borInsertSortInt);
-    testSortIntSpec(&rnd, 1000, -15, 132, borInsertSortInt);
+    testSortIntSpec(&rnd, 1000, INT_MIN, INT_MAX, borInsertSortInt);
 }
 
 TEST(sortHeap)
@@ -282,7 +283,7 @@ TEST(sortHeap)
     testSortRS(&rnd, 3, -10, 5, borHeapSort, 0);
     testSortRS(&rnd, 100, -10, 5, borHeapSort, 1);
     testSortRS(&rnd, 1000, 0, 100, borHeapSort, 0);
-    testSortRS(&rnd, 1000, -15, 132, borHeapSort, 0);
+    testSortRS(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borHeapSort, 0);
 }
 
 TEST(sortMerge)
@@ -301,7 +302,7 @@ TEST(sortMerge)
     testSortRS2(&rnd, 3, -10, 5, borMergeSort, 0);
     testSortRS2(&rnd, 100, -10, 5, borMergeSort, 1);
     testSortRS2(&rnd, 1000, 0, 100, borMergeSort, 0);
-    testSortRS2(&rnd, 1000, -15, 132, borMergeSort, 0);
+    testSortRS2(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borMergeSort, 0);
 }
 
 TEST(sortQuick)
@@ -320,7 +321,7 @@ TEST(sortQuick)
     testSortRS(&rnd, 3, -10, 5, borQSort, 0);
     testSortRS(&rnd, 100, -10, 5, borQSort, 1);
     testSortRS(&rnd, 1000, 0, 100, borQSort, 0);
-    testSortRS(&rnd, 1000, -15, 132, borQSort, 0);
+    testSortRS(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borQSort, 0);
 }
 
 TEST(sortTim)
@@ -339,7 +340,7 @@ TEST(sortTim)
     testSortRS2(&rnd, 3, -10, 5, borTimSort, 0);
     testSortRS2(&rnd, 100, -10, 5, borTimSort, 1);
     testSortRS2(&rnd, 1000, 0, 100, borTimSort, 0);
-    testSortRS2(&rnd, 1000, -15, 132, borTimSort, 0);
+    testSortRS2(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borTimSort, 0);
 }
 
 TEST(sort)
@@ -358,7 +359,157 @@ TEST(sort)
     testSortRS2(&rnd, 3, -10, 5, borSort, 0);
     testSortRS2(&rnd, 100, -10, 5, borSort, 1);
     testSortRS2(&rnd, 1000, 0, 100, borSort, 0);
-    testSortRS2(&rnd, 1000, -15, 132, borSort, 0);
+    testSortRS2(&rnd, 1000, INT_MIN / 100, INT_MAX / 100, borSort, 0);
+}
+
+static void testSortByIntKeyInt(bor_rand_t *rnd, int size, int from, int to)
+{
+    int *arr;
+    int i;
+
+    arr = BOR_ALLOC_ARR(int, size);
+    for (i = 0; i < size; ++i){
+        arr[i] = borRand(rnd, from, to);
+    }
+
+    borSortByIntKey(arr, size, sizeof(int), 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1] <= arr[i]);
+    }
+
+    BOR_FREE(arr);
+}
+
+static void testSortByLongKeyLong(bor_rand_t *rnd, int size, int from, int to)
+{
+    long *arr;
+    int i;
+
+    arr = BOR_ALLOC_ARR(long, size);
+    for (i = 0; i < size; ++i){
+        arr[i] = borRand(rnd, from, to);
+    }
+
+    borSortByLongKey(arr, size, sizeof(long), 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1] <= arr[i]);
+    }
+
+    BOR_FREE(arr);
+}
+
+struct s_t {
+    double x;
+    int i;
+    long l;
+};
+
+static void testSortByIntKeyS(bor_rand_t *rnd, int size, int from, int to)
+{
+    struct s_t *arr;
+    int i, ret;
+
+    arr = BOR_ALLOC_ARR(struct s_t, size);
+    for (i = 0; i < size; ++i){
+        arr[i].x = borRand(rnd, from, to);
+        arr[i].i = arr[i].x;
+    }
+
+    ret = borSortByIntKey(arr, size, sizeof(struct s_t),
+                          bor_offsetof(struct s_t, i));
+    assertEquals(ret, 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1].i <= arr[i].i);
+    }
+
+    BOR_FREE(arr);
+
+    arr = BOR_ALLOC_ARR(struct s_t, size);
+    for (i = 0; i < size; ++i){
+        arr[i].x = borRand(rnd, from, to);
+        arr[i].i = arr[i].x;
+    }
+
+    ret = BOR_SORT_BY_INT_KEY(arr, size, struct s_t, i);
+    assertEquals(ret, 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1].i <= arr[i].i);
+    }
+
+    BOR_FREE(arr);
+}
+
+static void testSortByLongKeyS(bor_rand_t *rnd, int size, long from, long to)
+{
+    struct s_t *arr;
+    int i, ret;
+
+    arr = BOR_ALLOC_ARR(struct s_t, size);
+    for (i = 0; i < size; ++i){
+        arr[i].x = borRand(rnd, from, to);
+        arr[i].l = arr[i].x;
+    }
+
+    ret = borSortByLongKey(arr, size, sizeof(struct s_t),
+                           bor_offsetof(struct s_t, l));
+    assertEquals(ret, 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1].l <= arr[i].l);
+    }
+
+    BOR_FREE(arr);
+
+    arr = BOR_ALLOC_ARR(struct s_t, size);
+    for (i = 0; i < size; ++i){
+        arr[i].x = borRand(rnd, from, to);
+        arr[i].l = arr[i].x;
+    }
+
+    ret = BOR_SORT_BY_LONG_KEY(arr, size, struct s_t, l);
+    assertEquals(ret, 0);
+    for (i = 1; i < size; ++i){
+        assertTrue(arr[i - 1].l <= arr[i].l);
+    }
+
+    BOR_FREE(arr);
+}
+
+TEST(sortByIntKey)
+{
+    bor_rand_t rnd;
+    borRandInit(&rnd);
+    testSortByIntKeyInt(&rnd, 1, -10, 5);
+    testSortByIntKeyInt(&rnd, 2, -10, 5);
+    testSortByIntKeyInt(&rnd, 3, -10, 5);
+    testSortByIntKeyInt(&rnd, 100, -10, 5);
+    testSortByIntKeyInt(&rnd, 1000, 0, 126);
+    testSortByIntKeyInt(&rnd, 1000, -128, 30);
+
+    testSortByIntKeyS(&rnd, 1, -10, 5);
+    testSortByIntKeyS(&rnd, 2, -10, 5);
+    testSortByIntKeyS(&rnd, 3, -10, 5);
+    testSortByIntKeyS(&rnd, 100, -10, 5);
+    testSortByIntKeyS(&rnd, 1000, 0, 126);
+    testSortByIntKeyS(&rnd, 1000, INT_MIN, INT_MAX);
+}
+
+TEST(sortByLongKey)
+{
+    bor_rand_t rnd;
+    borRandInit(&rnd);
+    testSortByLongKeyLong(&rnd, 1, -10, 5);
+    testSortByLongKeyLong(&rnd, 2, -10, 5);
+    testSortByLongKeyLong(&rnd, 3, -10, 5);
+    testSortByLongKeyLong(&rnd, 100, -10, 5);
+    testSortByLongKeyLong(&rnd, 1000, 0, 126);
+    testSortByLongKeyLong(&rnd, 1000, -128, 30);
+
+    testSortByLongKeyS(&rnd, 1, -10, 5);
+    testSortByLongKeyS(&rnd, 2, -10, 5);
+    testSortByLongKeyS(&rnd, 3, -10, 5);
+    testSortByLongKeyS(&rnd, 100, -10, 5);
+    testSortByLongKeyS(&rnd, 1000, 0, 1000);
+    testSortByLongKeyS(&rnd, 1000, LONG_MIN, LONG_MAX);
 }
 
 
