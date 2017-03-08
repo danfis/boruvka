@@ -110,6 +110,24 @@ int borSort(void *base, size_t nmemb, size_t size,
             bor_sort_cmp cmp, void *carg);
 
 /**
+ * Sorts an array of elements that contain an integer key. {size} is the
+ * size of element and {offset} is an offset of the integer key within the
+ * element.
+ */
+int borSortByIntKey(void *base, size_t nmemb, size_t size, size_t offset);
+#define BOR_SORT_BY_INT_KEY(base, nmemb, type, member) \
+    borSortByIntKey((base), (nmemb), sizeof(type), \
+                    bor_offsetof(type, member))
+
+/**
+ * Same as borSortByIntKey() but for long keys.
+ */
+int borSortByLongKey(void *base, size_t nmemb, size_t size, size_t offset);
+#define BOR_SORT_BY_LONG_KEY(base, nmemb, type, member) \
+    borSortByLongKey((base), (nmemb), sizeof(type), \
+                     bor_offsetof(type, member))
+
+/**
  * Compare function for list sort functions.
  */
 typedef int (*bor_sort_list_cmp)(const bor_list_t *,
