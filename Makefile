@@ -73,6 +73,8 @@ OBJS += lifo
 OBJS += ring_queue
 OBJS += scc
 OBJS += msg-schema
+OBJS += set_arr_int
+OBJS += set_arr_long
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
@@ -128,6 +130,39 @@ boruvka/config_endian.h: boruvka/config_endian.h.m4
 
 boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
 	$(M4) $(CONFIG_FLAGS) $< >$@
+
+boruvka/set_arr_int.h: boruvka/set_arr.h.m4
+	$(M4) -DGUARD=__BOR_SET_ARR_INT_H__ \
+          -DTYPE=int \
+          -DSTRUCT_NAME=bor_set_arr_int \
+          -DFUNC_PREFIX=borSetArrInt \
+          -DARR_NAME=s \
+              <$< >$@
+src/set_arr_int.c: src/set_arr.c.m4 boruvka/set_arr_int.h
+	$(M4) -DTYPE=int \
+          -DSTRUCT_NAME=bor_set_arr_int \
+          -DFUNC_PREFIX=borSetArrInt \
+          -DARR_NAME=s \
+          -DLT='(x) < (y)' \
+          -DEQ='(x) == (y)' \
+          -DHEADER_FILE=boruvka/set_arr_int.h \
+              <$< >$@
+boruvka/set_arr_long.h: boruvka/set_arr.h.m4
+	$(M4) -DGUARD=__BOR_SET_ARR_LONG_H__ \
+          -DTYPE=long \
+          -DSTRUCT_NAME=bor_set_arr_long \
+          -DFUNC_PREFIX=borSetArrLong \
+          -DARR_NAME=s \
+              <$< >$@
+src/set_arr_long.c: src/set_arr.c.m4 boruvka/set_arr_long.h
+	$(M4) -DTYPE=long \
+          -DSTRUCT_NAME=bor_set_arr_long \
+          -DFUNC_PREFIX=borSetArrLong \
+          -DARR_NAME=s \
+          -DLT='(x) < (y)' \
+          -DEQ='(x) == (y)' \
+          -DHEADER_FILE=boruvka/set_arr_long.h \
+              <$< >$@
 
 bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
@@ -198,6 +233,8 @@ clean:
 	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
+	rm -f src/set_arr_int.c boruvka/set_arr_int.h
+	rm -f src/set_arr_long.c boruvka/set_arr_long.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	

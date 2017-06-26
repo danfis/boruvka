@@ -12,3 +12,7 @@ src/cfg-lexer-gen.h
 src/timsort.c
 src/timsort-impl.h
 Makefile.local
+boruvka/set_arr_int.h
+src/set_arr_int.c
+boruvka/set_arr_long.h
+src/set_arr_long.c
