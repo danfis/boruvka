@@ -17,6 +17,7 @@
 #ifndef __BOR_SET_H__
 #define __BOR_SET_H__
 
+#include <string.h>
 #include <boruvka/compiler.h>
 
 #ifdef __cplusplus
