@@ -52,6 +52,11 @@ void borSetFree(bor_set_t *s);
 _bor_inline TYPE borSetGet(bor_set_t *s, int i);
 
 /**
+ * Returns size of the set.
+ */
+_bor_inline int borSetSize(bor_set_t *s);
+
+/**
  * Returns true if the set contains val.
  */
 int borSetHas(const bor_set_t *s, TYPE val);
@@ -99,6 +104,11 @@ int borSetRm(bor_set_t *s, TYPE val);
 _bor_inline TYPE borSetGet(bor_set_t *s, int i)
 {
     return s->s[i];
+}
+
+_bor_inline int borSetSize(bor_set_t *s)
+{
+    return s->size;
 }
 
 _bor_inline void borSetEmpty(bor_set_t *s)
