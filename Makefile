@@ -73,8 +73,9 @@ OBJS += lifo
 OBJS += ring_queue
 OBJS += scc
 OBJS += msg-schema
-OBJS += set_arr_int
-OBJS += set_arr_long
+OBJS += iset
+OBJS += lset
+OBJS += cset
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
@@ -131,40 +132,45 @@ boruvka/config_endian.h: boruvka/config_endian.h.m4
 boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
-boruvka/set_arr_int.h: boruvka/set_arr.h.m4
-	$(M4) -DGUARD=__BOR_SET_ARR_INT_H__ \
-          -DTYPE=int \
-          -DSTRUCT_NAME=bor_set_arr_int \
-          -DFUNC_PREFIX=borSetArrInt \
-          -DFOR_EACH_NAME=BOR_SET_ARR_INT_FOR_EACH \
-          -DARR_NAME=s \
-              <$< >$@
-src/set_arr_int.c: src/set_arr.c.m4 boruvka/set_arr_int.h
-	$(M4) -DTYPE=int \
-          -DSTRUCT_NAME=bor_set_arr_int \
-          -DFUNC_PREFIX=borSetArrInt \
-          -DARR_NAME=s \
-          -DLT='(x) < (y)' \
-          -DEQ='(x) == (y)' \
-          -DHEADER_FILE=boruvka/set_arr_int.h \
-              <$< >$@
-boruvka/set_arr_long.h: boruvka/set_arr.h.m4
-	$(M4) -DGUARD=__BOR_SET_ARR_LONG_H__ \
-          -DTYPE=long \
-          -DSTRUCT_NAME=bor_set_arr_long \
-          -DFUNC_PREFIX=borSetArrLong \
-          -DFOR_EACH_NAME=BOR_SET_ARR_INT_FOR_EACH \
-          -DARR_NAME=s \
-              <$< >$@
-src/set_arr_long.c: src/set_arr.c.m4 boruvka/set_arr_long.h
-	$(M4) -DTYPE=long \
-          -DSTRUCT_NAME=bor_set_arr_long \
-          -DFUNC_PREFIX=borSetArrLong \
-          -DARR_NAME=s \
-          -DLT='(x) < (y)' \
-          -DEQ='(x) == (y)' \
-          -DHEADER_FILE=boruvka/set_arr_long.h \
-              <$< >$@
+boruvka/iset.h: boruvka/_set_arr.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_set/bor_iset/g' \
+        | $(SED) 's/borSet/borISet/g' \
+        | $(SED) 's/BOR_SET/BOR_ISET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_ISET_FOR_EACH/g' >$@
+src/iset.c: src/_set_arr.c boruvka/iset.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_set/bor_iset/g' \
+        | $(SED) 's/borSet/borISet/g' \
+        | $(SED) 's/BOR_SET/BOR_ISET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_ISET_FOR_EACH/g' \
+        | $(SED) 's|boruvka/set\.h|boruvka/iset.h|g' >$@
+boruvka/lset.h: boruvka/_set_arr.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_set/bor_lset/g' \
+        | $(SED) 's/borSet/borLSet/g' \
+        | $(SED) 's/BOR_SET/BOR_LSET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_LSET_FOR_EACH/g' >$@
+src/lset.c: src/_set_arr.c boruvka/lset.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_set/bor_lset/g' \
+        | $(SED) 's/borSet/borLSet/g' \
+        | $(SED) 's/BOR_SET/BOR_LSET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_LSET_FOR_EACH/g' \
+        | $(SED) 's|boruvka/set\.h|boruvka/lset.h|g' >$@
+boruvka/cset.h: boruvka/_set_arr.h
+	$(SED) 's/TYPE/char/g' <$< \
+        | $(SED) 's/bor_set/bor_cset/g' \
+        | $(SED) 's/borSet/borCSet/g' \
+        | $(SED) 's/BOR_SET/BOR_CSET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_CSET_FOR_EACH/g' >$@
+src/cset.c: src/_set_arr.c boruvka/cset.h
+	$(SED) 's/TYPE/char/g' <$< \
+        | $(SED) 's/bor_set/bor_cset/g' \
+        | $(SED) 's/borSet/borCSet/g' \
+        | $(SED) 's/BOR_SET/BOR_CSET/g' \
+        | $(SED) 's/BOR_SET_FOR_EACH/BOR_CSET_FOR_EACH/g' \
+        | $(SED) 's|boruvka/set\.h|boruvka/cset.h|g' >$@
 
 bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
@@ -235,8 +241,7 @@ clean:
 	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
-	rm -f src/set_arr_int.c boruvka/set_arr_int.h
-	rm -f src/set_arr_long.c boruvka/set_arr_long.h
+	rm -f src/[ilc]set.c boruvka/[ilc]set.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	
