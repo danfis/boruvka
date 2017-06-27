@@ -136,6 +136,7 @@ boruvka/set_arr_int.h: boruvka/set_arr.h.m4
           -DTYPE=int \
           -DSTRUCT_NAME=bor_set_arr_int \
           -DFUNC_PREFIX=borSetArrInt \
+          -DFOR_EACH_NAME=BOR_SET_ARR_INT_FOR_EACH \
           -DARR_NAME=s \
               <$< >$@
 src/set_arr_int.c: src/set_arr.c.m4 boruvka/set_arr_int.h
@@ -152,6 +153,7 @@ boruvka/set_arr_long.h: boruvka/set_arr.h.m4
           -DTYPE=long \
           -DSTRUCT_NAME=bor_set_arr_long \
           -DFUNC_PREFIX=borSetArrLong \
+          -DFOR_EACH_NAME=BOR_SET_ARR_INT_FOR_EACH \
           -DARR_NAME=s \
               <$< >$@
 src/set_arr_long.c: src/set_arr.c.m4 boruvka/set_arr_long.h

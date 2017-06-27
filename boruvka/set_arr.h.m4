@@ -22,8 +22,9 @@ struct STRUCT_NAME {
 };
 typedef struct STRUCT_NAME STRUCT_NAME`_t';
 
-#define PDDL_SET_FOR_EACH(S, V) \
-    for (int __i = 0; __i < (S)->size && ((V) = (S)->ARR_NAME[__i], 1); ++__i)
+ifdef(`FOR_EACH_NAME', dnl
+`#define 'FOR_EACH_NAME`(S, V) \'
+`    for (int __i = 0; __i < (S)->size && ((V) = (S)->ARR_NAME[__i], 1); ++__i)')
 
 /**
  * Initialize the set.

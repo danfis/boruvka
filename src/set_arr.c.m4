@@ -8,9 +8,8 @@ ifdef(`EQ', `#define __EQ(x, y) '(EQ), `#define __EQ(x, y) ((x) == (y))')
 int FUNC_PREFIX`HasId'(const STRUCT_NAME`_t' *s, TYPE v)
 {
     // TODO: binary search
-    int i;
-    PDDL_SET_FOR_EACH(s, i){
-        if (i == v)
+    for (int i = 0; i < s->size; ++i){
+        if (s->ARR_NAME[i] == v)
             return 1;
     }
     return 0;
