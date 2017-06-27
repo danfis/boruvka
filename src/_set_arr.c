@@ -17,10 +17,6 @@
 #include <boruvka/alloc.h>
 #include "boruvka/set.h"
 
-#define __LT(x, y) ((x) < (y))
-#define __EQ(x, y) ((x) == (y))
-
-
 void borSetInit(bor_set_t *s)
 {
     bzero(s, sizeof(*s));
@@ -52,7 +48,7 @@ void borSetAdd(bor_set_t *s, TYPE v)
     }
     s->s[s->size++] = v;
 
-    if (s->size > 1 && v < s->s[s->size - 2]){
+    if (s->size > 1 && v <= s->s[s->size - 2]){
         TYPE *f = s->s + s->size - 1;
         for (; f > s->s && f[0] < f[-1]; --f){
             TYPE tmp = f[0];
@@ -101,8 +97,8 @@ int borSetRm(bor_set_t *s, TYPE v)
 {
     int i;
 
-    for (i = 0; i < s->size && __LT(s->s[i], v); ++i);
-    if (i < s->size && __EQ(s->s[i], v)){
+    for (i = 0; i < s->size && s->s[i] < v; ++i);
+    if (i < s->size && s->s[i] == v){
         for (++i; i < s->size; ++i)
             s->s[i - 1] = s->s[i];
         --s->size;
