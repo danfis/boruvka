@@ -90,7 +90,7 @@ void borSetMinus(bor_set_t *s1, const bor_set_t *s2)
     }
     for (; i < s1->size; ++i, ++w)
         s1->s[w] = s1->s[i];
-    s1->size = w + s1->size - i;
+    s1->size = w;
 }
 
 int borSetRm(bor_set_t *s, TYPE v)
