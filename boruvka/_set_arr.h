@@ -48,6 +48,12 @@ void borSetInit(bor_set_t *s);
 void borSetFree(bor_set_t *s);
 
 /**
+ * Allocate enough memory for size elements.
+ * (It does not change s->size.)
+ */
+void borSetResize(bor_set_t *s, int size);
+
+/**
  * Returns ith element from the set.
  */
 _bor_inline TYPE borSetGet(bor_set_t *s, int i);
@@ -57,20 +63,44 @@ _bor_inline TYPE borSetGet(bor_set_t *s, int i);
  */
 _bor_inline int borSetSize(bor_set_t *s);
 
-/**
- * Returns true if the set contains val.
- */
-int borSetHas(const bor_set_t *s, TYPE val);
 
 /**
- * Makes the set empty.
+ * Returns true if val \in s
+ */
+int borSetHas(const bor_set_t *s, TYPE val);
+_bor_inline int borSetIn(TYPE val, const bor_set_t *s);
+
+/**
+ * Return true if s1 \subset s2
+ */
+int borSetIsSubset(const bor_set_t *s1, const bor_set_t *s2);
+
+/**
+ * Returns size of s1 \cap s2.
+ */
+int borSetIntersectionSize(const bor_set_t *s1, const bor_set_t *s2);
+
+/**
+ * Returns true if | s1 \cap s2 | >= limit
+ */
+int borSetIntersectionSizeAtLeast(const bor_set_t *s1, const bor_set_t *s2,
+                                  int limit);
+
+/**
+ * s = \emptyset
  */
 _bor_inline void borSetEmpty(bor_set_t *s);
 
 /**
- * Adds a new value into the set if not already there.
+ * s = s \cup {val}
  */
 void borSetAdd(bor_set_t *s, TYPE val);
+
+/**
+ * s = s \setminus {val}
+ * Returns true if val was found in s.
+ */
+int borSetRm(bor_set_t *s, TYPE val);
 
 /**
  * dst = dst \cup src
@@ -83,10 +113,10 @@ void borSetUnion(bor_set_t *dst, const bor_set_t *src);
 void borSetIntersect(bor_set_t *dst, const bor_set_t *src);
 
 /**
- * Allocate enough memory for size elements.
- * (It does not change s->size.)
+ * s1 = s1 \setminus s2
  */
-void borSetResize(bor_set_t *s, int size);
+void borSetMinus(bor_set_t *s1, const bor_set_t *s2);
+
 
 /**
  * Returns true if the sets are equal.
@@ -94,15 +124,9 @@ void borSetResize(bor_set_t *s, int size);
 _bor_inline int borSetEq(const bor_set_t *s1, const bor_set_t *s2);
 
 /**
- * s1 = s1 \setminus s2
+ * Compares sets, return values are the same as by memcmp().
  */
-void borSetMinus(bor_set_t *s1, const bor_set_t *s2);
-
-/**
- * s = s \setminus {val}
- * Returns true if val was found in s.
- */
-int borSetRm(bor_set_t *s, TYPE val);
+_bor_inline int borSetCmp(const bor_set_t *s1, const bor_set_t *s2);
 
 
 
@@ -117,6 +141,11 @@ _bor_inline int borSetSize(bor_set_t *s)
     return s->size;
 }
 
+_bor_inline int borSetIn(TYPE val, const bor_set_t *s)
+{
+    return borSetHas(s, val);
+}
+
 _bor_inline void borSetEmpty(bor_set_t *s)
 {
     s->size = 0;
@@ -126,6 +155,16 @@ _bor_inline int borSetEq(const bor_set_t *s1, const bor_set_t *s2)
 {
     return s1->size == s2->size
             && memcmp(s1->s, s2->s, sizeof(TYPE) * s1->size) == 0;
+}
+
+_bor_inline int borSetCmp(const bor_set_t *s1, const bor_set_t *s2)
+{
+    int cmp;
+    cmp = memcmp(s1->s, s2->s,
+                 sizeof(TYPE) * (s1->size < s2->size ?  s1->size : s2->size));
+    if (cmp == 0)
+        return s1->size - s2->size;
+    return cmp;
 }
 
 #ifdef __cplusplus

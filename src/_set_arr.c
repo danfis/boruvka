@@ -28,12 +28,84 @@ void borSetFree(bor_set_t *s)
         BOR_FREE(s->s);
 }
 
+void borSetResize(bor_set_t *s, int size)
+{
+    s->s = BOR_REALLOC_ARR(s->s, TYPE, size);
+    s->size = size;
+}
+
 int borSetHas(const bor_set_t *s, TYPE v)
 {
     // TODO: binary search
     for (int i = 0; i < s->size; ++i){
         if (s->s[i] == v)
             return 1;
+    }
+    return 0;
+}
+
+int borSetIsSubset(const bor_set_t *s1, const bor_set_t *s2)
+{
+    int i, j, size;
+
+    if (s1->size > s2->size)
+        return 0;
+
+    size = s1->size;
+    for (i = j = 0; i < size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            return 0;
+        }else{
+            ++j;
+        }
+    }
+    return i == size;
+}
+
+int borSetIntersectionSize(const bor_set_t *s1, const bor_set_t *s2)
+{
+    int i, j, size, setsize;
+
+    setsize = 0;
+    size = s1->size;
+    for (i = j = 0; i < size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            ++setsize;
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            ++i;
+        }else{
+            ++j;
+        }
+    }
+    return setsize;
+}
+
+int borSetIntersectionSizeAtLeast(const bor_set_t *s1, const bor_set_t *s2,
+                                  int limit)
+{
+    int i, j, size, setsize;
+
+    if (limit == 0)
+        return 1;
+
+    setsize = 0;
+    size = s1->size;
+    for (i = j = 0; i < size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            if (++setsize == limit)
+                return 1;
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            ++i;
+        }else{
+            ++j;
+        }
     }
     return 0;
 }
@@ -62,10 +134,18 @@ void borSetAdd(bor_set_t *s, TYPE v)
     }
 }
 
-void borSetResize(bor_set_t *s, int size)
+int borSetRm(bor_set_t *s, TYPE v)
 {
-    s->s = BOR_REALLOC_ARR(s->s, TYPE, size);
-    s->size = size;
+    int i;
+
+    for (i = 0; i < s->size && s->s[i] < v; ++i);
+    if (i < s->size && s->s[i] == v){
+        for (++i; i < s->size; ++i)
+            s->s[i - 1] = s->s[i];
+        --s->size;
+        return 1;
+    }
+    return 0;
 }
 
 void borSetUnion(bor_set_t *dst, const bor_set_t *src)
@@ -111,19 +191,3 @@ void borSetMinus(bor_set_t *s1, const bor_set_t *s2)
         s1->s[w] = s1->s[i];
     s1->size = w;
 }
-
-int borSetRm(bor_set_t *s, TYPE v)
-{
-    int i;
-
-    for (i = 0; i < s->size && s->s[i] < v; ++i);
-    if (i < s->size && s->s[i] == v){
-        for (++i; i < s->size; ++i)
-            s->s[i - 1] = s->s[i];
-        --s->size;
-        return 1;
-    }
-    return 0;
-}
-
-
