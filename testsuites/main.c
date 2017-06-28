@@ -43,6 +43,7 @@
 #include "scc.h"
 #include "msg-schema.h"
 #include "lp.h"
+#include "set.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -89,6 +90,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSSCC),
     TEST_SUITE_ADD(TSMsgSchema),
     TEST_SUITE_ADD(TSLP),
+    TEST_SUITE_ADD(TSSet),
 
     TEST_SUITES_CLOSURE
 };

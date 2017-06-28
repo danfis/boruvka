@@ -78,6 +78,11 @@ void borSetAdd(bor_set_t *s, TYPE val);
 void borSetUnion(bor_set_t *dst, const bor_set_t *src);
 
 /**
+ * dst = dst \cap src
+ */
+void borSetIntersect(bor_set_t *dst, const bor_set_t *src);
+
+/**
  * Allocate enough memory for size elements.
  * (It does not change s->size.)
  */
