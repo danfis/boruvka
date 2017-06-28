@@ -3,8 +3,8 @@ ifneq '$(DEBUG)' 'no'
   DEBUG := yes
 endif
 
--include ../Makefile.include
 -include ../Makefile.local
+-include ../Makefile.include
 
 CFLAGS += -I./ -I../ -Icu/
 CXXFLAGS += -I./ -I../ -Icu/
@@ -21,6 +21,16 @@ ifeq '$(USE_OPENCL)' 'yes'
   CFLAGS  += $(OPENCL_CFLAGS)
 endif
 
+ifeq '$(USE_CPLEX)' 'yes'
+  LDFLAGS += $(CPLEX_LDFLAGS)
+endif
+ifeq '$(USE_GUROBI)' 'yes'
+  LDFLAGS += $(GUROBI_LDFLAGS)
+endif
+ifeq '$(USE_LPSOLVE)' 'yes'
+  LDFLAGS += $(LPSOLVE_LDFLAGS)
+endif
+
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o poly2.o \
@@ -29,7 +39,8 @@ OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o poly2.o \
        tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
        vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
        rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
-       lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o
+       lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o \
+       lp.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =

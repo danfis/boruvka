@@ -178,6 +178,40 @@ PYTHON_CFLAGS  ?= $(shell $(PYTHON_CONFIG) --includes)
 PYTHON_LDFLAGS ?= $(shell $(PYTHON_CONFIG) --libs)
 
 
+CPLEX_CFLAGS ?=
+CPLEX_LDFLAGS ?=
+ifneq '$(CPLEX_CFLAGS)$(CPLEX_LDFLAGS)' ''
+  USE_CPLEX := yes
+endif
+
+GUROBI_CFLAGS ?=
+GUROBI_LDFLAGS ?=
+ifneq '$(GUROBI_CFLAGS)$(GUROBI_LDFLAGS)' ''
+  USE_GUROBI := yes
+endif
+
+LPSOLVE_CFLAGS ?=
+LPSOLVE_LDFLAGS ?=
+ifneq '$(LPSOLVE_CFLAGS)$(LPSOLVE_LDFLAGS)' ''
+  USE_LPSOLVE := yes
+else
+  ifeq '$(shell if test -f /usr/lib/liblpsolve55.so; then echo "yes"; fi;)' 'yes'
+    LPSOLVE_LDFLAGS = -llpsolve55
+    USE_LPSOLVE := yes
+  endif
+endif
+
+ifeq '$(USE_CPLEX)' 'yes'
+  CONFIG_FLAGS += -DUSE_CPLEX
+endif
+ifeq '$(USE_GUROBI)' 'yes'
+  CONFIG_FLAGS += -DUSE_GUROBI
+endif
+ifeq '$(USE_LPSOLVE)' 'yes'
+  CONFIG_FLAGS += -DUSE_LPSOLVE
+endif
+
+
 PREFIX     ?= /usr/local
 INCLUDEDIR ?= include
 LIBDIR     ?= lib

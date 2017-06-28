@@ -16,4 +16,8 @@ ifdef(`USE_GSL', `#define BOR_GSL')
 ifdef(`USE_TIMSORT', `#define BOR_TIMSORT')
 ifdef(`CD_TIME_MEASURE', `#define BOR_CD_TIME_MEASURE')
 
+ifdef(`USE_CPLEX', `#define BOR_CPLEX')
+ifdef(`USE_GUROBI', `#define BOR_GUROBI')
+ifdef(`USE_LPSOLVE', `#define BOR_LPSOLVE')
+
 #endif /* __BOR_CONFIG_H__ */

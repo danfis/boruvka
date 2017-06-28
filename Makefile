@@ -76,6 +76,10 @@ OBJS += msg-schema
 OBJS += iset
 OBJS += lset
 OBJS += cset
+OBJS += lp
+OBJS += lp-cplex
+OBJS += lp-lpsolve
+OBJS += lp-gurobi
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
@@ -92,6 +96,19 @@ endif
 ifeq '$(USE_GSL)' 'yes'
   CFLAGS  += $(GSL_CFLAGS)
   LDFLAGS += $(GSL_LDFLAGS)
+endif
+
+ifeq '$(USE_CPLEX)' 'yes'
+  CFLAGS  += $(CPLEX_CFLAGS)
+  LDFLAGS += $(CPLEX_LDFLAGS)
+endif
+ifeq '$(USE_GUROBI)' 'yes'
+  CFLAGS  += $(GUROBI_CFLAGS)
+  LDFLAGS += $(GUROBI_LDFLAGS)
+endif
+ifeq '$(USE_LPSOLVE)' 'yes'
+  CFLAGS  += $(LPSOLVE_CFLAGS)
+  LDFLAGS += $(LPSOLVE_LDFLAGS)
 endif
 
 
@@ -319,7 +336,17 @@ help:
 	@echo "    OPENCL_LDFLAGS    = $(OPENCL_LDFLAGS)"
 	@echo "    HDF5_CFLAGS       = $(HDF5_CFLAGS)"
 	@echo "    HDF5_LDFLAGS      = $(HDF5_LDFLAGS)"
-	@echo "    GSL_CFLAGS       = $(GSL_CFLAGS)"
-	@echo "    GSL_LDFLAGS      = $(GSL_LDFLAGS)"
+	@echo "    GSL_CFLAGS        = $(GSL_CFLAGS)"
+	@echo "    GSL_LDFLAGS       = $(GSL_LDFLAGS)"
+	@echo ""
+	@echo "    CPLEX_CFLAGS      = $(CPLEX_CFLAGS)"
+	@echo "    CPLEX_LDFLAGS     = $(CPLEX_LDFLAGS)"
+	@echo "    USE_CPLEX         = $(USE_CPLEX)"
+	@echo "    GUROBI_CFLAGS     = $(GUROBI_CFLAGS)"
+	@echo "    GUROBI_LDFLAGS    = $(GUROBI_LDFLAGS)"
+	@echo "    USE_GUROBI        = $(USE_GUROBI)"
+	@echo "    LPSOLVE_CFLAGS    = $(LPSOLVE_CFLAGS)"
+	@echo "    LPSOLVE_LDFLAGS   = $(LPSOLVE_LDFLAGS)"
+	@echo "    USE_LPSOLVE       = $(USE_LPSOLVE)"
 
 .PHONY: all clean check check-valgrind help doc install analyze examples
