@@ -26,6 +26,7 @@ extern "C" {
 
 /**
  * Array-based set.
+ * The elements in .s are always sorted.
  */
 struct bor_set {
     TYPE *s;
@@ -127,6 +128,13 @@ _bor_inline int borSetEq(const bor_set_t *s1, const bor_set_t *s2);
  * Compares sets, return values are the same as by memcmp().
  */
 _bor_inline int borSetCmp(const bor_set_t *s1, const bor_set_t *s2);
+
+/**
+ * Remaps the elements of the set using remap array containing maping from
+ * the old value to the new value. The mapping must be monotonically
+ * increasing and it is assumed that the values in the set are >= 0.
+ */
+void borSetRemap(bor_set_t *s, const TYPE *remap);
 
 
 

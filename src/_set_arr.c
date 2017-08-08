@@ -191,3 +191,9 @@ void borSetMinus(bor_set_t *s1, const bor_set_t *s2)
         s1->s[w] = s1->s[i];
     s1->size = w;
 }
+
+void borSetRemap(bor_set_t *s, const TYPE *remap)
+{
+    for (int i = 0; i < s->size; ++i)
+        s->s[i] = remap[(int)s->s[i]];
+}
