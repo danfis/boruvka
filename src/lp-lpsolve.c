@@ -223,6 +223,4 @@ bor_lp_cls_t bor_lp_lpsolve = {
     lpSolve,
     lpWrite,
 };
-#else /* BOR_LPSOLVE */
-bor_lp_cls_t bor_lp_lpsolve = bor_lp_not_available;
 #endif /* BOR_LPSOLVE */

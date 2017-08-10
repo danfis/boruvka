@@ -288,6 +288,4 @@ bor_lp_cls_t bor_lp_cplex = {
     solve,
     cpxWrite,
 };
-#else /* BOR_CPLEX */
-bor_lp_cls_t bor_lp_cplex = bor_lp_not_available;
 #endif /* BOR_CPLEX */
