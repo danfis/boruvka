@@ -88,6 +88,14 @@ int borSetIntersectionSizeAtLeast(const bor_set_t *s1, const bor_set_t *s2,
                                   int limit);
 
 /**
+ * Returns true if | s1 \cap s2 \cap s3 | >= limit
+ */
+int borSetIntersectionSizeAtLeast3(const bor_set_t *s1,
+                                   const bor_set_t *s2,
+                                   const bor_set_t *s3,
+                                   int limit);
+
+/**
  * s = \emptyset
  */
 _bor_inline void borSetEmpty(bor_set_t *s);

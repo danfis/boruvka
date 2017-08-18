@@ -110,6 +110,35 @@ int borSetIntersectionSizeAtLeast(const bor_set_t *s1, const bor_set_t *s2,
     return 0;
 }
 
+int borSetIntersectionSizeAtLeast3(const bor_set_t *s1,
+                                   const bor_set_t *s2,
+                                   const bor_set_t *s3,
+                                   int limit)
+{
+    int i, j, k, setsize;
+
+    if (limit == 0)
+        return 1;
+
+    setsize = 0;
+    for (i = j = k = 0; i < s1->size && j < s2->size && k < s3->size;){
+        if (s1->s[i] == s2->s[j] && s1->s[i] == s3->s[k]){
+            if (++setsize == limit)
+                return 1;
+            ++i;
+            ++j;
+            ++k;
+        }else if (s1->s[i] < s2->s[j] || s1->s[i] < s3->s[k]){
+            ++i;
+        }else if (s2->s[j] < s1->s[i] || s2->s[j] < s3->s[k]){
+            ++j;
+        }else if (s3->s[k] < s1->s[i] || s3->s[k] < s2->s[j]){
+            ++k;
+        }
+    }
+    return 0;
+}
+
 void borSetAdd(bor_set_t *s, TYPE v)
 {
     if (s->size >= s->alloc){

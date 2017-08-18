@@ -1,12 +1,55 @@
 #include <stdio.h>
 #include <cu/cu.h>
+#include "boruvka/rand.h"
 #include "boruvka/iset.h"
 #include "boruvka/lset.h"
 #include "boruvka/cset.h"
 
+bor_rand_t rnd;
+
+static void testIntersection(int rng)
+{
+    bor_iset_t s[3], sint;
+    int size, v;
+
+    for (int si = 0; si < 3; ++si){
+        size = (int)borRand(&rnd, 1, 30);
+        borISetInit(&s[si]);
+        for (int i = 0; i < size; ++i){
+            v = (int)borRand(&rnd, -rng, rng);
+            borISetAdd(&s[si], v);
+        }
+    }
+
+    borISetInit(&sint);
+    for (int i1 = 0; i1 < s[0].size; ++i1){
+        for (int i2 = 0; i2 < s[1].size; ++i2){
+            for (int i3 = 0; i3 < s[2].size; ++i3){
+                if (s[0].s[i1] == s[1].s[i2] && s[0].s[i1] == s[2].s[i3])
+                    borISetAdd(&sint, s[0].s[i1]);
+            }
+        }
+    }
+
+    for (int i = 1; i < 30; i++){
+        int siz = borISetIntersectionSizeAtLeast3(s + 0, s + 1, s + 2, i);
+        if (sint.size >= i){
+            assertTrue(siz);
+        }else{
+            assertFalse(siz);
+        }
+    }
+
+    borISetFree(&sint);
+    for (int si = 0; si < 3; ++si)
+        borISetFree(&s[si]);
+}
+
 TEST(testISet)
 {
     bor_iset_t s, s1, s2;
+
+    borRandInit(&rnd);
 
     borISetInit(&s);
     borISetInit(&s1);
@@ -107,4 +150,13 @@ TEST(testISet)
     borISetFree(&s);
     borISetFree(&s1);
     borISetFree(&s2);
+
+    for (int i = 0; i < 100; ++i)
+        testIntersection(2);
+    for (int i = 0; i < 100; ++i)
+        testIntersection(4);
+    for (int i = 0; i < 100; ++i)
+        testIntersection(6);
+    for (int i = 0; i < 100; ++i)
+        testIntersection(10);
 }
