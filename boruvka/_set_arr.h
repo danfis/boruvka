@@ -122,6 +122,11 @@ void borSetUnion(bor_set_t *dst, const bor_set_t *src);
 void borSetIntersect(bor_set_t *dst, const bor_set_t *src);
 
 /**
+ * dst = s1 \cap s2
+ */
+void borSetIntersect2(bor_set_t *dst, const bor_set_t *s1, const bor_set_t *s2);
+
+/**
  * s1 = s1 \setminus s2
  */
 void borSetMinus(bor_set_t *s1, const bor_set_t *s2);

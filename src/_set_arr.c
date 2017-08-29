@@ -202,6 +202,25 @@ void borSetIntersect(bor_set_t *dst, const bor_set_t *src)
     dst->size = w;
 }
 
+void borSetIntersect2(bor_set_t *dst, const bor_set_t *s1, const bor_set_t *s2)
+{
+    int w, i, j;
+
+    borSetEmpty(dst);
+    for (w = i = j = 0; i < s1->size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            dst->s[w++] = s1->s[i];
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            ++i;
+        }else{
+            ++j;
+        }
+    }
+    dst->size = w;
+}
+
 void borSetMinus(bor_set_t *s1, const bor_set_t *s2)
 {
     int w, i, j;
