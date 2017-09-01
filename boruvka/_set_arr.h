@@ -57,12 +57,12 @@ void borSetResize(bor_set_t *s, int size);
 /**
  * Returns ith element from the set.
  */
-_bor_inline TYPE borSetGet(bor_set_t *s, int i);
+_bor_inline TYPE borSetGet(const bor_set_t *s, int i);
 
 /**
  * Returns size of the set.
  */
-_bor_inline int borSetSize(bor_set_t *s);
+_bor_inline int borSetSize(const bor_set_t *s);
 
 
 /**
@@ -152,12 +152,12 @@ void borSetRemap(bor_set_t *s, const TYPE *remap);
 
 
 /**** INLINES: ****/
-_bor_inline TYPE borSetGet(bor_set_t *s, int i)
+_bor_inline TYPE borSetGet(const bor_set_t *s, int i)
 {
     return s->s[i];
 }
 
-_bor_inline int borSetSize(bor_set_t *s)
+_bor_inline int borSetSize(const bor_set_t *s)
 {
     return s->size;
 }
