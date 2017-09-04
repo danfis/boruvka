@@ -47,13 +47,14 @@ static void testIntersection(int rng)
 
 TEST(testISet)
 {
-    bor_iset_t s, s1, s2;
+    bor_iset_t s, s1, s2, s3;
 
     borRandInit(&rnd);
 
     borISetInit(&s);
     borISetInit(&s1);
     borISetInit(&s2);
+    borISetInit(&s3);
 
     assertEquals(borISetSize(&s), 0);
     borISetAdd(&s, 1);
@@ -86,10 +87,14 @@ TEST(testISet)
     assertEquals(borISetSize(&s2), 5);
     assertTrue(borISetEq(&s1, &s2));
 
+    borISetMinus2(&s3, &s2, &s);
     borISetMinus(&s2, &s);
     assertEquals(borISetSize(&s2), 2);
     assertEquals(borISetGet(&s2, 0), 4);
     assertEquals(borISetGet(&s2, 1), 5);
+    assertEquals(borISetSize(&s3), 2);
+    assertEquals(borISetGet(&s3, 0), 4);
+    assertEquals(borISetGet(&s3, 1), 5);
 
     borISetRm(&s2, 1);
     assertEquals(borISetSize(&s2), 2);
@@ -150,6 +155,7 @@ TEST(testISet)
     borISetFree(&s);
     borISetFree(&s1);
     borISetFree(&s2);
+    borISetFree(&s3);
 
     for (int i = 0; i < 100; ++i)
         testIntersection(2);

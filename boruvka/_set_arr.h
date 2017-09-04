@@ -131,6 +131,11 @@ void borSetIntersect2(bor_set_t *dst, const bor_set_t *s1, const bor_set_t *s2);
  */
 void borSetMinus(bor_set_t *s1, const bor_set_t *s2);
 
+/**
+ * d = s1 \setminus s2
+ */
+void borSetMinus2(bor_set_t *d, const bor_set_t *s1, const bor_set_t *s2);
+
 
 /**
  * Returns true if the sets are equal.

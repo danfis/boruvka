@@ -239,6 +239,26 @@ void borSetMinus(bor_set_t *s1, const bor_set_t *s2)
     s1->size = w;
 }
 
+void borSetMinus2(bor_set_t *d, const bor_set_t *s1, const bor_set_t *s2)
+{
+    int i, j;
+
+    borSetEmpty(d);
+    for (i = j = 0; i < s1->size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            borSetAdd(d, s1->s[i]);
+            ++i;
+        }else{
+            ++j;
+        }
+    }
+    for (; i < s1->size; ++i)
+        borSetAdd(d, s1->s[i]);
+}
+
 void borSetRemap(bor_set_t *s, const TYPE *remap)
 {
     for (int i = 0; i < s->size; ++i)
