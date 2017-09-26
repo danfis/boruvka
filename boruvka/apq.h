@@ -122,27 +122,27 @@ void borAPQUpdate(bor_apq_t *q, int new_key, bor_apq_el_t *el);
 /**
  * Returns true if the queue is empty.
  */
-_bor_inline int borAPQEmpty(const bor_apq_t *q);
+_bor_inline int borAPQIsEmpty(const bor_apq_t *q);
 
 
 
 /**** INLINES ****/
-_bor_inline int borAPQBucketQueueEmpty(const bor_apq_bucket_queue_t *q)
+_bor_inline int borAPQBucketQueueIsEmpty(const bor_apq_bucket_queue_t *q)
 {
     return q->size == 0;
 }
 
-_bor_inline int borAPQHeapQueueEmpty(const bor_apq_heap_queue_t *q)
+_bor_inline int borAPQHeapQueueIsEmpty(const bor_apq_heap_queue_t *q)
 {
     return borPairHeapEmpty(q->heap);
 }
 
-_bor_inline int borAPQEmpty(const bor_apq_t *q)
+_bor_inline int borAPQIsEmpty(const bor_apq_t *q)
 {
     if (q->bucket){
-        return borAPQBucketQueueEmpty(&q->bucket_queue);
+        return borAPQBucketQueueIsEmpty(&q->bucket_queue);
     }else{
-        return borAPQHeapQueueEmpty(&q->heap_queue);
+        return borAPQHeapQueueIsEmpty(&q->heap_queue);
     }
 }
 
