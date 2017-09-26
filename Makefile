@@ -78,6 +78,10 @@ OBJS += lset
 OBJS += cset
 OBJS += ibucketq
 OBJS += lbucketq
+OBJS += pbucketq
+OBJS += iadaq
+OBJS += ladaq
+OBJS += padaq
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
@@ -213,6 +217,75 @@ src/lbucketq.c: src/_bucketq.c boruvka/lbucketq.h
         | $(SED) 's/borBucketQ/borLBucketQ/g' \
         | $(SED) 's/BOR_BUCKETQ/BOR_LBUCKETQ/g' \
         | $(SED) 's|boruvka/_bucketq\.h|boruvka/lbucketq.h|g' >$@
+boruvka/pbucketq.h: boruvka/_bucketq.h
+	$(SED) 's/TYPE/void */g' <$< \
+        | $(SED) 's/bor_bucketq/bor_pbucketq/g' \
+        | $(SED) 's/borBucketQ/borPBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_PBUCKETQ/g' >$@
+src/pbucketq.c: src/_bucketq.c boruvka/pbucketq.h
+	$(SED) 's/TYPE/void */g' <$< \
+        | $(SED) 's/bor_bucketq/bor_pbucketq/g' \
+        | $(SED) 's/borBucketQ/borPBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_PBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/pbucketq.h|g' >$@
+
+boruvka/iadaq.h: boruvka/_adaq.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_ibucketq/g' \
+        | $(SED) 's/borBucketQ/borIBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_IBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/ibucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_iadaq/g' \
+        | $(SED) 's/borAdaQ/borIAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_IADAQ/g' >$@
+src/iadaq.c: src/_adaq.c boruvka/iadaq.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_ibucketq/g' \
+        | $(SED) 's/borBucketQ/borIBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_IBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/ibucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_iadaq/g' \
+        | $(SED) 's/borAdaQ/borIAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_IADAQ/g' \
+        | $(SED) 's|boruvka/_adaq\.h|boruvka/iadaq.h|g' >$@
+boruvka/ladaq.h: boruvka/_adaq.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_lbucketq/g' \
+        | $(SED) 's/borBucketQ/borLBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_LBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/lbucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_ladaq/g' \
+        | $(SED) 's/borAdaQ/borLAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_LADAQ/g' >$@
+src/ladaq.c: src/_adaq.c boruvka/ladaq.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_lbucketq/g' \
+        | $(SED) 's/borBucketQ/borLBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_LBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/lbucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_ladaq/g' \
+        | $(SED) 's/borAdaQ/borLAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_LADAQ/g' \
+        | $(SED) 's|boruvka/_adaq\.h|boruvka/ladaq.h|g' >$@
+boruvka/padaq.h: boruvka/_adaq.h
+	$(SED) 's/TYPE/void */g' <$< \
+        | $(SED) 's/bor_bucketq/bor_pbucketq/g' \
+        | $(SED) 's/borBucketQ/borPBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_PBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/pbucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_padaq/g' \
+        | $(SED) 's/borAdaQ/borPAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_PADAQ/g' >$@
+src/padaq.c: src/_adaq.c boruvka/padaq.h
+	$(SED) 's/TYPE/void */g' <$< \
+        | $(SED) 's/bor_bucketq/bor_pbucketq/g' \
+        | $(SED) 's/borBucketQ/borPBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_PBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/pbucketq.h|g' \
+        | $(SED) 's/bor_adaq/bor_padaq/g' \
+        | $(SED) 's/borAdaQ/borPAdaQ/g' \
+        | $(SED) 's/BOR_ADAQ/BOR_PADAQ/g' \
+        | $(SED) 's|boruvka/_adaq\.h|boruvka/padaq.h|g' >$@
 
 bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
