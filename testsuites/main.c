@@ -44,6 +44,7 @@
 #include "msg-schema.h"
 #include "lp.h"
 #include "set.h"
+#include "queue.h"
 
 TEST_SUITES {
     TEST_SUITE_ADD(TSVec4),
@@ -91,6 +92,7 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSMsgSchema),
     TEST_SUITE_ADD(TSLP),
     TEST_SUITE_ADD(TSSet),
+    TEST_SUITE_ADD(TSQueue),
 
     TEST_SUITES_CLOSURE
 };

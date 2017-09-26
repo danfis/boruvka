@@ -76,6 +76,12 @@ OBJS += msg-schema
 OBJS += iset
 OBJS += lset
 OBJS += cset
+OBJS += ibucketq
+OBJS += lbucketq
+OBJS += pbucketq
+OBJS += iadaq
+OBJS += ladaq
+OBJS += padaq
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
@@ -150,44 +156,49 @@ boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
 	$(M4) $(CONFIG_FLAGS) $< >$@
 
 boruvka/iset.h: boruvka/_set_arr.h
-	$(SED) 's/TYPE/int/g' <$< \
-        | $(SED) 's/bor_set/bor_iset/g' \
-        | $(SED) 's/borSet/borISet/g' \
-        | $(SED) 's/BOR_SET/BOR_ISET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_ISET_FOR_EACH/g' >$@
+	$(BASH) fmt.sh set Set int i <$< >$@
 src/iset.c: src/_set_arr.c boruvka/iset.h
-	$(SED) 's/TYPE/int/g' <$< \
-        | $(SED) 's/bor_set/bor_iset/g' \
-        | $(SED) 's/borSet/borISet/g' \
-        | $(SED) 's/BOR_SET/BOR_ISET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_ISET_FOR_EACH/g' \
-        | $(SED) 's|boruvka/set\.h|boruvka/iset.h|g' >$@
+	$(BASH) fmt.sh set Set int i <$< >$@
 boruvka/lset.h: boruvka/_set_arr.h
-	$(SED) 's/TYPE/long/g' <$< \
-        | $(SED) 's/bor_set/bor_lset/g' \
-        | $(SED) 's/borSet/borLSet/g' \
-        | $(SED) 's/BOR_SET/BOR_LSET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_LSET_FOR_EACH/g' >$@
+	$(BASH) fmt.sh set Set long l <$< >$@
 src/lset.c: src/_set_arr.c boruvka/lset.h
-	$(SED) 's/TYPE/long/g' <$< \
-        | $(SED) 's/bor_set/bor_lset/g' \
-        | $(SED) 's/borSet/borLSet/g' \
-        | $(SED) 's/BOR_SET/BOR_LSET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_LSET_FOR_EACH/g' \
-        | $(SED) 's|boruvka/set\.h|boruvka/lset.h|g' >$@
+	$(BASH) fmt.sh set Set long l <$< >$@
 boruvka/cset.h: boruvka/_set_arr.h
-	$(SED) 's/TYPE/char/g' <$< \
-        | $(SED) 's/bor_set/bor_cset/g' \
-        | $(SED) 's/borSet/borCSet/g' \
-        | $(SED) 's/BOR_SET/BOR_CSET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_CSET_FOR_EACH/g' >$@
+	$(BASH) fmt.sh set Set char c <$< >$@
 src/cset.c: src/_set_arr.c boruvka/cset.h
-	$(SED) 's/TYPE/char/g' <$< \
-        | $(SED) 's/bor_set/bor_cset/g' \
-        | $(SED) 's/borSet/borCSet/g' \
-        | $(SED) 's/BOR_SET/BOR_CSET/g' \
-        | $(SED) 's/BOR_SET_FOR_EACH/BOR_CSET_FOR_EACH/g' \
-        | $(SED) 's|boruvka/set\.h|boruvka/cset.h|g' >$@
+	$(BASH) fmt.sh set Set char c <$< >$@
+
+boruvka/ibucketq.h: boruvka/_bucketq.h
+	$(BASH) fmt.sh bucketq BucketQ int i <$< >$@
+src/ibucketq.c: src/_bucketq.c boruvka/ibucketq.h
+	$(BASH) fmt.sh bucketq BucketQ int i <$< >$@
+boruvka/lbucketq.h: boruvka/_bucketq.h
+	$(BASH) fmt.sh bucketq BucketQ long l <$< >$@
+src/lbucketq.c: src/_bucketq.c boruvka/lbucketq.h
+	$(BASH) fmt.sh bucketq BucketQ long l <$< >$@
+boruvka/pbucketq.h: boruvka/_bucketq.h
+	$(BASH) fmt.sh bucketq BucketQ "void *" p <$< >$@
+src/pbucketq.c: src/_bucketq.c boruvka/pbucketq.h
+	$(BASH) fmt.sh bucketq BucketQ "void *" p <$< >$@
+
+boruvka/iadaq.h: boruvka/_adaq.h boruvka/ibucketq.h
+	$(BASH) fmt.sh bucketq BucketQ int i <$< \
+		| $(BASH) fmt.sh adaq AdaQ int i >$@
+src/iadaq.c: src/_adaq.c boruvka/iadaq.h
+	$(BASH) fmt.sh bucketq BucketQ int i <$< \
+		| $(BASH) fmt.sh adaq AdaQ int i >$@
+boruvka/ladaq.h: boruvka/_adaq.h boruvka/lbucketq.h
+	$(BASH) fmt.sh bucketq BucketQ long l <$< \
+		| $(BASH) fmt.sh adaq AdaQ long l >$@
+src/ladaq.c: src/_adaq.c boruvka/ladaq.h
+	$(BASH) fmt.sh bucketq BucketQ long l <$< \
+		| $(BASH) fmt.sh adaq AdaQ long l >$@
+boruvka/padaq.h: boruvka/_adaq.h boruvka/pbucketq.h
+	$(BASH) fmt.sh bucketq BucketQ "void *" p <$< \
+		| $(BASH) fmt.sh adaq AdaQ "void *" p >$@
+src/padaq.c: src/_adaq.c boruvka/padaq.h
+	$(BASH) fmt.sh bucketq BucketQ "void *" p <$< \
+		| $(BASH) fmt.sh adaq AdaQ "void *" p >$@
 
 bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
@@ -259,6 +270,8 @@ clean:
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
 	rm -f src/[ilc]set.c boruvka/[ilc]set.h
+	rm -f src/[ilcp]bucketq.c boruvka/[ilcp]bucketq.h
+	rm -f src/[ilcp]adaq.c boruvka/[ilcp]adaq.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	

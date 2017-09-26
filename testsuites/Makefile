@@ -40,7 +40,7 @@ OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o poly2.o \
        vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
        rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
        lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o \
-       lp.o set.o
+       lp.o set.o queue.o
 OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
             data-mat3.o data-mat4.o data-bunny.o
 BENCH_OBJS =

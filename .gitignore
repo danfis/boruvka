@@ -14,3 +14,7 @@ src/timsort-impl.h
 Makefile.local
 boruvka/[ilc]set.h
 src/[ilc]set.c
+boruvka/[ilcp]bucketq.h
+src/[ilcp]bucketq.c
+boruvka/[ilcp]adaq.h
+src/[ilcp]adaq.c
