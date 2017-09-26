@@ -82,6 +82,7 @@ OBJS += pbucketq
 OBJS += iadaq
 OBJS += ladaq
 OBJS += padaq
+OBJS += apq
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
