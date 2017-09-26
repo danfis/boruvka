@@ -4,6 +4,7 @@
 #include <boruvka/pbucketq.h>
 #include <boruvka/iadaq.h>
 #include <boruvka/padaq.h>
+#include <boruvka/apq.h>
 
 TEST(testIBucketQ)
 {
@@ -305,4 +306,103 @@ TEST(testPAdaQ)
 
     assertTrue(borPAdaQIsEmpty(&q));
     borPAdaQFree(&q);
+}
+
+struct apq_el {
+    int val;
+    bor_apq_el_t el;
+};
+
+TEST(testAPQ)
+{
+    bor_apq_t q;
+    int key;
+    struct apq_el els[8] = {
+        { .val = 1234 },
+        { .val = 89 },
+        { .val = 91 },
+        { .val = 240 },
+        { .val = 111 },
+        { .val = 99 },
+        { .val = 560 },
+        { .val = 222 },
+    };
+    bor_apq_el_t *el;
+    struct apq_el *e;
+
+    borAPQInit(&q);
+    assertTrue(borAPQIsEmpty(&q));
+    borAPQPush(&q, 10, &els[0].el);
+    borAPQPush(&q, 2, &els[1].el);
+    borAPQPush(&q, 8, &els[2].el);
+    borAPQPush(&q, 80, &els[3].el);
+    assertFalse(borAPQIsEmpty(&q));
+    assertEquals(els[0].el.key, 10);
+    assertEquals(els[1].el.key, 2);
+    assertEquals(els[2].el.key, 8);
+    assertEquals(els[3].el.key, 80);
+
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 89);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 2);
+
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 91);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 8);
+
+    borAPQPush(&q, 125, &els[4].el);
+    borAPQPush(&q, 0, &els[5].el);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 99);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 0);
+
+
+    borAPQPush(&q, 80000, &els[6].el);
+    borAPQPush(&q, 8, &els[7].el);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 222);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 8);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 1234);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 10);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 240);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 80);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 111);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 125);
+
+    assertFalse(borAPQIsEmpty(&q));
+    el = borAPQPop(&q, &key);
+    e = bor_container_of(el, struct apq_el, el);
+    assertEquals(e->val, 560);
+    assertEquals(e->el.key, key);
+    assertEquals(key, 80000);
+
+    assertTrue(borAPQIsEmpty(&q));
+    borAPQFree(&q);
 }
