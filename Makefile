@@ -76,6 +76,8 @@ OBJS += msg-schema
 OBJS += iset
 OBJS += lset
 OBJS += cset
+OBJS += ibucketq
+OBJS += lbucketq
 OBJS += lp
 OBJS += lp-cplex
 OBJS += lp-lpsolve
@@ -189,6 +191,29 @@ src/cset.c: src/_set_arr.c boruvka/cset.h
         | $(SED) 's/BOR_SET_FOR_EACH/BOR_CSET_FOR_EACH/g' \
         | $(SED) 's|boruvka/set\.h|boruvka/cset.h|g' >$@
 
+boruvka/ibucketq.h: boruvka/_bucketq.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_ibucketq/g' \
+        | $(SED) 's/borBucketQ/borIBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_IBUCKETQ/g' >$@
+src/ibucketq.c: src/_bucketq.c boruvka/ibucketq.h
+	$(SED) 's/TYPE/int/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_ibucketq/g' \
+        | $(SED) 's/borBucketQ/borIBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_IBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/ibucketq.h|g' >$@
+boruvka/lbucketq.h: boruvka/_bucketq.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_lbucketq/g' \
+        | $(SED) 's/borBucketQ/borLBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_LBUCKETQ/g' >$@
+src/lbucketq.c: src/_bucketq.c boruvka/lbucketq.h
+	$(SED) 's/TYPE/long/g' <$< \
+        | $(SED) 's/bor_bucketq/bor_lbucketq/g' \
+        | $(SED) 's/borBucketQ/borLBucketQ/g' \
+        | $(SED) 's/BOR_BUCKETQ/BOR_LBUCKETQ/g' \
+        | $(SED) 's|boruvka/_bucketq\.h|boruvka/lbucketq.h|g' >$@
+
 bin/bor-%: bin/%-main.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 bin/%.o: bin/%.c bin/%.h
@@ -259,6 +284,7 @@ clean:
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
 	rm -f src/[ilc]set.c boruvka/[ilc]set.h
+	rm -f src/[ilc]bucketq.c boruvka/[ilc]bucketq.h
 	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	
