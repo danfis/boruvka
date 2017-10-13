@@ -35,6 +35,9 @@ struct bor_set {
 };
 typedef struct bor_set bor_set_t;
 
+#define BOR_SET_INIT { NULL, 0, 0 }
+#define BOR_SET(NAME) bor_set_t NAME = BOR_SET_INIT
+
 #define BOR_SET_FOR_EACH(S, V) \
     for (int __i = 0; __i < (S)->size && ((V) = (S)->s[__i], 1); ++__i)
 
@@ -47,12 +50,6 @@ void borSetInit(bor_set_t *s);
  * Frees allocated memory.
  */
 void borSetFree(bor_set_t *s);
-
-/**
- * Allocate enough memory for size elements.
- * (It does not change s->size.)
- */
-void borSetResize(bor_set_t *s, int size);
 
 /**
  * Returns ith element from the set.

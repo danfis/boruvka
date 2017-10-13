@@ -28,12 +28,6 @@ void borSetFree(bor_set_t *s)
         BOR_FREE(s->s);
 }
 
-void borSetResize(bor_set_t *s, int size)
-{
-    s->s = BOR_REALLOC_ARR(s->s, TYPE, size);
-    s->size = size;
-}
-
 int borSetHas(const bor_set_t *s, TYPE v)
 {
     // TODO: binary search
