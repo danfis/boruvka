@@ -18,3 +18,4 @@ boruvka/[ilcp]bucketq.h
 src/[ilcp]bucketq.c
 boruvka/[ilcp]adaq.h
 src/[ilcp]adaq.c
+boruvka/[ilcp]arr.h

@@ -126,6 +126,10 @@ OBJS_PIC        := $(foreach obj,$(OBJS),.objs/$(obj).pic.o)
 OBJS 		    := $(foreach obj,$(OBJS),.objs/$(obj).o)
 BIN_TARGETS     := $(foreach target,$(BIN_TARGETS),bin/$(target))
 
+HEADERS  = boruvka/iarr.h
+HEADERS += boruvka/larr.h
+HEADERS += boruvka/carr.h
+
 
 ifeq '$(BINS)' 'yes'
   TARGETS += $(BIN_TARGETS)
@@ -137,7 +141,7 @@ endif
 
 all: $(TARGETS)
 
-libboruvka.a: $(OBJS)
+libboruvka.a: $(OBJS) $(HEADERS)
 	ar cr $@ $(OBJS)
 	ranlib $@
 
@@ -168,6 +172,13 @@ boruvka/cset.h: boruvka/_set_arr.h
 	$(BASH) fmt.sh set Set char c <$< >$@
 src/cset.c: src/_set_arr.c boruvka/cset.h
 	$(BASH) fmt.sh set Set char c <$< >$@
+
+boruvka/iarr.h: boruvka/_arr.h
+	$(BASH) fmt.sh arr Arr int i <$< >$@
+boruvka/larr.h: boruvka/_arr.h
+	$(BASH) fmt.sh arr Arr long l <$< >$@
+boruvka/carr.h: boruvka/_arr.h
+	$(BASH) fmt.sh arr Arr char c <$< >$@
 
 boruvka/ibucketq.h: boruvka/_bucketq.h
 	$(BASH) fmt.sh bucketq BucketQ int i <$< >$@
