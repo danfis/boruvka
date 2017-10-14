@@ -184,9 +184,9 @@ _bor_inline void borArrPrepend(bor_arr_t *a, TYPE val)
         a->alloc *= 2;
         a->arr = BOR_REALLOC_ARR(a->arr, TYPE, a->alloc);
     }
-    ++a->size;
-    for (int i = a->size; i >= 0; --i)
+    for (int i = a->size; i > 0; --i)
         a->arr[i] = a->arr[i - 1];
+    ++a->size;
     a->arr[0] = val;
 }
 
