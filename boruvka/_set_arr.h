@@ -98,6 +98,11 @@ int borSetIntersectionSizeAtLeast3(const bor_set_t *s1,
 _bor_inline void borSetEmpty(bor_set_t *s);
 
 /**
+ * d = s
+ */
+_bor_inline void borSetSet(bor_set_t *d, const bor_set_t *s);
+
+/**
  * s = s \cup {val}
  */
 void borSetAdd(bor_set_t *s, TYPE val);
@@ -112,6 +117,11 @@ int borSetRm(bor_set_t *s, TYPE val);
  * dst = dst \cup src
  */
 void borSetUnion(bor_set_t *dst, const bor_set_t *src);
+
+/**
+ * dst = s1 \cup s2
+ */
+void borSetUnion2(bor_set_t *dst, const bor_set_t *s1, const bor_set_t *s2);
 
 /**
  * dst = dst \cap src
@@ -172,6 +182,12 @@ _bor_inline int borSetIn(TYPE val, const bor_set_t *s)
 _bor_inline void borSetEmpty(bor_set_t *s)
 {
     s->size = 0;
+}
+
+_bor_inline void borSetSet(bor_set_t *d, const bor_set_t *s)
+{
+    borSetEmpty(d);
+    borSetUnion(d, s);
 }
 
 _bor_inline int borSetEq(const bor_set_t *s1, const bor_set_t *s2)

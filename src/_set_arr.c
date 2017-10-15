@@ -177,6 +177,30 @@ void borSetUnion(bor_set_t *dst, const bor_set_t *src)
         borSetAdd(dst, src->s[i]);
 }
 
+void borSetUnion2(bor_set_t *dst, const bor_set_t *s1, const bor_set_t *s2)
+{
+    int i, j;
+
+    borSetEmpty(dst);
+    for (i = 0, j = 0; i < s1->size && j < s2->size;){
+        if (s1->s[i] == s2->s[j]){
+            borSetAdd(dst, s1->s[i]);
+            ++i;
+            ++j;
+        }else if (s1->s[i] < s2->s[j]){
+            borSetAdd(dst, s1->s[i]);
+            ++i;
+        }else{
+            borSetAdd(dst, s2->s[j]);
+            ++j;
+        }
+    }
+    for (; i < s1->size; ++i)
+        borSetAdd(dst, s1->s[i]);
+    for (; j < s2->size; ++j)
+        borSetAdd(dst, s2->s[j]);
+}
+
 void borSetIntersect(bor_set_t *dst, const bor_set_t *src)
 {
     int w, i, j, size;
