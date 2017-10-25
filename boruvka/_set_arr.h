@@ -93,6 +93,11 @@ int borSetIntersectionSizeAtLeast3(const bor_set_t *s1,
                                    int limit);
 
 /**
+ * Returns true if the sets are disjunct.
+ */
+_bor_inline int borSetIsDisjunct(const bor_set_t *s1, const bor_set_t *s2);
+
+/**
  * s = \emptyset
  */
 _bor_inline void borSetEmpty(bor_set_t *s);
@@ -177,6 +182,11 @@ _bor_inline int borSetSize(const bor_set_t *s)
 _bor_inline int borSetIn(TYPE val, const bor_set_t *s)
 {
     return borSetHas(s, val);
+}
+
+_bor_inline int borSetIsDisjunct(const bor_set_t *s1, const bor_set_t *s2)
+{
+    return !borSetIntersectionSizeAtLeast(s1, s2, 1);
 }
 
 _bor_inline void borSetEmpty(bor_set_t *s)
