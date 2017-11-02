@@ -1,20 +1,17 @@
 /***
- * cbor
- * -------
- * Copyright (c)2017 Daniel Fiser <danfis@danfis.cz>,
- * AI Center, Department of Computer Science,
- * Faculty of Electrical Engineering, Czech Technical University in Prague.
- * All rights reserved.
+ * Boruvka
+ * --------
+ * Copyright (c)2017 Daniel Fiser <danfis@danfis.cz>
  *
- * This file is part of cbor.
+ *  This file is part of Boruvka.
  *
- * Distributed under the OSI-approved BSD License (the "License");
- * see accompanying file BDS-LICENSE for details or see
- * <http://www.opensource.org/licenses/bsd-license.php>.
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
  *
- * This software is distributed WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the License for more information.
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
  */
 
 #include <boruvka/alloc.h>
