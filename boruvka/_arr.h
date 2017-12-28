@@ -65,6 +65,11 @@ _bor_inline void borArrResize(bor_arr_t *a, int size);
 _bor_inline TYPE borArrGet(const bor_arr_t *a, int i);
 
 /**
+ * Sets ith element from the array.
+ */
+_bor_inline void borArrSet(bor_arr_t *a, int i, TYPE val);
+
+/**
  * Returns size of the array.
  */
 _bor_inline int borArrSize(const bor_arr_t *a);
@@ -139,6 +144,13 @@ _bor_inline void borArrResize(bor_arr_t *a, int size)
 _bor_inline TYPE borArrGet(const bor_arr_t *a, int i)
 {
     return a->arr[i];
+}
+
+_bor_inline void borArrSet(bor_arr_t *a, int i, TYPE val)
+{
+    if (a->size <= i)
+        borArrResize(a, i + 1);
+    a->arr[i] = val;
 }
 
 _bor_inline int borArrSize(const bor_arr_t *a)
