@@ -41,6 +41,20 @@ typedef struct bor_set bor_set_t;
 #define BOR_SET_FOR_EACH(S, V) \
     for (int __i = 0; __i < (S)->size && ((V) = (S)->s[__i], 1); ++__i)
 
+#define BOR_SET_ADD(S, ...) \
+    do { \
+        TYPE ___bor_set_vals[] = {__VA_ARGS__}; \
+        int ___bor_set_size = sizeof(___bor_set_vals) / sizeof(TYPE); \
+        for (int i = 0; i < ___bor_set_size; ++i) \
+            borSetAdd((S), ___bor_set_vals[i]); \
+    }while (0)
+
+#define BOR_SET_SET(S, ...) \
+    do { \
+        borISetEmpty(S); \
+        BOR_SET_ADD((S), __VA_ARGS__); \
+    } while (0)
+
 /**
  * Initialize the set.
  */
