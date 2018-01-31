@@ -119,7 +119,7 @@ _bor_inline void borSetEmpty(bor_set_t *s);
 /**
  * d = s
  */
-_bor_inline void borSetSet(bor_set_t *d, const bor_set_t *s);
+void borSetSet(bor_set_t *d, const bor_set_t *s);
 
 /**
  * s = s \cup {val}
@@ -206,12 +206,6 @@ _bor_inline int borSetIsDisjunct(const bor_set_t *s1, const bor_set_t *s2)
 _bor_inline void borSetEmpty(bor_set_t *s)
 {
     s->size = 0;
-}
-
-_bor_inline void borSetSet(bor_set_t *d, const bor_set_t *s)
-{
-    borSetEmpty(d);
-    borSetUnion(d, s);
 }
 
 _bor_inline int borSetEq(const bor_set_t *s1, const bor_set_t *s2)

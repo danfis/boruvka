@@ -133,6 +133,19 @@ int borSetIntersectionSizeAtLeast3(const bor_set_t *s1,
     return 0;
 }
 
+void borSetSet(bor_set_t *d, const bor_set_t *s)
+{
+    if (d->alloc < s->size){
+        if (d->alloc == 0)
+            d->alloc = 1;
+        while (d->alloc < s->size)
+            d->alloc *= 2;
+        d->s = BOR_REALLOC_ARR(d->s, TYPE, d->alloc);
+    }
+    memcpy(d->s, s->s, sizeof(TYPE) * s->size);
+    d->size = s->size;
+}
+
 void borSetAdd(bor_set_t *s, TYPE v)
 {
     if (s->size >= s->alloc){
