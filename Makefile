@@ -88,6 +88,7 @@ OBJS += lp-cplex
 OBJS += lp-lpsolve
 OBJS += lp-gurobi
 OBJS += digraph
+OBJS += err
 
 ifeq '$(USE_OPENCL)' 'yes'
   OBJS += opencl
