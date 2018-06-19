@@ -26,7 +26,7 @@ static void borErrPrintMsg(const bor_err_t *err, FILE *fout)
     if (!err->err)
         return;
 
-    if (err->msg[0] == 0x0){
+    if (err->msg_prefix[0] == 0x0){
         fprintf(fout, "Error: ");
     }else{
         fprintf(fout, "%s", err->msg_prefix);
@@ -91,8 +91,6 @@ void _borErr(bor_err_t *err, const char *filename, int line, const char *func,
              const char *format, ...)
 {
     va_list ap;
-
-    borErrInit(err);
 
     err->trace[0].filename = filename;
     err->trace[0].line = line;
