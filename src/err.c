@@ -26,7 +26,7 @@ static void borErrPrintMsg(const bor_err_t *err, FILE *fout)
     if (!err->err)
         return;
 
-    if (err->msg_prefix[0] == 0x0){
+    if (err->msg[0] == 0x0){
         fprintf(fout, "Error: ");
     }else{
         fprintf(fout, "%s", err->msg_prefix);
@@ -86,11 +86,18 @@ void borErrInfoEnable(bor_err_t *err, FILE *fout)
     err->info_out = fout;
 }
 
+void borErrInfoDisablePrintResources(bor_err_t *err, int disable)
+{
+    err->info_print_resources_disabled = disable;
+}
+
 
 void _borErr(bor_err_t *err, const char *filename, int line, const char *func,
              const char *format, ...)
 {
     va_list ap;
+
+    borErrInit(err);
 
     err->trace[0].filename = filename;
     err->trace[0].line = line;
@@ -164,8 +171,9 @@ void _borInfo(bor_err_t *err, const char *filename, int line, const char *func,
         peak_mem = usg.ru_maxrss / 1024L;
     va_start(ap, format);
     borTimerStop(&err->info_timer);
-    fprintf(err->info_out, "[%.3fs %ldMB] ",
-            borTimerElapsedInSF(&err->info_timer), peak_mem);
+    if (!err->info_print_resources_disabled)
+        fprintf(err->info_out, "[%.3fs %ldMB] ",
+                borTimerElapsedInSF(&err->info_timer), peak_mem);
     vfprintf(err->info_out, format, ap);
     va_end(ap);
     fprintf(err->info_out, "\n");

@@ -49,6 +49,7 @@ struct bor_err {
 
     FILE *warn_out;
     FILE *info_out;
+    int info_print_resources_disabled;
     bor_timer_t info_timer;
     int info_timer_init;
 };
@@ -86,6 +87,11 @@ void borErrWarnEnable(bor_err_t *err, FILE *fout);
  * Enable/disable info messages.
  */
 void borErrInfoEnable(bor_err_t *err, FILE *fout);
+
+/**
+ * Disable printing resources with BOR_INFO
+ */
+void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
 
 
 
