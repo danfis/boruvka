@@ -97,8 +97,6 @@ void _borErr(bor_err_t *err, const char *filename, int line, const char *func,
 {
     va_list ap;
 
-    borErrInit(err);
-
     err->trace[0].filename = filename;
     err->trace[0].line = line;
     err->trace[0].func = func;
