@@ -1,0 +1,71 @@
+variables:
+  GIT_STRATEGY: fetch
+  GIT_SUBMODULE_STRATEGY: normal
+
+stages:
+  - build
+  - test
+
+.build-debian:
+  stage: build
+  image: debian:stretch
+  only:
+    - master
+    - dev
+  before_script:
+    - env
+    - apt-get update
+    - apt-get install -y build-essential flex m4 $DEBIAN_PKGS
+  script:
+    - env
+    - make clean
+    - make help
+    - make
+
+.check-debian:
+  stage: test
+  image: debian:stretch
+  only:
+    - master
+    - dev
+  before_script:
+    - env
+    - apt-get update
+    - apt-get install -y build-essential flex m4 python $DEBIAN_PKGS
+  script:
+    - env
+    - make clean
+    - make help
+    - make
+    - make check
+
+build-debian-gcc:
+  extends: .build-debian
+
+build-debian-clang:
+  extends: .build-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+
+build-debian-gcc-lp:
+  extends: .build-debian
+  variables:
+    DEBIAN_PKGS: liblpsolve55-dev
+    USE_LPSOLVE: "yes"
+    LPSOLVE_LDFLAGS: "-llpsolve55"
+
+
+check-debian-gcc:
+  extends: .check-debian
+
+check-debian-clang:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+
+check-debian-gcc-double:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
