@@ -98,14 +98,10 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
 /**
  * Sets error message and starts tracing the calls.
  */
-#define BOR_ERR(E, format, ...) do { \
-      if ((E) != NULL) \
-        _borErr((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__); \
-    } while (0)
-#define BOR_ERR2(E, msg) do { \
-      if ((E) != NULL) \
-        _borErr((E), __FILE__, __LINE__, __func__, msg); \
-    } while (0)
+#define BOR_ERR(E, format, ...) \
+    _borErr((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define BOR_ERR2(E, msg) \
+    _borErr((E), __FILE__, __LINE__, __func__, msg)
 
 /**
  * Same as BOR_ERR() but also returns the value V immediatelly.
@@ -137,33 +133,24 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
 /**
  * Prints warning.
  */
-#define BOR_WARN(E, format, ...) do { \
-      if ((E) != NULL) \
-        _borWarn((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__); \
-    } while (0)
-#define BOR_WARN2(E, msg) do { \
-      if ((E) != NULL) \
-        _borWarn((E), __FILE__, __LINE__, __func__, msg); \
-    } while (0)
+#define BOR_WARN(E, format, ...) \
+    _borWarn((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define BOR_WARN2(E, msg) \
+    _borWarn((E), __FILE__, __LINE__, __func__, msg)
 
 /**
  * Prints info line with timestamp.
  */
-#define BOR_INFO(E, format, ...) do { \
-      if ((E) != NULL) \
-        _borInfo((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__); \
-    } while (0)
-#define BOR_INFO2(E, msg) do { \
-      if ((E) != NULL) \
-        _borInfo((E), __FILE__, __LINE__, __func__, msg); \
-    } while (0)
+#define BOR_INFO(E, format, ...) \
+    _borInfo((E), __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define BOR_INFO2(E, msg) \
+    _borInfo((E), __FILE__, __LINE__, __func__, msg)
 
 /**
  * Trace the error -- record the current file, line and function.
  */
 #define BOR_TRACE(E) \
-    if ((E) != NULL) \
-        _borTrace((E), __FILE__, __LINE__, __func__)
+   _borTrace((E), __FILE__, __LINE__, __func__)
 
 /**
  * Same as BOR_TRACE() but also returns the value V.
@@ -178,13 +165,11 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
  * call.
  */
 #define BOR_TRACE_PREPEND(E, format, ...) do { \
-        if ((E) != NULL) \
-            _borErrPrepend((E), format, __VA_ARGS__); \
+        _borErrPrepend((E), format, __VA_ARGS__); \
         BOR_TRACE(E); \
     } while (0)
 #define BOR_TRACE_PREPEND_RET(E, V, format, ...) do { \
-        if ((E) != NULL) \
-            _borErrPrepend((E), format, __VA_ARGS__); \
+        _borErrPrepend((E), format, __VA_ARGS__); \
         BOR_TRACE_RET((E), V); \
     } while (0)
 

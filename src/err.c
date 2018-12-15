@@ -95,6 +95,9 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable)
 void _borErr(bor_err_t *err, const char *filename, int line, const char *func,
              const char *format, ...)
 {
+    if (err == NULL)
+        return;
+
     va_list ap;
 
     err->trace[0].filename = filename;
@@ -111,6 +114,9 @@ void _borErr(bor_err_t *err, const char *filename, int line, const char *func,
 
 void _borErrPrepend(bor_err_t *err, const char *format, ...)
 {
+    if (err == NULL)
+        return;
+
     va_list ap;
     char msg[BOR_ERR_MSG_MAXLEN];
     int size;
@@ -125,6 +131,9 @@ void _borErrPrepend(bor_err_t *err, const char *format, ...)
 
 void _borTrace(bor_err_t *err, const char *filename, int line, const char *func)
 {
+    if (err == NULL)
+        return;
+
     if (err->trace_depth == BOR_ERR_TRACE_DEPTH){
         err->trace_more = 1;
     }else{
@@ -138,6 +147,9 @@ void _borTrace(bor_err_t *err, const char *filename, int line, const char *func)
 void _borWarn(bor_err_t *err, const char *filename, int line, const char *func,
               const char *format, ...)
 {
+    if (err == NULL)
+        return;
+
     va_list ap;
 
     if (err->warn_out == NULL)
@@ -154,6 +166,9 @@ void _borWarn(bor_err_t *err, const char *filename, int line, const char *func,
 void _borInfo(bor_err_t *err, const char *filename, int line, const char *func,
               const char *format, ...)
 {
+    if (err == NULL)
+        return;
+
     struct rusage usg;
     long peak_mem = 0L;
     va_list ap;
