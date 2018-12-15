@@ -15,7 +15,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y build-essential flex m4 $DEBIAN_PKGS
+    - apt-get install -y build-essential m4 $DEBIAN_PKGS
   script:
     - env
     - make clean
@@ -31,7 +31,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y build-essential flex m4 python $DEBIAN_PKGS
+    - apt-get install -y build-essential m4 python $DEBIAN_PKGS
   script:
     - env
     - make clean

@@ -26,7 +26,6 @@ LDFLAGS += -L. -lboruvka -lm -lrt
 TARGETS  = libboruvka.a
 
 OBJS  = alloc
-OBJS += cfg cfg-lexer
 OBJS += varr
 OBJS += quat vec4 vec3 vec2 vec
 OBJS += mat4 mat3
@@ -221,18 +220,11 @@ bin/%.o: bin/%.c bin/%.h
 examples/%: examples/%.c libboruvka.a
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
-src/cfg-lexer.c: src/cfg-lexer.l src/cfg-lexer.h
-	$(FLEX) -f -t $< >$@
-
-.objs/cfg.pic.o: src/cfg.c boruvka/cfg.h boruvka/config.h src/cfg-lexer.c
-	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
 .objs/%.pic.o: src/%.c boruvka/%.h boruvka/config.h
 	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
 .objs/%.pic.o: src/%.c boruvka/config.h
 	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
 
-.objs/cfg.o: src/cfg.c boruvka/cfg.h boruvka/config.h src/cfg-lexer.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c boruvka/%.h boruvka/config.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 .objs/%.o: src/%.c boruvka/config.h
@@ -273,7 +265,6 @@ install:
 
 clean:
 	rm -f $(OBJS)
-	rm -f src/cfg-lexer.c src/cfg-lexer-gen.h
 	rm -f .objs/*.o
 	rm -f $(TARGETS)
 	rm -f $(BIN_TARGETS)
