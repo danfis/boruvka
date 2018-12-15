@@ -27,7 +27,6 @@ TARGETS  = libboruvka.a
 
 OBJS  = alloc
 OBJS += cfg cfg-lexer
-OBJS += opts
 OBJS += varr
 OBJS += quat vec4 vec3 vec2 vec
 OBJS += mat4 mat3

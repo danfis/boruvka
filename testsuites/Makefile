@@ -36,7 +36,7 @@ BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
 OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o poly2.o \
        mat3.o mat4.o gug.o mesh3.o nearest.o \
        fibo.o pairheap.o dij.o chull3.o \
-       tasks.o task-pool.o vptree.o nn.o cfg.o opts.o sort.o \
+       tasks.o task-pool.o vptree.o nn.o cfg.o sort.o \
        vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
        rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
        lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o \
