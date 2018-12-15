@@ -247,10 +247,6 @@ src/timsort.c: src/timsort/timsort.c src/timsort-impl.h
 		| $(SED) 's/comparator/bor_sort_cmp/g' >>$@
 src/timsort-impl.h: src/timsort/timsort-impl.h
 	$(SED) 's/comparator/bor_sort_cmp/g' <$< >$@
-src/timsort/timsort.c src/timsort/timsort-impl.h: src/timsort/timsort.h
-src/timsort/timsort.h:
-	git submodule init
-	git submodule update
 
 
 install:
