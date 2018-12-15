@@ -26,7 +26,6 @@
 #include "vptree.h"
 #include "vptree-hamming.h"
 #include "nn.h"
-#include "cfg.h"
 #include "sort.h"
 #include "htable.h"
 #include "hfunc.h"
@@ -73,7 +72,6 @@ TEST_SUITES {
     TEST_SUITE_ADD(TSCHull3),
     TEST_SUITE_ADD(TSTasks),
     TEST_SUITE_ADD(TSTaskPool),
-    TEST_SUITE_ADD(TSCfg),
     TEST_SUITE_ADD(TSSort),
     TEST_SUITE_ADD(TSHTable),
     TEST_SUITE_ADD(TSHFunc),
