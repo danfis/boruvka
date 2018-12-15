@@ -1,4 +1,0 @@
-opts1 :: HELP `(null)' 'h'
-opts1 :: Remaining options:
-  [00] `program'
-  [01] `filename'
