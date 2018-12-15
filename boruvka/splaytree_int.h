@@ -173,7 +173,7 @@ _bor_inline int borSplayTreeIntEmpty(const bor_splaytree_int_t *splaytree_int)
 _bor_inline bor_splaytree_int_node_t *borSplayTreeIntExtractMin(bor_splaytree_int_t *splaytree_int)
 {
     bor_splaytree_int_node_t *n;
-    n = borSplayTreeIntExtractMin(splaytree_int);
+    n = borSplayTreeIntMin(splaytree_int);
     if (n)
         borSplayTreeIntRemove(splaytree_int, n);
     return n;

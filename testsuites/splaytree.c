@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 #include <cu/cu.h>
 #include <boruvka/alloc.h>
 #include <boruvka/rand.h>
@@ -210,6 +211,34 @@ TEST(splaytreeFind)
 
     BOR_SPLAYTREE_FOR_EACH_REVERSE_SAFE(splaytree, n, tmpn){
         borSplayTreeRemove(splaytree, n);
+    }
+    assertTrue(borSplayTreeEmpty(splaytree));
+
+    BOR_FREE(els);
+    borSplayTreeDel(splaytree);
+}
+
+TEST(splaytreeExtractMin)
+{
+    el_t *els;
+    size_t i, size = 10000;
+    bor_splaytree_t *splaytree;
+
+    splaytree = borSplayTreeNew(stCmp, NULL);
+    assertTrue(borSplayTreeEmpty(splaytree));
+
+    els = randomEls(size);
+    for (i = 0; i < size; ++i){
+        borSplayTreeInsert(splaytree, &els[i].node);
+        assertFalse(borSplayTreeEmpty(splaytree));
+    }
+
+    int last_val = INT_MIN;
+    while (!borSplayTreeEmpty(splaytree)){
+        bor_splaytree_node_t *stn = borSplayTreeExtractMin(splaytree);
+        el_t *n = bor_container_of(stn, el_t, node);
+        assertTrue(n->val >= last_val);
+        last_val = n->val;
     }
     assertTrue(borSplayTreeEmpty(splaytree));
 
