@@ -307,7 +307,6 @@ TEST(vec2AngleSameDir)
 
 
     // --- Oriented segments:
-    printf("# vecAngleSameDir - Oriented segments\n");
     borVec2Set(v[0], 0., 0.);
     borVec2Set(v[1], 1., 1.);
     borVec2Set(v[2], 0., 0.);
@@ -323,27 +322,12 @@ TEST(vec2AngleSameDir)
     angle = borVec2AngleSegsSameDir(v[0], v[1], v[2], v[3]);
     assertTrue(borEq(angle, -1. * M_PI_4));
 
-    printf("Name: AB\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[0]), borVec2Y(v[0]));
-    printf("%f %f\n", borVec2X(v[1]), borVec2Y(v[1]));
-    printf("----\n");
-    printf("Name: CD\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
     borMat3SetIdentity(tr);
     borMat3Rot(tr, angle);
     borVec2Copy(&w, v[2]);
     borMat3MulVec2(v[2], tr, &w);
     borVec2Copy(&w, v[3]);
     borMat3MulVec2(v[3], tr, &w);
-    printf("Name: CD rotated\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
 
     borVec2Set(v[0], 0., 0.);
     borVec2Set(v[1], 1., 1.);
@@ -359,27 +343,12 @@ TEST(vec2AngleSameDir)
     borVec2Set(v[3], 3., 7.);
     angle = borVec2AngleSegsSameDir(v[0], v[1], v[2], v[3]);
 
-    printf("Name: AB\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[0]), borVec2Y(v[0]));
-    printf("%f %f\n", borVec2X(v[1]), borVec2Y(v[1]));
-    printf("----\n");
-    printf("Name: CD\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
     borMat3SetIdentity(tr);
     borMat3Rot(tr, angle);
     borVec2Copy(&w, v[2]);
     borMat3MulVec2(v[2], tr, &w);
     borVec2Copy(&w, v[3]);
     borMat3MulVec2(v[3], tr, &w);
-    printf("Name: CD rotated\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
 
     borVec2Sub2(t, v[1], v[0]);
     borVec2Scale(t, 1./BOR_SQRT(borVec2Len2(t)));
@@ -394,27 +363,12 @@ TEST(vec2AngleSameDir)
     borVec2Set(v[3], 1., 7.);
     angle = borVec2AngleSegsSameDir(v[0], v[1], v[3], v[2]);
 
-    printf("Name: AB\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[0]), borVec2Y(v[0]));
-    printf("%f %f\n", borVec2X(v[1]), borVec2Y(v[1]));
-    printf("----\n");
-    printf("Name: CD\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
     borMat3SetIdentity(tr);
     borMat3Rot(tr, angle);
     borVec2Copy(&w, v[2]);
     borMat3MulVec2(v[2], tr, &w);
     borVec2Copy(&w, v[3]);
     borMat3MulVec2(v[3], tr, &w);
-    printf("Name: CD rotated\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
 
     borVec2Sub2(t, v[1], v[0]);
     borVec2Scale(t, 1./BOR_SQRT(borVec2Len2(t)));
@@ -429,27 +383,12 @@ TEST(vec2AngleSameDir)
     borVec2Set(v[3], 2., 2.);
     angle = borVec2AngleSegsSameDir(v[0], v[1], v[2], v[3]);
 
-    printf("Name: AB\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[0]), borVec2Y(v[0]));
-    printf("%f %f\n", borVec2X(v[1]), borVec2Y(v[1]));
-    printf("----\n");
-    printf("Name: CD\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
     borMat3SetIdentity(tr);
     borMat3Rot(tr, angle);
     borVec2Copy(&w, v[2]);
     borMat3MulVec2(v[2], tr, &w);
     borVec2Copy(&w, v[3]);
     borMat3MulVec2(v[3], tr, &w);
-    printf("Name: CD rotated\n");
-    printf("Poly:\n");
-    printf("%f %f\n", borVec2X(v[2]), borVec2Y(v[2]));
-    printf("%f %f\n", borVec2X(v[3]), borVec2Y(v[3]));
-    printf("----\n");
 
     borVec2Sub2(t, v[0], v[1]);
     borVec2Scale(t, 1./BOR_SQRT(borVec2Len2(t)));
@@ -459,273 +398,6 @@ TEST(vec2AngleSameDir)
 
 
     borMat3Del(tr);
-}
-
-TEST(vec2Add)
-{
-    size_t i;
-    bor_vec2_t v;
-
-    printf("# ---- add ----\n");
-    borVec2Set(&v, BOR_ZERO, BOR_ZERO);
-    for (i = 0; i < vecs2_len; i++){
-        borVec2Add(&v, &vecs2[i]);
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- add end ----\n\n");
-}
-
-TEST(vec2Sub)
-{
-    size_t i;
-    bor_vec2_t v;
-
-    printf("# ---- sub ----\n");
-    borVec2Set(&v, BOR_ZERO, BOR_ZERO);
-    for (i = 0; i < vecs2_len; i++){
-        borVec2Sub(&v, &vecs2[i]);
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- sub end ----\n\n");
-}
-
-TEST(vec2Scale)
-{
-    size_t i;
-    bor_vec2_t v;
-
-    printf("# ---- scale ----\n");
-    borVec2Copy(&v, &vecs2[0]);
-    for (i = 0; i < vecs2_len; i++){
-        borVec2Scale(&v, borVec2X(&vecs2[i]));
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- scale end ----\n\n");
-}
-
-TEST(vec2Normalize)
-{
-    size_t i;
-    bor_vec2_t v;
-
-    printf("# ---- normalize ----\n");
-    for (i = 0; i < vecs2_len; i++){
-        borVec2Copy(&v, &vecs2[i]);
-        borVec2Normalize(&v);
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-        borVec2ScaleToLen(&v, borVec2X(&vecs2[i]));
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- normalize end ----\n\n");
-}
-
-TEST(vec2Dot)
-{
-    size_t i;
-    bor_real_t dot;
-
-    printf("# ---- dot ----\n");
-    for (i = 0; i < vecs2_len - 1; i++){
-        dot = borVec2Dot(&vecs2[i], &vecs2[i + 1]);
-        printf("# %g\n", dot);
-    }
-    printf("# ---- dot end ----\n\n");
-}
-
-TEST(vec2Mul)
-{
-    size_t i;
-    bor_vec2_t v;
-
-    printf("# ---- mul ----\n");
-    for (i = 0; i < vecs2_len - 1; i++){
-        borVec2MulComp2(&v, &vecs2[i], &vecs2[i + 1]);
-        printf("# %g %g\n", borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- mul end ----\n\n");
-}
-
-TEST(vec2Len)
-{
-    size_t i;
-    bor_real_t len, len2;
-
-    printf("# ---- len ----\n");
-    for (i = 0; i < vecs2_len; i++){
-        len2 = borVec2Len2(&vecs2[i]);
-        len = borVec2Len(&vecs2[i]);
-        printf("# %g %g\n", len2, len);
-    }
-    printf("# ---- len end ----\n\n");
-}
-
-TEST(vec2Dist)
-{
-    size_t i;
-    bor_real_t d, d2;
-
-    printf("# ---- dist ----\n");
-    for (i = 0; i < vecs2_len - 1; i++){
-        d2 = borVec2Dist2(&vecs2[i], &vecs2[i + 1]);
-        d = borVec2Dist(&vecs2[i], &vecs2[i + 1]);
-        printf("# %g %g\n", d2, d);
-    }
-    printf("# ---- dist end ----\n\n");
-}
-
-TEST(vec2Area)
-{
-    size_t i;
-    bor_real_t d;
-
-    printf("# ---- area ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        d = borVec2Area2(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        printf("# %g\n", d);
-    }
-    printf("# ---- area end ----\n\n");
-}
-
-TEST(vec2Angle)
-{
-    size_t i;
-    bor_real_t d, d2;
-
-    printf("# ---- angle ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        d = borVec2Angle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        d2 = borVec2SignedAngle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        printf("# %g %g\n", d, d2);
-    }
-    printf("# ---- angle end ----\n\n");
-}
-
-TEST(vec2ProjSeg)
-{
-    size_t i;
-    int ret;
-    bor_vec2_t v;
-
-    printf("# ---- proj seg ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        ret = borVec2ProjectionPointOntoSegment(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &v);
-        printf("# %d %g %g\n", ret, borVec2X(&v), borVec2Y(&v));
-    }
-    printf("# ---- proj seg end ----\n\n");
-}
-
-TEST(vec2InCircle)
-{
-    size_t i;
-    int ret;
-
-    printf("# ---- in circle ----\n");
-    for (i = 0; i < vecs2_len - 3; i++){
-        ret = borVec2InCircle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
-        printf("# %d\n", ret);
-    }
-    printf("# ---- in circle end ----\n\n");
-}
-
-TEST(vec2LiesOn)
-{
-    // TODO
-    /*
-    size_t i;
-    int ret;
-
-    printf("# ---- lies on ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        ret = borVec2LiesOn(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        printf("# %d\n", ret);
-    }
-    printf("# ---- lies on end ----\n\n");
-    */
-}
-
-TEST(vec2Collinear)
-{
-    // TODO
-    /*
-    size_t i;
-    int ret;
-
-    printf("# ---- collinear ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        ret = borVec2Collinear(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        printf("# %d\n", ret);
-    }
-    printf("# ---- collinear end ----\n\n");
-    */
-}
-
-TEST(vec2InCone)
-{
-    size_t i;
-    int ret;
-
-    printf("# ---- in cone ----\n");
-    for (i = 0; i < vecs2_len - 3; i++){
-        ret = borVec2InCircle(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
-        printf("# %d\n", ret);
-    }
-    printf("# ---- in cone end ----\n\n");
-}
-
-TEST(vec2Inter)
-{
-    size_t i;
-    int ret, ret2, ret3;
-    bor_vec2_t v;
-
-    printf("# ---- inter ----\n");
-    for (i = 0; i < vecs2_len - 3; i++){
-        ret = borVec2IntersectProp(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
-        ret2 = borVec2Intersect(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3]);
-        ret3 = borVec2IntersectPoint(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2], &vecs2[i + 3], &v);
-        if (ret3 == 0){
-            printf("# %d %d %d %g %g\n", ret, ret2, ret3, borVec2X(&v), borVec2Y(&v));
-        }else{
-            printf("# %d %d %d\n", ret, ret2, ret3);
-        }
-    }
-    printf("# ---- inter end ----\n\n");
-}
-
-TEST(vec2OnLeft)
-{
-    size_t i;
-    int ret;
-
-    printf("# ---- on left ----\n");
-    for (i = 0; i < vecs2_len - 2; i++){
-        ret = borVec2OnLeft(&vecs2[i], &vecs2[i + 1], &vecs2[i + 2]);
-        printf("# %d\n", ret);
-    }
-    printf("# ---- on left end ----\n\n");
-}
-
-TEST(vec2SegInRect)
-{
-    size_t i;
-    int ret;
-    bor_vec2_t s1, s2;
-
-    printf("# ---- seg in rect ----\n");
-    for (i = 0; i < vecs2_len - 5; i++){
-        ret = borVec2SegmentInRect(&vecs2[i], &vecs2[i + 1],
-                                   &vecs2[i + 2], &vecs2[i + 3],
-                                   &vecs2[i + 4], &vecs2[i + 5],
-                                   &s1, &s2);
-        if (ret == 0){
-            printf("# %d (%g %g) (%g %g)\n", ret,
-                   borVec2X(&s1), borVec2Y(&s1),
-                   borVec2X(&s2), borVec2Y(&s2));
-        }else{
-            printf("# %d\n", ret);
-        }
-    }
-    printf("# ---- seg in rect end ----\n\n");
 }
 
 
