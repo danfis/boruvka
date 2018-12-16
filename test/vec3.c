@@ -4,8 +4,6 @@
 #include <boruvka/dbg.h>
 #include "data.h"
 
-static void projToPlanePrint(bor_vec3_t *vs, int num);
-
 TEST(vec3SetUp)
 {
 }
@@ -23,182 +21,6 @@ TEST(vec3Alloc)
     assertTrue(borVec3Eq(v, &w));
     borVec3Del(v);
 }
-
-TEST(vec3Add)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- add ----\n");
-    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
-    for (i = 0; i < vecs_len; i++){
-        borVec3Add(&v, &vecs[i]);
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- add end ----\n\n");
-}
-
-TEST(vec3Sub)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- sub ----\n");
-    borVec3Set(&v, BOR_ZERO, BOR_ZERO, BOR_ZERO);
-    for (i = 0; i < vecs_len; i++){
-        borVec3Sub(&v, &vecs[i]);
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- sub end ----\n\n");
-}
-
-TEST(vec3Scale)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- scale ----\n");
-    borVec3Copy(&v, &vecs[0]);
-    for (i = 0; i < vecs_len; i++){
-        borVec3Scale(&v, borVec3X(&vecs[i]));
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- scale end ----\n\n");
-}
-
-TEST(vec3Normalize)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- normalize ----\n");
-    for (i = 0; i < vecs_len; i++){
-        borVec3Copy(&v, &vecs[i]);
-        borVec3Normalize(&v);
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- normalize end ----\n\n");
-}
-
-TEST(vec3Dot)
-{
-    bor_real_t dot;
-    size_t i;
-
-    printf("# ---- dot ----\n");
-    for (i = 0; i < vecs_len - 1; i++){
-        dot = borVec3Dot(&vecs[i], &vecs[i + 1]);
-        printf("# %g\n", dot);
-    }
-    printf("# ---- dot end ----\n\n");
-}
-
-TEST(vec3Mul)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- mul ----\n");
-    for (i = 0; i < vecs_len - 1; i++){
-        borVec3MulComp2(&v, &vecs[i], &vecs[i + 1]);
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- mul end ----\n\n");
-}
-
-TEST(vec3Cross)
-{
-    bor_vec3_t v;
-    size_t i;
-
-    printf("# ---- cross ----\n");
-    for (i = 0; i < vecs_len - 1; i++){
-        borVec3Cross(&v, &vecs[i], &vecs[i + 1]);
-        printf("# %g %g %g\n", borVec3X(&v), borVec3Y(&v), borVec3Z(&v));
-    }
-    printf("# ---- cross end ----\n\n");
-}
-
-TEST(vec3Len2)
-{
-    bor_real_t d;
-    size_t i;
-
-    printf("# ---- len2 ----\n");
-    for (i = 0; i < vecs_len; i++){
-        d = borVec3Len2(&vecs[i]);
-        printf("# %g\n", d);
-    }
-    printf("# ---- len2 end ----\n\n");
-}
-
-TEST(vec3Len)
-{
-    bor_real_t d;
-    size_t i;
-
-    printf("# ---- len ----\n");
-    for (i = 0; i < vecs_len; i++){
-        d = borVec3Len(&vecs[i]);
-        printf("# %g\n", d);
-    }
-    printf("# ---- len end ----\n\n");
-}
-
-TEST(vec3Dist2)
-{
-    bor_real_t d;
-    size_t i;
-
-    printf("# ---- dist2 ----\n");
-    for (i = 0; i < vecs_len - 1; i++){
-        d = borVec3Dist2(&vecs[i], &vecs[i + 1]);
-        printf("# %g\n", d);
-    }
-    printf("# ---- dist2 end ----\n\n");
-}
-
-TEST(vec3Dist)
-{
-    bor_real_t d;
-    size_t i;
-
-    printf("# ---- dist ----\n");
-    for (i = 0; i < vecs_len - 1; i++){
-        d = borVec3Dist(&vecs[i], &vecs[i + 1]);
-        printf("# %g\n", d);
-    }
-    printf("# ---- dist end ----\n\n");
-}
-
-TEST(vec3SegmentDist)
-{
-    bor_real_t d;
-    bor_vec3_t w;
-    size_t i;
-
-    printf("# ---- segment dist ----\n");
-    for (i = 0; i < vecs_len - 2; i++){
-        d = borVec3PointSegmentDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &w);
-        printf("# %g %g %g %g\n", d, borVec3X(&w), borVec3Y(&w), borVec3Z(&w));
-    }
-    printf("# ---- segment dist end ----\n\n");
-}
-
-TEST(vec3TriDist)
-{
-    bor_real_t d;
-    bor_vec3_t w;
-    size_t i;
-
-    printf("# ---- tri dist ----\n");
-    for (i = 0; i < vecs_len - 3; i++){
-        d = borVec3PointTriDist2(&vecs[i], &vecs[i + 1], &vecs[i + 2], &vecs[i + 3], &w);
-        printf("# %g %g %g %g\n", d, borVec3X(&w), borVec3Y(&w), borVec3Z(&w));
-    }
-    printf("# ---- tri dist end ----\n\n");
-}
-
 
 TEST(vec3Core)
 {
@@ -606,7 +428,6 @@ TEST(vec3Angle)
 {
     bor_vec3_t v[3];
     bor_real_t a;
-    size_t i;
 
     borVec3Set(&v[0], 2., 2., 0.);
     borVec3Set(&v[1], 1., 0., 0.);
@@ -636,39 +457,6 @@ TEST(vec3Angle)
     borVec3Set(&v[2], 0.01, 0.06, 0.);
     a = borVec3Angle(&v[0], &v[1], &v[2]);
     assertTrue(borEq(a, M_PI_2));
-
-    printf("# ---- angle ----\n");
-    for (i = 0; i < vecs_len - 2; i++){
-        a = borVec3Angle(&vecs[i], &vecs[i + 1], &vecs[i + 2]);
-        printf("# %g\n", a);
-    }
-    printf("# ---- angle end ----\n\n");
-}
-
-static void projToPlanePrint(bor_vec3_t *vs, int num)
-{
-    size_t i;
-
-    printf("------\n");
-    printf("Point color: 0.8 0.8 0.8\n");
-    printf("Face color: 0 1 0\n");
-    printf("Name: Proj %d - Plane\n", num);
-    printf("Points:\n");
-    for (i=0; i < 3; i++)
-        printf("%g %g %g\n", borVec3X(&vs[i + 2]), borVec3Y(&vs[i + 2]), borVec3Z(&vs[i + 2]));
-    printf("Faces: 0 1 2\n");
-
-    printf("------\n");
-    printf("Point color: 1 0 0 \n");
-    printf("Name: Proj %d - OPoint\n", num);
-    printf("Points:\n");
-    printf("%g %g %g\n", borVec3X(&vs[1]), borVec3Y(&vs[1]), borVec3Z(&vs[1]));
-
-    printf("------\n");
-    printf("Point color: 0 0 1 \n");
-    printf("Name: Proj %d - PPoint\n", num);
-    printf("Points:\n");
-    printf("%g %g %g\n", borVec3X(&vs[0]), borVec3Y(&vs[0]), borVec3Z(&vs[0]));
 }
 
 TEST(vec3ProjToPlane)
@@ -726,14 +514,18 @@ TEST(vec3ProjToPlane)
     borVec3Set(&v[3], 1., 1., 1.);
     borVec3Set(&v[4], -1., 1., 1.);
     assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    projToPlanePrint(v, 1);
+    assertTrue(borEq(borVec3X(&v[0]), 0.));
+    assertTrue(borEq(borVec3Y(&v[0]), 0.5));
+    assertTrue(borEq(borVec3Z(&v[0]), 0.5));
 
     borVec3Set(&v[1], 3., -2., 1.);
     borVec3Set(&v[2], -1., -2., -1.);
     borVec3Set(&v[3], 1., 2., 1.8);
     borVec3Set(&v[4], -1.4, 1., 1.2);
     assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    projToPlanePrint(v, 2);
+    assertTrue(borEq(borVec3X(&v[0]), 2.9239735603332519531));
+    assertTrue(borEq(borVec3Y(&v[0]), -0.95083606243133544922));
+    assertTrue(borEq(borVec3Z(&v[0]), -0.44450092315673828125));
 }
 
 

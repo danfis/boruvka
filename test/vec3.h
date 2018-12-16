@@ -7,20 +7,6 @@ TEST(vec3SetUp);
 TEST(vec3TearDown);
 TEST(vec3Alloc);
 
-TEST(vec3Add);
-TEST(vec3Sub);
-TEST(vec3Scale);
-TEST(vec3Normalize);
-TEST(vec3Dot);
-TEST(vec3Mul);
-TEST(vec3Cross);
-TEST(vec3Len2);
-TEST(vec3Len);
-TEST(vec3Dist2);
-TEST(vec3Dist);
-TEST(vec3SegmentDist);
-TEST(vec3TriDist);
-
 TEST(vec3Angle);
 
 TEST(vec3Core);
@@ -36,20 +22,6 @@ TEST_SUITE(TSVec3) {
     TEST_ADD(vec3SetUp),
 
     TEST_ADD(vec3Alloc),
-
-    TEST_ADD(vec3Add),
-    TEST_ADD(vec3Sub),
-    TEST_ADD(vec3Scale),
-    TEST_ADD(vec3Normalize),
-    TEST_ADD(vec3Dot),
-    TEST_ADD(vec3Mul),
-    TEST_ADD(vec3Cross),
-    TEST_ADD(vec3Len2),
-    TEST_ADD(vec3Len),
-    TEST_ADD(vec3Dist2),
-    TEST_ADD(vec3Dist),
-    TEST_ADD(vec3SegmentDist),
-    TEST_ADD(vec3TriDist),
 
     TEST_ADD(vec3Angle),
 
