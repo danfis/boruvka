@@ -269,6 +269,7 @@ clean:
 	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
+	rm -f boruvka/[ilc]arr.h
 	rm -f src/[ilc]set.c boruvka/[ilc]set.h
 	rm -f src/[ilcp]bucketq.c boruvka/[ilcp]bucketq.h
 	rm -f src/[ilcp]adaq.c boruvka/[ilcp]adaq.h
