@@ -128,7 +128,7 @@ TEST(htableFindAll)
         found = borHTableFindAll(h, &els[i].htable, &fels, &size);
         assertEquals(size, 2);
         assertTrue(found > 0);
-        if (els[i].val == 1651122
+        if (els[i].val == 891218
                 || els[i].val == 743913
                 || els[i].val == 1996293){
             assertEquals(found, 3);
@@ -144,7 +144,7 @@ TEST(htableFindAll)
         assertTrue(size > 0);
         assertTrue(found > 0);
         assertEquals(found, size);
-        if (els[i].val == 1651122
+        if (els[i].val == 891218
                 || els[i].val == 743913
                 || els[i].val == 1996293){
             assertEquals(found, 3);
