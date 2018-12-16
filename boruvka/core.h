@@ -63,8 +63,8 @@ typedef union _bor_sse_t bor_sse_t;
 typedef float bor_real_t;
 typedef uint32_t bor_uint_t;
 
-/*# define BOR_EPS 1E-6 */
-# define BOR_EPS FLT_EPSILON  /*!< epsilon */
+# define BOR_EPS 1E-6
+/*# define BOR_EPS FLT_EPSILON*/  /*!< epsilon */
 # define BOR_REAL_MAX FLT_MAX /*!< maximal real value */
 # define BOR_REAL_MIN FLT_MIN /*!< minimal real value */
 
@@ -98,8 +98,8 @@ typedef uint32_t bor_uint_t;
 typedef double bor_real_t;
 typedef uint64_t bor_uint_t;
 
-/*# define BOR_EPS 1E-10*/
-# define BOR_EPS DBL_EPSILON
+# define BOR_EPS 1E-10
+/*# define BOR_EPS DBL_EPSILON*/
 # define BOR_REAL_MAX DBL_MAX
 # define BOR_REAL_MIN DBL_MIN
 
