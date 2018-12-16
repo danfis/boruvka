@@ -106,7 +106,7 @@ check: all
 	./test $(CHECK_TS)
 	@echo "----------------------------------------";
 	@echo "Checking regressions:";
-	$(PYTHON2) $(CHECK_REG) regressions
+	$(PYTHON2) $(CHECK_REG) reg
 	@echo ""
 
 check-msg-schema: msg-schema-gen msg-schema-print
@@ -141,7 +141,7 @@ clean:
 	rm -f objs/*.o
 	rm -f $(TARGETS)
 	rm -f tmp.*
-	rm -f regressions/tmp.*
+	rm -f reg/tmp.*
 	rm -f $(BENCH_HEAP)
 	rm -f msg-schema-{gen,regen,print,cmp}
 

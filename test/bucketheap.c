@@ -43,9 +43,9 @@ static void checkCorrect(int ID, size_t num)
     FILE *fout1, *fout2;
     char fn[300];
 
-    sprintf(fn, "regressions/tmp.TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/tmp.TSBucketHeap.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
-    sprintf(fn, "regressions/TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/TSBucketHeap.rand-%d.out", ID);
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
@@ -97,9 +97,9 @@ static void checkCorrect2(int ID, size_t num)
 
     borRandInit(&r);
 
-    sprintf(fn, "regressions/tmp.TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/tmp.TSBucketHeap.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
-    sprintf(fn, "regressions/TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/TSBucketHeap.rand-%d.out", ID);
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);
@@ -155,9 +155,9 @@ static void checkCorrect3(int ID, size_t num)
 
     borRandInit(&r);
 
-    sprintf(fn, "regressions/tmp.TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/tmp.TSBucketHeap.rand-%d.out", ID);
     fout1 = fopen(fn, "w");
-    sprintf(fn, "regressions/TSBucketHeap.rand-%d.out", ID);
+    sprintf(fn, "reg/TSBucketHeap.rand-%d.out", ID);
     fout2 = fopen(fn, "w");
 
     els = randomEls(num);

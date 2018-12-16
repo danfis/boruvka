@@ -1,8 +1,8 @@
-regressions/tmp.*
-regressions/TSFibo.rand-*
-regressions/TSPairHeap*rand-*
-regressions/TSBucketHeap.rand-*
-regressions/TSCD.geom.*
+reg/tmp.*
+reg/TSFibo.rand-*
+reg/TSPairHeap*rand-*
+reg/TSBucketHeap.rand-*
+reg/TSCD.geom.*
 bench-out/*
 *.o
 test

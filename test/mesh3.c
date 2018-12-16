@@ -5,8 +5,8 @@ FILE *pov, *tri;
 
 TEST(testMesh3SetUp)
 {
-    pov = fopen("regressions/tmp.TSMesh3-pov.out", "w");
-    tri = fopen("regressions/tmp.TSMesh3-tri.out", "w");
+    pov = fopen("reg/tmp.TSMesh3-pov.out", "w");
+    tri = fopen("reg/tmp.TSMesh3-tri.out", "w");
 }
 
 TEST(testMesh3TearDown)
