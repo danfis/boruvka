@@ -33,17 +33,59 @@ endif
 
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
-OBJS = vec4.o vec3.o vec2.o vec.o quat.o pc3.o pc.o poly2.o \
-       mat3.o mat4.o gug.o mesh3.o nearest.o \
-       fibo.o pairheap.o dij.o chull3.o \
-       tasks.o task-pool.o vptree.o nn.o sort.o \
-       vptree-hamming.o htable.o hfunc.o segmarr.o bucketheap.o \
-       rbtree.o splaytree.o rbtree_int.o multimap.o fifo.o \
-       lifo.o splaytree_int.o scc.o msg-schema.o msg-schema-common.o \
-       lp.o set.o queue.o
-OBJS_DATA = data-vec2.o data-vec3.o data-quat.o data-vec4.o \
-            data-mat3.o data-mat4.o data-bunny.o
+OBJS  = vec4
+OBJS += vec3
+OBJS += vec2
+OBJS += vec
+OBJS += quat
+OBJS += pc3
+OBJS += pc
+OBJS += poly2
+OBJS += mat3
+OBJS += mat4
+OBJS += gug
+OBJS += mesh3
+OBJS += nearest
+OBJS += fibo
+OBJS += pairheap
+OBJS += dij
+OBJS += chull3
+OBJS += tasks
+OBJS += task-pool
+OBJS += vptree
+OBJS += nn
+OBJS += sort
+OBJS += vptree-hamming
+OBJS += htable
+OBJS += hfunc
+OBJS += segmarr
+OBJS += bucketheap
+OBJS += rbtree
+OBJS += splaytree
+OBJS += rbtree_int
+OBJS += multimap
+OBJS += fifo
+OBJS += lifo
+OBJS += splaytree_int
+OBJS += scc
+OBJS += msg-schema
+OBJS += msg-schema-common
+OBJS += lp
+OBJS += set
+OBJS += queue
+
+OBJS_DATA  = data-vec2
+OBJS_DATA += data-vec3
+OBJS_DATA += data-quat
+OBJS_DATA += data-vec4
+OBJS_DATA += data-mat3
+OBJS_DATA += data-mat4
+OBJS_DATA += data-bunny
+
 BENCH_OBJS =
+
+OBJS := $(foreach obj,$(OBJS),$(obj).o)
+OBJS_DATA := $(foreach obj,$(OBJS_DATA),$(obj).o)
 
 ifeq '$(USE_HDF5)' 'yes'
 ifeq '$(USE_GSL)' 'yes'
