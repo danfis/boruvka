@@ -184,6 +184,7 @@ clean:
 	rm -f $(TARGETS)
 	rm -f tmp.*
 	rm -f reg/tmp.*
+	rm -f reg/TS*.rand-*
 	rm -f $(BENCH_HEAP)
 	rm -f msg-schema-{gen,regen,print,cmp}
 
