@@ -11,7 +11,7 @@ CXXFLAGS += -I./ -I../ -Icu/
 LDFLAGS += -L./ -ldata -Lcu/ -lcu -lrt -lm -L../ -lboruvka -pthread
 CFLAGS_BENCH += $(CFLAGS) -O3 -funroll-loops -funsafe-loop-optimizations -fira-loop-pressure
 
-CHECK_REG=cu/check-regressions
+CHECK_REG=cu/cu-check-regressions
 CHECK_TS ?=
 
 #TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench

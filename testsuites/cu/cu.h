@@ -1,23 +1,17 @@
 /***
  * CU - C unit testing framework
- * -------------------------------------
- * Copyright (c)2007,2008,2009 Daniel Fiser <danfis@danfis.cz>
- *
+ * ---------------------------------
+ * Copyright (c)2007-2015 Daniel Fiser <danfis@danfis.cz>
  *
  *  This file is part of CU.
  *
- *  CU is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as
- *  published by the Free Software Foundation; either version 3 of
- *  the License, or (at your option) any later version.
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
  *
- *  CU is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
  */
 
 #ifndef _CU_H_
@@ -35,8 +29,13 @@ extern "C" {
 /**
  * Define test
  */
-#define TEST(name) \
+#ifdef __cplusplus
+# define TEST(name) \
+    extern "C" void name(void)
+#else /* __cplusplus */
+# define TEST(name) \
     void name(void)
+#endif /* __cplusplus */
 
 /**
  * Define testsuite
@@ -66,21 +65,27 @@ extern "C" {
     cu_run(argc, argv)
 
 /**
- * Set prefix for files printed out. Must contain trailing /.
+ * Set prefix for output files. Must contain trailing /.
  */
 #define CU_SET_OUT_PREFIX(str) \
     cu_set_out_prefix(str)
 
 /**
- * Assertations
- * Assertations with suffix 'M' (e.g. assertTrueM) is variation of macro
+ * Enables (disables) output per test instead of a whole testsuite.
+ */
+#define CU_SET_OUT_PER_TEST(yes) \
+    cu_set_out_per_test(yes)
+
+/**
+ * Assertions
+ * Assertions with suffix 'M' (e.g. assertTrueM) is variation of macro
  * where is possible to specify error message.
  */
 #define assertTrueM(a, message) \
     if (a){ \
-        cu_success_assertation(); \
+        cu_success_assertion(); \
     }else{ \
-        cu_fail_assertation(__FILE__, __LINE__, message); \
+        cu_fail_assertion(__FILE__, __LINE__, message); \
     }
 #define assertTrue(a) \
     assertTrueM((a), #a " is not true")
@@ -118,27 +123,14 @@ typedef struct _cu_test_suites_t {
 
 extern cu_test_suites_t cu_test_suites[];
 
-extern const char *cu_current_test;
-extern const char *cu_current_test_suite;
-
-extern int cu_success_test_suites;
-extern int cu_fail_test_suites;
-extern int cu_success_tests;
-extern int cu_fail_tests;
-extern int cu_success_checks;
-extern int cu_fail_checks;
-
-#define CU_OUT_PREFIX_LENGTH 30
-extern char cu_out_prefix[CU_OUT_PREFIX_LENGTH+1];
-
 void cu_run(int argc, char *argv[]);
-void cu_success_assertation(void);
-void cu_fail_assertation(const char *file, int line, const char *msg);
+void cu_success_assertion(void);
+void cu_fail_assertion(const char *file, int line, const char *msg);
 void cu_set_out_prefix(const char *str);
+void cu_set_out_per_test(int yes);
 
 /** Timer **/
 #ifdef CU_ENABLE_TIMER
-extern struct timespec __cu_timer;
 
 /**
  * Returns value of timer. (as timespec struct)

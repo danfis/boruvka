@@ -1,23 +1,17 @@
 /***
  * CU - C unit testing framework
- * -------------------------------------
- * Copyright (c)2007,2008,2009 Daniel Fiser <danfis@danfis.cz>
- *
+ * ---------------------------------
+ * Copyright (c)2007,2008,2009,2012 Daniel Fiser <danfis@danfis.cz>
  *
  *  This file is part of CU.
  *
- *  CU is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License as
- *  published by the Free Software Foundation; either version 3 of
- *  the License, or (at your option) any later version.
+ *  Distributed under the OSI-approved BSD License (the "License");
+ *  see accompanying file BDS-LICENSE for details or see
+ *  <http://www.opensource.org/licenses/bsd-license.php>.
  *
- *  CU is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  This software is distributed WITHOUT ANY WARRANTY; without even the
+ *  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the License for more information.
  */
 
 #include <stdlib.h>
@@ -30,23 +24,25 @@
 /** Declared here, because I didn't find header file where it is declared */
 char *strsignal(int sig);
 
-const char *cu_current_test;
-const char *cu_current_test_suite;
-int cu_success_test_suites = 0;
-int cu_fail_test_suites = 0;
-int cu_success_tests = 0;
-int cu_fail_tests = 0;
-int cu_success_checks = 0;
-int cu_fail_checks = 0;
+static const char *cu_current_test;
+static const char *cu_current_test_suite;
+static int cu_success_test_suites = 0;
+static int cu_fail_test_suites = 0;
+static int cu_success_tests = 0;
+static int cu_fail_tests = 0;
+static int cu_success_checks = 0;
+static int cu_fail_checks = 0;
 
-char cu_out_prefix[CU_OUT_PREFIX_LENGTH+1] = "";
+#define CU_OUT_PREFIX_LENGTH 128
+static char cu_out_prefix[CU_OUT_PREFIX_LENGTH+1] = "";
+static int cu_out_per_test = 0;
 
 
 /* globally used file descriptor for reading/writing messages */
-int fd;
+static int fd;
 
 /* indicate if test was failed */
-int test_failed;
+static int test_failed;
 
 /* codes of messages */
 #define CHECK_FAILED '0'
@@ -73,33 +69,38 @@ int test_failed;
 
 static void redirect_out_err(const char *testName);
 static void close_out_err(void);
-static void run_test_suite(const char *ts_name, cu_test_suite_t *ts);
+static void redirect_test_out_err(const char *test_suite, const char *test);
+static int run_test(const char *t_name, cu_test_func_t t_func);
+static void run_test_suite(const char *ts_name, cu_test_suite_t *ts,
+                           int test_id);
 static void receive_messages(void);
 
-static void cu_run_fork(const char *ts_name, cu_test_suite_t *test_suite);
+static int cu_run_test_suite(const char *test_suite_name,
+                             const char *test_name);
+static void cu_run_fork(const char *ts_name, cu_test_suite_t *test_suite,
+                        int test_id);
 static void cu_print_results(void);
 
 void cu_run(int argc, char *argv[])
 {
     cu_test_suites_t *tss;
+    char *test_suite_name, *test_name;
     int i;
     char found = 0;
 
     if (argc > 1){
         for (i=1; i < argc; i++){
-            tss = cu_test_suites;
-            while (tss->name != NULL && tss->test_suite != NULL){
-                if (strcmp(argv[i], tss->name) == 0){
-                    found = 1;
-                    cu_run_fork(tss->name, tss->test_suite);
-                    break;
-                }
-                tss++;
+            test_suite_name = argv[i];
+            test_name = test_suite_name;
+            for (;*test_name && *test_name != ':'; ++test_name);
+            if (*test_name != 0x0){
+                *test_name = 0x0;
+                ++test_name;
+            }else{
+                test_name = NULL;
             }
 
-            if (tss->name == NULL || tss->test_suite == NULL){
-                fprintf(stderr, "ERROR: Could not find test suite '%s'\n", argv[i]);
-            }
+            found |= cu_run_test_suite(test_suite_name, test_name);
         }
 
         if (found == 1)
@@ -108,7 +109,7 @@ void cu_run(int argc, char *argv[])
     }else{
         tss = cu_test_suites;
         while (tss->name != NULL && tss->test_suite != NULL){
-            cu_run_fork(tss->name, tss->test_suite);
+            cu_run_fork(tss->name, tss->test_suite, -1);
             tss++;
         }
         cu_print_results();
@@ -117,7 +118,53 @@ void cu_run(int argc, char *argv[])
 
 }
 
-static void cu_run_fork(const char *ts_name, cu_test_suite_t *ts)
+static int cu_run_test_suite(const char *test_suite_name,
+                             const char *test_name)
+{
+    cu_test_suites_t *tss;
+    cu_test_suite_t *ts;
+    int found = 0;
+    int i;
+
+    tss = cu_test_suites;
+    while (tss->name != NULL && tss->test_suite != NULL){
+        if (strcmp(test_suite_name, tss->name) == 0){
+            if (test_name != NULL){
+                for (i = 0, ts = tss->test_suite;
+                        ts->name != NULL && ts->func != NULL; ++i, ++ts){
+                    if (strcmp(ts->name, test_name) == 0){
+                        break;
+                    }
+                }
+
+                if (ts->name != NULL && ts->func != NULL){
+                    found = 1;
+                    cu_run_fork(tss->name, tss->test_suite, i);
+                }
+            }else{
+                found = 1;
+                cu_run_fork(tss->name, tss->test_suite, -1);
+            }
+            break;
+        }
+        tss++;
+    }
+
+    if (!found){
+        if (test_name != NULL){
+            fprintf(stderr, "ERROR: Could not find test suite '%s:%s'\n",
+                    test_suite_name, test_name);
+        }else{
+            fprintf(stderr, "ERROR: Could not find test suite '%s'\n",
+                    test_suite_name);
+        }
+    }
+
+    return found;
+}
+
+static void cu_run_fork(const char *ts_name, cu_test_suite_t *ts,
+                        int test_id)
 {
     int pipefd[2];
     int pid;
@@ -144,7 +191,7 @@ static void cu_run_fork(const char *ts_name, cu_test_suite_t *ts)
         fd = pipefd[1];
 
         /* run testsuite, messages go to fd */
-        run_test_suite(ts_name, ts);
+        run_test_suite(ts_name, ts, test_id);
 
         MSG_END;
         close(fd);
@@ -183,40 +230,58 @@ static void cu_run_fork(const char *ts_name, cu_test_suite_t *ts)
 
 }
 
-static void run_test_suite(const char *ts_name, cu_test_suite_t *ts)
+static int run_test(const char *t_name, cu_test_func_t t_func)
 {
     int test_suite_failed = 0;
     char buffer[MSGBUF_LEN];
     int len;
 
+    if (cu_out_per_test)
+        redirect_test_out_err(cu_current_test_suite, t_name);
+
+    test_failed = 0;
+
+    /* set up name of test for later messaging */
+    cu_current_test = t_name;
+
+    /* send message what test is currently running */
+    len = snprintf(buffer, MSGBUF_LEN, "%c    --> Running %s...\n",
+                   TEST_NAME, cu_current_test);
+    write(fd, buffer, len);
+
+    /* run test */
+    (*(t_func))();
+
+    if (test_failed){
+        MSG_TEST_FAILED;
+        test_suite_failed = 1;
+    }else{
+        MSG_TEST_SUCCEED;
+    }
+
+    return test_suite_failed;
+}
+
+static void run_test_suite(const char *ts_name, cu_test_suite_t *ts,
+                           int test_id)
+{
+    int test_suite_failed = 0;
+
     /* set up current test suite name for later messaging... */
     cu_current_test_suite = ts_name;
 
     /* redirect stdout and stderr */
-    redirect_out_err(cu_current_test_suite);
+    if (!cu_out_per_test)
+        redirect_out_err(cu_current_test_suite);
 
-    while (ts->name != NULL && ts->func != NULL){
-        test_failed = 0;
-
-        /* set up name of test for later messaging */
-        cu_current_test = ts->name;
-
-        /* send message what test is currently running */
-        len = snprintf(buffer, MSGBUF_LEN, "%c    --> Running %s...\n",
-                       TEST_NAME, cu_current_test);
-        write(fd, buffer, len);
-
-        /* run test */
-        (*(ts->func))();
-
-        if (test_failed){
-            MSG_TEST_FAILED;
-            test_suite_failed = 1;
-        }else{
-            MSG_TEST_SUCCEED;
-        }
-
+    while (test_id == -1 && ts->name != NULL && ts->func != NULL){
+        test_suite_failed |= run_test(ts->name, ts->func);
         ts++; /* next test in test suite */
+    }
+
+    if (test_id != -1){
+        ts += test_id;
+        test_suite_failed |= run_test(ts->name, ts->func);
     }
 
     if (test_suite_failed){
@@ -288,12 +353,12 @@ static void receive_messages(void)
     }
 }
 
-void cu_success_assertation(void)
+void cu_success_assertion(void)
 {
     MSG_CHECK_SUCCEED;
 }
 
-void cu_fail_assertation(const char *file, int line, const char *msg)
+void cu_fail_assertion(const char *file, int line, const char *msg)
 {
     char buf[MSGBUF_LEN];
     int len;
@@ -313,7 +378,7 @@ static void cu_print_results(void)
     fprintf(stdout, "==================================================\n");
     fprintf(stdout, "|               |  failed  |  succeed  |  total  |\n");
     fprintf(stdout, "|------------------------------------------------|\n");
-    fprintf(stdout, "| assertations: |  %6d  |  %7d  |  %5d  |\n",
+    fprintf(stdout, "| assertions:   |  %6d  |  %7d  |  %5d  |\n",
                 cu_fail_checks, cu_success_checks,
                 cu_success_checks+cu_fail_checks);
     fprintf(stdout, "| tests:        |  %6d  |  %7d  |  %5d  |\n",
@@ -330,17 +395,35 @@ void cu_set_out_prefix(const char *str)
     strncpy(cu_out_prefix, str, CU_OUT_PREFIX_LENGTH);
 }
 
+void cu_set_out_per_test(int yes)
+{
+    cu_out_per_test = yes;
+}
+
 static void redirect_out_err(const char *test_name)
 {
-    char buf[100];
+    redirect_test_out_err(test_name, NULL);
+}
 
-    snprintf(buf, 99, "%stmp.%s.out", cu_out_prefix, test_name);
+static void redirect_test_out_err(const char *test_suite, const char *test)
+{
+    char buf[256];
+
+    if (test != NULL){
+        snprintf(buf, 255, "%stmp.%s.%s.out", cu_out_prefix, test_suite, test);
+    }else{
+        snprintf(buf, 255, "%stmp.%s.out", cu_out_prefix, test_suite);
+    }
     if (freopen(buf, "w", stdout) == NULL){
         perror("Redirecting of stdout failed");
         exit(-1);
     }
 
-    snprintf(buf, 99, "%stmp.%s.err", cu_out_prefix, test_name);
+    if (test != NULL){
+        snprintf(buf, 255, "%stmp.%s.%s.err", cu_out_prefix, test_suite, test);
+    }else{
+        snprintf(buf, 255, "%stmp.%s.err", cu_out_prefix, test_suite);
+    }
     if (freopen(buf, "w", stderr) == NULL){
         perror("Redirecting of stderr failed");
         exit(-1);
@@ -356,7 +439,7 @@ static void close_out_err(void)
 
 #ifdef CU_ENABLE_TIMER
 /* global variables for timer functions */
-struct timespec __cu_timer;
+static struct timespec __cu_timer;
 static struct timespec __cu_timer_start, __cu_timer_stop;
 
 const struct timespec *cuTimer(void)
