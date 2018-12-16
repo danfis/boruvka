@@ -11,7 +11,7 @@ stages:
   image: debian:stretch
   only:
     - master
-    - dev
+    - /^issue-[0-9]+-.*$/
   before_script:
     - env
     - apt-get update
@@ -27,7 +27,7 @@ stages:
   image: debian:stretch
   only:
     - master
-    - dev
+    - /^issue-[0-9]+-.*$/
   before_script:
     - env
     - apt-get update
