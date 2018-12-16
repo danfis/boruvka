@@ -104,7 +104,7 @@ static int minIntKey(el_int_t *els, size_t size)
 TEST(multimapIntInsert)
 {
     el_int_t *els;
-    size_t i, size = 10000;
+    size_t i, size = 3000;
     bor_multimap_int_t *mm;
 
     els = randomElInt(size);
@@ -125,7 +125,7 @@ TEST(multimapIntInsert)
 TEST(multimapIntRemove)
 {
     el_int_t *els, *el;
-    size_t i, size = 10000;
+    size_t i, size = 3000;
     bor_multimap_int_t *mm;
     bor_rand_t rnd;
 
@@ -159,7 +159,7 @@ TEST(multimapIntRemove)
 TEST(multimapIntMin)
 {
     el_int_t *els, *el;
-    size_t i, size = 10000;
+    size_t i, size = 3000;
     bor_multimap_int_t *mm;
     bor_multimap_int_node_t *node;
     bor_rand_t rnd;

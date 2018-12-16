@@ -89,8 +89,8 @@ static void test(bor_rand_mt_t *rand,
 }
 
 
-#define ADD_NUM_TESTS 1000
-#define ADD_ELS_LEN 10000
+#define ADD_NUM_TESTS 300
+#define ADD_ELS_LEN 1000
 #define ADD_NUM_NNS 19
 #define ADD_MAXSIZE 5
 TEST(vptreeHammingAdd)

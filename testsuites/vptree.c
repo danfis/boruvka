@@ -5,7 +5,7 @@
 #include <boruvka/vec3.h>
 #include <boruvka/dbg.h>
 
-#define BUILD_ELS_LEN 10000
+#define BUILD_ELS_LEN 3000
 #define BUILD_NUM_TESTS 1000
 #define BUILD_NUM_NNS 5
 #define BUILD_MAXSIZE 5
@@ -183,7 +183,7 @@ TEST(vptreeBuild3)
 
 
 #define ADD_NUM_TESTS 1000
-#define ADD_ELS_LEN 10000
+#define ADD_ELS_LEN 3000
 #define ADD_NUM_NNS 5
 #define ADD_MAXSIZE 5
 TEST(vptreeAdd)
