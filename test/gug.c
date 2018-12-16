@@ -47,9 +47,6 @@ TEST(gugEl2)
     bor_real_t range[6] = { -1., 1.,
                             -2., 2. };
     size_t num = 16;
-    const size_t *dim;
-
-    printf("gugNode:\n");
 
     borVec2Set(&n.v, 0., 0.);
     borGUGElInit(&n.c, (const bor_vec_t *)&n.v);
@@ -61,11 +58,6 @@ TEST(gugEl2)
     cs = borGUGNew(&params);
 
     borGUGAdd(cs, &n.c);
-
-    printf("cube size: %f\n", (float)borGUGCellSize(cs));
-    printf("gug2 len: %d\n", (int)borGUGCellsLen(cs));
-    dim = borGUGDim(cs);
-    printf("gug2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     //assertEquals(borGUGCubeId(cs, n), 22);
 
@@ -100,8 +92,6 @@ TEST(gugEl2)
     assertEquals(n.c.cell_id, 14);
 
     borGUGDel(cs);
-
-    printf("------ gugNode\n\n");
 }
 
 static void elNew(el_t *ns, size_t len, bor_list_t *head)
@@ -155,9 +145,6 @@ TEST(gugNearest2)
     bor_gug_params_t params;
     bor_real_t range[4] = { -9., 9., -11., 7. };
     size_t i, j, k;
-    const size_t *dim;
-
-    printf("gug2Nearest:\n");
 
     borGUGParamsInit(&params);
     params.dim = 2;
@@ -170,11 +157,6 @@ TEST(gugNearest2)
     elNew(ns, N_LEN, &head);
     elAdd(cs, ns, N_LEN);
 
-
-    printf("cube size: %f\n", (float)borGUGCellSize(cs));
-    printf("gug2 len: %d\n", (int)borGUGCellsLen(cs));
-    dim = borGUGDim(cs);
-    printf("gug2 dim: %d %d\n", (int)dim[0], (int)dim[1]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){
@@ -192,8 +174,6 @@ TEST(gugNearest2)
     }
 
     borGUGDel(cs);
-
-    printf("------ gugNearest\n\n");
 }
 
 
@@ -252,9 +232,6 @@ TEST(gugNearest6)
     bor_gug_params_t params;
     bor_real_t range[12] = { -9., 9., -11., 7., -10, 7, -10, 10, -9, 12, -16, 12 };
     size_t i, j, k;
-    const size_t *dim;
-
-    printf("gug6Nearest:\n");
 
     borGUGParamsInit(&params);
     params.dim = 6;
@@ -266,11 +243,6 @@ TEST(gugNearest6)
     el6New(ns, N_LEN, &head);
     el6Add(cs, ns, N_LEN);
 
-
-    printf("cube size: %f\n", (float)borGUGCellSize(cs));
-    printf("gug2 len: %d\n", (int)borGUGCellsLen(cs));
-    dim = borGUGDim(cs);
-    printf("gug2 dim: %d %d %d %d %d %d\n", (int)dim[0], (int)dim[1], (int)dim[2], (int)dim[3], (int)dim[4], (int)dim[5]);
 
     for (k = 0; k < 5; k++){
         for (i=0; i < N_LOOPS; i++){
@@ -290,6 +262,4 @@ TEST(gugNearest6)
     }
 
     borGUGDel(cs);
-
-    printf("------ gug6Nearest\n\n");
 }
