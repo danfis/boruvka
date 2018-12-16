@@ -11,7 +11,6 @@ stages:
   image: debian:stretch
   only:
     - master
-    - /^issue-[0-9]+-.*$/
   before_script:
     - env
     - apt-get update
@@ -27,7 +26,6 @@ stages:
   image: debian:stretch
   only:
     - master
-    - /^issue-[0-9]+-.*$/
   before_script:
     - env
     - apt-get update
@@ -41,6 +39,9 @@ stages:
 
 build-debian-gcc:
   extends: .build-debian
+  only:
+    - master
+    - /^issue-[0-9]+-.*$/
 
 build-debian-clang:
   extends: .build-debian
@@ -58,6 +59,9 @@ build-debian-gcc-lp:
 
 check-debian-gcc:
   extends: .check-debian
+  only:
+    - master
+    - /^issue-[0-9]+-.*$/
 
 check-debian-clang:
   extends: .check-debian
