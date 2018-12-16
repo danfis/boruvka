@@ -36,6 +36,7 @@ stages:
     - make help
     - make
     - make check
+    - make check-msg-schema
 
 build-debian-gcc:
   extends: .build-debian
