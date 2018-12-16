@@ -11,6 +11,9 @@ stages:
   image: debian:stretch
   only:
     - master
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /skip-ci/
   before_script:
     - env
     - apt-get update
@@ -26,6 +29,9 @@ stages:
   image: debian:stretch
   only:
     - master
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /skip-ci/
   before_script:
     - env
     - apt-get update
