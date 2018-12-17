@@ -11,6 +11,8 @@ stages:
   image: debian:stretch
   only:
     - master
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /@ci/
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /skip-ci/
@@ -29,6 +31,8 @@ stages:
   image: debian:stretch
   only:
     - master
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /@ci/
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /skip-ci/
@@ -46,9 +50,6 @@ stages:
 
 build-debian-gcc:
   extends: .build-debian
-  only:
-    - master
-    - /^issue-[0-9]+-.*$/
 
 build-debian-clang:
   extends: .build-debian
@@ -66,9 +67,6 @@ build-debian-gcc-lp:
 
 check-debian-gcc:
   extends: .check-debian
-  only:
-    - master
-    - /^issue-[0-9]+-.*$/
 
 check-debian-clang:
   extends: .check-debian
