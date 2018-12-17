@@ -16,20 +16,6 @@ CHECK_TS ?=
 
 #TARGETS = libdata.a test bench-heap test-rand-mt test-nn bench
 TARGETS = libdata.a test
-ifeq '$(USE_OPENCL)' 'yes'
-  LDFLAGS += $(OPENCL_LDFLAGS)
-  CFLAGS  += $(OPENCL_CFLAGS)
-endif
-
-ifeq '$(USE_CPLEX)' 'yes'
-  LDFLAGS += $(CPLEX_LDFLAGS)
-endif
-ifeq '$(USE_GUROBI)' 'yes'
-  LDFLAGS += $(GUROBI_LDFLAGS)
-endif
-ifeq '$(USE_LPSOLVE)' 'yes'
-  LDFLAGS += $(LPSOLVE_LDFLAGS)
-endif
 
 
 BENCH_HEAP = bench-heap-fibo bench-heap-pairheap
@@ -82,18 +68,41 @@ OBJS_DATA += data-mat3
 OBJS_DATA += data-mat4
 OBJS_DATA += data-bunny
 
+ifeq '$(USE_OPENCL)' 'yes'
+  CFLAGS  += $(OPENCL_CFLAGS)
+  LDFLAGS += $(OPENCL_LDFLAGS)
+endif
+
+ifeq '$(USE_HDF5)' 'yes'
+ifeq '$(USE_GSL)' 'yes'
+  OBJS += thdf5
+endif
+  CFLAGS  += $(HDF5_CFLAGS)
+  LDFLAGS += $(HDF5_LDFLAGS)
+endif
+
+ifeq '$(USE_GSL)' 'yes'
+  CFLAGS  += $(GSL_CFLAGS)
+  LDFLAGS += $(GSL_LDFLAGS)
+endif
+
+ifeq '$(USE_CPLEX)' 'yes'
+  CFLAGS  += $(CPLEX_CFLAGS)
+  LDFLAGS += $(CPLEX_LDFLAGS)
+endif
+ifeq '$(USE_GUROBI)' 'yes'
+  CFLAGS  += $(GUROBI_CFLAGS)
+  LDFLAGS += $(GUROBI_LDFLAGS)
+endif
+ifeq '$(USE_LPSOLVE)' 'yes'
+  CFLAGS  += $(LPSOLVE_CFLAGS)
+  LDFLAGS += $(LPSOLVE_LDFLAGS)
+endif
+
 BENCH_OBJS =
 
 OBJS := $(foreach obj,$(OBJS),$(obj).o)
 OBJS_DATA := $(foreach obj,$(OBJS_DATA),$(obj).o)
-
-ifeq '$(USE_HDF5)' 'yes'
-ifeq '$(USE_GSL)' 'yes'
-  OBJS += thdf5.o
-  CFLAGS += $(HDF5_CFLAGS) $(GSL_CFLAGS)
-  LDFLAGS += $(HDF5_LDFLAGS) $(GSL_LDFLAGS)
-endif
-endif
 
 
 all: $(TARGETS)
