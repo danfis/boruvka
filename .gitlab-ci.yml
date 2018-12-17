@@ -84,13 +84,25 @@ build-debian-gcc-lp-hdf5-gsl:
 check-debian-gcc:
   extends: .check-debian
 
+check-debian-gcc-sse:
+  extends: .check-debian
+  variables:
+    USE_SSE: "yes"
+
 check-debian-gcc-double:
   extends: .check-debian
   variables:
     USE_DOUBLE: "yes"
 
+check-debian-gcc-double-sse:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
+    USE_SSE: "yes"
+
 check-debian-gcc-hdf5-gsl:
   extends: .check-debian
+  stage: test-dep
   variables:
     DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
     USE_HDF5: "yes"
@@ -101,6 +113,7 @@ check-debian-gcc-hdf5-gsl:
 
 check-debian-gcc-double-hdf5-gsl:
   extends: .check-debian
+  stage: test-dep
   variables:
     USE_DOUBLE: "yes"
     DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
@@ -118,6 +131,13 @@ check-debian-clang:
     DEBIAN_PKGS: clang
     CC: clang
 
+check-debian-clang-sse:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+    USE_SSE: "yes"
+
 check-debian-clang-double:
   extends: .check-debian
   variables:
@@ -125,8 +145,17 @@ check-debian-clang-double:
     CC: clang
     USE_DOUBLE: "yes"
 
+check-debian-clang-double-sse:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+    USE_DOUBLE: "yes"
+    USE_SSE: "yes"
+
 check-debian-clang-hdf5-gsl:
   extends: .check-debian
+  stage: test-dep
   variables:
     DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
     CC: clang
@@ -138,6 +167,7 @@ check-debian-clang-hdf5-gsl:
 
 check-debian-clang-double-hdf5-gsl:
   extends: .check-debian
+  stage: test-dep
   variables:
     DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
     CC: clang
