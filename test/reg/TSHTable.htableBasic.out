@@ -1,4 +1,4 @@
----- hmapFixed 111 ----
+---- htableBasic ----
 955061 955061
   --> 244
   --> 456
@@ -3794,10 +3794,4 @@
 4293731754 4293731754
   --> 1968
   --> 99949
----- hmapFixed 111 END ----
----- hmapFixed 1023 ----
----- hmapFixed 1023 END ----
----- hmapFixed 76389 ----
----- hmapFixed 76389 END ----
----- hmapResizable ----
----- hmapResizable END ----
+---- htableBasic END ----

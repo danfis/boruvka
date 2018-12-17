@@ -55,20 +55,3 @@ Points:
 Edges:
 Faces:
 --------
---------
-Name: Mesh 2
-Points:
-0 0 0
-1 0 0
-1 1 1
-0 1 0
-Edges:
-0 1
-0 3
-1 3
-1 2
-3 2
-Faces:
-0 1 3
-1 3 2
---------
