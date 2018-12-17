@@ -47,9 +47,11 @@ static void build2Test(bor_rand_mt_t *rand,
         el  = bor_container_of(nn[i], el_t, el);
         el2 = bor_container_of(nn2[i], el_t, list);
 
-        if (el == el2){
-            assertEquals(el, el2);
-        }else{
+        assertTrue(el == el2
+                        || borEq(borVec2Dist(&el->w, &p),
+                                 borVec2Dist(&el2->w, &p)));
+        if (el != el2 && !borEq(borVec2Dist(&el->w, &p),
+                                borVec2Dist(&el2->w, &p))){
             fprintf(stderr, "%.30f %.30f [%.30f] - %.30f %.30f [%.30f]\n",
                     borVec2X(&el->w), borVec2Y(&el->w), borVec2Dist(&el->w, &p),
                     borVec2X(&el2->w), borVec2Y(&el2->w), borVec2Dist(&el2->w, &p));
