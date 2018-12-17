@@ -69,7 +69,9 @@ build-debian-gcc-lp-hdf5-gsl:
     LPSOLVE_LDFLAGS: "-llpsolve55"
     USE_HDF5: "yes"
     HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
     USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
 
 
 check-debian-gcc:
