@@ -6,45 +6,40 @@ stages:
   - build
   - test
 
-.build-debian:
-  stage: build
-  image: debian:stretch
+.restrict: &restrict
   only:
-    refs:
-      - master
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /@ci/
+    - master
+    - /^.*-ci$/
+    - web
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /@skip-ci/
+
+.job-debian:
+  image: debian:stretch
+  <<: *restrict
+
+.build-debian:
+  extends: .job-debian
+  stage: build
   before_script:
     - env
     - apt-get update
     - apt-get install -y build-essential m4 $DEBIAN_PKGS
   script:
     - env
-    - make clean
     - make help
     - make
 
 .check-debian:
+  extends: .job-debian
   stage: test
-  image: debian:stretch
-  only:
-    refs:
-      - master
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /@ci/
-  except:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /@skip-ci/
   before_script:
     - env
     - apt-get update
     - apt-get install -y build-essential m4 python $DEBIAN_PKGS
   script:
     - env
-    - make clean
     - make help
     - make
     - make check-ci
