@@ -74,19 +74,9 @@ build-debian-gcc-lp-hdf5-gsl:
     GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
 
 
+
 check-debian-gcc:
   extends: .check-debian
-
-check-debian-clang:
-  extends: .check-debian
-  variables:
-    DEBIAN_PKGS: clang
-    CC: clang
-
-check-debian-gcc-double:
-  extends: .check-debian
-  variables:
-    USE_DOUBLE: "yes"
 
 check-debian-gcc-double:
   extends: .check-debian
@@ -108,6 +98,44 @@ check-debian-gcc-double-hdf5-gsl:
   variables:
     USE_DOUBLE: "yes"
     DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+
+
+check-debian-clang:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+
+check-debian-clang-double:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+    USE_DOUBLE: "yes"
+
+check-debian-clang-hdf5-gsl:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
+    CC: clang
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+check-debian-clang-double-hdf5-gsl:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
+    CC: clang
+    USE_DOUBLE: "yes"
     USE_HDF5: "yes"
     HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
     HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
