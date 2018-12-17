@@ -5,6 +5,7 @@ variables:
 stages:
   - build
   - test
+  - test-dep
 
 .restrict: &restrict
   only:
@@ -53,6 +54,11 @@ build-debian-clang:
   variables:
     DEBIAN_PKGS: clang
     CC: clang
+
+build-debian-gcc-sse:
+  extends: .build-debian
+  variables:
+    USE_SSE: "yes"
 
 build-debian-gcc-lp:
   extends: .build-debian
