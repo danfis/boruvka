@@ -34,7 +34,7 @@ static void elsInit(void)
 {
     size_t i;
     for (i = 0; i < vecs2_len; ++i){
-        els[i].val = borVec2X(&vecs2[i]) * 1000000;
+        els[i].val = (float)borVec2X(&vecs2[i]) * 1000000;
         borListInit(&els[i].htable);
         els[i].hash = hash(&els[i].htable, NULL);
     }
