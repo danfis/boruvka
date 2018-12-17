@@ -151,6 +151,15 @@ check: all
 	$(PYTHON2) $(CHECK_REG) reg
 	@echo ""
 
+check-ci: all
+	@echo ""
+	@echo "----------------------------------------";
+	./test $(CHECK_TS)
+	@echo "----------------------------------------";
+	@echo "Checking regressions:";
+	$(PYTHON2) $(CHECK_REG) --no-progress reg
+	@echo ""
+
 check-msg-schema: msg-schema-gen msg-schema-print
 	@echo "Checking msg-schema..."
 	@(i=0; while [ $$i != 100 ]; do \

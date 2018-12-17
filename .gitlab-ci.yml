@@ -47,7 +47,7 @@ stages:
     - make clean
     - make help
     - make
-    - make check
+    - make check-ci
     - make check-msg-schema
 
 build-debian-gcc:

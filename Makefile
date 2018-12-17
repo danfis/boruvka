@@ -278,6 +278,8 @@ clean:
 	
 check:
 	$(MAKE) -C test check
+check-ci:
+	$(MAKE) -C test check-ci
 check-msg-schema:
 	$(MAKE) -C test check-msg-schema
 check-valgrind:
