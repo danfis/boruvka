@@ -44,7 +44,7 @@ static void pcPrint(bor_pc_t *pc)
 
 TEST(ppcPermutate)
 {
-    bor_vec2_t v[1000], w;
+    bor_vec2_t v[1000];
     bor_pc_t *pc;
     size_t i;
 
@@ -98,10 +98,13 @@ TEST(ppcPermutate)
         assertTrue(pcContains(pc, &v[i]));
     }
 
+#ifndef BOR_SSE
+    bor_vec2_t w;
     // test some basic operation on the points
     for (i = 0; i < 10; i++){
         borVec2Add2(&w, (bor_vec2_t *)borPCGet(pc, 0), (bor_vec2_t *)borPCGet(pc, 1));
     }
+#endif /* BOR_SSE */
 
     borPCDel(pc);
 }
