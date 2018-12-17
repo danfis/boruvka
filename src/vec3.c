@@ -386,7 +386,7 @@ int borVec3PointInTri(const bor_vec3_t *p,
 {
     bor_vec3_t v0, v1, v2;
     bor_real_t dot00, dot01, dot02, dot11, dot12;
-    bor_real_t inv_denom, u, v;
+    bor_real_t denom, inv_denom, u, v;
 
     // compute vectors
     borVec3Sub2(&v0, c, a);
@@ -401,7 +401,10 @@ int borVec3PointInTri(const bor_vec3_t *p,
     dot12 = borVec3Dot(&v1, &v2);
 
     // compute barycentric coordinates
-    inv_denom = BOR_ONE / (dot00 * dot11 - dot01 * dot01);
+    denom = dot00 * dot11 - dot01 * dot01;
+    if (borIsZero(denom))
+        return 0;
+    inv_denom = BOR_ONE / denom;
     u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
     v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
 
