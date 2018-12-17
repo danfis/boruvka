@@ -523,9 +523,9 @@ TEST(vec3ProjToPlane)
     borVec3Set(&v[3], 1., 2., 1.8);
     borVec3Set(&v[4], -1.4, 1., 1.2);
     assertTrue(borVec3ProjToPlane(&v[1], &v[2], &v[3], &v[4], &v[0]) > BOR_ZERO);
-    assertTrue(borEq(borVec3X(&v[0]), 2.9239735603332519531));
-    assertTrue(borEq(borVec3Y(&v[0]), -0.95083606243133544922));
-    assertTrue(borEq(borVec3Z(&v[0]), -0.44450092315673828125));
+    assertTrue(borEq(borVec3X(&v[0]), 2.923973644));
+    assertTrue(borEq(borVec3Y(&v[0]), -0.9508362899));
+    assertTrue(borEq(borVec3Z(&v[0]), -0.4445007602));
 }
 
 
