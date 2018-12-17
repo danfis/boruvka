@@ -143,16 +143,16 @@ msg-schema-common.o: msg-schema-common.c msg-schema-common.h msg-schema.gen.h ms
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 check: all
-	@echo ""
-	@echo "----------------------------------------";
-	./test $(CHECK_TS)
-	@echo "----------------------------------------";
-	@echo "Checking regressions:";
-	$(PYTHON2) $(CHECK_REG) reg
-	@echo ""
+	./test $(CHECK_TS); \
+        T=$$?; \
+        $(PYTHON2) $(CHECK_REG) reg; \
+        exit $$(($$T + $$?))
 
 check-ci: all
-	./check-ci.sh
+	./test $(CHECK_TS); \
+        T=$$?; \
+        $(PYTHON2) $(CHECK_REG) --no-progress reg; \
+        exit $$(($$T + $$?))
 
 check-msg-schema: msg-schema-gen msg-schema-print
 	@echo "Checking msg-schema..."

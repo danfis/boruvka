@@ -61,6 +61,16 @@ build-debian-gcc-lp:
     USE_LPSOLVE: "yes"
     LPSOLVE_LDFLAGS: "-llpsolve55"
 
+build-debian-gcc-lp-hdf5-gsl:
+  extends: .build-debian
+  variables:
+    DEBIAN_PKGS: "liblpsolve55-dev libhdf5-dev libgsl-dev"
+    USE_LPSOLVE: "yes"
+    LPSOLVE_LDFLAGS: "-llpsolve55"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    USE_GSL: "yes"
+
 
 check-debian-gcc:
   extends: .check-debian
@@ -75,3 +85,33 @@ check-debian-gcc-double:
   extends: .check-debian
   variables:
     USE_DOUBLE: "yes"
+
+check-debian-gcc-double:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
+
+check-debian-gcc-lp-hdf5-gsl:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: "liblpsolve55-dev libhdf5-dev libgsl-dev"
+    USE_LPSOLVE: "yes"
+    LPSOLVE_LDFLAGS: "-llpsolve55"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+check-debian-gcc-double-lp-hdf5-gsl:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
+    DEBIAN_PKGS: "liblpsolve55-dev libhdf5-dev libgsl-dev"
+    USE_LPSOLVE: "yes"
+    LPSOLVE_LDFLAGS: "-llpsolve55"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
