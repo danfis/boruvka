@@ -26,6 +26,7 @@ TEST(mat4Alloc)
 
 TEST(mat4Tr)
 {
+#ifndef BOR_SSE_SINGLE
     bor_vec3_t v, w, axis;
     bor_mat4_t tr;
 
@@ -91,4 +92,5 @@ TEST(mat4Tr)
     assertTrue(borEq(borVec3X(&w), 0.));
     assertTrue(borEq(borVec3Y(&w), 2. * BOR_SQRT(2)));
     assertTrue(borEq(borVec3Z(&w), 2.));
+#endif /* BOR_SSE_SINGLE */
 }

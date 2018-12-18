@@ -26,6 +26,7 @@ TEST(mat3Alloc)
 
 TEST(mat3Tr)
 {
+#ifndef BOR_SSE_SINGLE
     bor_vec2_t v, w;
     bor_mat3_t tr;
 
@@ -89,4 +90,5 @@ TEST(mat3Tr)
 
     DBG("w: %.10g %.10g %.10g", borVec2X(&w), borVec2Y(&w), BOR_EPS);
     */
+#endif /* BOR_SSE_SINGLE */
 }
