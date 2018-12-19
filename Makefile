@@ -269,18 +269,21 @@ clean:
 	rm -f boruvka/config.h boruvka/config_endian.h
 	rm -f src/*-cl.c
 	rm -f src/timsort.c src/timsort-impl.h
+	rm -f boruvka/[ilc]arr.h
 	rm -f src/[ilc]set.c boruvka/[ilc]set.h
 	rm -f src/[ilcp]bucketq.c boruvka/[ilcp]bucketq.h
 	rm -f src/[ilcp]adaq.c boruvka/[ilcp]adaq.h
-	if [ -d testsuites ]; then $(MAKE) -C testsuites clean; fi;
+	if [ -d test ]; then $(MAKE) -C test clean; fi;
 	if [ -d doc ]; then $(MAKE) -C doc clean; fi;
 	
 check:
-	$(MAKE) -C testsuites check
+	$(MAKE) -C test check
+check-ci:
+	$(MAKE) -C test check-ci
 check-msg-schema:
-	$(MAKE) -C testsuites check-msg-schema
+	$(MAKE) -C test check-msg-schema
 check-valgrind:
-	$(MAKE) -C testsuites check-valgrind
+	$(MAKE) -C test check-valgrind
 
 doc:
 	$(MAKE) -C doc

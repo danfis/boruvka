@@ -5,39 +5,46 @@ variables:
 stages:
   - build
   - test
+  - test-dep
 
-.build-debian:
-  stage: build
-  image: debian:stretch
+.restrict: &restrict
   only:
     - master
-    - dev
+    - /^.*-ci$/
+    - web
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /@skip-ci/
+
+.job-debian:
+  image: debian:stretch
+  <<: *restrict
+
+.build-debian:
+  extends: .job-debian
+  stage: build
   before_script:
     - env
     - apt-get update
-    - apt-get install -y build-essential m4 $DEBIAN_PKGS
+    - apt-get install -y gcc make m4 pkg-config $DEBIAN_PKGS
   script:
     - env
-    - make clean
     - make help
     - make
 
 .check-debian:
+  extends: .job-debian
   stage: test
-  image: debian:stretch
-  only:
-    - master
-    - dev
   before_script:
     - env
     - apt-get update
-    - apt-get install -y build-essential m4 python $DEBIAN_PKGS
+    - apt-get install -y clang make m4 python pkg-config $DEBIAN_PKGS
   script:
     - env
-    - make clean
     - make help
     - make
-    - make check
+    - make check-ci
+    - make check-msg-schema
 
 build-debian-gcc:
   extends: .build-debian
@@ -48,6 +55,11 @@ build-debian-clang:
     DEBIAN_PKGS: clang
     CC: clang
 
+build-debian-gcc-sse:
+  extends: .build-debian
+  variables:
+    USE_SSE: "yes"
+
 build-debian-gcc-lp:
   extends: .build-debian
   variables:
@@ -55,9 +67,63 @@ build-debian-gcc-lp:
     USE_LPSOLVE: "yes"
     LPSOLVE_LDFLAGS: "-llpsolve55"
 
+build-debian-gcc-lp-hdf5-gsl:
+  extends: .build-debian
+  variables:
+    DEBIAN_PKGS: "liblpsolve55-dev libhdf5-dev libgsl-dev"
+    USE_LPSOLVE: "yes"
+    LPSOLVE_LDFLAGS: "-llpsolve55"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+
 
 check-debian-gcc:
   extends: .check-debian
+
+check-debian-gcc-sse:
+  extends: .check-debian
+  variables:
+    USE_SSE: "yes"
+
+check-debian-gcc-double:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
+
+check-debian-gcc-double-sse:
+  extends: .check-debian
+  variables:
+    USE_DOUBLE: "yes"
+    USE_SSE: "yes"
+
+check-debian-gcc-hdf5-gsl:
+  extends: .check-debian
+  stage: test-dep
+  variables:
+    DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+check-debian-gcc-double-hdf5-gsl:
+  extends: .check-debian
+  stage: test-dep
+  variables:
+    USE_DOUBLE: "yes"
+    DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+
 
 check-debian-clang:
   extends: .check-debian
@@ -65,7 +131,49 @@ check-debian-clang:
     DEBIAN_PKGS: clang
     CC: clang
 
-check-debian-gcc-double:
+check-debian-clang-sse:
   extends: .check-debian
   variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+    USE_SSE: "yes"
+
+check-debian-clang-double:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
     USE_DOUBLE: "yes"
+
+check-debian-clang-double-sse:
+  extends: .check-debian
+  variables:
+    DEBIAN_PKGS: clang
+    CC: clang
+    USE_DOUBLE: "yes"
+    USE_SSE: "yes"
+
+check-debian-clang-hdf5-gsl:
+  extends: .check-debian
+  stage: test-dep
+  variables:
+    DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
+    CC: clang
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"
+
+check-debian-clang-double-hdf5-gsl:
+  extends: .check-debian
+  stage: test-dep
+  variables:
+    DEBIAN_PKGS: "clang libhdf5-dev libgsl-dev"
+    CC: clang
+    USE_DOUBLE: "yes"
+    USE_HDF5: "yes"
+    HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
+    HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
+    USE_GSL: "yes"
+    GSL_LDFLAGS: "-lgsl -lgslcblas -lm"

@@ -25,7 +25,7 @@
 #ifdef BOR_SINGLE
 # define H5T_NATIVE_REAL H5T_NATIVE_FLOAT
 #else /* BOR_SINGLE */
-# define H5T_NATIVE_REAL H5T_NATIVE_DOUBLE;
+# define H5T_NATIVE_REAL H5T_NATIVE_DOUBLE
 #endif /* BOR_SINGLE */
 
 /** Set to true if reporting on stderr should be enabled */
