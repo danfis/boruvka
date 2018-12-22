@@ -151,7 +151,7 @@ libboruvka.so: libboruvka.so.$(SO_VERSION)
 libboruvka.so.$(SO_VERSION): $(OBJS_PIC)
 	$(CC) $(CFLAGS) -shared -Wl,-soname,$@ -o $@ $(OBJS_PIC)
 
-boruvka/config_endian.h: boruvka/config_endian.h.m4
+boruvka/config_endian.h:
 	echo 'int main(int argc, char *arvg[]) { int x = 1; return *(char *)&x; }' >__end.c
 	$(CC) $(CFLAGS) -o __end __end.c
 	echo "#ifndef __BOR_CONFIG_ENDIAN_H__" >$@
@@ -164,7 +164,7 @@ boruvka/config_endian.h: boruvka/config_endian.h.m4
 	echo "#endif /* __BOR_CONFIG_ENDIAN_H__ */" >>$@
 	rm -f __end.c __end
 
-boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
+boruvka/config.h: boruvka/config_endian.h
 	echo "#ifndef __BOR_CONFIG_H__" >$@
 	echo "#define __BOR_CONFIG_H__" >>$@
 	echo "" >>$@
