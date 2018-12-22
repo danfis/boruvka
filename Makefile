@@ -379,7 +379,6 @@ help:
 	@echo "    CFLAGS            = $(CFLAGS)"
 	@echo "    CXXFLAGS          = $(CXXFLAGS)"
 	@echo "    LDFLAGS           = $(LDFLAGS)"
-	@echo "    CONFIG_FLAGS      = $(CONFIG_FLAGS)"
 	@echo "    PYTHON_CFLAGS     = $(PYTHON_CFLAGS)"
 	@echo "    PYTHON_LDFLAGS    = $(PYTHON_LDFLAGS)"
 	@echo "    OPENCL_CFLAGS     = $(OPENCL_CFLAGS)"
