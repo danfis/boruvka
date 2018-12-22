@@ -175,7 +175,6 @@ boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
 	if [ "$(USE_DOUBLE)" = "yes" ]; then echo "#define BOR_DOUBLE" >>$@; fi
 	if [ "$(USE_MEMCHECK)" = "yes" ]; then \
         echo "#define BOR_MEMCHECK" >>$@; \
-        echo "#define BOR_MEMCHECK" >>$@; \
         echo "#define BOR_MEMCHECK_REPORT_THRESHOLD" $(MEMCHECK_REPORT_THRESHOLD) >>$@; \
 	fi
 	if [ "$(USE_SSE)" = "yes" ]; then \
