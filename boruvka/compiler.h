@@ -18,6 +18,7 @@
 #define __BOR_COMPILER_H__
 
 #include <stddef.h>
+#include <boruvka/config.h>
 
 /**
  * Compiler - Compiler Specific Macros
@@ -45,12 +46,12 @@
  */
 #ifdef __GNUC__
 #  ifdef BOR_DEBUG
-#    define _bor_inline static
+#    define _bor_inline static __attribute__((unused))
 #  else /* BOR_DEBUG */
 #    ifdef __NO_INLINE__
-#      define _bor_inline static
+#      define _bor_inline static __attribute__((unused))
 #    else /* __NO_INLINE */
-#      define _bor_inline static inline __attribute__((always_inline))
+#      define _bor_inline static inline __attribute__((always_inline,unused))
 #    endif /* __NO_INLINE */
 #  endif /* BOR_DEBUG */
 #else /* __GNUC__ */
