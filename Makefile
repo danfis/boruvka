@@ -154,11 +154,47 @@ libboruvka.so.$(SO_VERSION): $(OBJS_PIC)
 boruvka/config_endian.h: boruvka/config_endian.h.m4
 	echo 'int main(int argc, char *arvg[]) { int x = 1; return *(char *)&x; }' >__end.c
 	$(CC) $(CFLAGS) -o __end __end.c
-	./__end && $(M4) -DBIG $< >$@ || $(M4) -DLITTLE $< >$@
+	echo "#ifndef __BOR_CONFIG_ENDIAN_H__" >$@
+	echo "#define __BOR_CONFIG_ENDIAN_H__" >>$@
+	if ./__end; then \
+        echo "#define BOR_BIG_ENDIAN" >>$@; \
+    else \
+        echo "#define BOR_LITTLE_ENDIAN" >>$@; \
+	fi
+	echo "#endif /* __BOR_CONFIG_ENDIAN_H__ */" >>$@
 	rm -f __end.c __end
 
 boruvka/config.h: boruvka/config.h.m4 boruvka/config_endian.h
-	$(M4) $(CONFIG_FLAGS) $< >$@
+	echo "#ifndef __BOR_CONFIG_H__" >$@
+	echo "#define __BOR_CONFIG_H__" >>$@
+	echo "" >>$@
+	echo "#include <boruvka/config_endian.h>" >>$@
+	echo "" >>$@
+	if [ "$(DEBUG)" = "yes" ]; then echo "#define BOR_DEBUG" >>$@; fi
+	if [ "$(USE_SINGLE)" = "yes" ]; then echo "#define BOR_SINGLE" >>$@; fi
+	if [ "$(USE_DOUBLE)" = "yes" ]; then echo "#define BOR_DOUBLE" >>$@; fi
+	if [ "$(USE_MEMCHECK)" = "yes" ]; then \
+        echo "#define BOR_MEMCHECK" >>$@; \
+        echo "#define BOR_MEMCHECK" >>$@; \
+        echo "#define BOR_MEMCHECK_REPORT_THRESHOLD" $(MEMCHECK_REPORT_THRESHOLD) >>$@; \
+	fi
+	if [ "$(USE_SSE)" = "yes" ]; then \
+        echo "#define BOR_SSE" >>$@; \
+        if [ "$(USE_SINGLE)" ]; then \
+            echo "#define BOR_SSE_SINGLE" >>$@; \
+        else \
+            echo "#define BOR_SSE_DOUBLE" >>$@; \
+        fi; \
+    fi
+	if [ "$(USE_OPENCL)" = "yes" ]; then echo "#define BOR_OPENCL" >>$@; fi
+	if [ "$(USE_HDF5)" = "yes" ]; then echo "#define BOR_HDF5" >>$@; fi
+	if [ "$(USE_GSL)" = "yes" ]; then echo "#define BOR_GSL" >>$@; fi
+	if [ "$(USE_TIMSORT)" = "yes" ]; then echo "#define BOR_TIMSORT" >>$@; fi
+	if [ "$(USE_CPLEX)" = "yes" ]; then echo "#define BOR_CPLEX" >>$@; fi
+	if [ "$(USE_GUROBI)" = "yes" ]; then echo "#define BOR_GUROBI" >>$@; fi
+	if [ "$(USE_LPSOLVE)" = "yes" ]; then echo "#define BOR_LPSOLVE" >>$@; fi
+	echo "" >>$@
+	echo "#endif /* __BOR_CONFIG_H__ */" >>$@
 
 boruvka/iset.h: boruvka/_set_arr.h
 	$(BASH) fmt.sh set Set int i <$< >$@
@@ -304,7 +340,6 @@ help:
 	@echo "Options:"
 	@echo "    CC         - Path to C compiler          (=$(CC))"
 	@echo "    CXX        - Path to C++ compiler        (=$(CXX))"
-	@echo "    M4         - Path to m4 macro processor  (=$(M4))"
 	@echo "    SED        - Path to sed(1)              (=$(SED))"
 	@echo "    PYTHON     - Path to python interpret    (=$(PYTHON))"
 	@echo "    PYTHON2    - Path to python interpret v2 (=$(PYTHON2))"

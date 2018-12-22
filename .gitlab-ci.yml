@@ -26,7 +26,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y gcc make m4 pkg-config $DEBIAN_PKGS
+    - apt-get install -y gcc make pkg-config $DEBIAN_PKGS
   script:
     - env
     - make help
@@ -38,7 +38,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y clang make m4 python pkg-config $DEBIAN_PKGS
+    - apt-get install -y clang make python pkg-config $DEBIAN_PKGS
   script:
     - env
     - make help
