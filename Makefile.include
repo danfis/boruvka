@@ -16,10 +16,8 @@
 
 CC ?= gcc
 CXX ?= g++
-M4 ?= m4
 SED ?= sed
 BASH ?= bash
-FLEX ?= flex
 PYTHON ?= python
 PYTHON2 ?= python2
 PYTHON3 ?= python3
@@ -34,7 +32,6 @@ SYSTEM = $(shell uname)
 
 SYSTEM_CXXFLAGS =
 SYSTEM_LDFLAGS =
-CONFIG_FLAGS =
 
 ifeq '$(SYSTEM)' 'FreeBSD'
   SYSTEM_CXXFLAGS = -Wno-long-long
@@ -58,7 +55,6 @@ endif
 ifeq '$(DEBUG)' 'yes'
   CFLAGS = -g
   CXXFLAGS = -g
-  CONFIG_FLAGS += -DDEBUG
 else
   # force to use optimizations
   CFLAGS += -O3
@@ -96,19 +92,12 @@ USE_TIMSORT ?= yes
 
 
 ifeq '$(USE_SINGLE)' 'yes'
-  CONFIG_FLAGS += -DUSE_SINGLE
   USE_DOUBLE = no
 endif
 ifeq '$(USE_DOUBLE)' 'yes'
-  CONFIG_FLAGS += -DUSE_DOUBLE
   USE_OPENCL := no
 endif
-ifeq '$(USE_MEMCHECK)' 'yes'
-  CONFIG_FLAGS += -DUSE_MEMCHECK
-  CONFIG_FLAGS += -DMEMCHECK_REPORT_THRESHOLD=$(MEMCHECK_REPORT_THRESHOLD)
-endif
 ifeq '$(USE_SSE)' 'yes'
-  CONFIG_FLAGS += -DUSE_SSE
   CFLAGS += -msse3
   CXXFLAGS += -msse3
 endif
@@ -125,7 +114,6 @@ endif
 ifeq '$(USE_OPENCL)' 'yes'
   OPENCL_CFLAGS  ?=
   OPENCL_LDFLAGS ?= -lOpenCL
-  CONFIG_FLAGS += -DUSE_OPENCL
 endif
 
 ifeq '$(USE_HDF5)' 'auto'
@@ -139,7 +127,6 @@ endif
 ifeq '$(USE_HDF5)' 'yes'
   HDF5_CFLAGS ?=
   HDF5_LDFLAGS ?= -lhdf5
-  CONFIG_FLAGS += -DUSE_HDF5
 endif
 
 
@@ -154,11 +141,6 @@ endif
 ifeq '$(USE_GSL)' 'yes'
   GSL_CFLAGS ?= $(shell pkg-config --cflags gsl)
   GSL_LDFLAGS ?= $(shell pkg-config --libs gsl)
-  CONFIG_FLAGS += -DUSE_GSL
-endif
-
-ifeq '$(USE_TIMSORT)' 'yes'
-  CONFIG_FLAGS += -DUSE_TIMSORT
 endif
 
 BINS     ?= yes
@@ -197,17 +179,6 @@ else
     USE_LPSOLVE := yes
   endif
 endif
-
-ifeq '$(USE_CPLEX)' 'yes'
-  CONFIG_FLAGS += -DUSE_CPLEX
-endif
-ifeq '$(USE_GUROBI)' 'yes'
-  CONFIG_FLAGS += -DUSE_GUROBI
-endif
-ifeq '$(USE_LPSOLVE)' 'yes'
-  CONFIG_FLAGS += -DUSE_LPSOLVE
-endif
-
 
 PREFIX     ?= /usr/local
 INCLUDEDIR ?= include

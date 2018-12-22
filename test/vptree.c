@@ -134,9 +134,11 @@ static void build3Test(bor_rand_mt_t *rand,
         el  = bor_container_of(nn[i], el3_t, el);
         el2 = bor_container_of(nn2[i], el3_t, list);
 
-        if (el == el2){
-            assertEquals(el, el2);
-        }else{
+        assertTrue(el == el2
+                        || borEq(borVec3Dist(&el->w, &p),
+                                 borVec3Dist(&el2->w, &p)));
+        if (el != el2 && !borEq(borVec3Dist(&el->w, &p),
+                                borVec3Dist(&el2->w, &p))){
             fprintf(stderr, "%.30f %.30f %.30f [%.30f] - %.30f %.30f %.30f [%.30f]\n",
                     borVec3X(&el->w), borVec3Y(&el->w), borVec3Z(&el->w), borVec3Dist(&el->w, &p),
                     borVec3X(&el2->w), borVec3Y(&el2->w), borVec3Z(&el2->w), borVec3Dist(&el2->w, &p));

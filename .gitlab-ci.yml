@@ -26,7 +26,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y gcc make m4 pkg-config $DEBIAN_PKGS
+    - apt-get install -y make pkg-config $DEBIAN_PKGS
   script:
     - env
     - make help
@@ -38,7 +38,7 @@ stages:
   before_script:
     - env
     - apt-get update
-    - apt-get install -y clang make m4 python pkg-config $DEBIAN_PKGS
+    - apt-get install -y make python pkg-config $DEBIAN_PKGS
   script:
     - env
     - make help
@@ -48,6 +48,9 @@ stages:
 
 build-debian-gcc:
   extends: .build-debian
+  variables:
+    DEBIAN_PKGS: gcc
+    CC: gcc
 
 build-debian-clang:
   extends: .build-debian
@@ -58,19 +61,23 @@ build-debian-clang:
 build-debian-gcc-sse:
   extends: .build-debian
   variables:
+    DEBIAN_PKGS: gcc
+    CC: gcc
     USE_SSE: "yes"
 
 build-debian-gcc-lp:
   extends: .build-debian
   variables:
-    DEBIAN_PKGS: liblpsolve55-dev
+    DEBIAN_PKGS: "gcc liblpsolve55-dev"
+    CC: gcc
     USE_LPSOLVE: "yes"
     LPSOLVE_LDFLAGS: "-llpsolve55"
 
 build-debian-gcc-lp-hdf5-gsl:
   extends: .build-debian
   variables:
-    DEBIAN_PKGS: "liblpsolve55-dev libhdf5-dev libgsl-dev"
+    DEBIAN_PKGS: "gcc liblpsolve55-dev libhdf5-dev libgsl-dev"
+    CC: gcc
     USE_LPSOLVE: "yes"
     LPSOLVE_LDFLAGS: "-llpsolve55"
     USE_HDF5: "yes"
@@ -83,20 +90,29 @@ build-debian-gcc-lp-hdf5-gsl:
 
 check-debian-gcc:
   extends: .check-debian
+  variables:
+    DEBIAN_PKGS: "gcc"
+    CC: gcc
 
 check-debian-gcc-sse:
   extends: .check-debian
   variables:
+    DEBIAN_PKGS: "gcc"
+    CC: gcc
     USE_SSE: "yes"
 
 check-debian-gcc-double:
   extends: .check-debian
   variables:
+    DEBIAN_PKGS: "gcc"
+    CC: gcc
     USE_DOUBLE: "yes"
 
 check-debian-gcc-double-sse:
   extends: .check-debian
   variables:
+    DEBIAN_PKGS: "gcc"
+    CC: gcc
     USE_DOUBLE: "yes"
     USE_SSE: "yes"
 
@@ -104,7 +120,8 @@ check-debian-gcc-hdf5-gsl:
   extends: .check-debian
   stage: test-dep
   variables:
-    DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
+    DEBIAN_PKGS: "gcc libhdf5-dev libgsl-dev"
+    CC: gcc
     USE_HDF5: "yes"
     HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
     HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
@@ -116,7 +133,8 @@ check-debian-gcc-double-hdf5-gsl:
   stage: test-dep
   variables:
     USE_DOUBLE: "yes"
-    DEBIAN_PKGS: "libhdf5-dev libgsl-dev"
+    DEBIAN_PKGS: "gcc libhdf5-dev libgsl-dev"
+    CC: gcc
     USE_HDF5: "yes"
     HDF5_CFLAGS: "-I/usr/include/hdf5/serial"
     HDF5_LDFLAGS: "-L/usr/lib/x86_64-linux-gnu/hdf5/serial -lhdf5"
