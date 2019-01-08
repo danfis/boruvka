@@ -38,7 +38,7 @@
  * Returns container of given member
  */
 #define bor_container_of(ptr, type, member) \
-    (type *)( (char *)ptr - bor_offsetof(type, member))
+    ((type *)( (char *)ptr - bor_offsetof(type, member)))
 
 
 /**
