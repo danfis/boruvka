@@ -55,7 +55,7 @@ struct bor_err {
 };
 typedef struct bor_err bor_err_t;
 
-#define BOR_ERR_INIT { 0 };
+#define BOR_ERR_INIT { 0 }
 
 /**
  * Initialize error structure.
