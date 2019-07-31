@@ -64,6 +64,7 @@ void borSegmArrDel(bor_segmarr_t *arr);
  * the array is expanded.
  */
 _bor_inline void *borSegmArrGet(bor_segmarr_t *arr, size_t i);
+_bor_inline void *borSegmArrConstGet(const bor_segmarr_t *arr, size_t i);
 
 /**
  * Allocates additional segments to have num_segs overall.
@@ -79,6 +80,15 @@ _bor_inline void *borSegmArrGet(bor_segmarr_t *arr, size_t i)
     if (segm_id >= arr->num_segm)
         borSegmArrExpandSegments(arr, segm_id + 1);
 
+    return &arr->segm[segm_id][offset];
+}
+
+_bor_inline void *borSegmArrConstGet(const bor_segmarr_t *arr, size_t i)
+{
+    size_t segm_id = i / arr->els_per_segm;
+    size_t offset  = (i % arr->els_per_segm) * arr->el_size;
+    if (segm_id >= arr->num_segm)
+        return NULL;
     return &arr->segm[segm_id][offset];
 }
 
