@@ -52,6 +52,9 @@ void borHashSetInit(bor_hashset_t *s,
                     bor_hashset_del_fn del_fn,
                     void *userdata);
 
+/**
+ * Initialize an empty set of {i,l,c}sets.
+ */
 void borHashSetInitISet(bor_hashset_t *s);
 void borHashSetInitLSet(bor_hashset_t *s);
 void borHashSetInitCSet(bor_hashset_t *s);
