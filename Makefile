@@ -74,6 +74,7 @@ OBJS += msg-schema
 OBJS += iset
 OBJS += lset
 OBJS += cset
+OBJS += hashset
 OBJS += ibucketq
 OBJS += lbucketq
 OBJS += pbucketq

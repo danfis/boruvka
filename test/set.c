@@ -4,6 +4,7 @@
 #include "boruvka/iset.h"
 #include "boruvka/lset.h"
 #include "boruvka/cset.h"
+#include "boruvka/hashset.h"
 
 bor_rand_t rnd;
 
@@ -165,4 +166,80 @@ TEST(testISet)
         testIntersection(6);
     for (int i = 0; i < 100; ++i)
         testIntersection(10);
+}
+
+TEST(testHashSet)
+{
+    BOR_ISET(iset);
+    bor_hashset_t hs;
+    int id, id2;
+
+    borHashSetInitISet(&hs);
+    BOR_ISET_SET(&iset, 1, 2, 3);
+    id = borHashSetAdd(&hs, &iset);
+    id2 = borHashSetAdd(&hs, &iset);
+    assertEquals(id, id2);
+    BOR_ISET_SET(&iset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &iset);
+    BOR_ISET_SET(&iset, 1, 3, 3, 8, 1, 9, 4);
+    id = borHashSetAdd(&hs, &iset);
+    assertEquals(hs.size, 3);
+    BOR_ISET_SET(&iset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &iset);
+    assertEquals(id, 1);
+    assertEquals(id, borHashSetFind(&hs, &iset));
+    const bor_iset_t *f = borHashSetGet(&hs, 1);
+    assertTrue(borISetEq(f, &iset));
+    assertTrue(f != &iset);
+
+    borHashSetFree(&hs);
+    borISetFree(&iset);
+
+
+    BOR_LSET(lset);
+
+    borHashSetInitLSet(&hs);
+    BOR_LSET_SET(&lset, 1, 2, 3);
+    id = borHashSetAdd(&hs, &lset);
+    id2 = borHashSetAdd(&hs, &lset);
+    assertEquals(id, id2);
+    BOR_LSET_SET(&lset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &lset);
+    BOR_LSET_SET(&lset, 1, 3, 3, 8, 1, 9, 4);
+    id = borHashSetAdd(&hs, &lset);
+    assertEquals(hs.size, 3);
+    BOR_LSET_SET(&lset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &lset);
+    assertEquals(id, 1);
+    assertEquals(id, borHashSetFind(&hs, &lset));
+    const bor_lset_t *g = borHashSetGet(&hs, 1);
+    assertTrue(borLSetEq(g, &lset));
+    assertTrue(g != &lset);
+
+    borHashSetFree(&hs);
+    borLSetFree(&lset);
+
+
+    BOR_CSET(cset);
+
+    borHashSetInitCSet(&hs);
+    BOR_CSET_SET(&cset, 1, 2, 3);
+    id = borHashSetAdd(&hs, &cset);
+    id2 = borHashSetAdd(&hs, &cset);
+    assertEquals(id, id2);
+    BOR_CSET_SET(&cset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &cset);
+    BOR_CSET_SET(&cset, 1, 3, 3, 8, 1, 9, 4);
+    id = borHashSetAdd(&hs, &cset);
+    assertEquals(hs.size, 3);
+    BOR_CSET_SET(&cset, 1, 8, -3);
+    id = borHashSetAdd(&hs, &cset);
+    assertEquals(id, 1);
+    assertEquals(id, borHashSetFind(&hs, &cset));
+    const bor_cset_t *h = borHashSetGet(&hs, 1);
+    assertTrue(borCSetEq(h, &cset));
+    assertTrue(h != &cset);
+
+    borHashSetFree(&hs);
+    borCSetFree(&cset);
 }
