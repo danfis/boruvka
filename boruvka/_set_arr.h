@@ -51,7 +51,7 @@ typedef struct bor_set bor_set_t;
 
 #define BOR_SET_SET(S, ...) \
     do { \
-        borISetEmpty(S); \
+        borSetEmpty(S); \
         BOR_SET_ADD((S), __VA_ARGS__); \
     } while (0)
 
