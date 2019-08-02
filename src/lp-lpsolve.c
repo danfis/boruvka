@@ -186,13 +186,25 @@ static int lpSolve(bor_lp_t *_lp, double *val, double *obj)
 
         return 0;
 
-    }else{
-        if (obj != NULL)
-            bzero(obj, sizeof(double) * get_Ncolumns(lp->lp));
-        if (val != NULL)
-            *val = 0.;
-        return -1;
+    }else if (ret == NUMFAILURE){
+        // FIXME: Sometimes "numerical failure" is encountered and running
+        // it once more helps, but I'm not sure why!
+        ret = solve(lp->lp);
+        if (ret == OPTIMAL || ret == SUBOPTIMAL){
+            if (val != NULL)
+                *val = get_objective(lp->lp);
+            if (obj != NULL)
+                get_variables(lp->lp, obj);
+
+            return 0;
+        }
     }
+
+    if (obj != NULL)
+        bzero(obj, sizeof(double) * get_Ncolumns(lp->lp));
+    if (val != NULL)
+        *val = 0.;
+    return -1;
 }
 
 static void lpWrite(bor_lp_t *_lp, const char *fn)
