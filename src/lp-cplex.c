@@ -234,23 +234,23 @@ static int solve(bor_lp_t *_lp, double *val, double *obj)
     int st;
 
     if (lp->mip){
-        st = CPXmipopt(lp->env, lp->lp);
+        if ((st = CPXmipopt(lp->env, lp->lp)) != 0)
+            cplexErr(lp, st, "Failed to optimize LP");
     }else{
-        st = CPXlpopt(lp->env, lp->lp);
+        if ((st = CPXlpopt(lp->env, lp->lp)) != 0)
+            cplexErr(lp, st, "Failed to optimize LP");
     }
-    if (st != 0)
-        cplexErr(lp, st, "Failed to optimize LP");
 
-    st = CPXsolution(lp->env, lp->lp, NULL, val, obj, NULL, NULL, NULL);
-    if (st == CPXERR_NO_SOLN){
+    st = CPXgetstat(lp->env, lp->lp);
+    if (st == CPX_STAT_OPTIMAL || st == CPXMIP_OPTIMAL){
+        st = CPXsolution(lp->env, lp->lp, NULL, val, obj, NULL, NULL, NULL);
+        if (st != 0)
+            cplexErr(lp, st, "Cannot retrieve solution");
+    }else{
         if (obj != NULL)
             bzero(obj, sizeof(double) * CPXgetnumcols(lp->env, lp->lp));
         if (val != NULL)
             *val = 0.;
-        return -1;
-
-    }else if (st != 0){
-        cplexErr(lp, st, "Cannot retrieve solution");
         return -1;
     }
     return 0;
