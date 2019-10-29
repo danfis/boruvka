@@ -242,11 +242,15 @@ static int solve(bor_lp_t *_lp, double *val, double *obj)
     }
 
     st = CPXgetstat(lp->env, lp->lp);
-    if (st == CPX_STAT_OPTIMAL || st == CPXMIP_OPTIMAL){
+    if (st == CPX_STAT_OPTIMAL
+            || st == CPX_STAT_OPTIMAL_INFEAS
+            || st == CPXMIP_OPTIMAL
+            || st == CPXMIP_OPTIMAL_TOL){
         st = CPXsolution(lp->env, lp->lp, NULL, val, obj, NULL, NULL, NULL);
         if (st != 0)
             cplexErr(lp, st, "Cannot retrieve solution");
     }else{
+        fprintf(stderr, "X: %d\n", st);
         if (obj != NULL)
             bzero(obj, sizeof(double) * CPXgetnumcols(lp->env, lp->lp));
         if (val != NULL)
