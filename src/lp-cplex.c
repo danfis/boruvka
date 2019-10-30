@@ -250,7 +250,6 @@ static int solve(bor_lp_t *_lp, double *val, double *obj)
         if (st != 0)
             cplexErr(lp, st, "Cannot retrieve solution");
     }else{
-        fprintf(stderr, "X: %d\n", st);
         if (obj != NULL)
             bzero(obj, sizeof(double) * CPXgetnumcols(lp->env, lp->lp));
         if (val != NULL)
