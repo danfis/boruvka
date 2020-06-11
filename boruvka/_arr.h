@@ -101,6 +101,11 @@ _bor_inline void borArrAdd(bor_arr_t *s, TYPE val);
 _bor_inline void borArrPrepend(bor_arr_t *s, TYPE val);
 
 /**
+ * Removes last element of the array.
+ */
+_bor_inline void borArrRmLast(bor_arr_t *a);
+
+/**
  * Returns true if the array are equal.
  */
 _bor_inline int borArrEq(const bor_arr_t *s1, const bor_arr_t *s2);
@@ -109,6 +114,11 @@ _bor_inline int borArrEq(const bor_arr_t *s1, const bor_arr_t *s2);
  * Compares arrays, return values are the same as by memcmp().
  */
 _bor_inline int borArrCmp(const bor_arr_t *s1, const bor_arr_t *s2);
+
+/**
+ * Append app after a.
+ */
+_bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app);
 
 
 
@@ -202,6 +212,12 @@ _bor_inline void borArrPrepend(bor_arr_t *a, TYPE val)
     a->arr[0] = val;
 }
 
+_bor_inline void borArrRmLast(bor_arr_t *a)
+{
+    if (a->size > 0)
+        --a->size;
+}
+
 _bor_inline int borArrEq(const bor_arr_t *s1, const bor_arr_t *s2)
 {
     return s1->size == s2->size
@@ -216,6 +232,13 @@ _bor_inline int borArrCmp(const bor_arr_t *s1, const bor_arr_t *s2)
     if (cmp == 0)
         return s1->size - s2->size;
     return cmp;
+}
+
+_bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app)
+{
+    borArrRealloc(a, a->size + app->size);
+    memcpy(a->arr + a->size, app->arr, sizeof(TYPE) * app->size);
+    a->size += app->size;
 }
 
 #ifdef __cplusplus
