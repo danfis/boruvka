@@ -187,6 +187,8 @@ void _borInfo(bor_err_t *err, const char *filename, int line, const char *func,
     if (!err->info_print_resources_disabled)
         fprintf(err->info_out, "[%.3fs %ldMB] ",
                 borTimerElapsedInSF(&err->info_timer), peak_mem);
+    for (int pi = 0; pi < err->info_prefix_size; ++pi)
+        fprintf(err->info_out, "%s", err->info_prefix[pi]);
     vfprintf(err->info_out, format, ap);
     va_end(ap);
     fprintf(err->info_out, "\n");
