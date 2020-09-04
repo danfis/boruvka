@@ -120,6 +120,11 @@ _bor_inline int borArrCmp(const bor_arr_t *s1, const bor_arr_t *s2);
  */
 _bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app);
 
+/**
+ * Removes and returns the last element of the array, but does not check the
+ * size!
+ */
+_bor_inline TYPE borArrPopLast(bor_arr_t *a);
 
 
 /**** INLINES: ****/
@@ -239,6 +244,11 @@ _bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app)
     borArrRealloc(a, a->size + app->size);
     memcpy(a->arr + a->size, app->arr, sizeof(TYPE) * app->size);
     a->size += app->size;
+}
+
+_bor_inline TYPE borArrPopLast(bor_arr_t *a)
+{
+    return a->arr[--a->size];
 }
 
 #ifdef __cplusplus
