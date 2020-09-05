@@ -149,9 +149,11 @@ typedef union _bor_real_uint_t bor_real_uint_t;
  * Swaps {a} and {b} using given temporary variable {tmp}.
  */
 #define BOR_SWAP(a, b, tmp) \
-    (tmp) = (a); \
-    (a) = (b); \
-    (b) = (tmp)
+    do { \
+        (tmp) = (a); \
+        (a) = (b); \
+        (b) = (tmp); \
+    } while (0)
 
 
 #ifdef BOR_SSE
