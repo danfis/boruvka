@@ -126,6 +126,11 @@ _bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app);
  */
 _bor_inline TYPE borArrPopLast(bor_arr_t *a);
 
+/**
+ * Reverse the array
+ */
+_bor_inline void borArrReverse(bor_arr_t *a);
+
 
 /**** INLINES: ****/
 _bor_inline void borArrInit(bor_arr_t *a)
@@ -249,6 +254,13 @@ _bor_inline void borArrAppendArr(bor_arr_t *a, const bor_arr_t *app)
 _bor_inline TYPE borArrPopLast(bor_arr_t *a)
 {
     return a->arr[--a->size];
+}
+
+_bor_inline void borArrReverse(bor_arr_t *a)
+{
+    TYPE tmp;
+    for (int i = 0; i < a->size / 2; ++i)
+        BOR_SWAP(a->arr[i], a->arr[a->size - i - 1], tmp);
 }
 
 #ifdef __cplusplus
