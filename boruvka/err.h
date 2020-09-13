@@ -32,7 +32,7 @@ extern "C" {
 /** Maximal depth of a trace */
 #define BOR_ERR_TRACE_DEPTH 32
 /** Maximal length of a prefix */
-#define BOR_ERR_PREFIX_MAXLEN 16
+#define BOR_ERR_PREFIX_MAXLEN 32
 /** Number of prefixes */
 #define BOR_ERR_PREFIX_NUM 8
 
@@ -156,7 +156,7 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
  * Push another prefix to the info stream
  */
 #define BOR_INFO_PREFIX_PUSH(E, prefix) \
-    if ((E)->info_prefix_size < BOR_ERR_PREFIX_NUM) \
+    if ((E) != NULL && (E)->info_prefix_size < BOR_ERR_PREFIX_NUM) \
         strncpy((E)->info_prefix[(E)->info_prefix_size++], \
                 prefix, BOR_ERR_PREFIX_MAXLEN)
 
@@ -164,7 +164,7 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
  * Same as BOR_INFO_PREFIX_PUSH() but allows formatting.
  */
 #define BOR_INFO_PREFIX_PUSHF(E, format, ...) \
-    if ((E)->info_prefix_size < BOR_ERR_PREFIX_NUM) \
+    if ((E) != NULL && (E)->info_prefix_size < BOR_ERR_PREFIX_NUM) \
         snprintf((E)->info_prefix[(E)->info_prefix_size++], \
                  BOR_ERR_PREFIX_MAXLEN, format, __VA_ARGS__)
 
@@ -172,7 +172,7 @@ void borErrInfoDisablePrintResources(bor_err_t *err, int disable);
  * Remove the last added prefix from the info stream.
  */
 #define BOR_INFO_PREFIX_POP(E) \
-    if ((E)->info_prefix_size > 0) \
+    if ((E) != NULL && (E)->info_prefix_size > 0) \
         --(E)->info_prefix_size
 
 /**
